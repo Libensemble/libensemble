@@ -77,5 +77,6 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
         # do 
         # simulation
         return(output_params)
+    """
     
 
