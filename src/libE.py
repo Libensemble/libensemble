@@ -63,7 +63,8 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
         - 
 
     exit_criteria: [dict] with possible fields:
-        - sim_eval_max: [int] 
+        - sim_eval_max: [int] Stop after this many evaluations.
+        - min_sim_f_val: [dbl] Stop when a value below this has been found.
 
 
 
@@ -78,4 +79,5 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
         # simulation
         return(output_params)
     
+    """
 
