@@ -10,12 +10,82 @@ libEnsemble manager routines
 from __future__ import division
 from __future__ import absolute_import
 
+from message_numbers import EVAL_TAG # tell worker to evaluate the point 
+from message_numbers import STOP_TAG # tell worker run is over
+
 import numpy as np
+import time
 
 def manager_main(comm, history, allocation_specs, sim_specs,
         failure_processing, exit_criteria):
 
-    H = initiate_H(sim_specs, exit_criteria)
+    H, H_ind = initiate_H(sim_specs, exit_criteria)
+
+    # Start out by giving all lead workers a point to evaluate
+    for w in allocation_specs['lead_worker_ranks']:
+        x_new = sim_specs['gen_f'](sim_specs['gen_f_params'])
+        H_ind, rand_ind = send_to_workers_and_update(comm, w, x_new, H, H_ind)
+
+    # while termination_test(H, H_ind, exit_criteria):
+
+    
+
+def send_to_workers_and_update(comm, w, x_new, H, H_ind):
+    """
+    Set up data and send to worker (w).
+    """
+    x_new = np.atleast_2d(x_new)
+    [batch_size,n] = x_new.shape
+
+    # Set up structure to send
+    data_to_send = np.zeros(batch_size, dtype=[('x_scaled','float',n),
+                                               ('pt_id','int')])
+    data_to_send['pt_id'] = range(H_ind, H_ind + batch_size)
+    data_to_send['x_true'] = x_new
+
+    # comm.send(obj=data_to_send, dest=w, tag=EVAL_TAG)
+
+    for i in range(0,batch_size):
+        update_history_x(H, H_ind, x_new[i], w)
+        H_ind += 1
+    
+    return H_ind
+
+
+def update_history_x(H, H_ind, x, lead_rank):
+    """
+    Updates the history (in place) when a new point has been given to be evaluated
+
+    Parameters
+    ----------
+    H: numpy structured array
+        History array storing rows for each point.
+    H_ind: integer
+        The new point
+    x: numpy array
+        Point to be evaluated
+    lead_rank: int
+        lead ranks for the evaluation of x 
+    """
+
+    H['x_true'][H_ind] = x
+    H['pt_id'][H_ind] = H_ind
+    H['given'][H_ind] = True
+    H['ranks'][H_ind] = lead_rank
+
+
+def termination_test(H, H_ind, exit_criteria):
+    """
+    Return False if the libEnsemble run should stop 
+    """
+
+    if (H_ind >= exit_criteria['sim_eval_max'] or 
+            min(H['f']) <= exit_criteria['min_sim_f_val'] or 
+            time.time() - H['given_time'][0] > exit_criteria['elapsed_clock_time']):
+        return False
+    else:
+        return True
+
 
 
 def initiate_H(sim_specs, exit_criteria):
@@ -28,9 +98,9 @@ def initiate_H(sim_specs, exit_criteria):
     H: numpy structured array
         History array storing rows for each point. Field names are below
 
-        | x_scaled            : Point in the unit cube
-        | x_true              : Point in the original domain
-        | pt_id               : Unique ID number for each point
+        | x_scaled            : Parameter values in the unit cube (if bounds)
+        | x_true              : Parameter values in the original domain
+        | pt_id               : Count of each each point
         | local_pt            : True if point is LocalOpt point                  
         | given_time          : Time point was given to a worker
         | lead_rank           : lead worker rank point was given to 
@@ -84,6 +154,8 @@ def initiate_H(sim_specs, exit_criteria):
     H['ind_of_better_s'] = -1
     H['pt_id'] = -1
     H['x_scaled'] = np.inf
+    H['x_true'] = np.inf
+    H['given_time'] = np.inf
     H['grad'] = np.nan
 
-    return H
+    return (H, 0)

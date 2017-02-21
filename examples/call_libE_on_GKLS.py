@@ -12,7 +12,7 @@ sys.path.append('../libensemble_applications/GKLS')
 from GKLS_obj import call_GKLS as obj_func
 
 
-def uniform_random_sample(x, params):
+def uniform_random_sample(params):
     ub = params['ub']
     lb = params['lb']
     n = len(lb)
@@ -35,20 +35,26 @@ sim_f_params = {'n': 2,
         'm': 1, 
         'lb': np.array([0,0]),
         'ub': np.array([1,1]),
-        'obj_params': {'number_of_minima': 10,
-            'problem_dimension': 1,
-            'problem_number': 1}}
+        'sim_data': {'number_of_minima': 10,
+                     'problem_dimension': 2,
+                     'problem_number': 2}}
 
-sim_specs = {'sim_f': obj_func,'sim_f_params': sim_f_params, 'gen_f': uniform_random_sample}
+sim_specs = {'sim_f': obj_func,
+        'sim_f_params': sim_f_params,
+        'gen_f': uniform_random_sample,
+        'gen_f_params': {'lb': np.array([0,0]),
+                         'ub': np.array([1,1])}
+        }
 
 failure_processing = {}
 
 exit_criteria = {'sim_eval_max': 10, # Stop after this many sim evaluations
         'min_sim_f_val': -0.5,       # Stop when sim value is less than this 
-        'elapsed_clock_time': 100,  # Don't start new sim evals after this much elapsed time
+        'elapsed_clock_time': 100,   # Don't start new sim evals after this much elapsed time (since first point given to worker)
         }
 
 
 
+np.random.seed(1)
 # Perform the run
 libE(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
