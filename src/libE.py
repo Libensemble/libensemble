@@ -23,6 +23,11 @@ Third (aspirational) tasks for libEnsemble:
 
 """
 
+from __future__ import division
+from __future__ import absolute_import
+
+from libE_manager import manager_main
+# from libE_worker import worker_main
 
 def libE(comm, history, allocation_specs, sim_specs, failure_processing,
         exit_criteria):
@@ -41,8 +46,9 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
         - ...
 
     allocation_specs: [dict]
-        - ranks
-        - machinefile
+        - manager_ranks: [python set of ints] 
+        - lead_worker_ranks: [python set of ints]
+        - machinefile:
 
     sim_specs: [dict of dicts] one dict for each simulation.
         Possible fields of a simulation's dict:
@@ -68,7 +74,6 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
 
 
 
-
     Possible sim_f API:
 
 
@@ -81,3 +86,15 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
     
     """
 
+    comm.Barrier()
+
+    if comm.Get_rank() in allocation_specs['manager_ranks']:
+        manager_main(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
+    elif comm.Get_rank() in allocation_specs['lead_worker_ranks']:
+        worker_main(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
+    else:
+        print("Rank: %d not manager, custodian, or worker" % comm.Get_rank())
+
+    comm.Barrier()
+
+    
