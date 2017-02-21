@@ -20,21 +20,28 @@ def uniform_random_sample(params):
     x = np.random.uniform(0,1,n)*(ub-lb)+lb
     return(x)
 
+def combine_fvec(F):
+    return(np.sum(F))
+
 
 
 
 ### Declare the run parameters/functions
-comm = MPI.COMM_WORLD
+c = {}
+c['comm'] = MPI.COMM_WORLD
+c['color'] = 0
 
 history = []
 
 allocation_specs = {'manager_ranks': set([0]), 
-        'lead_worker_ranks': set(range(2,comm.Get_size()+1))}
+        'lead_worker_ranks': set(range(1,c['comm'].Get_size()))}
 
 sim_f_params = {'n': 2, 
         'm': 1, 
+        'combine_func': combine_fvec,
         'lb': np.array([0,0]),
         'ub': np.array([1,1]),
+        'obj_dir': '../libensemble_applications/GKLS', # to be copied by each lead worker
         'sim_data': {'number_of_minima': 10,
                      'problem_dimension': 2,
                      'problem_number': 2}}
@@ -57,4 +64,4 @@ exit_criteria = {'sim_eval_max': 10, # Stop after this many sim evaluations
 
 np.random.seed(1)
 # Perform the run
-libE(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
+libE(c, history, allocation_specs, sim_specs, failure_processing, exit_criteria)

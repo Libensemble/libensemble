@@ -27,16 +27,17 @@ from __future__ import division
 from __future__ import absolute_import
 
 from libE_manager import manager_main
-# from libE_worker import worker_main
+from libE_worker import worker_main
 
-def libE(comm, history, allocation_specs, sim_specs, failure_processing,
+def libE(c, history, allocation_specs, sim_specs, failure_processing,
         exit_criteria):
 
     """ 
     Parameters
     ----------
 
-    comm: [mpi4py communicator] to be used by libE
+    c['comm']: [mpi4py communicator] to be used by libE
+    c['color']: [int] communicator color
 
 
     history: [numpy structured array] with fields matching those returned from libE
@@ -56,11 +57,11 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
         - sim_f_params: [dict] parameters for sim_f
             - n: [int] dimension of simulation parameters
             - m: [int] dimension of simulation output 
-            - lb: [n-by-1 array] lower bound on sim parameters
-            - ub: [n-by-1 array] upper bound on sim parameters
             - data: 
         - gen_f: [func] generates next points to be evaluated by a sim
         - gen_f_params: [dict] parameters for gen_f
+            - lb: [n-by-1 array] lower bound on sim parameters
+            - ub: [n-by-1 array] upper bound on sim parameters
 
         Possible fields of a local optimization's dict:
         - various tolerances and settings 
@@ -85,13 +86,14 @@ def libE(comm, history, allocation_specs, sim_specs, failure_processing,
         return(output_params)
     
     """
+    comm = c['comm']
 
     comm.Barrier()
 
     if comm.Get_rank() in allocation_specs['manager_ranks']:
         manager_main(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
     elif comm.Get_rank() in allocation_specs['lead_worker_ranks']:
-        worker_main(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
+        worker_main(c, allocation_specs, sim_specs, failure_processing)
     else:
         print("Rank: %d not manager, custodian, or worker" % comm.Get_rank())
 

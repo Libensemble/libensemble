@@ -58,7 +58,7 @@ def worker_main(c, allocation_specs, sim_specs, failure_processing):
         # Create and move into the worker directory if necessary
         if obj_dir is not None:
             # worker_dir = '/scratch/' + obj_dir + '_' + str(comm_color) + "_" + str(rank) 
-            worker_dir = obj_dir.split('/')[0] + '_' + str(comm_color) + "_" + str(rank) 
+            worker_dir = obj_dir.split('/')[-1] + '_' + str(comm_color) + "_" + str(rank) 
             if os.path.exists(worker_dir):
                 print("DELETING existing Worker directory.")
                 sys.stdout.flush()
@@ -120,37 +120,3 @@ def worker_main(c, allocation_specs, sim_specs, failure_processing):
     if obj_dir is not None:
         os.chdir(saved_dir)
         shutil.rmtree(worker_dir)
-
-# def form_comm_for_worker_ranks(comm, worker_ranks):
-#     """Create the communicator for the worker ranks in comm
-
-#     Parameters
-#     ----------
-#     comm: mpi4py communicator
-#         Initial communicator 
-#     worker_ranks: list
-#         Group of worker ranks to be included in the communicator
-
-#     Returns
-#     ----------
-#     new_comm: communicator
-#         New MPI intracommunicator for new_group
-#     new_group : MPI group
-#         New MPI Group
-#     """
-
-#     # Test that the worker_ranks are in comm
-
-#     # Form the communicator
-#     new_group = comm.Get_group().Incl(worker_ranks)
-#     new_comm = comm.Create_group(newgroup,tag=0) # Why do I need a tag?
-
-#     return new_comm, new_group 
-
-# def free_comm_for_worker_ranks(comm, group):
-#     """Free the communicator for the worker ranks in comm """
-#     comm.Free()
-#     group.Free()
-
-if __name__ == '__main__':
-    print("worker_aposmm.py module being called as main")
