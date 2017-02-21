@@ -84,6 +84,7 @@ def libE(c, history, allocation_specs, sim_specs, failure_processing,
         # do 
         # simulation
         return(output_params)
+    """
     
     """
     comm = c['comm']
