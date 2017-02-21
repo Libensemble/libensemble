@@ -40,13 +40,20 @@ def manager_main(comm, history, allocation_specs, sim_specs,
     while termination_test(H, H_ind, exit_criteria):
         data_received = comm.recv(buf=None, source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
 
-        sys.exit('a')
         if status.Get_source() in active_w:
             idle_w.add(status.Get_source())
             active_w.remove(status.Get_source())
             update_history_f(H, data_received, sim_params['combine_func'])
         else:
             sys.exit('Received from non-worker')
+
+        for w in sorted(idle_w):
+            x_new = sim_specs['gen_f'](sim_specs['gen_f_params'])
+            H_ind = send_to_workers_and_update(comm, w, x_new, H, H_ind, sim_params)
+            active_w.add(w)
+
+
+
 
     ### Receive from all active workers 
     for w in active_w:
@@ -56,6 +63,8 @@ def manager_main(comm, history, allocation_specs, sim_specs,
     ### Stop all workers 
     for w in allocation_specs['lead_worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
+
+    return(H[:H_ind])
 
 
 def update_history_f(H, data_received, combine_func): 

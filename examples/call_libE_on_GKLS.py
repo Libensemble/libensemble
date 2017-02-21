@@ -55,7 +55,7 @@ sim_specs = {'sim_f': obj_func,
 
 failure_processing = {}
 
-exit_criteria = {'sim_eval_max': 10, # Stop after this many sim evaluations
+exit_criteria = {'sim_eval_max': 1000, # Stop after this many sim evaluations
         'min_sim_f_val': -0.5,       # Stop when sim value is less than this 
         'elapsed_clock_time': 100,   # Don't start new sim evals after this much elapsed time (since first point given to worker)
         }
@@ -64,4 +64,4 @@ exit_criteria = {'sim_eval_max': 10, # Stop after this many sim evaluations
 
 np.random.seed(1)
 # Perform the run
-libE(c, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
+H = libE(c, history, allocation_specs, sim_specs, failure_processing, exit_criteria)

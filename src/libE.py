@@ -91,7 +91,9 @@ def libE(c, history, allocation_specs, sim_specs, failure_processing,
     comm.Barrier()
 
     if comm.Get_rank() in allocation_specs['manager_ranks']:
-        manager_main(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
+        H = manager_main(comm, history, allocation_specs, sim_specs, failure_processing, exit_criteria)
+        print(min(H['f']))
+        print(len(H['f']))
     elif comm.Get_rank() in allocation_specs['lead_worker_ranks']:
         worker_main(c, allocation_specs, sim_specs, failure_processing)
     else:
