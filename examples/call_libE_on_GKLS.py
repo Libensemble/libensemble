@@ -1,3 +1,12 @@
+# """
+# Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
+# problem. (You will need to run "make gkls_single" in libensemble/examples/GKLS/
+# before running this script with 
+
+# mpiexec -np 4 python3 call_libE_on_GKLS.py
+
+# """
+
 from __future__ import division
 from __future__ import absolute_import
 
@@ -8,7 +17,7 @@ import numpy as np
 sys.path.append('../src')
 from libE import libE
 
-sys.path.append('../libensemble_applications/GKLS')
+sys.path.append('./GKLS')
 from GKLS_obj import call_GKLS as obj_func
 
 
@@ -41,7 +50,7 @@ sim_f_params = {'n': 2,
         'combine_func': combine_fvec,
         'lb': np.array([0,0]),
         'ub': np.array([1,1]),
-        'obj_dir': '../libensemble_applications/GKLS', # to be copied by each lead worker
+        'obj_dir': './GKLS', # to be copied by each lead worker
         'sim_data': {'number_of_minima': 10,
                      'problem_dimension': 2,
                      'problem_number': 2}}

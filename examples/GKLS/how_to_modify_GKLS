@@ -1,0 +1,106 @@
+#! /bin/bash
+
+# open and enter the directory
+unzip GKLS_pdf_C_2014_09_29.zip
+cd Software
+
+# Comment out the source code that checks for GKLS_global_dist < 0.5*min_side.
+sed -i '268,270 s/^.*$/\/* & *\//' gkls.c # but this introduces end of line characters for some reason, so I just do it by hand.
+
+# Change line 45 of glks.c to
+if ((nf < 1) || (nf > 4000)) return GKLS_FUNC_NUMBER_ERROR;
+
+# Comment lines 100-103 and uncomment lines 105-108 and 110-113 of example.c
+
+# Add the following before line 109
+   for (i=0; i<GKLS_dim; i++) {
+     GKLS_domain_left[i]  = 0.0;
+     GKLS_domain_right[i] = 1.0; 
+   }
+  
+   GKLS_global_dist = sqrt(GKLS_dim)/2;
+
+# Add the following at line 27 (without quotes):
+"#include <math.h>"
+
+# Modify the code to print problem number, dimension, and number of minima to the output files. Change: 
+sprintf(filename,"lmin%03d",func_num);
+# to 
+sprintf(filename,"lmin_%d_%04d_%d",GKLS_dim,func_num,GKLS_num_minima);
+#and move that block of code outside of the "GKLS_dim=2" case.
+
+# Increase the accuracy of the lmin info: and move that block of code outside of the GKLS_dim==2 case
+fprintf(min_info,"%f ",GKLS_minima.local_min[i][j]);            
+fprintf(min_info,"%f\n",GKLS_minima.f[i]);                         
+# to 
+fprintf(min_info,"%17.16f ",GKLS_minima.local_min[i][j]); 
+fprintf(min_info,"%17.16f\n",GKLS_minima.f[i]);           
+
+# In example.c, add unsigned ints i2 and j2 to "cycle parameters". 8 lines down, increase filename length from 12 to 24
+
+# Put a for loop inside of example.c to generate local minima for 4000 instances for each dimension. So change: 
+GKLS_dim=2; to 
+for (i2=2; i2<=7; i2++){
+  GKLS_dim=i2; 
+  ....
+} // After GKLS_free();
+
+# And then change func_num <= 100 to func_num <= 4000
+
+# It is necessary to properly close all files within example.c, or else the 1020th time fails: Move
+fclose(min_info); 
+# outside of dim==2 case
+
+# Comment out the printing of the "test####" files containing grids of points for the 2d case. (Just slows down the generation of the problem files). Look for fprintf(fp,...), and comment them out
+# Change 
+  sprintf(filename,"test%03d.txt",func_num);
+# to
+  sprintf(filename,"test_%d_%04d_%d.txt",GKLS_dim,func_num,GKLS_num_minima);
+# so every problem gets its own file generated
+
+
+# Uncomment the "Second, create the file..." half of the code
+
+# Move the -lm option to the end of line 10 of the Makefile, then
+
+make
+./gkls
+
+# Use matlab to search and see which of the global minima are outside of the domain.
+>> find_nonfeasible.m
+# where 
+
+$ cat find_nonfeasible.m
+
+for n = 2:7
+    mins = 10;
+    nonfeas = [];
+    feas = [];
+    for i = 1:4000;
+        str = ['lmin_' int2str(n) '_' sprintf('%04d',i) '_' int2str(mins)];
+        A = load(str);
+        if any(any(A(:,1:end-1) < 0)) || any(any(A(:,1:end-1) > 1))
+            nonfeas = [nonfeas; i];
+%             delete(str);
+        else
+            feas = [feas; i];
+        end
+    end
+    dlmwrite(['nonfeas_' int2str(n) '_' int2str(mins)],nonfeas)
+    dlmwrite(['feas_' int2str(n) '_' int2str(mins)],feas)
+end
+
+# This produced files that contain the problem numbers that have all minima inside of the unit cube domain. So only benchmark on those problems.
+--------------------------------------------------------------------------
+# To create a file the does a single evaluation of a given gkls problem, look at the file single_feval.c 
+# Add the following lines to the Makefile:
+gkls_single : single_feval.o gkls.o rnd_gen.o
+  $(CC) $(CFLAGS) single_feval.o gkls.o rnd_gen.o -o gkls_single -lm 
+single_feval.o : gkls.h rnd_gen.h single_feval.c
+  $(CC) -I. $(CFLAGS) -c single_feval.c
+
+# and then run the following to evaluate the third problem in 2 dimensions with 10 minima at the rank=0 point x0000.in. Output is f0000.rank
+$ make gkls_single
+$ echo "0.5 0.5" > x0000.in   
+$ ./gkls_single -d 2 -n 10 -f 3 -r 0
+

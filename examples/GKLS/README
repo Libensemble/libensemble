@@ -1,0 +1,23 @@
+This calls an executable that evaluates a synthetic objective function. The
+function is a convex quadratic modified by polynomials to insert local minima
+with known locations. 
+
+1. The to-be-evaluated point is written to file.
+2. The simulation is called.
+3. The simulation writes the answer to file.
+4. The objective function is read in from file.
+
+
+First compile the executable by running 
+
+$ make gkls_single
+
+in this directory.
+
+Test points:
+
+>>> from GKLS_obj import call_GKLS
+>>> call_GKLS([0,0], {'problem_dimension': 2, 'problem_number': 1, 'number_of_minima':10})
+0.651893131110870327 
+>>> call_GKLS([1,1], {'problem_dimension': 2, 'problem_number': 1, 'number_of_minima':10})
+0.817253468540122152 

@@ -86,7 +86,6 @@ def libE(c, history, allocation_specs, sim_specs, failure_processing,
         return(output_params)
     """
     
-    """
     comm = c['comm']
 
     comm.Barrier()
