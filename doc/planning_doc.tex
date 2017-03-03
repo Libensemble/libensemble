@@ -1,0 +1,187 @@
+\documentclass{article}
+
+\usepackage{amsmath, amsfonts, amssymb, setspace, color, graphicx}%psfrag}%,pstool}
+\usepackage[american]{babel}
+\usepackage[normalem]{ulem} % For \sout
+\usepackage{fullpage}
+\everymath{\displaystyle}
+
+\newenvironment{allintypewriter}{\ttfamily}{\par}
+\newcommand{\jlnote}[1]{\textsf{{\color{blue}{ JL note:}   #1.} }\marginpar{{\textbf{Comment}}}}
+
+\title{LibEnsemble planning document}
+
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  This document will be an explicit plan of what will be developed in
+  LibEnsemble. Proper planning should help ensure that the code will be flexible
+  and easy to adjust in the future.
+
+  Current development considers a master and worker framework. 
+\end{abstract}
+
+\subsection{Master}
+\begin{itemize}
+  \item Generates inputs for calculations.
+    \begin{itemize}
+      \item If the calculation is a simulation, determine parameters to be
+        evaluated.
+      \item If the calculation is a local optimization run, give state
+        information for determining the next point in a run. 
+      \item If the calculation is deciding where to start a run, then give all
+        evaluated (and about-to-be-evaluated) points.
+    \end{itemize}
+  \item Launches calculations
+  \item Received output from calculations
+    \begin{itemize}
+      \item Possibly receive intermediate output
+    \end{itemize}
+  \item Coordinates concurrent simulations 
+    \begin{itemize}
+      \item Dynamic queue of pending simulations
+      \item Possibly monitor sims
+    \end{itemize}
+  \item Tracks history of calculations
+  \item Allocated resource to simulations 
+    \begin{itemize}
+      \item Possibly changes resources during calculations (or just simulations)
+    \end{itemize}
+  \item Tolerates failed calculations (or just simulations)
+    \begin{itemize}
+      \item Possibly without losing the resource when possible
+    \end{itemize}
+  \item Can exploit persistent data
+    \begin{itemize}
+      \item For example: checkpointing, meshes, iterative solvers
+    \end{itemize}
+  \item Can gracefully terminate calculations
+    \begin{itemize}
+      \item Possibly pause
+    \end{itemize}
+\end{itemize}
+
+If we are going to keep everything general, then perhaps we require a
+calculation-type-dependent user-defined function to be called before and after
+after every type of calculation.
+
+\subsection{Worker}
+\begin{itemize}
+  \item Performs the calculations given to it.
+\end{itemize}
+
+
+
+\section{API}
+
+\begin{allintypewriter}
+  libE(c, history, allocation\_specs, sim\_specs, failure\_processing,
+  exit\_criteria)\\
+
+
+
+  \begin{description}
+    \item[c]: [dictionary] 
+      \begin{description}
+        \item['comm']: [mpi4py communicator] to be used by libE
+        \item['color']: [int] communicator color
+      \end{description}
+
+    \item[history]: [numpy structured array] 
+      \begin{description}
+        \item[x]: parameters given to simulations
+        \item[f]: simulation value(s) at each x
+        \item[...]:
+        \item[...]:
+      \end{description}
+
+    \item[allocation\_specs]: [dict]
+      \begin{description}
+        \item[manager\_ranks]: [python set of ints] 
+        \item[lead\_worker\_ranks]: [python set of ints]
+        \item[machinefile]:
+      \end{description}
+
+    \item[sim\_specs]: [dict of dicts] one dict for each simulation.
+      \begin{description}
+        \item[sim\_f]: [func] that calls sim
+        \item[sim\_f\_params]: [dict] parameters for sim\_f
+        \item[n]: [int] dimension of simulation parameters
+        \item[m]: [int] dimension of simulation output 
+        \item[data]: 
+        \item[gen\_f]: [func] generates next points to be evaluated by a sim
+        \item[gen\_f\_params]: [dict] parameters for gen\_f
+        \item[lb]: [n-by-1 array] lower bound on sim parameters
+        \item[ub]: [n-by-1 array] upper bound on sim parameters
+      \end{description}
+      Possible fields of a local optimization's dict:
+      - various tolerances and settings 
+
+    \item[failure\_processing]: [dict]
+
+
+    \item[exit\_criteria]: [dict] with possible fields:
+      \begin{description}
+        \item[sim\_eval\_max]: [int] Stop after this many evaluations.
+        \item[min\_sim\_f\_val]: [dbl] Stop when a value below this has been found.
+      \end{description}
+  \end{description}
+\end{allintypewriter}
+        
+
+
+
+
+\section{List of items to develop.}
+
+
+
+\section{Target problems}
+There are many types of simulations that we can consider being run in LibEnsemble.
+
+\begin{enumerate}
+  \item A Python function
+    \begin{itemize}
+      \item We assume this is thread-safe.
+      \item Use cases: 
+        \begin{itemize}
+          \item ??
+        \end{itemize}
+    \end{itemize}
+  \item An executable
+    \begin{itemize}
+      \item May use MPI
+      \item Must perform evaluations in a manner that won't conflict with other evaluations. 
+        \begin{itemize}
+          \item Performs read/writes in the directory where it is run (or in a given directory)
+        \end{itemize}
+      \item Must be able to tell executable where to run.
+        \begin{itemize}
+          \item MCS compute node: Can specify CPU
+          \item Blues: Can specify machinefile
+          \item Mira: ?
+          \item Cray system: ?
+        \end{itemize}
+      \item Use case: 
+        \begin{itemize}
+          \item OPAL accelerator simulation [John Power and Nicole Neveu]
+          \item LAMMPS simulation [Simon Phillpot and Eugene Ragasa]
+        \end{itemize}
+    \end{itemize}
+  \item An MPI simulation with a subcommunicator
+    \begin{itemize}
+      \item Possibly stops regularly to communicate with master
+      \item Are there any capabilities gained by having considering a PETSc simulation? Easier to kill/monitor?
+      \item Use cases: 
+        \begin{itemize}
+          \item ??
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+
+
+
+% \bibliographystyle{plain}
+% \bibliography{article}
+\end{document} 

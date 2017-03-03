@@ -51,7 +51,7 @@ def manager_main(comm, history, allocation_specs, sim_specs,
             x_new = sim_specs['gen_f'](sim_specs['gen_f_params'])
             H_ind = send_to_workers_and_update(comm, w, x_new, H, H_ind, sim_params)
             active_w.add(w)
-
+            idle_w.remove(w)
 
 
 
@@ -272,4 +272,4 @@ def initiate_H(sim_specs, exit_criteria):
     H['given_time'] = np.inf
     H['grad'] = np.nan
 
-    return (H, 1)
+    return (H, 0)
