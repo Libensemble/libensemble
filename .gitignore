@@ -1,2 +1,5 @@
 *__pycache__
+*.aux
+*.log
+doc/*.pdf
 libensemble_applications/
