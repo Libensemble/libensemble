@@ -1,5 +1,7 @@
 *__pycache__
 *.aux
 *.log
-doc/*.pdf
+doc/*/*.pdf
 libensemble_applications/
+*.o
+examples/GKLS/GKLS_sim_src/gkls_single
