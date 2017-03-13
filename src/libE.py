@@ -29,8 +29,7 @@ from __future__ import absolute_import
 from libE_manager import manager_main
 from libE_worker import worker_main
 
-def libE(c, history, allocation_specs, sim_specs, failure_processing,
-        exit_criteria):
+def libE(c, history, allocation_specs, sim_specs, gen_specs, exit_criteria):
 
     """ 
     Parameters
@@ -58,21 +57,18 @@ def libE(c, history, allocation_specs, sim_specs, failure_processing,
             - n: [int] dimension of simulation parameters
             - m: [int] dimension of simulation output 
             - data: 
+    gen_specs: [dict]
         - gen_f: [func] generates next points to be evaluated by a sim
         - gen_f_params: [dict] parameters for gen_f
             - lb: [n-by-1 array] lower bound on sim parameters
             - ub: [n-by-1 array] upper bound on sim parameters
+        - gen_f_manager_flag: [bool] True if manager should (block and) do the gen_f calculations
 
-        Possible fields of a local optimization's dict:
-        - various tolerances and settings 
-       
-    failure_processing: [dict]
-        - 
+    failure_processing: [dict] (to be developed)
 
     exit_criteria: [dict] with possible fields:
         - sim_eval_max: [int] Stop after this many evaluations.
         - min_sim_f_val: [dbl] Stop when a value below this has been found.
-
 
 
     Possible sim_f API:

@@ -38,7 +38,14 @@ def manager_main(comm, history, allocation_specs, sim_specs,
 
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
-        data_received = comm.recv(buf=None, source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+
+        checked_all_flag = False
+        while not checked_all_flag:
+            for w in active_w: 
+                if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
+                    data_received = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                    idle_w.add(status.Get_source())
+                    active_w.remove(status.Get_source())
 
         if status.Get_source() in active_w:
             idle_w.add(status.Get_source())
@@ -64,8 +71,18 @@ def manager_main(comm, history, allocation_specs, sim_specs,
     for w in allocation_specs['lead_worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
 
-    return(H[:H_ind])
+    return (H[:H_ind])
 
+def update_active_and_queue(H,Q):
+    """ Decide if active work should be continues and decide how the queue
+    should be ordered
+    Parameters
+    ----------
+    H: numpy structured array
+        History array storing rows for each point.
+    Q: Queue of points to be evaluated (and their resources)
+    """
+    return (Q)
 
 def update_history_f(H, data_received, combine_func): 
     """

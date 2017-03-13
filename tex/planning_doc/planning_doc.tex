@@ -119,23 +119,23 @@ after every type of calculation.
             Active simulation and queue update function $\mathtt{update\_active\_and\_queue}$ \newline
             Function to decide resources to be used for each sim evaluation $\mathtt{decide\_resources}$
   }
-  Initialize history $H$, active calculations $A$, queue $Q$
+  Initialize history $H$ (past and current calculations)\\
+  Initialize queue $Q$ (values and resources for to-be-evaluated points) 
 
   \SetKw{break}{break}
   \For{$i \in \left\{ 1,\ldots,c \right\}$}{
-  Initialize worker $i$ on $\mathtt{gen}(H,A,Q)$\\
+  Initialize worker $i$ on $\mathtt{gen}(H,Q)$\\
   }
   
-  \While{$\mathtt{term\_test}(H,A,Q)$}
+  \While{$\mathtt{term\_test}(H,Q)$}
   {
-    $(A,Q) = \mathtt{update\_active\_and\_queue}(H,A,Q)$ \Comment*[r]{blocks manager}
     \While{Any worker is waiting to return $\mathtt{sim}$ or $\mathtt{gen}$ results} 
     {
       Receive from all workers with $\mathtt{sim}$ and $\mathtt{gen}$ work\\
-      $(A,Q) = \mathtt{update\_active\_and\_queue}(H,A,Q)$ \Comment*[r]{blocks manager}
     }
 
-    $Q = \mathtt{decide\_resources}(H,A,Q)$
+    $(H,Q) = \mathtt{update\_active\_and\_queue}(H,Q)$\Comment*[r]{blocks manager}
+    $Q = \mathtt{decide\_resources}(H,Q)$\Comment*[r]{blocks manager}
 
     \For{Each idle worker $i$}
     {
@@ -143,11 +143,12 @@ after every type of calculation.
       {
       Tell worker $i$ to evaluate $\mathtt{sim_j}$ at point(s) from $Q$ with appropriate resources
       }{
-      Begin worker $i$ on $\mathtt{gen}(H,A,Q)$\\
+      Begin worker $i$ on $\mathtt{gen}(H,Q)$\\
       }
-
     }
   }
+  Receive from (kill?) active workers\\ 
+  Terminate all workers
   \caption{LibEnsemble manager logic \label{alg:manager}} 
 \end{algorithm}
 
