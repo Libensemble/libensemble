@@ -111,7 +111,7 @@ after every type of calculation.
   \SetKwInOut{Output}{output}
   \SetKw{true}{true}
   \SetKw{false}{false}
-  \Input{Simulations $\mathtt{sim_1,\ldots,sim_{n_s}}$, \newline
+  \Input{Simulations $\mathtt{sim}_1,\ldots,\mathtt{sim}_{n_s}$, \newline
          Point generating function $\mathtt{gen}$, \newline
          $c$ workers
   }
@@ -122,7 +122,6 @@ after every type of calculation.
   Initialize history $H$ (past and current calculations)\\
   Initialize queue $Q$ (values and resources for to-be-evaluated points) 
 
-  \SetKw{break}{break}
   \For{$i \in \left\{ 1,\ldots,c \right\}$}{
   Initialize worker $i$ on $\mathtt{gen}(H,Q)$\\
   }
@@ -141,7 +140,7 @@ after every type of calculation.
     {
       \eIf{ $Q \neq \emptyset$}
       {
-      Tell worker $i$ to evaluate $\mathtt{sim_j}$ at point(s) from $Q$ with appropriate resources
+      Tell worker $i$ to evaluate $\mathtt{sim}_j$ at point(s) from $Q$ with appropriate resources
       }{
       Begin worker $i$ on $\mathtt{gen}(H,Q)$\\
       }
@@ -152,6 +151,42 @@ after every type of calculation.
   \caption{LibEnsemble manager logic \label{alg:manager}} 
 \end{algorithm}
 
+\newpage
+\LinesNumbered
+\begin{algorithm}[t] % Makes font smaller
+% \begin{algorithm}[H] % Makes font larger
+  \SetKwComment{Comment}{$\triangleright$\ }{}
+  \SetAlgoNlRelativeSize{-5}
+  \SetKwInOut{Input}{input}
+  \SetKwInOut{Optional}{optional}
+  \SetKwInOut{Output}{output}
+  \SetKw{true}{true}
+  \SetKw{false}{false}
+  \Input{Simulation parameters $\mathtt{sim}_1,\ldots,\mathtt{sim}_{n_s}$, \newline
+         generating function $\mathtt{gen}$, \newline
+         $c$ workers
+  }
+  % \Optional{Termination test $\mathtt{term\_test}$ \newline
+  %           Active simulation and queue update function $\mathtt{update\_active\_and\_queue}$ \newline
+  %           Function to decide resources to be used for each sim evaluation $\mathtt{decide\_resources}$
+  % }
+
+  \SetKw{break}{break}
+  \SetKw{break}{break}
+  Initialize own simulation directory (if necessary) and generating directory (if necessary)\\
+  \While{\true}
+  {
+    $D =$ Receive from manager \\ 
+    \If{$D.tag == \mathtt{stop\_tag}$ }{\break}
+
+    \If{$D['form_subcomm']$ is nonempty}{Form subcommunicator $sc$ with other workers}
+
+    $D['calc_f'](sc, D['calc_params'])$
+    
+  }
+  Terminate all workers
+  \caption{Each LibEnsemble worker's logic \label{alg:manager}} 
+\end{algorithm}
 
 \section{API}
 

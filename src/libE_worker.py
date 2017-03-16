@@ -22,7 +22,6 @@ def worker_main(c, allocation_specs, sim_specs, failure_processing):
     comm: mpi4py communicator used to communicate with manager
     sim_specs: information on running the simulation 
 
-
     If obj_dir is not given, then it it assumed that no files are written/read
     out that can conflict with concurrent evaluations of sim_f. 
 
@@ -46,7 +45,6 @@ def worker_main(c, allocation_specs, sim_specs, failure_processing):
         sim_data = sim_specs['sim_f_params']['sim_data']
     else:
         sim_data = None
-
 
 
     # size = comm.Get_size()
