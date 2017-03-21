@@ -179,9 +179,9 @@ after every type of calculation.
     $D =$ Receive from manager \\ 
     \If{$D.tag == \mathtt{stop\_tag}$ }{\break}
 
-    \If{$D['form_subcomm']$ is nonempty}{Form subcommunicator $sc$ with other workers}
+    \If{$D.form\_subcomm$ is nonempty}{Form subcommunicator $sc$ with other workers}
 
-    $D['calc_f'](sc, D['calc_params'])$
+    $D.calc\_f(sc, D.calc\_params)$
     
   }
   Terminate all workers
