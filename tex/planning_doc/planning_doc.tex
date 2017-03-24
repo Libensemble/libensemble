@@ -182,7 +182,7 @@ after every type of calculation.
   \caption{Each LibEnsemble worker's logic \label{alg:manager}} 
 \end{algorithm}
 
-\section{API}
+\section{LibEnsemble API}
 
 \begin{allintypewriter}
   libE(c, history, allocation\_specs, sim\_specs, failure\_processing,
@@ -199,7 +199,7 @@ after every type of calculation.
 
     \item[history]: [numpy structured array] 
       \begin{description}
-        \item[x]: parameters given to simulations
+        \item[x]: parameters given to simulation(s)
         \item[f]: simulation value(s) at each x
         \item[...]:
         \item[...]:
@@ -208,27 +208,28 @@ after every type of calculation.
     \item[allocation\_specs]: [dict]
       \begin{description}
         \item[manager\_ranks]: [python set of ints] 
-        \item[lead\_worker\_ranks]: [python set of ints]
+        \item[worker\_ranks]: [python set of ints]
         \item[machinefile]:
       \end{description}
 
     \item[sim\_specs]: [dict of dicts] one dict for each simulation.
       \begin{description}
-        \item[sim\_f]: [func] that calls sim
-        \item[sim\_f\_params]: [dict] parameters for sim\_f
-        \item[n]: [int] dimension of simulation parameters
-        \item[m]: [int] dimension of simulation output 
-        \item[data]: 
+        \item[sim\_f]: [func] that calls sim(s)
+        \item[sim\_f\_params]: [dict] parameters for each sim\_f
+        \item[n]: [int] dimension of simulation(s) parameters
+        \item[m]: [int] dimension of simulation(s) output 
+      \end{description}
+
+    \item[gen\_specs]
+      \begin{description}
         \item[gen\_f]: [func] generates next points to be evaluated by a sim
         \item[gen\_f\_params]: [dict] parameters for gen\_f
         \item[lb]: [n-by-1 array] lower bound on sim parameters
         \item[ub]: [n-by-1 array] upper bound on sim parameters
+        \item[local\_opt\_params]:  
       \end{description}
-      Possible fields of a local optimization's dict:
-      - various tolerances and settings 
 
     \item[failure\_processing]: [dict]
-
 
     \item[exit\_criteria]: [dict] with possible fields:
       \begin{description}
@@ -240,6 +241,21 @@ after every type of calculation.
         
 
 
+\section{LibEnsemble API}
+Each calculation (currently simulations and generating functions) must have the following API:
+
+\begin{allintypewriter}
+  calc\_f(params, [allocation], [failure\_and\_monitor], [sub\_comm] )\\
+
+  \begin{description}
+    \item[params]: [struct] information needed to perform the calculation
+    \item[allocation]: [optional] [struct] information about where the calculation should be be performed (e.g., node(s) where a simulation should be run)
+    \item[failure\_and\_monitor]: [optional] [handle] for manager to monitor calculation
+    \item[sub\_comm]: [optional] subcommunicator for worker(s) to perform calculation
+  \end{description} 
+\end{allintypewriter}
+
+If the calculation is a simulation, the output should be 
 
 
 \section{List of items to develop.}
