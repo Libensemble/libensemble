@@ -13,7 +13,6 @@
 
 \title{LibEnsemble planning document}
 
-
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -23,10 +22,6 @@
 
   Current development considers a manager and worker framework. 
 \end{abstract}
-\section{Questions}
-\begin{itemize}
-  \item How many resources to give to $\mathtt{gen}$?
-\end{itemize}
 
 In order to ensure applicability to a variety of use cases, 
 LibEnsemble will coordinate many different types of calculations. Examples of
@@ -95,6 +90,16 @@ after every type of calculation.
 \subsection{Worker}
 \begin{itemize}
   \item Performs the calculations given to it.
+  \item An undivisible unit (though many workers may combine to perform one task). Examples:
+    \begin{itemize}
+      \item If the simulation is an MPI executable, one worker may call 
+        \begin{center}
+          \texttt{mpiexec -np 32 -machinefile two\_nodes a.out}
+        \end{center}
+      \item If the simulation accepts an MPI subcommunicator, many workers may
+        form a subcommunicator, and all are involved in the simulation
+        evaluation (and one worker will report back to the manager).
+    \end{itemize}
 \end{itemize}
 
 
@@ -122,10 +127,6 @@ after every type of calculation.
   Initialize history $H$ (past and current calculations)\\
   Initialize queue $Q$ (values and resources for to-be-evaluated points) 
 
-  \For{$i \in \left\{ 1,\ldots,c \right\}$}{
-  Initialize worker $i$ on $\mathtt{gen}(H,Q)$\\
-  }
-  
   \While{$\mathtt{term\_test}(H,Q)$}
   {
     \While{Any worker is waiting to return $\mathtt{sim}$ or $\mathtt{gen}$ results} 
@@ -134,11 +135,11 @@ after every type of calculation.
     }
 
     $(H,Q) = \mathtt{update\_active\_and\_queue}(H,Q)$\Comment*[r]{blocks manager}
-    $Q = \mathtt{decide\_resources}(H,Q)$\Comment*[r]{blocks manager}
+    $(W_s, W_g, Q) = \mathtt{decide\_resources}(H,Q)$\Comment*[r]{blocks manager}
 
     \For{Each idle worker $i$}
     {
-      \eIf{ $Q \neq \emptyset$}
+      \eIf{ worker $i \in W_s$}
       {
       Tell worker $i$ to evaluate $\mathtt{sim}_j$ at point(s) from $Q$ with appropriate resources
       }{
@@ -158,22 +159,12 @@ after every type of calculation.
   \SetKwComment{Comment}{$\triangleright$\ }{}
   \SetAlgoNlRelativeSize{-5}
   \SetKwInOut{Input}{input}
-  \SetKwInOut{Optional}{optional}
-  \SetKwInOut{Output}{output}
   \SetKw{true}{true}
   \SetKw{false}{false}
-  \Input{Simulation parameters $\mathtt{sim}_1,\ldots,\mathtt{sim}_{n_s}$, \newline
-         generating function $\mathtt{gen}$, \newline
-         $c$ workers
-  }
-  % \Optional{Termination test $\mathtt{term\_test}$ \newline
-  %           Active simulation and queue update function $\mathtt{update\_active\_and\_queue}$ \newline
-  %           Function to decide resources to be used for each sim evaluation $\mathtt{decide\_resources}$
-  % }
+  \SetKw{none}{none}
+  \Input{\none}
 
   \SetKw{break}{break}
-  \SetKw{break}{break}
-  Initialize own simulation directory (if necessary) and generating directory (if necessary)\\
   \While{\true}
   {
     $D =$ Receive from manager \\ 
@@ -181,10 +172,13 @@ after every type of calculation.
 
     \If{$D.form\_subcomm$ is nonempty}{Form subcommunicator $sc$ with other workers}
 
-    $D.calc\_f(sc, D.calc\_params)$
+    \If{Necessary parts of calculation are not initialized}{(Collectively) initialize}
+
+    $O = D.calc\_f(sc, D.calc\_params)$
+
+    \If{First element in subcommunicator $sc$}{Report $O$ to manager}
     
   }
-  Terminate all workers
   \caption{Each LibEnsemble worker's logic \label{alg:manager}} 
 \end{algorithm}
 
