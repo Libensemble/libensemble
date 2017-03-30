@@ -39,6 +39,8 @@ def worker_main(c):
 
     while 1:
         data_in = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        print(data_in)
+
         if status.Get_tag() == STOP_TAG: break
 
         if len(data_in['form_subcomm']):

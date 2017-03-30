@@ -20,19 +20,6 @@ from libE import libE
 sys.path.append('./GKLS_sim_src')
 from GKLS_obj import call_GKLS as obj_func
 
-
-def uniform_random_sample(params):
-    ub = params['ub']
-    lb = params['lb']
-    n = len(lb)
-
-    x = np.random.uniform(0,1,n)*(ub-lb)+lb
-    return(x)
-
-def combine_fvec(F):
-    return(np.sum(F))
-
-
 ### Declare the run parameters/functions
 c = {}
 c['comm'] = MPI.COMM_WORLD
@@ -44,31 +31,42 @@ allocation_specs = {'manager_ranks': set([0]),
 
 sim_specs = {'f': [obj_func],
              'in': ['x'],
-             'out': [('fvec','float',3),
+             'out': [('fvec','float',214),
                      ('f','float'),
-                    ],
-             'params': {'number_of_minima': 10,
-                        'problem_dimension': 2,
-                        'problem_number': 2,
-                        'combine_component_func': combine_fvec,
-                        'obj_dir': './GKLS'}, # to be copied by each worker 
+                     ('worker_start_time','float'), 
+                     ('worker_end_time','float'), 
+                     ('Jacobian','float',(3,214)),
+                     ],
+             'params': {'combine_component_func': np.linalg.norm,
+                        'obj_dir': './dir'}, # to be copied by each worker 
              }
 
-gen_specs = {'f': uniform_random_sample,
-             'in': [],
+gen_specs = {'f': aposmm_logic,
+             'in': ['x', 'f', 'local_pt', 'dist_to_unit_bounds', 'dist_to_better_l', 
+                    'dist_to_better_s', 'ind_of_better_l', 'ind_of_better_s', 'started_run', 
+                    'active', 'local_min', ],
              'out': [('x','float',2),
                      ('priority','float'),
                      ('run_number','int'),
-                    ],
+                     ('local_pt','bool')
+                     ('dist_to_unit_bounds','float'),
+                     ('dist_to_better_l','float'),
+                     ('dist_to_better_s','float'),
+                     ('ind_of_better_l','int'),
+                     ('ind_of_better_s','int'),
+                     ('started_run','bool'),
+                     ('active','bool')
+                     ('local_min','bool')
+                     ],
              'params': {'lb': np.array([0,0]),
-                        'ub': np.array([1,1])},
+                        'ub': np.array([1,1]),
+                        'initial_sample': 10,
+                        },
              }
 
 failure_processing = {}
 
-exit_criteria = {'sim_eval_max': 10,   # must be provided
-                 'min_sim_f_val': -0.5,    
-                 'elapsed_clock_time': 100,
+exit_criteria = {'sim_eval_max': 20, # must be provided
                   }
 
 np.random.seed(1)

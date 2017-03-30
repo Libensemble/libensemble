@@ -200,16 +200,16 @@ after every type of calculation.
 
     \item[allocation\_specs]: [dict]
       \begin{description}
-        \item[manager\_ranks]: [python set of ints] 
-        \item[worker\_ranks]: [python set of ints]
+        \item[manager\_ranks]: [set of ints] 
+        \item[worker\_ranks]: [set of ints]
         \item[machinefile]:
       \end{description}
 
     \item[sim\_specs]: [dict] 
       \begin{description}
-        \item[in]: [list] string keys that sim wants from history (assumed common to all sims)
-        \item[out]: [dict] string keys and integer/tuple sizes of sim outputs (assumed common to all sims)
         \item[f]: [list of funcs] that calls each sim(s)
+        \item[in]: [list] string keys that sim wants from history (assumed common to all sims)
+        \item[out]: [list of tuples] (string keys, type, [size>1] sim outputs (assumed common to all sims)
         \item[params]: [list of dicts] parameters for each f
       \end{description}
 
@@ -217,7 +217,7 @@ after every type of calculation.
       \begin{description}
         \item[f]: [func] generates points to be evaluated by a sim
         \item[in]: [list] string keys that gen wants from history
-        \item[out]: [dict] string keys and integer/tuple sizes of gen outputs
+        \item[out]: [list of tuples] (string keys, type, [size>1]) of gen outputs
         \item[params]: [dict] additional parameters for gen\_f. 
           % E.g.: 
           % \begin{itemize}
@@ -262,9 +262,11 @@ The \texttt{gen} calculations must have the API:
 \end{allintypewriter}
 
 \clearpage
-\subsection{Example of calling function}
-\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=36]{../../examples/GKLS/call_libE_on_GKLS.py}
+\subsection{Example of calling functions}
+\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=36]{../../examples/GKLS_and_uniform_random_sample/call_libE_on_GKLS.py}
 
+\clearpage
+\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=23]{../../examples/chwirut_and_multiple_pounders/call_libE_on_chwirut.py}
 
 \clearpage
 \section{Target problems}
@@ -336,7 +338,7 @@ In order to guide the initial development of LibEnsemble, we will focus on suppo
     \bigskip
   \item 
     \begin{description}
-      \item[Objective:] chiwrt\{1,2\}.c 
+      \item[Objective:] chwirut\{1,2\}.c 
       \item[Generating:] Single TAO/POUNDERS run from 1 starting point. One simulation for each residual. Residuals obtained concurrently.
       \item[Functionality:] \
         \begin{itemize}
@@ -346,7 +348,7 @@ In order to guide the initial development of LibEnsemble, we will focus on suppo
     \bigskip
   \item 
     \begin{description}
-      \item[Objective:] chiwrt\{1,2\}.c
+      \item[Objective:] chwirut\{1,2\}.c
       \item[Generating:] Multiple POUNDERS runs from $K$ starting points.
       \item[Functionality:] \
         \begin{itemize}
@@ -376,7 +378,7 @@ In order to guide the initial development of LibEnsemble, we will focus on suppo
     \bigskip
   \item 
     \begin{description}
-      \item[Objective:] chiwrt\{1,2\}.c with stochastic noise on each residual
+      \item[Objective:] chwirut\{1,2\}.c with stochastic noise on each residual
       \item[Generating:] POUNDERS using sample mean with the number of replications determined by iteration number. 
       \item[Functionality:] \
         \begin{itemize}

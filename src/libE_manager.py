@@ -1,6 +1,5 @@
 """
-    import IPython
-    IPython.embed()
+    import IPython; IPython.embed()
 libEnsemble manager routines
 ====================================================
 
@@ -20,47 +19,35 @@ from scipy import spatial
 
 import time,sys
 
-def manager_main(comm, history, allocation_specs, sim_specs,
+from priority_queue import PriorityQueue
+
+def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria):
 
     status = MPI.Status()
-    sim_params = sim_specs['sim_f_params']
 
-    H, H_ind = initiate_H(sim_specs, exit_criteria)
+    H, H_ind = initiate_H(sim_specs, gen_specs, exit_criteria)
 
-    ### Start out by giving all lead workers a point to evaluate
-    for w in allocation_specs['lead_worker_ranks']:
-        x_new = sim_specs['gen_f'](sim_specs['gen_f_params'])
-        H_ind = send_to_workers_and_update(comm, w, x_new, H, H_ind, sim_params)
+    import IPython; IPython.embed()
 
-    idle_w = set([])
-    active_w = allocation_specs['lead_worker_ranks'].copy()
+    Q = PriorityQueue(np.empty((0,sim_specs['n'])), np.empty(0), np.empty(0)) 
+
+    idle_w = allocation_specs['worker_ranks'].copy()
+    active_w = set([])
 
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
 
-        checked_all_flag = False
-        while not checked_all_flag:
-            for w in active_w: 
-                if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
-                    data_received = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                    idle_w.add(status.Get_source())
-                    active_w.remove(status.Get_source())
+        Q, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, Q)
 
-        if status.Get_source() in active_w:
-            idle_w.add(status.Get_source())
-            active_w.remove(status.Get_source())
-            update_history_f(H, data_received, sim_params['combine_func'])
-        else:
-            sys.exit('Received from non-worker')
+        Q = update_active_and_queue(active_w, idle_w, H, Q)
 
-        for w in sorted(idle_w):
-            x_new = sim_specs['gen_f'](sim_specs['gen_f_params'])
-            H_ind = send_to_workers_and_update(comm, w, x_new, H, H_ind, sim_params)
+        Work, Q, H_ind = decide_work_and_resources(active_w, idle_w, H, H_ind, Q, sim_specs, gen_specs)
+
+        for w in Work:
+            comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
             active_w.add(w)
             idle_w.remove(w)
-
-
 
     ### Receive from all active workers 
     for w in active_w:
@@ -68,23 +55,73 @@ def manager_main(comm, history, allocation_specs, sim_specs,
         update_history_f(H, data_received, sim_params['combine_func'])
 
     ### Stop all workers 
-    for w in allocation_specs['lead_worker_ranks']:
+    for w in allocation_specs['worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
 
-    return (H[:H_ind])
+    return H[:H_ind]
 
-def update_active_and_queue(H,Q):
-    """ Decide if active work should be continues and decide how the queue
-    should be ordered
+
+def receive_from_sim_and_gen(comm, active_w, idle_w, H, Q):
+    status = MPI.Status()
+    new_stuff = True
+
+    while new_stuff:
+        new_stuff = False
+        for w in active_w: 
+            if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
+                data_received = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                idle_w.add(status.Get_source())
+                active_w.remove(status.Get_source())
+
+                if data_received['calc_type'] == 'sim':
+                    update_history_f(H, data_received)
+                elif data_received['calc_type'] == 'gen':
+                    Q.add_to_queue(data_received['calc_out'])
+
+                new_stuff = True
+
+    return active_w, idle_w
+
+def decide_work_and_resources(active_w, idle_w, H, H_ind, Q, sim_specs, gen_specs):
+    """ Decide what workers should be given
+    """
+
+    Work = {}
+
+    for i in idle_w:
+        if len(Q):
+            v = Q.get_all_from_highest_priority_run()
+            Work[i] = {'calc_f': sim_specs['f'], 
+                    'calc_params': v[0], 
+                    'form_subcomm': [], 
+                    'calc_dir': sim_specs['obj_dir'],
+                    'calc_type': 'sim'}
+
+            H_ind = update_history_x(H, H_ind, v[0], w, sim_specs['params'])
+
+        else:
+            Work[i] = {'calc_f': gen_specs['f'], 
+                    'calc_params': gen_specs['params'], 
+                    'form_subcomm': [], 
+                    'calc_dir': '',
+                    'calc_type': 'gen'
+                    }
+
+    return Work, Q, H_ind
+
+def update_active_and_queue(active_w, idle_w, H, Q):
+    """ Decide if active work should be continued and the queue order
+
     Parameters
     ----------
     H: numpy structured array
         History array storing rows for each point.
     Q: Queue of points to be evaluated (and their resources)
     """
-    return (Q)
 
-def update_history_f(H, data_received, combine_func): 
+    return Q
+
+def update_history_f(H, data_received): 
     """
     Updates the history (in place) after a point has been evaluated
 
@@ -116,7 +153,7 @@ def update_history_f(H, data_received, combine_func):
                 "Worker-returned x-value different than History x-value"
 
         H['returned'][new_pt] = True
-        H['f'][new_pt] = combine_func(data['f_vec'])
+        H['f'][new_pt] = data['f']
         H['f_vec'][new_pt] = data['f_vec']
         H['grad'][new_pt] = data['grad']
         H['worker_start_time'][new_pt] = data['worker_start_time']
@@ -156,29 +193,10 @@ def update_history_f(H, data_received, combine_func):
 
     
 
-def send_to_workers_and_update(comm, w, x_new, H, H_ind, sim_f_params):
-    """
-    Set up data and send to worker (w).
-    """
-    x_new = np.atleast_2d(x_new)
-    batch_size, n = x_new.shape
-
-    # Set up structure to send
-    data_to_send = np.zeros(batch_size, dtype=[('x_true','float',n),
-                                               ('pt_id','int')])
-    data_to_send['pt_id'] = range(H_ind, H_ind + batch_size)
-    data_to_send['x_true'] = x_new
-
-    comm.send(obj=data_to_send, dest=w, tag=EVAL_TAG)
-
-    for i in range(0,batch_size):
-        update_history_x(H, H_ind, x_new[i], w, sim_f_params)
-        H_ind += 1
-    
-    return H_ind
 
 
-def update_history_x(H, H_ind, x, lead_rank, sim_f_params):
+
+def update_history_x(H, H_ind, X, lead_rank, sim_f_params):
     """
     Updates the history (in place) when a new point has been given to be evaluated
 
@@ -188,19 +206,24 @@ def update_history_x(H, H_ind, x, lead_rank, sim_f_params):
         History array storing rows for each point.
     H_ind: integer
         The new point
-    x: numpy array
-        Point to be evaluated
+    X: numpy array
+        Points to be evaluated
     lead_rank: int
         lead ranks for the evaluation of x 
     """
 
-    H['x_scaled'][H_ind] =  (x - sim_f_params['lb'])/(sim_f_params['ub']-sim_f_params['lb'])
-    H['x_true'][H_ind] = x
-    H['pt_id'][H_ind] = H_ind
-    H['local_pt'][H_ind] = False
-    H['given'][H_ind] = True
-    H['given_time'][H_ind] = time.time()
-    H['lead_rank'][H_ind] = lead_rank
+    for x in np.atleast_2d(X):
+        H['x_scaled'][H_ind] =  (x - sim_f_params['lb'])/(sim_f_params['ub']-sim_f_params['lb'])
+        H['x_true'][H_ind] = x
+        H['pt_id'][H_ind] = H_ind
+        H['local_pt'][H_ind] = False
+        H['given'][H_ind] = True
+        H['given_time'][H_ind] = time.time()
+        H['lead_rank'][H_ind] = lead_rank
+
+        H_ind = H_ind + 1
+
+    return H_ind
 
 
 def termination_test(H, H_ind, exit_criteria):
@@ -217,7 +240,7 @@ def termination_test(H, H_ind, exit_criteria):
 
 
 
-def initiate_H(sim_specs, exit_criteria):
+def initiate_H(sim_specs, gen_specs, exit_criteria):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -227,66 +250,26 @@ def initiate_H(sim_specs, exit_criteria):
     H: numpy structured array
         History array storing rows for each point. Field names are below
 
-        | x_scaled            : Parameter values in the unit cube (if bounds)
-        | x_true              : Parameter values in the original domain
         | pt_id               : Count of each each point
-        | local_pt            : True if point is LocalOpt point                  
         | given               : True if point has been given to a worker
         | given_time          : Time point was given to a worker
         | lead_rank           : lead worker rank point was given to 
         | returned            : True if point has been evaluated by a worker
-        | f                   : Combined value returned from simulation          
-        | f_vec               : Vector of function values from simulation        
-        | grad                : Gradient (NaN if no derivative returned)
-        | worker_start_time   : Evaluation start time                            
-        | worker_end_time     : Evaluation end time                              
 
-        | dist_to_unit_bounds : Distance to the boundary
-        | dist_to_better_l    : Distance to closest local point with smaller f
-        | dist_to_better_s    : Distance to closest sample point with smaller f
-        | ind_of_better_l     : Index in H with the closest better local point  
-        | ind_of_better_s     : Index in H with the closest better sample point 
-
-        | started_run         : True if point started a LocalOpt run               
-        | active              : True if point's run is actively being improved
-        | local_min           : True if point was ruled a local min                
-                             
     """
-    n = sim_specs['sim_f_params']['n']
-    m = sim_specs['sim_f_params']['m']
+
+    default_keys = [('pt_id','int'),
+                    ('given','bool'),       
+                    ('given_time','float'), 
+                    ('lead_rank','int'),    
+                    ('returned','bool'),    
+                   ]
+
     feval_max = exit_criteria['sim_eval_max']
 
-    H = np.zeros(feval_max, dtype=[('x_scaled','float',n), # when given 
-                          ('x_true','float',n),            # when given
-                          ('pt_id','int'),                 # when given
-                          ('local_pt','bool'),             # when given
-                          ('given','bool'),                # when given
-                          ('given_time','float'),          # when given
-                          ('lead_rank','int'),             # when given
-                          ('returned','bool'),             # after eval
-                          ('f','float'),                   # after eval  
-                          ('f_vec','float',m),             # after eval
-                          ('grad','float',n),              # after eval
-                          ('worker_start_time','float'),   # after eval
-                          ('worker_end_time','float'),     # after eval
-                          ('dist_to_unit_bounds','float'), # after eval
-                          ('dist_to_better_l','float'),    # after eval
-                          ('dist_to_better_s','float'),    # after eval
-                          ('ind_of_better_l','int'),       # after eval
-                          ('ind_of_better_s','int'),       # after eval
-                          ('started_run','bool'),          # run start
-                          ('active','bool'),               # during run
-                          ('local_min','bool')])           # after run 
+    H = np.zeros(feval_max, dtype=default_keys + sim_specs['out'] + gen_specs['out']) 
 
-    H['dist_to_unit_bounds'] = np.inf
-    H['dist_to_better_l'] = np.inf
-    H['dist_to_better_s'] = np.inf
-    H['ind_of_better_l'] = -1
-    H['ind_of_better_s'] = -1
     H['pt_id'] = -1
-    H['x_scaled'] = np.inf
-    H['x_true'] = np.inf
     H['given_time'] = np.inf
-    H['grad'] = np.nan
 
     return (H, 0)
