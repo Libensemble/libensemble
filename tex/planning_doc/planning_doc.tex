@@ -258,10 +258,6 @@ Each calculation (currently simulations and generating functions) must have the 
 If the calculation is a simulation, the output should be 
 
 
-\section{List of items to develop.}
-
-
-
 \section{Target problems}
 There are many types of simulations that we can consider being run in LibEnsemble.
 
@@ -314,6 +310,72 @@ There are many types of simulations that we can consider being run in LibEnsembl
     \end{itemize}
 \end{enumerate}
 
+
+\clearpage
+\section{Initial test cases}
+In order to guide the initial development of LibEnsemble, we will focus on supporting the following use cases. (Objectives are intentionally selected to be easy to evaluate.)
+\begin{enumerate}
+  \item 
+    \begin{description}
+      \item[Objective:] GKLS
+      \item[Generating:] Uniform sampling on $[0,1]^n$ with different batch sizes
+      \item[Functionality:] \
+        \begin{itemize}
+          \item Handling of different numbers of points given/returned from workers
+          \item Generation performed by manager instead of workers
+        \end{itemize}
+    \end{description}
+    \bigskip
+  \item 
+    \begin{description}
+      \item[Objective:] chiwrt\{1,2\}.c 
+      \item[Generating:] Single TAO/POUNDERS run from 1 starting point. One simulation for each residual. Residuals obtained concurrently.
+      \item[Functionality:] \
+        \begin{itemize}
+          \item Multiple simulations for each point
+        \end{itemize}
+    \end{description}
+    \bigskip
+  \item 
+    \begin{description}
+      \item[Objective:] chiwrt\{1,2\}.c
+      \item[Generating:] Multiple POUNDERS runs from $K$ starting points.
+      \item[Functionality:] \
+        \begin{itemize}
+          \item APOSMM in LibEnsemble
+        \end{itemize}
+    \end{description}
+    \bigskip
+  \item 
+    \begin{description}
+      \item[Objective:] HFBTHO (imbalance)/variable internal tols
+      \item[Generating:] POUNDERS with adaptive tolerance attempts
+      \item[Functionality:] \
+        \begin{itemize}
+          \item Stefan ??
+        \end{itemize}
+    \end{description}
+    \bigskip
+  \item 
+    \begin{description}
+      \item[Objective:] Eldad and Lauren subsurface (in TAO) 
+      \item[Generating:] LCAL PDECO Stefan ??
+      \item[Functionality:] \
+        \begin{itemize}
+          \item Stefan ??
+        \end{itemize}
+    \end{description}
+    \bigskip
+  \item 
+    \begin{description}
+      \item[Objective:] chiwrt\{1,2\}.c with stochastic noise on each residual
+      \item[Generating:] POUNDERS using sample mean with the number of replications determined by iteration number. 
+      \item[Functionality:] \
+        \begin{itemize}
+          \item Efficient handling of multiple evaluations of single points
+        \end{itemize}
+    \end{description}
+\end{enumerate}
 
 
 % \bibliographystyle{plain}
