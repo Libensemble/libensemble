@@ -28,9 +28,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     H, H_ind = initiate_H(sim_specs, gen_specs, exit_criteria)
 
-    import IPython; IPython.embed()
-
-    Q = PriorityQueue(np.empty((0,sim_specs['n'])), np.empty(0), np.empty(0)) 
+    Q = PriorityQueue(np.empty(0), np.empty(0), np.empty(0))
 
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = set([])
@@ -43,6 +41,8 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         Q = update_active_and_queue(active_w, idle_w, H, Q)
 
         Work, Q, H_ind = decide_work_and_resources(active_w, idle_w, H, H_ind, Q, sim_specs, gen_specs)
+
+        import IPython; IPython.embed()
 
         for w in Work:
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
@@ -80,7 +80,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, Q):
 
                 new_stuff = True
 
-    return active_w, idle_w
+    return Q, active_w, idle_w
 
 def decide_work_and_resources(active_w, idle_w, H, H_ind, Q, sim_specs, gen_specs):
     """ Decide what workers should be given
