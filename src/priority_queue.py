@@ -38,19 +38,9 @@ class PriorityQueue():
         self.pt_ids = np.delete(self.pt_ids,inds,0) 
         return (pt_ids, run_number)
 
-    def add_to_queue(self, new_pt_ids, new_priority_levels, new_run_numbers):
-        new_pt_ids = np.atleast_2d(new_pt_ids)
-        new_priority_levels = np.atleast_1d(new_priority_levels)
-        new_run_numbers = np.atleast_1d(new_run_numbers)
-
-        if not isinstance(new_pt_ids,np.ndarray):
+    def add_to_queue(self, new):
+        if not isinstance(new,np.ndarray):
             raise TypeError("Unknown Data Type")
-
-        assert new_pt_ids.shape[0] == len(new_priority_levels),\
-                "Not equal number of new pt_ids and new levels"
-
-        assert new_pt_ids.shape[0] == len(new_run_numbers),\
-                "Not equal number of new pt_ids and new run numbers"
 
         if len(self) == 0:
             self.pt_ids = new_pt_ids[:]

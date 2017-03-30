@@ -19,8 +19,6 @@ from scipy import spatial
 
 import time,sys
 
-from priority_queue import PriorityQueue
-
 def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria):
 
@@ -28,21 +26,17 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     H, H_ind = initiate_H(sim_specs, gen_specs, exit_criteria)
 
-    Q = PriorityQueue(np.empty(0), np.empty(0), np.empty(0))
-
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = set([])
 
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
 
-        Q, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, Q)
+        active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H)
 
-        Q = update_active_and_queue(active_w, idle_w, H, Q)
+        update_active_and_queue(active_w, idle_w, H)
 
-        Work, Q, H_ind = decide_work_and_resources(active_w, idle_w, H, H_ind, Q, sim_specs, gen_specs)
-
-        import IPython; IPython.embed()
+        Work, H_ind = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
         for w in Work:
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
@@ -61,7 +55,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     return H[:H_ind]
 
 
-def receive_from_sim_and_gen(comm, active_w, idle_w, H, Q):
+def receive_from_sim_and_gen(comm, active_w, idle_w, H):
     status = MPI.Status()
     new_stuff = True
 
@@ -69,20 +63,20 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, Q):
         new_stuff = False
         for w in active_w: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
-                data_received = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 idle_w.add(status.Get_source())
                 active_w.remove(status.Get_source())
 
-                if data_received['calc_type'] == 'sim':
+                if D_recv['calc_type'] == 'sim':
                     update_history_f(H, data_received)
-                elif data_received['calc_type'] == 'gen':
-                    Q.add_to_queue(data_received['calc_out'])
+                elif D_recv['calc_type'] == 'gen':
+                    H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
 
                 new_stuff = True
 
-    return Q, active_w, idle_w
+    return active_w, idle_w
 
-def decide_work_and_resources(active_w, idle_w, H, H_ind, Q, sim_specs, gen_specs):
+def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
     """ Decide what workers should be given
     """
 
@@ -92,20 +86,25 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, Q, sim_specs, gen_spec
         if len(Q):
             v = Q.get_all_from_highest_priority_run()
             Work[i] = {'calc_f': sim_specs['f'], 
-                    'calc_params': v[0], 
-                    'form_subcomm': [], 
-                    'calc_dir': sim_specs['obj_dir'],
-                    'calc_type': 'sim'}
+                       'calc_params': v[0], 
+                       'form_subcomm': [], 
+                       'calc_dir': sim_specs['obj_dir'],
+                       'calc_type': 'sim',
+                       'calc_in': sim_specs['in'],
+                       'calc_out': sim_specs['out'],
+                      }
 
-            H_ind = update_history_x(H, H_ind, v[0], w, sim_specs['params'])
+            H_ind = update_history_x_out(H, H_ind, v[0], w, sim_specs['params'])
 
         else:
             Work[i] = {'calc_f': gen_specs['f'], 
-                    'calc_params': gen_specs['params'], 
-                    'form_subcomm': [], 
-                    'calc_dir': '',
-                    'calc_type': 'gen'
-                    }
+                       'calc_params': gen_specs['params'], 
+                       'form_subcomm': [], 
+                       'calc_dir': '',
+                       'calc_type': 'gen',
+                       'calc_in': gen_specs['in'],
+                       'calc_out': gen_specs['out'],
+                       }
 
     return Work, Q, H_ind
 
@@ -196,9 +195,31 @@ def update_history_f(H, data_received):
 
 
 
-def update_history_x(H, H_ind, X, lead_rank, sim_f_params):
+def update_history_x_in(H, H_ind, X):
     """
-    Updates the history (in place) when a new point has been given to be evaluated
+    Updates the history (in place) when a new point has been returned from a gen
+
+    Parameters
+    ----------
+    H: numpy structured array
+        History array storing rows for each point.
+    H_ind: integer
+        The new point
+    X: numpy array
+        Points to be evaluated
+    """
+    b = len(X)
+
+    H['x'][H_ind:H_ind+b] = O['x']
+    H['priority'][H_ind:H_ind+b] = O['priority']
+
+    H_ind += b
+
+    return H_ind
+
+def update_history_x_out(H, H_ind, X, lead_rank, sim_f_params):
+    """
+    Updates the history (in place) when a new point has been given out to be evaluated
 
     Parameters
     ----------

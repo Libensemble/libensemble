@@ -258,7 +258,7 @@ where \texttt{out} is a dictionary with keys/value-sizes matching those in \text
 The \texttt{gen} calculations must have the API:
 
 \begin{allintypewriter}
-  out = gen\_f(params)
+  out = gen\_f(gen\_spec['in'], gen\_specs['out'], params)
 \end{allintypewriter}
 
 \clearpage

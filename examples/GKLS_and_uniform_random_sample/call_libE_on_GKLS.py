@@ -21,13 +21,20 @@ sys.path.append('./GKLS_sim_src')
 from GKLS_obj import call_GKLS as obj_func
 
 
-def uniform_random_sample(params):
+def uniform_random_sample(g_in,g_out,params):
     ub = params['ub']
     lb = params['lb']
-    n = len(lb)
 
-    x = np.random.uniform(0,1,n)*(ub-lb)+lb
-    return(x)
+    n = len(lb)
+    batch_size = 2
+
+    x = np.random.uniform(0,1,(batch_size,n))*(ub-lb)+lb
+
+    O = np.zeros(batch_size, dtype=g_out)
+    O['x'] = x
+    O['priority'] = np.zeros(batch_size)
+
+    return O
 
 def combine_fvec(F):
     return(np.sum(F))
@@ -58,7 +65,6 @@ gen_specs = {'f': uniform_random_sample,
              'in': [],
              'out': [('x','float',2),
                      ('priority','float'),
-                     ('run_number','int'),
                     ],
              'params': {'lb': np.array([0,0]),
                         'ub': np.array([1,1])},
