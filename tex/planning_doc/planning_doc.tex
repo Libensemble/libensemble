@@ -1,5 +1,6 @@
 \documentclass{article}
 
+\usepackage{listings}
 \usepackage{amsmath, amsfonts, amssymb, setspace, color, graphicx}%psfrag}%,pstool}
 \usepackage[american]{babel}
 \usepackage[normalem]{ulem} % For \sout
@@ -182,27 +183,19 @@ after every type of calculation.
   \caption{Each LibEnsemble worker's logic \label{alg:manager}} 
 \end{algorithm}
 
-\section{LibEnsemble API}
+\section{API}
+
+\subsection{\texttt{LibEnsemble} API}
 
 \begin{allintypewriter}
-  libE(c, history, allocation\_specs, sim\_specs, failure\_processing,
-  exit\_criteria)\\
-
-
+  libE(c, allocation\_specs, sim\_specs, failure\_processing, exit\_criteria)\\
+  % history,
 
   \begin{description}
-    \item[c]: [dictionary] 
+    \item[c]: [dict] 
       \begin{description}
         \item['comm']: [mpi4py communicator] to be used by libE
         \item['color']: [int] communicator color
-      \end{description}
-
-    \item[history]: [numpy structured array] 
-      \begin{description}
-        \item[x]: parameters given to simulation(s)
-        \item[f]: simulation value(s) at each x
-        \item[...]:
-        \item[...]:
       \end{description}
 
     \item[allocation\_specs]: [dict]
@@ -212,21 +205,25 @@ after every type of calculation.
         \item[machinefile]:
       \end{description}
 
-    \item[sim\_specs]: [dict of dicts] one dict for each simulation.
+    \item[sim\_specs]: [dict] 
       \begin{description}
-        \item[sim\_f]: [func] that calls sim(s)
-        \item[sim\_f\_params]: [dict] parameters for each sim\_f
-        \item[n]: [int] dimension of simulation(s) parameters
-        \item[m]: [int] dimension of simulation(s) output 
+        \item[in]: [list] string keys that sim wants from history (assumed common to all sims)
+        \item[out]: [dict] string keys and integer/tuple sizes of sim outputs (assumed common to all sims)
+        \item[f]: [list of funcs] that calls each sim(s)
+        \item[params]: [list of dicts] parameters for each f
       \end{description}
 
-    \item[gen\_specs]
+    \item[gen\_specs]: [dict] 
       \begin{description}
-        \item[gen\_f]: [func] generates next points to be evaluated by a sim
-        \item[gen\_f\_params]: [dict] parameters for gen\_f
-        \item[lb]: [n-by-1 array] lower bound on sim parameters
-        \item[ub]: [n-by-1 array] upper bound on sim parameters
-        \item[local\_opt\_params]:  
+        \item[f]: [func] generates points to be evaluated by a sim
+        \item[in]: [list] string keys that gen wants from history
+        \item[out]: [dict] string keys and integer/tuple sizes of gen outputs
+        \item[params]: [dict] additional parameters for gen\_f. 
+          % E.g.: 
+          % \begin{itemize}
+          %   \item[lb]: [n-by-1 array] lower bound on sim parameters
+          %   \item[ub]: [n-by-1 array] upper bound on sim parameters
+          % \end{itemize}
       \end{description}
 
     \item[failure\_processing]: [dict]
@@ -236,28 +233,40 @@ after every type of calculation.
         \item[sim\_eval\_max]: [int] Stop after this many evaluations.
         \item[min\_sim\_f\_val]: [dbl] Stop when a value below this has been found.
       \end{description}
+
+    % \item[history]: [numpy structured array] 
+    %   \begin{description}
+    %     \item[x]: parameters given to simulation(s)
+    %     \item[f]: simulation value(s) at each x
+    %     \item[...]:
+    %     \item[...]:
+    %   \end{description}
+
   \end{description}
 \end{allintypewriter}
         
 
-
-\section{LibEnsemble API}
-Each calculation (currently simulations and generating functions) must have the following API:
+\subsection{\texttt{sim} API}
+The \texttt{sim} calculations must have the API:
 
 \begin{allintypewriter}
-  calc\_f(params, [allocation], [failure\_and\_monitor], [sub\_comm] )\\
+  out = sim\_f(x, params)
+\end{allintypewriter}
+where \texttt{out} is a dictionary with keys/value-sizes matching those in \texttt{sim\_specs[out]}.
 
-  \begin{description}
-    \item[params]: [struct] information needed to perform the calculation
-    \item[allocation]: [optional] [struct] information about where the calculation should be be performed (e.g., node(s) where a simulation should be run)
-    \item[failure\_and\_monitor]: [optional] [handle] for manager to monitor calculation
-    \item[sub\_comm]: [optional] subcommunicator for worker(s) to perform calculation
-  \end{description} 
+\subsection{\texttt{gen} API}
+The \texttt{gen} calculations must have the API:
+
+\begin{allintypewriter}
+  out = gen\_f(params)
 \end{allintypewriter}
 
-If the calculation is a simulation, the output should be 
+\clearpage
+\subsection{Example of calling function}
+\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=36]{../../examples/GKLS/call_libE_on_GKLS.py}
 
 
+\clearpage
 \section{Target problems}
 There are many types of simulations that we can consider being run in LibEnsemble.
 
@@ -322,7 +331,6 @@ In order to guide the initial development of LibEnsemble, we will focus on suppo
       \item[Functionality:] \
         \begin{itemize}
           \item Handling of different numbers of points given/returned from workers
-          \item Generation performed by manager instead of workers
         \end{itemize}
     \end{description}
     \bigskip
