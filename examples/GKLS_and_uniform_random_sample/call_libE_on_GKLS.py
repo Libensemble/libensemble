@@ -21,7 +21,7 @@ sys.path.append('./GKLS_sim_src')
 from GKLS_obj import call_GKLS as obj_func
 
 
-def uniform_random_sample(g_in,g_out,params):
+def uniform_random_sample(g_in,gen_out,params):
     ub = params['ub']
     lb = params['lb']
 
@@ -30,7 +30,7 @@ def uniform_random_sample(g_in,g_out,params):
 
     x = np.random.uniform(0,1,(batch_size,n))*(ub-lb)+lb
 
-    O = np.zeros(batch_size, dtype=g_out)
+    O = np.zeros(batch_size, dtype=gen_out)
     O['x'] = x
     O['priority'] = np.zeros(batch_size)
 
@@ -58,7 +58,7 @@ sim_specs = {'f': [obj_func],
                         'problem_dimension': 2,
                         'problem_number': 2,
                         'combine_component_func': combine_fvec,
-                        'obj_dir': './GKLS'}, # to be copied by each worker 
+                        'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
              }
 
 gen_specs = {'f': uniform_random_sample,
@@ -72,7 +72,7 @@ gen_specs = {'f': uniform_random_sample,
 
 failure_processing = {}
 
-exit_criteria = {'sim_eval_max': 10,   # must be provided
+exit_criteria = {'sim_eval_max': 100,   # must be provided
                  'min_sim_f_val': -0.5,    
                  'elapsed_clock_time': 100,
                   }

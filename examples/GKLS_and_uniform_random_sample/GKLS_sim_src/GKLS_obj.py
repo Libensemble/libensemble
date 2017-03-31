@@ -7,39 +7,53 @@ import subprocess
 import os
 import time
 
-def call_GKLS_with_random_pause(x,obj_params):
+def call_GKLS_with_random_pause(H,sim_out,obj_params):
     """ Evaluates GKLS problem (f) in dimension (d) with (n) local minima
     
     Since we currently copy the directory for each rank, each function is
     evaluated with rank=0.
     """
     d = obj_params['problem_dimension']
-    f = obj_params['problem_number']
-    n = obj_params['number_of_minima'] 
+    p_num = obj_params['problem_number']
+    num_min = obj_params['number_of_minima'] 
 
-    devnull = open(os.devnull, 'w')
-    np.savetxt('./x0000.in', x, fmt='%16.16f', delimiter=' ', newline=" ")
-    p = subprocess.call(['./gkls_single','-d',str(d),'-n',str(n),'-f',str(f),'-r','0'], cwd='./', stdout=devnull)
-    f = np.loadtxt('./f0000.out',dtype='float')
+    batch = len(H['x'])
 
-    time.sleep(obj_params['uniform_random_pause_ub']*np.random.uniform())
-    # time.sleep(0.1)
+    O = np.zeros(batch,dtype=sim_out)
 
-    return f.flatten()
+    for i,x in enumerate(H['x']):
+        devnull = open(os.devnull, 'w')
+        np.savetxt('./x0000.in', x, fmt='%16.16f', delimiter=' ', newline=" ")
+        p = subprocess.call(['./gkls_single','-d',str(d),'-n',str(num_min),'-f',str(p_num),'-r','0'], cwd='./', stdout=devnull)
+        f = np.loadtxt('./f0000.out',dtype='float')
 
-def call_GKLS(x,obj_params):
+        time.sleep(obj_params['uniform_random_pause_ub']*np.random.uniform())
+        # time.sleep(0.1)
+
+    return 0
+
+def call_GKLS(H,sim_out,obj_params):
     """ Evaluates GKLS problem (f) in dimension (d) with (n) local minima
     
     Since we currently copy the directory for each rank, each function is
     evaluated with rank=0.
     """
     d = obj_params['problem_dimension']
-    f = obj_params['problem_number']
-    n = obj_params['number_of_minima'] 
+    p_num = obj_params['problem_number']
+    num_min = obj_params['number_of_minima'] 
 
-    devnull = open(os.devnull, 'w')
-    np.savetxt('./x0000.in', x, fmt='%16.16f', delimiter=' ', newline=" ")
-    p = subprocess.call(['./gkls_single','-d',str(d),'-n',str(n),'-f',str(f),'-r','0'], cwd='./', stdout=devnull)
-    f = np.loadtxt('./f0000.out',dtype='float')
+    batch = len(H['x'])
 
-    return f.flatten()
+    O = np.zeros(batch,dtype=sim_out)
+
+    for i,x in enumerate(H['x']):
+        devnull = open(os.devnull, 'w')
+        np.savetxt('./x0000.in', x, fmt='%16.16f', delimiter=' ', newline=" ")
+        p = subprocess.call(['./gkls_single','-d',str(d),'-n',str(num_min),'-f',str(p_num),'-r','0'], cwd='./', stdout=devnull)
+
+        O['fvec'][i][0] = np.loadtxt('./f0000.out',dtype='float')
+        O['fvec'][i][1:3] = [1,2]
+        O['f'][i] = obj_params['combine_component_func'](O['fvec'][i])
+
+
+    return O

@@ -32,7 +32,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
 
-        active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H)
+        H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
 
         update_active_and_queue(active_w, idle_w, H)
 
@@ -45,8 +45,9 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     ### Receive from all active workers 
     for w in active_w:
-        data_received = comm.recv(buf=None, source=w, tag=MPI.ANY_TAG, status=status)
-        update_history_f(H, data_received, sim_params['combine_func'])
+        D_recv = comm.recv(buf=None, source=w, tag=MPI.ANY_TAG, status=status)
+        if D_recv['calc_info']['type'] == 'sim':
+            update_history_f(H, D_recv)
 
     ### Stop all workers 
     for w in allocation_specs['worker_ranks']:
@@ -55,72 +56,74 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     return H[:H_ind]
 
 
-def receive_from_sim_and_gen(comm, active_w, idle_w, H):
+def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
     status = MPI.Status()
-    new_stuff = True
 
-    while new_stuff:
-        new_stuff = False
-        for w in active_w: 
+    active_w_copy = active_w.copy()
+
+    while True:
+        for w in active_w_copy: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 idle_w.add(status.Get_source())
                 active_w.remove(status.Get_source())
 
-                if D_recv['calc_type'] == 'sim':
-                    update_history_f(H, data_received)
-                elif D_recv['calc_type'] == 'gen':
+                if D_recv['calc_info']['type'] == 'sim':
+                    update_history_f(H, D_recv)
+                elif D_recv['calc_info']['type'] == 'gen':
                     H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
 
-                new_stuff = True
+        if active_w_copy == active_w:
+            break
+        else:
+            active_w_copy = active_w.copy()
 
-    return active_w, idle_w
+    return H_ind, active_w, idle_w
 
 def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
-    """ Decide what workers should be given
+    """ Decide what should be given to workers 
     """
 
     Work = {}
 
     for i in idle_w:
-        if len(Q):
-            v = Q.get_all_from_highest_priority_run()
-            Work[i] = {'calc_f': sim_specs['f'], 
-                       'calc_params': v[0], 
+        q_inds = np.where(~H['given'][:H_ind])[0]
+
+        if sum(q_inds):
+            inds_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+            Work[i] = {'calc_f': sim_specs['f'][0], 
+                       'calc_params': sim_specs['params'], 
                        'form_subcomm': [], 
-                       'calc_dir': sim_specs['obj_dir'],
-                       'calc_type': 'sim',
-                       'calc_in': sim_specs['in'],
+                       'calc_in': H[sim_specs['in']][inds_to_send],
                        'calc_out': sim_specs['out'],
+                       'calc_info': {'type':'sim', 'pt_ids': q_inds},
                       }
 
-            H_ind = update_history_x_out(H, H_ind, v[0], w, sim_specs['params'])
+            update_history_x_out(H, q_inds, Work[i]['calc_in'], i, sim_specs['params'])
 
         else:
             Work[i] = {'calc_f': gen_specs['f'], 
                        'calc_params': gen_specs['params'], 
                        'form_subcomm': [], 
-                       'calc_dir': '',
-                       'calc_type': 'gen',
-                       'calc_in': gen_specs['in'],
+                       'calc_in': H[gen_specs['in']][:H_ind],
                        'calc_out': gen_specs['out'],
+                       'calc_info': {'type':'gen'},
                        }
 
-    return Work, Q, H_ind
+    return Work, H_ind
 
-def update_active_and_queue(active_w, idle_w, H, Q):
+def update_active_and_queue(active_w, idle_w, H):
     """ Decide if active work should be continued and the queue order
 
     Parameters
     ----------
     H: numpy structured array
         History array storing rows for each point.
-    Q: Queue of points to be evaluated (and their resources)
     """
 
-    return Q
+    return
 
-def update_history_f(H, data_received): 
+def update_history_f(H, D): 
     """
     Updates the history (in place) after a point has been evaluated
 
@@ -128,74 +131,19 @@ def update_history_f(H, data_received):
     ----------
     H: numpy structured array
         History array storing rows for each point.
-    data['x_scaled']: numpy array
-        Point that was evaluated
-    data['pt_id']: int
-        The pt_id associated with x
-    data['f']: float
-        Function value
-    data['f_vec']: numpy array
-        Vector of function values
-    data['grad']: numpy array
-        Gradient vector
-    data['worker_start_time']: float
-        Start time of evaluation
-    data['worker_end_time']: float
-        End time of evaluation
     """
 
-    n = len(data_received[0]['x_true'])
+    new_inds = D['calc_info']['pt_ids']
+    H_0 = D['calc_out']
 
-    for data in data_received:
-        new_pt = data['pt_id']
-        assert (H['x_true'][new_pt] == data['x_true']).all(), \
-                "Worker-returned x-value different than History x-value"
+    for j,ind in enumerate(new_inds): 
+        for field in H_0.dtype.names:
+            H[field][ind] = H_0[field][j]
 
-        H['returned'][new_pt] = True
-        H['f'][new_pt] = data['f']
-        H['f_vec'][new_pt] = data['f_vec']
-        H['grad'][new_pt] = data['grad']
-        H['worker_start_time'][new_pt] = data['worker_start_time']
-        H['worker_end_time'][new_pt] = data['worker_end_time']
-
-        # Points with pt_id's 
-        p = H['pt_id']>=0
-
-        dist_to_all = sp.spatial.distance.cdist(np.atleast_2d(H['x_scaled'][new_pt]), H['x_scaled'][p], 'euclidean').flatten()
-        new_better_than = np.logical_and(H['f'][new_pt] < H['f'][p], H['returned'][p])
-
-        # Compute distance to boundary
-        H['dist_to_unit_bounds'][new_pt] = min(min(np.ones(n) - H['x_scaled'][new_pt]),min(H['x_scaled'][new_pt] - np.zeros(n)))
-
-        # Update any other points if new_pt is closer and better
-        if H['local_pt'][new_pt]:
-            updates = np.where(np.logical_and(dist_to_all < H['dist_to_better_l'][p], new_better_than))[0]
-            H['dist_to_better_l'][updates] = dist_to_all[updates]
-            H['ind_of_better_l'][updates] = new_pt
-        else:
-            updates = np.where(np.logical_and(dist_to_all < H['dist_to_better_s'][p], new_better_than))[0]
-            H['dist_to_better_s'][updates] = dist_to_all[updates]
-            H['ind_of_better_s'][updates] = new_pt
-
-        # If we allow equality, have to prevent new_pt from being its own "better point"
-        better_than_new_l = np.logical_and.reduce((H['f'][new_pt] >= H['f'][p],  H['local_pt'][p], H['returned'][p], H['pt_id'][p] != new_pt))
-        better_than_new_s = np.logical_and.reduce((H['f'][new_pt] >= H['f'][p], ~H['local_pt'][p], H['returned'][p], H['pt_id'][p] != new_pt))
-
-        # Who is closest to ind and better 
-        if np.any(better_than_new_l):
-            H['dist_to_better_l'][new_pt] = dist_to_all[better_than_new_l].min()
-            H['ind_of_better_l'][new_pt] = np.ix_(better_than_new_l)[0][dist_to_all[better_than_new_l].argmin()]
-
-        if np.any(better_than_new_s):
-            H['dist_to_better_s'][new_pt] = dist_to_all[better_than_new_s].min()
-            H['ind_of_better_s'][new_pt] = np.ix_(better_than_new_s)[0][dist_to_all[better_than_new_s].argmin()]
-
-    
+        H['returned'][ind] = True
 
 
-
-
-def update_history_x_in(H, H_ind, X):
+def update_history_x_in(H, H_ind, O):
     """
     Updates the history (in place) when a new point has been returned from a gen
 
@@ -205,19 +153,22 @@ def update_history_x_in(H, H_ind, X):
         History array storing rows for each point.
     H_ind: integer
         The new point
-    X: numpy array
-        Points to be evaluated
+    O: numpy array
+        Output from gen_f
     """
-    b = len(X)
 
-    H['x'][H_ind:H_ind+b] = O['x']
-    H['priority'][H_ind:H_ind+b] = O['priority']
+    b = len(O)
+    
+    for field in O.dtype.names:
+        H[field][H_ind:H_ind+b] = O[field]
+
+    H['pt_id'][H_ind:H_ind+b] = range(H_ind,H_ind+b)
 
     H_ind += b
 
     return H_ind
 
-def update_history_x_out(H, H_ind, X, lead_rank, sim_f_params):
+def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
     """
     Updates the history (in place) when a new point has been given out to be evaluated
 
@@ -227,24 +178,19 @@ def update_history_x_out(H, H_ind, X, lead_rank, sim_f_params):
         History array storing rows for each point.
     H_ind: integer
         The new point
-    X: numpy array
-        Points to be evaluated
+    W: numpy array
+        Work to be evaluated
     lead_rank: int
         lead ranks for the evaluation of x 
     """
 
-    for x in np.atleast_2d(X):
-        H['x_scaled'][H_ind] =  (x - sim_f_params['lb'])/(sim_f_params['ub']-sim_f_params['lb'])
-        H['x_true'][H_ind] = x
-        H['pt_id'][H_ind] = H_ind
-        H['local_pt'][H_ind] = False
-        H['given'][H_ind] = True
-        H['given_time'][H_ind] = time.time()
-        H['lead_rank'][H_ind] = lead_rank
+    for i,j in zip(q_inds,range(len(W))):
+        for field in W.dtype.names:
+            H[field][i] = W[field][j]
 
-        H_ind = H_ind + 1
-
-    return H_ind
+        H['given'][i] = True
+        H['given_time'][i] = time.time()
+        H['lead_rank'][i] = lead_rank
 
 
 def termination_test(H, H_ind, exit_criteria):

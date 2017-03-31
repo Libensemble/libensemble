@@ -209,7 +209,7 @@ after every type of calculation.
       \begin{description}
         \item[f]: [list of funcs] that calls each sim(s)
         \item[in]: [list] string keys that sim wants from history (assumed common to all sims)
-        \item[out]: [list of tuples] (string keys, type, [size>1] sim outputs (assumed common to all sims)
+        \item[out]: [list of tuples] (string keys, type, [size>1]) sim outputs (assumed common to all sims)
         \item[params]: [list of dicts] parameters for each f
       \end{description}
 
@@ -247,23 +247,33 @@ after every type of calculation.
         
 
 \subsection{\texttt{sim} API}
-The \texttt{sim} calculations must have the API:
+The \texttt{sim} calculations must have the API:\\
 
 \begin{allintypewriter}
-  out = sim\_f(x, params)
+  out = sim\_f(H[sim\_specs['in']][max\_priority\_inds], sim\_specs['out'],
+  params)\\
 \end{allintypewriter}
-where \texttt{out} is a dictionary with keys/value-sizes matching those in \texttt{sim\_specs[out]}.
+
+where \texttt{out} is a numpy structured array with keys/value-sizes matching
+those in \texttt{sim\_specs[out]}. Note that if \texttt{gen\_f} produces points
+with equal priorities, they will given in a batch to a worker.
 
 \subsection{\texttt{gen} API}
-The \texttt{gen} calculations must have the API:
+The \texttt{gen} calculations must have the API:\\
 
 \begin{allintypewriter}
-  out = gen\_f(gen\_spec['in'], gen\_specs['out'], params)
+  out = gen\_f(H[gen\_spec['in']][:H\_ind], gen\_specs['out'], params)\\
 \end{allintypewriter}
+
+Note that \texttt{sim\_f} receives only a subset of generated points, but
+\texttt{gen\_f} receives information from all points (if \texttt{gen\_f['in']}
+is nonempty).
+
+
 
 \clearpage
 \subsection{Example of calling functions}
-\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=36]{../../examples/GKLS_and_uniform_random_sample/call_libE_on_GKLS.py}
+\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=43]{../../examples/GKLS_and_uniform_random_sample/call_libE_on_GKLS.py}
 
 \clearpage
 \lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=23]{../../examples/chwirut_and_multiple_pounders/call_libE_on_chwirut.py}

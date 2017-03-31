@@ -43,13 +43,11 @@ def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_cri
 
     if comm.Get_rank() in allocation_specs['manager_ranks']:
         H = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
-        print(min(H['f']))
-        print(len(H['f']))
+        print(H)
+        print(H.dtype.names)
     elif comm.Get_rank() in allocation_specs['worker_ranks']:
         worker_main(c)
     else:
         print("Rank: %d not manager, custodian, or worker" % comm.Get_rank())
 
     comm.Barrier()
-
-    
