@@ -198,9 +198,11 @@ def termination_test(H, H_ind, exit_criteria):
     Return False if the libEnsemble run should stop 
     """
 
-    if (H_ind >= exit_criteria['sim_eval_max'] or 
-            min(H['f']) <= exit_criteria['min_sim_f_val'] or 
-            time.time() - H['given_time'][0] > exit_criteria['elapsed_clock_time']):
+    if H_ind >= exit_criteria['sim_eval_max']:
+        return False
+    elif any(H[exit_criteria['stop_val'][0]][:H_ind] <= exit_criteria['stop_val'][1]):
+        return False
+    elif time.time() - H['given_time'][0] > exit_criteria['elapsed_clock_time']:
         return False
     else:
         return True

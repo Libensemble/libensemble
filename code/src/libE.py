@@ -51,3 +51,13 @@ def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_cri
         print("Rank: %d not manager, custodian, or worker" % comm.Get_rank())
 
     comm.Barrier()
+
+
+def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
+
+    assert(len(sim_specs['out'])), "sim_specs must have 'out' entries"
+    assert(len(gen_specs['out'])), "gen_specs must have 'out' entries"
+    assert(exit_criteria['stop_val'](0) in sim_specs['out'] + gen_specs['out'])
+
+    return 
+

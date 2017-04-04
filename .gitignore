@@ -4,4 +4,5 @@
 tex/*/*.pdf
 libensemble_applications/
 *.o
-examples/GKLS/GKLS_sim_src/gkls_single
+code/examples/GKLS_and_uniform_random_sample/GKLS_sim_src/gkls_single
+

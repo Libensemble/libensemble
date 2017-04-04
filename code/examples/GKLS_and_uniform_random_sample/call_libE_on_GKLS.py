@@ -73,9 +73,9 @@ gen_specs = {'f': uniform_random_sample,
 failure_processing = {}
 
 exit_criteria = {'sim_eval_max': 100,   # must be provided
-                 'min_sim_f_val': -0.5,    
                  'elapsed_clock_time': 100,
-                  }
+                 'stop_val': ('f', -1), # must be a key that is in sim_specs['out'] or gen_specs['out'] 
+                }
 
 np.random.seed(1)
 # Perform the run
