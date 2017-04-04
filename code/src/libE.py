@@ -59,5 +59,3 @@ def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, 
     assert(len(gen_specs['out'])), "gen_specs must have 'out' entries"
     assert(exit_criteria['stop_val'](0) in sim_specs['out'] + gen_specs['out'])
 
-    return 
-

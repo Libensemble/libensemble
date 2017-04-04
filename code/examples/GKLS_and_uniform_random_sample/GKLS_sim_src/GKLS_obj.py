@@ -25,12 +25,15 @@ def call_GKLS_with_random_pause(H,sim_out,obj_params):
         devnull = open(os.devnull, 'w')
         np.savetxt('./x0000.in', x, fmt='%16.16f', delimiter=' ', newline=" ")
         p = subprocess.call(['./gkls_single','-d',str(d),'-n',str(num_min),'-f',str(p_num),'-r','0'], cwd='./', stdout=devnull)
-        f = np.loadtxt('./f0000.out',dtype='float')
+
+        O['fvec'][i][0] = np.loadtxt('./f0000.out',dtype='float')
+        O['fvec'][i][1:3] = [1,2]
+        O['f'][i] = obj_params['combine_component_func'](O['fvec'][i])
 
         time.sleep(obj_params['uniform_random_pause_ub']*np.random.uniform())
         # time.sleep(0.1)
 
-    return 0
+    return O
 
 def call_GKLS(H,sim_out,obj_params):
     """ Evaluates GKLS problem (f) in dimension (d) with (n) local minima

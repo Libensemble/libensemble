@@ -96,7 +96,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
                        'form_subcomm': [], 
                        'calc_in': H[sim_specs['in']][inds_to_send],
                        'calc_out': sim_specs['out'],
-                       'calc_info': {'type':'sim', 'pt_ids': q_inds},
+                       'calc_info': {'type':'sim', 'pt_ids': inds_to_send},
                       }
 
             update_history_x_out(H, q_inds, Work[i]['calc_in'], i, sim_specs['params'])

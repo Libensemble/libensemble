@@ -18,7 +18,7 @@ sys.path.append('../../src')
 from libE import libE
 
 sys.path.append('./GKLS_sim_src')
-from GKLS_obj import call_GKLS as obj_func
+from GKLS_obj import call_GKLS_with_random_pause as obj_func
 
 
 def uniform_random_sample(g_in,gen_out,params):
@@ -32,7 +32,7 @@ def uniform_random_sample(g_in,gen_out,params):
 
     O = np.zeros(batch_size, dtype=gen_out)
     O['x'] = x
-    O['priority'] = np.zeros(batch_size)
+    O['priority'] = float(MPI.COMM_WORLD.Get_rank())
 
     return O
 
@@ -58,6 +58,7 @@ sim_specs = {'f': [obj_func],
                         'problem_dimension': 2,
                         'problem_number': 2,
                         'combine_component_func': combine_fvec,
+                        'uniform_random_pause_ub': 1,
                         'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
              }
 
