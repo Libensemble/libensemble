@@ -125,26 +125,25 @@ after every type of calculation.
             Active simulation and queue update function $\mathtt{update\_active\_and\_queue}$ \newline
             Function to decide calculations and resources $\mathtt{decide\_work\_and\_resources}$
   }
-  Initialize history $H$ (past and current calculations)\\
-  Initialize queue $Q$ (values and resources for to-be-evaluated points) 
+  Initialize history $H$ (information about past and current and possible future calculations)\\
 
-  \While{$\mathtt{term\_test}(H,Q)$}
+  \While{$\mathtt{term\_test}(H)$}
   {
     \While{Any worker is waiting to return $\mathtt{sim}$ or $\mathtt{gen}$ results} 
     {
       Receive from all workers with $\mathtt{sim}$ and $\mathtt{gen}$ work\\
     }
 
-    $(H,Q) = \mathtt{update\_active\_and\_queue}(H,Q)$\Comment*[r]{blocks manager}
-    $(W_s, W_g, Q) = \mathtt{decide\_work\_and\_resources}(H,Q)$\Comment*[r]{blocks manager}
+    $(H) = \mathtt{update\_active\_and\_queue}(H)$\Comment*[r]{blocks manager}
+    $(W_s, W_g) = \mathtt{decide\_work\_and\_resources}(H)$\Comment*[r]{blocks manager}
 
     \For{Each idle worker $i$}
     {
       \eIf{ worker $i \in W_s$}
       {
-      Tell worker $i$ to evaluate $\mathtt{sim}_j$ at point(s) from $Q$ with appropriate resources
+      Tell worker $i$ to evaluate $\mathtt{sim}_j$ at point(s) from $H$ with appropriate resources
       }{
-      Begin worker $i$ on $\mathtt{gen}(H,Q)$\\
+      Begin worker $i$ on $\mathtt{gen}(H)$\\
       }
     }
   }
@@ -180,7 +179,7 @@ after every type of calculation.
     \If{First element in subcommunicator $sc$}{Report $O$ to manager}
     
   }
-  \caption{Each LibEnsemble worker's logic \label{alg:manager}} 
+  \caption{Each LibEnsemble worker's logic \label{alg:worker}} 
 \end{algorithm}
 
 \section{API}

@@ -45,7 +45,7 @@ gen_specs = {'f': aposmm_logic,
              'in': ['x', 'f', 'local_pt', 'run_number', 'dist_to_unit_bounds',
                     'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l',
                     'ind_of_better_s', 'started_run', 'active', 'local_min', ],
-             'out': [('x','float',2),
+             'out': [('x','float',3),
                      ('priority','float'),
                      ('run_number','int'),
                      ('local_pt','bool')
