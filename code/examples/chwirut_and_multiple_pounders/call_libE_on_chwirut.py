@@ -20,6 +20,8 @@ from libE import libE
 sys.path.append('./GKLS_sim_src')
 from GKLS_obj import call_GKLS as obj_func
 
+from aposmm_logic import aposmm_logic
+
 ### Declare the run parameters/functions
 c = {}
 c['comm'] = MPI.COMM_WORLD
@@ -33,8 +35,6 @@ sim_specs = {'f': [obj_func],
              'in': ['x'],
              'out': [('fvec','float',214),
                      ('f','float'),
-                     ('worker_start_time','float'), 
-                     ('worker_end_time','float'), 
                      ('Jacobian','float',(3,214)),
                      ],
              'params': {'combine_component_func': np.linalg.norm,
@@ -42,9 +42,9 @@ sim_specs = {'f': [obj_func],
              }
 
 gen_specs = {'f': aposmm_logic,
-             'in': ['x', 'f', 'local_pt', 'dist_to_unit_bounds', 'dist_to_better_l', 
-                    'dist_to_better_s', 'ind_of_better_l', 'ind_of_better_s', 'started_run', 
-                    'active', 'local_min', ],
+             'in': ['x', 'f', 'local_pt', 'run_number', 'dist_to_unit_bounds',
+                    'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l',
+                    'ind_of_better_s', 'started_run', 'active', 'local_min', ],
              'out': [('x','float',2),
                      ('priority','float'),
                      ('run_number','int'),
