@@ -85,23 +85,31 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
     """
 
     Work = {}
+    gen_work = 0
 
     for i in idle_w:
         q_inds = np.where(~H['given'][:H_ind])[0]
 
         if sum(q_inds):
+            # Give all points with highest priority
             inds_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+
             Work[i] = {'calc_f': sim_specs['f'][0], 
                        'calc_params': sim_specs['params'], 
                        'form_subcomm': [], 
                        'calc_in': H[sim_specs['in']][inds_to_send],
                        'calc_out': sim_specs['out'],
-                       'calc_info': {'type':'sim', 'pt_ids': inds_to_send},
+                       'calc_info': {'type':'sim', 'pt_id': inds_to_send},
                       }
 
-            update_history_x_out(H, q_inds, Work[i]['calc_in'], i, sim_specs['params'])
+            update_history_x_out(H, inds_to_send, Work[i]['calc_in'], i, sim_specs['params'])
 
         else:
+            # Give gen work only if space in history
+            gen_work += 1 
+            if H_ind + gen_work >= len(H):
+                break
+
             Work[i] = {'calc_f': gen_specs['f'], 
                        'calc_params': gen_specs['params'], 
                        'form_subcomm': [], 
@@ -133,7 +141,7 @@ def update_history_f(H, D):
         History array storing rows for each point.
     """
 
-    new_inds = D['calc_info']['pt_ids']
+    new_inds = D['calc_info']['pt_id']
     H_0 = D['calc_out']
 
     for j,ind in enumerate(new_inds): 
@@ -157,10 +165,10 @@ def update_history_x_in(H, H_ind, O):
         Output from gen_f
     """
 
-    b = len(O)
+    b = min(len(O), len(H)-H_ind)
     
     for field in O.dtype.names:
-        H[field][H_ind:H_ind+b] = O[field]
+        H[field][H_ind:H_ind+b] = O[field][:b]
 
     H['pt_id'][H_ind:H_ind+b] = range(H_ind,H_ind+b)
 

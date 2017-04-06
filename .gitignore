@@ -1,4 +1,5 @@
 *__pycache__
+*.pyc
 *.aux
 *.log
 tex/*/*.pdf
