@@ -1,5 +1,6 @@
 """
     import IPython; IPython.embed()
+    sys.stdout.flush()
 libEnsemble manager routines
 ====================================================
 
@@ -36,7 +37,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
         update_active_and_queue(active_w, idle_w, H)
 
-        Work, H_ind = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
         for w in Work:
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
@@ -107,8 +108,6 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
         else:
             # Give gen work only if space in history
             gen_work += 1 
-            if H_ind + gen_work >= len(H):
-                break
 
             Work[i] = {'calc_f': gen_specs['f'], 
                        'calc_params': gen_specs['params'], 
@@ -118,7 +117,11 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
                        'calc_info': {'type':'gen'},
                        }
 
-    return Work, H_ind
+            if H_ind + gen_work >= len(H) - 1:
+                break
+
+
+    return Work
 
 def update_active_and_queue(active_w, idle_w, H):
     """ Decide if active work should be continued and the queue order
@@ -206,11 +209,11 @@ def termination_test(H, H_ind, exit_criteria):
     Return False if the libEnsemble run should stop 
     """
 
-    if H_ind >= exit_criteria['sim_eval_max']:
+    if sum(H['given']) >= exit_criteria['sim_eval_max']:
         return False
-    elif any(H[exit_criteria['stop_val'][0]][:H_ind] <= exit_criteria['stop_val'][1]):
+    elif 'stop_val' in exit_criteria and any(H[exit_criteria['stop_val'][0]][:H_ind] <= exit_criteria['stop_val'][1]):
         return False
-    elif time.time() - H['given_time'][0] > exit_criteria['elapsed_clock_time']:
+    elif 'elapsed_clock_time' in exit_criteria and time.time() - H['given_time'][0] > exit_criteria['elapsed_clock_time']:
         return False
     else:
         return True

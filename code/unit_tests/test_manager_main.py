@@ -7,6 +7,13 @@ import libE_manager as man
 def test_update_history_x_out():
     assert(True)
 
+def make_criteria_and_specs_0():
+    sim_specs={'f': [np.linalg.norm], 'in':['x'], 'out':[('g','float')], 'params':{}}
+    gen_specs={'f': [np.random.uniform], 'in':[], 'out':[('x','float'),('priority','float')], 'params':{}}
+    exit_criteria={'sim_eval_max':10}
+
+    return sim_specs, gen_specs, exit_criteria
+
 def make_criteria_and_specs_1():
     sim_specs={'f': [np.linalg.norm], 'in':['x'], 'out':[('g','float')], 'params':{}}
     gen_specs={'f': [np.random.uniform], 'in':[], 'out':[('x','float'),('priority','float')], 'params':{}}
@@ -18,10 +25,14 @@ def make_criteria_and_specs_1():
 def test_termination_test():
     # termination_test should be False when we want to stop
 
-    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
+    sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
+    H, H_ind = man.initiate_H(sim_specs_0, gen_specs_0, exit_criteria_0) 
+    assert(man.termination_test(H, H_ind, exit_criteria_0))
+
 
 
     # Shouldn't terminate
+    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
     H, H_ind = man.initiate_H(sim_specs, gen_specs, exit_criteria) 
     assert(man.termination_test(H, H_ind, exit_criteria))
     # 
@@ -35,9 +46,9 @@ def test_termination_test():
     # 
 
     
-    # Terminate because enough H_ind large 
+    # Terminate because everything has been given.
     H, H_ind = man.initiate_H(sim_specs, gen_specs, exit_criteria) 
-    H_ind = 10
+    H['given'] = np.ones
     assert(not man.termination_test(H, H_ind, exit_criteria))
     # 
     
@@ -60,7 +71,7 @@ def test_decide_work_and_resources():
     # Don't give out work when idle is empty
     active_w = set([1,2,3,4])
     idle_w = set([])
-    Work, H_ind = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+    Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
     assert( len(Work) == 0 )
     # 
 
@@ -68,10 +79,10 @@ def test_decide_work_and_resources():
     # Don't give more gen work than space in the history. 
     active_w = set([])
     idle_w = set([1,2,3,4])
-    H_ind = len(H)-2
+    H_ind = len(H)-2 # Only want one more Gen Point
     H['pt_id'][:len(H)-2] = np.arange(len(H)-2)
-    Work, H_ind = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
-    assert( len(Work) == 2)
+    Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+    assert( len(Work) == 2) # Length 2 because first work element is all points to be evaluated, second element is gen point
     # 
 
 
