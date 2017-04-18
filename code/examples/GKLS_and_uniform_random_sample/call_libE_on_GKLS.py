@@ -58,7 +58,7 @@ sim_specs = {'f': [obj_func],
                         'problem_dimension': 2,
                         'problem_number': 2,
                         'combine_component_func': combine_fvec,
-                        'uniform_random_pause_ub': 1,
+                        'uniform_random_pause_ub': 0.01,
                         'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
              }
 
@@ -81,3 +81,6 @@ exit_criteria = {'sim_eval_max': 100,   # must be provided
 np.random.seed(1)
 # Perform the run
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+
+if MPI.COMM_WORLD.Get_rank() == 0:
+    np.save('H_after_100_GKLS_2_ranks',H)

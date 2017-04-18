@@ -28,7 +28,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     H, H_ind = initiate_H(sim_specs, gen_specs, exit_criteria)
 
     idle_w = allocation_specs['worker_ranks'].copy()
-    active_w = set([])
+    active_w = {'gen':set([]), 'sim':set([])}
 
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
@@ -41,11 +41,11 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
         for w in Work:
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
-            active_w.add(w)
+            active_w[Work[w]['calc_info']['type']].add(w)
             idle_w.remove(w)
 
     ### Receive from all active workers 
-    for w in active_w:
+    for w in active_w['gen'].union(active_w['sim']):
         D_recv = comm.recv(buf=None, source=w, tag=MPI.ANY_TAG, status=status)
         if D_recv['calc_info']['type'] == 'sim':
             update_history_f(H, D_recv)
@@ -63,11 +63,11 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
     active_w_copy = active_w.copy()
 
     while True:
-        for w in active_w_copy: 
+        for w in active_w_copy['sim'].union(active_w_copy['gen']): 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 idle_w.add(status.Get_source())
-                active_w.remove(status.Get_source())
+                active_w[D_recv['calc_info']['type']].remove(status.Get_source())
 
                 if D_recv['calc_info']['type'] == 'sim':
                     update_history_f(H, D_recv)
@@ -106,6 +106,10 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             update_history_x_out(H, inds_to_send, Work[i]['calc_in'], i, sim_specs['params'])
 
         else:
+            # Limit number of gen instances if given
+            if 'num_inst' in gen_specs['params'] and len(active_w['gen']) + gen_work + 1 == gen_specs['params']['num_inst']:
+                break
+
             # Give gen work only if space in history
             gen_work += 1 
 
@@ -168,12 +172,20 @@ def update_history_x_in(H, H_ind, O):
         Output from gen_f
     """
 
-    b = min(len(O), len(H)-H_ind)
     
-    for field in O.dtype.names:
-        H[field][H_ind:H_ind+b] = O[field][:b]
+    b = min(len(O), len(H)-H_ind)
+    O = O[:b]
 
-    H['pt_id'][H_ind:H_ind+b] = range(H_ind,H_ind+b)
+    if 'pt_id' not in O.dtype.names:
+        # gen must not be adjusting pt_ids, just append to H
+        update_inds = np.arange(H_ind,H_ind+b)
+        H['pt_id'][H_ind:H_ind+b] = range(H_ind,H_ind+b)
+    else:
+        update_inds = O['pt_id']
+
+    for field in O.dtype.names:
+        H[field][update_inds] = O[field]
+
 
     H_ind += b
 
@@ -235,7 +247,6 @@ def initiate_H(sim_specs, gen_specs, exit_criteria):
         | given_time          : Time point was given to a worker
         | lead_rank           : lead worker rank point was given to 
         | returned            : True if point has been evaluated by a worker
-
     """
 
     default_keys = [('pt_id','int'),

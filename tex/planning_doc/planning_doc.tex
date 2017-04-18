@@ -268,6 +268,20 @@ Note that \texttt{sim\_f} receives only a subset of generated points, but
 \texttt{gen\_f} receives information from all points (if \texttt{gen\_f['in']}
 is nonempty).
 
+\subsection{Notes:}
+The following strings cannot be used in  \texttt{gen\_specs['out']} or
+\texttt{sim\_specs['out']} because they are reserved for LibEnsemble use:
+\begin{itemize}
+  \item \texttt{'pt_id'}
+  \item \texttt{'given'}
+  \item \texttt{'given_time'}
+  \item \texttt{'lead_rank'}
+  \item \texttt{'returned'}
+\end{itemize}
+
+All values in \texttt{gen\_specs['out']} or \texttt{sim\_specs['out']} are
+initialized to 0 (or FALSE for booleans). Just know this, for example, when
+assigning 'run_id' within scripts like \texttt{gen\_specs['f']}.
 
 
 \clearpage
