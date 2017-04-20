@@ -36,7 +36,6 @@ def aposmm_logic(H,gen_out,params):
     # given H, and then send back the rows corresponding to updated H entries. 
     
     updated_inds = np.array([])
-    new_local_pts = False 
 
     O = np.empty(0,dtype=gen_out)
 
@@ -95,7 +94,6 @@ def aposmm_logic(H,gen_out,params):
                         sys.exit("No new point requested by localopt method, but not declared optimal")
                 else: 
                     # print("Custodian %d sending %r back to Manager" % (rank, x_new))
-                    new_local_pts = True
 
                     add_points_to_O(O, x_new, len(H), ub, lb, updated_inds, local_flag=1)
                     O['priority'][-1] = 1
@@ -107,32 +105,33 @@ def aposmm_logic(H,gen_out,params):
 
         update_existing_runs_file(active_runs)
 
-    if not new_local_pts: # Do random sampling
-        batch = 1
-        x_new = np.random.uniform(0,1,(batch,n))
+    samples_needed = params['min_batch_size'] - len(O)
+    if samples_needed > 0:
+        x_new = np.random.uniform(0,1,(samples_needed,n))
 
         add_points_to_O(O, x_new, len(H), ub, lb, updated_inds, local_flag=0)
-        O['priority'][-batch:] = np.random.uniform(0,1,batch)
+        O['priority'][-samples_needed:] = np.random.uniform(0,1,samples_needed)
 
     B = np.append(H[[o[0] for o in gen_out]][updated_inds.astype('int')],O)
 
     return B
 
 def add_points_to_O(O, pts, len_H, ub, lb, updated_inds, local_flag):
-    batch = len(pts)
+    num_pts = len(pts)
+    original_len_O = len(O)
 
-    O.resize(len(O)+batch,refcheck=False) # Adds (batch) rows of zeros to O 
+    O.resize(len(O)+num_pts,refcheck=False) # Adds (num_pts) rows of zeros to O 
 
-    O['x_on_cube'][-batch:] = pts
-    O['x'][-batch:] = pts*(ub-lb)+lb
-    O['pt_id'][-batch:] = np.arange(len_H,len_H+batch)
-    O['local_pt'][-batch:] = local_flag
+    O['x_on_cube'][-num_pts:] = pts
+    O['x'][-num_pts:] = pts*(ub-lb)+lb
+    O['pt_id'][-num_pts:] = np.arange(len_H+original_len_O,len_H+original_len_O+num_pts)
+    O['local_pt'][-num_pts:] = local_flag
 
-    O['dist_to_unit_bounds'][-batch:] = np.inf
-    O['dist_to_better_l'][-batch:] = np.inf
-    O['dist_to_better_s'][-batch:] = np.inf
-    O['ind_of_better_l'][-batch:] = -1
-    O['ind_of_better_s'][-batch:] = -1
+    O['dist_to_unit_bounds'][-num_pts:] = np.inf
+    O['dist_to_better_l'][-num_pts:] = np.inf
+    O['dist_to_better_s'][-num_pts:] = np.inf
+    O['ind_of_better_l'][-num_pts:] = -1
+    O['ind_of_better_s'][-num_pts:] = -1
     
 def get_active_run_inds(H):
     filename = 'active_runs.txt'

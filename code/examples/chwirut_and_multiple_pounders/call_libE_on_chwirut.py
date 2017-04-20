@@ -68,6 +68,7 @@ gen_specs = {'f': aposmm_logic,
                         'localopt_method': 'LN_BOBYQA',
                         'rk_const': ((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                         'xtol_rel': 1e-3,
+                        'min_batch_size': len(allocation_specs['worker_ranks']),
                         'num_inst': 1,
                         },
              }

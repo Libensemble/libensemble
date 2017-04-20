@@ -267,10 +267,12 @@ def initiate_H(sim_specs, gen_specs, exit_criteria):
                    ]
 
     if ('pt_id','int') in gen_specs['out'] and 'pt_id' in gen_specs['in']:
-        print("User generator script will be creating pt_id.\n")
-        print("Take care to do this sequentially.\n")
-        print("Also, any information given back for existing pt_id values will be overwritten!\n")
-        print("So everything in gen_out should be in gen_in!\n")
+        print('\n' + 79*'*' + '\n'
+               "User generator script will be creating pt_id.\n"\
+               "Take care to do this sequentially.\n"\
+               "Also, any information given back for existing pt_id values will be overwritten!\n"\
+               "So everything in gen_out should be in gen_in!"\
+                '\n' + 79*'*' + '\n\n')
         sys.stdout.flush()
         default_keys = default_keys[1:] # Must remove 'pt_id' from default_keys because it's in gen_specs['out']
 
