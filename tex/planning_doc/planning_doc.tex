@@ -272,16 +272,17 @@ is nonempty).
 The following strings cannot be used in  \texttt{gen\_specs['out']} or
 \texttt{sim\_specs['out']} because they are reserved for LibEnsemble use:
 \begin{itemize}
-  \item \texttt{'pt_id'}
   \item \texttt{'given'}
-  \item \texttt{'given_time'}
-  \item \texttt{'lead_rank'}
+  \item \texttt{'given\_time'}
+  \item \texttt{'lead\_rank'}
   \item \texttt{'returned'}
+  \item \texttt{'pt\_id'} : The generator can assign this, but users should be
+    careful doing so.
 \end{itemize}
 
 All values in \texttt{gen\_specs['out']} or \texttt{sim\_specs['out']} are
 initialized to 0 (or FALSE for booleans). Just know this, for example, when
-assigning 'run_id' within scripts like \texttt{gen\_specs['f']}.
+assigning 'run\_id' within scripts like \texttt{gen\_specs['f']}.
 
 
 \clearpage
