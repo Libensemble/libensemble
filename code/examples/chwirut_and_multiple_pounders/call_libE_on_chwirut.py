@@ -16,28 +16,13 @@ sys.path.append('../../src')
 
 import numpy as np
 from libE import libE
-from chwirut1 import EvaluateFunction, EvaluateJacobian
+from chwirut1 import EvaluateFunction, EvaluateJacobian, sum_squares, libE_func_wrapper
 from aposmm_logic import aposmm_logic
 from math import *
 
-def sum_squares(x):
-    return np.sum(np.power(x,2))
-
-def libE_func_wrapper(H,sim_out,params):
-
-    batch = len(H['x'])
-    O = np.zeros(batch,dtype=sim_out)
-
-    for i,x in enumerate(H['x']):
-        O['fvec'][i] = EvaluateFunction(x)
-        O['f'] = params['combine_component_func'](O['fvec'][i])
-
-    return O
-        
-
 ### Declare the run parameters/functions
 n = 3
-max_evals = 5
+max_evals = 100
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
@@ -48,33 +33,35 @@ allocation_specs = {'manager_ranks': set([0]),
 
 sim_specs = {'f': [libE_func_wrapper],
              'in': ['x'],
-             'out': [('fvec','float',214),
-                     ('f','float'),
+             'out': [('f','float'),
+                     ('fvec','float',214),
                      # ('Jacobian','float',(214,n)),
                      ],
              'params': {'combine_component_func': sum_squares,
                         }, 
              }
 
+out = [('x','float',n),
+      ('x_on_cube','float',n),
+      ('pt_id','int'),
+      ('priority','float'),
+      ('iter_plus_1_in_run_id','int',max_evals),
+      ('local_pt','bool'),
+      ('known_to_aposmm','bool'), # Mark known points so fewer updates are needed.
+      ('dist_to_unit_bounds','float'),
+      ('dist_to_better_l','float'),
+      ('dist_to_better_s','float'),
+      ('ind_of_better_l','int'),
+      ('ind_of_better_s','int'),
+      ('started_run','bool'),
+      ('num_active_runs','int'), # Number of active runs point is involved in
+      ('local_min','bool'),
+      ]
+
 gen_specs = {'f': aposmm_logic,
-             'in': ['x_on_cube', 'fvec', 'f', 'local_pt', 'known_to_aposmm', 'iter_plus_1_in_run_id', 'dist_to_unit_bounds',
-                    'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l',
-                    'ind_of_better_s', 'started_run', 'num_active_runs', 'local_min','returned','pt_id'],
-             'out': [('x','float',n),
-                     ('x_on_cube','float',n),
-                     ('priority','float'),
-                     ('iter_plus_1_in_run_id','int',max_evals),
-                     ('local_pt','bool'),
-                     ('known_to_aposmm','bool'), # Mark known points so fewer updates are needed.
-                     ('dist_to_unit_bounds','float'),
-                     ('dist_to_better_l','float'),
-                     ('dist_to_better_s','float'),
-                     ('ind_of_better_l','int'),
-                     ('ind_of_better_s','int'),
-                     ('started_run','bool'),
-                     ('num_active_runs','int'), # Number of active runs point is involved in
-                     ('local_min','bool'),
-                     ],
+             'in': [o[0] for o in out] + ['fvec', 'f', 'returned'],
+             # 'in': [o[0] for o in out] + ['f', 'returned'],
+             'out': out,
              'params': {'lb': -2*np.ones(3),
                         'ub':  2*np.ones(3),
                         'initial_sample': 2,
@@ -95,4 +82,4 @@ np.random.seed(1)
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    np.save('H_after_5_evals',H)
+    np.save('H_after_100_evals',H)

@@ -1,6 +1,7 @@
 """
     import IPython; IPython.embed()
     sys.stdout.flush()
+    import ipdb; ipdb.set_trace()
 libEnsemble manager routines
 ====================================================
 
@@ -91,7 +92,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
     for i in idle_w:
         q_inds = np.where(~H['given'][:H_ind])[0]
 
-        if sum(q_inds):
+        if len(q_inds):
             # Give all points with highest priority
             inds_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
 
@@ -107,7 +108,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
 
         else:
             # Limit number of gen instances if given
-            if 'num_inst' in gen_specs['params'] and len(active_w['gen']) + gen_work + 1 == gen_specs['params']['num_inst']:
+            if 'num_inst' in gen_specs['params'] and len(active_w['gen']) + gen_work == gen_specs['params']['num_inst']:
                 break
 
             # Give gen work only if space in history
@@ -172,22 +173,31 @@ def update_history_x_in(H, H_ind, O):
         Output from gen_f
     """
 
+    rows_remaining = len(H)-H_ind
     
-    b = min(len(O), len(H)-H_ind)
-    O = O[:b]
-
     if 'pt_id' not in O.dtype.names:
-        # gen must not be adjusting pt_ids, just append to H
-        update_inds = np.arange(H_ind,H_ind+b)
-        H['pt_id'][H_ind:H_ind+b] = range(H_ind,H_ind+b)
+        # gen method must not be adjusting pt_id, just append to H
+        batch = min(len(O), rows_remaining)
+        O = O[:batch]
+        update_inds = np.arange(H_ind,H_ind+batch)
+        H['pt_id'][H_ind:H_ind+batch] = range(H_ind,H_ind+batch)
     else:
-        update_inds = O['pt_id']
+        # gen method is building pt_ids. 
+        new_ids = np.setdiff1d(O['pt_id'],H['pt_id'])
 
+        if len(new_ids) > rows_remaining:
+            out_ids = new_ids[rows_remaining:]
+            new_ids = new_ids[:rows_remaining]
+            to_keep = np.array([k not in out_ids for k in O['pt_id']], dtype='bool')
+            O = O[to_keep]
+
+        update_inds = O['pt_id']
+        batch = len(new_ids)
+        
     for field in O.dtype.names:
         H[field][update_inds] = O[field]
 
-
-    H_ind += b
+    H_ind += batch
 
     return H_ind
 
@@ -255,6 +265,14 @@ def initiate_H(sim_specs, gen_specs, exit_criteria):
                     ('lead_rank','int'),    
                     ('returned','bool'),    
                    ]
+
+    if ('pt_id','int') in gen_specs['out'] and 'pt_id' in gen_specs['in']:
+        print("User generator script will be creating pt_id.\n")
+        print("Take care to do this sequentially.\n")
+        print("Also, any information given back for existing pt_id values will be overwritten!\n")
+        print("So everything in gen_out should be in gen_in!\n")
+        sys.stdout.flush()
+        default_keys = default_keys[1:] # Must remove 'pt_id' from default_keys because it's in gen_specs['out']
 
     feval_max = exit_criteria['sim_eval_max']
 
