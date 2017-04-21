@@ -22,7 +22,7 @@ from math import *
 
 ### Declare the run parameters/functions
 n = 3
-max_evals = 100
+max_evals = 500
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
@@ -64,8 +64,14 @@ gen_specs = {'f': aposmm_logic,
              'out': out,
              'params': {'lb': -2*np.ones(3),
                         'ub':  2*np.ones(3),
-                        'initial_sample': 2,
+                        'initial_sample': 400,
                         'localopt_method': 'LN_BOBYQA',
+                        # 'localopt_method': 'pounders',
+                        'delta_0_mult': 0.5,
+                        'grtol': 1e-4,
+                        'gatol': 1e-4,
+                        'frtol': 1e-15,
+                        'fatol': 1e-15,
                         'rk_const': ((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                         'xtol_rel': 1e-3,
                         'min_batch_size': len(allocation_specs['worker_ranks']),

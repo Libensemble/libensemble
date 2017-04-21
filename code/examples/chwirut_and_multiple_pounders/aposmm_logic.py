@@ -5,9 +5,11 @@ import sys, os
 import numpy as np
 import scipy as sp
 from scipy import spatial
+from mpi4py import MPI
 
 from math import log
 
+from petsc4py import PETSc
 import nlopt
 
 def aposmm_logic(H,gen_out,params):
@@ -43,6 +45,7 @@ def aposmm_logic(H,gen_out,params):
     # sys.exit('a')
     # import ipdb; ipdb.set_trace()
     if n_s >= params['initial_sample']:
+        # sys.exit('a')
 
         # These are used to find a next point from the local optimization algorithm
         global x_new, pt_in_run, total_pts_in_run
@@ -222,8 +225,8 @@ def advance_localopt_method(H, params, sorted_run_inds):
     global x_new
 
     while 1: 
+        Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
         if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
-            Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
             try:
                 x_opt, exit_code = set_up_and_run_nlopt(Run_H, params)
             except Exception as e:
@@ -237,12 +240,6 @@ def advance_localopt_method(H, params, sorted_run_inds):
                 # NLopt gives the same point twice at an optimum, just set x_new back to inf.
                 x_new = np.ones(np.shape(H['x_on_cube'][0]))*np.inf; 
 
-            if np.equal(x_new,H['x_on_cube']).all(1).any():
-                # import ipdb; ipdb.set_trace()
-                sys.exit("Generated an already evaluated point")
-            else:
-                break
-
         elif params['localopt_method'] in ['pounders']:
             try: 
                 x_opt, exit_code = set_up_and_run_tao(Run_H, params)
@@ -254,6 +251,11 @@ def advance_localopt_method(H, params, sorted_run_inds):
         else:
             sys.exit("Unknown localopt method")
 
+        if np.equal(x_new,H['x_on_cube']).all(1).any():
+            # import ipdb; ipdb.set_trace()
+            sys.exit("Generated an already evaluated point")
+        else:
+            break
 
     return x_opt, exit_code
 
@@ -299,11 +301,84 @@ def set_up_and_run_nlopt(Run_H, params):
     if exit_code == 5: # NLOPT code for exhausting budget of evaluations, so not at a minimum
         exit_code = 0
 
-    return (x_opt, exit_code)
+    return x_opt, exit_code
 
 
+def set_up_and_run_tao(Run_H, params):
+    """ Set up objective and runs PETSc on the comm_self communicator
 
+    Declares the appropriate syntax for our special objective function to read
+    through Run_H, sets the parameters and starting points for the run.
+    """
+    tao_comm = MPI.COMM_SELF
+    n = len(params['ub'])
+    m = len(Run_H['fvec'][0])
 
+    def pounders_obj_func(tao, X, F, Run_H):
+        F.array = look_in_history(X.array, Run_H, vector_return=True)
+        return F
+
+    def blmvm_obj_func(tao, X, G, Run_H):
+        (f, grad) = look_in_history_fd_grad(X.array, Run_H)
+        G.array = grad
+        return f
+
+    # Create starting point, bounds, and tao object
+    x = PETSc.Vec().create(tao_comm)
+    x.setSizes(n)
+    x.setFromOptions()
+    x.array = Run_H['x_on_cube'][0]
+    lb = x.duplicate()
+    ub = x.duplicate()
+    lb.array = 0*np.ones(n)
+    ub.array = 1*np.ones(n)
+    tao = PETSc.TAO().create(tao_comm)
+    tao.setType(params['localopt_method'])
+
+    if params['localopt_method'] == 'pounders':
+        f = PETSc.Vec().create(tao_comm)
+        f.setSizes(m)
+        f.setFromOptions()
+
+        delta_0 = params['delta_0_mult']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+
+        PETSc.Options().setValue('-tao_pounders_delta',str(delta_0))
+        PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
+        tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
+    elif params['localopt_method'] == 'blmvm':
+        g = PETSc.Vec().create(tao_comm)
+        g.setSizes(n)
+        g.setFromOptions()
+        tao.setObjectiveGradient(lambda tao, x, g: blmvm_obj_func(tao, x, g, Run_H))
+
+    # Set everything for tao before solving
+    PETSc.Options().setValue('-tao_max_funcs',str(total_pts_in_run+1))
+    tao.setFromOptions()
+    tao.setVariableBounds((lb,ub))
+    # tao.setObjectiveTolerances(fatol=params['fatol'], frtol=params['frtol'])
+    # tao.setGradientTolerances(grtol=params['grtol'], gatol=params['gatol'])
+    tao.setTolerances(grtol=params['grtol'], gatol=params['gatol'])
+    tao.setInitial(x)
+
+    tao.solve(x)
+
+    x_opt = tao.getSolution().getArray()
+    exit_code = tao.getConvergedReason()
+    # print(exit_code)
+    # print(tao.view())
+    # print(x_opt)
+
+    if params['localopt_method'] == 'pounders':
+        f.destroy()
+    elif params['localopt_method'] == 'blmvm':
+        g.destroy()
+
+    lb.destroy()
+    ub.destroy()
+    x.destroy()
+    tao.destroy()
+
+    return x_opt, exit_code
 
 
 
@@ -475,14 +550,14 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     return start_inds
 
 def look_in_history(x, Run_H, vector_return=False):
-    """ See if Run['x_on_cube'][pt_in_run] matches x, returning f or f_vec, or saves x to
+    """ See if Run['x_on_cube'][pt_in_run] matches x, returning f or fvec, or saves x to
     x_new if every point in Run_H has been checked.
     """
     
     global pt_in_run, total_pts_in_run, x_new
 
     if vector_return:
-        to_return = 'f_vec'
+        to_return = 'fvec'
     else:
         to_return = 'f'
 
