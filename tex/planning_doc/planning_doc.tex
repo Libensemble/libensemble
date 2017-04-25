@@ -290,7 +290,12 @@ All values in \texttt{gen\_specs['out']} or \texttt{sim\_specs['out']} are
 initialized to 0 (or FALSE for booleans). Just know this, for example, when
 assigning 'run\_id' within scripts like \texttt{gen\_specs['f']}.
 
-Internally, there are two data structures maintained by \libE. 
+Internally, \libE currenlty maintains a single data structure \texttt{H} which
+contains the all history information (from \texttt{sim\_specs['out'] +
+gen\_specs['out']}). 
+
+We are considering splitting the \texttt{H} into two data structures. One possible split:
+
 \begin{allintypewriter}
   \begin{itemize}
     \item[H\_in]: [numpy structured array] History of all input given to
@@ -298,11 +303,51 @@ Internally, there are two data structures maintained by \libE.
       in sim\_specs['in']. 
       
     \item[H\_out]: [numpy structured array] History of all simulation output
-      and derived quantities. Contains fields in sim\_specs['out']+gen\_specs['out']
+      and derived quantities. Contains fields in sim\_specs['out']+gen\_specs['out'] \ sim\_specs['in']
   \end{itemize}
 \end{allintypewriter}
-Both of the above histories may contain duplicate information. For example, if
-evaluating a stochastic simulation with replications, \texttt{H\_in[0][x] == H\_in[1][x]} means the same point was evaluated
+
+Reasons for making some type of split from \texttt{H} to \texttt{H\_in} and \texttt{H\_out}:
+\begin{description}
+  \item[When there are repeated evaluations:]\
+    \begin{itemize}
+      \item Deterministic simulations:
+        \begin{itemize}
+          \item[+] It is possible to remove a redudant entries from \texttt{H}. E.g.,
+            \begin{allintypewriter}
+              \begin{itemize}
+                \item H['x']
+                \item H['f']
+                \item H['dist\_to\_unit\_bounds']
+                \item H['ind\_of\_better\_s']
+                \item H['ind\_of\_better\_l']
+                \item H['dist\_to\_better\_s']
+                \item H['dist\_to\_better\_l']
+              \end{itemize}
+            \end{allintypewriter}
+          \item[-] Who decides what is put in different ``history parts''?
+        \end{itemize}
+      \item Stochastic simulations:
+        \begin{itemize}
+          \item[+] It is possible to remove redudant entries from \texttt{H}
+            (though fewer than in the deterministic case).
+          \item[-] Now \texttt{H\_in} entries will need to be duplicated and
+            cross referencing output in \texttt{H\_out} becomes harder. E.g.,
+            if \texttt{'replications'} is an entry in \texttt{sim\_specs['in']}
+            then there will still be many rows in \texttt{H\_out}.
+        \end{itemize}
+    \end{itemize}
+\end{description}
+
+At this time, it seems as if strongest case for spliting is if the simulation
+input is very large and stored within \texttt{H} instead of pointers to
+existing structures/files/meshes. And even in the case of stochastic
+simulations with replications, calling \texttt{sim\_f(x=$x_0$, reps=4)} and
+\texttt{sim\_f(x=$x_0$, reps=3)} will require two entries in \texttt{H\_in} and
+7 entries in \texttt{H\_out}.
+
+We'll keep everything in \texttt{H} for now, and consider splitting if we
+encounter many such use cases.
 
 \clearpage
 \subsection{Example of calling functions}

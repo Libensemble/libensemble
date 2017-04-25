@@ -266,6 +266,10 @@ def initiate_H(sim_specs, gen_specs, exit_criteria):
                     ('returned','bool'),    
                    ]
 
+    assert 'priority' in [entry[0] for entry in gen_specs['out']],\
+        "'priority' must be an entry in gen_specs['out']"
+        
+
     if ('pt_id','int') in gen_specs['out'] and 'pt_id' in gen_specs['in']:
         print('\n' + 79*'*' + '\n'
                "User generator script will be creating pt_id.\n"\
