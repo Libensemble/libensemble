@@ -1,9 +1,5 @@
 *__pycache__
 *.pyc
-*.aux
-*.log
-tex/*/*.pdf
 libensemble_applications/
 *.o
-code/examples/GKLS_and_uniform_random_sample/GKLS_sim_src/gkls_single
 

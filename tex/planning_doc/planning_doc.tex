@@ -11,21 +11,22 @@
 \newenvironment{allintypewriter}{\ttfamily}{\par}
 \newcommand{\jlnote}[1]{\textsf{{\color{blue}{ JL note:}   #1.} }\marginpar{{\textbf{Comment}}}}
 \newcommand{\ps}[1]{\ensuremath{\mathtt{#1}}}
+\newcommand{\libE}{\texttt{LibEnsemble}}
 
-\title{LibEnsemble planning document}
+\title{\libE planning document}
 
 \begin{document}
 \maketitle
 \begin{abstract}
   This document will be an explicit plan of what will be developed in
-  LibEnsemble. Proper planning should help ensure that the code will be flexible
+  \libE. Proper planning should help ensure that the code will be flexible
   and easy to adjust in the future.
 
   Current development considers a manager and worker framework. 
 \end{abstract}
 
 In order to ensure applicability to a variety of use cases, 
-LibEnsemble will coordinate many different types of calculations. Examples of
+\libE will coordinate many different types of calculations. Examples of
 such calculations include:
 \begin{itemize}
   \item Simulation evaluations
@@ -149,7 +150,7 @@ after every type of calculation.
   }
   Receive from (kill?) active workers\\ 
   Terminate all workers
-  \caption{LibEnsemble manager logic \label{alg:manager}} 
+  \caption{\libE manager logic \label{alg:manager}} 
 \end{algorithm}
 
 \newpage
@@ -179,12 +180,12 @@ after every type of calculation.
     \If{First element in subcommunicator $sc$}{Report $O$ to manager}
     
   }
-  \caption{Each LibEnsemble worker's logic \label{alg:worker}} 
+  \caption{Each \libE worker's logic \label{alg:worker}} 
 \end{algorithm}
 
 \section{API}
 
-\subsection{\texttt{LibEnsemble} API}
+\subsection{\libE API}
 
 \begin{allintypewriter}
   libE(c, allocation\_specs, sim\_specs, failure\_processing, exit\_criteria)\\
@@ -245,6 +246,7 @@ after every type of calculation.
 \end{allintypewriter}
         
 
+
 \subsection{\texttt{sim} API}
 The \texttt{sim} calculations must have the API:\\
 
@@ -264,14 +266,18 @@ The \texttt{gen} calculations must have the API:\\
   out = gen\_f(H[gen\_spec['in']][:H\_ind], gen\_specs['out'], params)\\
 \end{allintypewriter}
 
+One of the fields in \texttt{out} must be \texttt{'priority'}. Note that all
+points with the same priority are given to \texttt{sim\_f} at a time.
+
 Note that \texttt{sim\_f} receives only a subset of generated points, but
 \texttt{gen\_f} receives information from all points (if \texttt{gen\_f['in']}
 is nonempty).
 
 \subsection{Notes:}
 The following strings cannot be used in  \texttt{gen\_specs['out']} or
-\texttt{sim\_specs['out']} because they are reserved for LibEnsemble use:
+\texttt{sim\_specs['out']} because they are reserved for \libE use:
 \begin{itemize}
+  \item \texttt{'priority'}
   \item \texttt{'given'}
   \item \texttt{'given\_time'}
   \item \texttt{'lead\_rank'}
@@ -284,6 +290,19 @@ All values in \texttt{gen\_specs['out']} or \texttt{sim\_specs['out']} are
 initialized to 0 (or FALSE for booleans). Just know this, for example, when
 assigning 'run\_id' within scripts like \texttt{gen\_specs['f']}.
 
+Internally, there are two data structures maintained by \libE. 
+\begin{allintypewriter}
+  \begin{itemize}
+    \item[H\_in]: [numpy structured array] History of all input given to
+      sim\_f. Rows correspond to each ``simulation evaluation''. Contains fields
+      in sim\_specs['in']. 
+      
+    \item[H\_out]: [numpy structured array] History of all simulation output
+      and derived quantities. Contains fields in sim\_specs['out']+gen\_specs['out']
+  \end{itemize}
+\end{allintypewriter}
+Both of the above histories may contain duplicate information. For example, if
+evaluating a stochastic simulation with replications, \texttt{H\_in[0][x] == H\_in[1][x]} means the same point was evaluated
 
 \clearpage
 \subsection{Example of calling functions}
@@ -294,7 +313,7 @@ assigning 'run\_id' within scripts like \texttt{gen\_specs['f']}.
 
 \clearpage
 \section{Target problems}
-There are many types of simulations that we can consider being run in LibEnsemble.
+There are many types of simulations that we can consider being run in \libE.
 
 \begin{enumerate}
   \item A Python function
@@ -348,7 +367,7 @@ There are many types of simulations that we can consider being run in LibEnsembl
 
 \clearpage
 \section{Initial test cases}
-In order to guide the initial development of LibEnsemble, we will focus on supporting the following use cases. (Objectives are intentionally selected to be easy to evaluate.)
+In order to guide the initial development of \libE, we will focus on supporting the following use cases. (Objectives are intentionally selected to be easy to evaluate.)
 \begin{enumerate}
   \item 
     \begin{description}
@@ -376,7 +395,7 @@ In order to guide the initial development of LibEnsemble, we will focus on suppo
       \item[Generating:] Multiple POUNDERS runs from $K$ starting points.
       \item[Functionality:] \
         \begin{itemize}
-          \item APOSMM in LibEnsemble
+          \item APOSMM in \libE
         \end{itemize}
     \end{description}
     \bigskip
@@ -411,7 +430,8 @@ In order to guide the initial development of LibEnsemble, we will focus on suppo
     \end{description}
 \end{enumerate}
 
+\cite{nlopt}
 
-% \bibliographystyle{plain}
-% \bibliography{article}
+\bibliographystyle{plain}
+\bibliography{../bibs/masterbib}
 \end{document} 
