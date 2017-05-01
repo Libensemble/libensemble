@@ -26,7 +26,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     status = MPI.Status()
 
-    H, H_ind = initiate_H(sim_specs, gen_specs, exit_criteria)
+    H, H_ind = initiate_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'])
 
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = {'gen':set([]), 'sim':set([])}
@@ -34,7 +34,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
 
-        H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
 
         update_active_and_queue(active_w, idle_w, H)
 
@@ -73,14 +73,14 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
                 if D_recv['calc_info']['type'] == 'sim':
                     update_history_f(H, D_recv)
                 elif D_recv['calc_info']['type'] == 'gen':
-                    H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
+                    H, H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
 
         if active_w_copy == active_w:
             break
         else:
             active_w_copy = active_w.copy()
 
-    return H_ind, active_w, idle_w
+    return H, H_ind, active_w, idle_w
 
 def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
     """ Decide what should be given to workers 
@@ -107,8 +107,12 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             update_history_x_out(H, inds_to_send, Work[i]['calc_in'], i, sim_specs['params'])
 
         else:
+            # Don't give out any gen instances if in batch mode and any point has not been returned
+            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and any(~H['returned'][:H_ind]):
+                break
+
             # Limit number of gen instances if given
-            if 'num_inst' in gen_specs['params'] and len(active_w['gen']) + gen_work == gen_specs['params']['num_inst']:
+            if 'num_inst' in gen_specs and len(active_w['gen']) + gen_work == gen_specs['num_inst']:
                 break
 
             # Give gen work only if space in history
@@ -177,29 +181,40 @@ def update_history_x_in(H, H_ind, O):
     
     if 'pt_id' not in O.dtype.names:
         # gen method must not be adjusting pt_id, just append to H
-        batch = min(len(O), rows_remaining)
-        O = O[:batch]
-        update_inds = np.arange(H_ind,H_ind+batch)
-        H['pt_id'][H_ind:H_ind+batch] = range(H_ind,H_ind+batch)
+        num_new = len(O)
+
+        if num_new > rows_remaining:
+            H = grow_H(H,num_new-rows_remaining)
+            
+        update_inds = np.arange(H_ind,H_ind+num_new)
+        H['pt_id'][H_ind:H_ind+num_new] = range(H_ind,H_ind+num_new)
     else:
         # gen method is building pt_ids. 
-        new_ids = np.setdiff1d(O['pt_id'],H['pt_id'])
+        num_new = len(np.setdiff1d(O['pt_id'],H['pt_id']))
 
-        if len(new_ids) > rows_remaining:
-            out_ids = new_ids[rows_remaining:]
-            new_ids = new_ids[:rows_remaining]
-            to_keep = np.array([k not in out_ids for k in O['pt_id']], dtype='bool')
-            O = O[to_keep]
+        if num_new > rows_remaining:
+            H = grow_H(H,num_new-rows_remaining)
 
         update_inds = O['pt_id']
-        batch = len(new_ids)
         
     for field in O.dtype.names:
         H[field][update_inds] = O[field]
 
-    H_ind += batch
+    H_ind += num_new
 
-    return H_ind
+    return H, H_ind
+
+def grow_H(H, k):
+    """ LibEnsemble is requesting k rows be added to H because gen_f produced
+    more points than rows in H."""
+    H_1 = np.zeros(k, dtype=H.dtype)
+    H_1['pt_id'] = -1
+    H_1['given_time'] = np.inf
+
+    H = np.append(H,H_1)
+
+    return H
+
 
 def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
     """
@@ -242,7 +257,7 @@ def termination_test(H, H_ind, exit_criteria):
 
 
 
-def initiate_H(sim_specs, gen_specs, exit_criteria):
+def initiate_H(sim_specs, gen_specs, feval_max):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -259,11 +274,11 @@ def initiate_H(sim_specs, gen_specs, exit_criteria):
         | returned            : True if point has been evaluated by a worker
     """
 
-    default_keys = [('pt_id','int'),
-                    ('given','bool'),       
-                    ('given_time','float'), 
-                    ('lead_rank','int'),    
-                    ('returned','bool'),    
+    libE_fields = [('pt_id','int'),
+                   ('given','bool'),       
+                   ('given_time','float'), 
+                   ('lead_rank','int'),    
+                   ('returned','bool'),    
                    ]
 
     assert 'priority' in [entry[0] for entry in gen_specs['out']],\
@@ -278,11 +293,9 @@ def initiate_H(sim_specs, gen_specs, exit_criteria):
                "So everything in gen_out should be in gen_in!"\
                 '\n' + 79*'*' + '\n\n')
         sys.stdout.flush()
-        default_keys = default_keys[1:] # Must remove 'pt_id' from default_keys because it's in gen_specs['out']
+        libE_fields = libE_fields[1:] # Must remove 'pt_id' from libE_fields because it's in gen_specs['out']
 
-    feval_max = exit_criteria['sim_eval_max']
-
-    H = np.zeros(feval_max, dtype=default_keys + sim_specs['out'] + gen_specs['out']) 
+    H = np.zeros(feval_max, dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
 
     H['pt_id'] = -1
     H['given_time'] = np.inf

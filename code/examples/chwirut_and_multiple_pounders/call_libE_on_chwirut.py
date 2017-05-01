@@ -16,7 +16,7 @@ sys.path.append('../../src')
 
 import numpy as np
 from libE import libE
-from chwirut1 import EvaluateFunction, EvaluateJacobian, sum_squares, libE_func_wrapper
+from chwirut1 import sum_squares, libE_func_wrapper
 from aposmm_logic import aposmm_logic
 from math import *
 
@@ -77,6 +77,8 @@ gen_specs = {'f': aposmm_logic,
                         'min_batch_size': len(allocation_specs['worker_ranks']),
                         'num_inst': 1,
                         },
+              'num_inst': 1,
+              'batch_mode': True,
              }
 
 failure_processing = {}

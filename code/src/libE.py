@@ -36,9 +36,9 @@ def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_cri
     ----------
 
     """
+    check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
     
     comm = c['comm']
-
     comm.Barrier()
 
     if comm.Get_rank() in allocation_specs['manager_ranks']:
@@ -59,5 +59,14 @@ def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, 
 
     assert(len(sim_specs['out'])), "sim_specs must have 'out' entries"
     assert(len(gen_specs['out'])), "gen_specs must have 'out' entries"
-    assert(exit_criteria['stop_val'](0) in sim_specs['out'] + gen_specs['out'])
+
+    if 'stop_val' in exit_criteria:
+        assert(exit_criteria['stop_val'](0) in sim_specs['out'] + gen_specs['out']),\
+               "Can't stop on " + exit_criteria['stop_val'][0] + " if it's not \
+               returned from sim_specs['out'] or gen_specs['out']"
+    
+    if 'num_inst' in gen_specs and 'batch_mode' in gen_specs:
+        assert(gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode']),\
+               "Can't have more than one 'num_inst' for 'batch_mode' generator"
+
 
