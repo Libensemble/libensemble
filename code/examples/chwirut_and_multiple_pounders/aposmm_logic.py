@@ -28,9 +28,7 @@ def aposmm_logic(H,gen_out,params):
     import ipdb; ipdb.set_trace() 
     """
 
-    ub = params['ub']
-    lb = params['lb']
-    n = len(ub)
+    n = len(params['ub'])
 
     n_s = np.sum(np.logical_and(~H['local_pt'], H['returned'])) # Number of returned sampled points
 
@@ -43,7 +41,7 @@ def aposmm_logic(H,gen_out,params):
 
     # np.save('H_after_' + str(n_s) + '_evals',H)
     # sys.exit('a')
-    # import ipdb; ipdb.set_trace()
+    import ipdb; ipdb.set_trace()
     if n_s >= params['initial_sample']:
         # sys.exit('a')
 
@@ -51,7 +49,7 @@ def aposmm_logic(H,gen_out,params):
         global x_new, pt_in_run, total_pts_in_run
 
         # Update distances for any new points that have been evaluated
-        updated_inds = update_history_dist(H)        
+        updated_inds = update_history_dist(H, params)        
 
         # Find any indices that haven't started runs yet but should
         starting_inds = decide_where_to_start_localopt(H, n_s, params['rk_const'])        
@@ -96,12 +94,7 @@ def aposmm_logic(H,gen_out,params):
                     else:
                         sys.exit("No new point requested by localopt method, but not declared optimal")
                 else: 
-                    # print("Custodian %d sending %r back to Manager" % (rank, x_new))
-
-                    add_points_to_O(O, x_new, len(H), ub, lb, updated_inds, local_flag=1)
-                    O['priority'][-1] = 1
-                    O['iter_plus_1_in_run_id'][-1,run] = len(sorted_run_inds)+1
-                    O['num_active_runs'][-1] += 1
+                    add_points_to_O(O, x_new, len(H), updated_inds, params, local_flag=1)
 
         for i in inactive_runs:
             active_runs.remove(i)
@@ -112,14 +105,21 @@ def aposmm_logic(H,gen_out,params):
     if samples_needed > 0:
         x_new = np.random.uniform(0,1,(samples_needed,n))
 
-        add_points_to_O(O, x_new, len(H), ub, lb, updated_inds, local_flag=0)
-        O['priority'][-samples_needed:] = np.random.uniform(0,1,samples_needed)
+        add_points_to_O(O, x_new, len(H), updated_inds, params, local_flag=0)
 
     B = np.append(H[[o[0] for o in gen_out]][updated_inds.astype('int')],O)
 
     return B
 
-def add_points_to_O(O, pts, len_H, ub, lb, updated_inds, local_flag):
+def add_points_to_O(O, pts, len_H, updated_inds, params, local_flag):
+    assert(not local_flag or len(pts) == 1), "add_points_to_O does not support this functionality"
+
+    ub = params['ub']
+    lb = params['lb']
+    if 'single_component_at_a_time' in params and params['single_component_at_a_time']:
+        m = params['components']
+        pts = np.tile(pts,(m,1))
+
     num_pts = len(pts)
     original_len_O = len(O)
 
@@ -127,7 +127,7 @@ def add_points_to_O(O, pts, len_H, ub, lb, updated_inds, local_flag):
 
     O['x_on_cube'][-num_pts:] = pts
     O['x'][-num_pts:] = pts*(ub-lb)+lb
-    O['pt_id'][-num_pts:] = np.arange(len_H+original_len_O,len_H+original_len_O+num_pts)
+    O['sim_id'][-num_pts:] = np.arange(len_H+original_len_O,len_H+original_len_O+num_pts)
     O['local_pt'][-num_pts:] = local_flag
 
     O['dist_to_unit_bounds'][-num_pts:] = np.inf
@@ -136,6 +136,19 @@ def add_points_to_O(O, pts, len_H, ub, lb, updated_inds, local_flag):
     O['ind_of_better_l'][-num_pts:] = -1
     O['ind_of_better_s'][-num_pts:] = -1
     
+    if local_flag:
+        O['iter_plus_1_in_run_id'][-num_pts:,run] = len(sorted_run_inds)+1
+        O['num_active_runs'][-num_pts] += 1
+        O['priority'][-num_pts:] = 1
+    else:
+        if 'single_component_at_a_time' in params and params['single_component_at_a_time']:
+            # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning LibE gives them all at once)
+            p_tmp = np.random.uniform(0,1,num_pts)
+            O['obj_component'] = range(0,params['components'])
+        else:
+            p_tmp = np.random.uniform(0,1,num_pts)
+        O['priority'][-num_pts:] = p_tmp
+
 def get_active_run_inds(H):
     filename = 'active_runs.txt'
     if os.path.exists(filename) and os.stat(filename).st_size > 0:
@@ -153,7 +166,11 @@ def update_existing_runs_file(active_runs):
     filename = 'active_runs.txt'    
     np.savetxt(filename,np.array(list(active_runs),dtype='int'), fmt='%i')
 
-def update_history_dist(H):
+def update_history_dist(H, params):
+
+    if 'single_component_at_a_time' in params and params['single_component_at_a_time']:
+        H['f']
+
     n = len(H['x_on_cube'][0])
 
     p = H['returned']
@@ -182,24 +199,24 @@ def update_history_dist(H):
         updated_inds = np.append(updated_inds, updates)
 
         # If we allow equality, have to prevent new_ind from being its own "better point"
-        better_than_new_l = np.logical_and.reduce((H['f'][new_ind] >= H['f'][p],  H['local_pt'][p], H['pt_id'][p] != new_ind))
-        better_than_new_s = np.logical_and.reduce((H['f'][new_ind] >= H['f'][p], ~H['local_pt'][p], H['pt_id'][p] != new_ind))
+        better_than_new_l = np.logical_and.reduce((H['f'][new_ind] >= H['f'][p],  H['local_pt'][p], H['sim_id'][p] != new_ind))
+        better_than_new_s = np.logical_and.reduce((H['f'][new_ind] >= H['f'][p], ~H['local_pt'][p], H['sim_id'][p] != new_ind))
 
         # Who is closest to ind and better 
         if np.any(better_than_new_l):
             H['dist_to_better_l'][new_ind] = dist_to_all[better_than_new_l].min()
-            H['ind_of_better_l'][new_ind] = H['pt_id'][p][np.ix_(better_than_new_l)[0][dist_to_all[better_than_new_l].argmin()]]
+            H['ind_of_better_l'][new_ind] = H['sim_id'][p][np.ix_(better_than_new_l)[0][dist_to_all[better_than_new_l].argmin()]]
 
         if np.any(better_than_new_s):
             H['dist_to_better_s'][new_ind] = dist_to_all[better_than_new_s].min()
-            H['ind_of_better_s'][new_ind] = H['pt_id'][p][np.ix_(better_than_new_s)[0][dist_to_all[better_than_new_s].argmin()]]
+            H['ind_of_better_s'][new_ind] = H['sim_id'][p][np.ix_(better_than_new_s)[0][dist_to_all[better_than_new_s].argmin()]]
 
         # if not ignore_L8:
         #     r_k = calc_rk(H, len(H['x_on_cube'][0]), n_s, rk_const, lhs_divisions)
         #     H['worse_within_rk'][new_ind][p] = np.logical_and.reduce((H['f'][new_ind] <= H['f'][p], dist_to_all <= r_k))
 
         #     # Add trues if new point is 'worse_within_rk' 
-        #     inds_to_change = np.logical_and.reduce((H['dist_to_all'][p,new_ind] <= r_k, H['f'][new_ind] >= H['f'][p], H['pt_id'][p] != new_ind))
+        #     inds_to_change = np.logical_and.reduce((H['dist_to_all'][p,new_ind] <= r_k, H['f'][new_ind] >= H['f'][p], H['sim_id'][p] != new_ind))
         #     H['worse_within_rk'][inds_to_change,new_ind] = True
 
         #     if not H['local_pt'][new_ind]:

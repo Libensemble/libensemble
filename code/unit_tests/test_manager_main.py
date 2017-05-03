@@ -80,7 +80,7 @@ def test_decide_work_and_resources():
     active_w = set([])
     idle_w = set([1,2,3,4])
     H_ind = len(H)-2 # Only want one more Gen Point
-    H['pt_id'][:len(H)-2] = np.arange(len(H)-2)
+    H['sim_id'][:len(H)-2] = np.arange(len(H)-2)
     Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
     assert( len(Work) == 2) # Length 2 because first work element is all points to be evaluated, second element is gen point
     # 

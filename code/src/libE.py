@@ -69,4 +69,3 @@ def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, 
         assert(gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode']),\
                "Can't have more than one 'num_inst' for 'batch_mode' generator"
 
-

@@ -43,7 +43,7 @@ sim_specs = {'f': [libE_func_wrapper],
 
 out = [('x','float',n),
       ('x_on_cube','float',n),
-      ('pt_id','int'),
+      ('sim_id','int'),
       ('priority','float'),
       ('iter_plus_1_in_run_id','int',max_evals),
       ('local_pt','bool'),

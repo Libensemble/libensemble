@@ -101,7 +101,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
                        'form_subcomm': [], 
                        'calc_in': H[sim_specs['in']][inds_to_send],
                        'calc_out': sim_specs['out'],
-                       'calc_info': {'type':'sim', 'pt_id': inds_to_send},
+                       'calc_info': {'type':'sim', 'sim_id': inds_to_send},
                       }
 
             update_history_x_out(H, inds_to_send, Work[i]['calc_in'], i, sim_specs['params'])
@@ -153,7 +153,7 @@ def update_history_f(H, D):
         History array storing rows for each point.
     """
 
-    new_inds = D['calc_info']['pt_id']
+    new_inds = D['calc_info']['sim_id']
     H_0 = D['calc_out']
 
     for j,ind in enumerate(new_inds): 
@@ -179,23 +179,23 @@ def update_history_x_in(H, H_ind, O):
 
     rows_remaining = len(H)-H_ind
     
-    if 'pt_id' not in O.dtype.names:
-        # gen method must not be adjusting pt_id, just append to H
+    if 'sim_id' not in O.dtype.names:
+        # gen method must not be adjusting sim_id, just append to H
         num_new = len(O)
 
         if num_new > rows_remaining:
             H = grow_H(H,num_new-rows_remaining)
             
         update_inds = np.arange(H_ind,H_ind+num_new)
-        H['pt_id'][H_ind:H_ind+num_new] = range(H_ind,H_ind+num_new)
+        H['sim_id'][H_ind:H_ind+num_new] = range(H_ind,H_ind+num_new)
     else:
-        # gen method is building pt_ids. 
-        num_new = len(np.setdiff1d(O['pt_id'],H['pt_id']))
+        # gen method is building sim_id. 
+        num_new = len(np.setdiff1d(O['sim_id'],H['sim_id']))
 
         if num_new > rows_remaining:
             H = grow_H(H,num_new-rows_remaining)
 
-        update_inds = O['pt_id']
+        update_inds = O['sim_id']
         
     for field in O.dtype.names:
         H[field][update_inds] = O[field]
@@ -208,7 +208,7 @@ def grow_H(H, k):
     """ LibEnsemble is requesting k rows be added to H because gen_f produced
     more points than rows in H."""
     H_1 = np.zeros(k, dtype=H.dtype)
-    H_1['pt_id'] = -1
+    H_1['sim_id'] = -1
     H_1['given_time'] = np.inf
 
     H = np.append(H,H_1)
@@ -267,14 +267,14 @@ def initiate_H(sim_specs, gen_specs, feval_max):
     H: numpy structured array
         History array storing rows for each point. Field names are below
 
-        | pt_id               : Count of each each point
+        | sim_id              : Identifier for each simulation (could be the same "point" just with different parameters) 
         | given               : True if point has been given to a worker
         | given_time          : Time point was given to a worker
         | lead_rank           : lead worker rank point was given to 
         | returned            : True if point has been evaluated by a worker
     """
 
-    libE_fields = [('pt_id','int'),
+    libE_fields = [('sim_id','int'),
                    ('given','bool'),       
                    ('given_time','float'), 
                    ('lead_rank','int'),    
@@ -285,19 +285,19 @@ def initiate_H(sim_specs, gen_specs, feval_max):
         "'priority' must be an entry in gen_specs['out']"
         
 
-    if ('pt_id','int') in gen_specs['out'] and 'pt_id' in gen_specs['in']:
+    if ('sim_id','int') in gen_specs['out'] and 'sim_id' in gen_specs['in']:
         print('\n' + 79*'*' + '\n'
-               "User generator script will be creating pt_id.\n"\
+               "User generator script will be creating sim_id.\n"\
                "Take care to do this sequentially.\n"\
-               "Also, any information given back for existing pt_id values will be overwritten!\n"\
+               "Also, any information given back for existing sim_id values will be overwritten!\n"\
                "So everything in gen_out should be in gen_in!"\
                 '\n' + 79*'*' + '\n\n')
         sys.stdout.flush()
-        libE_fields = libE_fields[1:] # Must remove 'pt_id' from libE_fields because it's in gen_specs['out']
+        libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
 
     H = np.zeros(feval_max, dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
 
-    H['pt_id'] = -1
+    H['sim_id'] = -1
     H['given_time'] = np.inf
 
     return (H, 0)
