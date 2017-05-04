@@ -13,7 +13,7 @@ from __future__ import absolute_import
 from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 sys.path.append('../../src')
-sys.path.append('../chwirut_and_multiple_pounders')
+sys.path.append('../chwirut_and_aposmm')
 
 import numpy as np
 from libE import libE
@@ -24,7 +24,7 @@ from math import *
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_evals = 1000*m
+max_sim_evals = 100*m
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
