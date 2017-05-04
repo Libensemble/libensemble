@@ -61,11 +61,15 @@ def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, 
     assert(len(gen_specs['out'])), "gen_specs must have 'out' entries"
 
     if 'stop_val' in exit_criteria:
-        assert(exit_criteria['stop_val'](0) in sim_specs['out'] + gen_specs['out']),\
+        assert(exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']]),\
                "Can't stop on " + exit_criteria['stop_val'][0] + " if it's not \
                returned from sim_specs['out'] or gen_specs['out']"
     
     if 'num_inst' in gen_specs and 'batch_mode' in gen_specs:
         assert(gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode']),\
                "Can't have more than one 'num_inst' for 'batch_mode' generator"
+
+    if 'single_component_at_a_time' in gen_specs['params'] and gen_specs['params']['single_component_at_a_time']:
+        if gen_specs['f'].__name__ == 'aposmm_logic':
+            assert(gen_specs['batch_mode']), "Must be in batch mode when using 'single_component_at_a_time' and APOSMM"
 

@@ -22,7 +22,7 @@ from math import *
 
 ### Declare the run parameters/functions
 n = 3
-max_evals = 500
+max_sim_evals = 500
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
@@ -45,7 +45,7 @@ out = [('x','float',n),
       ('x_on_cube','float',n),
       ('sim_id','int'),
       ('priority','float'),
-      ('iter_plus_1_in_run_id','int',max_evals),
+      ('iter_plus_1_in_run_id','int',max_sim_evals),
       ('local_pt','bool'),
       ('known_to_aposmm','bool'), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds','float'),
@@ -75,15 +75,13 @@ gen_specs = {'f': aposmm_logic,
                         'rk_const': ((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                         'xtol_rel': 1e-3,
                         'min_batch_size': len(allocation_specs['worker_ranks']),
-                        'num_inst': 1,
                         },
               'num_inst': 1,
-              'batch_mode': True,
              }
 
 failure_processing = {}
 
-exit_criteria = {'sim_eval_max': max_evals, # must be provided
+exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
                   }
 
 np.random.seed(1)
