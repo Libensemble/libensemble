@@ -14,6 +14,7 @@ from math import log
 from petsc4py import PETSc
 import nlopt
 
+# @profile
 def aposmm_logic(H,gen_out,params):
 
     """
@@ -194,7 +195,8 @@ def add_points_to_O(O, pts, len_H, updated_inds, params, c_flag, local_flag=0, s
             p_tmp = np.random.uniform(0,1,num_pts)
         else:
             p_tmp = np.random.uniform(0,1,num_pts)
-        O['priority'][-num_pts:] = p_tmp
+        # O['priority'][-num_pts:] = p_tmp
+        O['priority'][-num_pts:] = 1
 
 def get_active_run_inds(H):
     filename = 'active_runs.txt'

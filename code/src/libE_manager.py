@@ -33,6 +33,8 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
+        print(H_ind)
+        sys.stdout.flush()
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
 
@@ -246,7 +248,7 @@ def termination_test(H, H_ind, exit_criteria):
     Return False if the libEnsemble run should stop 
     """
 
-    if sum(H['given']) >= exit_criteria['sim_eval_max']:
+    if np.sum(H['given']) >= exit_criteria['sim_eval_max']:
         return False
     elif 'stop_val' in exit_criteria and any(H[exit_criteria['stop_val'][0]][:H_ind] <= exit_criteria['stop_val'][1]):
         return False

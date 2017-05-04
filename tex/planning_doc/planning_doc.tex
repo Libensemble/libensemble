@@ -426,21 +426,21 @@ In order to guide the initial development of \libE, we will focus on supporting 
     \bigskip
   \item 
     \begin{description}
-      \item[Objective:] chwirut\{1,2\}.c 
-      \item[Generating:] Single TAO/POUNDERS run from 1 starting point. One simulation for each residual. Residuals obtained concurrently.
+      \item[Objective:] chwirut\{1,2\}.c
+      \item[Generating:] Multiple POUNDERS runs from $K$ starting points.
       \item[Functionality:] \
         \begin{itemize}
-          \item Multiple simulations for each point
+          \item APOSMM in \libE
         \end{itemize}
     \end{description}
     \bigskip
   \item 
     \begin{description}
       \item[Objective:] chwirut\{1,2\}.c
-      \item[Generating:] Multiple POUNDERS runs from $K$ starting points.
+      \item[Generating:] Same as above, but with APOSMM giving each point and a single residual to be evaluated.
       \item[Functionality:] \
         \begin{itemize}
-          \item APOSMM in \libE
+          \item Being able to give different residualss in APOSMM 
         \end{itemize}
     \end{description}
     \bigskip
