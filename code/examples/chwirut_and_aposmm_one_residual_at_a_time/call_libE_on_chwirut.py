@@ -12,11 +12,12 @@ from __future__ import absolute_import
 
 from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
+import numpy as np
+
 sys.path.append('../../src')
 sys.path.append('../chwirut_and_aposmm')
-
-import numpy as np
 from libE import libE
+
 from chwirut1 import sum_squares, libE_func_wrapper
 from aposmm_logic import aposmm_logic
 from math import *
@@ -24,7 +25,7 @@ from math import *
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_evals = 100*m
+max_sim_evals = 10*m
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
@@ -88,10 +89,14 @@ gen_specs = {'f': aposmm_logic,
 
 failure_processing = {}
 
-# exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
 exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
                   }
 
 np.random.seed(1)
 # Perform the run
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+
+if MPI.COMM_WORLD.Get_rank() == 0:
+    filename = 'chwirut_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(c['comm'].Get_size())
+    print("\n\n\nRun completed.\nSaving results to file: " + filename)
+    np.save(filename, H)

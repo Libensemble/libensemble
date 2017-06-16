@@ -11,7 +11,9 @@
 \newenvironment{allintypewriter}{\ttfamily}{\par}
 \newcommand{\jlnote}[1]{\textsf{{\color{blue}{ JL note:}   #1.} }\marginpar{{\textbf{Comment}}}}
 \newcommand{\ps}[1]{\ensuremath{\mathtt{#1}}}
-\newcommand{\libE}{\texttt{LibEnsemble}}
+\newcommand{\libE}{\texttt{LibEnsemble}\xspace}
+
+\newcommand{\algref}[1]{{\rm Algorithm}~\ref{alg:#1}}
 
 \title{\libE planning document}
 
@@ -39,10 +41,12 @@ Users will only need to provide scripts for simulation evaluation and point
 generation. We will provide default scripts for the other types of calculations, 
 which can be templates for the interested user. As a default the Manager will
 perform many calculations itself (essentially blocking the manager), but we can
-possibly monitor this and adjust as needed if manager-calculations are
+monitor this in the future and adjust as needed if manager-calculations are
 expensive. 
 
-\subsection{Manager}
+We outline the behavior of the manager and worker within \libE:
+
+\noindent \textbf{Manager}
 \begin{itemize}
   \item Generates inputs for calculations.
     \begin{itemize}
@@ -85,11 +89,8 @@ expensive.
     \end{itemize}
 \end{itemize}
 
-If we are going to keep everything general, then perhaps we require a
-calculation-type-dependent user-defined function to be called before and after
-after every type of calculation.
 
-\subsection{Worker}
+\noindent \textbf{Worker}
 \begin{itemize}
   \item Performs the calculations given to it.
   \item An undivisible unit (though many workers may combine to perform one task). Examples:
@@ -107,10 +108,10 @@ after every type of calculation.
 
 \section{Pseudocode}
 
-\newpage
+We outline the logic of the the manager and the workers in \algref{manager} and \algref{worker}, respectively.
+
 \LinesNumbered
-\begin{algorithm}[t] % Makes font smaller
-% \begin{algorithm}[H] % Makes font larger
+\begin{algorithm}[H] 
   \SetKwComment{Comment}{$\triangleright$\ }{}
   \SetAlgoNlRelativeSize{-5}
   \SetKwInOut{Input}{input}
@@ -148,15 +149,13 @@ after every type of calculation.
       }
     }
   }
-  Receive from (kill?) active workers\\ 
+  Receive from active workers\\ 
   Terminate all workers
   \caption{\libE manager logic \label{alg:manager}} 
 \end{algorithm}
 
-\newpage
 \LinesNumbered
-\begin{algorithm}[t] % Makes font smaller
-% \begin{algorithm}[H] % Makes font larger
+\begin{algorithm}[H]
   \SetKwComment{Comment}{$\triangleright$\ }{}
   \SetAlgoNlRelativeSize{-5}
   \SetKwInOut{Input}{input}
@@ -184,8 +183,8 @@ after every type of calculation.
 \end{algorithm}
 
 \section{API}
-
-\subsection{\libE API}
+We now outline the API for \libE and the two functions expected by \libE: the
+simulation and the generating functions.
 
 \begin{allintypewriter}
   libE(c, allocation\_specs, sim\_specs, failure\_processing, exit\_criteria)\\
@@ -246,9 +245,8 @@ after every type of calculation.
 \end{allintypewriter}
         
 
-
 \subsection{\texttt{sim} API}
-The \texttt{sim} calculations must have the API:\\
+The \texttt{sim} calculations will be called by \libE with the following API:\\
 
 \begin{allintypewriter}
   out = sim\_f(H[sim\_specs['in']][max\_priority\_inds], sim\_specs['out'],
@@ -260,7 +258,7 @@ those in \texttt{sim\_specs[out]}. Note that if \texttt{gen\_f} produces points
 with equal priorities, they will given in a batch to a worker.
 
 \subsection{\texttt{gen} API}
-The \texttt{gen} calculations must have the API:\\
+The \texttt{gen} calculations will be called by \libE with the following API:\\
 
 \begin{allintypewriter}
   out = gen\_f(H[gen\_spec['in']][:H\_ind], gen\_specs['out'], params)\\
@@ -294,7 +292,7 @@ Internally, \libE currenlty maintains a single data structure \texttt{H} which
 contains the all history information (from \texttt{sim\_specs['out'] +
 gen\_specs['out']}). 
 
-We are considering splitting the \texttt{H} into two data structures. One possible split:
+We have considered splitting the history \texttt{H} into multiple data structures. One possible split:
 
 \begin{allintypewriter}
   \begin{itemize}
@@ -354,7 +352,7 @@ encounter many such use cases.
 \lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=43]{../../code/examples/GKLS_and_uniform_random_sample/call_libE_on_GKLS.py}
 
 \clearpage
-\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=23]{../../code/examples/chwirut_and_multiple_pounders/call_libE_on_chwirut.py}
+\lstinputlisting[basicstyle=\footnotesize,frame=single,language=Python,title=\lstname,numberstyle=\tiny,numbers=left,firstline=23]{../../code/examples/chwirut_and_aposmm/call_libE_on_chwirut.py}
 
 \clearpage
 \section{Target problems}
@@ -366,7 +364,8 @@ There are many types of simulations that we can consider being run in \libE.
       \item We assume this is thread-safe.
       \item Use cases: 
         \begin{itemize}
-          \item ??
+          \item GKLS problem generator
+          \item chwirut1.py
         \end{itemize}
     \end{itemize}
   \item An executable
@@ -376,13 +375,13 @@ There are many types of simulations that we can consider being run in \libE.
         \begin{itemize}
           \item Performs read/writes in the directory where it is run (or in a given directory)
         \end{itemize}
-      \item Must be able to tell executable where to run.
+      \item Must be able to tell executable which resources to use.
         \begin{itemize}
           \item MCS compute node: Can specify CPU
           \item Blues: Can specify machinefile
-          \item Mira: Not going to be addressed at this time.
-          \item Theta/Aurora: ?
-          \item Cray system: ?
+          \item Mira: Not going to be addressed by \libE.
+          \item Theta/Aurora: Unsure how to accomplish this at this time.
+          \item Cray system: Unsure how to accomplish this at this time.
         \end{itemize}
       \item Use case: 
         \begin{itemize}
@@ -395,7 +394,7 @@ There are many types of simulations that we can consider being run in \libE.
       \item Possibly stops regularly to communicate with manager
       \item Use cases: 
         \begin{itemize}
-          \item ??
+          \item Possibly the HFBTHO simulation 
         \end{itemize}
     \end{itemize}
   \item PETSc simulation 
@@ -404,7 +403,7 @@ There are many types of simulations that we can consider being run in \libE.
       \item Easier to kill/monitor?
       \item Use cases: 
         \begin{itemize}
-          \item ??
+          \item Still considering different possibilities.
         \end{itemize}
     \end{itemize}
 \end{enumerate}
@@ -417,61 +416,67 @@ In order to guide the initial development of \libE, we will focus on supporting 
   \item 
     \begin{description}
       \item[Objective:] GKLS
-      \item[Generating:] Uniform sampling on $[0,1]^n$ with different batch sizes
-      \item[Functionality:] \
+      \item[Generating function:] Uniform sampling on $[0,1]^n$ with different batch sizes
+      \item[Functionality tested:] \
         \begin{itemize}
           \item Handling of different numbers of points given/returned from workers
         \end{itemize}
+      \item[Status:] Completed
     \end{description}
     \bigskip
   \item 
     \begin{description}
-      \item[Objective:] chwirut\{1,2\}.c
-      \item[Generating:] Multiple POUNDERS runs from $K$ starting points.
-      \item[Functionality:] \
+      \item[Objective:] chwirut1.py
+      \item[Generating function:] Multiple POUNDERS runs from $K$ starting points.
+      \item[Functionality tested:] \
         \begin{itemize}
           \item APOSMM in \libE
         \end{itemize}
+      \item[Status:] Completed
     \end{description}
     \bigskip
   \item 
     \begin{description}
-      \item[Objective:] chwirut\{1,2\}.c
-      \item[Generating:] Same as above, but with APOSMM giving each point and a single residual to be evaluated.
-      \item[Functionality:] \
+      \item[Objective:] chwirut1.py
+      \item[Generating function:] Same as above, but with APOSMM giving each point and a single residual to be evaluated.
+      \item[Functionality tested:] \
         \begin{itemize}
-          \item Being able to give different residualss in APOSMM 
+          \item Being able to give different residuals in APOSMM 
         \end{itemize}
+      \item[Status:] Completed
     \end{description}
     \bigskip
   \item 
     \begin{description}
       \item[Objective:] HFBTHO (imbalance)/variable internal tols
-      \item[Generating:] POUNDERS with adaptive tolerance attempts
-      \item[Functionality:] \
+      \item[Generating function:] POUNDERS with adaptive tolerance attempts
+      \item[Functionality tested:] \
         \begin{itemize}
-          \item Stefan ??
+          \item Variable time to evaluate each residual
         \end{itemize}
+      \item[Status:] Currently working with Jason Sarich to get this implemented.
     \end{description}
     \bigskip
   \item 
     \begin{description}
       \item[Objective:] Eldad and Lauren subsurface (in TAO) 
-      \item[Generating:] LCAL PDECO Stefan ??
-      \item[Functionality:] \
+      \item[Generating function:] LCAL PDECO Stefan 
+      \item[Functionality tested:] \
         \begin{itemize}
           \item Stefan ??
         \end{itemize}
+      \item[Status:] Looking for a sample average approximation method that can be used to generate points to be evaluated.
     \end{description}
     \bigskip
   \item 
     \begin{description}
-      \item[Objective:] chwirut\{1,2\}.c with stochastic noise on each residual
-      \item[Generating:] POUNDERS using sample mean with the number of replications determined by iteration number. 
-      \item[Functionality:] \
+      \item[Objective:] chwirut1.py with stochastic noise on each residual
+      \item[Generating function:] POUNDERS using sample mean with the number of replications determined by iteration number. 
+      \item[Functionality tested:] \
         \begin{itemize}
           \item Efficient handling of multiple evaluations of single points
         \end{itemize}
+      \item[Status:] Looking for a sample average approximation method that can be used to generate points to be evaluated.
     \end{description}
 \end{enumerate}
 

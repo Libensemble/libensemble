@@ -1,6 +1,6 @@
 # """
 # Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. (You will need to run "make gkls_single" in libensemble/examples/GKLS/
+# problem. (You will need to run "make gkls_single" in libensemble/examples/GKLS_sim_src/
 # before running this script with 
 
 # mpiexec -np 4 python3 call_libE_on_GKLS.py
@@ -41,6 +41,7 @@ def combine_fvec(F):
 
 
 ### Declare the run parameters/functions
+max_sim_evals = 100
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
@@ -73,9 +74,9 @@ gen_specs = {'f': uniform_random_sample,
 
 failure_processing = {}
 
-exit_criteria = {'sim_eval_max': 100,   # must be provided
+exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
                  'elapsed_clock_time': 100,
-                 'stop_val': ('f', -1), # must be a key that is in sim_specs['out'] or gen_specs['out'] 
+                 'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 
                 }
 
 np.random.seed(1)
@@ -83,4 +84,6 @@ np.random.seed(1)
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    np.save('H_after_100_GKLS_2_ranks',H)
+    filename = 'GKLS_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(c['comm'].Get_size())
+    print("\n\n\nRun completed.\nSaving results to file: " + filename)
+    np.save(filename, H)

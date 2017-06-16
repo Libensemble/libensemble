@@ -203,6 +203,7 @@ def get_active_run_inds(H):
     if os.path.exists(filename) and os.stat(filename).st_size > 0:
         if np.max(H['iter_plus_1_in_run_id']) == 0:
             print('Removing old active runs file')
+            sys.stdout.flush()
             os.remove(filename)
             return set([])
         else:

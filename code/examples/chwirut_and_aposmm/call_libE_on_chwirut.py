@@ -12,10 +12,11 @@ from __future__ import absolute_import
 
 from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
-sys.path.append('../../src')
-
 import numpy as np
+
+sys.path.append('../../src')
 from libE import libE
+
 from chwirut1 import sum_squares, libE_func_wrapper
 from aposmm_logic import aposmm_logic
 from math import *
@@ -89,4 +90,6 @@ np.random.seed(1)
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    np.save('H_after_100_evals',H)
+    filename = 'chwirut_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(c['comm'].Get_size())
+    print("\n\n\nRun completed.\nSaving results to file: " + filename)
+    np.save(filename, H)

@@ -101,7 +101,8 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             Work[i] = {'calc_f': sim_specs['f'][0], 
                        'calc_params': sim_specs['params'], 
                        'form_subcomm': [], 
-                       'calc_in': H[sim_specs['in']][inds_to_send],
+                       # 'calc_in': H[sim_specs['in']][inds_to_send],
+                       'calc_in': H[inds_to_send][sim_specs['in']],
                        'calc_out': sim_specs['out'],
                        'calc_info': {'type':'sim', 'sim_id': inds_to_send},
                       }
@@ -123,7 +124,8 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             Work[i] = {'calc_f': gen_specs['f'], 
                        'calc_params': gen_specs['params'], 
                        'form_subcomm': [], 
-                       'calc_in': H[gen_specs['in']][:H_ind],
+                       # 'calc_in': H[gen_specs['in']][:H_ind],
+                       'calc_in': H[:H_ind][gen_specs['in']],
                        'calc_out': gen_specs['out'],
                        'calc_info': {'type':'gen'},
                        }
