@@ -17,39 +17,50 @@ import numpy as np
 sys.path.append('../../src')
 from libE import libE
 
+# Declare the objective
 sys.path.append('./GKLS_sim_src')
 from GKLS_obj import call_GKLS_with_random_pause as obj_func
 
 
+# Below is the generating function that is called by LibEnsemble to generate
+# points to be evaluated. In this case, it is just a uniform random sample
+# over params['lb'] to params['ub']
 def uniform_random_sample(g_in,gen_out,params):
     ub = params['ub']
     lb = params['lb']
 
     n = len(lb)
-    batch_size = 2
+    b = params['gen_batch_size']
 
-    x = np.random.uniform(0,1,(batch_size,n))*(ub-lb)+lb
+    O = np.zeros(b, dtype=gen_out)
+    for i in range(0,b):
+        x = np.random.uniform(lb,ub,(1,n))
 
-    O = np.zeros(batch_size, dtype=gen_out)
-    O['x'] = x
-    O['priority'] = float(MPI.COMM_WORLD.Get_rank())
+        O['x'][i] = x
+        O['priority'][i] = np.random.uniform(0,1)
 
     return O
 
+# Below is a function that will be passed to the workers to tell them how
+# to combine multiple residuals in order to get a scalar objective value
 def combine_fvec(F):
     return(np.sum(F))
 
 
 ### Declare the run parameters/functions
 max_sim_evals = 100
+
+# (c) will contain information about the MPI communicator used by LibEnsemble to do it's evaluations
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
 
+# Tell LibEnsemble one manager and the rest of the MPI ranks are workers (doing evaluations)
 allocation_specs = {'manager_ranks': set([0]), 
                     'worker_ranks': set(range(1,c['comm'].Get_size()))
                    }
 
+#State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'f': [obj_func],
              'in': ['x'],
              'out': [('fvec','float',3),
@@ -63,17 +74,23 @@ sim_specs = {'f': [obj_func],
                         'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
              }
 
+# State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'f': uniform_random_sample,
              'in': [],
              'out': [('x','float',2),
                      ('priority','float'),
                     ],
              'params': {'lb': np.array([0,0]),
-                        'ub': np.array([1,1])},
+                        'ub': np.array([1,1]),
+                        'gen_batch_size': max_sim_evals,
+                       },
+             'num_inst': 1,
+             'batch_mode': True,
              }
 
 failure_processing = {}
 
+# Tell LibEnsemble when to stop
 exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
                  'elapsed_clock_time': 100,
                  'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 

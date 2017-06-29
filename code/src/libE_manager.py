@@ -48,10 +48,8 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
             idle_w.remove(w)
 
     ### Receive from all active workers 
-    for w in active_w['gen'].union(active_w['sim']):
-        D_recv = comm.recv(buf=None, source=w, tag=MPI.ANY_TAG, status=status)
-        if D_recv['calc_info']['type'] == 'sim':
-            update_history_f(H, D_recv)
+    while len(active_w['gen'].union(active_w['sim'])):
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
 
     ### Stop all workers 
     for w in allocation_specs['worker_ranks']:
@@ -118,7 +116,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             if 'num_inst' in gen_specs and len(active_w['gen']) + gen_work == gen_specs['num_inst']:
                 break
 
-            # Give gen work only if space in history
+            # Give gen work 
             gen_work += 1 
 
             Work[i] = {'calc_f': gen_specs['f'], 
@@ -130,7 +128,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
                        'calc_info': {'type':'gen'},
                        }
 
-            if H_ind + gen_work >= len(H) - 1:
+            if H_ind + gen_work >= len(H):
                 break
 
 
