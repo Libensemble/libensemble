@@ -6,7 +6,8 @@
 #
 # M.Gaviano, D.E.Kvasov, D.Lera, and Ya.D.Sergeyev                     
 #
-CFLAGS = -g
+CC = gcc
+CFLAGS = -g -Wall
 
 gkls : example.o gkls.o rnd_gen.o
 	$(CC) $(CFLAGS) example.o gkls.o rnd_gen.o -o gkls -lm 

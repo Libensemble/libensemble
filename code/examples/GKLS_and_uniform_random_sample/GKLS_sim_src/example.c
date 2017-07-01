@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
+// #include <malloc.h>
 #include "gkls.h"
 #include <math.h>
 #include "rnd_gen.h"
