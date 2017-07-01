@@ -15,7 +15,7 @@
 \wbs{1.3.3.07}
 \projecttitle{Preparing PETSc/TAO for Exascale}
 \milestoneid{STMS07-8}
-\title{Design and Prototype an API for LibEnsemble}
+\title{Design and Prototype an API for libEnsemble}
 \author{Jeffrey Larson (Argonne)
   \and  Todd Munson (Argonne)
   \and  Barry Smith (Argonne)
@@ -35,11 +35,28 @@
 %%---------------------------------------------------------------------------%%
 
 \begin{abstract}
-Briefly summarize the milestone work performed here, the deliverables 
-associated with this milestone, key takeaways (lessons learned, best 
-practices), integration dependencies with other ECP projects (in any 
-of the four focus areas), and any new risks and challenges that have 
-emerged because of this work.
+The availability of systems with over 100 times the processing power of today’s 
+machines compels the utilization of these systems not just for a single ``forward
+solve'' simulation, but rather within a tight loop of optimization, sensitivity 
+analysis (SA), and uncertain quantification (UQ). This requires the implementation 
+of a new, scalable library for managing a dynamic hierarchical collection of 
+running scalable simulations, where the simulations directly feed results 
+into the optimization, SA, and UQ solvers.  The collection of running simulations 
+can grow and shrink based on feedback from the solvers. Thus, this library must 
+dynamically start simulations with different parameters, resume simulations to 
+obtain more accurate results, prune running simulations that the solvers determine 
+can no longer provide useful information, monitor the progress of the simulations 
+and stop failed or hung simulations, and collect data from the individual 
+simulations both while they are running and at the end.  This library, which 
+we call {\bf libEnsemble} should not be confused with workflow-based scripting 
+systems; rather it is a library that, through the tight coupling and feedback 
+described above, directs the multiple concurrent ``function evaluations'' 
+needed by optimization, SA, and UQ solvers. Currently no library is available 
+with any robustness to failure of even a single simulation; meaning that current 
+codes must be completely restarted if a single simulation in the ensemble 
+crashes or hangs. This situation is clearly unacceptable at the exascale
+and needs to be rectified quickly.  This report documents the initial
+design and prototype for {\bf libEnsemble}.
 \end{abstract}
 
 %%---------------------------------------------------------------------------%%
@@ -49,32 +66,48 @@ emerged because of this work.
 \mainmatter
 \section{Introduction}
 
-Orient the reader on the overall content of this report and provide any 
-useful background information.
+The availability of systems with over 100 times the processing power of today’s 
+machines compels the utilization of these systems not just for a single ``forward 
+solve'' simulation, but rather within a tight loop of optimization, sensitivity 
+analysis (SA), and uncertain quantification (UQ). This requires the implementation 
+of a new, scalable library for managing a dynamic hierarchical collection of 
+running scalable simulations, where the simulations directly feed results 
+into the optimization, SA, and UQ solvers.  The collection of running simulations 
+can grow and shrink based on feedback from the solvers. Thus, this library must 
+dynamically start simulations with different parameters, resume simulations to 
+obtain more accurate results, prune running simulations that the solvers determine 
+can no longer provide useful information, monitor the progress of the simulations 
+and stop failed or hung simulations, and collect data from the individual 
+simulations both while they are running and at the end.  This library, which 
+we call {\bf libEnsemble} should not be confused with workflow-based scripting 
+systems; rather it is a library that, through the tight coupling and feedback 
+described above, directs the multiple concurrent ``function evaluations'' 
+needed by optimization, SA, and UQ solvers. Currently no library is available 
+with any robustness to failure of even a single simulation; meaning that current
+codes must be completely restarted if a single simulation in the ensemble 
+crashes or hangs. This situation is clearly unacceptable at the exascale
+and needs to be rectified quickly.  This report documents the initial
+design and prototype for {\bf libEnsemble}.
 
 \section{Milestone Overview}
 
-Briefly summarize the milestone description, execution plan, 
-completion criteria, and any milestone dependencies (predecessor 
-or successor). 
-
 \subsection{Description}
 
-Design and prototype an API for LibEnsemble.
+Design and prototype an API for libEnsemble.
 
 \subsection{Execution Plan}
 
 \begin{itemize}
 \item Identify initial use cases and requirements
-\item Design and document LibEnsemble API to satisfy initial requirements
-\item Implement prototype version of LibEnsemble API in Python
+\item Design and document libEnsemble API to satisfy initial requirements
+\item Implement prototype version of libEnsemble API in Python
 \item Test prototype API on small-scale example
 \end{itemize}
 
 \subsection{Completion Criteria}
 
 \begin{itemize}
-\item Requirements document for LibEnsemble API
+\item Requirements document for libEnsemble API
 \item Prototype Python implementation in repository
 \end{itemize}
 
@@ -85,17 +118,28 @@ None
 
 \subsubsection{Milestone Successors}
 
-STMS07-9
+STMS07-9, Provide a prototype libEnsemble with evaluations of problem usage
 
 \section{Resource Requirements}
 
+We estimate that this milestone used \$250K of the project funds to support
+the effort of Jeff Larson, Todd Munson, and Stefan Wild.
+
 \section{Technical Work Scope, Approach, and Results}
 
-Describe the technical work performed and results achieved. 
+This milestone focused on producing a requirements document for {\bf libEnsemble},
+developing a prototype implementation in python, and testing the prototype on
+some simple test cases.  A snapshot of the requirements document is found
+in Appendix~A; this document will evolve as {\bf libEnsemble} evolves.
+The prototype implementation is found at 
+\url{https://github.com/Libensemble/libensemble}.
 
 \section{Conclusions and Future Work}
 
-List any conclusions and future work to be carried out.
+Our future work is to harden the code and release a prototype of the
+basic libEnsemble to users, and evaluate the prototype using the 
+POUNDerS optimization algorithm in TAO on parameter estimation 
+test problems.
 
 \section*{Acknowledgments}
 
@@ -116,6 +160,7 @@ exascale computing imperative.
 \newpage
 \appendix
 \section{Appendix A}
+\includepdf[pages=-]{docs/planning_doc.pdf}
 
 \end{document}
 
