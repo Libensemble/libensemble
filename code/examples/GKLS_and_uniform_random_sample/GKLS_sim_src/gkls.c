@@ -51,7 +51,7 @@
 #include "rnd_gen.h"
 #include <math.h>
 #include <stdlib.h>
-#include <malloc.h>
+// #include <malloc.h>
 
 /*---------------- Variables accessible by the user -------------------- */
 double *GKLS_domain_left; /* left boundary vector of D  */

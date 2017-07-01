@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h> /* for getopt */
-#include <malloc.h>
+// #include <malloc.h>
 #include "gkls.h"
 #include <math.h>
 #include "rnd_gen.h"
@@ -77,7 +77,7 @@ void print_error_msg (int error_code)
 
 int main(int argc, char **argv)
 {
-  unsigned int i, j; /* cycle parameters     */
+  unsigned int i;    /* cycle parameters     */
   int error_code;    /* error codes variable */
   int func_num;      /* test function number within a class     */
   double *xx;        /* for evaluation of the test function */
