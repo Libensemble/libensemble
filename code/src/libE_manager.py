@@ -26,19 +26,17 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     status = MPI.Status()
 
-    H, H_ind = initiate_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'])
+    H, H_ind = initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'])
 
     idle_w = allocation_specs['worker_ranks'].copy()
-    active_w = {'gen':set([]), 'sim':set([])}
+    active_w = {'gen':set(), 'sim':set()}
 
     ### Continue receiving and giving until termination test is satisfied
     while termination_test(H, H_ind, exit_criteria):
-        # print(H_ind)
-        # sys.stdout.flush()
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
 
-        update_active_and_queue(active_w, idle_w, H)
+        update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs)
 
         Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
@@ -90,7 +88,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
     gen_work = 0
 
     for i in idle_w:
-        q_inds = np.where(~H['given'][:H_ind])[0]
+        q_inds = np.where(np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind]))[0]
 
         if len(q_inds):
             # Give all points with highest priority
@@ -108,8 +106,8 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             update_history_x_out(H, inds_to_send, Work[i]['calc_in'], i, sim_specs['params'])
 
         else:
-            # Don't give out any gen instances if in batch mode and any point has not been returned
-            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and any(~H['returned'][:H_ind]):
+            # Don't give out any gen instances if in batch mode and any point has not been returned or paused
+            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
                 break
 
             # Limit number of gen instances if given
@@ -134,7 +132,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
 
     return Work
 
-def update_active_and_queue(active_w, idle_w, H):
+def update_active_and_queue(active_w, idle_w, H, gen_specs):
     """ Decide if active work should be continued and the queue order
 
     Parameters
@@ -142,7 +140,9 @@ def update_active_and_queue(active_w, idle_w, H):
     H: numpy structured array
         History array storing rows for each point.
     """
-
+    if 'queue_update_function' in gen_specs:
+        gen_specs['queue_update_function'](H,gen_specs)
+    
     return
 
 def update_history_f(H, D): 
@@ -259,7 +259,7 @@ def termination_test(H, H_ind, exit_criteria):
 
 
 
-def initiate_H(sim_specs, gen_specs, feval_max):
+def initialize_H(sim_specs, gen_specs, feval_max):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -281,6 +281,7 @@ def initiate_H(sim_specs, gen_specs, feval_max):
                    ('given_time','float'), 
                    ('lead_rank','int'),    
                    ('returned','bool'),    
+                   ('paused','bool'),    
                    ]
 
     assert 'priority' in [entry[0] for entry in gen_specs['out']],\
