@@ -60,42 +60,20 @@ def aposmm_logic(H,gen_out,params):
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
 
-    n = len(params['ub'])
+    n, n_s, c_flag, O = initialize_APOSMM(H, gen_out, params)
 
-    if 'single_component_at_a_time' in params and params['single_component_at_a_time']:
-        c_flag = True
-    else:
-        c_flag = False
-
-
-    if c_flag:
-        n_s = np.sum(np.logical_and.reduce((~H['local_pt'], H['returned'], H['obj_component']==0))) # Number of returned sampled points
-    else:
-        n_s = np.sum(np.logical_and(~H['local_pt'], H['returned'])) # Number of returned sampled points
-
-    # Rather than build up a large output, we will just make changes in the 
-    # given H, and then send back the rows corresponding to updated H entries. 
-    
-    updated_inds = np.array([])
-
-    O = np.empty(0,dtype=gen_out)
-
-    # np.save('H_after_' + str(n_s) + '_complete_evals',H)
-    # np.save('H_len_' + str(len(H)), H)
-    # sys.exit('a')
+    # np.savez('H'+str(len(H)),H=H,gen_out=gen_out,params=params)
     # import ipdb; ipdb.set_trace()
-    if n_s >= params['initial_sample']:
-        # sys.exit('a')
+    if n_s < params['initial_sample']:
+        updated_inds = set() 
 
-        # These are used to find a next point from the local optimization algorithm
-        global x_new, pt_in_run, total_pts_in_run
+    else:
+        global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
-        # Update distances for any new points that have been evaluated
         updated_inds = update_history_dist(H, params, c_flag)        
 
-        # Find any indices that haven't started runs yet but should
         starting_inds = decide_where_to_start_localopt(H, n_s, params['rk_const'])        
-        updated_inds = np.unique(np.append(updated_inds,starting_inds))
+        updated_inds.update(starting_inds) 
                 
         active_runs = get_active_run_inds(H)
         
@@ -117,7 +95,7 @@ def aposmm_logic(H,gen_out,params):
         # with a declared local_min is not always going to work, when a point
         # is in a minimum in one run, but an evaluated point in another run)
                 
-        inactive_runs = set([])
+        inactive_runs = set()
 
         for run in active_runs:
             sorted_run_inds = np.where(H['iter_plus_1_in_run_id'][:,run])[0]
@@ -134,27 +112,33 @@ def aposmm_logic(H,gen_out,params):
                         update_history_optimal(x_opt, H, sorted_run_inds)
                         inactive_runs.add(run)
                     else:
-                        sys.exit("No new point requested by localopt method, but not declared optimal")
+                        sys.exit("Exit code not zero from local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations. Worker crashing!")
                 else: 
-                    add_points_to_O(O, x_new, len(H), updated_inds, params, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                    add_points_to_O(O, x_new, len(H), params, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
         for i in inactive_runs:
             active_runs.remove(i)
 
         update_existing_runs_file(active_runs)
 
-    samples_needed = params['min_batch_size'] - len(O)
+    if 'min_batch_size' in params:
+        samples_needed = params['min_batch_size'] - len(O)
+    else:
+        samples_needed = int(not bool(O)) # 1 if len(O)==0, 0 otherwise
+
     if samples_needed > 0:
         x_new = np.random.uniform(0,1,(samples_needed,n))
 
-        add_points_to_O(O, x_new, len(H), updated_inds, params, c_flag)
+        add_points_to_O(O, x_new, len(H), params, c_flag)
 
-    O = np.append(H[[o[0] for o in gen_out]][updated_inds.astype('int')],O)
+    O = np.append(H[[o[0] for o in gen_out]][np.array(list(updated_inds),dtype=int)],O)
 
     return O
 
-def add_points_to_O(O, pts, len_H, updated_inds, params, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
+def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
     assert(not local_flag or len(pts) == 1), "add_points_to_O does not support this functionality"
+
+    original_len_O = len(O)
 
     ub = params['ub']
     lb = params['lb']
@@ -162,11 +146,10 @@ def add_points_to_O(O, pts, len_H, updated_inds, params, c_flag, local_flag=0, s
         m = params['components']
 
         assert (len_H % m == 0), "Number of points in len_H not congruent to 0 mod 'components'"
-        pt_ids = np.sort(np.tile(np.arange(len_H/m,len_H/m + len(pts)),(1,len(pts))))
+        pt_ids = np.sort(np.tile(np.arange((len_H+original_len_O)/m,(len_H+original_len_O)/m + len(pts)),(1,len(pts)))) 
         pts = np.tile(pts,(m,1))
 
     num_pts = len(pts)
-    original_len_O = len(O)
 
     O.resize(len(O)+num_pts,refcheck=False) # Adds (num_pts) rows of zeros to O 
 
@@ -195,8 +178,8 @@ def add_points_to_O(O, pts, len_H, updated_inds, params, c_flag, local_flag=0, s
             p_tmp = np.random.uniform(0,1,num_pts)
         else:
             p_tmp = np.random.uniform(0,1,num_pts)
-        # O['priority'][-num_pts:] = p_tmp
-        O['priority'][-num_pts:] = 1
+        O['priority'][-num_pts:] = p_tmp
+        # O['priority'][-num_pts:] = 1
 
 def get_active_run_inds(H):
     filename = 'active_runs.txt'
@@ -205,22 +188,23 @@ def get_active_run_inds(H):
             print('Removing old active runs file')
             sys.stdout.flush()
             os.remove(filename)
-            return set([])
+            return set()
         else:
             a = np.loadtxt(filename,dtype='int')
             return set(np.atleast_1d(a))
     else:
-        return set([])
+        return set()
     
 def update_existing_runs_file(active_runs):    
     filename = 'active_runs.txt'    
     np.savetxt(filename,np.array(list(active_runs),dtype='int'), fmt='%i')
 
 def update_history_dist(H, params, c_flag):
+    # Update distances for any new points that have been evaluated
 
     n = len(H['x_on_cube'][0])
 
-    updated_inds = np.array([],dtype='int')
+    updated_inds = set()
 
     new_inds = np.where(~H['known_to_aposmm'])[0]
 
@@ -254,7 +238,7 @@ def update_history_dist(H, params, c_flag):
                 updates = np.where(np.logical_and(dist_to_all < H['dist_to_better_s'][p], new_better_than))[0]
                 H['dist_to_better_s'][updates] = dist_to_all[updates]
                 H['ind_of_better_s'][updates] = new_ind
-            updated_inds = np.append(updated_inds, updates)
+            updated_inds.update(updates)
 
             # If we allow equality, have to prevent new_ind from being its own "better point"
             better_than_new_l = np.logical_and.reduce((H['f'][new_ind] >= H['f'][p],  H['local_pt'][p], H['sim_id'][p] != new_ind))
@@ -280,15 +264,15 @@ def update_history_dist(H, params, c_flag):
             #     if not H['local_pt'][new_ind]:
             #         H['worse_within_rk'][H['dist_to_all'] > r_k] = False 
 
-
-    return np.unique(np.append(new_inds, updated_inds))
+    updated_inds.update(new_inds)
+    return updated_inds
 
 
 
 def update_history_optimal(x_opt, H, run_inds):
 
     opt_ind = np.where(np.equal(x_opt,H['x_on_cube']).all(1))[0]
-    assert len(opt_ind) == 1, "Why not one optimal point?"
+    assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
 
     H['local_min'][opt_ind] = 1
     H['num_active_runs'][run_inds] -= 1
@@ -688,3 +672,64 @@ def calc_rk(H, n, n_s, rk_const, lhs_divisions=0):
             r_k = rk_const*(log(k)/k)**(1/n)
 
     return r_k
+
+def initialize_APOSMM(H, gen_out, params):
+
+    n = len(params['ub'])
+
+    if 'single_component_at_a_time' in params and params['single_component_at_a_time']:
+        c_flag = True
+    else:
+        c_flag = False
+
+
+    if c_flag:
+        pt_ids = np.unique(H['pt_id'])
+        completely_returned_pt_ids = []
+        for i in pt_ids:
+            if np.logical_and.reduce(H['returned'][H['pt_id']==i]):
+                completely_returned_pt_ids.append(i)
+        n_s = np.sum(np.logical_and.reduce((~H['local_pt'], np.in1d(H['pt_id'],completely_returned_pt_ids), H['obj_component']==0 ))) # Number of returned sampled points
+    else:
+        n_s = np.sum(np.logical_and(~H['local_pt'], H['returned'])) # Number of returned sampled points
+
+    # Rather than build up a large output, we will just make changes in the 
+    # given H, and then send back the rows corresponding to updated H entries. 
+    O = np.empty(0,dtype=gen_out)
+
+    return n, n_s, c_flag, O
+
+
+def queue_update_function(H,gen_specs):
+
+    pt_ids_to_pause = set()
+
+    # Pause entries in H if one component is evaluated at a time and there are
+    # any NaNs for some components.
+    if 'stop_on_NaNs' in gen_specs and gen_specs['stop_on_NaNs']:
+        pt_ids_to_pause.update(H['pt_id'][np.isnan(H['f_i'])])
+
+    # Pause entries in H if a partial combine_component_func evaluation is
+    # worse than the best, known, complete evaluation (and the point is not a
+    # local_opt point).
+    if 'stop_partial_fvec_eval' in gen_specs and gen_specs['stop_partial_fvec_eval']:
+        pt_ids = np.unique(H['pt_id'])
+        complete_fvals_flag = np.array([all(H['returned'][H['pt_id']==i]) for i in pt_ids],dtype=bool)
+
+        if any(complete_fvals_flag) and len(pt_ids)>1:
+            fvals = np.array([gen_specs['params']['combine_component_func'](H['f_i'][H['pt_id']==i]) for i in pt_ids])
+
+            worse_flag = fvals > np.min(fvals[complete_fvals_flag])
+
+            # Pause incompete evaluations with worse_flag==True
+            pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
+
+    H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = 1
+
+
+if __name__ == "__main__":
+    [H,gen_out,params] = [np.load('H856.npz')[i] for i in ['H','gen_out','params']]
+    params = params.item()
+    gen_out = list(gen_out)
+    import ipdb; ipdb.set_trace() 
+    aposmm_logic(H,gen_out,params)

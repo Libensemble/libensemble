@@ -70,14 +70,14 @@ def test_decide_work_and_resources():
 
     # Don't give out work when idle is empty
     active_w = set([1,2,3,4])
-    idle_w = set([])
+    idle_w = set()
     Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
     assert( len(Work) == 0 )
     # 
 
 
     # Don't give more gen work than space in the history. 
-    active_w = set([])
+    active_w = set()
     idle_w = set([1,2,3,4])
     H_ind = len(H)-2 # Only want one more Gen Point
     H['sim_id'][:len(H)-2] = np.arange(len(H)-2)

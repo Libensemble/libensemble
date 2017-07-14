@@ -19,13 +19,13 @@ sys.path.append('../chwirut_and_aposmm')
 from libE import libE
 
 from chwirut1 import sum_squares, libE_func_wrapper
-from aposmm_logic import aposmm_logic
+from aposmm_logic import aposmm_logic, queue_update_function
 from math import *
 
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_evals = 10*m
+max_sim_budget = 10*m
 c = {}
 c['comm'] = MPI.COMM_WORLD
 c['color'] = 0
@@ -38,15 +38,14 @@ sim_specs = {'f': [libE_func_wrapper],
              'in': ['x', 'obj_component'],
              'out': [('f_i','float'),
                      ],
-             'params': {'combine_component_func': sum_squares,
-                        }, 
+             'params': {}, 
              }
 
 out = [('x','float',n),
       ('x_on_cube','float',n),
       ('sim_id','int'),
       ('priority','float'),
-      ('iter_plus_1_in_run_id','int',max_sim_evals//m),
+      ('iter_plus_1_in_run_id','int',max_sim_budget//m),
       ('local_pt','bool'),
       ('known_to_aposmm','bool'), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds','float'),
@@ -67,7 +66,7 @@ gen_specs = {'f': aposmm_logic,
              'out': out,
              'params': {'lb': -2*np.ones(3),
                         'ub':  2*np.ones(3),
-                        'initial_sample': 400,
+                        'initial_sample': 10, # All 214 residuals must be done
                         'localopt_method': 'LN_BOBYQA',
                         # 'localopt_method': 'pounders',
                         'delta_0_mult': 0.5,
@@ -85,11 +84,14 @@ gen_specs = {'f': aposmm_logic,
                         },
               'num_inst': 1,
               'batch_mode': True,
+              'stop_on_NaNs': True, 
+              'stop_partial_fvec_eval': True,
+              'queue_update_function': queue_update_function 
              }
 
 failure_processing = {}
 
-exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
+exit_criteria = {'sim_eval_max': max_sim_budget, # must be provided
                   }
 
 np.random.seed(1)
@@ -97,6 +99,6 @@ np.random.seed(1)
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'chwirut_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(c['comm'].Get_size())
+    filename = 'chwirut_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(c['comm'].Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
