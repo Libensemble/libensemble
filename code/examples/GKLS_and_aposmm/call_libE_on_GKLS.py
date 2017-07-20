@@ -104,10 +104,14 @@ exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
 
 np.random.seed(1)
 # Perform the run
+
+# H0 = np.load('GKLS_results_after_evals=500_ranks=2.npy')
+# H0 = H0[['x','x_on_cube','f']][:50]
+
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'GKLS_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(c['comm'].Get_size())
+    filename = 'GKLS_results_History_length=' + str(len(H)) + '_ranks=' + str(c['comm'].Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 

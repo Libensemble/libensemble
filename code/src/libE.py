@@ -29,7 +29,7 @@ from __future__ import absolute_import
 from libE_manager import manager_main
 from libE_worker import worker_main
 
-def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
+def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0=[]):
 
     """ 
     Parameters
@@ -42,7 +42,7 @@ def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_cri
     comm.Barrier()
 
     if comm.Get_rank() in allocation_specs['manager_ranks']:
-        H = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+        H = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # print(H)
         # print(H.dtype.names)
     elif comm.Get_rank() in allocation_specs['worker_ranks']:
