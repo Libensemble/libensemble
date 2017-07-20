@@ -320,5 +320,4 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
     H['sim_id'][-feval_max:] = - 1
     H['given_time'][-feval_max:] = np.inf
 
-    import pdb; pdb.set_trace()
     return (H, len(H0))
