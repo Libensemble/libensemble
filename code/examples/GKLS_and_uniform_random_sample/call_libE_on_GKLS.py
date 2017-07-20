@@ -68,7 +68,7 @@ sim_specs = {'f': [obj_func],
                     ],
              'params': {'number_of_minima': 10,
                         'problem_dimension': 2,
-                        'problem_number': 2,
+                        'problem_number': 1,
                         'combine_component_func': combine_fvec,
                         'uniform_random_pause_ub': 0.01,
                         'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
