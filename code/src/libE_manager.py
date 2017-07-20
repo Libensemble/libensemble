@@ -22,17 +22,17 @@ from scipy import spatial
 import time,sys
 
 def manager_main(comm, allocation_specs, sim_specs, gen_specs,
-        failure_processing, exit_criteria):
+        failure_processing, exit_criteria, H0):
 
     status = MPI.Status()
 
-    H, H_ind = initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'])
+    H, H_ind = initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'], H0)
 
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = {'gen':set(), 'sim':set()}
 
     ### Continue receiving and giving until termination test is satisfied
-    while termination_test(H, H_ind, exit_criteria):
+    while termination_test(H, H_ind, exit_criteria, len(H0)):
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
 
@@ -243,23 +243,23 @@ def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
         H['lead_rank'][i] = lead_rank
 
 
-def termination_test(H, H_ind, exit_criteria):
+def termination_test(H, H_ind, exit_criteria, lenH0):
     """
     Return False if the libEnsemble run should stop 
     """
 
-    if np.sum(H['given']) >= exit_criteria['sim_eval_max']:
+    if np.sum(H['given']) >= exit_criteria['sim_eval_max'] + lenH0:
         return False
     elif 'stop_val' in exit_criteria and any(H[exit_criteria['stop_val'][0]][:H_ind] <= exit_criteria['stop_val'][1]):
         return False
-    elif 'elapsed_clock_time' in exit_criteria and time.time() - H['given_time'][0] > exit_criteria['elapsed_clock_time']:
+    elif 'elapsed_clock_time' in exit_criteria and time.time() - H['given_time'][lenH0] > exit_criteria['elapsed_clock_time']:
         return False
     else:
         return True
 
 
 
-def initialize_H(sim_specs, gen_specs, feval_max):
+def initialize_H(sim_specs, gen_specs, feval_max, H0):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -298,9 +298,27 @@ def initialize_H(sim_specs, gen_specs, feval_max):
         sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
 
-    H = np.zeros(feval_max, dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
+    H = np.zeros(feval_max + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
 
-    H['sim_id'] = -1
-    H['given_time'] = np.inf
 
-    return (H, 0)
+    if len(H0):
+        names = H0.dtype.names
+        assert set(names).issubset(set(H.dtype.names)), "Can not process H0 since it contains keys not in H"
+        if 'returned' in names:
+            assert np.all(H['returned']), "Can not use unreturned points from H0 in H, Exiting"
+
+        for name in names:
+            H[name][:len(H0)] = H0[name]
+
+
+    # Prepend H with H0 
+    H['sim_id'][:len(H0)] = np.arange(0,len(H0))
+    H['given'][:len(H0)] = 1
+    H['returned'][:len(H0)] = 1
+
+
+    H['sim_id'][-feval_max:] = - 1
+    H['given_time'][-feval_max:] = np.inf
+
+    import pdb; pdb.set_trace()
+    return (H, len(H0))
