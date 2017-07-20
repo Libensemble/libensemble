@@ -125,4 +125,4 @@ if MPI.COMM_WORLD.Get_rank() == 0:
         for i in range(k):
             assert(np.min(np.sum((H['x'][H['local_min']]-M[i,:n])**2,1)) < tol)
 
-        print("LibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
+        print("\nLibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
