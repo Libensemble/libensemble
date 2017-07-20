@@ -111,8 +111,9 @@ def aposmm_logic(H,gen_out,params):
                     if exit_code > 0:
                         update_history_optimal(x_opt, H, sorted_run_inds)
                         inactive_runs.add(run)
+                        updated_inds.update(sorted_run_inds) 
                     else:
-                        sys.exit("Exit code not zero from local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations. Worker crashing!")
+                        sys.exit("Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!")
                 else: 
                     add_points_to_O(O, x_new, len(H), params, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
@@ -273,6 +274,7 @@ def update_history_optimal(x_opt, H, run_inds):
 
     opt_ind = np.where(np.equal(x_opt,H['x_on_cube']).all(1))[0]
     assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
+    assert opt_ind in run_inds, "Why isn't the run optimum a point in the run?"
 
     H['local_min'][opt_ind] = 1
     H['num_active_runs'][run_inds] -= 1
@@ -280,26 +282,11 @@ def update_history_optimal(x_opt, H, run_inds):
 
 
 def advance_localopt_method(H, params, sorted_run_inds, c_flag):
-    global x_new
 
     while 1: 
-        if c_flag:
-            # import ipdb; ipdb.set_trace()
-            # Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
+        if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
             Run_H = H[['x_on_cube','f']][sorted_run_inds] 
 
-            Run_H_F = np.zeros(len(Run_H),dtype=[('fvec','float',params['components'])])
-
-            for i in range(len(Run_H)):
-                pt_id = H['pt_id'][sorted_run_inds[i]] 
-                for j in range(params['components']):
-                    Run_H_F['fvec'][i][j] = H['f_i'][np.logical_and(H['pt_id']==pt_id, H['obj_component']==j)]
-
-            Run_H = merge_arrays([Run_H,Run_H_F],flatten=True)
-
-        else:
-            Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
-        if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
             try:
                 x_opt, exit_code = set_up_and_run_nlopt(Run_H, params)
             except Exception as e:
@@ -309,11 +296,20 @@ def advance_localopt_method(H, params, sorted_run_inds, c_flag):
                 print(Run_H['x_on_cube'])
 
     
-            if exit_code == 4:
-                # NLopt gives the same point twice at an optimum, just set x_new back to inf.
-                x_new = np.ones(np.shape(H['x_on_cube'][0]))*np.inf; 
-
         elif params['localopt_method'] in ['pounders']:
+            Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
+
+            if c_flag:
+                Run_H_F = np.zeros(len(Run_H),dtype=[('fvec','float',params['components'])])
+
+                for i in range(len(Run_H)):
+                    pt_id = H['pt_id'][sorted_run_inds[i]] 
+                    for j in range(params['components']):
+                        Run_H_F['fvec'][i][j] = H['f_i'][np.logical_and(H['pt_id']==pt_id, H['obj_component']==j)]
+
+                Run_H = merge_arrays([Run_H,Run_H_F],flatten=True)
+
+
             try: 
                 x_opt, exit_code = set_up_and_run_tao(Run_H, params)
             except Exception as e:
@@ -647,11 +643,11 @@ def look_in_history(x, Run_H, vector_return=False):
         # The history of points is exhausted. Save the requested point x to
         # x_new. x_new will be returned to the manager.
         x_new[:] = x
-        f_out = 0.0
+        f_out = np.nan
     else:
         # Just in case the local opt method requests more points after a new
         # point has been identified.
-        f_out = 0.0
+        f_out = np.nan
 
     pt_in_run += 1
 
