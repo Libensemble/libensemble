@@ -94,7 +94,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             # Give all points with highest priority
             inds_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
 
-            Work[i] = {'calc_f': sim_specs['f'][0], 
+            Work[i] = {'calc_f': sim_specs['sim_f'][0], 
                        'calc_params': sim_specs['params'], 
                        'form_subcomm': [], 
                        # 'calc_in': H[sim_specs['in']][inds_to_send],
@@ -117,7 +117,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
             # Give gen work 
             gen_work += 1 
 
-            Work[i] = {'calc_f': gen_specs['f'], 
+            Work[i] = {'calc_f': gen_specs['gen_f'], 
                        'calc_params': gen_specs['params'], 
                        'form_subcomm': [], 
                        # 'calc_in': H[gen_specs['in']][:H_ind],
@@ -250,12 +250,18 @@ def termination_test(H, H_ind, exit_criteria, lenH0):
 
     if np.sum(H['given']) >= exit_criteria['sim_eval_max'] + lenH0:
         return False
-    elif 'stop_val' in exit_criteria and any(H[exit_criteria['stop_val'][0]][:H_ind] <= exit_criteria['stop_val'][1]):
-        return False
-    elif 'elapsed_clock_time' in exit_criteria and time.time() - H['given_time'][lenH0] > exit_criteria['elapsed_clock_time']:
-        return False
-    else:
-        return True
+
+    if 'stop_val' in exit_criteria:
+        key = exit_criteria['stop_val'][0]
+        val = exit_criteria['stop_val'][1]
+        if any(H[key][~np.isnan(H[key][:H_ind])] <= val): 
+            return False
+
+    if 'elapsed_clock_time' in exit_criteria:
+        if time.time() - H['given_time'][lenH0] > exit_criteria['elapsed_clock_time']:
+            return False
+
+    return True
 
 
 
