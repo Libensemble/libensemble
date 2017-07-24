@@ -172,7 +172,8 @@ def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds
     if local_flag:
         O['iter_plus_1_in_run_id'][-num_pts,run] = len(sorted_run_inds)+1
         O['num_active_runs'][-num_pts] += 1
-        O['priority'][-num_pts:] = 1
+        O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
+        # O['priority'][-num_pts:] = 1
     else:
         if c_flag:
             # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning LibE gives them all at once)
