@@ -311,7 +311,9 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
         names = H0.dtype.names
         assert set(names).issubset(set(H.dtype.names)), "Can not process H0 since it contains keys not in H"
         if 'returned' in names:
-            assert np.all(H['returned']), "Can not use unreturned points from H0 in H, Exiting"
+            assert np.all(H0['returned']), "Can not use unreturned points from H0 in H, Exiting"
+        if 'obj_component' in names:
+            assert np.max(H0['obj_component']) < gen_specs['params']['components'], "Being given more obj_components than exist for this problem. Exiting."
 
         for name in names:
             H[name][:len(H0)] = H0[name]
