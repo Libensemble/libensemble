@@ -56,5 +56,9 @@ def call_GKLS(H,sim_out,obj_params):
 
         O['f'][i] = np.loadtxt('./f0000.out',dtype='float')
 
+        # if not H['local_pt'][i]:
+        #     if np.random.uniform(0,1) < 0.1:
+        #         print('blam')
+        #         O['f'][i] = np.nan
 
     return O

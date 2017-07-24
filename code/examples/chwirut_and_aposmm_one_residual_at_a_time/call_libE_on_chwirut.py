@@ -34,7 +34,7 @@ allocation_specs = {'manager_ranks': set([0]),
                     'worker_ranks': set(range(1,c['comm'].Get_size()))
                    }
 
-sim_specs = {'f': [libE_func_wrapper],
+sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x', 'obj_component'],
              'out': [('f_i','float'),
                      ],
@@ -61,7 +61,7 @@ out = [('x','float',n),
       ('pt_id','int'), # To be used by APOSMM to identify points evaluated by different simulations
       ]
 
-gen_specs = {'f': aposmm_logic,
+gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in out] + ['f_i', 'returned'],
              'out': out,
              'params': {'lb': -2*np.ones(3),

@@ -43,8 +43,8 @@ allocation_specs = {'manager_ranks': set([0]),
                    }
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'f': [obj_func],
-             'in': ['x'],
+sim_specs = {'sim_f': [obj_func],
+             'in': ['x','local_pt'],
              'out': [('f','float'),
                     ],
              'params': {'number_of_minima': 10,
@@ -73,7 +73,7 @@ out = [('x','float',n),
       ]
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'f': aposmm_logic,
+gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in out] + ['f', 'returned'],
              'out': out,
              'params': {'lb': np.array([0,0]),

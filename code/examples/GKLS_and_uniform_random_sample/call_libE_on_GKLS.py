@@ -61,7 +61,7 @@ allocation_specs = {'manager_ranks': set([0]),
                    }
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'f': [obj_func],
+sim_specs = {'sim_f': [obj_func],
              'in': ['x'],
              'out': [('fvec','float',3),
                      ('f','float'),
@@ -75,7 +75,7 @@ sim_specs = {'f': [obj_func],
              }
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'f': uniform_random_sample,
+gen_specs = {'gen_f': uniform_random_sample,
              'in': [],
              'out': [('x','float',2),
                      ('priority','float'),
