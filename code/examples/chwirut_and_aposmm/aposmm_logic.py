@@ -215,9 +215,9 @@ def update_history_dist(H, params, c_flag):
             H['f'][inds] = np.inf
             H['f'][np.where(inds)[0][0]] = params['combine_component_func'](H['f_i'][inds])
 
-        p = np.logical_and(H['returned'],H['obj_component']==0)
+        p = np.logical_and.reduce((H['returned'],H['obj_component']==0,~np.isnan(H['f'])))
     else:
-        p = H['returned']
+        p = np.logical_and.reduce((H['returned'],~np.isnan(H['f'])))
 
     H['known_to_aposmm'][new_inds] = True # These points are now known to APOSMM
 
@@ -232,12 +232,14 @@ def update_history_dist(H, params, c_flag):
 
             # Update any other points if new_ind is closer and better
             if H['local_pt'][new_ind]:
-                updates = np.where(np.logical_and(dist_to_all < H['dist_to_better_l'][p], new_better_than))[0]
-                H['dist_to_better_l'][updates] = dist_to_all[updates]
+                inds_of_p = np.logical_and(dist_to_all < H['dist_to_better_l'][p], new_better_than)
+                updates = np.where(p)[0][inds_of_p]
+                H['dist_to_better_l'][updates] = dist_to_all[inds_of_p]
                 H['ind_of_better_l'][updates] = new_ind
             else:
-                updates = np.where(np.logical_and(dist_to_all < H['dist_to_better_s'][p], new_better_than))[0]
-                H['dist_to_better_s'][updates] = dist_to_all[updates]
+                inds_of_p = np.logical_and(dist_to_all < H['dist_to_better_s'][p], new_better_than)
+                updates = np.where(p)[0][inds_of_p]
+                H['dist_to_better_s'][updates] = dist_to_all[inds_of_p]
                 H['ind_of_better_s'][updates] = new_ind
             updated_inds.update(updates)
 
@@ -322,7 +324,7 @@ def advance_localopt_method(H, params, sorted_run_inds, c_flag):
 
         if np.equal(x_new,H['x_on_cube']).all(1).any():
             # import ipdb; ipdb.set_trace()
-            sys.exit("Generated an already evaluated point")
+            sys.exit("Generated an already evaluated point. Exiting")
         else:
             break
 
@@ -515,15 +517,17 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
             )) # (L5) is always true when nu = 0
 
     if gamma_quantile < 1:
-        cut_off_value = np.sort(H['f'][~H['local_pt']])[np.floor(gamma_quantile*(sum(~H['local_pt'])-1)).astype('int')]
-    else:
-        cut_off_value = np.inf
+        print("This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?")
+    #     cut_off_value = np.sort(H['f'][~H['local_pt']])[np.floor(gamma_quantile*(sum(~H['local_pt'])-1)).astype('int')]
+    # else:
+    #     cut_off_value = np.inf
 
     ### Find the indices of points that...
     sample_seeds = np.logical_and.reduce((
            ~H['local_pt'],               # are not localopt points
-           H['f'] <= cut_off_value,      # have a small enough objective value
+           # H['f'] <= cut_off_value,      # have a small enough objective value
            ~np.isinf(H['f']),            # have a non-infinity objective value
+           ~np.isnan(H['f']),            # have a non-NaN objective value
            test_2_through_5,             # satisfy tests 2 through 5
          ))
 
@@ -539,6 +543,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
             H['local_pt'],               # are localopt points
             H['dist_to_better_l'] > r_k, # no better local point within r_k (L1)
            ~np.isinf(H['f']),            # have a non-infinity objective value
+           ~np.isnan(H['f']),            # have a non-NaN objective value
             test_2_through_5,
             H['num_active_runs'] == 0,   # are not in an active run (L6)
            ~H['local_min'] # are not a local min (L7)
