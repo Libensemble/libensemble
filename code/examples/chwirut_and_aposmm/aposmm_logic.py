@@ -172,8 +172,8 @@ def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds
     if local_flag:
         O['iter_plus_1_in_run_id'][-num_pts,run] = len(sorted_run_inds)+1
         O['num_active_runs'][-num_pts] += 1
-        O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
         # O['priority'][-num_pts:] = 1
+        O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
     else:
         if c_flag:
             # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning LibE gives them all at once)
@@ -721,10 +721,11 @@ def queue_update_function(H,gen_specs):
         if any(complete_fvals_flag) and len(pt_ids)>1:
             fvals = np.array([gen_specs['params']['combine_component_func'](H['f_i'][H['pt_id']==i]) for i in pt_ids])
 
-            worse_flag = fvals > np.min(fvals[complete_fvals_flag])
+            if any(~np.isnan(fvals[complete_fvals_flag])):
+                worse_flag = fvals > np.nanmin(fvals[complete_fvals_flag])
 
-            # Pause incompete evaluations with worse_flag==True
-            pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
+                # Pause incompete evaluations with worse_flag==True
+                pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
 
     H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = 1
 

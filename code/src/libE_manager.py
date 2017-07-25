@@ -254,7 +254,7 @@ def termination_test(H, H_ind, exit_criteria, lenH0):
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
-        if any(H[key][~np.isnan(H[key][:H_ind])] <= val): 
+        if any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
             return False
 
     if 'elapsed_clock_time' in exit_criteria:
@@ -316,6 +316,9 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
             assert np.max(H0['obj_component']) < gen_specs['params']['components'], "Being given more obj_components than exist for this problem. Exiting."
 
         for name in names:
+            if name == 'iter_plus_1_in_run_id':
+                continue
+
             H[name][:len(H0)] = H0[name]
 
 
