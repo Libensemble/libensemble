@@ -2,6 +2,7 @@
     import IPython; IPython.embed()
     sys.stdout.flush()
     import ipdb; ipdb.set_trace()
+    import pdb; pdb.set_trace()
 libEnsemble manager routines
 ====================================================
 
@@ -308,18 +309,19 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
 
 
     if len(H0):
-        names = H0.dtype.names
-        assert set(names).issubset(set(H.dtype.names)), "Can not process H0 since it contains keys not in H"
-        if 'returned' in names:
-            assert np.all(H0['returned']), "Can not use unreturned points from H0 in H, Exiting"
-        if 'obj_component' in names:
-            assert np.max(H0['obj_component']) < gen_specs['params']['components'], "Being given more obj_components than exist for this problem. Exiting."
+        fields = H0.dtype.names
+        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields not in H. Exiting"
+        if 'returned' in fields:
+            assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
+        if 'obj_component' in fields:
+            assert np.max(H0['obj_component']) < gen_specs['params']['components'], "H0 has more obj_components than exist for this problem. Exiting."
 
-        for name in names:
-            if name == 'iter_plus_1_in_run_id':
-                continue
+        for field in fields:
+            assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"
+            assert np.all(np.array(H[field].shape) >= np.array(H0[field].shape)), "H is not large enough to receive all of the components of H0 in field: " + field + ". Exiting"
 
-            H[name][:len(H0)] = H0[name]
+            for ind, val in np.ndenumerate(H0[field]): # Works if H0[field] has arbitrary dimension
+                H[field][ind] = val
 
 
     # Prepend H with H0 
@@ -328,7 +330,7 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
     H['returned'][:len(H0)] = 1
 
 
-    H['sim_id'][-feval_max:] = - 1
+    H['sim_id'][-feval_max:] = -1
     H['given_time'][-feval_max:] = np.inf
 
     return (H, len(H0))
