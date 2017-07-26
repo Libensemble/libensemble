@@ -192,14 +192,14 @@ def get_active_run_inds(H):
             os.remove(filename)
             return set()
         else:
-            a = np.loadtxt(filename,dtype='int')
+            a = np.loadtxt(filename,dtype=int)
             return set(np.atleast_1d(a))
     else:
         return set()
     
 def update_existing_runs_file(active_runs):    
     filename = 'active_runs.txt'    
-    np.savetxt(filename,np.array(list(active_runs),dtype='int'), fmt='%i')
+    np.savetxt(filename,np.array(list(active_runs),dtype=int), fmt='%i')
 
 def update_history_dist(H, params, c_flag):
     # Update distances for any new points that have been evaluated
@@ -303,7 +303,7 @@ def advance_localopt_method(H, params, sorted_run_inds, c_flag):
             Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
 
             if c_flag:
-                Run_H_F = np.zeros(len(Run_H),dtype=[('fvec','float',params['components'])])
+                Run_H_F = np.zeros(len(Run_H),dtype=[('fvec',float,params['components'])])
 
                 for i in range(len(Run_H)):
                     pt_id = H['pt_id'][sorted_run_inds[i]] 
@@ -519,7 +519,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
 
     if gamma_quantile < 1:
         print("This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?")
-    #     cut_off_value = np.sort(H['f'][~H['local_pt']])[np.floor(gamma_quantile*(sum(~H['local_pt'])-1)).astype('int')]
+    #     cut_off_value = np.sort(H['f'][~H['local_pt']])[np.floor(gamma_quantile*(sum(~H['local_pt'])-1)).astype(int)]
     # else:
     #     cut_off_value = np.inf
 
@@ -667,7 +667,7 @@ def calc_rk(H, n, n_s, rk_const, lhs_divisions=0):
     if lhs_divisions == 0:
         r_k = rk_const*(log(n_s)/n_s)**(1/n)
     else:
-        k = np.floor(n_s/lhs_divisions).astype('int')
+        k = np.floor(n_s/lhs_divisions).astype(int)
         if k <= 1: # to prevent r_k=0
             r_k = np.inf
         else:

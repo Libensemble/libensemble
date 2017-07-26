@@ -282,19 +282,19 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
         | returned            : True if point has been evaluated by a worker
     """
 
-    libE_fields = [('sim_id','int'),
-                   ('given','bool'),       
-                   ('given_time','float'), 
-                   ('lead_rank','int'),    
-                   ('returned','bool'),    
-                   ('paused','bool'),    
+    libE_fields = [('sim_id',int),
+                   ('given',bool),       
+                   ('given_time',float), 
+                   ('lead_rank',int),    
+                   ('returned',bool),    
+                   ('paused',bool),    
                    ]
 
     assert 'priority' in [entry[0] for entry in gen_specs['out']],\
         "'priority' must be an entry in gen_specs['out']"
         
 
-    if ('sim_id','int') in gen_specs['out'] and 'sim_id' in gen_specs['in']:
+    if ('sim_id',int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
         print('\n' + 79*'*' + '\n'
                "User generator script will be creating sim_id.\n"\
                "Take care to do this sequentially.\n"\
