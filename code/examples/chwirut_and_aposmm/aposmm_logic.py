@@ -362,7 +362,12 @@ def set_up_and_run_nlopt(Run_H, params):
 
     # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0),min(x0-lb))
-    opt.set_initial_step(dist_to_bound)
+
+    if 'dist_to_bound_multiple' in params:
+        opt.set_initial_step(dist_to_bound*params['dist_to_bound_multiple'])
+    else:
+        opt.set_initial_step(dist_to_bound)
+
     opt.set_maxeval(len(Run_H)+1) # evaluate one more point
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
     opt.set_xtol_rel(params['xtol_rel'])
