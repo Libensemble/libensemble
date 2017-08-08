@@ -33,13 +33,14 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     active_w = {'gen':set(), 'sim':set()}
 
     ### Continue receiving and giving until termination test is satisfied
-    while termination_test(H, H_ind, exit_criteria, len(H0)):
+    term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, len(H0))
+    while not term_test(H, H_ind):
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
 
         update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs)
 
-        Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
         for w in Work:
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
@@ -81,8 +82,10 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
 
     return H, H_ind, active_w, idle_w
 
-def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
-    """ Decide what should be given to workers 
+def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test):
+    """ Decide what should be given to workers. Note that everything put into
+    the Work dictionary will be given, so we are careful not to put more gen or
+    sim items into Work than necessary.
     """
 
     Work = {}
@@ -93,18 +96,18 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
 
         if len(q_inds):
             # Give all points with highest priority
-            inds_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+            sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
 
             Work[i] = {'calc_f': sim_specs['sim_f'][0], 
                        'calc_params': sim_specs['params'], 
                        'form_subcomm': [], 
-                       # 'calc_in': H[sim_specs['in']][inds_to_send],
-                       'calc_in': H[inds_to_send][sim_specs['in']],
+                       # 'calc_in': H[sim_specs['in']][sim_ids_to_send],
+                       'calc_in': H[sim_ids_to_send][sim_specs['in']],
                        'calc_out': sim_specs['out'],
-                       'calc_info': {'type':'sim', 'sim_id': inds_to_send},
+                       'calc_info': {'type':'sim', 'sim_id': sim_ids_to_send},
                       }
 
-            update_history_x_out(H, inds_to_send, Work[i]['calc_in'], i, sim_specs['params'])
+            update_history_x_out(H, sim_ids_to_send, Work[i]['calc_in'], i, sim_specs['params'])
 
         else:
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
@@ -112,7 +115,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
                 break
 
             # Limit number of gen instances if given
-            if 'num_inst' in gen_specs and len(active_w['gen']) + gen_work == gen_specs['num_inst']:
+            if 'num_inst' in gen_specs and len(active_w['gen']) + gen_work >= gen_specs['num_inst']:
                 break
 
             # Give gen work 
@@ -127,8 +130,8 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs):
                        'calc_info': {'type':'gen'},
                        }
 
-            if H_ind + gen_work >= len(H):
-                break
+        if term_test(H, H_ind):
+            break
 
 
     return Work
@@ -246,23 +249,23 @@ def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
 
 def termination_test(H, H_ind, exit_criteria, lenH0):
     """
-    Return False if the libEnsemble run should stop 
+    Return True if the libEnsemble run should stop 
     """
 
     if np.sum(H['given']) >= exit_criteria['sim_eval_max'] + lenH0:
-        return False
+        return True
 
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
         if any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
-            return False
+            return True
 
     if 'elapsed_clock_time' in exit_criteria:
         if time.time() - H['given_time'][lenH0] > exit_criteria['elapsed_clock_time']:
-            return False
+            return True
 
-    return True
+    return False
 
 
 
