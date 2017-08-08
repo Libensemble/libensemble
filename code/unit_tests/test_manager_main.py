@@ -23,18 +23,18 @@ def make_criteria_and_specs_1():
 
 
 def test_termination_test():
-    # termination_test should be False when we want to stop
+    # termination_test should be True when we want to stop
 
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
     H, H_ind = man.initialize_H(sim_specs_0, gen_specs_0, exit_criteria_0['sim_eval_max'],[]) 
-    assert(man.termination_test(H, H_ind, exit_criteria_0,0))
+    assert(not man.termination_test(H, H_ind, exit_criteria_0,0))
 
 
 
     # Shouldn't terminate
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
     H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
-    assert(man.termination_test(H, H_ind, exit_criteria,0))
+    assert(not man.termination_test(H, H_ind, exit_criteria,0))
     # 
 
 
@@ -42,14 +42,14 @@ def test_termination_test():
     H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
     H['g'][0] = -1
     H_ind = 1
-    assert(not man.termination_test(H, H_ind, exit_criteria, 0))
+    assert(man.termination_test(H, H_ind, exit_criteria, 0))
     # 
 
     
     # Terminate because everything has been given.
     H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
     H['given'] = np.ones
-    assert(not man.termination_test(H, H_ind, exit_criteria,0))
+    assert(man.termination_test(H, H_ind, exit_criteria,0))
     # 
     
 
@@ -58,7 +58,7 @@ def test_termination_test():
     H_ind = 4
     H['given_time'][0] = time.time()
     time.sleep(0.5)
-    assert(not man.termination_test(H, H_ind, exit_criteria,0))
+    assert(man.termination_test(H, H_ind, exit_criteria,0))
     # 
 
 
@@ -66,12 +66,13 @@ def test_decide_work_and_resources():
 
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
     H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
+    term_test = lambda H, H_ind: man.termination_test(H,H_ind,exit_criteria,0)
 
 
     # Don't give out work when idle is empty
     active_w = set([1,2,3,4])
     idle_w = set()
-    Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+    Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
     assert( len(Work) == 0 )
     # 
 

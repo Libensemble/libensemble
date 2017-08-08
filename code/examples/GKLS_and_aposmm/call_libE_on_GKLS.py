@@ -111,7 +111,7 @@ np.random.seed(1)
 H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'GKLS_results_History_length=' + str(len(H)) + '_ranks=' + str(c['comm'].Get_size())
+    filename = 'GKLS_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(c['comm'].Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 
