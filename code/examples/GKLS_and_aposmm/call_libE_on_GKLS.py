@@ -29,7 +29,7 @@ from aposmm_logic import aposmm_logic
 from math import *
 
 ### Declare the run parameters/functions
-max_sim_evals = 500
+max_sim_evals = 600
 n = 2
 
 # (c) will contain information about the MPI communicator used by LibEnsemble to do it's evaluations
