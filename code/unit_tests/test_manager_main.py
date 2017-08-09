@@ -26,20 +26,20 @@ def test_termination_test():
     # termination_test should be True when we want to stop
 
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
-    H, H_ind = man.initialize_H(sim_specs_0, gen_specs_0, exit_criteria_0['sim_eval_max'],[]) 
+    H, H_ind,_ = man.initialize(sim_specs_0, gen_specs_0, exit_criteria_0,[]) 
     assert(not man.termination_test(H, H_ind, exit_criteria_0,0))
 
 
 
     # Shouldn't terminate
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
-    H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
+    H, H_ind,_ = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
     assert(not man.termination_test(H, H_ind, exit_criteria,0))
     # 
 
 
     # Terminate because we've found a good 'g' value
-    H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
+    H, H_ind,_ = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
     H['g'][0] = -1
     H_ind = 1
     assert(man.termination_test(H, H_ind, exit_criteria, 0))
@@ -47,14 +47,14 @@ def test_termination_test():
 
     
     # Terminate because everything has been given.
-    H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
+    H, H_ind,_ = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
     H['given'] = np.ones
     assert(man.termination_test(H, H_ind, exit_criteria,0))
     # 
     
 
     # Terminate because enough time has passed
-    H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
+    H, H_ind,_ = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
     H_ind = 4
     H['given_time'][0] = time.time()
     time.sleep(0.5)
@@ -65,7 +65,7 @@ def test_termination_test():
 def test_decide_work_and_resources():
 
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
-    H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
+    H, H_ind,_ = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
     term_test = lambda H, H_ind: man.termination_test(H,H_ind,exit_criteria,0)
 
 
@@ -92,7 +92,7 @@ def test_update_history_x_in():
 
     # Don't take more points than there is space in history.
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
-    H, H_ind = man.initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'],[]) 
+    H, H_ind,_ = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
 
     O = np.zeros(2*len(H), dtype=gen_specs['out'])
     print(len(O))
