@@ -122,7 +122,9 @@ def aposmm_logic(H,gen_out,params):
 
         update_existing_runs_file(active_runs)
 
-    if 'min_batch_size' in params:
+    if len(H) == 0:
+        samples_needed = params['initial_sample']
+    elif 'min_batch_size' in params:
         samples_needed = params['min_batch_size'] - len(O)
     else:
         samples_needed = int(not bool(O)) # 1 if len(O)==0, 0 otherwise
