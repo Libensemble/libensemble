@@ -30,17 +30,11 @@ def worker_main(c):
     """
     comm = c['comm']
     comm_color = c['color']
-
-
-    # size = comm.Get_size()
     rank = comm.Get_rank()
-    name = MPI.Get_processor_name()
     status = MPI.Status()
 
     while 1:
         D = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        # print(D)
-        # sys.stdout.flush()
 
         if status.Get_tag() == STOP_TAG: break
 
@@ -61,13 +55,9 @@ def worker_main(c):
         if 'sim_dir' in D['calc_params']:
             os.chdir(saved_dir)
 
-        # print(O)
-        sys.stdout.flush()
-
         data_out = {'calc_out':O, 'calc_info': D['calc_info']}
         
         comm.send(obj=data_out, dest=0) 
-        # print("Worker: %d; Finished work on %r; finished sending" % (rank,[x,f_vec,f,0,0,rank]))
 
     # Clean up
     if 'saved_dir' in locals():
