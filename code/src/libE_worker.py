@@ -49,7 +49,7 @@ def worker_main(c):
 
         if 'sim_dir' in D['calc_params']:
             saved_dir = os.getcwd()
-            # worker_dir = '/scratch/' + obj_dir + '_' + str(comm_color) + "_" + str(rank) 
+            # worker_dir = '/scratch/' + D['calc_params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
             worker_dir = D['calc_params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
             # assert ~os.path.isdir(worker_dir), "Worker directory already exists."
             if not os.path.exists(worker_dir):
