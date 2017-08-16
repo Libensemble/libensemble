@@ -43,8 +43,11 @@ def worker_main(c):
 
         if 'sim_dir' in D['calc_params']:
             saved_dir = os.getcwd()
-            # worker_dir = '/scratch/' + D['calc_params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
             worker_dir = D['calc_params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
+
+            if 'sim_dir_prefix' in D['calc_params']:
+                worker_dir = os.path.join(os.sep, D['calc_params']['sim_dir_prefix'], worker_dir)
+
             # assert ~os.path.isdir(worker_dir), "Worker directory already exists."
             if not os.path.exists(worker_dir):
                 shutil.copytree(D['calc_params']['sim_dir'], worker_dir)
