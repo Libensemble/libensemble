@@ -5,8 +5,6 @@
     import pdb; pdb.set_trace()
 libEnsemble manager routines
 ====================================================
-
-
 """
 
 from __future__ import division
@@ -27,13 +25,12 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     status = MPI.Status()
 
-    H, H_ind = initialize_H(sim_specs, gen_specs, exit_criteria['sim_eval_max'], H0)
+    H, H_ind, term_test = initialize(sim_specs, gen_specs, exit_criteria, H0)
 
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = {'gen':set(), 'sim':set()}
 
     ### Continue receiving and giving until termination test is satisfied
-    term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, len(H0))
     while not term_test(H, H_ind):
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
@@ -58,6 +55,12 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     return H[:H_ind]
 
 
+
+
+
+######################################################################
+# Manager subroutines
+######################################################################
 def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
     status = MPI.Status()
 
@@ -81,6 +84,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
             active_w_copy = active_w.copy()
 
     return H, H_ind, active_w, idle_w
+
 
 def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test):
     """ Decide what should be given to workers. Note that everything put into
@@ -133,8 +137,8 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
         if term_test(H, H_ind):
             break
 
-
     return Work
+
 
 def update_active_and_queue(active_w, idle_w, H, gen_specs):
     """ Decide if active work should be continued and the queue order
@@ -148,6 +152,7 @@ def update_active_and_queue(active_w, idle_w, H, gen_specs):
         gen_specs['queue_update_function'](H,gen_specs)
     
     return
+
 
 def update_history_f(H, D): 
     """
@@ -210,6 +215,7 @@ def update_history_x_in(H, H_ind, O):
 
     return H, H_ind
 
+
 def grow_H(H, k):
     """ LibEnsemble is requesting k rows be added to H because gen_f produced
     more points than rows in H."""
@@ -268,8 +274,7 @@ def termination_test(H, H_ind, exit_criteria, lenH0):
     return False
 
 
-
-def initialize_H(sim_specs, gen_specs, feval_max, H0):
+def initialize(sim_specs, gen_specs, exit_criteria, H0):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -284,7 +289,16 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
         | given_time          : Time point was given to a worker
         | lead_rank           : lead worker rank point was given to 
         | returned            : True if point has been evaluated by a worker
+
+    H_ind: integer
+        Where LibE should start filling in H
+
+    term_test: lambda funciton
+        Simplified termination test (doesn't require passing fixed quantities).
+        This is nice when calling term_test in multiple places.
     """
+
+    sim_eval_max = exit_criteria['sim_eval_max']
 
     libE_fields = [('sim_id',int),
                    ('given',bool),       
@@ -308,8 +322,7 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
         sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
 
-    H = np.zeros(feval_max + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
-
+    H = np.zeros(sim_eval_max + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
 
     if len(H0):
         fields = H0.dtype.names
@@ -326,14 +339,15 @@ def initialize_H(sim_specs, gen_specs, feval_max, H0):
             for ind, val in np.ndenumerate(H0[field]): # Works if H0[field] has arbitrary dimension
                 H[field][ind] = val
 
-
     # Prepend H with H0 
     H['sim_id'][:len(H0)] = np.arange(0,len(H0))
     H['given'][:len(H0)] = 1
     H['returned'][:len(H0)] = 1
 
+    H['sim_id'][-sim_eval_max:] = -1
+    H['given_time'][-sim_eval_max:] = np.inf
 
-    H['sim_id'][-feval_max:] = -1
-    H['given_time'][-feval_max:] = np.inf
+    H_ind = len(H0)
+    term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, len(H0))
 
-    return (H, len(H0))
+    return (H, H_ind, term_test)
