@@ -50,15 +50,6 @@ def combine_fvec(F):
 ### Declare the run parameters/functions
 max_sim_evals = 100
 
-# (c) will contain information about the MPI communicator used by LibEnsemble to do it's evaluations
-c = {}
-c['comm'] = MPI.COMM_WORLD
-c['color'] = 0
-
-# Tell LibEnsemble one manager and the rest of the MPI ranks are workers (doing evaluations)
-allocation_specs = {'manager_ranks': set([0]), 
-                    'worker_ranks': set(range(1,c['comm'].Get_size()))
-                   }
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [obj_func],
@@ -88,8 +79,6 @@ gen_specs = {'gen_f': uniform_random_sample,
              'batch_mode': True,
              }
 
-failure_processing = {}
-
 # Tell LibEnsemble when to stop
 exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
                  'elapsed_clock_time': 100,
@@ -98,9 +87,9 @@ exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
 
 np.random.seed(1)
 # Perform the run
-H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+H = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'GKLS_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(c['comm'].Get_size())
+    filename = 'GKLS_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
