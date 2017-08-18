@@ -29,12 +29,16 @@ from __future__ import absolute_import
 from libE_manager import manager_main
 from libE_worker import worker_main
 
-def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0=[]):
+from mpi4py import MPI
+
+def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
+        allocation_specs={'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
+        c={'comm': MPI.COMM_WORLD, 'color': 0}, 
+        H0=[]):
 
     """ 
     Parameters
     ----------
-
     """
     check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
     
@@ -43,13 +47,11 @@ def libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_cri
 
     if comm.Get_rank() in allocation_specs['manager_ranks']:
         H = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
-        # print(H)
-        # print(H.dtype.names)
     elif comm.Get_rank() in allocation_specs['worker_ranks']:
         worker_main(c)
         H = []
     else:
-        print("Rank: %d not manager, custodian, or worker" % comm.Get_rank())
+        print("Rank: %d not manager or worker" % comm.Get_rank())
 
     comm.Barrier()
     return(H)
@@ -59,6 +61,8 @@ def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, 
 
     assert(len(sim_specs['out'])), "sim_specs must have 'out' entries"
     assert(len(gen_specs['out'])), "gen_specs must have 'out' entries"
+    assert(len(allocation_specs['worker_ranks'])), "Must have at least one worker rank"
+    assert(len(allocation_specs['manager_ranks'])), "Must have at least one manager rank"
 
     if 'stop_val' in exit_criteria:
         assert(exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']]),\

@@ -31,23 +31,14 @@ from math import *
 ### Declare the run parameters/functions
 max_sim_evals = 600
 n = 2
-
-# (c) will contain information about the MPI communicator used by LibEnsemble to do it's evaluations
-c = {}
-c['comm'] = MPI.COMM_WORLD
-c['color'] = 0
-
-# Tell LibEnsemble one manager and the rest of the MPI ranks are workers (doing evaluations)
-allocation_specs = {'manager_ranks': set([0]), 
-                    'worker_ranks': set(range(1,c['comm'].Get_size()))
-                   }
+w = MPI.COMM_WORLD.Get_size()-1
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': [obj_func],
-             'in': ['x','local_pt'],
-             'out': [('f',float),
+sim_specs = {'sim_f': [obj_func], # This is the function whose output is being minimized
+             'in': ['x'], # These keys will be given to the above function
+             'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'number_of_minima': 10,
+             'params': {'number_of_minima': 10, # These are parameters needed by the function being minimized.
                         'problem_dimension': 2,
                         'problem_number': 1,
                         # 'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
@@ -88,13 +79,11 @@ gen_specs = {'gen_f': aposmm_logic,
                         # 'fatol': 1e-15,
                         'rk_const': ((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                         'xtol_rel': 1e-3,
-                        'min_batch_size': len(allocation_specs['worker_ranks']),
+                        'min_batch_size': w,
                        },
              'num_inst': 1,
              'batch_mode': True,
              }
-
-failure_processing = {}
 
 # Tell LibEnsemble when to stop
 exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
@@ -108,10 +97,10 @@ np.random.seed(1)
 # H0 = np.load('GKLS_results_after_evals=500_ranks=2.npy')
 # H0 = H0[['x','x_on_cube','f']][:50]
 
-H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+H = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'GKLS_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(c['comm'].Get_size())
+    filename = 'GKLS_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 

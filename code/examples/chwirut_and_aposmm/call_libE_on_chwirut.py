@@ -24,13 +24,6 @@ from math import *
 ### Declare the run parameters/functions
 n = 3
 max_sim_evals = 500
-c = {}
-c['comm'] = MPI.COMM_WORLD
-c['color'] = 0
-
-allocation_specs = {'manager_ranks': set([0]), 
-                    'worker_ranks': set(range(1,c['comm'].Get_size()))
-                   }
 
 sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x'],
@@ -75,21 +68,19 @@ gen_specs = {'gen_f': aposmm_logic,
                         'fatol': 1e-15,
                         'rk_const': ((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                         'xtol_rel': 1e-3,
-                        'min_batch_size': len(allocation_specs['worker_ranks']),
+                        'min_batch_size': MPI.COMM_WORLD.Get_size()-1,
                         },
               'num_inst': 1,
              }
-
-failure_processing = {}
 
 exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
                   }
 
 np.random.seed(1)
 # Perform the run
-H = libE(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+H = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'chwirut_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(c['comm'].Get_size())
+    filename = 'chwirut_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)

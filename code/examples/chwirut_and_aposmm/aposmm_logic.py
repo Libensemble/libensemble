@@ -127,7 +127,7 @@ def aposmm_logic(H,gen_out,params):
     elif 'min_batch_size' in params:
         samples_needed = params['min_batch_size'] - len(O)
     else:
-        samples_needed = int(not bool(O)) # 1 if len(O)==0, 0 otherwise
+        samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
 
     if samples_needed > 0:
         x_new = np.random.uniform(0,1,(samples_needed,n))
@@ -149,7 +149,7 @@ def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds
         m = params['components']
 
         assert (len_H % m == 0), "Number of points in len_H not congruent to 0 mod 'components'"
-        pt_ids = np.sort(np.tile(np.arange((len_H+original_len_O)/m,(len_H+original_len_O)/m + len(pts)),(1,len(pts)))) 
+        pt_ids = np.sort(np.tile(np.arange((len_H+original_len_O)/m,(len_H+original_len_O)/m + len(pts)),(1,m))) 
         pts = np.tile(pts,(m,1))
 
     num_pts = len(pts)
@@ -168,7 +168,7 @@ def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds
     O['ind_of_better_s'][-num_pts:] = -1
 
     if c_flag:
-        O['obj_component'][-num_pts:] = np.tile(range(0,m),(num_pts//m,1))
+        O['obj_component'][-num_pts:] = np.tile(range(0,m),(1,num_pts//m))
         O['pt_id'][-num_pts:] = pt_ids
     
     if local_flag:
