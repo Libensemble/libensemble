@@ -263,6 +263,9 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     if np.sum(H['given']) >= exit_criteria['sim_max'] + lenH0:
         return True
 
+    if H_ind >= exit_criteria['gen_max'] + lenH0:
+        return True
+
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
