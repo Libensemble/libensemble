@@ -4,7 +4,7 @@
 # 
 # Execute via the following command:
 #    mpiexec -np 4 python3 call_libE_on_GKLS.py
-# The number of concurrent evaluations of the objective function will be 4-1.
+# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 from __future__ import division

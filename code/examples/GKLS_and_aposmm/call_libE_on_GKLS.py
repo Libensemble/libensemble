@@ -87,7 +87,7 @@ gen_specs = {'gen_f': aposmm_logic,
 
 # Tell LibEnsemble when to stop
 exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
-                 'elapsed_clock_time': 100,
+                 'elapsed_wallclock_time': 100,
                  'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 
                 }
 
