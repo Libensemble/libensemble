@@ -253,7 +253,7 @@ def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
         H['lead_rank'][i] = lead_rank
 
 
-def termination_test(H, H_ind, exit_criteria, lenH0):
+def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     """
     Return True if the libEnsemble run should stop 
     """
@@ -267,8 +267,8 @@ def termination_test(H, H_ind, exit_criteria, lenH0):
         if any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
             return True
 
-    if 'elapsed_clock_time' in exit_criteria:
-        if time.time() - H['given_time'][lenH0] > exit_criteria['elapsed_clock_time']:
+    if 'elapsed_wallclock_time' in exit_criteria:
+        if time.time() - start_time >= exit_criteria['elapsed_wallclock_time']:
             return True
 
     return False
@@ -348,6 +348,7 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
     H['given_time'][-sim_eval_max:] = np.inf
 
     H_ind = len(H0)
-    term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, len(H0))
+    start_time = time.time()
+    term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
 
     return (H, H_ind, term_test)

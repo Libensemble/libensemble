@@ -17,7 +17,7 @@ def make_criteria_and_specs_0():
 def make_criteria_and_specs_1():
     sim_specs={'sim_f': [np.linalg.norm], 'in':['x'], 'out':[('g',float)], 'params':{}}
     gen_specs={'gen_f': [np.random.uniform], 'in':[], 'out':[('x',float),('priority',float)], 'params':{}}
-    exit_criteria={'sim_eval_max':10, 'stop_val':('g',-1), 'elapsed_clock_time':0.5}
+    exit_criteria={'sim_eval_max':10, 'stop_val':('g',-1), 'elapsed_wallclock_time':0.5}
 
     return sim_specs, gen_specs, exit_criteria
 
