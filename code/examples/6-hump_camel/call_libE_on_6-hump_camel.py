@@ -52,12 +52,10 @@ def uniform_random_sample(g_in,gen_out,params):
             x = np.random.uniform(lb,ub,(1,n))
 
             O['x'][i] = x
-            O['priority'][i] = np.random.uniform(0,1)
 
     else:
         O = np.zeros(1, dtype=gen_out)
         O['x'] = len(g_in)*np.ones(n)
-        O['priority'] = 1
 
     print(O)
     return O
@@ -76,7 +74,6 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
              'out': [('x',float,2),
-                     ('priority',float),
                     ],
              'params': {'lb': np.array([-3,-2]),
                         'ub': np.array([ 3, 2]),
@@ -88,7 +85,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              }
 
 # Tell LibEnsemble when to stop
-exit_criteria = {'sim_max': 10}
+exit_criteria = {'sim_max': 109}
 
 np.random.seed(1)
 
