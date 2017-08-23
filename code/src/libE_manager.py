@@ -115,8 +115,13 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
         q_inds = np.where(np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind]))[0]
 
         if len(q_inds):
-            # Give all points with highest priority
-            sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+            if 'priority' in H.dtype.fields:
+                # Give all points with highest priority
+                sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+            else:
+                # Give oldest point
+                sim_ids_to_send = np.atleast_1d(np.min(q_inds))
+
 
             Work[i] = {'calc_f': sim_specs['sim_f'][0], 
                        'calc_params': sim_specs['params'], 
@@ -328,10 +333,6 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
                    ('returned',bool),    
                    ('paused',bool),    
                    ]
-
-    assert 'priority' in [entry[0] for entry in gen_specs['out']],\
-        "'priority' must be an entry in gen_specs['out']"
-        
 
     if ('sim_id',int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
         print('\n' + 79*'*' + '\n'
