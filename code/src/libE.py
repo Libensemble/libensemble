@@ -58,6 +58,8 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
 
 def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
+    valid_term_fields = ['sim_max','gen_max','elapsed_wallclock_time','stop_val']
+    assert(any([term_field in exit_criteria for term_field in valid_term_fields])), "Must have a valid termination option: " + valid_term_fields 
 
     assert(len(sim_specs['out'])), "sim_specs must have 'out' entries"
     assert(len(gen_specs['out'])), "gen_specs must have 'out' entries"

@@ -18,7 +18,7 @@ import numpy as np
 import scipy as sp
 from scipy import spatial
 
-import time,sys
+import time, sys, os
 
 def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
@@ -33,7 +33,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
         update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs)
 
@@ -46,7 +46,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     ### Receive from all active workers 
     while len(active_w['gen'].union(active_w['sim'])):
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind)
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
     ### Stop all workers 
     for w in allocation_specs['worker_ranks']:
@@ -61,7 +61,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
-def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
+def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs):
     status = MPI.Status()
 
     active_w_copy = active_w.copy()
@@ -83,7 +83,21 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
         else:
             active_w_copy = active_w.copy()
 
+    if 'save_every_k' in sim_specs:
+        k = sim_specs['save_every_k']
+        count = k*(sum(H['returned'])//k)
+        filename = 'LibE_history_after_sim_' + str(count) + '.npy'
 
+        if not os.path.isfile(filename) and count > 0:
+            np.save(filename,H)
+
+    if 'save_every_k' in gen_specs:
+        k = gen_specs['save_every_k']
+        count = k*(H_ind//k)
+        filename = 'LibE_history_after_gen_' + str(count) + '.npy'
+
+        if not os.path.isfile(filename) and count > 0:
+            np.save(filename,H)
 
     return H, H_ind, active_w, idle_w
 
@@ -260,11 +274,13 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     Return True if the libEnsemble run should stop 
     """
 
-    if np.sum(H['given']) >= exit_criteria['sim_max'] + lenH0:
-        return True
+    if 'sim_max' in exit_criteria:
+        if np.sum(H['given']) >= exit_criteria['sim_max'] + lenH0:
+            return True
 
-    if H_ind >= exit_criteria['gen_max'] + lenH0:
-        return True
+    if 'gen_max' in exit_criteria:
+        if H_ind >= exit_criteria['gen_max'] + lenH0:
+            return True
 
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
