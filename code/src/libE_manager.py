@@ -83,6 +83,8 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind):
         else:
             active_w_copy = active_w.copy()
 
+
+
     return H, H_ind, active_w, idle_w
 
 
@@ -258,7 +260,7 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     Return True if the libEnsemble run should stop 
     """
 
-    if np.sum(H['given']) >= exit_criteria['sim_eval_max'] + lenH0:
+    if np.sum(H['given']) >= exit_criteria['sim_max'] + lenH0:
         return True
 
     if 'stop_val' in exit_criteria:
@@ -298,7 +300,7 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
         This is nice when calling term_test in multiple places.
     """
 
-    sim_eval_max = exit_criteria['sim_eval_max']
+    sim_max = exit_criteria['sim_max']
 
     libE_fields = [('sim_id',int),
                    ('given',bool),       
@@ -322,7 +324,7 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
         sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
 
-    H = np.zeros(sim_eval_max + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
+    H = np.zeros(sim_max + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
 
     if len(H0):
         fields = H0.dtype.names
@@ -344,8 +346,8 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
     H['given'][:len(H0)] = 1
     H['returned'][:len(H0)] = 1
 
-    H['sim_id'][-sim_eval_max:] = -1
-    H['given_time'][-sim_eval_max:] = np.inf
+    H['sim_id'][-sim_max:] = -1
+    H['given_time'][-sim_max:] = np.inf
 
     H_ind = len(H0)
     start_time = time.time()
