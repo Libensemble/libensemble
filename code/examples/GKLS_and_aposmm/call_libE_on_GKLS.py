@@ -29,7 +29,7 @@ from aposmm_logic import aposmm_logic
 from math import *
 
 ### Declare the run parameters/functions
-max_sim_evals = 600
+max_sim_budget = 600
 n = 2
 w = MPI.COMM_WORLD.Get_size()-1
 
@@ -50,7 +50,7 @@ out = [('x',float,n),
       ('x_on_cube',float,n),
       ('sim_id',int),
       ('priority',float),
-      ('iter_plus_1_in_run_id',int,max_sim_evals),
+      ('iter_plus_1_in_run_id',int,max_sim_budget),
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
@@ -86,7 +86,7 @@ gen_specs = {'gen_f': aposmm_logic,
              }
 
 # Tell LibEnsemble when to stop
-exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
+exit_criteria = {'sim_max': max_sim_budget, 
                  'elapsed_wallclock_time': 100,
                  'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 
                 }

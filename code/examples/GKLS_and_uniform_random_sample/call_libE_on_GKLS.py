@@ -48,7 +48,7 @@ def combine_fvec(F):
 
 
 ### Declare the run parameters/functions
-max_sim_evals = 100
+max_sim_budget = 100
 
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
@@ -73,14 +73,14 @@ gen_specs = {'gen_f': uniform_random_sample,
                     ],
              'params': {'lb': np.array([0,0]),
                         'ub': np.array([1,1]),
-                        'gen_batch_size': max_sim_evals,
+                        'gen_batch_size': max_sim_budget,
                        },
              'num_inst': 1,
              'batch_mode': True,
              }
 
 # Tell LibEnsemble when to stop
-exit_criteria = {'sim_eval_max': max_sim_evals, # must be provided
+exit_criteria = {'sim_max': max_sim_budget, # must be provided
                  'elapsed_wallclock_time': 100,
                  'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 
                 }
@@ -90,6 +90,6 @@ np.random.seed(1)
 H = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'GKLS_results_after_evals=' + str(max_sim_evals) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+    filename = 'GKLS_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)

@@ -82,7 +82,7 @@ gen_specs = {'gen_f': aposmm_logic,
               'queue_update_function': queue_update_function 
              }
 
-exit_criteria = {'sim_eval_max': max_sim_budget, # must be provided
+exit_criteria = {'sim_max': max_sim_budget, # must be provided
                   }
 
 np.random.seed(1)
