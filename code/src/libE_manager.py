@@ -120,11 +120,16 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
 
         if len(q_inds):
             if 'priority' in H.dtype.fields:
-                # Give all points with highest priority
-                sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+                if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
+                    # Give all points with highest priority
+                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+                else:
+                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0][0] ]
+
             else:
                 # Give oldest point
-                sim_ids_to_send = np.atleast_1d(np.min(q_inds))
+                sim_ids_to_send = np.min(q_inds)
+            sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
 
             Work[i] = {'calc_f': sim_specs['sim_f'][0], 
