@@ -22,7 +22,8 @@ from libE import libE
 
 def six_hump_camel(H, sim_out, obj_params):
     batch = len(H['x'])
-    O = np.zeros(1,dtype=sim_out)
+    O = np.zeros(batch,dtype=sim_out)
+
 
     for i,x in enumerate(H['x']):
         x1 = H['x'][i][0]
@@ -50,12 +51,16 @@ def uniform_random_sample(g_in,gen_out,params):
         O = np.zeros(b, dtype=gen_out)
         for i in range(0,b):
             x = np.random.uniform(lb,ub,(1,n))
-
             O['x'][i] = x
-
+            O['num_nodes'][i] = 1
+            O['ranks_per_node'][i] = 16
+            O['priority'] = 1
+        
     else:
         O = np.zeros(1, dtype=gen_out)
         O['x'] = len(g_in)*np.ones(n)
+        O['num_nodes'] = np.random.choice([1,2,4,8]) 
+        O['ranks_per_node'] = np.random.randint(1,17)
 
     print(O)
     return O
@@ -63,7 +68,7 @@ def uniform_random_sample(g_in,gen_out,params):
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
+             'in': ['x','num_nodes','ranks_per_node'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
              'params': {'constant': 10},
@@ -74,6 +79,9 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
              'out': [('x',float,2),
+                     ('priority',float),
+                     ('num_nodes',int),
+                     ('ranks_per_node',int),
                     ],
              'params': {'lb': np.array([-3,-2]),
                         'ub': np.array([ 3, 2]),
@@ -81,6 +89,7 @@ gen_specs = {'gen_f': uniform_random_sample,
                        },
              'num_inst': 1,
              'batch_mode': False,
+             'give_all_with_same_priority': False,
              # 'save_every_k': 10
              }
 
