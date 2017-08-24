@@ -43,18 +43,21 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
     
     comm = c['comm']
-    comm.Barrier()
+    # When timing libEnsemble, uncomment barrier to ensure manager and workers are 
+    # comm.Barrier()
 
     if comm.Get_rank() in allocation_specs['manager_ranks']:
-        H = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+        H, exit_flag = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+        # if exit_flag == 0:
+        #     comm.Barrier()
+        return(H)
     elif comm.Get_rank() in allocation_specs['worker_ranks']:
         worker_main(c)
-        H = []
+        # comm.Barrier()
     else:
         print("Rank: %d not manager or worker" % comm.Get_rank())
 
-    comm.Barrier()
-    return(H)
+
 
 
 def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria):

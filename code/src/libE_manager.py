@@ -47,12 +47,16 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     ### Receive from all active workers 
     while len(active_w['gen'].union(active_w['sim'])):
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        if term_test(H, H_ind) == 2 and len(active_w['gen'].union(active_w['sim'])):
+            print("Termination due to elapsed_wallclock_time has occurred.\n"\
+              "A last attempt has been made to receive any completed work.\n")
+            return H[:H_ind], 2
 
     ### Stop all workers 
     for w in allocation_specs['worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
 
-    return H[:H_ind]
+    return H[:H_ind], 0
 
 
 
@@ -276,26 +280,26 @@ def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
 
 def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     """
-    Return True if the libEnsemble run should stop 
+    Return nonzero if the libEnsemble run should stop 
     """
 
     if 'sim_max' in exit_criteria:
         if np.sum(H['given']) >= exit_criteria['sim_max'] + lenH0:
-            return True
+            return 1
 
     if 'gen_max' in exit_criteria:
         if H_ind >= exit_criteria['gen_max'] + lenH0:
-            return True
+            return 1 
 
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
         if any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
-            return True
+            return 1
 
     if 'elapsed_wallclock_time' in exit_criteria:
         if time.time() - start_time >= exit_criteria['elapsed_wallclock_time']:
-            return True
+            return 2
 
     return False
 
@@ -324,7 +328,10 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
         This is nice when calling term_test in multiple places.
     """
 
-    sim_max = exit_criteria['sim_max']
+    if 'sim_max' in exit_criteria:
+        L = exit_criteria['sim_max']
+    else:
+        L = 100
 
     libE_fields = [('sim_id',int),
                    ('given',bool),       
@@ -344,7 +351,7 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
         sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
 
-    H = np.zeros(sim_max + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
+    H = np.zeros(L + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
 
     if len(H0):
         fields = H0.dtype.names
@@ -366,8 +373,8 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
     H['given'][:len(H0)] = 1
     H['returned'][:len(H0)] = 1
 
-    H['sim_id'][-sim_max:] = -1
-    H['given_time'][-sim_max:] = np.inf
+    H['sim_id'][-L:] = -1
+    H['given_time'][-L:] = np.inf
 
     H_ind = len(H0)
     start_time = time.time()
