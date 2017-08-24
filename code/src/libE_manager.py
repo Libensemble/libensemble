@@ -124,6 +124,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
                     # Give all points with highest priority
                     sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
                 else:
+                    # Give first point with highest priority
                     sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0][0] ]
 
             else:
