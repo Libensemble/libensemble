@@ -21,6 +21,7 @@ sys.path.append('../../src')
 from libE import libE
 
 def six_hump_camel(H, sim_out, obj_params, info):
+    import subprocess, os
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_out)
 
@@ -43,7 +44,9 @@ def six_hump_camel(H, sim_out, obj_params, info):
         if os.path.isfile(outfile_name) == True:
             os.remove(outfile_name)
 
-        process = subprocess.call(["mpiexec","-np",H[i]['ranks_per_node']*len(ranks_involved),"-machinefile",machinefilename,python, "./helloworld.py"], stdout = open(outfile_name,'w'), shell=False)
+        call_str = ["mpiexec","-np",str(H[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", "./helloworld.py"]
+        print(call_str)
+        process = subprocess.call(call_str, stdout = open(outfile_name,'w'), shell=False)
 
         x1 = H['x'][i][0]
         x2 = H['x'][i][1]
