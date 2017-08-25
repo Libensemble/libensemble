@@ -159,7 +159,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
 
             if block_others:
                 # import pdb; pdb.set_trace()
-                unassigned_workers = idle_w - Work.keys() - blocked_set
+                unassigned_workers = idle_w - set(Work.keys()) - blocked_set
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
                 Work[i]['calc_info']['blocking'] = set(workers_to_block)
 
