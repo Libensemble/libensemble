@@ -20,12 +20,31 @@ import time
 sys.path.append('../../src')
 from libE import libE
 
-def six_hump_camel(H, sim_out, obj_params):
+def six_hump_camel(H, sim_out, obj_params, info):
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_out)
 
 
     for i,x in enumerate(H['x']):
+
+        if 'blocking' in info:
+            ranks_involved = [MPI.COMM_WORLD.Get_rank()] +  list(info['blocking'])
+        else:
+            ranks_involved = [MPI.COMM_WORLD.Get_rank()] 
+
+        machinefilename = str(ranks_involved)
+
+        with open(machinefilename,'w') as f:
+            for rank in ranks_involved:
+                b = obj_params['nodelist'][rank] + '\n'
+                f.write(b*H['ranks_per_node'][i])
+
+        outfile_name = "outfile_"+ machinefilename+".txt"
+        if os.path.isfile(outfile_name) == True:
+            os.remove(outfile_name)
+
+        process = subprocess.call(["mpiexec","-np",H[i]['ranks_per_node']*len(ranks_involved),"-machinefile",machinefilename,python, "./helloworld.py"], stdout = open(outfile_name,'w'), shell=False)
+
         x1 = H['x'][i][0]
         x2 = H['x'][i][1]
         term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2;
@@ -40,7 +59,7 @@ def six_hump_camel(H, sim_out, obj_params):
     
     return O
 
-def uniform_random_sample(g_in,gen_out,params):
+def uniform_random_sample(g_in,gen_out,params,info):
     ub = params['ub']
     lb = params['lb']
     n = len(lb)
@@ -59,10 +78,9 @@ def uniform_random_sample(g_in,gen_out,params):
     else:
         O = np.zeros(1, dtype=gen_out)
         O['x'] = len(g_in)*np.ones(n)
-        O['num_nodes'] = np.random.choice([1,2,4,8]) 
+        O['num_nodes'] = np.random.choice([1,2,3,4]) 
         O['ranks_per_node'] = np.random.randint(1,17)
 
-    print(O)
     return O
 
 
@@ -71,7 +89,7 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'in': ['x','num_nodes','ranks_per_node'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'constant': 10},
+             'params': {'nodelist': ['b1','b1','b2','b3','b4']},
              # 'save_every_k': 10
              }
 

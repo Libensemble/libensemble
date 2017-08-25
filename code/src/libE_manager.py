@@ -28,7 +28,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     H, H_ind, term_test = initialize(sim_specs, gen_specs, exit_criteria, H0)
 
     idle_w = allocation_specs['worker_ranks'].copy()
-    active_w = {'gen':set(), 'sim':set()}
+    active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
@@ -41,13 +41,12 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
         for w in Work:
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
-            active_w[Work[w]['calc_info']['type']].add(w)
-            idle_w.remove(w)
+            active_w, idle_w = update_active_and_idle(active_w, idle_w, w, Work[w])
 
     ### Receive from all active workers 
-    while len(active_w['gen'].union(active_w['sim'])):
+    while len(active_w['sim'] | active_w['gen']):
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
-        if term_test(H, H_ind) == 2 and len(active_w['gen'].union(active_w['sim'])):
+        if term_test(H, H_ind) == 2 and len(active_w['sim'] | active_w['gen']):
             print("Termination due to elapsed_wallclock_time has occurred.\n"\
               "A last attempt has been made to receive any completed work.\n")
             return H[:H_ind], 2
@@ -71,7 +70,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
     active_w_copy = active_w.copy()
 
     while True:
-        for w in active_w_copy['sim'].union(active_w_copy['gen']): 
+        for w in active_w_copy['sim'] | active_w_copy['gen']: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 idle_w.add(status.Get_source())
@@ -81,6 +80,10 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
                     update_history_f(H, D_recv)
                 elif D_recv['calc_info']['type'] == 'gen':
                     H, H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
+
+                if 'blocking' in D_recv['calc_info']:
+                    active_w['blocked'].difference_update(D_recv['calc_info']['blocking'])
+                    idle_w.update(D_recv['calc_info']['blocking'])
 
         if active_w_copy == active_w:
             break
@@ -116,6 +119,11 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
     gen_work = 0
 
     for i in idle_w:
+        blocked_set = active_w['blocked'].union(*[j['calc_info']['blocking'] for j in Work.values() if 'blocking' in j['calc_info']])
+        # Only consider giving to worker i if it's resources are not blocked
+        if i in blocked_set:
+            continue
+
         q_inds = np.where(np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind]))[0]
 
         if len(q_inds):
@@ -131,6 +139,14 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
                 sim_ids_to_send = np.min(q_inds)
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
+            # Only give work if enough idle workers
+            if H[sim_ids_to_send]['num_nodes'] > 1:
+                if np.any(H[sim_ids_to_send]['num_nodes'] > len(idle_w) - len(Work) - len(blocked_set)):
+                    # Worker doesn't get gen work or anything. Just waiting for other resources to open up
+                    break
+                block_others = True
+            else:
+                block_others = False
 
             Work[i] = {'calc_f': sim_specs['sim_f'][0], 
                        'calc_params': sim_specs['params'], 
@@ -140,6 +156,12 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
                        'calc_out': sim_specs['out'],
                        'calc_info': {'type':'sim', 'sim_id': sim_ids_to_send},
                       }
+
+            if block_others:
+                # import pdb; pdb.set_trace()
+                unassigned_workers = idle_w - Work.keys() - blocked_set
+                workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
+                Work[i]['calc_info']['blocking'] = set(workers_to_block)
 
             update_history_x_out(H, sim_ids_to_send, Work[i]['calc_in'], i, sim_specs['params'])
 
@@ -386,3 +408,15 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
     term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
 
     return (H, H_ind, term_test)
+
+def update_active_and_idle(active_w, idle_w, w, Work):
+
+    active_w[Work['calc_info']['type']].add(w)
+    idle_w.remove(w)
+
+    if 'blocking' in Work['calc_info']:
+        print(Work['calc_info']['blocking'])
+        active_w['blocked'].update(Work['calc_info']['blocking'])
+        idle_w.difference_update(Work['calc_info']['blocking'])
+
+    return active_w, idle_w
