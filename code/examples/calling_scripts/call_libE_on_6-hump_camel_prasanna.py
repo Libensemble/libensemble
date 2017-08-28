@@ -83,6 +83,7 @@ def uniform_random_sample(g_in,gen_out,params,info):
         O['x'] = len(g_in)*np.ones(n)
         O['num_nodes'] = np.random.choice([1,2,3,4]) 
         O['ranks_per_node'] = np.random.randint(1,17)
+        O['priority'] = 10*O['num_nodes']
 
     return O
 
