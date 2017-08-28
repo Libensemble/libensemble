@@ -1,0 +1,23 @@
+#This is the rc file for merged coverage of unit/regression testing
+#Individual coverage dirs are created in the relevant directories.
+
+[run]
+data_file = .cov_merge_out
+
+[html]    
+directory = cov_merge
+
+#Report files can be controlled here
+#e.g. for libensemble files only - uncomment lines starting */code/...
+[report]
+omit =
+    */__init__.py
+    */.tox/*
+    */setup.py
+    */code/tests/unit_tests/*    
+    */code/tests/regression_tests/*
+    */code/tests/regression_tests/common/*
+#    */code/examples/gen_funs/*
+#    */code/examples/sim_funs/*
+    
+    
