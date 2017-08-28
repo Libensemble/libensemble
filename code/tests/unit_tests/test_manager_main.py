@@ -1,6 +1,6 @@
-import sys, time
+import sys, time, os
 import numpy as np
-sys.path.append('../src/')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 
 import libE_manager as man
 
