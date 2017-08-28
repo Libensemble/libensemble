@@ -20,11 +20,34 @@ import time
 sys.path.append('../../src')
 from libE import libE
 
-def six_hump_camel(H, sim_out, obj_params,info):
+def six_hump_camel(H, sim_out, obj_params, info):
+    import subprocess, os
     batch = len(H['x'])
-    O = np.zeros(1,dtype=sim_out)
+    O = np.zeros(batch,dtype=sim_out)
+
 
     for i,x in enumerate(H['x']):
+
+        if 'blocking' in info:
+            ranks_involved = [MPI.COMM_WORLD.Get_rank()] +  list(info['blocking'])
+        else:
+            ranks_involved = [MPI.COMM_WORLD.Get_rank()] 
+
+        machinefilename = str(ranks_involved)
+
+        with open(machinefilename,'w') as f:
+            for rank in ranks_involved:
+                b = obj_params['nodelist'][rank] + '\n'
+                f.write(b*H['ranks_per_node'][i])
+
+        outfile_name = "outfile_"+ machinefilename+".txt"
+        if os.path.isfile(outfile_name) == True:
+            os.remove(outfile_name)
+
+        call_str = ["mpiexec","-np",str(H[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", "./helloworld.py"]
+        print(call_str)
+        process = subprocess.call(call_str, stdout = open(outfile_name,'w'), shell=False)
+
         x1 = H['x'][i][0]
         x2 = H['x'][i][1]
         term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2;
@@ -50,23 +73,26 @@ def uniform_random_sample(g_in,gen_out,params,info):
         O = np.zeros(b, dtype=gen_out)
         for i in range(0,b):
             x = np.random.uniform(lb,ub,(1,n))
-
             O['x'][i] = x
-
+            O['num_nodes'][i] = 1
+            O['ranks_per_node'][i] = 16
+            O['priority'] = 1
+        
     else:
         O = np.zeros(1, dtype=gen_out)
         O['x'] = len(g_in)*np.ones(n)
+        O['num_nodes'] = np.random.choice([1,2,3,4]) 
+        O['ranks_per_node'] = np.random.randint(1,17)
 
-    print(O)
     return O
 
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
+             'in': ['x','num_nodes','ranks_per_node'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'constant': 10},
+             'params': {'nodelist': ['b1','b1','b2','b3','b4']},
              # 'save_every_k': 10
              }
 
@@ -74,6 +100,9 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
              'out': [('x',float,2),
+                     ('priority',float),
+                     ('num_nodes',int),
+                     ('ranks_per_node',int),
                     ],
              'params': {'lb': np.array([-3,-2]),
                         'ub': np.array([ 3, 2]),
@@ -81,6 +110,7 @@ gen_specs = {'gen_f': uniform_random_sample,
                        },
              'num_inst': 1,
              'batch_mode': False,
+             'give_all_with_same_priority': False,
              # 'save_every_k': 10
              }
 
