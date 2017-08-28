@@ -1,9 +1,9 @@
 # """
 # Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. (You will need to run "make gkls_single" in libensemble/examples/GKLS_sim_src/
+# problem. (You will need to run "make gkls_single" in libensemble/code/examples/sim_funcs/GKLS/GKLS_sim_src/
 # before running this script with 
 
-# mpiexec -np 4 python3 call_libE_on_GKLS.py
+# mpiexec -np 4 python3 call_GKLS_uniform_random_sample.py
 
 # """
 
@@ -18,7 +18,8 @@ sys.path.append('../../src')
 from libE import libE
 
 # Declare the objective
-sys.path.append('./GKLS_sim_src')
+GKLS_dir_name='../sim_funcs/GKLS/GKLS_sim_src'
+sys.path.append(GKLS_dir_name)
 from GKLS_obj import call_GKLS_with_random_pause as obj_func
 
 
@@ -62,7 +63,7 @@ sim_specs = {'sim_f': [obj_func],
                         'problem_number': 1,
                         'combine_component_func': combine_fvec,
                         'uniform_random_pause_ub': 0.01,
-                        'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
+                        'sim_dir': GKLS_dir_name}, # to be copied by each worker 
              }
 
 # State the generating function, its arguments, output, and necessary parameters.

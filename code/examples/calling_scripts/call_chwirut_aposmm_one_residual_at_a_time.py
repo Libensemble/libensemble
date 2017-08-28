@@ -1,9 +1,8 @@
 # """
 # Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. (You will need to run "make gkls_single" in libensemble/examples/GKLS/
-# before running this script with 
+# problem. # Execute via the following command: 
 
-# mpiexec -np 4 python3 call_libE_on_GKLS.py
+# mpiexec -np 4 python3 call_chwirut_aposmm_one_residual_at_a_time.py
 
 # """
 
@@ -15,9 +14,10 @@ import sys             # for adding to path
 import numpy as np
 
 sys.path.append('../../src')
-sys.path.append('../chwirut_and_aposmm')
 from libE import libE
 
+sys.path.append('../sim_funcs')
+sys.path.append('../gen_funcs')
 from chwirut1 import sum_squares, libE_func_wrapper
 from aposmm_logic import aposmm_logic, queue_update_function
 from math import *
