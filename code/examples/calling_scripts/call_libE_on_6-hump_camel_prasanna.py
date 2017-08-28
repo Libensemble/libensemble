@@ -44,7 +44,7 @@ def six_hump_camel(H, sim_out, obj_params, info):
         if os.path.isfile(outfile_name) == True:
             os.remove(outfile_name)
 
-        call_str = ["mpiexec","-np",str(H[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", "./helloworld.py"]
+        call_str = ["mpiexec","-np",str(H[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", "../sim_funcs/helloworld.py"]
         print(call_str)
         process = subprocess.call(call_str, stdout = open(outfile_name,'w'), shell=False)
 
