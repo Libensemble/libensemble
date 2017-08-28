@@ -44,10 +44,10 @@ cat $PBS_NODEFILE
 NPROCS="$(wc -l < $PBS_NODEFILE)"
 echo This job has allocated $NPROCS cores
 
-rm machinefile
+rm libE_machinefile
 # Uncomment the next two lines if you want 1 worker per node (and one node has a manager too)
-head -n 1 $PBS_NODEFILE > machinefile
-cat $PBS_NODEFILE | sort | uniq >> machinefile
+head -n 1 $PBS_NODEFILE > libE_machinefile
+cat $PBS_NODEFILE | sort | uniq >> libE_machinefile
 #cat $PBS_NODEFILE | sort | uniq >> machinefile
 
 
@@ -55,7 +55,7 @@ cat $PBS_NODEFILE | sort | uniq >> machinefile
 echo Starting executation at: `date`
 
 pwd
-cmd="mpiexec -np 5 -machinefile machinefile python2 call_libE_on_6-hump_camel_prasanna.py"
+cmd="mpiexec -np 5 -machinefile libE_machinefile python2 call_libE_on_6-hump_camel_prasanna.py libE_machinefile"
 
 echo The command is: $cmd
 echo End PBS script information. 
