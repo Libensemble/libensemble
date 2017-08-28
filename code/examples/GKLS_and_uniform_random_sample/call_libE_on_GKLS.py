@@ -25,7 +25,7 @@ from GKLS_obj import call_GKLS_with_random_pause as obj_func
 # Below is the generating function that is called by LibEnsemble to generate
 # points to be evaluated. In this case, it is just a uniform random sample
 # over params['lb'] to params['ub']
-def uniform_random_sample(g_in,gen_out,params):
+def uniform_random_sample(g_in,gen_out,params,info):
     ub = params['ub']
     lb = params['lb']
 

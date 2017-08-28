@@ -53,7 +53,7 @@ def worker_main(c):
                 shutil.copytree(D['calc_params']['sim_dir'], worker_dir)
             os.chdir(worker_dir)
 
-        O = D['calc_f'](D['calc_in'],D['calc_out'],D['calc_params'])
+        O = D['calc_f'](D['calc_in'],D['calc_out'],D['calc_params'],D['calc_info'])
 
         if 'sim_dir' in D['calc_params']:
             os.chdir(saved_dir)

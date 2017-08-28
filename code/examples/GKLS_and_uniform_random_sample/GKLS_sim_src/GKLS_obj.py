@@ -7,7 +7,7 @@ import subprocess
 import os
 import time
 
-def call_GKLS_with_random_pause(H,sim_out,obj_params):
+def call_GKLS_with_random_pause(H,sim_out,obj_params,info):
     """ Evaluates GKLS problem (f) in dimension (d) with (n) local minima
     
     Since we currently copy the directory for each rank, each function is
@@ -35,7 +35,7 @@ def call_GKLS_with_random_pause(H,sim_out,obj_params):
 
     return O
 
-def call_GKLS(H,sim_out,obj_params):
+def call_GKLS(H,sim_out,obj_params,info):
     """ Evaluates GKLS problem (f) in dimension (d) with (n) local minima
     
     Since we currently copy the directory for each rank, each function is
