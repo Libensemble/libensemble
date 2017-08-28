@@ -19,12 +19,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from libE import libE
 
 # Declare the objective
-GKLS_dir_name='../../examples/sim_funs/GKLS/GKLS_sim_src'
+GKLS_dir_name='../../examples/sim_funcs/GKLS/GKLS_sim_src'
 sys.path.append(os.path.join(os.path.dirname(__file__), GKLS_dir_name))
 from GKLS_obj import call_GKLS as obj_func
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funs'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funs'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from chwirut1 import sum_squares
 from aposmm_logic import aposmm_logic
 
