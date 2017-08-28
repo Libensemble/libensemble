@@ -15,7 +15,7 @@ from petsc4py import PETSc
 import nlopt
 
 # @profile
-def aposmm_logic(H,gen_out,params):
+def aposmm_logic(H,gen_out,params,info):
 
     """
     Receives the following data from H:

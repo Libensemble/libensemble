@@ -140,7 +140,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
             # Only give work if enough idle workers
-            if H[sim_ids_to_send]['num_nodes'] > 1:
+            if 'num_nodes' in H.dtype.names and H[sim_ids_to_send]['num_nodes'] > 1:
                 if np.any(H[sim_ids_to_send]['num_nodes'] > len(idle_w) - len(Work) - len(blocked_set)):
                     # Worker doesn't get gen work or anything. Just waiting for other resources to open up
                     break
