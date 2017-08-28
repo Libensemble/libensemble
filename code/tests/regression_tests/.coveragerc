@@ -1,0 +1,27 @@
+[run]
+source = ../../src
+        ../../examples/sim_funcs/
+        ../../examples/gen_funcs/
+        .
+        #common
+
+branch = true
+	 
+data_file = .cov_reg_out
+
+parallel = true
+
+include = *.py
+          *.c
+
+[report]
+omit =
+    */__init__.py
+    */.tox/*
+    */setup.py
+
+exclude_lines =
+    if __name__ == .__main__.:
+
+[html]    
+directory = cov_reg

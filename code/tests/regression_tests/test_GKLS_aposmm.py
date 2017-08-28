@@ -1,9 +1,9 @@
 # """
 # Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. (You will need to run "make gkls_single" in libensemble/examples/GKLS_sim_src/
+# problem. (You will need to run "make gkls_single" in libensemble/code/examples/sim_funcs/GKLS/GKLS_sim_src/
 # before running this script with 
 
-# mpiexec -np 4 python3 call_libE_on_GKLS.py
+# mpiexec -np 4 python3 test_GKLS_aposmm.py
 
 # """
 
@@ -15,14 +15,16 @@ import sys             # for adding to path
 import os    
 import numpy as np
 
-sys.path.append('../../src')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from libE import libE
 
 # Declare the objective
-sys.path.append('../GKLS_and_uniform_random_sample/GKLS_sim_src')
+GKLS_dir_name='../../examples/sim_funcs/GKLS/GKLS_sim_src'
+sys.path.append(os.path.join(os.path.dirname(__file__), GKLS_dir_name))
 from GKLS_obj import call_GKLS as obj_func
 
-sys.path.append('../chwirut_and_aposmm')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from chwirut1 import sum_squares
 from aposmm_logic import aposmm_logic
 
@@ -42,7 +44,7 @@ sim_specs = {'sim_f': [obj_func], # This is the function whose output is being m
                         'problem_dimension': 2,
                         'problem_number': 1,
                         # 'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
-                        'sim_dir': '../GKLS_and_uniform_random_sample/GKLS_sim_src'}, # to be copied by each worker 
+                        'sim_dir': GKLS_dir_name}, # to be copied by each worker 
              }
 
 
@@ -104,7 +106,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 
-    minima_and_func_val_file = '../GKLS_and_uniform_random_sample/GKLS_sim_src/which_seeds_are_feasible/known_minima_and_func_values_for_n=' + str(sim_specs['params']['problem_dimension']) + '_prob=' + str(sim_specs['params']['problem_number']) + '_min=' + str(sim_specs['params']['number_of_minima'])
+    minima_and_func_val_file = os.path.join(GKLS_dir_name, 'which_seeds_are_feasible/known_minima_and_func_values_for_n=' + str(sim_specs['params']['problem_dimension']) + '_prob=' + str(sim_specs['params']['problem_number']) + '_min=' + str(sim_specs['params']['number_of_minima']))
 
     if os.path.isfile(minima_and_func_val_file):
         M = np.loadtxt(minima_and_func_val_file)
