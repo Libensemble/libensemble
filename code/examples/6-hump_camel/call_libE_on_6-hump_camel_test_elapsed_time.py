@@ -20,7 +20,7 @@ import time
 sys.path.append('../../src')
 from libE import libE
 
-def six_hump_camel(H, sim_out, obj_params):
+def six_hump_camel(H, sim_out, params, info):
     batch = len(H['x'])
     O = np.zeros(1,dtype=sim_out)
 
@@ -37,7 +37,7 @@ def six_hump_camel(H, sim_out, obj_params):
     
     return O
 
-def uniform_random_sample(g_in,gen_out,params):
+def uniform_random_sample(g_in,gen_out,params, info):
     ub = params['ub']
     lb = params['lb']
     n = len(lb)
