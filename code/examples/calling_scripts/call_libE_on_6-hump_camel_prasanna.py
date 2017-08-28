@@ -88,12 +88,14 @@ def uniform_random_sample(g_in,gen_out,params,info):
     return O
 
 
+libE_machinefile = open(sys.argv[1]).read().splitlines()
+
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
              'in': ['x','num_nodes','ranks_per_node'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'nodelist': ['b1','b1','b2','b3','b4']},
+             'params': {'nodelist': libE_machinefile},
              # 'save_every_k': 10
              }
 
