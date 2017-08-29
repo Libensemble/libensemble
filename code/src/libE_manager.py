@@ -120,6 +120,9 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
     gen_work = 0
 
     for i in idle_w:
+        if term_test(H, H_ind):
+            break
+
         blocked_set = active_w['blocked'].union(*[j['calc_info']['blocking'] for j in Work.values() if 'blocking' in j['calc_info']])
         # Only consider giving to worker i if it's resources are not blocked
         if i in blocked_set:
@@ -142,7 +145,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
             # Only give work if enough idle workers
-            if 'num_nodes' in H.dtype.names and H[sim_ids_to_send]['num_nodes'] > 1:
+            if 'num_nodes' in H.dtype.names and np.any(H[sim_ids_to_send]['num_nodes'] > 1):
                 if np.any(H[sim_ids_to_send]['num_nodes'] > len(idle_w) - len(Work) - len(blocked_set)):
                     # Worker doesn't get gen work or anything. Just waiting for other resources to open up
                     break
@@ -188,8 +191,6 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
                        'calc_info': {'type':'gen'},
                        }
 
-        if term_test(H, H_ind):
-            break
 
     return Work
 
@@ -417,7 +418,6 @@ def update_active_and_idle(active_w, idle_w, w, Work):
     idle_w.remove(w)
 
     if 'blocking' in Work['calc_info']:
-        print(Work['calc_info']['blocking'])
         active_w['blocked'].update(Work['calc_info']['blocking'])
         idle_w.difference_update(Work['calc_info']['blocking'])
 
