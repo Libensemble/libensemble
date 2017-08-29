@@ -44,8 +44,6 @@ gen_specs = {'gen_f': uniform_random_sample,
                         'ub': np.array([ 3, 2]),
                         'gen_batch_size': 5,
                        },
-             'num_inst': 1,
-             'batch_mode': False,
              'save_every_k': 300
              }
 
