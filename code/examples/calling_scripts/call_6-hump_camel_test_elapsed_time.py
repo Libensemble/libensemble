@@ -11,52 +11,23 @@ from __future__ import division
 from __future__ import absolute_import
 
 from mpi4py import MPI # for libE communicator
-import sys             # for adding to path
+import sys, os             # for adding to path
 import numpy as np
 from math import *
 
 import time
 
+# Import libEnsemble main
 sys.path.append('../../src')
 from libE import libE
 
-def six_hump_camel(H, sim_out, params, info):
-    batch = len(H['x'])
-    O = np.zeros(1,dtype=sim_out)
+# Import sim_func 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
+from six_hump_camel import six_hump_camel
 
-    for i,x in enumerate(H['x']):
-        x1 = H['x'][i][0]
-        x2 = H['x'][i][1]
-        term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2;
-        term2 = x1*x2;
-        term3 = (-4+4*x2**2) * x2**2;
-
-        O['f'][i] = term1 + term2 + term3;
-
-        time.sleep(10)
-    
-    return O
-
-def uniform_random_sample(g_in,gen_out,params, info):
-    ub = params['ub']
-    lb = params['lb']
-    n = len(lb)
-
-    if len(g_in) == 0: 
-        b = params['initial_batch_size']
-
-        O = np.zeros(b, dtype=gen_out)
-        for i in range(0,b):
-            x = np.random.uniform(lb,ub,(1,n))
-
-            O['x'][i] = x
-
-    else:
-        O = np.zeros(1, dtype=gen_out)
-        O['x'] = len(g_in)*np.ones(n)
-
-    return O
-
+# Import gen_func 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
+from uniform_sampling import uniform_random_sample
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
@@ -74,7 +45,7 @@ gen_specs = {'gen_f': uniform_random_sample,
                     ],
              'params': {'lb': np.array([-3,-2]),
                         'ub': np.array([ 3, 2]),
-                        'initial_batch_size': 5,
+                        'gen_batch_size': 5,
                        },
              'num_inst': 1,
              'batch_mode': False,
