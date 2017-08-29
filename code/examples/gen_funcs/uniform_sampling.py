@@ -45,6 +45,26 @@ def uniform_random_sample_with_priorities(g_in,gen_out,params,info):
 
     return O
 
+def uniform_random_sample_obj_components(g_in,gen_out,params,info):
+    ub = params['ub']
+    lb = params['lb']
+
+    n = len(lb)
+    m = params['num_components']
+    b = params['gen_batch_size']
+
+    O = np.zeros(b*m, dtype=gen_out)
+    for i in range(0,b):
+        x = np.random.uniform(lb,ub,(1,n))
+
+        O['x'][i*m:(i+1)*m,:] = np.tile(x,(m,1))
+        O['priority'][i*m:(i+1)*m] = np.random.uniform(0,1,m)
+        O['obj_component'][i*m:(i+1)*m] = np.arange(0,m)
+
+        O['pt_id'][i*m:(i+1)*m] = len(g_in)//m+i
+
+    return O
+
 def uniform_random_sample(g_in,gen_out,params,info):
     ub = params['ub']
     lb = params['lb']
