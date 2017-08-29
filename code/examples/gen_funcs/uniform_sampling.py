@@ -22,8 +22,8 @@ def uniform_random_sample_with_different_nodes_and_ranks(g_in,gen_out,params,inf
     else:
         O = np.zeros(1, dtype=gen_out)
         O['x'] = len(g_in)*np.ones(n)
-        O['num_nodes'] = np.random.choice([1,2,3,4]) 
-        O['ranks_per_node'] = np.random.randint(1,17)
+        O['num_nodes'] = np.random.randint(1,params['max_num_nodes']+1) 
+        O['ranks_per_node'] = np.random.randint(1,params['max_ranks_per_node']+1)
         O['priority'] = 10*O['num_nodes']
 
     return O
