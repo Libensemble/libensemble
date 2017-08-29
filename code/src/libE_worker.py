@@ -46,7 +46,7 @@ def worker_main(c):
             worker_dir = D['calc_params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
 
             if 'sim_dir_prefix' in D['calc_params']:
-                worker_dir = os.path.join(os.sep, D['calc_params']['sim_dir_prefix'], worker_dir)
+                worker_dir = os.path.join(os.path.expanduser(D['calc_params']['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
 
             # assert ~os.path.isdir(worker_dir), "Worker directory already exists."
             if not os.path.exists(worker_dir):
