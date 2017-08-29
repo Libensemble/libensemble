@@ -308,10 +308,10 @@ if [ "$root_found" = true ]; then
     #for TEST_DIR in $REG_TEST_LIST
     for TEST_SCRIPT in $REG_TEST_LIST
     do
-      test_num=$((test_num+1))
       #Need proc count here for now - still stop on failure etc.
       for NPROCS in $REG_TEST_PROCESS_COUNT_LIST
       do      
+        test_num=$((test_num+1))
         
         RUN_TEST=true
         if [ $REG_STOP_ON_FAILURE = "true" ]; then
