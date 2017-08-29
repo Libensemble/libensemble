@@ -61,6 +61,14 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
 
 def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
+    assert(isinstance(sim_specs,dict)), "sim_specs must be a dictionary"
+    assert(isinstance(gen_specs,dict)), "gen_specs must be a dictionary"
+    assert(isinstance(c,dict)), "c must be a dictionary"
+    assert(isinstance(allocation_specs,dict)), "allocation_specs must be a dictionary"
+    assert(isinstance(exit_criteria,dict)), "exit_criteria must be a dictionary"
+    assert(isinstance(allocation_specs['worker_ranks'],set)), "allocation_specs['worker_ranks'] must be a dictionary"
+    assert(isinstance(allocation_specs['manager_ranks'],set)), "allocation_specs['manager_ranks'] must be a dictionary"
+
     valid_term_fields = ['sim_max','gen_max','elapsed_wallclock_time','stop_val']
     assert(any([term_field in exit_criteria for term_field in valid_term_fields])), "Must have a valid termination option: " + valid_term_fields 
 
