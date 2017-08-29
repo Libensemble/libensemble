@@ -32,7 +32,7 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'out': [('f',float), # This is the output from the function being minimized
                     ],
              'params': {'constant': 10},
-             # 'save_every_k': 10
+             'save_every_k': 400
              }
 
 # State the generating function, its arguments, output, and necessary parameters.
@@ -46,7 +46,7 @@ gen_specs = {'gen_f': uniform_random_sample,
                        },
              'num_inst': 1,
              'batch_mode': False,
-             # 'save_every_k': 10
+             'save_every_k': 300
              }
 
 # Tell LibEnsemble when to stop
