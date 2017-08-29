@@ -19,6 +19,7 @@ import scipy as sp
 from scipy import spatial
 
 import time, sys, os
+import copy
 
 def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
@@ -67,7 +68,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs):
     status = MPI.Status()
 
-    active_w_copy = active_w.copy()
+    active_w_copy = copy.deepcopy(active_w)
 
     while True:
         for w in active_w_copy['sim'] | active_w_copy['gen']: 
@@ -88,7 +89,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
         if active_w_copy == active_w:
             break
         else:
-            active_w_copy = active_w.copy()
+            active_w_copy = copy.deepcopy(active_w)
 
     if 'save_every_k' in sim_specs:
         k = sim_specs['save_every_k']
