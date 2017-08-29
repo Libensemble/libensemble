@@ -14,21 +14,21 @@ from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 import os    
 import numpy as np
+from math import *
 
+# Import libEnsemble main
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from libE import libE
 
-# Declare the objective
+# Import sim_func and declare directory to be copied by each worker to do its evaluations in 
 GKLS_dir_name='../../examples/sim_funcs/GKLS/GKLS_sim_src'
 sys.path.append(os.path.join(os.path.dirname(__file__), GKLS_dir_name))
 from GKLS_obj import call_GKLS as obj_func
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
+# Import gen_func 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-from chwirut1 import sum_squares
 from aposmm_logic import aposmm_logic
 
-from math import *
 
 ### Declare the run parameters/functions
 max_sim_budget = 600
@@ -44,8 +44,15 @@ sim_specs = {'sim_f': [obj_func], # This is the function whose output is being m
                         'problem_dimension': 2,
                         'problem_number': 1,
                         # 'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
-                        'sim_dir': GKLS_dir_name}, # to be copied by each worker 
+                        'sim_dir': GKLS_dir_name, # to be copied by each worker 
+                        }
              }
+
+# As an example, have the workers put their directories in a different
+# location. (Useful if a /scratch/ directory is faster than the filesystem.) 
+# (Otherwise, will just copy in same directory as sim_dir) 
+if w == 1:
+    sim_specs['params']['sim_dir_prefix'] = '~' 
 
 
 out = [('x',float,n),
