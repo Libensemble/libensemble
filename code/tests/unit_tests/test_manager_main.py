@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 import libE_manager as man
 
 def test_update_history_x_out():
-    assert(True)
+    assert True
 
 def make_criteria_and_specs_0():
     sim_specs={'sim_f': [np.linalg.norm], 'in':['x'], 'out':[('g',float)], 'params':{}}
@@ -30,14 +30,14 @@ def test_termination_test():
 
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
     H, H_ind, term_test = man.initialize(sim_specs_0, gen_specs_0, exit_criteria_0,[]) 
-    assert(not term_test(H, H_ind))
+    assert not term_test(H, H_ind)
 
 
 
     # Shouldn't terminate
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
     H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
-    assert(not term_test(H, H_ind))
+    assert not term_test(H, H_ind)
     # 
 
 
@@ -45,14 +45,14 @@ def test_termination_test():
     H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
     H['g'][0] = -1
     H_ind = 1
-    assert(term_test(H, H_ind))
+    assert term_test(H, H_ind)
     # 
 
     
     # Terminate because everything has been given.
     H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
     H['given'] = np.ones
-    assert(term_test(H, H_ind))
+    assert term_test(H, H_ind)
     # 
     
 
@@ -61,7 +61,7 @@ def test_termination_test():
     H_ind = 4
     H['given_time'][0] = time.time()
     time.sleep(0.5)
-    assert(term_test(H, H_ind))
+    assert term_test(H, H_ind)
     # 
 
 
@@ -75,7 +75,7 @@ def test_decide_work_and_resources():
     active_w = set([1,2,3,4])
     idle_w = set()
     Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
-    assert( len(Work) == 0 )
+    assert len(Work) == 0 
     # 
 
 
@@ -86,7 +86,7 @@ def test_decide_work_and_resources():
     # H['sim_id'][:len(H)-2] = np.arange(len(H)-2)
     # Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs)
     # print(len(Work))
-    # assert( len(Work) == 2) # Length 2 because first work element is all points to be evaluated, second element is gen point
+    # assert len(Work) == 2 # Length 2 because first work element is all points to be evaluated, second element is gen point
     # # 
 
 
@@ -101,7 +101,7 @@ def test_update_history_x_in():
 
     H_ind = man.update_history_x_in(H, H_ind, O)
 
-    # assert(H_ind == len(H))
+    # assert H_ind == len(H)
 
 
 def test_initialize_history():
@@ -114,9 +114,9 @@ def test_initialize_history():
     try:
         H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,H0) 
     except AssertionError:
-        assert(1)
+        assert 1
     else:
-        assert(0)
+        assert 0
 
     # Should not fail 
     H0['returned']=True
@@ -137,9 +137,9 @@ def test_initialize_history():
     try: 
         H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,H2) 
     except AssertionError:
-        assert(1)
+        assert 1
     else:
-        assert(0)
+        assert 0
 
 def rmfield( a, *fieldnames_to_remove ):
         return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]

@@ -26,7 +26,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, sim_out, obj_params, info):
                 f.write(b*H['ranks_per_node'][i])
 
         outfile_name = "outfile_"+ machinefilename+".txt"
-        if os.path.isfile(outfile_name) == True:
+        if os.path.isfile(outfile_name):
             os.remove(outfile_name)
 
         call_str = ["mpiexec","-np",str(H[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", os.path.join(os.path.dirname(__file__),"helloworld.py")]

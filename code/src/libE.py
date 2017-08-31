@@ -51,11 +51,10 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         # if exit_flag == 0:
         #     comm.Barrier()
     elif comm.Get_rank() in allocation_specs['worker_ranks']:
-        worker_main(c)
-        H = []; exit_flag = []
+        worker_main(c); H = []; exit_flag = []
         # comm.Barrier()
     else:
-        print("Rank: %d not manager or worker" % comm.Get_rank())
+        print("Rank: %d not manager or worker" % comm.Get_rank()); H = []; exit_flag = []
 
     return H, exit_flag
 
@@ -63,32 +62,33 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
 
 def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
-    assert(isinstance(sim_specs,dict)), "sim_specs must be a dictionary"
-    assert(isinstance(gen_specs,dict)), "gen_specs must be a dictionary"
-    assert(isinstance(c,dict)), "c must be a dictionary"
-    assert(isinstance(allocation_specs,dict)), "allocation_specs must be a dictionary"
-    assert(isinstance(exit_criteria,dict)), "exit_criteria must be a dictionary"
-    assert(isinstance(allocation_specs['worker_ranks'],set)), "allocation_specs['worker_ranks'] must be a dictionary"
-    assert(isinstance(allocation_specs['manager_ranks'],set)), "allocation_specs['manager_ranks'] must be a dictionary"
+    assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
+    assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
+    assert isinstance(c,dict), "c must be a dictionary"
+    assert isinstance(allocation_specs,dict), "allocation_specs must be a dictionary"
+    assert isinstance(exit_criteria,dict), "exit_criteria must be a dictionary"
+    assert isinstance(allocation_specs['worker_ranks'],set), "allocation_specs['worker_ranks'] must be a dictionary"
+    assert isinstance(allocation_specs['manager_ranks'],set), "allocation_specs['manager_ranks'] must be a dictionary"
 
+    assert len(exit_criteria)>0, "Must have some exit criterion"
     valid_term_fields = ['sim_max','gen_max','elapsed_wallclock_time','stop_val']
-    assert(any([term_field in exit_criteria for term_field in valid_term_fields])), "Must have a valid termination option: " + valid_term_fields 
+    assert any([term_field in exit_criteria for term_field in valid_term_fields]), "Must have a valid termination option: " + valid_term_fields 
 
-    assert(len(sim_specs['out'])), "sim_specs must have 'out' entries"
-    assert(len(gen_specs['out'])), "gen_specs must have 'out' entries"
-    assert(len(allocation_specs['worker_ranks'])), "Must have at least one worker rank"
-    assert(len(allocation_specs['manager_ranks'])), "Must have at least one manager rank"
+    assert len(sim_specs['out']), "sim_specs must have 'out' entries"
+    assert len(gen_specs['out']), "gen_specs must have 'out' entries"
+    assert len(allocation_specs['worker_ranks']), "Must have at least one worker rank"
+    assert len(allocation_specs['manager_ranks']), "Must have at least one manager rank"
 
     if 'stop_val' in exit_criteria:
-        assert(exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']]),\
+        assert exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']],\
                "Can't stop on " + exit_criteria['stop_val'][0] + " if it's not \
                returned from sim_specs['out'] or gen_specs['out']"
     
     if 'num_inst' in gen_specs and 'batch_mode' in gen_specs:
-        assert(gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode']),\
+        assert gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode'],\
                "Can't have more than one 'num_inst' for 'batch_mode' generator"
 
-    if 'single_component_at_a_time' in gen_specs['params'] and gen_specs['params']['single_component_at_a_time']:
+    if 'params' in gen_specs and 'single_component_at_a_time' in gen_specs['params'] and gen_specs['params']['single_component_at_a_time']:
         if gen_specs['gen_f'].__name__ == 'aposmm_logic':
-            assert(gen_specs['batch_mode']), "Must be in batch mode when using 'single_component_at_a_time' and APOSMM"
+            assert gen_specs['batch_mode'], "Must be in batch mode when using 'single_component_at_a_time' and APOSMM"
 
