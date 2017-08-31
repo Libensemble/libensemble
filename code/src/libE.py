@@ -50,7 +50,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         H, exit_flag = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # if exit_flag == 0:
         #     comm.Barrier()
-        return(H)
+        return(H, exit_flag)
     elif comm.Get_rank() in allocation_specs['worker_ranks']:
         worker_main(c)
         # comm.Barrier()

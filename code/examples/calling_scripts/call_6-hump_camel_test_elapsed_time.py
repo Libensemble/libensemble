@@ -34,8 +34,8 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'constant': 10},
-             'save_every_k': 10
+             'params': {'pause_time': 1},
+             # 'save_every_k': 10
              }
 
 # State the generating function, its arguments, output, and necessary parameters.
@@ -49,34 +49,19 @@ gen_specs = {'gen_f': uniform_random_sample,
                        },
              'num_inst': 1,
              'batch_mode': False,
-             'save_every_k': 10
+             # 'save_every_k': 10
              }
 
 # Tell LibEnsemble when to stop
-exit_criteria = {'elapsed_wallclock_time': 1}
+exit_criteria = {'elapsed_wallclock_time': 0.1}
 
 np.random.seed(1)
 
 # Perform the run
-H = libE(sim_specs, gen_specs, exit_criteria)
+H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = '6-hump_camel_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
-
-
-    # minima = np.array([[ -0.089842,  0.712656],
-    #                    [  0.089842, -0.712656],
-    #                    [ -1.70361,  0.796084],
-    #                    [  1.70361, -0.796084],
-    #                    [ -1.6071,   -0.568651],
-    #                    [  1.6071,    0.568651]])
-    # tol = 0.1
-    # for m in minima:
-    #     print(np.min(np.sum((H['x']-m)**2,1)))
-    #     assert(np.min(np.sum((H['x']-m)**2,1)) < tol)
-
-    #     print("\nLibEnsemble with APOSMM has identified the 6 minima within a tolerance " + str(tol))
-
-
+filename = '6-hump_camel_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+print("\n\n\nRun completed.\nSaving results to file: " + filename)
+if flag == 2:
+    print("\n\n\nKilling COMM_WORLD")
+    MPI.COMM_WORLD.Abort()

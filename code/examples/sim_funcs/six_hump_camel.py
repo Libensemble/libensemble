@@ -47,6 +47,8 @@ def six_hump_camel(H, sim_out, params, info):
 
     for i,x in enumerate(H['x']):
         O['f'][i] = six_hump_camel_func(H['x'][i])
+        if 'pause_time' in params:
+            time.sleep(params['pause_time'])
 
     return O
 
