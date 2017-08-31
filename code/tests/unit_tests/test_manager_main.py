@@ -1,6 +1,9 @@
 import sys, time, os
 import numpy as np
+import numpy.lib.recfunctions
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
+
 
 import libE_manager as man
 
@@ -100,3 +103,47 @@ def test_update_history_x_in():
 
     # assert(H_ind == len(H))
 
+
+def test_initialize_history():
+
+    # Don't take more points than there is space in history.
+    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_0()
+    H0, _, _ = man.initialize(sim_specs, gen_specs, exit_criteria,[]) 
+
+    # Should fail because H0 has points with 'return'==False
+    try:
+        H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,H0) 
+    except AssertionError:
+        assert(1)
+    else:
+        assert(0)
+
+    # Should not fail 
+    H0['returned']=True
+    H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,H0) 
+
+    # Removing 'returned' and then testing again.
+    H0 = rmfield( H0, 'returned')
+    H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,H0) 
+
+
+    # Adding 'obj_component' but more than expected
+    H1 = np.zeros(len(H0),dtype=[('obj_component',int)])
+    H1['obj_component'] = np.arange(len(H1))
+    H2 = np.lib.recfunctions.merge_arrays((H0,H1), flatten = True, usemask = False)
+    gen_specs['params']['components'] = 2
+    gen_specs['out'] += [('obj_component','int')]
+
+    try: 
+        H, H_ind,term_test = man.initialize(sim_specs, gen_specs, exit_criteria,H2) 
+    except AssertionError:
+        assert(1)
+    else:
+        assert(0)
+
+def rmfield( a, *fieldnames_to_remove ):
+        return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]
+
+
+if __name__ == "__main__":
+    test_initialize_history()

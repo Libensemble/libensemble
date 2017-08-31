@@ -50,7 +50,7 @@ def uniform_random_sample_obj_components(g_in,gen_out,params,info):
     lb = params['lb']
 
     n = len(lb)
-    m = params['num_components']
+    m = params['components']
     b = params['gen_batch_size']
 
     O = np.zeros(b*m, dtype=gen_out)
