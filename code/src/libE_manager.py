@@ -77,9 +77,10 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
                 idle_w.add(status.Get_source())
                 active_w[D_recv['calc_info']['type']].remove(status.Get_source())
 
+                assert D_recv['calc_info']['type'] in ['sim','gen'], 'Unknown calculation type received. Exiting'
                 if D_recv['calc_info']['type'] == 'sim':
                     update_history_f(H, D_recv)
-                elif D_recv['calc_info']['type'] == 'gen':
+                else: # D_recv['calc_info']['type'] == 'gen':
                     H, H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
 
                 if 'blocking' in D_recv['calc_info']:
