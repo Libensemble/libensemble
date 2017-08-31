@@ -108,7 +108,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     # tol = 0.1
     # for m in minima:
     #     print(np.min(np.sum((H['x']-m)**2,1)))
-    #     assert(np.min(np.sum((H['x']-m)**2,1)) < tol)
+    #     assert np.min(np.sum((H['x']-m)**2,1)) < tol
 
     #     print("\nLibEnsemble with APOSMM has identified the 6 minima within a tolerance " + str(tol))
 

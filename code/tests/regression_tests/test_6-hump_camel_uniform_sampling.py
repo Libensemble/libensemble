@@ -71,7 +71,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
                        [  1.6071,    0.568651]])
     tol = 0.1
     for m in minima:
-        assert(np.min(np.sum((H['x']-m)**2,1)) < tol)
+        assert np.min(np.sum((H['x']-m)**2,1)) < tol
 
     print("\nLibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
 
