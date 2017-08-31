@@ -101,21 +101,21 @@ def aposmm_logic(H,gen_out,params,info):
             sorted_run_inds = np.where(H['iter_plus_1_in_run_id'][:,run])[0]
             sorted_run_inds.sort()
                         
-            if all(H['returned'][sorted_run_inds]):
+            assert all(H['returned'][sorted_run_inds])
 
-                x_new = np.ones((1,n))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
-                x_opt, exit_code = advance_localopt_method(H, params, sorted_run_inds, c_flag)
+            x_new = np.ones((1,n))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
+            x_opt, exit_code = advance_localopt_method(H, params, sorted_run_inds, c_flag)
 
-                if np.isinf(x_new).all():
-                    # No new point was added. Hopefully at a minimum 
-                    if exit_code > 0:
-                        update_history_optimal(x_opt, H, sorted_run_inds)
-                        inactive_runs.add(run)
-                        updated_inds.update(sorted_run_inds) 
-                    else:
-                        sys.exit("Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!")
-                else: 
-                    add_points_to_O(O, x_new, len(H), params, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+            if np.isinf(x_new).all():
+                # No new point was added. Hopefully at a minimum 
+                if exit_code > 0:
+                    update_history_optimal(x_opt, H, sorted_run_inds)
+                    inactive_runs.add(run)
+                    updated_inds.update(sorted_run_inds) 
+                else:
+                    sys.exit("Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!")
+            else: 
+                add_points_to_O(O, x_new, len(H), params, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
         for i in inactive_runs:
             active_runs.remove(i)
@@ -139,7 +139,7 @@ def aposmm_logic(H,gen_out,params,info):
     return O
 
 def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
-    assert(not local_flag or len(pts) == 1), "add_points_to_O does not support this functionality"
+    assert not local_flag or len(pts) == 1, "add_points_to_O does not support this functionality"
 
     original_len_O = len(O)
 
@@ -148,7 +148,7 @@ def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds
     if c_flag:
         m = params['components']
 
-        assert (len_H % m == 0), "Number of points in len_H not congruent to 0 mod 'components'"
+        assert len_H % m == 0, "Number of points in len_H not congruent to 0 mod 'components'"
         pt_ids = np.sort(np.tile(np.arange((len_H+original_len_O)/m,(len_H+original_len_O)/m + len(pts)),(1,m))) 
         pts = np.tile(pts,(m,1))
 

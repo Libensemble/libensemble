@@ -38,7 +38,7 @@ def worker_main(c):
 
         if status.Get_tag() == STOP_TAG: break
 
-        assert(len(D['form_subcomm'])==0), "Haven't implemented form_subcomm yet"
+        assert len(D['form_subcomm'])==0, "Haven't implemented form_subcomm yet"
 
         if 'sim_dir' in D['calc_params']:
             saved_dir = os.getcwd()
