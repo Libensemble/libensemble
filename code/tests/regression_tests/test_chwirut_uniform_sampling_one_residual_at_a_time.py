@@ -67,7 +67,7 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
 
 np.random.seed(1)
 # Perform the run
-H = libE(sim_specs, gen_specs, exit_criteria)
+H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     filename = 'chwirut_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
