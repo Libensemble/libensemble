@@ -106,7 +106,7 @@ np.random.seed(1)
 # H0 = np.load('GKLS_results_after_evals=500_ranks=2.npy')
 # H0 = H0[['x','x_on_cube','f']][:50]
 
-H = libE(sim_specs, gen_specs, exit_criteria)
+H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     filename = 'GKLS_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
