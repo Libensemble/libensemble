@@ -44,19 +44,9 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
             active_w, idle_w = update_active_and_idle(active_w, idle_w, w, Work[w])
 
-    ### Receive from all active workers 
-    while len(active_w['sim'] | active_w['gen']):
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
-        if term_test(H, H_ind) == 2 and len(active_w['sim'] | active_w['gen']):
-            print("Termination due to elapsed_wallclock_time has occurred.\n"\
-              "A last attempt has been made to receive any completed work.\n")
-            return H[:H_ind], 2
+    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs)
 
-    ### Stop all workers 
-    for w in allocation_specs['worker_ranks']:
-        comm.send(obj=None, dest=w, tag=STOP_TAG)
-
-    return H[:H_ind], 0
+    return H, exit_flag
 
 
 
@@ -423,3 +413,33 @@ def update_active_and_idle(active_w, idle_w, w, Work):
         idle_w.difference_update(Work['calc_info']['blocking'])
 
     return active_w, idle_w
+
+def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs):
+    """ 
+    Tries to receive from any active workers. 
+
+    If time expires before all active workers have been received from, a
+    nonblocking receive is posted (though the manager will not receive this
+    data) and a kill signal is sent. 
+    """
+
+    exit_flag = 0
+
+    ### Receive from all active workers 
+    while len(active_w['sim'] | active_w['gen']):
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        if term_test(H, H_ind) == 2 and len(active_w['sim'] | active_w['gen']):
+            for w in active_w['sim'] | active_w['gen']:
+                comm.irecv(source=w, tag=MPI.ANY_TAG)
+
+            print("Termination due to elapsed_wallclock_time has occurred.\n"\
+              "A last attempt has been made to receive any completed work.\n"\
+              "Posting nonblocking receives and kill messages for all active workers\n")
+            exit_flag = 2
+            break
+
+    ### Stop all workers 
+    for w in allocation_specs['worker_ranks']:
+        comm.send(obj=None, dest=w, tag=STOP_TAG)
+
+    return H[:H_ind], exit_flag
