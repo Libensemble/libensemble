@@ -29,22 +29,6 @@ def uniform_random_sample_with_different_nodes_and_ranks(g_in,gen_out,params,inf
     return O
 
 
-def uniform_random_sample_with_priorities(g_in,gen_out,params,info):
-    ub = params['ub']
-    lb = params['lb']
-
-    n = len(lb)
-    b = params['gen_batch_size']
-
-    O = np.zeros(b, dtype=gen_out)
-    for i in range(0,b):
-        x = np.random.uniform(lb,ub,(1,n))
-
-        O['x'][i] = x
-        O['priority'][i] = np.random.uniform(0,1)
-
-    return O
-
 def uniform_random_sample_obj_components(g_in,gen_out,params,info):
     ub = params['ub']
     lb = params['lb']
