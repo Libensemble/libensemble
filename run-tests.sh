@@ -32,56 +32,14 @@ export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
 export GKLS_BUILD_DIR=$CODE_DIR/examples/sim_funcs/GKLS/GKLS_sim_src
 
 #Coverage merge and report dir - will need the relevant .coveragerc file present
-export COV_MERGE_DIR='' #root dir
-#export COV_MERGE_DIR=$TESTING_DIR
+#export COV_MERGE_DIR='' #root dir
+export COV_MERGE_DIR=$TESTING_DIR
 
 #PEP code standards test options
 export PYTHON_PEP_STANDARD=pep8
 
 #export PEP_SCOPE=$CODE_DIR
 export PEP_SCOPE=$LIBE_SRC_DIR
-
-#-----------------------------------------------------------------------------------------
-#Parse Options
-#set -x
-
-unset PYTHON_VER
-unset RUN_PREFIX
-
-#Default to script name for run-prefix (name of tests)
-script_name=`basename "$0"`
-RUN_PREFIX=$script_name
-
-while getopts ":p:n:" opt; do
-  case $opt in
-    p)
-      echo "Parameter supplied for Python version: $OPTARG" >&2
-      PYTHON_VER=$OPTARG
-      ;;
-    n)
-      echo "Parameter supplied for Test Name: $OPTARG" >&2
-      RUN_PREFIX=$OPTARG
-      ;;
-    \?)
-      echo "Invalid option supplied: -$OPTARG" >&2
-      exit 1
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      exit 1
-      ;;
-  esac
-done
-
-#If not supplied will go to just python (no number) - eg. with tox/virtual envs
-PYTHON_RUN=python$PYTHON_VER
-echo -e "Python run: $PYTHON_RUN"
-
-textreset=$(tput sgr0)
-fail_color=$(tput bold;tput setaf 1) #red
-pass_color=$(tput bold;tput setaf 2) #green
-titl_colour=$(tput bold;tput setaf 6) #cyan
-hint_colour=$(tput bold;tput setaf 4) #blue
 
 #-----------------------------------------------------------------------------------------
 #Functions
@@ -151,8 +109,81 @@ total_time() {
   echo "$diff"
 }
 
+#Cleanup - esp regression test run directory
+#Changes dirs
+cleanup() {
+  cd $ROOT_DIR/$REG_TEST_SUBDIR
+    filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
+    filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
+    filelist=(.cov_reg_out*);         [ -e ${filelist[0]} ] && rm .cov_reg_out*
+    filelist=(*active_runs.txt);       [ -e ${filelist[0]} ] && rm *active_runs.txt
+    filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
+    filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
+    filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
+}
+
 #set +x
 #-----------------------------------------------------------------------------------------
+
+
+#Parse Options
+#set -x
+
+unset PYTHON_VER
+unset RUN_PREFIX
+
+#Default to script name for run-prefix (name of tests)
+script_name=`basename "$0"`
+RUN_PREFIX=$script_name
+CLEAN_ONLY=false
+
+while getopts ":p:n:c" opt; do
+  case $opt in
+    p)
+      echo "Parameter supplied for Python version: $OPTARG" >&2
+      PYTHON_VER=$OPTARG
+      ;;
+    n)
+      echo "Parameter supplied for Test Name: $OPTARG" >&2
+      RUN_PREFIX=$OPTARG
+      ;;
+    c)
+      #echo "Cleaning test output: $OPTARG" >&2
+      echo "Cleaning test output"
+      CLEAN_ONLY=true
+      ;;
+    \?)
+      echo "Invalid option supplied: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+#-----------------------------------------------------------------------------------------
+
+# Using git root dir
+root_found=false
+ROOT_DIR=$(git rev-parse --show-toplevel) && root_found=true
+
+if [ $CLEAN_ONLY = "true" ]; then
+ cleanup
+ exit
+fi;
+
+#If not supplied will go to just python (no number) - eg. with tox/virtual envs
+PYTHON_RUN=python$PYTHON_VER
+echo -e "Python run: $PYTHON_RUN"
+
+textreset=$(tput sgr0)
+fail_color=$(tput bold;tput setaf 1) #red
+pass_color=$(tput bold;tput setaf 2) #green
+titl_colour=$(tput bold;tput setaf 6) #cyan
+hint_colour=$(tput bold;tput setaf 4) #blue
+
 
 # Note - pytest exit codes
 # Exit code 0:  All tests were collected and passed successfully
@@ -183,11 +214,6 @@ if [ $RUN_COV_TESTS = "true" ]; then
    #COV_LINE_PARALLEL='-m coverage run --branch --parallel-mode'
 fi;
 
-
-# Using git root dir
-root_found=false
-
-ROOT_DIR=$(git rev-parse --show-toplevel) && root_found=true
 
 #To enable running from other dirs
 #export PYTHONPATH=${PYTHONPATH}:$ROOT_DIR
@@ -265,11 +291,8 @@ if [ "$root_found" = true ]; then
     #[ -e active_runs.txt ] && rm active_runs.txt
 
     #Running without subdirs - delete any leftover output and coverage data files
-    filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
-    filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
-    filelist=(.cov_reg_out.*);         [ -e ${filelist[0]} ] && rm .cov_reg_out.*
-    filelist=(*active_runs.txt);       [ -e ${filelist[0]} ] && rm *active_runs.txt
-    filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
+    cleanup
+   
             
     #Build sim/gen dependencies
     cd $ROOT_DIR/$GKLS_BUILD_DIR 
@@ -285,27 +308,23 @@ if [ "$root_found" = true ]; then
     #Before first test set code to zero
     code=0
     
-    #sh for pytest - may be better to wrap main test as function.
     if [ "$REG_USE_PYTEST" = true ]; then
       echo -e "Regression testing using pytest"
       [ $RUN_COV_TESTS = "true" ]  && echo -e "WARNING: Coverage NOT being run for regression tests - not working with pytest\n"   
     else
       echo -e "Regression testing is NOT using pytest"
     fi 
-    #tput bold;tput setaf 4; echo -e "***Note***: Duplicating Test libE_on_GKLS\n";  tput sgr 0           
     
     echo -e ""
 
     # ********* Loop over regression tests ************
     
-    #reg_start=$SECONDS
     reg_start=$(current_time)
     reg_count_tests=0
     reg_count_runs=0    
     reg_pass=0
     reg_fail=0 
     test_num=0       
-    #for TEST_DIR in $REG_TEST_LIST
     for TEST_SCRIPT in $REG_TEST_LIST
     do
       #Need proc count here for now - still stop on failure etc.
@@ -322,18 +341,15 @@ if [ "$root_found" = true ]; then
           fi
         fi
 
-        if [ "$RUN_TEST" = "true" ]; then        
+        if [ "$RUN_TEST" = "true" ]; then
 
-           #cd $TEST_DIR
-
-           #sh for pytest - may be better to wrap main test as function.
            if [ "$REG_USE_PYTEST" = true ]; then
              mpiexec -np $NPROCS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
              #mpiexec -np $REG_TEST_PROCESS_COUNT $PYTHON_RUN -m pytest $COV_LINE_PARALLEL test_libE_on_GKLS_pytest.py >> $REG_TEST_OUTPUT
              test_code=$?
            else
              mpiexec -np $NPROCS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-             test_code=$?   
+             test_code=$?
            fi
            reg_count_runs=$((reg_count_runs+1))
 
@@ -353,9 +369,6 @@ if [ "$root_found" = true ]; then
 
            #Move this test's coverage files to regression dir where they can be merged with other tests
            #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
-
-
-           #cd $ROOT_DIR/$REG_TEST_SUBDIR
 
         fi; #if [ "$RUN_TEST" = "true" ];
       
@@ -384,10 +397,12 @@ if [ "$root_found" = true ]; then
       if [ "$(ls -A output)" ]; then
         rm output/* #Avoid mixing test run results
       fi;
-      mv *.$REG_TEST_OUTPUT_EXT output/
-      mv *.npy output/
-      mv active_runs.txt  output/    
-           
+        
+      #sh - shld active_runs be prefixed for each job
+      filelist=(*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv *.$REG_TEST_OUTPUT_EXT output/
+      filelist=(*.npy);                    [ -e ${filelist[0]} ] && mv *.npy output/
+      filelist=(*active_runs.txt);         [ -e ${filelist[0]} ] && mv *active_runs.txt output/
+                    
       if [ "$RUN_COV_TESTS" = true ]; then
         
         # Merge MPI coverage data for all ranks from regression tests and create html report in sub-dir
