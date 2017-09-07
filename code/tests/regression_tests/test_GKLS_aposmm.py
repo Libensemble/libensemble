@@ -29,6 +29,7 @@ from GKLS_obj import call_GKLS as obj_func
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from aposmm_logic import aposmm_logic
 
+script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 ### Declare the run parameters/functions
 max_sim_budget = 600
@@ -108,8 +109,9 @@ np.random.seed(1)
 
 H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'GKLS_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
+if MPI.COMM_WORLD.Get_rank() == 0:    
+    short_name = script_name.split("test_", 1).pop()
+    filename = short_name + '_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 
