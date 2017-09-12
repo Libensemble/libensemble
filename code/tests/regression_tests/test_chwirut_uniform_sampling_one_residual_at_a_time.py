@@ -27,6 +27,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_func
 from aposmm_logic import queue_update_function
 from uniform_sampling import uniform_random_sample_obj_components 
 
+script_name = os.path.splitext(os.path.basename(__file__))[0]
+
 ### Declare the run parameters/functions
 m = 214
 n = 3
@@ -70,6 +72,7 @@ np.random.seed(1)
 H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = 'chwirut_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+    short_name = script_name.split("test_", 1).pop()    
+    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
