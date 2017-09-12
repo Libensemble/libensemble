@@ -107,13 +107,12 @@ def aposmm_logic(H,gen_out,params,info):
             x_opt, exit_code = advance_localopt_method(H, params, sorted_run_inds, c_flag)
 
             if np.isinf(x_new).all():
+                assert exit_code>0, "Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!"
                 # No new point was added. Hopefully at a minimum 
-                if exit_code > 0:
-                    update_history_optimal(x_opt, H, sorted_run_inds)
-                    inactive_runs.add(run)
-                    updated_inds.update(sorted_run_inds) 
-                else:
-                    sys.exit("Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!")
+                update_history_optimal(x_opt, H, sorted_run_inds)
+                inactive_runs.add(run)
+                updated_inds.update(sorted_run_inds) 
+
             else: 
                 add_points_to_O(O, x_new, len(H), params, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
