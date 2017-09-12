@@ -56,6 +56,9 @@ if w == 1:
     sim_specs['params']['sim_dir_prefix'] = '~' 
 
 
+if w == 3: 
+    sim_specs['params']['uniform_random_pause_ub'] = 0.05
+
 out = [('x',float,n),
       ('x_on_cube',float,n),
       ('sim_id',int),
