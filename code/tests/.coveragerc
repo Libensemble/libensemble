@@ -8,16 +8,15 @@ data_file = .cov_merge_out
 directory = cov_merge
 
 #Report files can be controlled here
-#e.g. for libensemble files only - uncomment lines starting */code/...
+#e.g. for libensemble files only - uncomment all below
 [report]
 omit =
     */__init__.py
     */.tox/*
     */setup.py
-    */code/tests/unit_tests/*    
-    */code/tests/regression_tests/*
-    */code/tests/regression_tests/common/*
-#    */code/examples/gen_funs/*
-#    */code/examples/sim_funs/*
+    */unit_tests/*    
+    */regression_tests/*
+#    ../examples/gen_funs/*
+#    ../examples/sim_funs/*
     
     

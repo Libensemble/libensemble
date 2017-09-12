@@ -29,6 +29,8 @@ from six_hump_camel import six_hump_camel_with_different_ranks_and_nodes
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks
 
+script_name = os.path.splitext(os.path.basename(__file__))[0]
+
 # libE_machinefile = open(sys.argv[1]).read().splitlines()
 libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
@@ -70,7 +72,8 @@ np.random.seed(1)
 H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    filename = '6-hump_camel_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+    short_name = script_name.split("test_", 1).pop()
+    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 
