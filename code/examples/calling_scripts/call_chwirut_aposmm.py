@@ -20,7 +20,8 @@ sys.path.append('../sim_funcs')
 sys.path.append('../gen_funcs')
 from chwirut1 import sum_squares, libE_func_wrapper
 from aposmm_logic import aposmm_logic
-from math import *
+from math import gamma, sqrt, pi
+
 
 ### Declare the run parameters/functions
 n = 3

@@ -15,8 +15,6 @@ from message_numbers import STOP_TAG # manager tells worker run is over
 
 from mpi4py import MPI
 import numpy as np
-import scipy as sp
-from scipy import spatial
 
 import time, sys, os
 import copy
