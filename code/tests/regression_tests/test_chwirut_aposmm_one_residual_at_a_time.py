@@ -96,6 +96,7 @@ np.random.seed(1)
 H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
+    assert len(H) >= max_sim_budget
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
