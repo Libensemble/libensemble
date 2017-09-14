@@ -59,7 +59,7 @@ if w == 1:
 if w == 3: 
     sim_specs['params']['uniform_random_pause_ub'] = 0.05
 
-out = [('x',float,n),
+gen_out = [('x',float,n),
       ('x_on_cube',float,n),
       ('sim_id',int),
       ('priority',float),
@@ -78,8 +78,8 @@ out = [('x',float,n),
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': aposmm_logic,
-             'in': [o[0] for o in out] + ['f', 'returned'],
-             'out': out,
+             'in': [o[0] for o in gen_out] + ['f', 'returned'],
+             'out': gen_out,
              'params': {'lb': np.array([0,0]),
                         'ub': np.array([1,1]),
                         'initial_sample': 40,
