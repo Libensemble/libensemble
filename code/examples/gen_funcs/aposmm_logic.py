@@ -276,7 +276,7 @@ def update_history_dist(H, params, c_flag):
 
 def update_history_optimal(x_opt, H, run_inds):
 
-    opt_ind = np.where(np.equal(x_opt,H['x_on_cube']).all(1))[0]
+    opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0]
     assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
     assert opt_ind in run_inds, "Why isn't the run optimum a point in the run?"
 
@@ -288,8 +288,8 @@ def update_history_optimal(x_opt, H, run_inds):
 def advance_localopt_method(H, params, sorted_run_inds, c_flag):
 
     while 1: 
+        Run_H = H[['x_on_cube','f']][sorted_run_inds] 
         if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
-            Run_H = H[['x_on_cube','f']][sorted_run_inds] 
 
             try:
                 x_opt, exit_code = set_up_and_run_nlopt(Run_H, params)
@@ -301,8 +301,17 @@ def advance_localopt_method(H, params, sorted_run_inds, c_flag):
 
     
         elif params['localopt_method'] in ['pounders']:
-            Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
-
+            # if 'fvec' in H.dtype.names:
+            #     Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
+            # else:
+            #     Run_H = np.zeros(len(sorted_run_inds),dtype=[('x_on_cube',float,len(H['x']),('f',float),'fvec'
+            #     Run_H = H[['x_on_cube','f']][sorted_run_inds] 
+            #     if 'single_component_at_a_time' in params:
+            #         for i, ind in enumerate(sorted_run_inds):
+            #             Run_H['fvec'][i] = 
+            #     else:
+            #         Run_H['fvec'] = Run_H['f']
+                
             if c_flag:
                 Run_H_F = np.zeros(len(Run_H),dtype=[('fvec',float,params['components'])])
 
@@ -651,15 +660,17 @@ def look_in_history(x, Run_H, vector_return=False):
         assert np.allclose(x, Run_H['x_on_cube'][pt_in_run], rtol=1e-08, atol=1e-08), \
             "History point does not match Localopt point"
         f_out = Run_H[to_return][pt_in_run]
-    elif pt_in_run == total_pts_in_run:
-        # The history of points is exhausted. Save the requested point x to
-        # x_new. x_new will be returned to the manager.
-        x_new[:] = x
-        f_out = np.nan
     else:
+        if pt_in_run == total_pts_in_run:
+            # The history of points is exhausted. Save the requested point x to
+            # x_new. x_new will be returned to the manager.
+            x_new[:] = x
+
         # Just in case the local opt method requests more points after a new
         # point has been identified.
-        f_out = np.nan
+        # f_out = np.finfo(np.float64).max
+        # f_out = Run_H[to_return][total_pts_in_run-1] 
+        f_out = Run_H[to_return][total_pts_in_run-1]*0 
 
     pt_in_run += 1
 
