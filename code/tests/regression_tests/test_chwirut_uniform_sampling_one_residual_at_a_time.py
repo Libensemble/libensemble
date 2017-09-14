@@ -41,7 +41,7 @@ sim_specs = {'sim_f': [libE_func_wrapper],
              'params': {}, 
              }
 
-out = [('x',float,n),
+gen_out = [('x',float,n),
       ('priority',float),
       ('obj_component',int),
       ('pt_id',int),
@@ -49,7 +49,7 @@ out = [('x',float,n),
 
 gen_specs = {'gen_f': uniform_random_sample_obj_components,
              'in': ['pt_id'],
-             'out': out,
+             'out': gen_out,
              'params': {'lb': -2*np.ones(3),
                         'ub':  2*np.ones(3),
                         'gen_batch_size': 2,
