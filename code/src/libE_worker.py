@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from mpi4py import MPI
 import numpy as np
-import time, sys, os, shutil 
+import os, shutil 
 
 from message_numbers import STOP_TAG # manager tells worker to stop
 

@@ -13,9 +13,6 @@ from __future__ import absolute_import
 from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 import numpy as np
-from math import *
-
-import time
 
 sys.path.append('../../src')
 from libE import libE
