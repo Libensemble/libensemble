@@ -28,7 +28,7 @@ sys.path.append('../gen_funcs')
 from chwirut1 import sum_squares
 from aposmm_logic import aposmm_logic
 
-from math import *
+from math import gamma, sqrt, pi
 
 ### Declare the run parameters/functions
 max_sim_budget = 600

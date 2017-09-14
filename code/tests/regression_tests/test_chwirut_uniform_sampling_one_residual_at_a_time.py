@@ -12,7 +12,6 @@ from __future__ import absolute_import
 from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
-from math import *
 
 # Import libEnsemble main
 sys.path.append('../../src')
