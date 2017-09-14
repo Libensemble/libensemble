@@ -16,7 +16,7 @@ omit =
     */setup.py
     */unit_tests/*    
     */regression_tests/*
-    ../examples/gen_funcs/helloworld.py
+    ../examples/sim_funcs/helloworld.py
 #    ../examples/sim_funs/*
     
     
