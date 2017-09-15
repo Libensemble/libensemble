@@ -22,8 +22,6 @@ import copy
 def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
 
-    status = MPI.Status()
-
     H, H_ind, term_test = initialize(sim_specs, gen_specs, exit_criteria, H0)
 
     idle_w = allocation_specs['worker_ranks'].copy()
