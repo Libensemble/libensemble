@@ -257,15 +257,15 @@ def libE_func_wrapper(H,sim_out,params,info):
 
     return O
         
-if __name__ == '__main__':
-    x = np.zeros(3)
-    x[0] = 0.15;
-    x[1] = 0.008;
-    x[2] = 0.010;
+# if __name__ == '__main__':
+#     x = np.zeros(3)
+#     x[0] = 0.15;
+#     x[1] = 0.008;
+#     x[2] = 0.010;
 
-    f = EvaluateFunction(x)
-    J = EvaluateJacobian(x)
+#     f = EvaluateFunction(x)
+#     J = EvaluateJacobian(x)
 
-    print(f,J)
+#     print(f,J)
 
 

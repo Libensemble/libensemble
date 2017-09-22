@@ -19,7 +19,7 @@ from libE import libE
 
 # Import sim_func 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
-from chwirut1 import sum_squares, libE_func_wrapper
+from chwirut1 import sum_squares, libE_func_wrapper, EvaluateJacobian
 
 # Import gen_func 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
@@ -90,3 +90,8 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
+
+    # Calculating the Jacobian at the best point (though this information was not used by pounders)
+    J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
+    assert np.linalg.norm(J) < 2000
+
