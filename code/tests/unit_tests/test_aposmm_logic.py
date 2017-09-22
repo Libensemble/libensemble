@@ -36,7 +36,27 @@ def test_exception_raising():
         else:
             assert 0, "Failed like it should have"
 
-if __name__ == "__main__":
-    import ipdb; ipdb.set_trace() 
+def test_decide_where_to_start_localopt():
+    sys.path.append(os.path.join(os.path.dirname(__file__), '../regression_tests'))
 
-    test_exception_raising()
+    from test_GKLS_aposmm import gen_out 
+    H = np.zeros(10,dtype=gen_out + [('f',float),('returned',bool)])
+    H['x'] = np.random.uniform(0,1,(10,2))
+    H['f'] = np.random.uniform(0,1,10)
+    H['returned'] = 1
+
+    b = al.decide_where_to_start_localopt(H, 9, 1)
+    assert len(b)==0
+
+    b = al.decide_where_to_start_localopt(H, 9, 1, nu=0.01)
+    assert len(b)==0
+
+def test_calc_rk():
+    rk = al.calc_rk(2,10,1)
+
+    rk = al.calc_rk(2,10,1,10)
+    assert np.isinf(rk)
+
+
+
+# if __name__ == "__main__":
