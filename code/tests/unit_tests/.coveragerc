@@ -1,5 +1,6 @@
 [run]
 source = ../../src
+        ../../examples/gen_funcs/
         .
 
 branch = true
