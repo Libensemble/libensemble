@@ -9,7 +9,7 @@ from mpi4py import MPI
 
 from numpy.lib.recfunctions import merge_arrays
 
-from math import log
+from math import log, gamma, pi, sqrt
 
 from petsc4py import PETSc
 import nlopt
@@ -60,7 +60,7 @@ def aposmm_logic(H,gen_out,params,info):
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
 
-    n, n_s, c_flag, O = initialize_APOSMM(H, gen_out, params)
+    n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H, gen_out, params)
 
     # np.savez('H'+str(len(H)),H=H,gen_out=gen_out,params=params)
     # import ipdb; ipdb.set_trace()
@@ -72,7 +72,7 @@ def aposmm_logic(H,gen_out,params,info):
 
         updated_inds = update_history_dist(H, params, c_flag)        
 
-        starting_inds = decide_where_to_start_localopt(H, n_s, params['rk_const'])        
+        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions)        
         updated_inds.update(starting_inds) 
                 
         active_runs = get_active_run_inds(H)
@@ -177,7 +177,7 @@ def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds
         O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
     else:
         if c_flag:
-            # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning LibE gives them all at once)
+            # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
             p_tmp = np.random.uniform(0,1,num_pts)
         else:
             p_tmp = np.random.uniform(0,1,num_pts)
@@ -287,57 +287,45 @@ def update_history_optimal(x_opt, H, run_inds):
 
 def advance_localopt_method(H, params, sorted_run_inds, c_flag):
 
-    while 1: 
-        Run_H = H[['x_on_cube','f']][sorted_run_inds] 
-        if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
+    if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
 
-            try:
-                x_opt, exit_code = set_up_and_run_nlopt(Run_H, params)
-            except Exception as e:
-                exit_code = 0
-                print(e.__doc__)
-                print(e.args)
-                print(Run_H['x_on_cube'])
-
-    
-        elif params['localopt_method'] in ['pounders']:
-            # if 'fvec' in H.dtype.names:
-            #     Run_H = H[['x_on_cube','f','fvec']][sorted_run_inds] 
-            # else:
-            #     Run_H = np.zeros(len(sorted_run_inds),dtype=[('x_on_cube',float,len(H['x']),('f',float),'fvec'
-            #     Run_H = H[['x_on_cube','f']][sorted_run_inds] 
-            #     if 'single_component_at_a_time' in params:
-            #         for i, ind in enumerate(sorted_run_inds):
-            #             Run_H['fvec'][i] = 
-            #     else:
-            #         Run_H['fvec'] = Run_H['f']
-                
-            if c_flag:
-                Run_H_F = np.zeros(len(Run_H),dtype=[('fvec',float,params['components'])])
-
-                for i in range(len(Run_H)):
-                    pt_id = H['pt_id'][sorted_run_inds[i]] 
-                    for j in range(params['components']):
-                        Run_H_F['fvec'][i][j] = H['f_i'][np.logical_and(H['pt_id']==pt_id, H['obj_component']==j)]
-
-                Run_H = merge_arrays([Run_H,Run_H_F],flatten=True)
-
-
-            try: 
-                x_opt, exit_code = set_up_and_run_tao(Run_H, params)
-            except Exception as e:
-                exit_code = 0
-                print(e.__doc__)
-                print(e.args)
-
+        if params['localopt_method'] in ['LD_MMA']:
+            Run_H = H[['x_on_cube','f','grad']][sorted_run_inds] 
         else:
-            sys.exit("Unknown localopt method")
+            Run_H = H[['x_on_cube','f']][sorted_run_inds] 
 
-        if np.equal(x_new,H['x_on_cube']).all(1).any():
-            # import ipdb; ipdb.set_trace()
-            sys.exit("Generated an already evaluated point. Exiting")
-        else:
-            break
+        try:
+            # import ipdb; ipdb.set_trace() 
+            x_opt, exit_code = set_up_and_run_nlopt(Run_H, params)
+        except Exception as e:
+            exit_code = 0
+            print(e.__doc__)
+            print(e.args)
+            print(Run_H['x_on_cube'])
+
+
+    elif params['localopt_method'] in ['pounders']:
+            
+        if c_flag:
+            Run_H_F = np.zeros(len(sorted_run_inds),dtype=[('fvec',float,params['components'])])
+            for i,ind in enumerate(sorted_run_inds):
+                for j in range(params['components']):
+                    Run_H_F['fvec'][i][j] = H['f_i'][np.logical_and(H['pt_id']==H['pt_id'][ind], H['obj_component']==j)]
+            Run_H = merge_arrays([H[['x_on_cube']][sorted_run_inds],Run_H_F],flatten=True)
+        else: 
+            Run_H = H[['x_on_cube','fvec']][sorted_run_inds]
+
+        try: 
+            x_opt, exit_code = set_up_and_run_tao(Run_H, params)
+        except Exception as e:
+            exit_code = 0
+            print(e.__doc__)
+            print(e.args)
+
+    else:
+        sys.exit("Unknown localopt method. Exiting")
+
+    assert ~np.equal(x_new,H['x_on_cube']).all(1).any(), "Generated an already evaluated point. Exiting"
 
     return x_opt, exit_code
 
@@ -352,13 +340,14 @@ def set_up_and_run_nlopt(Run_H, params):
     """
 
     def nlopt_obj_fun(x, grad, Run_H):
-        if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD']:
-            return look_in_history(x, Run_H)
-        elif params['localopt_method'] in ['LD_MMA']:
-            (f,g) = look_in_history_true_grad(x, Run_H)
-            grad[:] = g;
-            # print(x,f,grad)
-            return f
+        # import ipdb; ipdb.set_trace() 
+        out = look_in_history(x, Run_H)
+
+        if params['localopt_method'] in ['LD_MMA']:
+            grad[:] = out[1]
+            out = out[0]
+
+        return out
 
     n = len(params['ub'])
 
@@ -469,15 +458,6 @@ def set_up_and_run_tao(Run_H, params):
 
 
 
-
-
-
-
-
-
-
-
-
 def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0, gamma_quantile=1):
     """
     Decide where to start a LocalOpt run
@@ -514,7 +494,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     """
 
     n = len(H['x_on_cube'][0])
-    r_k = calc_rk(H, n, n_s, rk_const)
+    r_k = calc_rk(H, n, n_s, rk_const, lhs_divisions)
 
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
@@ -651,12 +631,13 @@ def look_in_history(x, Run_H, vector_return=False):
     if vector_return:
         to_return = 'fvec'
     else:
-        to_return = 'f'
+        if 'grad' in Run_H.dtype.names:
+            to_return = ['f','grad']
+        else:
+            to_return = 'f'
 
     if pt_in_run < total_pts_in_run:
         # Return the value in history to the localopt algorithm. 
-        if not np.allclose(x, Run_H['x_on_cube'][pt_in_run], rtol=1e-08, atol=1e-08):
-            print(x,Run_H['x_on_cube'])
         assert np.allclose(x, Run_H['x_on_cube'][pt_in_run], rtol=1e-08, atol=1e-08), \
             "History point does not match Localopt point"
         f_out = Run_H[to_return][pt_in_run]
@@ -670,7 +651,7 @@ def look_in_history(x, Run_H, vector_return=False):
         # point has been identified.
         # f_out = np.finfo(np.float64).max
         # f_out = Run_H[to_return][total_pts_in_run-1] 
-        f_out = Run_H[to_return][total_pts_in_run-1]*0 
+        f_out = Run_H[to_return][total_pts_in_run-1] 
 
     pt_in_run += 1
 
@@ -716,7 +697,17 @@ def initialize_APOSMM(H, gen_out, params):
     # given H, and then send back the rows corresponding to updated H entries. 
     O = np.empty(0,dtype=gen_out)
 
-    return n, n_s, c_flag, O
+    if 'rk_const' in params:
+        rk_c = params['rk_const']
+    else:
+        rk_c = ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi)
+
+    if 'lhs_divisions' in params:
+        ld = params['lhs_divisions']
+    else:
+        ld = 0
+
+    return n, n_s, c_flag, O, rk_c, ld
 
 
 def queue_update_function(H,gen_specs):
