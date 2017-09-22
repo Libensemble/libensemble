@@ -26,11 +26,12 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
+    status = MPI.Status()
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status)
 
         update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs)
 
@@ -40,7 +41,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
             comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
             active_w, idle_w = update_active_and_idle(active_w, idle_w, w, Work[w])
 
-    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs)
+    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs, status)
 
     return H, exit_flag
 
@@ -51,17 +52,17 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
-def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs):
-    status = MPI.Status()
+def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status):
 
-    active_w_copy = copy.deepcopy(active_w)
-
-    while True:
-        for w in active_w_copy['sim'] | active_w_copy['gen']: 
+    new_stuff = True
+    while new_stuff:
+        new_stuff = False
+        for w in active_w['sim'] | active_w['gen']: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 idle_w.add(status.Get_source())
                 active_w[D_recv['calc_info']['type']].remove(status.Get_source())
+                new_stuff = True
 
                 assert D_recv['calc_info']['type'] in ['sim','gen'], 'Unknown calculation type received. Exiting'
                 if D_recv['calc_info']['type'] == 'sim':
@@ -73,15 +74,10 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
                     active_w['blocked'].difference_update(D_recv['calc_info']['blocking'])
                     idle_w.update(D_recv['calc_info']['blocking'])
 
-        if active_w_copy == active_w:
-            break
-        else:
-            active_w_copy = copy.deepcopy(active_w)
-
     if 'save_every_k' in sim_specs:
         k = sim_specs['save_every_k']
         count = k*(sum(H['returned'])//k)
-        filename = 'LibE_history_after_sim_' + str(count) + '.npy'
+        filename = 'libE_history_after_sim_' + str(count) + '.npy'
 
         if not os.path.isfile(filename) and count > 0:
             np.save(filename,H)
@@ -89,7 +85,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
     if 'save_every_k' in gen_specs:
         k = gen_specs['save_every_k']
         count = k*(H_ind//k)
-        filename = 'LibE_history_after_gen_' + str(count) + '.npy'
+        filename = 'libE_history_after_gen_' + str(count) + '.npy'
 
         if not os.path.isfile(filename) and count > 0:
             np.save(filename,H)
@@ -159,7 +155,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
 
         else:
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
-            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
+            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and np.any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
                 break
 
             # Limit number of gen instances if given
@@ -259,7 +255,7 @@ def update_history_x_in(H, H_ind, O):
 
 
 def grow_H(H, k):
-    """ LibEnsemble is requesting k rows be added to H because gen_f produced
+    """ libEnsemble is requesting k rows be added to H because gen_f produced
     more points than rows in H."""
     H_1 = np.zeros(k, dtype=H.dtype)
     H_1['sim_id'] = -1
@@ -311,7 +307,7 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
-        if any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
+        if np.any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
             return 1
 
     if 'elapsed_wallclock_time' in exit_criteria:
@@ -338,7 +334,7 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
         | returned            : True if point has been evaluated by a worker
 
     H_ind: integer
-        Where LibE should start filling in H
+        Where libEnsemble should start filling in H
 
     term_test: lambda funciton
         Simplified termination test (doesn't require passing fixed quantities).
@@ -410,7 +406,7 @@ def update_active_and_idle(active_w, idle_w, w, Work):
 
     return active_w, idle_w
 
-def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs):
+def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs, status):
     """ 
     Tries to receive from any active workers. 
 
@@ -423,7 +419,7 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
 
     ### Receive from all active workers 
     while len(active_w['sim'] | active_w['gen']):
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status)
         if term_test(H, H_ind) == 2 and len(active_w['sim'] | active_w['gen']):
             for w in active_w['sim'] | active_w['gen']:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)

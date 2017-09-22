@@ -47,6 +47,10 @@ def six_hump_camel(H, sim_out, params, info):
 
     for i,x in enumerate(H['x']):
         O['f'][i] = six_hump_camel_func(H['x'][i])
+
+        if 'grad' in O.dtype.names:
+            O['grad'][i] = six_hump_camel_grad(H['x'][i])
+
         if 'pause_time' in params:
             time.sleep(params['pause_time'])
 
@@ -61,4 +65,15 @@ def six_hump_camel_func(x):
     term3 = (-4+4*x2**2) * x2**2;
 
     return  term1 + term2 + term3;
+
+def six_hump_camel_grad(x):
+
+    x1 = x[0]
+    x2 = x[1]
+    grad = np.zeros(2)
+
+    grad[0] = 2.0*(x1**5 - 4.2*x1**3 + 4.0*x1 + 0.5*x2)
+    grad[1] = x1 + 16*x2**3 - 8*x2
+
+    return grad
 
