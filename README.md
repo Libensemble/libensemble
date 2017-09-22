@@ -1,2 +1,2 @@
-# LibEnsemble
+# libEnsemble
 Library for managing ensemble-like collections of computations

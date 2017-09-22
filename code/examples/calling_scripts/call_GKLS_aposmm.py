@@ -87,7 +87,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'batch_mode': True,
              }
 
-# Tell LibEnsemble when to stop
+# Tell libEnsemble when to stop
 exit_criteria = {'sim_max': max_sim_budget, 
                  'elapsed_wallclock_time': 100,
                  'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 
@@ -116,4 +116,4 @@ if MPI.COMM_WORLD.Get_rank() == 0:
         for i in range(k):
             assert np.min(np.sum((H['x'][H['local_min']]-M[i,:n])**2,1)) < tol
 
-        print("\nLibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
+        print("\nlibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
