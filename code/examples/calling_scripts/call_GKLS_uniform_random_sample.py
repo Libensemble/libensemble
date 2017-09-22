@@ -23,7 +23,7 @@ sys.path.append(GKLS_dir_name)
 from GKLS_obj import call_GKLS_with_random_pause as obj_func
 
 
-# Below is the generating function that is called by LibEnsemble to generate
+# Below is the generating function that is called by libEnsemble to generate
 # points to be evaluated. In this case, it is just a uniform random sample
 # over params['lb'] to params['ub']
 def uniform_random_sample(g_in,gen_out,params,info):
@@ -80,7 +80,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              'batch_mode': True,
              }
 
-# Tell LibEnsemble when to stop
+# Tell libEnsemble when to stop
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
                  'elapsed_wallclock_time': 100,
                  'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 
