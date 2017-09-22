@@ -102,23 +102,23 @@ np.random.seed(1)
 
 # H0 = np.load('GKLS_results_after_evals=500_ranks=2.npy')
 # H0 = H0[['x','x_on_cube','f']][:50]
+if __name__ == "__main__":
+    H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
-H, flag = libE(sim_specs, gen_specs, exit_criteria)
+    if MPI.COMM_WORLD.Get_rank() == 0:    
+        short_name = script_name.split("test_", 1).pop()
+        filename = short_name + '_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
+        print("\n\n\nRun completed.\nSaving results to file: " + filename)
+        np.save(filename, H)
 
-if MPI.COMM_WORLD.Get_rank() == 0:    
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
+        minima_and_func_val_file = os.path.join(GKLS_dir_name, 'which_seeds_are_feasible/known_minima_and_func_values_for_n=' + str(sim_specs['params']['problem_dimension']) + '_prob=' + str(sim_specs['params']['problem_number']) + '_min=' + str(sim_specs['params']['number_of_minima']))
 
-    minima_and_func_val_file = os.path.join(GKLS_dir_name, 'which_seeds_are_feasible/known_minima_and_func_values_for_n=' + str(sim_specs['params']['problem_dimension']) + '_prob=' + str(sim_specs['params']['problem_number']) + '_min=' + str(sim_specs['params']['number_of_minima']))
+        if os.path.isfile(minima_and_func_val_file):
+            M = np.loadtxt(minima_and_func_val_file)
+            M = M[M[:,-1].argsort()] # Sort by function values (last column)
+            k = 4
+            tol = 1e-7
+            for i in range(k):
+                assert np.min(np.sum((H['x'][H['local_min']]-M[i,:n])**2,1)) < tol
 
-    if os.path.isfile(minima_and_func_val_file):
-        M = np.loadtxt(minima_and_func_val_file)
-        M = M[M[:,-1].argsort()] # Sort by function values (last column)
-        k = 4
-        tol = 1e-7
-        for i in range(k):
-            assert np.min(np.sum((H['x'][H['local_min']]-M[i,:n])**2,1)) < tol
-
-        print("\nlibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
+            print("\nlibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))

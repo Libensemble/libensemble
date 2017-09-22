@@ -259,7 +259,7 @@ def update_history_dist(H, params, c_flag):
                 H['ind_of_better_s'][new_ind] = H['sim_id'][p][np.ix_(better_than_new_s)[0][dist_to_all[better_than_new_s].argmin()]]
 
             # if not ignore_L8:
-            #     r_k = calc_rk(H, len(H['x_on_cube'][0]), n_s, rk_const, lhs_divisions)
+            #     r_k = calc_rk(len(H['x_on_cube'][0]), n_s, rk_const, lhs_divisions)
             #     H['worse_within_rk'][new_ind][p] = np.logical_and.reduce((H['f'][new_ind] <= H['f'][p], dist_to_all <= r_k))
 
             #     # Add trues if new point is 'worse_within_rk' 
@@ -494,7 +494,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     """
 
     n = len(H['x_on_cube'][0])
-    r_k = calc_rk(H, n, n_s, rk_const, lhs_divisions)
+    r_k = calc_rk(n, n_s, rk_const, lhs_divisions)
 
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
@@ -512,8 +512,8 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
                 H['dist_to_unit_bounds'] >= mu, # have all components at least mu away from ub (L4)
             )) # (L5) is always true when nu = 0
 
-    if gamma_quantile < 1:
-        print("This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?")
+    assert gamma_quantile == 1, "This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?"
+    # if gamma_quantile < 1:
     #     cut_off_value = np.sort(H['f'][~H['local_pt']])[np.floor(gamma_quantile*(sum(~H['local_pt'])-1)).astype(int)]
     # else:
     #     cut_off_value = np.inf
@@ -545,79 +545,82 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
            ~H['local_min'] # are not a local min (L7)
          ))
 
+
+    local_start_inds2 = list(np.ix_(local_seeds)[0])
     # if ignore_L8:
-    if True:
-        local_start_inds2 = list(np.ix_(local_seeds)[0])
-    else:
-        # ### For L8, search for an rk-ascent path for a sample point
-        # lb = np.zeros(n)
-        # ub = np.ones(n)
-        # local_start_inds = []
-        # for i in np.ix_(local_seeds)[0]:
-        #     old_local_on_rk_ascent = np.array(np.zeros(len(H)), dtype=bool)
-        #     local_on_rk_ascent = np.array(np.eye(len(H))[i,:], dtype=bool)
+    # if True:
+    #     local_start_inds2 = list(np.ix_(local_seeds)[0])
+    # else:
+    #     # ### For L8, search for an rk-ascent path for a sample point
+    #     # lb = np.zeros(n)
+    #     # ub = np.ones(n)
+    #     # local_start_inds = []
+    #     # for i in np.ix_(local_seeds)[0]:
+    #     #     old_local_on_rk_ascent = np.array(np.zeros(len(H)), dtype=bool)
+    #     #     local_on_rk_ascent = np.array(np.eye(len(H))[i,:], dtype=bool)
 
-        #     done_with_i = False
-        #     while not done_with_i and not np.array_equiv(old_local_on_rk_ascent, local_on_rk_ascent):
-        #         old_local_on_rk_ascent = local_on_rk_ascent.copy()
-        #         to_add = np.array(np.zeros(len(H)),dtype=bool)
-        #         for j in np.ix_(local_on_rk_ascent)[0]:
-        #             if keep_pdist: 
-        #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], H['dist_to_all'][:,j] <= r_k))
-        #             else: 
-        #                 ind_of_last = np.max(np.ix_(H['returned']))
-        #                 pdist_vec = sp.spatial.distance.cdist([H['x_on_cube'][j]], H['x_on_cube'][:ind_of_last+1], 'euclidean').flatten()
-        #                 pdist_vec = np.append(pdist_vec, np.zeros(len(H)-ind_of_last-1))
-        #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], pdist_vec <= r_k))
+    #     #     done_with_i = False
+    #     #     while not done_with_i and not np.array_equiv(old_local_on_rk_ascent, local_on_rk_ascent):
+    #     #         old_local_on_rk_ascent = local_on_rk_ascent.copy()
+    #     #         to_add = np.array(np.zeros(len(H)),dtype=bool)
+    #     #         for j in np.ix_(local_on_rk_ascent)[0]:
+    #     #             if keep_pdist: 
+    #     #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], H['dist_to_all'][:,j] <= r_k))
+    #     #             else: 
+    #     #                 ind_of_last = np.max(np.ix_(H['returned']))
+    #     #                 pdist_vec = sp.spatial.distance.cdist([H['x_on_cube'][j]], H['x_on_cube'][:ind_of_last+1], 'euclidean').flatten()
+    #     #                 pdist_vec = np.append(pdist_vec, np.zeros(len(H)-ind_of_last-1))
+    #     #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], pdist_vec <= r_k))
 
-        #             if np.any(np.logical_and(samples_on_rk_ascent_from_j, sample_seeds)):
-        #                 done_with_i = True
-        #                 local_start_inds.append(i)
-        #                 break
+    #     #             if np.any(np.logical_and(samples_on_rk_ascent_from_j, sample_seeds)):
+    #     #                 done_with_i = True
+    #     #                 local_start_inds.append(i)
+    #     #                 break
 
-        #             if keep_pdist: 
-        #                 feasible_locals_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], 
-        #                                                                              np.all(ub - H['x_on_cube'] >= 0, axis=1),
-        #                                                                              np.all(H['x_on_cube'] - lb >= 0, axis=1),
-        #                                                                              H['local_pt'], 
-        #                                                                              H['dist_to_all'][:,j] <= r_k
-        #                                                                            ))
-        #             else: 
-        #                 feasible_locals_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], 
-        #                                                                              np.all(ub - H['x_on_cube'] >= 0, axis=1),
-        #                                                                              np.all(H['x_on_cube'] - lb >= 0, axis=1),
-        #                                                                              H['local_pt'], 
-        #                                                                              pdist_vec <= r_k
-        #                                                                            ))
+    #     #             if keep_pdist: 
+    #     #                 feasible_locals_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], 
+    #     #                                                                              np.all(ub - H['x_on_cube'] >= 0, axis=1),
+    #     #                                                                              np.all(H['x_on_cube'] - lb >= 0, axis=1),
+    #     #                                                                              H['local_pt'], 
+    #     #                                                                              H['dist_to_all'][:,j] <= r_k
+    #     #                                                                            ))
+    #     #             else: 
+    #     #                 feasible_locals_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], 
+    #     #                                                                              np.all(ub - H['x_on_cube'] >= 0, axis=1),
+    #     #                                                                              np.all(H['x_on_cube'] - lb >= 0, axis=1),
+    #     #                                                                              H['local_pt'], 
+    #     #                                                                              pdist_vec <= r_k
+    #     #                                                                            ))
 
-        #             to_add = np.logical_or(to_add, feasible_locals_on_rk_ascent_from_j)
-        #         local_on_rk_ascent = to_add.copy()
+    #     #             to_add = np.logical_or(to_add, feasible_locals_on_rk_ascent_from_j)
+    #     #         local_on_rk_ascent = to_add.copy()
 
-        #     if not done_with_i: 
-        #         # sys.exit("We have an i satisfying (L1-L7) but failing L8")
-        #         print("\n\n We have ind %d satisfying (L1-L7) but failing L8 \n\n" % i)
+    #     #     if not done_with_i: 
+    #     #         # sys.exit("We have an i satisfying (L1-L7) but failing L8")
+    #     #         print("\n\n We have ind %d satisfying (L1-L7) but failing L8 \n\n" % i)
 
-        local_start_inds2 = []
-        for i in np.ix_(local_seeds)[0]:
-            old_pts_on_rk_ascent = np.array(np.zeros(len(H)), dtype=bool)
-            pts_on_rk_ascent = H['worse_within_rk'][i]
+    #     # ### Faster L8 test
+    #     local_start_inds2 = []
+    #     for i in np.ix_(local_seeds)[0]:
+    #         old_pts_on_rk_ascent = np.array(np.zeros(len(H)), dtype=bool)
+    #         pts_on_rk_ascent = H['worse_within_rk'][i]
 
-            done_with_i = False
-            while not done_with_i and not np.array_equiv(old_pts_on_rk_ascent, pts_on_rk_ascent):
-                old_pts_on_rk_ascent = pts_on_rk_ascent.copy()
-                to_add = np.array(np.zeros(len(H)),dtype=bool)
-                for j in np.ix_(pts_on_rk_ascent)[0]:
-                    to_add = np.logical_or(to_add, H['worse_within_rk'][i])
-                pts_on_rk_ascent = to_add
-                if np.any(np.logical_and(to_add, sample_seeds)):
-                    done_with_i = True
-                    local_start_inds2.append(i)
-                    break
-            if not done_with_i:
-                print("Again, we have ind %d satisfying (L1-L7) but failing L8\n" % i)
+    #         done_with_i = False
+    #         while not done_with_i and not np.array_equiv(old_pts_on_rk_ascent, pts_on_rk_ascent):
+    #             old_pts_on_rk_ascent = pts_on_rk_ascent.copy()
+    #             to_add = np.array(np.zeros(len(H)),dtype=bool)
+    #             for j in np.ix_(pts_on_rk_ascent)[0]:
+    #                 to_add = np.logical_or(to_add, H['worse_within_rk'][i])
+    #             pts_on_rk_ascent = to_add
+    #             if np.any(np.logical_and(to_add, sample_seeds)):
+    #                 done_with_i = True
+    #                 local_start_inds2.append(i)
+    #                 break
+    #         if not done_with_i:
+    #             print("Again, we have ind %d satisfying (L1-L7) but failing L8\n" % i)
 
-        # assert local_start_inds.sort() == local_start_inds2.sort(), "Something didn't match up"
-    # start_inds = list(sample_start_inds) + local_start_inds
+    #     # assert local_start_inds.sort() == local_start_inds2.sort(), "Something didn't match up"
+    # # start_inds = list(sample_start_inds) + local_start_inds
     start_inds = list(sample_start_inds) + local_start_inds2
     return start_inds
 
@@ -659,7 +662,7 @@ def look_in_history(x, Run_H, vector_return=False):
 
 
 
-def calc_rk(H, n, n_s, rk_const, lhs_divisions=0):
+def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     """ Calculate the critical distance r_k """ 
 
     if lhs_divisions == 0:
@@ -738,9 +741,9 @@ def queue_update_function(H,gen_specs):
     H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = 1
 
 
-if __name__ == "__main__":
-    [H,gen_out,params] = [np.load('H856.npz')[i] for i in ['H','gen_out','params']]
-    params = params.item()
-    gen_out = list(gen_out)
-    import ipdb; ipdb.set_trace() 
-    aposmm_logic(H,gen_out,params)
+# if __name__ == "__main__":
+#     [H,gen_out,params] = [np.load('H856.npz')[i] for i in ['H','gen_out','params']]
+#     params = params.item()
+#     gen_out = list(gen_out)
+#     import ipdb; ipdb.set_trace() 
+#     aposmm_logic(H,gen_out,params)
