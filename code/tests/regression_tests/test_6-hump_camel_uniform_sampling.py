@@ -52,7 +52,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              }
 
 
-# Tell LibEnsemble when to stop
+# Tell libEnsemble when to stop
 exit_criteria = {'gen_max': 501}
 
 np.random.seed(1)
@@ -76,6 +76,6 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     for m in minima:
         assert np.min(np.sum((H['x']-m)**2,1)) < tol
 
-    print("\nLibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
+    print("\nlibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
 
 

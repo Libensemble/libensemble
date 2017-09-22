@@ -12,7 +12,6 @@ from __future__ import absolute_import
 from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
-from math import gamma, sqrt, pi
 
 # Import libEnsemble main
 sys.path.append('../../src')
@@ -61,22 +60,17 @@ gen_out = [('x',float,n),
       ]
 
 gen_specs = {'gen_f': aposmm_logic,
-             'in': [o[0] for o in gen_out] + ['f_i', 'returned'],
+             'in': [o[0] for o in gen_out] + ['f_i','returned'],
              'out': gen_out,
              'params': {'lb': -2*np.ones(3),
                         'ub':  2*np.ones(3),
                         'initial_sample': 5, # All 214 residuals must be done
-                        # 'localopt_method': 'LN_BOBYQA',
                         'localopt_method': 'pounders',
                         'delta_0_mult': 0.5,
                         'grtol': 1e-4,
                         'gatol': 1e-4,
                         'frtol': 1e-15,
                         'fatol': 1e-15,
-                        'rk_const': ((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-                        'xtol_rel': 1e-3,
-                        'min_batch_size': 1,
-                        # 'min_batch_size': 20*len(allocation_specs['worker_ranks']),
                         'single_component_at_a_time': True,
                         'components': m,
                         'combine_component_func': sum_squares,
