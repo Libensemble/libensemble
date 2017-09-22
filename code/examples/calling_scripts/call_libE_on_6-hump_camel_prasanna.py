@@ -58,7 +58,7 @@ gen_specs = {'gen_f': uniform_random_sample_with_different_nodes_and_ranks,
              # 'save_every_k': 10
              }
 
-# Tell LibEnsemble when to stop
+# Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 10}
 
 np.random.seed(1)
@@ -83,6 +83,6 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     #     print(np.min(np.sum((H['x']-m)**2,1)))
     #     assert np.min(np.sum((H['x']-m)**2,1)) < tol 
 
-    #     print("\nLibEnsemble with APOSMM has identified the 6 minima within a tolerance " + str(tol))
+    #     print("\nlibEnsemble with APOSMM has identified the 6 minima within a tolerance " + str(tol))
 
 
