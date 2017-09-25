@@ -1,5 +1,5 @@
 ===========
-libensemble
+libEnsemble
 ===========
 
 .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
