@@ -1,10 +1,4 @@
 # """
-# Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. (You will need to run "make gkls_single" in libensemble/code/examples/sim_funcs/GKLS/GKLS_sim_src/
-# before running this script with 
-
-# mpiexec -np 4 python3 test_GKLS_aposmm.py
-
 # """
 
 from __future__ import division
@@ -20,9 +14,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from libE import libE
 
 # Import sim_func and declare directory to be copied by each worker to do its evaluations in 
-GKLS_dir_name='../../examples/sim_funcs/GKLS/GKLS_sim_src'
-sys.path.append(os.path.join(os.path.dirname(__file__), GKLS_dir_name))
-from GKLS_obj import call_GKLS as obj_func
+sim_dir_name='../../examples/sim_funcs/branin'
+sys.path.append(os.path.join(os.path.dirname(__file__), sim_dir_name))
+from branin_obj import call_branin as obj_func
 
 # Import gen_func 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
@@ -31,7 +25,7 @@ from aposmm_logic import aposmm_logic
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 ### Declare the run parameters/functions
-max_sim_budget = 600
+max_sim_budget = 200
 n = 2
 w = MPI.COMM_WORLD.Get_size()-1
 
@@ -43,8 +37,7 @@ sim_specs = {'sim_f': [obj_func], # This is the function whose output is being m
              'params': {'number_of_minima': 10, # These are parameters needed by the function being minimized.
                         'problem_dimension': 2,
                         'problem_number': 1,
-                        # 'sim_dir': './GKLS_sim_src'}, # to be copied by each worker 
-                        'sim_dir': GKLS_dir_name, # to be copied by each worker 
+                        'sim_dir': sim_dir_name, # to be copied by each worker 
                         }
              }
 
@@ -79,8 +72,8 @@ gen_out = [('x',float,n),
 gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in gen_out] + ['f', 'returned'],
              'out': gen_out,
-             'params': {'lb': np.array([0,0]),
-                        'ub': np.array([1,1]),
+             'params': {'lb': np.array([-5,0]),
+                        'ub': np.array([10,15]),
                         'initial_sample': 40,
                         'localopt_method': 'LN_BOBYQA',
                         'dist_to_bound_multiple': 0.99,
@@ -100,8 +93,6 @@ exit_criteria = {'sim_max': max_sim_budget,
 np.random.seed(1)
 # Perform the run
 
-# H0 = np.load('GKLS_results_after_evals=500_ranks=2.npy')
-# H0 = H0[['x','x_on_cube','f']][:50]
 if __name__ == "__main__":
     H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
@@ -111,14 +102,15 @@ if __name__ == "__main__":
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
         np.save(filename, H)
 
-        minima_and_func_val_file = os.path.join(GKLS_dir_name, 'which_seeds_are_feasible/known_minima_and_func_values_for_n=' + str(sim_specs['params']['problem_dimension']) + '_prob=' + str(sim_specs['params']['problem_number']) + '_min=' + str(sim_specs['params']['number_of_minima']))
+        minima_and_func_val_file = os.path.join(sim_dir_name, 'known_minima_and_func_values') 
 
         if os.path.isfile(minima_and_func_val_file):
             M = np.loadtxt(minima_and_func_val_file)
             M = M[M[:,-1].argsort()] # Sort by function values (last column)
-            k = 4
-            tol = 1e-7
+            k = 3
+            tol = 1e-5
             for i in range(k):
+                print(np.min(np.sum((H['x'][H['local_min']]-M[i,:n])**2,1)))
                 assert np.min(np.sum((H['x'][H['local_min']]-M[i,:n])**2,1)) < tol
 
             print("\nlibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
