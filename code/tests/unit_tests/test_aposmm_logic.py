@@ -39,7 +39,7 @@ def test_exception_raising():
 def test_decide_where_to_start_localopt():
     sys.path.append(os.path.join(os.path.dirname(__file__), '../regression_tests'))
 
-    from test_GKLS_aposmm import gen_out 
+    from test_branin_aposmm import gen_out 
     H = np.zeros(10,dtype=gen_out + [('f',float),('returned',bool)])
     H['x'] = np.random.uniform(0,1,(10,2))
     H['f'] = np.random.uniform(0,1,10)
