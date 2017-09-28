@@ -255,8 +255,8 @@ if [ "$root_found" = true ]; then
     cleanup
                
     #Build sim/gen dependencies
-    cd $ROOT_DIR/$GKLS_BUILD_DIR 
-    make gkls_single
+    #cd $ROOT_DIR/$GKLS_BUILD_DIR 
+    #make gkls_single
     #make gkls
         
     #Add further dependencies here .....

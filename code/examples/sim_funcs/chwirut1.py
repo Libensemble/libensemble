@@ -250,7 +250,11 @@ def libE_func_wrapper(H,sim_out,params,info):
 
     for i,x in enumerate(H['x']):
         if 'obj_component' in H.dtype.names:
-            O['f_i'][i] = EvaluateFunction(x)[H['obj_component'][i]]
+            if 'component_nan_frequency' in params and np.random.uniform(0,1)< params['component_nan_frequency']:
+                O['f_i'][i] = np.nan
+            else:
+                O['f_i'][i] = EvaluateFunction(x)[H['obj_component'][i]]
+
         else:
             O['fvec'][i] = EvaluateFunction(x)
             O['f'][i] = params['combine_component_func'](O['fvec'][i])
