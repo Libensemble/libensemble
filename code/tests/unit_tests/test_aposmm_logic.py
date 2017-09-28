@@ -57,6 +57,28 @@ def test_calc_rk():
     rk = al.calc_rk(2,10,1,10)
     assert np.isinf(rk)
 
+def test_queue_update_function():
 
+    gen_specs_0 = {}
+    gen_specs_0['params'] = {}
+    gen_specs_0['stop_on_NaNs'] = True
+    gen_specs_0['params']['combine_component_func'] = np.linalg.norm
+    H = np.zeros(10, dtype=[('f_i',float),('returned',bool),('pt_id',int),('sim_id',int),('paused',bool)])
+
+    H['sim_id'] = np.arange(0,10)
+    H['pt_id'] = np.sort(np.concatenate([np.arange(0,5),np.arange(0,5)]))
+
+    H['returned'][0:10:2] = 1 # All of the first components have been evaluated
+    H['returned'][1] = 1 
+
+    H['f_i'][4] = np.nan
+
+    H = al.queue_update_function(H, gen_specs_0)
+    assert np.all(H['paused'][4:6])
+
+    gen_specs_0['stop_partial_fvec_eval'] = True
+    H['f_i'][6:10:2] = 0.5
+    H = al.queue_update_function(H, gen_specs_0)
+    assert np.all(H['paused'][4:])
 
 # if __name__ == "__main__":

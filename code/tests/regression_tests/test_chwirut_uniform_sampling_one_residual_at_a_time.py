@@ -37,7 +37,7 @@ sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x', 'obj_component'],
              'out': [('f_i',float),
                      ],
-             'params': {}, 
+             'params': {'component_nan_frequency': 0.05}, 
              }
 
 gen_out = [('x',float,n),

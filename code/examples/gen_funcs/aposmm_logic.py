@@ -394,10 +394,10 @@ def set_up_and_run_tao(Run_H, params):
         F.array = look_in_history(X.array, Run_H, vector_return=True)
         return F
 
-    def blmvm_obj_func(tao, X, G, Run_H):
-        (f, grad) = look_in_history_fd_grad(X.array, Run_H)
-        G.array = grad
-        return f
+    # def blmvm_obj_func(tao, X, G, Run_H):
+    #     (f, grad) = look_in_history_fd_grad(X.array, Run_H)
+    #     G.array = grad
+    #     return f
 
     # Create starting point, bounds, and tao object
     x = PETSc.Vec().create(tao_comm)
@@ -411,21 +411,21 @@ def set_up_and_run_tao(Run_H, params):
     tao = PETSc.TAO().create(tao_comm)
     tao.setType(params['localopt_method'])
 
-    if params['localopt_method'] == 'pounders':
-        f = PETSc.Vec().create(tao_comm)
-        f.setSizes(m)
-        f.setFromOptions()
+    # if params['localopt_method'] == 'pounders':
+    f = PETSc.Vec().create(tao_comm)
+    f.setSizes(m)
+    f.setFromOptions()
 
-        delta_0 = params['delta_0_mult']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+    delta_0 = params['delta_0_mult']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
 
-        PETSc.Options().setValue('-tao_pounders_delta',str(delta_0))
-        PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
-        tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
-    elif params['localopt_method'] == 'blmvm':
-        g = PETSc.Vec().create(tao_comm)
-        g.setSizes(n)
-        g.setFromOptions()
-        tao.setObjectiveGradient(lambda tao, x, g: blmvm_obj_func(tao, x, g, Run_H))
+    PETSc.Options().setValue('-tao_pounders_delta',str(delta_0))
+    PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
+    tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
+    # elif params['localopt_method'] == 'blmvm':
+    #     g = PETSc.Vec().create(tao_comm)
+    #     g.setSizes(n)
+    #     g.setFromOptions()
+    #     tao.setObjectiveGradient(lambda tao, x, g: blmvm_obj_func(tao, x, g, Run_H))
 
     # Set everything for tao before solving
     PETSc.Options().setValue('-tao_max_funcs',str(total_pts_in_run+1))
@@ -444,10 +444,10 @@ def set_up_and_run_tao(Run_H, params):
     # print(tao.view())
     # print(x_opt)
 
-    if params['localopt_method'] == 'pounders':
-        f.destroy()
-    elif params['localopt_method'] == 'blmvm':
-        g.destroy()
+    # if params['localopt_method'] == 'pounders':
+    f.destroy()
+    # elif params['localopt_method'] == 'blmvm':
+    #     g.destroy()
 
     lb.destroy()
     ub.destroy()
@@ -727,18 +727,26 @@ def queue_update_function(H,gen_specs):
     # local_opt point).
     if 'stop_partial_fvec_eval' in gen_specs and gen_specs['stop_partial_fvec_eval']:
         pt_ids = np.unique(H['pt_id'])
-        complete_fvals_flag = np.array([all(H['returned'][H['pt_id']==i]) for i in pt_ids],dtype=bool)
+        complete_fvals_flag = np.array([np.all(H['returned'][H['pt_id']==i]) for i in pt_ids],dtype=bool)
 
-        if any(complete_fvals_flag) and len(pt_ids)>1:
-            fvals = np.array([gen_specs['params']['combine_component_func'](H['f_i'][H['pt_id']==i]) for i in pt_ids])
+        if np.any(complete_fvals_flag) and len(pt_ids)>1:
+            # Ensure combine_component_func calculates partial fevals correctly
+            # with H['f_i'] = 0 for non-returned point
+            possibly_partial_fvals = np.array([gen_specs['params']['combine_component_func'](H['f_i'][H['pt_id']==i]) for i in pt_ids])
 
-            if any(~np.isnan(fvals[complete_fvals_flag])):
-                worse_flag = fvals > np.nanmin(fvals[complete_fvals_flag])
+            best_complete = np.nanmin(possibly_partial_fvals[complete_fvals_flag])
 
-                # Pause incompete evaluations with worse_flag==True
-                pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
+            worse_flag = np.zeros(len(pt_ids),dtype=bool)
+            for i in range(len(pt_ids)):
+                if not np.isnan(possibly_partial_fvals[i]) and possibly_partial_fvals[i] > best_complete: 
+                    worse_flag[i] = True
 
-    H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = 1
+            # Pause incompete evaluations with worse_flag==True
+            pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
+
+    H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = True
+
+    return H 
 
 
 # if __name__ == "__main__":
