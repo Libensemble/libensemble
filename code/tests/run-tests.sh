@@ -11,7 +11,7 @@ export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
 export RUN_PEP_TESTS=false     #Code syle conventions
 
 # Regression test options
-#export REG_TEST_LIST='test_libE_on_GKLS_aposmm_1.py test_number2.py' #selected/ordered
+#export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
 export REG_TEST_LIST=test_*.py #unordered
 export REG_TEST_PROCESS_COUNT_LIST='2 4'
 export REG_USE_PYTEST=false
@@ -25,7 +25,7 @@ export LIBE_SRC_DIR=$CODE_DIR/src
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
-export GKLS_BUILD_DIR=$CODE_DIR/examples/sim_funcs/GKLS/GKLS_sim_src
+#export GKLS_BUILD_DIR=$CODE_DIR/examples/sim_funcs/GKLS/GKLS_sim_src
 
 #Coverage merge and report dir - will need the relevant .coveragerc file present
 #export COV_MERGE_DIR='' #root dir
@@ -255,8 +255,8 @@ if [ "$root_found" = true ]; then
     cleanup
                
     #Build sim/gen dependencies
-    cd $ROOT_DIR/$GKLS_BUILD_DIR 
-    make gkls_single
+    #cd $ROOT_DIR/$GKLS_BUILD_DIR 
+    #make gkls_single
     #make gkls
         
     #Add further dependencies here .....
