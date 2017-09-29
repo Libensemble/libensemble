@@ -14,7 +14,6 @@ from math import log, gamma, pi, sqrt
 from petsc4py import PETSc
 import nlopt
 
-# @profile
 def aposmm_logic(H,gen_out,params,info):
 
     """
@@ -133,8 +132,19 @@ def aposmm_logic(H,gen_out,params,info):
 
         add_points_to_O(O, x_new, len(H), params, c_flag)
 
-    O = np.append(H[[o[0] for o in gen_out]][np.array(list(updated_inds),dtype=int)],O)
+    # O = np.append(H[[o[0] for o in gen_out]][np.array(list(updated_inds),dtype=int)],O)
 
+    O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_out]],O)
+
+    # if len(updated_inds) == 0 :
+    #     return O
+    # elif len(O) == 0: 
+    #     return H(updated_inds)
+    # else: 
+    #     vec = np.array(list(updated_inds),dtype=int)
+    #     B = H[vec][[o[0] for o in gen_out]]
+    #     # B = H[[o[0] for o in gen_out]][vec]
+    #     O = np.append(B,O)
     return O
 
 def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds=[], run=[]):

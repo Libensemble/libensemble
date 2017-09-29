@@ -25,7 +25,7 @@ from aposmm_logic import aposmm_logic
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 ### Declare the run parameters/functions
-max_sim_budget = 200
+max_sim_budget = 150
 n = 2
 w = MPI.COMM_WORLD.Get_size()-1
 
@@ -74,7 +74,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'out': gen_out,
              'params': {'lb': np.array([-5,0]),
                         'ub': np.array([10,15]),
-                        'initial_sample': 40,
+                        'initial_sample': 20,
                         'localopt_method': 'LN_BOBYQA',
                         'dist_to_bound_multiple': 0.99,
                         'xtol_rel': 1e-3,
