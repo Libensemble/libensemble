@@ -56,8 +56,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'libensemble'
-copyright = '2017, Jeff Larson'
-author = 'Jeff Larson'
+copyright = '2017, Jeffrey Larson'
+author = 'Jeffrey Larson'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -157,7 +157,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'libensemble.tex', 'libensemble Documentation',
-     'Jeff Larson', 'manual'),
+     'Jeffrey Larson', 'manual'),
 ]
 
 
