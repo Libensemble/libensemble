@@ -3,7 +3,9 @@ python:
   - 2.7
   - 3.5
 
-cache: pip
+#cache: 
+#  pip: true
+#  apt: true
 
 # Setup Miniconda
 before_install:
@@ -16,6 +18,7 @@ before_install:
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
+  - export HYDRA_LAUNCHER=fork
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
@@ -26,14 +29,15 @@ before_install:
 # Currently mpi4py 2.0.0 fails with mpi_init error on some platforms - need dev version from source. 
 # Means installing dependencies sep. - including MPI lib.
 install:
-  - conda install --yes mpi4py
+  - pip install Cython #skip dodgy Cython version
+#  - conda install cython
+  - conda install --yes mpi4py #Get MPI library
+  - conda install --yes scipy
   - conda install --yes -c conda-forge petsc4py
   - conda install --yes -c conda-forge nlopt
+  - pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
   - conda install --yes pytest pytest-cov
   - conda install --yes -c conda-forge coveralls
-  - conda install --yes scipy 
-  - conda install --yes cython
-  - pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
 #  - python setup.py install
 
 # Run test
