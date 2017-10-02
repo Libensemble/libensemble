@@ -10,7 +10,7 @@ libEnsemble manager routines
 from __future__ import division
 from __future__ import absolute_import
 
-from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
+# from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from message_numbers import STOP_TAG # manager tells worker run is over
 
 from mpi4py import MPI
@@ -38,7 +38,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
         for w in Work:
-            send_to_worker(Work[w],w)
+            send_to_worker(comm, H, Work[w],w, sim_specs, gen_specs)
             active_w, idle_w = update_active_and_idle(active_w, idle_w, w, Work[w])
 
     H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs, status)
@@ -52,9 +52,29 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
-def send_to_worker(obj, dest):
-    import ipdb; ipdb.set_trace()
-    comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
+@profile
+def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
+    # import ipdb; ipdb.set_trace()
+    # names = obj.keys()
+
+    if obj['calc_info']['type']=='sim':
+        comm.Send(np.array(len(H),dtype=int), dest=w, tag=1)
+        comm.send(obj=H[obj['calc_rows']][sim_specs['in']], dest=w, tag=1)
+    else:
+        comm.Send(np.array(len(obj['calc_rows']),dtype=int), dest=w, tag=2)
+        comm.send(obj=H[gen_specs['in']].dtype, dest=w, tag=2)
+
+        if len(obj['calc_rows']):
+            # import ipdb; ipdb.set_trace()
+            # for i in sorted(H[gen_specs['in']].dtype.names):
+            for i in gen_specs['in']:
+                comm.send(obj=H[i][0].dtype,dest=w,tag=2)
+                comm.Send(H[i][obj['calc_rows']], dest=w, tag=2)
+
+
+    comm.send(obj=obj['calc_info'], dest=w)
+
+
 
 def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status):
 
@@ -140,12 +160,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
             else:
                 block_others = False
 
-            Work[i] = {'calc_f': sim_specs['sim_f'][0], 
-                       'calc_params': sim_specs['params'], 
-                       'form_subcomm': [], 
-                       # 'calc_in': H[sim_specs['in']][sim_ids_to_send],
-                       'calc_in': H[sim_ids_to_send][sim_specs['in']],
-                       'calc_out': sim_specs['out'],
+            Work[i] = {'calc_rows': sim_ids_to_send,
                        'calc_info': {'type':'sim', 'sim_id': sim_ids_to_send},
                       }
 
@@ -155,7 +170,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
                 Work[i]['calc_info']['blocking'] = set(workers_to_block)
 
-            update_history_x_out(H, sim_ids_to_send, Work[i]['calc_in'], i, sim_specs['params'])
+            update_history_x_out(H, sim_ids_to_send, i)
 
         else:
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
@@ -169,12 +184,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
             # Give gen work 
             gen_work += 1 
 
-            Work[i] = {'calc_f': gen_specs['gen_f'], 
-                       'calc_params': gen_specs['params'], 
-                       'form_subcomm': [], 
-                       # 'calc_in': H[gen_specs['in']][:H_ind],
-                       'calc_in': H[:H_ind][gen_specs['in']],
-                       'calc_out': gen_specs['out'],
+            Work[i] = {'calc_rows': range(0,H_ind),
                        'calc_info': {'type':'gen'},
                        }
 
@@ -270,7 +280,7 @@ def grow_H(H, k):
     return H
 
 
-def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
+def update_history_x_out(H, q_inds, lead_rank):
     """
     Updates the history (in place) when a new point has been given out to be evaluated
 
@@ -286,9 +296,9 @@ def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
         lead ranks for the evaluation of x 
     """
 
-    for i,j in zip(q_inds,range(len(W))):
-        for field in W.dtype.names:
-            H[field][i] = W[field][j]
+    for i,j in zip(q_inds,range(len(q_inds))):
+        # for field in W.dtype.names:
+        #     H[field][i] = W[field][j]
 
         H['given'][i] = True
         H['given_time'][i] = time.time()
