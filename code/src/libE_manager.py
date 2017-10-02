@@ -38,7 +38,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
         for w in Work:
-            comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
+            send_to_worker(Work[w],w)
             active_w, idle_w = update_active_and_idle(active_w, idle_w, w, Work[w])
 
     H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs, status)
@@ -52,6 +52,10 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
+def send_to_worker(obj, dest):
+    import ipdb; ipdb.set_trace()
+    comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
+
 def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status):
 
     new_stuff = True
