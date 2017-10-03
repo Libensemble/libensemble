@@ -34,6 +34,7 @@ def worker_main(c, sim_specs, gen_specs):
     status = MPI.Status()
 
     gen_in_dtype = comm.recv(buf=None, source=0)
+
     while 1:
         calc_in_len = np.empty(1,dtype=int)
         comm.Recv(calc_in_len,source=0,tag=MPI.ANY_TAG,status=status)
@@ -47,20 +48,17 @@ def worker_main(c, sim_specs, gen_specs):
             calc_in = np.zeros(calc_in_len,dtype=gen_in_dtype)
 
             if calc_in_len > 0: 
-                # import ipdb; ipdb.set_trace()
-                # for i in sorted(calc_in.dtype.names): 
                 for i in calc_in.dtype.names: 
                     d = comm.recv(buf=None, source=0)
                     data = np.empty(calc_in[i].shape, dtype=d)
                     comm.Recv(data,source=0)
                     calc_in[i] = data
 
-
         calc_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
 
         assert 'form_subcomm' not in calc_info or len(calc_info['form_subcomm'])==0, "Haven't implemented form_subcomm yet"
 
-        if 'sim_dir' in sim_specs['params']:
+        if 'sim_dir' in sim_specs['params'] and calc_tag == 1:
             saved_dir = os.getcwd()
             worker_dir = sim_specs['params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
 
@@ -77,7 +75,7 @@ def worker_main(c, sim_specs, gen_specs):
         else: 
             O = gen_specs['gen_f'](calc_in,gen_specs['out'],gen_specs['params'],calc_info)
 
-        if 'sim_dir' in calc_info:
+        if 'sim_dir' in sim_specs['params'] and calc_tag == 1:
             os.chdir(saved_dir)
 
         data_out = {'calc_out':O, 'calc_info': calc_info}
