@@ -52,7 +52,6 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
-@profile
 def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
     # import ipdb; ipdb.set_trace()
     # names = obj.keys()
@@ -135,20 +134,20 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
         if i in blocked_set:
             continue
 
-        q_inds = np.where(np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind]))[0]
+        q_inds_logical = np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind])
 
-        if len(q_inds):
+        if np.any(q_inds_logical):
             if 'priority' in H.dtype.fields:
                 if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
                     # Give all points with highest priority
-                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds_logical] == np.max(H['priority'][q_inds_logical]))[0] ]
                 else:
                     # Give first point with highest priority
-                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0][0] ]
+                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][np.argmax(H['priority'][:H_ind][q_inds_logical])]
 
             else:
                 # Give oldest point
-                sim_ids_to_send = np.min(q_inds)
+                sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
             # Only give work if enough idle workers
@@ -174,11 +173,11 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
 
         else:
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
-            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and np.any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
-                break
-
             # Limit number of gen instances if given
             if 'num_inst' in gen_specs and len(active_w['gen']) + gen_work >= gen_specs['num_inst']:
+                break
+
+            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and np.any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
                 break
 
             # Give gen work 
