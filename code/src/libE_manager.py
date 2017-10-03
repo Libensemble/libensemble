@@ -51,12 +51,12 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 # Manager subroutines
 ######################################################################
 def send_initial_info_to_workers(comm, H, gen_specs, idle_w):
-
     # Communicate the gen dtype to workers to save time on future
     # communications. (Must communicate this when workers are requesting
     # libE_fields that aren't in sim_specs['out'] or gen_specs['out'])
     for w in idle_w:
         comm.send(obj=H[gen_specs['in']].dtype, dest=w, tag=2)
+
 
 def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
 
@@ -75,7 +75,6 @@ def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
 
 
     comm.send(obj=obj['calc_info'], dest=w)
-
 
 
 def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs):
@@ -410,10 +409,8 @@ def initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
     start_time = time.time()
     term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
 
-
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
-
 
     return H, H_ind, term_test, idle_w, active_w
 
