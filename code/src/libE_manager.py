@@ -22,7 +22,9 @@ import copy
 def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
 
-    H, H_ind, term_test, idle_w, active_w = initialize(comm, sim_specs, gen_specs, allocation_specs, exit_criteria, H0)
+    H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0)
+
+    send_initial_info_to_workers(comm, H, gen_specs, idle_w)
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
@@ -48,6 +50,14 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
+def send_initial_info_to_workers(comm, H, gen_specs, idle_w):
+
+    # Communicate the gen dtype to workers to save time on future
+    # communications. (Must communicate this when workers are requesting
+    # libE_fields that aren't in sim_specs['out'] or gen_specs['out'])
+    for w in idle_w:
+        comm.send(obj=H[gen_specs['in']].dtype, dest=w, tag=2)
+
 def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
 
     if obj['calc_info']['type']=='sim':
@@ -133,7 +143,8 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
             if 'priority' in H.dtype.fields:
                 if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
                     # Give all points with highest priority
-                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds_logical] == np.max(H['priority'][q_inds_logical]))[0] ]
+                    q_inds = H['priority'][:H_ind][q_inds_logical] == np.max(H['priority'][:H_ind][q_inds_logical])
+                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][q_inds]
                 else:
                     # Give first point with highest priority
                     sim_ids_to_send = np.nonzero(q_inds_logical)[0][np.argmax(H['priority'][:H_ind][q_inds_logical])]
@@ -323,7 +334,7 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     return False
 
 
-def initialize(comm, sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
+def initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -403,12 +414,6 @@ def initialize(comm, sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
     idle_w = allocation_specs['worker_ranks'].copy()
     active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
 
-
-    # Communicate the gen and sim dtypes to workers to save time on future
-    # communications. (Must communicate this when workers are requesting
-    # libE_fields that aren't in sim_specs['out'] or gen_specs['out'])
-    for w in idle_w:
-        comm.send(obj=H[gen_specs['in']].dtype, dest=w, tag=2)
 
     return H, H_ind, term_test, idle_w, active_w
 

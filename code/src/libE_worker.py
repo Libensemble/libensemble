@@ -60,16 +60,16 @@ def worker_main(c, sim_specs, gen_specs):
 
         assert 'form_subcomm' not in calc_info or len(calc_info['form_subcomm'])==0, "Haven't implemented form_subcomm yet"
 
-        if 'sim_dir' in calc_info:
+        if 'sim_dir' in sim_specs['params']:
             saved_dir = os.getcwd()
-            worker_dir = sim_params['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
+            worker_dir = sim_specs['params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
 
-            if 'sim_dir_prefix' in sim_params:
-                worker_dir = os.path.join(os.path.expanduser(sim_params['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
+            if 'sim_dir_prefix' in sim_specs['params']:
+                worker_dir = os.path.join(os.path.expanduser(sim_specs['params']['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
 
             # assert ~os.path.isdir(worker_dir), "Worker directory already exists."
             if not os.path.exists(worker_dir):
-                shutil.copytree(D['calc_params']['sim_dir'], worker_dir)
+                shutil.copytree(sim_specs['params']['sim_dir'], worker_dir)
             os.chdir(worker_dir)
 
         if calc_tag == 1: 
