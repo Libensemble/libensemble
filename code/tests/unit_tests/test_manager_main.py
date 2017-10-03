@@ -75,7 +75,7 @@ def test_decide_work_and_resources():
 
     # Don't give out work when idle is empty
     active_w = set([1,2,3,4])
-    idle_w = {'normal':set(), 'persist_gen_w':set()}
+    idle_w = set()
     Work = man.decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
     assert len(Work) == 0 
     # 
