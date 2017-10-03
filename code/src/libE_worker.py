@@ -33,7 +33,7 @@ def worker_main(c, sim_specs, gen_specs):
     rank = comm.Get_rank()
     status = MPI.Status()
 
-
+    gen_in_dtype = comm.recv(buf=None, source=0)
     while 1:
         calc_in_len = np.empty(1,dtype=int)
         comm.Recv(calc_in_len,source=0,tag=MPI.ANY_TAG,status=status)
@@ -44,17 +44,16 @@ def worker_main(c, sim_specs, gen_specs):
         if calc_tag == 1:
             calc_in = comm.recv(buf=None, source=0)
         else:
-            dtype = comm.recv(buf=None, source=0)
-            calc_in = np.zeros(calc_in_len,dtype=dtype)
+            calc_in = np.zeros(calc_in_len,dtype=gen_in_dtype)
 
             if calc_in_len > 0: 
                 # import ipdb; ipdb.set_trace()
                 # for i in sorted(calc_in.dtype.names): 
                 for i in calc_in.dtype.names: 
-                   d = comm.recv(buf=None, source=0)
-                   data = np.empty(calc_in[i].shape, dtype=d)
-                   comm.Recv(data,source=0)
-                   calc_in[i] = data
+                    d = comm.recv(buf=None, source=0)
+                    data = np.empty(calc_in[i].shape, dtype=d)
+                    comm.Recv(data,source=0)
+                    calc_in[i] = data
 
 
         calc_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
