@@ -12,7 +12,7 @@ import os, shutil
 
 from message_numbers import STOP_TAG # manager tells worker to stop
 
-def worker_main(c):
+def worker_main(c, sim_specs, gen_specs):
     """ 
     Evaluate calculations given to it by the manager 
 
@@ -33,31 +33,52 @@ def worker_main(c):
     rank = comm.Get_rank()
     status = MPI.Status()
 
+    gen_in_dtype = comm.recv(buf=None, source=0)
+
     while 1:
-        D = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        calc_in_len = np.empty(1,dtype=int)
+        comm.Recv(calc_in_len,source=0,tag=MPI.ANY_TAG,status=status)
 
-        if status.Get_tag() == STOP_TAG: break
+        calc_tag = status.Get_tag()
+        if calc_tag == STOP_TAG: break
 
-        assert len(D['form_subcomm'])==0, "Haven't implemented form_subcomm yet"
+        if calc_tag == 1:
+            calc_in = comm.recv(buf=None, source=0)
+        else:
+            calc_in = np.zeros(calc_in_len,dtype=gen_in_dtype)
 
-        if 'sim_dir' in D['calc_params']:
+            if calc_in_len > 0: 
+                for i in calc_in.dtype.names: 
+                    d = comm.recv(buf=None, source=0)
+                    data = np.empty(calc_in[i].shape, dtype=d)
+                    comm.Recv(data,source=0)
+                    calc_in[i] = data
+
+        calc_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+
+        assert 'form_subcomm' not in calc_info or len(calc_info['form_subcomm'])==0, "Haven't implemented form_subcomm yet"
+
+        if 'sim_dir' in sim_specs['params'] and calc_tag == 1:
             saved_dir = os.getcwd()
-            worker_dir = D['calc_params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
+            worker_dir = sim_specs['params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
 
-            if 'sim_dir_prefix' in D['calc_params']:
-                worker_dir = os.path.join(os.path.expanduser(D['calc_params']['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
+            if 'sim_dir_prefix' in sim_specs['params']:
+                worker_dir = os.path.join(os.path.expanduser(sim_specs['params']['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
 
             # assert ~os.path.isdir(worker_dir), "Worker directory already exists."
             if not os.path.exists(worker_dir):
-                shutil.copytree(D['calc_params']['sim_dir'], worker_dir)
+                shutil.copytree(sim_specs['params']['sim_dir'], worker_dir)
             os.chdir(worker_dir)
 
-        O = D['calc_f'](D['calc_in'],D['calc_out'],D['calc_params'],D['calc_info'])
+        if calc_tag == 1: 
+            O = sim_specs['sim_f'][0](calc_in,sim_specs['out'],sim_specs['params'],calc_info)
+        else: 
+            O = gen_specs['gen_f'](calc_in,gen_specs['out'],gen_specs['params'],calc_info)
 
-        if 'sim_dir' in D['calc_params']:
+        if 'sim_dir' in sim_specs['params'] and calc_tag == 1:
             os.chdir(saved_dir)
 
-        data_out = {'calc_out':O, 'calc_info': D['calc_info']}
+        data_out = {'calc_out':O, 'calc_info': calc_info}
         
         comm.send(obj=data_out, dest=0) 
 

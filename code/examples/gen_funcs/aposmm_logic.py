@@ -723,7 +723,12 @@ def initialize_APOSMM(H, gen_out, params):
     return n, n_s, c_flag, O, rk_c, ld
 
 
-def queue_update_function(H,gen_specs):
+def queue_update_function(H, gen_specs, persistent_data):
+
+    if len(persistent_data) == 0:
+        persistent_data['complete'] = set() 
+        persistent_data['has_nan'] = set() 
+        persistent_data['already_paused'] = set() 
 
     pt_ids_to_pause = set()
 
@@ -737,7 +742,22 @@ def queue_update_function(H,gen_specs):
     # local_opt point).
     if 'stop_partial_fvec_eval' in gen_specs and gen_specs['stop_partial_fvec_eval']:
         pt_ids = np.unique(H['pt_id'])
-        complete_fvals_flag = np.array([np.all(H['returned'][H['pt_id']==i]) for i in pt_ids],dtype=bool)
+
+        complete_fvals_flag = np.zeros(len(pt_ids),dtype=bool)
+        for i,pt_id in enumerate(pt_ids):
+            if pt_id in persistent_data['has_nan']:
+                continue 
+
+            a1 = H['pt_id']==pt_id
+            if np.any(np.isnan(H['f_i'][a1])):
+                persistent_data['has_nan'].add(pt_id)
+                continue
+
+            if np.all(H['returned'][a1]):
+                complete_fvals_flag[i] = True
+                persistent_data['complete'].add(pt_id)
+
+        # complete_fvals_flag = np.array([np.all(H['returned'][H['pt_id']==i]) for i in pt_ids],dtype=bool)
 
         if np.any(complete_fvals_flag) and len(pt_ids)>1:
             # Ensure combine_component_func calculates partial fevals correctly
@@ -754,9 +774,11 @@ def queue_update_function(H,gen_specs):
             # Pause incompete evaluations with worse_flag==True
             pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
 
-    H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = True
+    if not pt_ids_to_pause.issubset(persistent_data['already_paused']):
+        persistent_data['already_paused'].update(pt_ids_to_pause)
+        H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = True
 
-    return H 
+    return H, persistent_data
 
 
 # if __name__ == "__main__":

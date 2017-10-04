@@ -10,7 +10,7 @@ libEnsemble manager routines
 from __future__ import division
 from __future__ import absolute_import
 
-from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
+# from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from message_numbers import STOP_TAG # manager tells worker run is over
 
 from mpi4py import MPI
@@ -22,26 +22,25 @@ import copy
 def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
 
-    H, H_ind, term_test = initialize(sim_specs, gen_specs, exit_criteria, H0)
+    H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0)
+    persistent_data = {}
 
-    idle_w = allocation_specs['worker_ranks'].copy()
-    active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
-    status = MPI.Status()
+    send_initial_info_to_workers(comm, H, gen_specs, idle_w)
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status)
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
-        update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs)
+        persistent_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_data)
 
         Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
         for w in Work:
-            comm.send(obj=Work[w], dest=w, tag=EVAL_TAG)
-            active_w, idle_w = update_active_and_idle(active_w, idle_w, w, Work[w])
+            send_to_worker(comm, H, Work[w],w, sim_specs, gen_specs)
+            active_w, idle_w = update_active_and_idle_after_sending_work(active_w, idle_w, w, Work[w])
 
-    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs, status)
+    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs)
 
     return H, exit_flag
 
@@ -52,16 +51,41 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
-def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status):
+def send_initial_info_to_workers(comm, H, gen_specs, idle_w):
+    # Communicate the gen dtype to workers to save time on future
+    # communications. (Must communicate this when workers are requesting
+    # libE_fields that aren't in sim_specs['out'] or gen_specs['out'])
+    for w in idle_w:
+        comm.send(obj=H[gen_specs['in']].dtype, dest=w, tag=2)
+
+
+def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
+
+    if obj['calc_info']['type']=='sim':
+        comm.Send(np.array(len(H),dtype=int), dest=w, tag=1)
+        comm.send(obj=H[obj['calc_rows']][sim_specs['in']], dest=w, tag=1)
+    else:
+        comm.Send(np.array(len(obj['calc_rows']),dtype=int), dest=w, tag=2)
+
+        if len(obj['calc_rows']):
+            for i in gen_specs['in']:
+                comm.send(obj=H[i][0].dtype,dest=w,tag=2)
+                comm.Send(H[i][obj['calc_rows']], dest=w, tag=2)
+
+
+    comm.send(obj=obj['calc_info'], dest=w)
+
+
+def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs):
 
     new_stuff = True
     while new_stuff:
         new_stuff = False
-        for w in active_w['sim'] | active_w['gen']: 
+        for w in active_w['sim'].copy() | active_w['gen'].copy(): 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG):
-                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                idle_w.add(status.Get_source())
-                active_w[D_recv['calc_info']['type']].remove(status.Get_source())
+                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG)
+                idle_w.add(w)
+                active_w[D_recv['calc_info']['type']].remove(w) 
                 new_stuff = True
 
                 assert D_recv['calc_info']['type'] in ['sim','gen'], 'Unknown calculation type received. Exiting'
@@ -111,20 +135,21 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
         if i in blocked_set:
             continue
 
-        q_inds = np.where(np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind]))[0]
+        q_inds_logical = np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind])
 
-        if len(q_inds):
+        if np.any(q_inds_logical):
             if 'priority' in H.dtype.fields:
                 if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
                     # Give all points with highest priority
-                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0] ]
+                    q_inds = H['priority'][:H_ind][q_inds_logical] == np.max(H['priority'][:H_ind][q_inds_logical])
+                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][q_inds]
                 else:
                     # Give first point with highest priority
-                    sim_ids_to_send = q_inds[ np.where(H['priority'][q_inds] == max(H['priority'][q_inds]))[0][0] ]
+                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][np.argmax(H['priority'][:H_ind][q_inds_logical])]
 
             else:
                 # Give oldest point
-                sim_ids_to_send = np.min(q_inds)
+                sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
             # Only give work if enough idle workers
@@ -136,12 +161,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
             else:
                 block_others = False
 
-            Work[i] = {'calc_f': sim_specs['sim_f'][0], 
-                       'calc_params': sim_specs['params'], 
-                       'form_subcomm': [], 
-                       # 'calc_in': H[sim_specs['in']][sim_ids_to_send],
-                       'calc_in': H[sim_ids_to_send][sim_specs['in']],
-                       'calc_out': sim_specs['out'],
+            Work[i] = {'calc_rows': sim_ids_to_send,
                        'calc_info': {'type':'sim', 'sim_id': sim_ids_to_send},
                       }
 
@@ -151,26 +171,21 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
                 Work[i]['calc_info']['blocking'] = set(workers_to_block)
 
-            update_history_x_out(H, sim_ids_to_send, Work[i]['calc_in'], i, sim_specs['params'])
+            update_history_x_out(H, sim_ids_to_send, i)
 
         else:
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
-            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and np.any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
-                break
-
             # Limit number of gen instances if given
             if 'num_inst' in gen_specs and len(active_w['gen']) + gen_work >= gen_specs['num_inst']:
+                break
+
+            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and np.any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
                 break
 
             # Give gen work 
             gen_work += 1 
 
-            Work[i] = {'calc_f': gen_specs['gen_f'], 
-                       'calc_params': gen_specs['params'], 
-                       'form_subcomm': [], 
-                       # 'calc_in': H[gen_specs['in']][:H_ind],
-                       'calc_in': H[:H_ind][gen_specs['in']],
-                       'calc_out': gen_specs['out'],
+            Work[i] = {'calc_rows': range(0,H_ind),
                        'calc_info': {'type':'gen'},
                        }
 
@@ -178,7 +193,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
     return Work
 
 
-def update_active_and_queue(active_w, idle_w, H, gen_specs):
+def update_active_and_queue(active_w, idle_w, H, gen_specs, persistent_data):
     """ Decide if active work should be continued and the queue order
 
     Parameters
@@ -187,9 +202,9 @@ def update_active_and_queue(active_w, idle_w, H, gen_specs):
         History array storing rows for each point.
     """
     if 'queue_update_function' in gen_specs:
-        gen_specs['queue_update_function'](H,gen_specs)
+        H, persistent_data = gen_specs['queue_update_function'](H,gen_specs, persistent_data)
     
-    return
+    return persistent_data
 
 
 def update_history_f(H, D): 
@@ -266,7 +281,7 @@ def grow_H(H, k):
     return H
 
 
-def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
+def update_history_x_out(H, q_inds, lead_rank):
     """
     Updates the history (in place) when a new point has been given out to be evaluated
 
@@ -282,9 +297,9 @@ def update_history_x_out(H, q_inds, W, lead_rank, sim_f_params):
         lead ranks for the evaluation of x 
     """
 
-    for i,j in zip(q_inds,range(len(W))):
-        for field in W.dtype.names:
-            H[field][i] = W[field][j]
+    for i,j in zip(q_inds,range(len(q_inds))):
+        # for field in W.dtype.names:
+        #     H[field][i] = W[field][j]
 
         H['given'][i] = True
         H['given_time'][i] = time.time()
@@ -317,7 +332,7 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     return False
 
 
-def initialize(sim_specs, gen_specs, exit_criteria, H0):
+def initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -393,9 +408,12 @@ def initialize(sim_specs, gen_specs, exit_criteria, H0):
     start_time = time.time()
     term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
 
-    return (H, H_ind, term_test)
+    idle_w = allocation_specs['worker_ranks'].copy()
+    active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
 
-def update_active_and_idle(active_w, idle_w, w, Work):
+    return H, H_ind, term_test, idle_w, active_w
+
+def update_active_and_idle_after_sending_work(active_w, idle_w, w, Work):
 
     active_w[Work['calc_info']['type']].add(w)
     idle_w.remove(w)
@@ -406,7 +424,7 @@ def update_active_and_idle(active_w, idle_w, w, Work):
 
     return active_w, idle_w
 
-def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs, status):
+def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs):
     """ 
     Tries to receive from any active workers. 
 
@@ -419,7 +437,7 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
 
     ### Receive from all active workers 
     while len(active_w['sim'] | active_w['gen']):
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, status)
+        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
         if term_test(H, H_ind) == 2 and len(active_w['sim'] | active_w['gen']):
             for w in active_w['sim'] | active_w['gen']:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)

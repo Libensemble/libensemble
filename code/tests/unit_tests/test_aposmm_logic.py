@@ -9,9 +9,11 @@ import libE_manager as man
 
 from test_manager_main import make_criteria_and_specs_0
 
+alloc = {'worker_ranks':set([1,2]),'persist_gen_ranks':set([])}
+
 def test_failing_localopt_method():
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
-    H, H_ind, term_test = man.initialize(sim_specs_0, gen_specs_0, exit_criteria_0,[]) 
+    H, H_ind, term_test, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
 
     gen_specs_0['params']['localopt_method'] = 'BADNAME'
     
@@ -25,7 +27,7 @@ def test_failing_localopt_method():
 
 def test_exception_raising():
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
-    H, H_ind, term_test = man.initialize(sim_specs_0, gen_specs_0, exit_criteria_0,[]) 
+    H, H_ind, term_test, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
 
     for method in ['LN_SBPLX','pounders']:
         gen_specs_0['params']['localopt_method'] = method
@@ -73,12 +75,12 @@ def test_queue_update_function():
 
     H['f_i'][4] = np.nan
 
-    H = al.queue_update_function(H, gen_specs_0)
+    H,_ = al.queue_update_function(H, gen_specs_0,{})
     assert np.all(H['paused'][4:6])
 
     gen_specs_0['stop_partial_fvec_eval'] = True
     H['f_i'][6:10:2] = 0.5
-    H = al.queue_update_function(H, gen_specs_0)
+    H,_ = al.queue_update_function(H, gen_specs_0,{})
     assert np.all(H['paused'][4:])
 
 # if __name__ == "__main__":
