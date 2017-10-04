@@ -51,7 +51,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         # if exit_flag == 0:
         #     comm.Barrier()
     elif comm.Get_rank() in allocation_specs['worker_ranks']:
-        worker_main(c); H = []; exit_flag = []
+        worker_main(c, sim_specs, gen_specs); H = []; exit_flag = []
         # comm.Barrier()
     else:
         print("Rank: %d not manager or worker" % comm.Get_rank()); H = []; exit_flag = []
