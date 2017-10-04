@@ -23,6 +23,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
 
     H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0)
+    persistent_data = {}
 
     send_initial_info_to_workers(comm, H, gen_specs, idle_w)
 
@@ -31,7 +32,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
-        update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs)
+        persistent_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_data)
 
         Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
@@ -67,8 +68,6 @@ def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
         comm.Send(np.array(len(obj['calc_rows']),dtype=int), dest=w, tag=2)
 
         if len(obj['calc_rows']):
-            # import ipdb; ipdb.set_trace()
-            # for i in sorted(H[gen_specs['in']].dtype.names):
             for i in gen_specs['in']:
                 comm.send(obj=H[i][0].dtype,dest=w,tag=2)
                 comm.Send(H[i][obj['calc_rows']], dest=w, tag=2)
@@ -194,7 +193,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
     return Work
 
 
-def update_active_and_queue(active_w, idle_w, H, gen_specs):
+def update_active_and_queue(active_w, idle_w, H, gen_specs, persistent_data):
     """ Decide if active work should be continued and the queue order
 
     Parameters
@@ -203,9 +202,9 @@ def update_active_and_queue(active_w, idle_w, H, gen_specs):
         History array storing rows for each point.
     """
     if 'queue_update_function' in gen_specs:
-        gen_specs['queue_update_function'](H,gen_specs)
+        H, persistent_data = gen_specs['queue_update_function'](H,gen_specs, persistent_data)
     
-    return
+    return persistent_data
 
 
 def update_history_f(H, D): 

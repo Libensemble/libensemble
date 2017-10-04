@@ -75,12 +75,12 @@ def test_queue_update_function():
 
     H['f_i'][4] = np.nan
 
-    H = al.queue_update_function(H, gen_specs_0)
+    H,_ = al.queue_update_function(H, gen_specs_0,{})
     assert np.all(H['paused'][4:6])
 
     gen_specs_0['stop_partial_fvec_eval'] = True
     H['f_i'][6:10:2] = 0.5
-    H = al.queue_update_function(H, gen_specs_0)
+    H,_ = al.queue_update_function(H, gen_specs_0,{})
     assert np.all(H['paused'][4:])
 
 # if __name__ == "__main__":
