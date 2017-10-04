@@ -6,6 +6,7 @@ import numpy as np
 import subprocess
 import os
 import time
+from branin import branin
 
 # @profile
 def call_branin(H,sim_out,obj_params,info):
@@ -16,11 +17,13 @@ def call_branin(H,sim_out,obj_params,info):
     O = np.zeros(batch,dtype=sim_out)
 
     for i,x in enumerate(H['x']):
-        devnull = open(os.devnull, 'w')
-        np.savetxt('./x.in', x, fmt='%16.16f', delimiter=' ', newline=" ")
-        p = subprocess.call(['python', 'branin.py'], cwd='./', stdout=devnull)
+        # Uncomment the following if you want to use the file system to do evaluations
+        # devnull = open(os.devnull, 'w')
+        # np.savetxt('./x.in', x, fmt='%16.16f', delimiter=' ', newline=" ")
+        # p = subprocess.call(['python', 'branin.py'], cwd='./', stdout=devnull)
+        # O['f'][i] = np.loadtxt('./f.out',dtype=float)
 
-        O['f'][i] = np.loadtxt('./f.out',dtype=float)
+        O['f'][i] = branin(x[0],x[1])
 
         if 'uniform_random_pause_ub' in obj_params: 
             time.sleep(obj_params['uniform_random_pause_ub']*np.random.uniform())
