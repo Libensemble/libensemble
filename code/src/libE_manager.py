@@ -23,7 +23,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
 
     H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0)
-    persistent_data = {}
+    persistent_queue_data = {}
 
     send_initial_info_to_workers(comm, H, gen_specs, idle_w)
 
@@ -32,7 +32,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
-        persistent_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_data)
+        persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_data)
 
         Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
@@ -193,7 +193,7 @@ def decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, 
     return Work
 
 
-def update_active_and_queue(active_w, idle_w, H, gen_specs, persistent_data):
+def update_active_and_queue(active_w, idle_w, H, gen_specs, data):
     """ Decide if active work should be continued and the queue order
 
     Parameters
@@ -202,9 +202,9 @@ def update_active_and_queue(active_w, idle_w, H, gen_specs, persistent_data):
         History array storing rows for each point.
     """
     if 'queue_update_function' in gen_specs:
-        H, persistent_data = gen_specs['queue_update_function'](H,gen_specs, persistent_data)
+        H, data = gen_specs['queue_update_function'](H,gen_specs, data)
     
-    return persistent_data
+    return data
 
 
 def update_history_f(H, D): 
