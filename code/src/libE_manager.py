@@ -25,14 +25,14 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
     H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0)
     persistent_queue_data = {}
 
-    send_initial_info_to_workers(comm, H, gen_specs, idle_w)
+    send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w)
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
         H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
 
-        persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_data)
+        persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_queue_data)
 
         Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
@@ -51,19 +51,23 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 ######################################################################
 # Manager subroutines
 ######################################################################
-def send_initial_info_to_workers(comm, H, gen_specs, idle_w):
+def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w):
     # Communicate the gen dtype to workers to save time on future
     # communications. (Must communicate this when workers are requesting
     # libE_fields that aren't in sim_specs['out'] or gen_specs['out'])
     for w in idle_w:
-        comm.send(obj=H[gen_specs['in']].dtype, dest=w, tag=2)
+        comm.send(obj=H[sim_specs['in']].dtype, dest=w)
+        comm.send(obj=H[gen_specs['in']].dtype, dest=w)
 
 
 def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
 
     if obj['calc_info']['type']=='sim':
-        comm.Send(np.array(len(H),dtype=int), dest=w, tag=1)
-        comm.send(obj=H[obj['calc_rows']][sim_specs['in']], dest=w, tag=1)
+        comm.Send(np.array(len(H[obj['calc_rows']]),dtype=int), dest=w, tag=1)
+        if len(obj['calc_rows']):
+            for i in sim_specs['in']:
+                comm.send(obj=H[i][0].dtype,dest=w,tag=2)
+                comm.Send(H[i][obj['calc_rows']], dest=w, tag=2)
     else:
         comm.Send(np.array(len(obj['calc_rows']),dtype=int), dest=w, tag=2)
 
