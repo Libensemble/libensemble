@@ -11,6 +11,8 @@ from __future__ import division
 from __future__ import absolute_import
 
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
+from message_numbers import EVAL_SIM_TAG 
+from message_numbers import EVAL_GEN_TAG 
 from message_numbers import STOP_TAG # manager tells worker run is over
 
 from mpi4py import MPI
@@ -63,18 +65,18 @@ def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w):
 def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
 
     if obj['calc_info']['type']=='sim':
-        comm.Send(np.array(len(H[obj['calc_rows']]),dtype=int), dest=w, tag=1)
+        comm.Send(np.array(len(H[obj['calc_rows']]),dtype=int), dest=w, tag=EVAL_SIM_TAG)
         if len(obj['calc_rows']):
             for i in sim_specs['in']:
-                comm.send(obj=H[i][0].dtype,dest=w,tag=2)
-                comm.Send(H[i][obj['calc_rows']], dest=w, tag=2)
+                comm.send(obj=H[i][0].dtype,dest=w)
+                comm.Send(H[i][obj['calc_rows']], dest=w)
     else:
-        comm.Send(np.array(len(obj['calc_rows']),dtype=int), dest=w, tag=2)
+        comm.Send(np.array(len(obj['calc_rows']),dtype=int), dest=w, tag=EVAL_GEN_TAG)
 
         if len(obj['calc_rows']):
             for i in gen_specs['in']:
-                comm.send(obj=H[i][0].dtype,dest=w,tag=2)
-                comm.Send(H[i][obj['calc_rows']], dest=w, tag=2)
+                comm.send(obj=H[i][0].dtype,dest=w)
+                comm.Send(H[i][obj['calc_rows']], dest=w)
 
 
     comm.send(obj=obj['calc_info'], dest=w)
