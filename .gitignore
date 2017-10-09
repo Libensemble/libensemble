@@ -5,3 +5,4 @@ libensemble_applications/
 cov_*
 .cov_*
 code/tests/regression_tests/output/
+.cache
