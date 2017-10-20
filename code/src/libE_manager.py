@@ -399,8 +399,9 @@ def initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
             assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"
             assert np.all(np.array(H[field].shape) >= np.array(H0[field].shape)), "H is not large enough to receive all of the components of H0 in field: " + field + ". Exiting"
 
-            for ind, val in np.ndenumerate(H0[field]): # Works if H0[field] has arbitrary dimension
-                H[field][ind] = val
+            H[field][:len(H0)] = H0[field]
+            # for ind, val in np.ndenumerate(H0[field]): # Works if H0[field] has arbitrary dimension but is slow
+            #     H[field][ind] = val
 
     # Prepend H with H0 
     H['sim_id'][:len(H0)] = np.arange(0,len(H0))
