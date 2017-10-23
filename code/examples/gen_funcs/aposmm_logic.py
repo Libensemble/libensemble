@@ -58,6 +58,7 @@ def aposmm_logic(H,gen_out,params,info):
     exit_code:        0 if a new localopt point has been found, otherwise it's the NLopt/POUNDERS code 
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
+
     n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H, gen_out, params)
 
     # np.savez('H'+str(len(H)),H=H,gen_out=gen_out,params=params)
@@ -234,8 +235,6 @@ def update_history_dist(H, params, c_flag):
 
     # Loop over new returned points and update their distances
     for new_ind in new_inds:
-        if new_ind > 300:
-            sys.exit('a')
         if p[new_ind]:
             # Compute distance to boundary
             H['dist_to_unit_bounds'][new_ind] = min(min(np.ones(n) - H['x_on_cube'][new_ind]),min(H['x_on_cube'][new_ind] - np.zeros(n)))
