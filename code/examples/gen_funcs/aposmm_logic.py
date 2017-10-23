@@ -58,8 +58,6 @@ def aposmm_logic(H,gen_out,params,info):
     exit_code:        0 if a new localopt point has been found, otherwise it's the NLopt/POUNDERS code 
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
-    import ipdb; ipdb.set_trace() 
-
     n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H, gen_out, params)
 
     # np.savez('H'+str(len(H)),H=H,gen_out=gen_out,params=params)
