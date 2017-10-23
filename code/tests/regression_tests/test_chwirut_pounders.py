@@ -73,7 +73,7 @@ gen_specs = {'gen_f': aposmm_logic,
                         'components': m,
                         },
               'num_inst': 1,
-              'batch_mode': False,
+              'batch_mode': True,
               'queue_update_function': queue_update_function 
              }
 
