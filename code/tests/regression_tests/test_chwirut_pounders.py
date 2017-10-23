@@ -30,7 +30,7 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 1
+max_sim_budget = 10
 
 sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x'],
@@ -63,7 +63,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'out': gen_out,
              'params': {'lb': -2*np.ones(3),
                         'ub':  2*np.ones(3),
-                        'initial_sample': 0, # All 214 residuals must be done
+                        'initial_sample': max_sim_budget, # All 214 residuals must be done
                         'localopt_method': 'pounders',
                         'delta_0_mult': 0.5,
                         'grtol': 1e-4,
@@ -82,8 +82,8 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
 
 np.random.seed(1)
 # Perform the run
-H0 = np.load('chwirut_pounders_results_after_evals=100000_ranks=4.npy')
-H, flag = libE(sim_specs, gen_specs, exit_criteria, H0=H0)
+# H0 = np.load('chwirut_pounders_results_after_evals=100000_ranks=4.npy')
+H, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert len(H) >= max_sim_budget
