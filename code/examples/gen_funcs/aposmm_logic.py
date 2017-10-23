@@ -255,18 +255,22 @@ def update_history_dist(H, params, c_flag):
                 H['ind_of_better_s'][updates] = new_ind
             updated_inds.update(updates)
 
-            # If we allow equality, have to prevent new_ind from being its own "better point"
-            better_than_new_l = np.logical_and.reduce((H['f'][new_ind] >= H['f'][p],  H['local_pt'][p], H['sim_id'][p] != new_ind))
-            better_than_new_s = np.logical_and.reduce((H['f'][new_ind] >= H['f'][p], ~H['local_pt'][p], H['sim_id'][p] != new_ind))
+            # Since we allow equality when deciding better_than_new_l and
+            # better_than_new_s, we have to prevent new_ind from being its own
+            # better point.
+            better_than_new_l = np.logical_and.reduce((~new_better_than,  H['local_pt'][p], H['sim_id'][p] != new_ind))
+            better_than_new_s = np.logical_and.reduce((~new_better_than, ~H['local_pt'][p], H['sim_id'][p] != new_ind))
 
             # Who is closest to ind and better 
             if np.any(better_than_new_l):
-                H['dist_to_better_l'][new_ind] = dist_to_all[better_than_new_l].min()
-                H['ind_of_better_l'][new_ind] = H['sim_id'][p][np.ix_(better_than_new_l)[0][dist_to_all[better_than_new_l].argmin()]]
+                ind = dist_to_all[better_than_new_l].argmin()
+                H['ind_of_better_l'][new_ind] = H['sim_id'][p][np.nonzero(better_than_new_l)[0][ind]]
+                H['dist_to_better_l'][new_ind] = dist_to_all[better_than_new_l][ind]
 
             if np.any(better_than_new_s):
-                H['dist_to_better_s'][new_ind] = dist_to_all[better_than_new_s].min()
-                H['ind_of_better_s'][new_ind] = H['sim_id'][p][np.ix_(better_than_new_s)[0][dist_to_all[better_than_new_s].argmin()]]
+                ind = dist_to_all[better_than_new_s].argmin()
+                H['ind_of_better_s'][new_ind] = H['sim_id'][p][np.nonzero(better_than_new_s)[0][ind]]
+                H['dist_to_better_s'][new_ind] = dist_to_all[better_than_new_s][ind]
 
             # if not ignore_L8:
             #     r_k = calc_rk(len(H['x_on_cube'][0]), n_s, rk_const, lhs_divisions)
