@@ -30,7 +30,7 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 10
+max_sim_budget = 1
 
 sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x'],
@@ -44,7 +44,7 @@ gen_out = [('x',float,n),
       ('x_on_cube',float,n),
       ('sim_id',int),
       ('priority',float),
-      ('iter_plus_1_in_run_id',int,max_sim_budget),
+      ('iter_plus_1_in_run_id',int,1),
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
