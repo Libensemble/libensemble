@@ -13,7 +13,7 @@ alloc = {'worker_ranks':set([1,2]),'persist_gen_ranks':set([])}
 
 def test_failing_localopt_method():
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
-    H, H_ind, term_test, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
+    H, _, _, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
 
     gen_specs_0['params']['localopt_method'] = 'BADNAME'
     
@@ -27,7 +27,7 @@ def test_failing_localopt_method():
 
 def test_exception_raising():
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
-    H, H_ind, term_test, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
+    H, _, _, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
 
     for method in ['LN_SBPLX','pounders']:
         gen_specs_0['params']['localopt_method'] = method

@@ -21,28 +21,27 @@ import numpy as np
 import time, sys, os
 import copy
 
-def manager_main(comm, alloc_specs, sim_specs, gen_specs,
-        failure_processing, exit_criteria, H0):
+def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
 
-    H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
+    H, Hs_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
     persistent_queue_data = {}
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w)
 
     ### Continue receiving and giving until termination test is satisfied
-    while not term_test(H, H_ind):
+    while not term_test(H, Hs_ind):
 
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        H, Hs_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, Hs_ind, sim_specs, gen_specs)
 
-        persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_queue_data)
+        persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:Hs_ind], gen_specs, persistent_queue_data)
 
-        Work = alloc_specs['alloc_f'](active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
+        Work = alloc_specs['alloc_f'](active_w, idle_w, H, Hs_ind, sim_specs, gen_specs, term_test)
 
         for w in Work:
             send_to_worker(comm, H, Work[w],w, sim_specs, gen_specs)
             active_w, idle_w = update_active_and_idle_after_sending_work(active_w, idle_w, w, Work[w])
 
-    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs)
+    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, Hs_ind, sim_specs, gen_specs, term_test, alloc_specs)
 
     return H, exit_flag
 
@@ -78,11 +77,10 @@ def send_to_worker(comm, H, obj, w, sim_specs, gen_specs):
                 comm.send(obj=H[i][0].dtype,dest=w)
                 comm.Send(H[i][obj['calc_rows']], dest=w)
 
-
     comm.send(obj=obj['calc_info'], dest=w)
 
 
-def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs):
+def receive_from_sim_and_gen(comm, active_w, idle_w, H, Hs_ind, sim_specs, gen_specs):
 
     new_stuff = True
     while new_stuff:
@@ -98,7 +96,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
                 if D_recv['calc_info']['type'] == 'sim':
                     update_history_f(H, D_recv)
                 else: # D_recv['calc_info']['type'] == 'gen':
-                    H, H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
+                    H, Hs_ind = update_history_x_in(H, Hs_ind, D_recv['calc_out'])
 
                 if 'blocking' in D_recv['calc_info']:
                     active_w['blocked'].difference_update(D_recv['calc_info']['blocking'])
@@ -114,13 +112,13 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
 
     if 'save_every_k' in gen_specs:
         k = gen_specs['save_every_k']
-        count = k*(H_ind//k)
+        count = k*(Hs_ind//k)
         filename = 'libE_history_after_gen_' + str(count) + '.npy'
 
         if not os.path.isfile(filename) and count > 0:
             np.save(filename,H)
 
-    return H, H_ind, active_w, idle_w
+    return H, Hs_ind, active_w, idle_w
 
 
 def update_active_and_queue(active_w, idle_w, H, gen_specs, data):
@@ -157,7 +155,7 @@ def update_history_f(H, D):
         H['returned'][ind] = True
 
 
-def update_history_x_in(H, H_ind, O):
+def update_history_x_in(H, Hs_ind, O):
     """
     Updates the history (in place) when a new point has been returned from a gen
 
@@ -165,13 +163,13 @@ def update_history_x_in(H, H_ind, O):
     ----------
     H: numpy structured array
         History array storing rows for each point.
-    H_ind: integer
+    Hs_ind: integer
         The new point
     O: numpy array
         Output from gen_f
     """
 
-    rows_remaining = len(H)-H_ind
+    rows_remaining = len(H)-Hs_ind
     
     if 'sim_id' not in O.dtype.names:
         # gen method must not be adjusting sim_id, just append to H
@@ -180,8 +178,8 @@ def update_history_x_in(H, H_ind, O):
         if num_new > rows_remaining:
             H = grow_H(H,num_new-rows_remaining)
             
-        update_inds = np.arange(H_ind,H_ind+num_new)
-        H['sim_id'][H_ind:H_ind+num_new] = range(H_ind,H_ind+num_new)
+        update_inds = np.arange(Hs_ind,Hs_ind+num_new)
+        H['sim_id'][Hs_ind:Hs_ind+num_new] = range(Hs_ind,Hs_ind+num_new)
     else:
         # gen method is building sim_id. 
         num_new = len(np.setdiff1d(O['sim_id'],H['sim_id']))
@@ -194,9 +192,9 @@ def update_history_x_in(H, H_ind, O):
     for field in O.dtype.names:
         H[field][update_inds] = O[field]
 
-    H_ind += num_new
+    Hs_ind += num_new
 
-    return H, H_ind
+    return H, Hs_ind
 
 
 def grow_H(H, k):
@@ -212,7 +210,7 @@ def grow_H(H, k):
 
 
 
-def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
+def termination_test(H, Hs_ind, exit_criteria, start_time, lenH0):
     """
     Return nonzero if the libEnsemble run should stop 
     """
@@ -222,13 +220,13 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
             return 1
 
     if 'gen_max' in exit_criteria:
-        if H_ind >= exit_criteria['gen_max'] + lenH0:
+        if Hs_ind >= exit_criteria['gen_max'] + lenH0:
             return 1 
 
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
-        if np.any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
+        if np.any(H[key][:Hs_ind][~np.isnan(H[key][:Hs_ind])] <= val): 
             return 1
 
     if 'elapsed_wallclock_time' in exit_criteria:
@@ -254,7 +252,7 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
         | lead_rank           : lead worker rank point was given to 
         | returned            : True if point has been evaluated by a worker
 
-    H_ind: integer
+    Hs_ind: integer
         Where libEnsemble should start filling in H
 
     term_test: lambda funciton
@@ -311,14 +309,14 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
     H['sim_id'][-L:] = -1
     H['given_time'][-L:] = np.inf
 
-    H_ind = len(H0)
+    Hs_ind = len(H0)
     start_time = time.time()
-    term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
+    term_test = lambda H, Hs_ind: termination_test(H, Hs_ind, exit_criteria, start_time, len(H0))
 
     idle_w = alloc_specs['worker_ranks'].copy()
     active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
 
-    return H, H_ind, term_test, idle_w, active_w
+    return H, Hs_ind, term_test, idle_w, active_w
 
 def update_active_and_idle_after_sending_work(active_w, idle_w, w, Work):
 
@@ -331,7 +329,7 @@ def update_active_and_idle_after_sending_work(active_w, idle_w, w, Work):
 
     return active_w, idle_w
 
-def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs):
+def final_receive_and_kill(comm, active_w, idle_w, H, Hs_ind, sim_specs, gen_specs, term_test, alloc_specs):
     """ 
     Tries to receive from any active workers. 
 
@@ -344,8 +342,8 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
 
     ### Receive from all active workers 
     while len(active_w['sim'] | active_w['gen']):
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
-        if term_test(H, H_ind) == 2 and len(active_w['sim'] | active_w['gen']):
+        H, Hs_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, Hs_ind, sim_specs, gen_specs)
+        if term_test(H, Hs_ind) == 2 and len(active_w['sim'] | active_w['gen']):
             for w in active_w['sim'] | active_w['gen']:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)
 
@@ -359,4 +357,4 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
     for w in alloc_specs['worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
 
-    return H[:H_ind], exit_flag
+    return H[:Hs_ind], exit_flag
