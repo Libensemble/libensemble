@@ -36,7 +36,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs
 from give_sim_work_first import give_sim_work_first
 
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
-        allocation_specs={'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
+        alloc_specs={'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
         c={'comm': MPI.COMM_WORLD, 'color': 0}, 
         H0=[]):
 
@@ -44,17 +44,17 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     Parameters
     ----------
     """
-    check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+    check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
     
     comm = c['comm']
     # When timing libEnsemble, uncomment barrier to ensure manager and workers are in sync
     # comm.Barrier()
 
-    if comm.Get_rank() in allocation_specs['manager_ranks']:
-        H, exit_flag = manager_main(comm, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+    if comm.Get_rank() in alloc_specs['manager_ranks']:
+        H, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # if exit_flag == 0:
         #     comm.Barrier()
-    elif comm.Get_rank() in allocation_specs['worker_ranks']:
+    elif comm.Get_rank() in alloc_specs['worker_ranks']:
         worker_main(c, sim_specs, gen_specs); H = []; exit_flag = []
         # comm.Barrier()
     else:
@@ -65,14 +65,14 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
 
 
-def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
+def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
     assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
     assert isinstance(c,dict), "c must be a dictionary"
-    assert isinstance(allocation_specs,dict), "allocation_specs must be a dictionary"
+    assert isinstance(alloc_specs,dict), "alloc_specs must be a dictionary"
     assert isinstance(exit_criteria,dict), "exit_criteria must be a dictionary"
-    assert isinstance(allocation_specs['worker_ranks'],set), "allocation_specs['worker_ranks'] must be a dictionary"
-    assert isinstance(allocation_specs['manager_ranks'],set), "allocation_specs['manager_ranks'] must be a dictionary"
+    assert isinstance(alloc_specs['worker_ranks'],set), "alloc_specs['worker_ranks'] must be a dictionary"
+    assert isinstance(alloc_specs['manager_ranks'],set), "alloc_specs['manager_ranks'] must be a dictionary"
 
     assert len(exit_criteria)>0, "Must have some exit criterion"
     valid_term_fields = ['sim_max','gen_max','elapsed_wallclock_time','stop_val']
@@ -80,8 +80,8 @@ def check_inputs(c, allocation_specs, sim_specs, gen_specs, failure_processing, 
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert len(gen_specs['out']), "gen_specs must have 'out' entries"
-    assert len(allocation_specs['worker_ranks']), "Must have at least one worker rank"
-    assert len(allocation_specs['manager_ranks']), "Must have at least one manager rank"
+    assert len(alloc_specs['worker_ranks']), "Must have at least one worker rank"
+    assert len(alloc_specs['manager_ranks']), "Must have at least one manager rank"
 
     if 'stop_val' in exit_criteria:
         assert exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']],\
