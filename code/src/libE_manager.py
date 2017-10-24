@@ -21,10 +21,10 @@ import numpy as np
 import time, sys, os
 import copy
 
-def manager_main(comm, allocation_specs, sim_specs, gen_specs,
+def manager_main(comm, alloc_specs, sim_specs, gen_specs,
         failure_processing, exit_criteria, H0):
 
-    H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0)
+    H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
     persistent_queue_data = {}
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w)
@@ -36,7 +36,7 @@ def manager_main(comm, allocation_specs, sim_specs, gen_specs,
 
         persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_queue_data)
 
-        Work = decide_work_and_resources(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
+        Work = alloc_specs['alloc_f'](active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test)
 
         for w in Work:
             send_to_worker(comm, H, Work[w],w, sim_specs, gen_specs)
@@ -210,30 +210,6 @@ def grow_H(H, k):
 
     return H
 
-
-def update_history_x_out(H, q_inds, lead_rank):
-    """
-    Updates the history (in place) when a new point has been given out to be evaluated
-
-    Parameters
-    ----------
-    H: numpy structured array
-        History array storing rows for each point.
-    H_ind: integer
-        The new point
-    W: numpy array
-        Work to be evaluated
-    lead_rank: int
-        lead ranks for the evaluation of x 
-    """
-
-    for i,j in zip(q_inds,range(len(q_inds))):
-        # for field in W.dtype.names:
-        #     H[field][i] = W[field][j]
-
-        H['given'][i] = True
-        H['given_time'][i] = time.time()
-        H['lead_rank'][i] = lead_rank
 
 
 def termination_test(H, H_ind, exit_criteria, start_time, lenH0):

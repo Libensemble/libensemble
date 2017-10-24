@@ -32,11 +32,11 @@ from libE_worker import worker_main
 from mpi4py import MPI
 
 import sys,os 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/decide_work_funcs'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
 from give_sim_work_first import give_sim_work_first
 
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
-        allocation_specs={'allocation_function': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
+        allocation_specs={'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
         c={'comm': MPI.COMM_WORLD, 'color': 0}, 
         H0=[]):
 
