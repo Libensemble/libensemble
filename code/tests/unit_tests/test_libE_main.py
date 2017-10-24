@@ -8,7 +8,7 @@ from libE import *
 def test_nonworker_and_nonmanager_rank():
 
     # Intentionally making worker 0 not be a manager or worker rank
-    libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},allocation_specs={'manager_ranks':set([1]), 'worker_ranks':set([1])})
+    libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},alloc_specs={'manager_ranks':set([1]), 'worker_ranks':set([1])})
 
 
 if __name__ == "__main__":
