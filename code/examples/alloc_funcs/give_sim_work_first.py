@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import numpy as np
 import time
 
-def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test):
+def give_sim_work_first(active_w, idle_w, H, Hs_ind, sim_specs, gen_specs, term_test):
     """ Decide what should be given to workers. Note that everything put into
     the Work dictionary will be given, so we are careful not to put more gen or
     sim items into Work than necessary.
@@ -13,7 +13,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
     gen_work = 0
 
     for i in idle_w:
-        if term_test(H, H_ind):
+        if term_test(H, Hs_ind):
             break
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
@@ -22,7 +22,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             continue
 
         # Find indices of H_s where that are not given nor paused
-        q_inds_logical = np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind])
+        q_inds_logical = np.logical_and(~H['given'][:Hs_ind],~H['paused'][:Hs_ind])
 
         if np.any(q_inds_logical):
             # Give sim work if possible
@@ -30,11 +30,11 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             if 'priority' in H.dtype.fields:
                 if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
                     # Give all points with highest priority
-                    q_inds = H['priority'][:H_ind][q_inds_logical] == np.max(H['priority'][:H_ind][q_inds_logical])
+                    q_inds = H['priority'][:Hs_ind][q_inds_logical] == np.max(H['priority'][:Hs_ind][q_inds_logical])
                     sim_ids_to_send = np.nonzero(q_inds_logical)[0][q_inds]
                 else:
                     # Give first point with highest priority
-                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][np.argmax(H['priority'][:H_ind][q_inds_logical])]
+                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][np.argmax(H['priority'][:Hs_ind][q_inds_logical])]
             else:
                 # Give oldest point
                 sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]
@@ -69,13 +69,13 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
                 break
 
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
-            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and np.any(np.logical_and(~H['returned'][:H_ind],~H['paused'][:H_ind])):
+            if 'batch_mode' in gen_specs and gen_specs['batch_mode'] and np.any(np.logical_and(~H['returned'][:Hs_ind],~H['paused'][:Hs_ind])):
                 break
 
             # Give gen work 
             gen_work += 1 
 
-            Work[i] = {'calc_rows': range(0,H_ind),
+            Work[i] = {'calc_rows': range(0,Hs_ind),
                        'calc_info': {'type':'gen'},
                        }
 
@@ -92,7 +92,7 @@ def update_history_x_out(H, q_inds, lead_rank):
     ----------
     H: numpy structured array
         History array storing rows for each point.
-    H_ind: integer
+    Hs_ind: integer
         The new point
     W: numpy array
         Work to be evaluated
