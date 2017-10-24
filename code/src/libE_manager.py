@@ -42,7 +42,7 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs,
             send_to_worker(comm, H, Work[w],w, sim_specs, gen_specs)
             active_w, idle_w = update_active_and_idle_after_sending_work(active_w, idle_w, w, Work[w])
 
-    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs)
+    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs)
 
     return H, exit_flag
 
@@ -238,7 +238,7 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     return False
 
 
-def initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
+def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -315,7 +315,7 @@ def initialize(sim_specs, gen_specs, allocation_specs, exit_criteria, H0):
     start_time = time.time()
     term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
 
-    idle_w = allocation_specs['worker_ranks'].copy()
+    idle_w = alloc_specs['worker_ranks'].copy()
     active_w = {'gen':set(), 'sim':set(), 'blocked':set()}
 
     return H, H_ind, term_test, idle_w, active_w
@@ -331,7 +331,7 @@ def update_active_and_idle_after_sending_work(active_w, idle_w, w, Work):
 
     return active_w, idle_w
 
-def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, allocation_specs):
+def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs):
     """ 
     Tries to receive from any active workers. 
 
@@ -356,7 +356,7 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
             break
 
     ### Stop all workers 
-    for w in allocation_specs['worker_ranks']:
+    for w in alloc_specs['worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
 
     return H[:H_ind], exit_flag

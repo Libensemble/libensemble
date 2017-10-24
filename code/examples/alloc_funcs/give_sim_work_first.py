@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import absolute_import
 import numpy as np
+import time
 
 def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test):
     """ Decide what should be given to workers. Note that everything put into
