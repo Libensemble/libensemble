@@ -1,3 +1,7 @@
+from __future__ import division
+from __future__ import absolute_import
+import numpy as np
+
 def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test):
     """ Decide what should be given to workers. Note that everything put into
     the Work dictionary will be given, so we are careful not to put more gen or
@@ -76,3 +80,29 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
 
 
     return Work
+
+
+
+def update_history_x_out(H, q_inds, lead_rank):
+    """
+    Updates the history (in place) when a new point has been given out to be evaluated
+
+    Parameters
+    ----------
+    H: numpy structured array
+        History array storing rows for each point.
+    H_ind: integer
+        The new point
+    W: numpy array
+        Work to be evaluated
+    lead_rank: int
+        lead ranks for the evaluation of x 
+    """
+
+    for i,j in zip(q_inds,range(len(q_inds))):
+        # for field in W.dtype.names:
+        #     H[field][i] = W[field][j]
+
+        H['given'][i] = True
+        H['given_time'][i] = time.time()
+        H['lead_rank'][i] = lead_rank
