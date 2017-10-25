@@ -81,9 +81,9 @@ def worker_main(c, sim_specs, gen_specs):
             os.chdir(locations[calc_tag])
 
         if calc_tag == EVAL_SIM_TAG: 
-            O = sim_specs['sim_f'][0](calc_in,sim_specs['out'],sim_specs['params'],calc_info)
+            O = sim_specs['sim_f'][0](calc_in,[],sim_specs,calc_info)
         else: 
-            O = gen_specs['gen_f'](calc_in,gen_specs['out'],gen_specs['params'],calc_info)
+            O = gen_specs['gen_f'](calc_in,[],gen_specs,calc_info)
 
         if calc_tag in locations:
             os.chdir(saved_dir)
