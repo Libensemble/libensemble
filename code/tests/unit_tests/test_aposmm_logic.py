@@ -15,10 +15,10 @@ def test_failing_localopt_method():
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
     H, _, _, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
 
-    gen_specs_0['params']['localopt_method'] = 'BADNAME'
+    gen_specs_0['localopt_method'] = 'BADNAME'
     
     try: 
-        al.advance_localopt_method(H, gen_specs_0['params'], np.array([0,1]), 0)
+        al.advance_localopt_method(H, gen_specs_0, np.array([0,1]), 0)
     except: 
         assert 1, "Failed like it should have"
     else:
@@ -30,9 +30,9 @@ def test_exception_raising():
     H, _, _, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
 
     for method in ['LN_SBPLX','pounders']:
-        gen_specs_0['params']['localopt_method'] = method
+        gen_specs_0['localopt_method'] = method
         try: 
-            al.advance_localopt_method(H, gen_specs_0['params'], np.array([0,1]), 0)
+            al.advance_localopt_method(H, gen_specs_0, np.array([0,1]), 0)
         except: 
             assert 1, "Failed like it should have"
         else:
@@ -62,9 +62,9 @@ def test_calc_rk():
 def test_queue_update_function():
 
     gen_specs_0 = {}
-    gen_specs_0['params'] = {}
+    gen_specs_0 = {}
     gen_specs_0['stop_on_NaNs'] = True
-    gen_specs_0['params']['combine_component_func'] = np.linalg.norm
+    gen_specs_0['combine_component_func'] = np.linalg.norm
     H = np.zeros(10, dtype=[('f_i',float),('returned',bool),('pt_id',int),('sim_id',int),('paused',bool)])
 
     H['sim_id'] = np.arange(0,10)

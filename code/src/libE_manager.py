@@ -291,7 +291,7 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
         if 'returned' in fields:
             assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
         if 'obj_component' in fields:
-            assert np.max(H0['obj_component']) < gen_specs['params']['components'], "H0 has more obj_components than exist for this problem. Exiting."
+            assert np.max(H0['obj_component']) < gen_specs['components'], "H0 has more obj_components than exist for this problem. Exiting."
 
         for field in fields:
             assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"

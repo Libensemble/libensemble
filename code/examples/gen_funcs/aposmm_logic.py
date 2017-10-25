@@ -766,7 +766,7 @@ def queue_update_function(H, gen_specs, persistent_data):
         if np.any(complete_fvals_flag) and len(pt_ids)>1:
             # Ensure combine_component_func calculates partial fevals correctly
             # with H['f_i'] = 0 for non-returned point
-            possibly_partial_fvals = np.array([gen_specs['params']['combine_component_func'](H['f_i'][H['pt_id']==i]) for i in pt_ids])
+            possibly_partial_fvals = np.array([gen_specs['combine_component_func'](H['f_i'][H['pt_id']==i]) for i in pt_ids])
 
             best_complete = np.nanmin(possibly_partial_fvals[complete_fvals_flag])
 

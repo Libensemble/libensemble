@@ -45,11 +45,11 @@ sim_specs = {'sim_f': [obj_func], # This is the function whose output is being m
 # location. (Useful if a /scratch/ directory is faster than the filesystem.) 
 # (Otherwise, will just copy in same directory as sim_dir) 
 if w == 1:
-    sim_specs['params']['sim_dir_prefix'] = '~' 
+    sim_specs['sim_dir_prefix'] = '~' 
 
 
 if w == 3: 
-    sim_specs['params']['uniform_random_pause_ub'] = 0.05
+    sim_specs['uniform_random_pause_ub'] = 0.05
 
 gen_out = [('x',float,n),
       ('x_on_cube',float,n),
