@@ -65,7 +65,7 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
                      ('grad',float,n),
                      ('Hess_inv',float,(n,n))
                     ],
-             'params': {'x0': np.array([1, 2])},
+             'x0': np.array([1, 2]),
              }
 
 # State the generating function, its arguments, output, and necessary parameters.
@@ -74,7 +74,6 @@ gen_specs = {'gen_f': persistent_Newton,
              'out': [('x',float,n),
                      ('priority',float),
                     ],
-             'params': {},
              'num_inst': 1,
              'persistent': True,
              }
