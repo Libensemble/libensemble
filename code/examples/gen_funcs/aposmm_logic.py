@@ -101,7 +101,7 @@ def aposmm_logic(H,gen_out,params,info):
             sorted_run_inds.sort()
                         
             assert all(H['returned'][sorted_run_inds])
-
+            
             x_new = np.ones((1,n))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
             x_opt, exit_code = advance_localopt_method(H, params, sorted_run_inds, c_flag)
 
@@ -433,7 +433,7 @@ def set_up_and_run_tao(Run_H, params):
     delta_0 = params['delta_0_mult']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
 
     PETSc.Options().setValue('-tao_pounders_delta',str(delta_0))
-    PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
+    # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
     tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
     # elif params['localopt_method'] == 'blmvm':
     #     g = PETSc.Vec().create(tao_comm)
