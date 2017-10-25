@@ -50,11 +50,11 @@ def uniform_random_sample_obj_components(H_s,H_g,gen_specs,info):
     return O
 
 def uniform_random_sample(H_s,H_g,gen_specs,info):
-    ub = gen_specs['params']['ub']
-    lb = gen_specs['params']['lb']
+    ub = gen_specs['ub']
+    lb = gen_specs['lb']
 
     n = len(lb)
-    b = gen_specs['params']['gen_batch_size']
+    b = gen_specs['gen_batch_size']
 
     O = np.zeros(b, dtype=gen_specs['out'])
     for i in range(0,b):

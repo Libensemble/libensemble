@@ -7,9 +7,9 @@ import numpy as np
 
 import time
 
-def six_hump_camel_with_different_ranks_and_nodes(H_s, H_g, sim_params, info):
+def six_hump_camel_with_different_ranks_and_nodes(H_s, H_g, sim_specs, info):
     batch = len(H_s['x'])
-    O = np.zeros(batch,dtype=sim_out)
+    O = np.zeros(batch,dtype=sim_specs['out'])
 
     for i,x in enumerate(H_s['x']):
 
@@ -22,7 +22,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H_s, H_g, sim_params, info):
 
         with open(machinefilename,'w') as f:
             for rank in ranks_involved:
-                b = sim_params['nodelist'][rank] + '\n'
+                b = sim_specs['nodelist'][rank] + '\n'
                 f.write(b*H_s['ranks_per_node'][i])
 
         outfile_name = "outfile_"+ machinefilename+".txt"
@@ -51,8 +51,8 @@ def six_hump_camel(H_s, H_g, sim_specs, info):
         if 'grad' in O.dtype.names:
             O['grad'][i] = six_hump_camel_grad(H_s['x'][i])
 
-        if 'pause_time' in sim_specs['params']:
-            time.sleep(sim_specs['params']['pause_time'])
+        if 'pause_time' in sim_specs:
+            time.sleep(sim_specs['pause_time'])
 
     return O
 

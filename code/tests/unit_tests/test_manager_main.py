@@ -108,7 +108,7 @@ def test_initialize_history():
     H1 = np.zeros(len(H0),dtype=[('obj_component',int)])
     H1['obj_component'] = np.arange(len(H1))
     H2 = np.lib.recfunctions.merge_arrays((H0,H1), flatten = True, usemask = False)
-    gen_specs['params']['components'] = 2
+    gen_specs['components'] = 2
     gen_specs['out'] += [('obj_component','int')]
 
     try: 

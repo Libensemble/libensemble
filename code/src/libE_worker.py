@@ -44,15 +44,15 @@ def worker_main(c, sim_specs, gen_specs):
     locations = {}
 
     # Make the directory for the worker to do their sim work in
-    if 'sim_dir' in sim_specs['params']:
-        worker_dir = sim_specs['params']['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
+    if 'sim_dir' in sim_specs:
+        worker_dir = sim_specs['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
 
-        if 'sim_dir_prefix' in sim_specs['params']:
-            worker_dir = os.path.join(os.path.expanduser(sim_specs['params']['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
+        if 'sim_dir_prefix' in sim_specs:
+            worker_dir = os.path.join(os.path.expanduser(sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
 
         # assert ~os.path.isdir(worker_dir), "Worker directory already exists."
         if not os.path.exists(worker_dir):
-            shutil.copytree(sim_specs['params']['sim_dir'], worker_dir)
+            shutil.copytree(sim_specs['sim_dir'], worker_dir)
         locations[EVAL_SIM_TAG] = worker_dir 
 
     while 1:
