@@ -14,7 +14,7 @@ from math import log, gamma, pi, sqrt
 from petsc4py import PETSc
 import nlopt
 
-def aposmm_logic(H,gen_out,params,info):
+def aposmm_logic(H_s,H_g,gen_specs,info):
 
     """
     Receives the following data from H:
@@ -59,33 +59,33 @@ def aposmm_logic(H,gen_out,params,info):
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
 
-    n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H, gen_out, params)
+    n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H_s, gen_specs)
 
-    # np.savez('H'+str(len(H)),H=H,gen_out=gen_out,params=params)
+    # np.savez('H_s'+str(len(H_s)),H_s=H_s,gen_specs=gen_specs)
     # import ipdb; ipdb.set_trace()
-    if n_s < params['initial_sample']:
+    if n_s < gen_specs['initial_sample']:
         updated_inds = set() 
 
     else:
         global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
-        updated_inds = update_history_dist(H, params, c_flag)        
+        updated_inds = update_history_dist(H_s, gen_specs, c_flag)        
 
-        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions)        
+        starting_inds = decide_where_to_start_localopt(H_s, n_s, rk_const, lhs_divisions)        
         updated_inds.update(starting_inds) 
                 
-        active_runs = get_active_run_inds(H)
+        active_runs = get_active_run_inds(H_s)
         
         for ind in starting_inds:
             # Find the run number 
-            if np.max(H['iter_plus_1_in_run_id']) == 0:
+            if np.max(H_s['iter_plus_1_in_run_id']) == 0:
                 new_run_col = 0
             else:
-                new_run_col = np.max(np.where(np.sum(H['iter_plus_1_in_run_id'],axis=0))[0])+1
+                new_run_col = np.max(np.where(np.sum(H_s['iter_plus_1_in_run_id'],axis=0))[0])+1
         
-            H['started_run'][ind] = 1
-            H['num_active_runs'][ind] += 1
-            H['iter_plus_1_in_run_id'][ind,new_run_col] = 1
+            H_s['started_run'][ind] = 1
+            H_s['num_active_runs'][ind] += 1
+            H_s['iter_plus_1_in_run_id'][ind,new_run_col] = 1
             active_runs.update([new_run_col])
             
         # Find the next point for any uncompleted runs. I currently save this
@@ -97,65 +97,65 @@ def aposmm_logic(H,gen_out,params,info):
         inactive_runs = set()
 
         for run in active_runs:
-            sorted_run_inds = np.where(H['iter_plus_1_in_run_id'][:,run])[0]
+            sorted_run_inds = np.where(H_s['iter_plus_1_in_run_id'][:,run])[0]
             sorted_run_inds.sort()
                         
-            assert all(H['returned'][sorted_run_inds])
+            assert all(H_s['returned'][sorted_run_inds])
 
             x_new = np.ones((1,n))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
-            x_opt, exit_code = advance_localopt_method(H, params, sorted_run_inds, c_flag)
+            x_opt, exit_code = advance_localopt_method(H_s, gen_specs, sorted_run_inds, c_flag)
 
             if np.isinf(x_new).all():
                 assert exit_code>0, "Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!"
                 # No new point was added. Hopefully at a minimum 
-                update_history_optimal(x_opt, H, sorted_run_inds)
+                update_history_optimal(x_opt, H_s, sorted_run_inds)
                 inactive_runs.add(run)
                 updated_inds.update(sorted_run_inds) 
 
             else: 
-                add_points_to_O(O, x_new, len(H), params, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                add_points_to_O(O, x_new, len(H_s), gen_specs, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
         for i in inactive_runs:
             active_runs.remove(i)
 
         update_existing_runs_file(active_runs)
 
-    if len(H) == 0:
-        samples_needed = params['initial_sample']
-    elif 'min_batch_size' in params:
-        samples_needed = params['min_batch_size'] - len(O)
+    if len(H_s) == 0:
+        samples_needed = gen_specs['initial_sample']
+    elif 'min_batch_size' in gen_specs:
+        samples_needed = gen_specs['min_batch_size'] - len(O)
     else:
         samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
 
     if samples_needed > 0:
         x_new = np.random.uniform(0,1,(samples_needed,n))
 
-        add_points_to_O(O, x_new, len(H), params, c_flag)
+        add_points_to_O(O, x_new, len(H_s), gen_specs, c_flag)
 
-    # O = np.append(H[[o[0] for o in gen_out]][np.array(list(updated_inds),dtype=int)],O)
+    # O = np.append(H_s[[o[0] for o in gen_specs['out']]][np.array(list(updated_inds),dtype=int)],O)
 
-    O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_out]],O)
+    O = np.append(H_s[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
 
     # if len(updated_inds) == 0 :
     #     return O
     # elif len(O) == 0: 
-    #     return H(updated_inds)
+    #     return H_s(updated_inds)
     # else: 
     #     vec = np.array(list(updated_inds),dtype=int)
-    #     B = H[vec][[o[0] for o in gen_out]]
-    #     # B = H[[o[0] for o in gen_out]][vec]
+    #     B = H_s[vec][[o[0] for o in gen_specs['out']]]
+    #     # B = H_s[[o[0] for o in gen_specs['out']]][vec]
     #     O = np.append(B,O)
     return O
 
-def add_points_to_O(O, pts, len_H, params, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
+def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
     assert not local_flag or len(pts) == 1, "add_points_to_O does not support this functionality"
 
     original_len_O = len(O)
 
-    ub = params['ub']
-    lb = params['lb']
+    ub = gen_specs['ub']
+    lb = gen_specs['lb']
     if c_flag:
-        m = params['components']
+        m = gen_specs['components']
 
         assert len_H % m == 0, "Number of points in len_H not congruent to 0 mod 'components'"
         pt_ids = np.sort(np.tile(np.arange((len_H+original_len_O)/m,(len_H+original_len_O)/m + len(pts)),(1,m))) 
@@ -212,7 +212,7 @@ def update_existing_runs_file(active_runs):
     filename = 'active_runs.txt'    
     np.savetxt(filename,np.array(list(active_runs),dtype=int), fmt='%i')
 
-def update_history_dist(H, params, c_flag):
+def update_history_dist(H, gen_specs, c_flag):
     # Update distances for any new points that have been evaluated
 
     n = len(H['x_on_cube'][0])
@@ -225,7 +225,7 @@ def update_history_dist(H, params, c_flag):
         for v in np.unique(H['pt_id'][new_inds]):
             inds = H['pt_id']==v
             H['f'][inds] = np.inf
-            H['f'][np.where(inds)[0][0]] = params['combine_component_func'](H['f_i'][inds])
+            H['f'][np.where(inds)[0][0]] = gen_specs['combine_component_func'](H['f_i'][inds])
 
         p = np.logical_and.reduce((H['returned'],H['obj_component']==0,~np.isnan(H['f'])))
     else:
@@ -299,18 +299,18 @@ def update_history_optimal(x_opt, H, run_inds):
 
 
 
-def advance_localopt_method(H, params, sorted_run_inds, c_flag):
+def advance_localopt_method(H, gen_specs, sorted_run_inds, c_flag):
 
-    if params['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
+    if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
 
-        if params['localopt_method'] in ['LD_MMA']:
+        if gen_specs['localopt_method'] in ['LD_MMA']:
             Run_H = H[['x_on_cube','f','grad']][sorted_run_inds] 
         else:
             Run_H = H[['x_on_cube','f']][sorted_run_inds] 
 
         try:
             # import ipdb; ipdb.set_trace() 
-            x_opt, exit_code = set_up_and_run_nlopt(Run_H, params)
+            x_opt, exit_code = set_up_and_run_nlopt(Run_H, gen_specs)
         except Exception as e:
             exit_code = 0
             print(e.__doc__)
@@ -318,19 +318,19 @@ def advance_localopt_method(H, params, sorted_run_inds, c_flag):
             print(Run_H['x_on_cube'])
 
 
-    elif params['localopt_method'] in ['pounders']:
+    elif gen_specs['localopt_method'] in ['pounders']:
             
         if c_flag:
-            Run_H_F = np.zeros(len(sorted_run_inds),dtype=[('fvec',float,params['components'])])
+            Run_H_F = np.zeros(len(sorted_run_inds),dtype=[('fvec',float,gen_specs['components'])])
             for i,ind in enumerate(sorted_run_inds):
-                for j in range(params['components']):
+                for j in range(gen_specs['components']):
                     Run_H_F['fvec'][i][j] = H['f_i'][np.logical_and(H['pt_id']==H['pt_id'][ind], H['obj_component']==j)]
             Run_H = merge_arrays([H[['x_on_cube']][sorted_run_inds],Run_H_F],flatten=True)
         else: 
             Run_H = H[['x_on_cube','fvec']][sorted_run_inds]
 
         try: 
-            x_opt, exit_code = set_up_and_run_tao(Run_H, params)
+            x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
         except Exception as e:
             exit_code = 0
             print(e.__doc__)
@@ -346,7 +346,7 @@ def advance_localopt_method(H, params, sorted_run_inds, c_flag):
 
 
 
-def set_up_and_run_nlopt(Run_H, params):
+def set_up_and_run_nlopt(Run_H, gen_specs):
     """ Set up objective and runs nlopt
 
     Declares the appropriate syntax for our special objective function to read
@@ -357,15 +357,15 @@ def set_up_and_run_nlopt(Run_H, params):
         # import ipdb; ipdb.set_trace() 
         out = look_in_history(x, Run_H)
 
-        if params['localopt_method'] in ['LD_MMA']:
+        if gen_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = out[1]
             out = out[0]
 
         return out
 
-    n = len(params['ub'])
+    n = len(gen_specs['ub'])
 
-    opt = nlopt.opt(getattr(nlopt,params['localopt_method']), n)
+    opt = nlopt.opt(getattr(nlopt,gen_specs['localopt_method']), n)
 
     lb = np.zeros(n)
     ub = np.ones(n)
@@ -376,14 +376,14 @@ def set_up_and_run_nlopt(Run_H, params):
     # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0),min(x0-lb))
 
-    if 'dist_to_bound_multiple' in params:
-        opt.set_initial_step(dist_to_bound*params['dist_to_bound_multiple'])
+    if 'dist_to_bound_multiple' in gen_specs:
+        opt.set_initial_step(dist_to_bound*gen_specs['dist_to_bound_multiple'])
     else:
         opt.set_initial_step(dist_to_bound)
 
     opt.set_maxeval(len(Run_H)+1) # evaluate one more point
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
-    opt.set_xtol_rel(params['xtol_rel'])
+    opt.set_xtol_rel(gen_specs['xtol_rel'])
     
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()
@@ -394,14 +394,14 @@ def set_up_and_run_nlopt(Run_H, params):
     return x_opt, exit_code
 
 
-def set_up_and_run_tao(Run_H, params):
+def set_up_and_run_tao(Run_H, gen_specs):
     """ Set up objective and runs PETSc on the comm_self communicator
 
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
     tao_comm = MPI.COMM_SELF
-    n = len(params['ub'])
+    n = len(gen_specs['ub'])
     m = len(Run_H['fvec'][0])
 
     def pounders_obj_func(tao, X, F, Run_H):
@@ -423,19 +423,19 @@ def set_up_and_run_tao(Run_H, params):
     lb.array = 0*np.ones(n)
     ub.array = 1*np.ones(n)
     tao = PETSc.TAO().create(tao_comm)
-    tao.setType(params['localopt_method'])
+    tao.setType(gen_specs['localopt_method'])
 
-    # if params['localopt_method'] == 'pounders':
+    # if gen_specs['localopt_method'] == 'pounders':
     f = PETSc.Vec().create(tao_comm)
     f.setSizes(m)
     f.setFromOptions()
 
-    delta_0 = params['delta_0_mult']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+    delta_0 = gen_specs['delta_0_mult']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
 
     PETSc.Options().setValue('-tao_pounders_delta',str(delta_0))
     PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
     tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
-    # elif params['localopt_method'] == 'blmvm':
+    # elif gen_specs['localopt_method'] == 'blmvm':
     #     g = PETSc.Vec().create(tao_comm)
     #     g.setSizes(n)
     #     g.setFromOptions()
@@ -445,9 +445,9 @@ def set_up_and_run_tao(Run_H, params):
     PETSc.Options().setValue('-tao_max_funcs',str(total_pts_in_run+1))
     tao.setFromOptions()
     tao.setVariableBounds((lb,ub))
-    # tao.setObjectiveTolerances(fatol=params['fatol'], frtol=params['frtol'])
-    # tao.setGradientTolerances(grtol=params['grtol'], gatol=params['gatol'])
-    tao.setTolerances(grtol=params['grtol'], gatol=params['gatol'])
+    # tao.setObjectiveTolerances(fatol=gen_specs['fatol'], frtol=gen_specs['frtol'])
+    # tao.setGradientTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
+    tao.setTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
     tao.setInitial(x)
 
     tao.solve(x)
@@ -458,9 +458,9 @@ def set_up_and_run_tao(Run_H, params):
     # print(tao.view())
     # print(x_opt)
 
-    # if params['localopt_method'] == 'pounders':
+    # if gen_specs['localopt_method'] == 'pounders':
     f.destroy()
-    # elif params['localopt_method'] == 'blmvm':
+    # elif gen_specs['localopt_method'] == 'blmvm':
     #     g.destroy()
 
     lb.destroy()
@@ -690,11 +690,11 @@ def calc_rk(n, n_s, rk_const, lhs_divisions=0):
 
     return r_k
 
-def initialize_APOSMM(H, gen_out, params):
+def initialize_APOSMM(H, gen_specs):
 
-    n = len(params['ub'])
+    n = len(gen_specs['ub'])
 
-    if 'single_component_at_a_time' in params and params['single_component_at_a_time']:
+    if 'single_component_at_a_time' in gen_specs and gen_specs['single_component_at_a_time']:
         c_flag = True
     else:
         c_flag = False
@@ -712,15 +712,15 @@ def initialize_APOSMM(H, gen_out, params):
 
     # Rather than build up a large output, we will just make changes in the 
     # given H, and then send back the rows corresponding to updated H entries. 
-    O = np.empty(0,dtype=gen_out)
+    O = np.empty(0,dtype=gen_specs['out'])
 
-    if 'rk_const' in params:
-        rk_c = params['rk_const']
+    if 'rk_const' in gen_specs:
+        rk_c = gen_specs['rk_const']
     else:
         rk_c = ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi)
 
-    if 'lhs_divisions' in params:
-        ld = params['lhs_divisions']
+    if 'lhs_divisions' in gen_specs:
+        ld = gen_specs['lhs_divisions']
     else:
         ld = 0
 
@@ -786,8 +786,7 @@ def queue_update_function(H, gen_specs, persistent_data):
 
 
 # if __name__ == "__main__":
-#     [H,gen_out,params] = [np.load('H856.npz')[i] for i in ['H','gen_out','params']]
-#     params = params.item()
-#     gen_out = list(gen_out)
+#     [H,gen_specs] = [np.load('H856.npz')[i] for i in ['H','gen_specs']]
+#     gen_specs = gen_specs.item()
 #     import ipdb; ipdb.set_trace() 
-#     aposmm_logic(H,gen_out,params)
+#     aposmm_logic(H,[],gen_specs,{})
