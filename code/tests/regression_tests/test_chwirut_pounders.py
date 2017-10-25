@@ -36,8 +36,7 @@ sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x'],
              'out': [('f',float), ('fvec',float,m),
                      ],
-             'params': {'combine_component_func': sum_squares,
-                       }, 
+             'combine_component_func': sum_squares,
              }
 
 gen_out = [('x',float,n),
@@ -61,20 +60,19 @@ gen_out = [('x',float,n),
 gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in gen_out] + ['f', 'fvec', 'returned'],
              'out': gen_out,
-             'params': {'lb': -2*np.ones(3),
-                        'ub':  2*np.ones(3),
-                        'initial_sample': 5, # All 214 residuals must be done
-                        'localopt_method': 'pounders',
-                        'delta_0_mult': 0.5,
-                        'grtol': 1e-4,
-                        'gatol': 1e-4,
-                        'frtol': 1e-15,
-                        'fatol': 1e-15,
-                        'components': m,
-                        },
-              'num_inst': 1,
-              'batch_mode': True,
-              'queue_update_function': queue_update_function 
+             'lb': -2*np.ones(3),
+             'ub':  2*np.ones(3),
+             'initial_sample': 5, # All 214 residuals must be done
+             'localopt_method': 'pounders',
+             'delta_0_mult': 0.5,
+             'grtol': 1e-4,
+             'gatol': 1e-4,
+             'frtol': 1e-15,
+             'fatol': 1e-15,
+             'components': m,
+             'num_inst': 1,
+             'batch_mode': True,
+             'queue_update_function': queue_update_function 
              }
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided

@@ -37,7 +37,7 @@ sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x', 'obj_component'],
              'out': [('f_i',float),
                      ],
-             'params': {'component_nan_frequency': 0.05}, 
+             'component_nan_frequency': 0.05, 
              }
 
 gen_out = [('x',float,n),
@@ -49,18 +49,17 @@ gen_out = [('x',float,n),
 gen_specs = {'gen_f': uniform_random_sample_obj_components,
              'in': ['pt_id'],
              'out': gen_out,
-             'params': {'lb': -2*np.ones(3),
-                        'ub':  2*np.ones(3),
-                        'gen_batch_size': 2,
-                        'single_component_at_a_time': True,
-                        'components': m,
-                        'combine_component_func': sum_squares,
-                        },
-              'num_inst': 1,
-              'batch_mode': True,
-              'stop_on_NaNs': True, 
-              'stop_partial_fvec_eval': True,
-              'queue_update_function': queue_update_function 
+             'lb': -2*np.ones(3),
+             'ub':  2*np.ones(3),
+             'gen_batch_size': 2,
+             'single_component_at_a_time': True,
+             'components': m,
+             'combine_component_func': sum_squares,
+             'num_inst': 1,
+             'batch_mode': True,
+             'stop_on_NaNs': True, 
+             'stop_partial_fvec_eval': True,
+             'queue_update_function': queue_update_function 
              }
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided

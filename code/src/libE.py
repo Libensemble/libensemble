@@ -92,7 +92,7 @@ def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_
         assert gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode'],\
                "Can't have more than one 'num_inst' for 'batch_mode' generator"
 
-    if 'params' in gen_specs and 'single_component_at_a_time' in gen_specs and gen_specs['single_component_at_a_time']:
+    if 'single_component_at_a_time' in gen_specs and gen_specs['single_component_at_a_time']:
         if gen_specs['gen_f'].__name__ == 'aposmm_logic':
             assert gen_specs['batch_mode'], "Must be in batch mode when using 'single_component_at_a_time' and APOSMM"
 

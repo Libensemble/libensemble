@@ -37,7 +37,6 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float),('grad',float,n), # This is the output from the function being minimized
                     ],
-             'params': {},
              }
 
 gen_out = [('x',float,n),
@@ -63,14 +62,13 @@ gen_out = [('x',float,n),
 gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
              'out': gen_out,
-             'params': {'lb': np.array([-3,-2]),
-                        'ub': np.array([ 3, 2]),
-                        'initial_sample': 100,
-                        'localopt_method': 'LD_MMA',
-                        'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-                        'xtol_rel': 1e-2,
-                        'lhs_divisions':2,
-                       },
+             'lb': np.array([-3,-2]),
+             'ub': np.array([ 3, 2]),
+             'initial_sample': 100,
+             'localopt_method': 'LD_MMA',
+             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+             'xtol_rel': 1e-2,
+             'lhs_divisions':2,
              'batch_mode': True,
              'num_inst':1,
              }

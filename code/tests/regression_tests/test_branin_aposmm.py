@@ -34,11 +34,7 @@ sim_specs = {'sim_f': [obj_func], # This is the function whose output is being m
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'number_of_minima': 10, # These are parameters needed by the function being minimized.
-                        'problem_dimension': 2,
-                        'problem_number': 1,
-                        'sim_dir': sim_dir_name, # to be copied by each worker 
-                        }
+             'sim_dir': sim_dir_name, # to be copied by each worker 
              }
 
 # As an example, have the workers put their directories in a different
@@ -72,14 +68,13 @@ gen_out = [('x',float,n),
 gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in gen_out] + ['f', 'returned'],
              'out': gen_out,
-             'params': {'lb': np.array([-5,0]),
-                        'ub': np.array([10,15]),
-                        'initial_sample': 20,
-                        'localopt_method': 'LN_BOBYQA',
-                        'dist_to_bound_multiple': 0.99,
-                        'xtol_rel': 1e-3,
-                        'min_batch_size': w,
-                       },
+             'lb': np.array([-5,0]),
+             'ub': np.array([10,15]),
+             'initial_sample': 20,
+             'localopt_method': 'LN_BOBYQA',
+             'dist_to_bound_multiple': 0.99,
+             'xtol_rel': 1e-3,
+             'min_batch_size': w,
              'num_inst': 1,
              'batch_mode': True,
              }
