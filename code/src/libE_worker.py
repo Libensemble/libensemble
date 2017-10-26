@@ -56,11 +56,12 @@ def worker_main(c, sim_specs, gen_specs):
         locations[EVAL_SIM_TAG] = worker_dir 
 
     while 1:
-        info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
         calc_tag = status.Get_tag()
         if calc_tag == STOP_TAG: break
 
-        calc_in = np.zeros(len(info['H_rows']),dtype=dtypes[calc_tag])
+        gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
 
         if len(calc_in) > 0: 
             for i in calc_in.dtype.names: 
@@ -74,14 +75,14 @@ def worker_main(c, sim_specs, gen_specs):
             os.chdir(locations[calc_tag])
 
         if calc_tag == EVAL_SIM_TAG: 
-            O_s, O_g = sim_specs['sim_f'][0](calc_in,[],sim_specs,info)
+            H, gen_info = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
         else: 
-            O_s, O_g = gen_specs['gen_f'](calc_in,[],gen_specs,info)
+            H, gen_info = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
 
         if calc_tag in locations:
             os.chdir(saved_dir)
 
-        data_out = {'calc_out':O_s, 'calc_out_g':O_g, 'info': info}
+        data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
         
         comm.send(obj=data_out, dest=0, tag=calc_tag) 
 

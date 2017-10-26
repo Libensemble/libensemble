@@ -15,7 +15,6 @@ from petsc4py import PETSc
 import nlopt
 
 def aposmm_logic(H,gen_info,gen_specs,info):
-
     """
     Receives the following data from H:
         'x_on_cube', 'fvec', 'f', 'local_pt', 'iter_plus_1_in_run_id',
@@ -65,7 +64,6 @@ def aposmm_logic(H,gen_info,gen_specs,info):
     # import ipdb; ipdb.set_trace()
     if n_s < gen_specs['initial_sample']:
         updated_inds = set() 
-        active_runs = {}
 
     else:
         global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
@@ -85,7 +83,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
             H['iter_plus_1_in_run_id'][ind,new_run_col] = 1
-            active_runs.update([new_run_col])
+            gen_info['active_runs'].update([new_run_col])
             
         # Find the next point for any uncompleted runs. I currently save this
         # information to file and re-load. (Given a history of points, I don't
@@ -95,7 +93,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
                 
         inactive_runs = set()
 
-        for run in active_runs:
+        for run in gen_info['active_runs']:
             sorted_run_inds = np.where(H['iter_plus_1_in_run_id'][:,run])[0]
             sorted_run_inds.sort()
                         
@@ -115,7 +113,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
                 add_points_to_O(O, x_new, len(H), gen_specs, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
         for i in inactive_runs:
-            active_runs.remove(i)
+            gen_info['active_runs'].remove(i)
 
     if len(H) == 0:
         samples_needed = gen_specs['initial_sample']
@@ -142,7 +140,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
     #     B = H[vec][[o[0] for o in gen_specs['out']]]
     #     # B = H[[o[0] for o in gen_specs['out']]][vec]
     #     O = np.append(B,O)
-    return O, active_runs
+    return O, gen_info
 
 def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
     assert not local_flag or len(pts) == 1, "add_points_to_O does not support this functionality"

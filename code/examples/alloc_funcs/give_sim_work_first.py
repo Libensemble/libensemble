@@ -17,12 +17,16 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
     Work = {}
     gen_count = 0
 
+    if len(gen_info) == 0: 
+        gen_info[0] = {}
+        gen_info[0]['active_runs'] = set()
+
     for i in idle_w:
         if term_test(H, H_ind):
             break
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
-        blocked_set = active_w['blocked'].union(*[j['info']['blocking'] for j in Work.values() if 'blocking' in j['info']])
+        blocked_set = active_w['blocked'].union(*[j['info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
         if i in blocked_set:
             continue
 
@@ -56,15 +60,16 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
                 block_others = False
 
             Work[i] = {'H_fields': sim_specs['in'],
+                       'gen_info': {}, # Our sims don't need information about how points were generatored
                        'tag':EVAL_SIM_TAG, 
-                       'info': {'H_rows': sim_ids_to_send,
+                       'libE_info': {'H_rows': sim_ids_to_send,
                                 },
                       }
 
             if block_others:
                 unassigned_workers = idle_w - set(Work.keys()) - blocked_set
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
-                Work[i]['info']['blocking'] = set(workers_to_block)
+                Work[i]['libE_info']['blocking'] = set(workers_to_block)
 
             update_history_x_out(H, sim_ids_to_send, i)
 
@@ -82,15 +87,15 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             # Give gen work 
             gen_count += 1 
 
-            Work[i] = {'H_rows': range(0,H_ind),
+            Work[i] = {'gen_info':gen_info[0],
                        'H_fields': gen_specs['in'],
                        'tag':EVAL_GEN_TAG, 
-                       'info': {'H_rows': range(0,H_ind),
-                                'gen_info':gen_info,
+                       'libE_info': {'H_rows': range(0,H_ind),
+                                     'gen_num': 0
                                 }
                        }
 
-    return Work
+    return Work, gen_info
 
 
 

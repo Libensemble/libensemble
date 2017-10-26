@@ -89,7 +89,7 @@ np.random.seed(1)
 # Perform the run
 
 if __name__ == "__main__":
-    H, flag = libE(sim_specs, gen_specs, exit_criteria)
+    H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
     if MPI.COMM_WORLD.Get_rank() == 0:    
         short_name = script_name.split("test_", 1).pop()
