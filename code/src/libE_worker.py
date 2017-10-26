@@ -50,9 +50,10 @@ def worker_main(c, sim_specs, gen_specs):
         if 'sim_dir_prefix' in sim_specs:
             worker_dir = os.path.join(os.path.expanduser(sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
 
-        # assert ~os.path.isdir(worker_dir), "Worker directory already exists."
-        if not os.path.exists(worker_dir):
-            shutil.copytree(sim_specs['sim_dir'], worker_dir)
+        assert ~os.path.isdir(worker_dir), "Worker directory already exists."
+        # if not os.path.exists(worker_dir):
+        shutil.copytree(sim_specs['sim_dir'], worker_dir)
+
         locations[EVAL_SIM_TAG] = worker_dir 
 
     while 1:

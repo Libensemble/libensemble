@@ -102,7 +102,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
                 if recv_tag == EVAL_SIM_TAG:
                     update_history_f(H, D_recv)
                 else: # recv_tag == EVAL_GEN_TAG:
-                    H, H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
+                    H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out'])
 
                 if 'blocking' in D_recv['libE_info']:
                     active_w['blocked'].difference_update(D_recv['libE_info']['blocking'])
@@ -164,7 +164,7 @@ def update_history_f(H, D):
         H['returned'][ind] = True
 
 
-def update_history_x_out(H, q_inds, lead_rank):
+def update_history_x_out(H, q_inds, sim_rank):
     """
     Updates the history (in place) when a new point has been given out to be evaluated
 
@@ -183,10 +183,10 @@ def update_history_x_out(H, q_inds, lead_rank):
     for i,j in zip(q_inds,range(len(q_inds))):
         H['given'][i] = True
         H['given_time'][i] = time.time()
-        H['lead_rank'][i] = lead_rank
+        H['sim_rank'][i] = sim_rank
 
 
-def update_history_x_in(H, H_ind, O):
+def update_history_x_in(H, H_ind, gen_rank, O):
     """
     Updates the history (in place) when a new point has been returned from a gen
 
@@ -224,6 +224,7 @@ def update_history_x_in(H, H_ind, O):
         H[field][update_inds] = O[field]
 
     H_ind += num_new
+    H['gen_rank'] = gen_rank
 
     return H, H_ind
 
@@ -280,7 +281,8 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
         | sim_id              : Identifier for each simulation (could be the same "point" just with different parameters) 
         | given               : True if point has been given to a worker
         | given_time          : Time point was given to a worker
-        | lead_rank           : lead worker rank point was given to 
+        | sim_rank            : worker rank that evaluated point
+        | gen_rank            : worker rank that generated point 
         | returned            : True if point has been evaluated by a worker
 
     H_ind: integer
@@ -296,38 +298,14 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
     else:
         L = 100
 
-    libE_fields = [('sim_id',int),
-                   ('given',bool),       
-                   ('given_time',float), 
-                   ('lead_rank',int),    
-                   ('returned',bool),    
-                   ('paused',bool),    
-                   ]
+    from libE_fields import libE_fields
 
-    if ('sim_id',int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
-        print('\n' + 79*'*' + '\n'
-               "User generator script will be creating sim_id.\n"\
-               "Take care to do this sequentially.\n"\
-               "Also, any information given back for existing sim_id values will be overwritten!\n"\
-               "So everything in gen_out should be in gen_in!"\
-                '\n' + 79*'*' + '\n\n')
-        sys.stdout.flush()
-        libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
-
-    H = np.zeros(L + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
+    H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'])))
 
     if len(H0):
         fields = H0.dtype.names
-        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields not in H. Exiting"
-        if 'returned' in fields:
-            assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
-        if 'obj_component' in fields:
-            assert np.max(H0['obj_component']) < gen_specs['components'], "H0 has more obj_components than exist for this problem. Exiting."
 
         for field in fields:
-            assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"
-            assert np.all(np.array(H[field].shape) >= np.array(H0[field].shape)), "H is not large enough to receive all of the components of H0 in field: " + field + ". Exiting"
-
             H[field][:len(H0)] = H0[field]
             # for ind, val in np.ndenumerate(H0[field]): # Works if H0[field] has arbitrary dimension but is slow
             #     H[field][ind] = val

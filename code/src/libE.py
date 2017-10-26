@@ -31,6 +31,7 @@ from libE_worker import worker_main
 
 from mpi4py import MPI
 
+import numpy as np
 import sys,os 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
 from give_sim_work_first import give_sim_work_first
@@ -44,7 +45,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     Parameters
     ----------
     """
-    check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria)
+    check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
     comm = c['comm']
     # When timing libEnsemble, uncomment barrier to ensure manager and workers are in sync
@@ -65,7 +66,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
 
 
-def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria):
+def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
     assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
     assert isinstance(c,dict), "c must be a dictionary"
@@ -96,3 +97,28 @@ def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_
         if gen_specs['gen_f'].__name__ == 'aposmm_logic':
             assert gen_specs['batch_mode'], "Must be in batch mode when using 'single_component_at_a_time' and APOSMM"
 
+    from libE_fields import libE_fields
+
+    if ('sim_id',int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
+        print('\n' + 79*'*' + '\n'
+               "User generator script will be creating sim_id.\n"\
+               "Take care to do this sequentially.\n"\
+               "Also, any information given back for existing sim_id values will be overwritten!\n"\
+               "So everything in gen_out should be in gen_in!"\
+                '\n' + 79*'*' + '\n\n')
+        sys.stdout.flush()
+        libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
+
+    H = np.zeros(1 + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
+    
+    if len(H0):
+        fields = H0.dtype.names
+        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields not in H. Exiting"
+        if 'returned' in fields:
+            assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
+        if 'obj_component' in fields:
+            assert np.max(H0['obj_component']) < gen_specs['components'], "H0 has more obj_components than exist for this problem. Exiting."
+
+        for field in fields:
+            assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"
+            assert np.all(np.array(H[field].shape) >= np.array(H0[field].shape)), "H is not large enough to receive all of the components of H0 in field: " + field + ". Exiting"
