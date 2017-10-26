@@ -56,41 +56,34 @@ def worker_main(c, sim_specs, gen_specs):
         locations[EVAL_SIM_TAG] = worker_dir 
 
     while 1:
-        calc_in_len = np.empty(1,dtype=int)
-        comm.Recv(calc_in_len,source=0,tag=MPI.ANY_TAG,status=status)
-
+        info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
         calc_tag = status.Get_tag()
         if calc_tag == STOP_TAG: break
 
-        calc_in = np.zeros(calc_in_len,dtype=dtypes[calc_tag])
+        calc_in = np.zeros(info['len'],dtype=dtypes[calc_tag])
 
-        if calc_in_len > 0: 
+        if len(calc_in) > 0: 
             for i in calc_in.dtype.names: 
                 d = comm.recv(buf=None, source=0)
                 data = np.empty(calc_in[i].shape, dtype=d)
                 comm.Recv(data,source=0)
                 calc_in[i] = data
 
-        calc_info = comm.recv(buf=None, source=0)
-
-        assert 'form_subcomm' not in calc_info or len(calc_info['form_subcomm'])==0, "Haven't implemented form_subcomm yet"
-
-
         if calc_tag in locations:
             saved_dir = os.getcwd()
             os.chdir(locations[calc_tag])
 
         if calc_tag == EVAL_SIM_TAG: 
-            O = sim_specs['sim_f'][0](calc_in,[],sim_specs,calc_info)
+            O_s, O_g = sim_specs['sim_f'][0](calc_in,[],sim_specs,info)
         else: 
-            O = gen_specs['gen_f'](calc_in,[],gen_specs,calc_info)
+            O_s, O_g = gen_specs['gen_f'](calc_in,[],gen_specs,info)
 
         if calc_tag in locations:
             os.chdir(saved_dir)
 
-        data_out = {'calc_out':O, 'calc_info': calc_info}
+        data_out = {'calc_out':O_s, 'calc_out_g':O_g, 'info': info}
         
-        comm.send(obj=data_out, dest=0) 
+        comm.send(obj=data_out, dest=0, tag=calc_tag) 
 
     # Clean up
     if 'saved_dir' in locals():

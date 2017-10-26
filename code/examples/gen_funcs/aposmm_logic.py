@@ -14,7 +14,7 @@ from math import log, gamma, pi, sqrt
 from petsc4py import PETSc
 import nlopt
 
-def aposmm_logic(H_s,H_g,gen_specs,info):
+def aposmm_logic(H,H_g,gen_specs,info):
 
     """
     Receives the following data from H:
@@ -59,33 +59,34 @@ def aposmm_logic(H_s,H_g,gen_specs,info):
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
 
-    n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H_s, gen_specs)
+    n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H, gen_specs)
 
-    # np.savez('H_s'+str(len(H_s)),H_s=H_s,gen_specs=gen_specs)
+    # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs)
     # import ipdb; ipdb.set_trace()
     if n_s < gen_specs['initial_sample']:
         updated_inds = set() 
+        active_runs = {}
 
     else:
         global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
-        updated_inds = update_history_dist(H_s, gen_specs, c_flag)        
+        updated_inds = update_history_dist(H, gen_specs, c_flag)        
 
-        starting_inds = decide_where_to_start_localopt(H_s, n_s, rk_const, lhs_divisions)        
+        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions)        
         updated_inds.update(starting_inds) 
                 
-        active_runs = get_active_run_inds(H_s)
+        active_runs = get_active_run_inds(H)
         
         for ind in starting_inds:
             # Find the run number 
-            if np.max(H_s['iter_plus_1_in_run_id']) == 0:
+            if np.max(H['iter_plus_1_in_run_id']) == 0:
                 new_run_col = 0
             else:
-                new_run_col = np.max(np.where(np.sum(H_s['iter_plus_1_in_run_id'],axis=0))[0])+1
+                new_run_col = np.max(np.where(np.sum(H['iter_plus_1_in_run_id'],axis=0))[0])+1
         
-            H_s['started_run'][ind] = 1
-            H_s['num_active_runs'][ind] += 1
-            H_s['iter_plus_1_in_run_id'][ind,new_run_col] = 1
+            H['started_run'][ind] = 1
+            H['num_active_runs'][ind] += 1
+            H['iter_plus_1_in_run_id'][ind,new_run_col] = 1
             active_runs.update([new_run_col])
             
         # Find the next point for any uncompleted runs. I currently save this
@@ -97,30 +98,30 @@ def aposmm_logic(H_s,H_g,gen_specs,info):
         inactive_runs = set()
 
         for run in active_runs:
-            sorted_run_inds = np.where(H_s['iter_plus_1_in_run_id'][:,run])[0]
+            sorted_run_inds = np.where(H['iter_plus_1_in_run_id'][:,run])[0]
             sorted_run_inds.sort()
                         
-            assert all(H_s['returned'][sorted_run_inds])
+            assert all(H['returned'][sorted_run_inds])
 
             x_new = np.ones((1,n))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
-            x_opt, exit_code = advance_localopt_method(H_s, gen_specs, sorted_run_inds, c_flag)
+            x_opt, exit_code = advance_localopt_method(H, gen_specs, sorted_run_inds, c_flag)
 
             if np.isinf(x_new).all():
                 assert exit_code>0, "Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!"
                 # No new point was added. Hopefully at a minimum 
-                update_history_optimal(x_opt, H_s, sorted_run_inds)
+                update_history_optimal(x_opt, H, sorted_run_inds)
                 inactive_runs.add(run)
                 updated_inds.update(sorted_run_inds) 
 
             else: 
-                add_points_to_O(O, x_new, len(H_s), gen_specs, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                add_points_to_O(O, x_new, len(H), gen_specs, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
         for i in inactive_runs:
             active_runs.remove(i)
 
         update_existing_runs_file(active_runs)
 
-    if len(H_s) == 0:
+    if len(H) == 0:
         samples_needed = gen_specs['initial_sample']
     elif 'min_batch_size' in gen_specs:
         samples_needed = gen_specs['min_batch_size'] - len(O)
@@ -130,22 +131,22 @@ def aposmm_logic(H_s,H_g,gen_specs,info):
     if samples_needed > 0:
         x_new = np.random.uniform(0,1,(samples_needed,n))
 
-        add_points_to_O(O, x_new, len(H_s), gen_specs, c_flag)
+        add_points_to_O(O, x_new, len(H), gen_specs, c_flag)
 
-    # O = np.append(H_s[[o[0] for o in gen_specs['out']]][np.array(list(updated_inds),dtype=int)],O)
+    # O = np.append(H[[o[0] for o in gen_specs['out']]][np.array(list(updated_inds),dtype=int)],O)
 
-    O = np.append(H_s[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
+    O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
 
     # if len(updated_inds) == 0 :
     #     return O
     # elif len(O) == 0: 
-    #     return H_s(updated_inds)
+    #     return H(updated_inds)
     # else: 
     #     vec = np.array(list(updated_inds),dtype=int)
-    #     B = H_s[vec][[o[0] for o in gen_specs['out']]]
-    #     # B = H_s[[o[0] for o in gen_specs['out']]][vec]
+    #     B = H[vec][[o[0] for o in gen_specs['out']]]
+    #     # B = H[[o[0] for o in gen_specs['out']]][vec]
     #     O = np.append(B,O)
-    return O
+    return O, active_runs
 
 def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
     assert not local_flag or len(pts) == 1, "add_points_to_O does not support this functionality"
@@ -194,19 +195,19 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_i
         O['priority'][-num_pts:] = p_tmp
         # O['priority'][-num_pts:] = 1
 
-def get_active_run_inds(H):
-    filename = 'active_runs.txt'
-    if os.path.exists(filename) and os.stat(filename).st_size > 0:
-        if np.max(H['iter_plus_1_in_run_id']) == 0:
-            print('Removing old active runs file')
-            sys.stdout.flush()
-            os.remove(filename)
-            return set()
-        else:
-            a = np.loadtxt(filename,dtype=int)
-            return set(np.atleast_1d(a))
-    else:
-        return set()
+# def get_active_run_inds(H):
+#     filename = 'active_runs.txt'
+#     if os.path.exists(filename) and os.stat(filename).st_size > 0:
+#         if np.max(H['iter_plus_1_in_run_id']) == 0:
+#             print('Removing old active runs file')
+#             sys.stdout.flush()
+#             os.remove(filename)
+#             return set()
+#         else:
+#             a = np.loadtxt(filename,dtype=int)
+#             return set(np.atleast_1d(a))
+#     else:
+#         return set()
     
 def update_existing_runs_file(active_runs):    
     filename = 'active_runs.txt'    
