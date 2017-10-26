@@ -31,39 +31,39 @@ def test_termination_test():
     # termination_test should be True when we want to stop
 
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
-    H, Hs_ind, term_test,_,_ = man.initialize(sim_specs_0, gen_specs_0, al, exit_criteria_0,[]) 
-    assert not term_test(H, Hs_ind)
+    H, H_ind, term_test,_,_ = man.initialize(sim_specs_0, gen_specs_0, al, exit_criteria_0,[]) 
+    assert not term_test(H, H_ind)
 
 
 
     # Shouldn't terminate
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
-    H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
-    assert not term_test(H, Hs_ind)
+    H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    assert not term_test(H, H_ind)
     # 
 
 
     # Terminate because we've found a good 'g' value
-    H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
     H['g'][0] = -1
-    Hs_ind = 1
-    assert term_test(H, Hs_ind)
+    H_ind = 1
+    assert term_test(H, H_ind)
     # 
 
     
     # Terminate because everything has been given.
-    H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
     H['given'] = np.ones
-    assert term_test(H, Hs_ind)
+    assert term_test(H, H_ind)
     # 
     
 
     # Terminate because enough time has passed
-    H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
-    Hs_ind = 4
+    H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    H_ind = 4
     H['given_time'][0] = time.time()
     time.sleep(0.5)
-    assert term_test(H, Hs_ind)
+    assert term_test(H, H_ind)
     # 
 
 
@@ -71,56 +71,15 @@ def test_update_history_x_in():
 
     # Don't take more points than there is space in history.
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
-    H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
 
     O = np.zeros(2*len(H), dtype=gen_specs['out'])
     print(len(O))
 
-    Hs_ind = man.update_history_x_in(H, Hs_ind, O)
+    H_ind = man.update_history_x_in(H, H_ind, 1, O)
 
-    # assert Hs_ind == len(H)
-
-
-def test_initialize_history():
-
-    # Don't take more points than there is space in history.
-    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_0()
-    H0, _, _, _, _ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
-
-    # Should fail because H0 has points with 'return'==False
-    try:
-        H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,H0) 
-    except AssertionError:
-        assert 1
-    else:
-        assert 0
-
-    # Should not fail 
-    H0['returned']=True
-    H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,H0) 
-
-    # Removing 'returned' and then testing again.
-    H0 = rmfield( H0, 'returned')
-    H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,H0) 
+    # assert H_ind == len(H)
 
 
-    # Adding 'obj_component' but more than expected
-    H1 = np.zeros(len(H0),dtype=[('obj_component',int)])
-    H1['obj_component'] = np.arange(len(H1))
-    H2 = np.lib.recfunctions.merge_arrays((H0,H1), flatten = True, usemask = False)
-    gen_specs['components'] = 2
-    gen_specs['out'] += [('obj_component','int')]
-
-    try: 
-        H, Hs_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,H2) 
-    except AssertionError:
-        assert 1
-    else:
-        assert 0
-
-def rmfield( a, *fieldnames_to_remove ):
-        return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]
-
-
-if __name__ == "__main__":
-    test_initialize_history()
+# if __name__ == "__main__":
+#     test_initialize_history()
