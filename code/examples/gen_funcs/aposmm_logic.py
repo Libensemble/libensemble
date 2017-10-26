@@ -710,6 +710,12 @@ def queue_update_function(H, gen_specs, persistent_data):
         persistent_data['complete'] = set() 
         persistent_data['has_nan'] = set() 
         persistent_data['already_paused'] = set() 
+        persistent_data['H_len'] = len(H)
+
+    if len(H)==persistent_data['H_len']:
+        return H, persistent_data
+    else:
+        persistent_data['H_len']=len(H)
 
     pt_ids_to_pause = set()
 

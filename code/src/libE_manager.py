@@ -138,7 +138,7 @@ def update_active_and_queue(active_w, idle_w, H, gen_specs, data):
     H: numpy structured array
         History array storing rows for each point.
     """
-    if 'queue_update_function' in gen_specs:
+    if 'queue_update_function' in gen_specs and len(H):
         H, data = gen_specs['queue_update_function'](H,gen_specs, data)
     
     return data
