@@ -17,13 +17,9 @@ import nlopt
 def aposmm_logic(H,gen_info,gen_specs,info):
     """
     Receives the following data from H:
-        'x_on_cube', 'fvec', 'f', 'local_pt', 'iter_plus_1_in_run_id',
+        'x_on_cube', 'fvec', 'f', 'local_pt', 
         'dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s',
         'ind_of_better_l', 'ind_of_better_s', 'started_run', 'num_active_runs', 'local_min'
-
-    Most are self-explanatory. The columns of 'iter_plus_1_in_run_id'
-    corresponding to each run. Rows of 'iter_plus_1_in_run_id' contain the
-    iteration number (plus 1) of a point in a given run
 
     import IPython; IPython.embed()
     import ipdb; ipdb.set_trace() 
@@ -75,15 +71,17 @@ def aposmm_logic(H,gen_info,gen_specs,info):
                 
         for ind in starting_inds:
             # Find the run number 
-            if np.max(H['iter_plus_1_in_run_id']) == 0:
-                new_run_col = 0
-            else:
-                new_run_col = np.max(np.where(np.sum(H['iter_plus_1_in_run_id'],axis=0))[0])+1
-        
+            if not np.any(H['started_run']):
+                gen_info['active_runs'] = set()
+                gen_info['run_order'] = {}
+
+            new_run_num = len(gen_info['run_order'])
+
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
-            H['iter_plus_1_in_run_id'][ind,new_run_col] = 1
-            gen_info['active_runs'].update([new_run_col])
+
+            gen_info['run_order'][new_run_num] = [ind] 
+            gen_info['active_runs'].update([new_run_num])
             
         # Find the next point for any uncompleted runs. I currently save this
         # information to file and re-load. (Given a history of points, I don't
@@ -94,8 +92,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
         inactive_runs = set()
 
         for run in gen_info['active_runs']:
-            sorted_run_inds = np.where(H['iter_plus_1_in_run_id'][:,run])[0]
-            sorted_run_inds.sort()
+            sorted_run_inds = gen_info['run_order'][run]
                         
             assert all(H['returned'][sorted_run_inds])
 
@@ -111,6 +108,8 @@ def aposmm_logic(H,gen_info,gen_specs,info):
 
             else: 
                 add_points_to_O(O, x_new, len(H), gen_specs, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                assert np.array_equiv(O[-1]['x_on_cube'], x_new)
+                gen_info['run_order'][run].append(O[-1]['sim_id'])
 
         for i in inactive_runs:
             gen_info['active_runs'].remove(i)
@@ -176,7 +175,6 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_i
         O['pt_id'][-num_pts:] = pt_ids
     
     if local_flag:
-        O['iter_plus_1_in_run_id'][-num_pts,run] = len(sorted_run_inds)+1
         O['num_active_runs'][-num_pts] += 1
         # O['priority'][-num_pts:] = 1
         O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
@@ -189,23 +187,6 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_i
         O['priority'][-num_pts:] = p_tmp
         # O['priority'][-num_pts:] = 1
 
-# def get_active_run_inds(H):
-#     filename = 'active_runs.txt'
-#     if os.path.exists(filename) and os.stat(filename).st_size > 0:
-#         if np.max(H['iter_plus_1_in_run_id']) == 0:
-#             print('Removing old active runs file')
-#             sys.stdout.flush()
-#             os.remove(filename)
-#             return set()
-#         else:
-#             a = np.loadtxt(filename,dtype=int)
-#             return set(np.atleast_1d(a))
-#     else:
-#         return set()
-    
-# def update_existing_runs_file(active_runs):    
-#     filename = 'active_runs.txt'    
-#     np.savetxt(filename,np.array(list(active_runs),dtype=int), fmt='%i')
 
 def update_history_dist(H, gen_specs, c_flag):
     # Update distances for any new points that have been evaluated
