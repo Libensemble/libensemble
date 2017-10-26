@@ -37,7 +37,6 @@ out = [('x',float,n),
       ('x_on_cube',float,n),
       ('sim_id',int),
       ('priority',float),
-      ('iter_plus_1_in_run_id',int,max_sim_budget//m),
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
