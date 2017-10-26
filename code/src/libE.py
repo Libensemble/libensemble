@@ -51,16 +51,16 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     # comm.Barrier()
 
     if comm.Get_rank() in alloc_specs['manager_ranks']:
-        H, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+        H, gen_info, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # if exit_flag == 0:
         #     comm.Barrier()
     elif comm.Get_rank() in alloc_specs['worker_ranks']:
-        worker_main(c, sim_specs, gen_specs); H = []; exit_flag = []
+        worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
         # comm.Barrier()
     else:
-        print("Rank: %d not manager or worker" % comm.Get_rank()); H = []; exit_flag = []
+        print("Rank: %d not manager or worker" % comm.Get_rank()); H=gen_info=exit_flag=[]
 
-    return H, exit_flag
+    return H, gen_info, exit_flag
 
 
 

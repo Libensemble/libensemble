@@ -31,18 +31,18 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        H, H_ind, active_w, idle_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info)
 
         persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_queue_data)
 
-        Work = alloc_specs['alloc_f'](active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, gen_info)
+        Work, gen_info = alloc_specs['alloc_f'](active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, gen_info)
 
         for w in Work:
             active_w, idle_w = send_to_worker_and_update_active_and_idle(comm, H, Work[w], w, sim_specs, gen_specs, active_w, idle_w)
 
-    H, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs)
+    H, gen_info, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info)
 
-    return H, exit_flag
+    return H, gen_info, exit_flag
 
 
 
@@ -61,23 +61,24 @@ def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w):
 
 def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, active_w, idle_w):
 
-    comm.send(obj=Work['info'], dest=w, tag=Work['tag'])
-    if len(Work['info']['H_rows']):
+    comm.send(obj=Work['libE_info'], dest=w, tag=Work['tag'])
+    comm.send(obj=Work['gen_info'], dest=w, tag=Work['tag'])
+    if len(Work['libE_info']['H_rows']):
         for i in Work['H_fields']:
             comm.send(obj=H[i][0].dtype,dest=w)
-            comm.Send(H[i][Work['info']['H_rows']], dest=w)
+            comm.Send(H[i][Work['libE_info']['H_rows']], dest=w)
 
     active_w[Work['tag']].add(w)
     idle_w.remove(w)
 
-    if 'blocking' in Work['info']:
-        active_w['blocked'].update(Work['info']['blocking'])
-        idle_w.difference_update(Work['info']['blocking'])
+    if 'blocking' in Work['libE_info']:
+        active_w['blocked'].update(Work['libE_info']['blocking'])
+        idle_w.difference_update(Work['libE_info']['blocking'])
 
     return active_w, idle_w
 
 
-def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs):
+def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info):
 
     status = MPI.Status()
 
@@ -86,21 +87,26 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
         new_stuff = False
         for w in active_w[EVAL_SIM_TAG].copy() | active_w[EVAL_GEN_TAG].copy(): 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                recv_tag = status.Get_tag()
-                idle_w.add(w)
-                active_w[recv_tag].remove(w) 
                 new_stuff = True
 
+                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                recv_tag = status.Get_tag()
                 assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG], 'Unknown calculation tag received. Exiting'
+
+                idle_w.add(w)
+                active_w[recv_tag].remove(w) 
+
                 if recv_tag == EVAL_SIM_TAG:
                     update_history_f(H, D_recv)
                 else: # recv_tag == EVAL_GEN_TAG:
                     H, H_ind = update_history_x_in(H, H_ind, D_recv['calc_out'])
 
-                if 'blocking' in D_recv['info']:
-                    active_w['blocked'].difference_update(D_recv['info']['blocking'])
-                    idle_w.update(D_recv['info']['blocking'])
+                if 'blocking' in D_recv['libE_info']:
+                    active_w['blocked'].difference_update(D_recv['libE_info']['blocking'])
+                    idle_w.update(D_recv['libE_info']['blocking'])
+
+                if 'gen_num' in D_recv['libE_info']:
+                    gen_info[D_recv['libE_info']['gen_num']] = D_recv['gen_info']
 
     if 'save_every_k' in sim_specs:
         k = sim_specs['save_every_k']
@@ -118,7 +124,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
         if not os.path.isfile(filename) and count > 0:
             np.save(filename,H)
 
-    return H, H_ind, active_w, idle_w
+    return H, H_ind, active_w, idle_w, gen_info
 
 
 def update_active_and_queue(active_w, idle_w, H, gen_specs, data):
@@ -145,7 +151,7 @@ def update_history_f(H, D):
         History array storing rows for each point.
     """
 
-    new_inds = D['info']['H_rows']
+    new_inds = D['libE_info']['H_rows']
     H_0 = D['calc_out']
 
     for j,ind in enumerate(new_inds): 
@@ -318,7 +324,7 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
 
     return H, H_ind, term_test, idle_w, active_w
 
-def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs):
+def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info):
     """ 
     Tries to receive from any active workers. 
 
@@ -331,7 +337,7 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
 
     ### Receive from all active workers 
     while len(active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]):
-        H, H_ind, active_w, idle_w = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs)
+        H, H_ind, active_w, idle_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info)
         if term_test(H, H_ind) == 2 and len(active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]):
             for w in active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)
@@ -346,4 +352,4 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
     for w in alloc_specs['worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
 
-    return H[:H_ind], exit_flag
+    return H[:H_ind], gen_info, exit_flag

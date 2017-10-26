@@ -85,7 +85,7 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
 
 np.random.seed(1)
 # Perform the run
-H, flag = libE(sim_specs, gen_specs, exit_criteria)
+H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert len(H) >= max_sim_budget
