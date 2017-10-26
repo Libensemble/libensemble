@@ -7,7 +7,7 @@ import numpy as np
 
 import time
 
-def six_hump_camel_with_different_ranks_and_nodes(H_s, H_g, sim_specs, info):
+def six_hump_camel_with_different_ranks_and_nodes(H_s, gen_info, sim_specs, info):
     batch = len(H_s['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
 
@@ -41,7 +41,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H_s, H_g, sim_specs, info):
     return O
 
 
-def six_hump_camel(H_s, H_g, sim_specs, info):
+def six_hump_camel(H_s, gen_info, sim_specs, info):
     batch = len(H_s['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
 

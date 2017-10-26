@@ -14,7 +14,7 @@ from math import log, gamma, pi, sqrt
 from petsc4py import PETSc
 import nlopt
 
-def aposmm_logic(H,H_g,gen_specs,info):
+def aposmm_logic(H,gen_info,gen_specs,info):
 
     """
     Receives the following data from H:

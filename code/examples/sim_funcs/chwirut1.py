@@ -243,7 +243,7 @@ def EvaluateJacobian(x):
 def sum_squares(x):
     return np.sum(np.power(x,2))
 
-def libE_func_wrapper(H_s,H_g,sim_specs,info):
+def libE_func_wrapper(H_s,gen_info,sim_specs,info):
 
     batch = len(H_s['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
