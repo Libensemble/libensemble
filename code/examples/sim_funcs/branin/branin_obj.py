@@ -9,12 +9,12 @@ import time
 from branin import branin
 
 # @profile
-def call_branin(H,sim_out,obj_params,info):
+def call_branin(H,gen_info,sim_specs,info):
     """ Evaluates the Branin function """
 
     batch = len(H['x'])
 
-    O = np.zeros(batch,dtype=sim_out)
+    O = np.zeros(batch,dtype=sim_specs['out'])
 
     for i,x in enumerate(H['x']):
         # Uncomment the following if you want to use the file system to do evaluations
@@ -25,12 +25,12 @@ def call_branin(H,sim_out,obj_params,info):
 
         O['f'][i] = branin(x[0],x[1])
 
-        if 'uniform_random_pause_ub' in obj_params: 
-            time.sleep(obj_params['uniform_random_pause_ub']*np.random.uniform())
+        if 'uniform_random_pause_ub' in sim_specs: 
+            time.sleep(sim_specs['uniform_random_pause_ub']*np.random.uniform())
 
         # if not H['local_pt'][i]:
         #     if np.random.uniform(0,1) < 0.1:
         #         print('blam')
         #         O['f'][i] = np.nan
 
-    return O
+    return O, gen_info

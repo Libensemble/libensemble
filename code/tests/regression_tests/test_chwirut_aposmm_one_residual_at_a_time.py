@@ -36,14 +36,12 @@ sim_specs = {'sim_f': [libE_func_wrapper],
              'in': ['x', 'obj_component'],
              'out': [('f_i',float),
                      ],
-             'params': {}, 
              }
 
 gen_out = [('x',float,n),
       ('x_on_cube',float,n),
       ('sim_id',int),
       ('priority',float),
-      ('iter_plus_1_in_run_id',int,10), # The best size of this is difficult to know. Choosing "max_sim_budget" is safe but requires a lot of communication.
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
@@ -62,24 +60,23 @@ gen_out = [('x',float,n),
 gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in gen_out] + ['f_i','returned'],
              'out': gen_out,
-             'params': {'lb': -2*np.ones(3),
-                        'ub':  2*np.ones(3),
-                        'initial_sample': 5, # All 214 residuals must be done
-                        'localopt_method': 'pounders',
-                        'delta_0_mult': 0.5,
-                        'grtol': 1e-4,
-                        'gatol': 1e-4,
-                        'frtol': 1e-15,
-                        'fatol': 1e-15,
-                        'single_component_at_a_time': True,
-                        'components': m,
-                        'combine_component_func': sum_squares,
-                        },
-              'num_inst': 1,
-              'batch_mode': True,
-              'stop_on_NaNs': True, 
-              'stop_partial_fvec_eval': True,
-              'queue_update_function': queue_update_function 
+             'lb': -2*np.ones(3),
+             'ub':  2*np.ones(3),
+             'initial_sample': 5, # All 214 residuals must be done
+             'localopt_method': 'pounders',
+             'delta_0_mult': 0.5,
+             'grtol': 1e-4,
+             'gatol': 1e-4,
+             'frtol': 1e-15,
+             'fatol': 1e-15,
+             'single_component_at_a_time': True,
+             'components': m,
+             'combine_component_func': sum_squares,
+             'num_inst': 1,
+             'batch_mode': True,
+             'stop_on_NaNs': True, 
+             'stop_partial_fvec_eval': True,
+             'queue_update_function': queue_update_function 
              }
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
@@ -87,7 +84,7 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
 
 np.random.seed(1)
 # Perform the run
-H, flag = libE(sim_specs, gen_specs, exit_criteria)
+H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert len(H) >= max_sim_budget

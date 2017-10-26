@@ -31,7 +31,7 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'pause_time': 1},
+             'pause_time': 1,
              # 'save_every_k': 10
              }
 
@@ -40,10 +40,9 @@ gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
              'out': [('x',float,2),
                     ],
-             'params': {'lb': np.array([-3,-2]),
-                        'ub': np.array([ 3, 2]),
-                        'gen_batch_size': 5,
-                       },
+             'lb': np.array([-3,-2]),
+             'ub': np.array([ 3, 2]),
+             'gen_batch_size': 5,
              'num_inst': 1,
              'batch_mode': False,
              # 'save_every_k': 10
