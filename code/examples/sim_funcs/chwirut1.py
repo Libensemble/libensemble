@@ -243,23 +243,23 @@ def EvaluateJacobian(x):
 def sum_squares(x):
     return np.sum(np.power(x,2))
 
-def libE_func_wrapper(H,sim_out,params,info):
+def libE_func_wrapper(H,gen_info,sim_specs,info):
 
     batch = len(H['x'])
-    O = np.zeros(batch,dtype=sim_out)
+    O = np.zeros(batch,dtype=sim_specs['out'])
 
     for i,x in enumerate(H['x']):
         if 'obj_component' in H.dtype.names:
-            if 'component_nan_frequency' in params and np.random.uniform(0,1)< params['component_nan_frequency']:
+            if 'component_nan_frequency' in sim_specs and np.random.uniform(0,1)< sim_specs['component_nan_frequency']:
                 O['f_i'][i] = np.nan
             else:
                 O['f_i'][i] = EvaluateFunction(x)[H['obj_component'][i]]
 
         else:
             O['fvec'][i] = EvaluateFunction(x)
-            O['f'][i] = params['combine_component_func'](O['fvec'][i])
+            O['f'][i] = sim_specs['combine_component_func'](O['fvec'][i])
 
-    return O
+    return O, gen_info
         
 # if __name__ == '__main__':
 #     x = np.zeros(3)
