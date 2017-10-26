@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import numpy as np
 
-def uniform_random_sample_with_different_nodes_and_ranks(H_s,H_g,gen_specs,info):
+def uniform_random_sample_with_different_nodes_and_ranks(H_s,gen_info,gen_specs,info):
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     n = len(lb)
@@ -29,7 +29,7 @@ def uniform_random_sample_with_different_nodes_and_ranks(H_s,H_g,gen_specs,info)
     return O
 
 
-def uniform_random_sample_obj_components(H_s,H_g,gen_specs,info):
+def uniform_random_sample_obj_components(H_s,gen_info,gen_specs,info):
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
@@ -49,7 +49,7 @@ def uniform_random_sample_obj_components(H_s,H_g,gen_specs,info):
 
     return O
 
-def uniform_random_sample(H_s,H_g,gen_specs,info):
+def uniform_random_sample(H_s,gen_info,gen_specs,info):
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
