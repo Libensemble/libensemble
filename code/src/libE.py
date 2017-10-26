@@ -51,16 +51,16 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     # comm.Barrier()
 
     if comm.Get_rank() in alloc_specs['manager_ranks']:
-        H, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+        H, gen_info, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # if exit_flag == 0:
         #     comm.Barrier()
     elif comm.Get_rank() in alloc_specs['worker_ranks']:
-        worker_main(c, sim_specs, gen_specs); H = []; exit_flag = []
+        worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
         # comm.Barrier()
     else:
-        print("Rank: %d not manager or worker" % comm.Get_rank()); H = []; exit_flag = []
+        print("Rank: %d not manager or worker" % comm.Get_rank()); H=gen_info=exit_flag=[]
 
-    return H, exit_flag
+    return H, gen_info, exit_flag
 
 
 
@@ -92,7 +92,7 @@ def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_
         assert gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode'],\
                "Can't have more than one 'num_inst' for 'batch_mode' generator"
 
-    if 'params' in gen_specs and 'single_component_at_a_time' in gen_specs['params'] and gen_specs['params']['single_component_at_a_time']:
+    if 'single_component_at_a_time' in gen_specs and gen_specs['single_component_at_a_time']:
         if gen_specs['gen_f'].__name__ == 'aposmm_logic':
             assert gen_specs['batch_mode'], "Must be in batch mode when using 'single_component_at_a_time' and APOSMM"
 

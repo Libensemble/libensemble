@@ -37,14 +37,12 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float),('grad',float,n), # This is the output from the function being minimized
                     ],
-             'params': {},
              }
 
 gen_out = [('x',float,n),
       ('x_on_cube',float,n),
       ('sim_id',int),
       ('priority',float),
-      ('iter_plus_1_in_run_id',int,20), # The best size of this is difficult to know. Choosing "max_sim_budget" is safe but requires a lot of communication.
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
@@ -63,14 +61,13 @@ gen_out = [('x',float,n),
 gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
              'out': gen_out,
-             'params': {'lb': np.array([-3,-2]),
-                        'ub': np.array([ 3, 2]),
-                        'initial_sample': 100,
-                        'localopt_method': 'LD_MMA',
-                        'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-                        'xtol_rel': 1e-2,
-                        'lhs_divisions':2,
-                       },
+             'lb': np.array([-3,-2]),
+             'ub': np.array([ 3, 2]),
+             'initial_sample': 100,
+             'localopt_method': 'LD_MMA',
+             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+             'xtol_rel': 1e-2,
+             'lhs_divisions':2,
              'batch_mode': True,
              'num_inst':1,
              }
@@ -82,7 +79,7 @@ exit_criteria = {'sim_max': max_sim_budget}
 np.random.seed(1)
 
 # Perform the run
-H, flag = libE(sim_specs, gen_specs, exit_criteria)
+H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     short_name = script_name.split("test_", 1).pop()

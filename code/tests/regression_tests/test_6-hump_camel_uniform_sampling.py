@@ -33,7 +33,6 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'params': {'constant': 10},
              'save_every_k': 400
              }
 
@@ -42,10 +41,9 @@ gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
              'out': [('x',float,2),
                     ],
-             'params': {'lb': np.array([-3,-2]),
-                        'ub': np.array([ 3, 2]),
-                        'gen_batch_size': 500,
-                       },
+             'lb': np.array([-3,-2]),
+             'ub': np.array([ 3, 2]),
+             'gen_batch_size': 500,
              'batch_mode': True,
              'num_inst':1,
              'save_every_k': 300
@@ -58,7 +56,7 @@ exit_criteria = {'gen_max': 501}
 np.random.seed(1)
 
 # Perform the run
-H, flag = libE(sim_specs, gen_specs, exit_criteria)
+H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     short_name = script_name.split("test_", 1).pop()
