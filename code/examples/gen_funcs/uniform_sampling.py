@@ -3,12 +3,12 @@ from __future__ import absolute_import
 
 import numpy as np
 
-def uniform_random_sample_with_different_nodes_and_ranks(H_s,gen_info,gen_specs,info):
+def uniform_random_sample_with_different_nodes_and_ranks(H,gen_info,gen_specs,info):
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     n = len(lb)
 
-    if len(H_s) == 0: 
+    if len(H) == 0: 
         b = gen_specs['initial_batch_size']
 
         O = np.zeros(b, dtype=gen_specs['out'])
@@ -21,15 +21,15 @@ def uniform_random_sample_with_different_nodes_and_ranks(H_s,gen_info,gen_specs,
         
     else:
         O = np.zeros(1, dtype=gen_specs['out'])
-        O['x'] = len(H_s)*np.ones(n)
+        O['x'] = len(H)*np.ones(n)
         O['num_nodes'] = np.random.randint(1,gen_specs['max_num_nodes']+1) 
         O['ranks_per_node'] = np.random.randint(1,gen_specs['max_ranks_per_node']+1)
         O['priority'] = 10*O['num_nodes']
 
-    return O
+    return O, gen_info
 
 
-def uniform_random_sample_obj_components(H_s,gen_info,gen_specs,info):
+def uniform_random_sample_obj_components(H,gen_info,gen_specs,info):
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
@@ -45,11 +45,11 @@ def uniform_random_sample_obj_components(H_s,gen_info,gen_specs,info):
         O['priority'][i*m:(i+1)*m] = np.random.uniform(0,1,m)
         O['obj_component'][i*m:(i+1)*m] = np.arange(0,m)
 
-        O['pt_id'][i*m:(i+1)*m] = len(H_s)//m+i
+        O['pt_id'][i*m:(i+1)*m] = len(H)//m+i
 
-    return O
+    return O, gen_info
 
-def uniform_random_sample(H_s,gen_info,gen_specs,info):
+def uniform_random_sample(H,gen_info,gen_specs,info):
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
@@ -62,4 +62,4 @@ def uniform_random_sample(H_s,gen_info,gen_specs,info):
 
         O['x'][i] = x
 
-    return O
+    return O, gen_info

@@ -7,54 +7,54 @@ import numpy as np
 
 import time
 
-def six_hump_camel_with_different_ranks_and_nodes(H_s, gen_info, sim_specs, info):
-    batch = len(H_s['x'])
+def six_hump_camel_with_different_ranks_and_nodes(H, gen_info, sim_specs, libE_info):
+    batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
 
-    for i,x in enumerate(H_s['x']):
+    for i,x in enumerate(H['x']):
 
-        if 'blocking' in info:
-            ranks_involved = [MPI.COMM_WORLD.Get_rank()] +  list(info['blocking'])
+        if 'blocking' in libE_info:
+            ranks_involved = [MPI.COMM_WORLD.Get_rank()] +  list(libE_info['blocking'])
         else:
             ranks_involved = [MPI.COMM_WORLD.Get_rank()] 
 
-        machinefilename = 'machinefile_for_sim_id=' + str(info['sim_id'][i] )+ '_ranks='+'_'.join([str(r) for r in ranks_involved])
+        machinefilename = 'machinefile_for_sim_id=' + str(libE_info['H_rows'][i] )+ '_ranks='+'_'.join([str(r) for r in ranks_involved])
 
         with open(machinefilename,'w') as f:
             for rank in ranks_involved:
                 b = sim_specs['nodelist'][rank] + '\n'
-                f.write(b*H_s['ranks_per_node'][i])
+                f.write(b*H['ranks_per_node'][i])
 
         outfile_name = "outfile_"+ machinefilename+".txt"
         if os.path.isfile(outfile_name):
             os.remove(outfile_name)
 
-        call_str = ["mpiexec","-np",str(H_s[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", os.path.join(os.path.dirname(__file__),"helloworld.py")]
+        call_str = ["mpiexec","-np",str(H[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", os.path.join(os.path.dirname(__file__),"helloworld.py")]
         process = subprocess.call(call_str, stdout = open(outfile_name,'w'), shell=False)
 
-        O['f'][i] = six_hump_camel_func(H_s['x'][i])
+        O['f'][i] = six_hump_camel_func(H['x'][i])
 
         # v = np.random.uniform(0,10)
         # print('About to sleep for :' + str(v))
         # time.sleep(v)
     
-    return O
+    return O, gen_info
 
 
-def six_hump_camel(H_s, gen_info, sim_specs, info):
-    batch = len(H_s['x'])
+def six_hump_camel(H, gen_info, sim_specs, libE_info):
+    batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
 
-    for i,x in enumerate(H_s['x']):
-        O['f'][i] = six_hump_camel_func(H_s['x'][i])
+    for i,x in enumerate(H['x']):
+        O['f'][i] = six_hump_camel_func(H['x'][i])
 
         if 'grad' in O.dtype.names:
-            O['grad'][i] = six_hump_camel_grad(H_s['x'][i])
+            O['grad'][i] = six_hump_camel_grad(H['x'][i])
 
         if 'pause_time' in sim_specs:
             time.sleep(sim_specs['pause_time'])
 
-    return O
+    return O, gen_info
 
 
 def six_hump_camel_func(x):
@@ -64,7 +64,7 @@ def six_hump_camel_func(x):
     term2 = x1*x2;
     term3 = (-4+4*x2**2) * x2**2;
 
-    return  term1 + term2 + term3;
+    return  term1 + term2 + term3
 
 def six_hump_camel_grad(x):
 

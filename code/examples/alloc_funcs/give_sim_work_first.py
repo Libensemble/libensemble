@@ -25,7 +25,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             break
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
-        blocked_set = active_w['blocked'].union(*[j['info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
+        blocked_set = active_w['blocked'].union(*[j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
         if i in blocked_set:
             continue
 

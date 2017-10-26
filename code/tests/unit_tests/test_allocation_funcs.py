@@ -20,7 +20,7 @@ def test_decide_work_and_resources():
     # Don't give out work when idle is empty
     active_w = set([1,2,3,4])
     idle_w = set()
-    Work = al['alloc_f'](active_w, idle_w, H, Hs_ind, sim_specs, gen_specs, term_test)
+    Work, gen_info = al['alloc_f'](active_w, idle_w, H, Hs_ind, sim_specs, gen_specs, term_test, {})
     assert len(Work) == 0 
     # 
 

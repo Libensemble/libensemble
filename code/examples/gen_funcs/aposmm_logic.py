@@ -107,9 +107,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
                 updated_inds.update(sorted_run_inds) 
 
             else: 
-                add_points_to_O(O, x_new, len(H), gen_specs, c_flag, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
-                assert np.array_equiv(O[-1]['x_on_cube'], x_new)
-                gen_info['run_order'][run].append(O[-1]['sim_id'])
+                gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
 
         for i in inactive_runs:
             gen_info['active_runs'].remove(i)
@@ -124,7 +122,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
     if samples_needed > 0:
         x_new = np.random.uniform(0,1,(samples_needed,n))
 
-        add_points_to_O(O, x_new, len(H), gen_specs, c_flag)
+        gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info)
 
     # O = np.append(H[[o[0] for o in gen_specs['out']]][np.array(list(updated_inds),dtype=int)],O)
 
@@ -141,7 +139,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
     #     O = np.append(B,O)
     return O, gen_info
 
-def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_inds=[], run=[]):
+def add_points_to_O(O, pts, len_H, gen_specs, c_flag, gen_info, local_flag=0, sorted_run_inds=[], run=[]):
     assert not local_flag or len(pts) == 1, "add_points_to_O does not support this functionality"
 
     original_len_O = len(O)
@@ -178,6 +176,7 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_i
         O['num_active_runs'][-num_pts] += 1
         # O['priority'][-num_pts:] = 1
         O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
+        gen_info['run_order'][run].append(O[-num_pts]['sim_id'])
     else:
         if c_flag:
             # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
@@ -186,6 +185,8 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_i
             p_tmp = np.random.uniform(0,1,num_pts)
         O['priority'][-num_pts:] = p_tmp
         # O['priority'][-num_pts:] = 1
+
+    return gen_info
 
 
 def update_history_dist(H, gen_specs, c_flag):
