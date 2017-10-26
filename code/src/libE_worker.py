@@ -60,7 +60,7 @@ def worker_main(c, sim_specs, gen_specs):
         calc_tag = status.Get_tag()
         if calc_tag == STOP_TAG: break
 
-        calc_in = np.zeros(info['len'],dtype=dtypes[calc_tag])
+        calc_in = np.zeros(len(info['H_rows']),dtype=dtypes[calc_tag])
 
         if len(calc_in) > 0: 
             for i in calc_in.dtype.names: 

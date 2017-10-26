@@ -62,10 +62,10 @@ def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w):
 def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, active_w, idle_w):
 
     comm.send(obj=Work['info'], dest=w, tag=Work['tag'])
-    if Work['info']['len']:
+    if len(Work['info']['H_rows']):
         for i in Work['H_fields']:
             comm.send(obj=H[i][0].dtype,dest=w)
-            comm.Send(H[i][Work['H_rows']], dest=w)
+            comm.Send(H[i][Work['info']['H_rows']], dest=w)
 
     active_w[Work['tag']].add(w)
     idle_w.remove(w)
@@ -145,8 +145,8 @@ def update_history_f(H, D):
         History array storing rows for each point.
     """
 
+    new_inds = D['info']['H_rows']
     H_0 = D['calc_out']
-    new_inds = H_0['sim_id']
 
     for j,ind in enumerate(new_inds): 
         for field in H_0.dtype.names:
