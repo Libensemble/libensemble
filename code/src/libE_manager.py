@@ -75,6 +75,9 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
         active_w['blocked'].update(Work['libE_info']['blocking'])
         idle_w.difference_update(Work['libE_info']['blocking'])
 
+    if Work['tag'] == EVAL_SIM_TAG:
+        update_history_x_out(H, Work['libE_info']['H_rows'], w)
+
     return active_w, idle_w
 
 
@@ -159,6 +162,28 @@ def update_history_f(H, D):
             H[field][ind] = H_0[field][j]
 
         H['returned'][ind] = True
+
+
+def update_history_x_out(H, q_inds, lead_rank):
+    """
+    Updates the history (in place) when a new point has been given out to be evaluated
+
+    Parameters
+    ----------
+    H: numpy structured array
+        History array storing rows for each point.
+    H_ind: integer
+        The new point
+    W: numpy array
+        Work to be evaluated
+    lead_rank: int
+        lead ranks for the evaluation of x 
+    """
+
+    for i,j in zip(q_inds,range(len(q_inds))):
+        H['given'][i] = True
+        H['given_time'][i] = time.time()
+        H['lead_rank'][i] = lead_rank
 
 
 def update_history_x_in(H, H_ind, O):

@@ -1,7 +1,6 @@
 from __future__ import division
 from __future__ import absolute_import
 import numpy as np
-import time
 import sys, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
@@ -70,8 +69,6 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
                 Work[i]['libE_info']['blocking'] = set(workers_to_block)
 
-            update_history_x_out(H, sim_ids_to_send, i)
-
         else:
             # Since there is no sim work to give, give gen work. 
 
@@ -96,28 +93,3 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
 
     return Work, gen_info
 
-
-
-def update_history_x_out(H, q_inds, lead_rank):
-    """
-    Updates the history (in place) when a new point has been given out to be evaluated
-
-    Parameters
-    ----------
-    H: numpy structured array
-        History array storing rows for each point.
-    H_ind: integer
-        The new point
-    W: numpy array
-        Work to be evaluated
-    lead_rank: int
-        lead ranks for the evaluation of x 
-    """
-
-    for i,j in zip(q_inds,range(len(q_inds))):
-        # for field in W.dtype.names:
-        #     H[field][i] = W[field][j]
-
-        H['given'][i] = True
-        H['given_time'][i] = time.time()
-        H['lead_rank'][i] = lead_rank
