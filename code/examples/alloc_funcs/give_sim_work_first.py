@@ -55,10 +55,9 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             else:
                 block_others = False
 
-            Work[i] = {'H_rows': sim_ids_to_send,
-                       'H_fields': sim_specs['in'],
+            Work[i] = {'H_fields': sim_specs['in'],
                        'tag':EVAL_SIM_TAG, 
-                       'info': {'len':len(sim_ids_to_send),
+                       'info': {'H_rows': sim_ids_to_send,
                                 },
                       }
 
@@ -86,7 +85,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             Work[i] = {'H_rows': range(0,H_ind),
                        'H_fields': gen_specs['in'],
                        'tag':EVAL_GEN_TAG, 
-                       'info': {'len': H_ind,
+                       'info': {'H_rows': range(0,H_ind),
                                 'gen_info':gen_info,
                                 }
                        }

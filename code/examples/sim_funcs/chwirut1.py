@@ -259,7 +259,7 @@ def libE_func_wrapper(H_s,H_g,sim_specs,info):
             O['fvec'][i] = EvaluateFunction(x)
             O['f'][i] = sim_specs['combine_component_func'](O['fvec'][i])
 
-    return O
+    return O, {}
         
 # if __name__ == '__main__':
 #     x = np.zeros(3)

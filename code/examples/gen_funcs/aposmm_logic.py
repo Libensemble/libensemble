@@ -75,8 +75,6 @@ def aposmm_logic(H,H_g,gen_specs,info):
         starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions)        
         updated_inds.update(starting_inds) 
                 
-        active_runs = get_active_run_inds(H)
-        
         for ind in starting_inds:
             # Find the run number 
             if np.max(H['iter_plus_1_in_run_id']) == 0:
@@ -118,8 +116,6 @@ def aposmm_logic(H,H_g,gen_specs,info):
 
         for i in inactive_runs:
             active_runs.remove(i)
-
-        update_existing_runs_file(active_runs)
 
     if len(H) == 0:
         samples_needed = gen_specs['initial_sample']
@@ -209,9 +205,9 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, local_flag=0, sorted_run_i
 #     else:
 #         return set()
     
-def update_existing_runs_file(active_runs):    
-    filename = 'active_runs.txt'    
-    np.savetxt(filename,np.array(list(active_runs),dtype=int), fmt='%i')
+# def update_existing_runs_file(active_runs):    
+#     filename = 'active_runs.txt'    
+#     np.savetxt(filename,np.array(list(active_runs),dtype=int), fmt='%i')
 
 def update_history_dist(H, gen_specs, c_flag):
     # Update distances for any new points that have been evaluated
