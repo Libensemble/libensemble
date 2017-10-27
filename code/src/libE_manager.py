@@ -59,14 +59,16 @@ def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w):
         comm.send(obj=H[sim_specs['in']].dtype, dest=w)
         comm.send(obj=H[gen_specs['in']].dtype, dest=w)
 
+
 def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, active_w, idle_w):
 
     comm.send(obj=Work['libE_info'], dest=w, tag=Work['tag'])
     comm.send(obj=Work['gen_info'], dest=w, tag=Work['tag'])
     if len(Work['libE_info']['H_rows']):
-        for i in Work['H_fields']:
-            comm.send(obj=H[i][0].dtype,dest=w)
-            comm.Send(H[i][Work['libE_info']['H_rows']], dest=w)
+        comm.send(obj=H[Work['H_fields']][Work['libE_info']['H_rows']],dest=w)
+    #     for i in Work['H_fields']:
+    #         # comm.send(obj=H[i][0].dtype,dest=w)
+    #         comm.Send(H[i][Work['libE_info']['H_rows']], dest=w)
 
     active_w[Work['tag']].add(w)
     idle_w.remove(w)

@@ -65,11 +65,13 @@ def worker_main(c, sim_specs, gen_specs):
         calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
 
         if len(calc_in) > 0: 
-            for i in calc_in.dtype.names: 
-                d = comm.recv(buf=None, source=0)
-                data = np.empty(calc_in[i].shape, dtype=d)
-                comm.Recv(data,source=0)
-                calc_in[i] = data
+            calc_in = comm.recv(buf=None, source=0)
+            # for i in calc_in.dtype.names: 
+            #     # d = comm.recv(buf=None, source=0)
+            #     # data = np.empty(calc_in[i].shape, dtype=d)
+            #     data = np.empty(calc_in[i].shape, dtype=calc_in[i].dtype)
+            #     comm.Recv(data,source=0)
+            #     calc_in[i] = data
 
         if calc_tag in locations:
             saved_dir = os.getcwd()
