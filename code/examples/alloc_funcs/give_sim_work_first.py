@@ -18,6 +18,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
 
     if len(gen_info) == 0: 
         gen_info[0] = {}
+        gen_info[0]['rand_stream'] = {i:np.random.RandomState(i) for i in idle_w}
 
     for i in idle_w:
         if term_test(H, H_ind):
