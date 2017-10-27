@@ -710,7 +710,7 @@ def queue_update_function(H, gen_specs, persistent_data):
         persistent_data['complete'] = set() 
         persistent_data['has_nan'] = set() 
         persistent_data['already_paused'] = set() 
-        persistent_data['H_len'] = len(H)
+        persistent_data['H_len'] = 0
 
     if len(H)==persistent_data['H_len']:
         return H, persistent_data
