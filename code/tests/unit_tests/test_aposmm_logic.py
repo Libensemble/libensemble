@@ -40,6 +40,7 @@ def test_exception_raising():
         else:
             assert 0, "Failed like it should have"
 
+
 def test_decide_where_to_start_localopt():
     sys.path.append(os.path.join(os.path.dirname(__file__), '../regression_tests'))
 
@@ -55,11 +56,20 @@ def test_decide_where_to_start_localopt():
     b = al.decide_where_to_start_localopt(H, 9, 1, nu=0.01)
     assert len(b)==0
 
+
 def test_calc_rk():
     rk = al.calc_rk(2,10,1)
 
     rk = al.calc_rk(2,10,1,10)
     assert np.isinf(rk)
+
+
+def test_initialize_APOSMM():
+    sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
+    H, _, _, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
+
+    al.initialize_APOSMM(H,gen_specs_0)
+    
 
 def test_queue_update_function():
 
@@ -84,6 +94,7 @@ def test_queue_update_function():
     H['f_i'][6:10:2] = 0.5
     H,_ = al.queue_update_function(H, gen_specs_0,{})
     assert np.all(H['paused'][4:])
+
 
 # if __name__ == "__main__":
 #     import ipdb; ipdb.set_trace()

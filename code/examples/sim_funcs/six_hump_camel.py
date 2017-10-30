@@ -32,7 +32,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, gen_info, sim_specs, libE_i
         call_str = ["mpiexec","-np",str(H[i]['ranks_per_node']*len(ranks_involved)),"-machinefile",machinefilename,"python", os.path.join(os.path.dirname(__file__),"helloworld.py")]
         process = subprocess.call(call_str, stdout = open(outfile_name,'w'), shell=False)
 
-        O['f'][i] = six_hump_camel_func(H['x'][i])
+        O['f'][i] = six_hump_camel_func(x)
 
         # v = np.random.uniform(0,10)
         # print('About to sleep for :' + str(v))
@@ -46,10 +46,10 @@ def six_hump_camel(H, gen_info, sim_specs, libE_info):
     O = np.zeros(batch,dtype=sim_specs['out'])
 
     for i,x in enumerate(H['x']):
-        O['f'][i] = six_hump_camel_func(H['x'][i])
+        O['f'][i] = six_hump_camel_func(x)
 
         if 'grad' in O.dtype.names:
-            O['grad'][i] = six_hump_camel_grad(H['x'][i])
+            O['grad'][i] = six_hump_camel_grad(x)
 
         if 'pause_time' in sim_specs:
             time.sleep(sim_specs['pause_time'])

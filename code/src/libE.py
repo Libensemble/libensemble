@@ -33,6 +33,11 @@ from mpi4py import MPI
 
 import numpy as np
 import sys,os 
+
+# from IPython.core import ultratb
+# sys.excepthook = ultratb.FormattedTB(mode='Verbose',
+#      color_scheme='Linux', call_pdb=1)
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
 from give_sim_work_first import give_sim_work_first
 
