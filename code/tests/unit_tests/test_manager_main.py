@@ -59,7 +59,8 @@ def test_termination_test():
     
 
     # Terminate because enough time has passed
-    H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    H0 = np.zeros(3,dtype=sim_specs['out'] + gen_specs['out'])
+    H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,H0) 
     H_ind = 4
     H['given_time'][0] = time.time()
     time.sleep(0.5)
@@ -82,4 +83,3 @@ def test_update_history_x_in():
 
 
 # if __name__ == "__main__":
-#     test_initialize_history()
