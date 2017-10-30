@@ -30,7 +30,6 @@ from math import gamma, pi, sqrt
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 n = 2
-max_sim_budget = 1000
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
@@ -74,30 +73,42 @@ gen_specs = {'gen_f': aposmm_logic,
 
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': max_sim_budget}
+exit_criteria = {'sim_max': 1000}
 
 np.random.seed(1)
 
 # Perform the run
-H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
+for run in range(2):
+    if run == 1:
+        # Change the bounds to put a solution at a corner point (to test APOSMM's ability to give back a previously evaluated point)
+        gen_specs['ub']= np.array([-2.9, -1.9])
+        gen_specs['mu']= 1e-4
+        exit_criteria['sim_max'] = 200
 
-    minima = np.array([[ -0.089842,  0.712656],
-                       [  0.089842, -0.712656],
-                       [ -1.70361,  0.796084],
-                       [  1.70361, -0.796084],
-                       [ -1.6071,   -0.568651],
-                       [  1.6071,    0.568651]])
-    tol = 1e-4
-    for m in minima:
-        print(np.min(np.sum((H['x']-m)**2,1)))
-        assert np.min(np.sum((H['x']-m)**2,1)) < tol
+    H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
-    print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the 6 minima within a tolerance " + str(tol))
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        short_name = script_name.split("test_", 1).pop()
+        filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+        print("\n\n\nRun completed.\nSaving results to file: " + filename)
+        np.save(filename, H)
+
+        if run == 0:
+            minima = np.array([[ -0.089842,  0.712656],
+                               [  0.089842, -0.712656],
+                               [ -1.70361,  0.796084],
+                               [  1.70361, -0.796084],
+                               [ -1.6071,   -0.568651],
+                               [  1.6071,    0.568651]])
+        else: 
+            minima = np.array([[-2.9, -1.9]])
+
+        tol = 1e-4
+        for m in minima:
+            print(np.min(np.sum((H['x']-m)**2,1)))
+            assert np.min(np.sum((H['x']-m)**2,1)) < tol
+
+        print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
 
 
