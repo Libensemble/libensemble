@@ -14,7 +14,7 @@ def test_update_history_x_out():
 
 def make_criteria_and_specs_0():
     sim_specs={'sim_f': [np.linalg.norm], 'in':['x_on_cube'], 'out':[('f',float),('fvec',float,3)], }
-    gen_specs={'gen_f': [np.random.uniform], 'in':[], 'out':[('x_on_cube',float),('priority',float)]}
+    gen_specs={'gen_f': [np.random.uniform], 'in':[], 'out':[('x_on_cube',float),('priority',float)], 'ub':np.ones(1)}
     exit_criteria={'sim_max':10}
 
     return sim_specs, gen_specs, exit_criteria
