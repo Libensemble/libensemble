@@ -14,11 +14,12 @@ alloc = {'worker_ranks':set([1,2]),'persist_gen_ranks':set([])}
 def test_failing_localopt_method():
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
     H, _, _, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
+    H['returned'] = 1
 
     gen_specs_0['localopt_method'] = 'BADNAME'
     
     try: 
-        al.advance_localopt_method(H, gen_specs_0, np.array([0,1]), 0)
+        al.advance_localopt_method(H, gen_specs_0, 0, 0, {'run_order': {0:[0,1]}})
     except: 
         assert 1, "Failed like it should have"
     else:
@@ -28,11 +29,12 @@ def test_failing_localopt_method():
 def test_exception_raising():
     sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
     H, _, _, _, _ = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[]) 
+    H['returned'] = 1
 
     for method in ['LN_SBPLX','pounders']:
         gen_specs_0['localopt_method'] = method
         try: 
-            al.advance_localopt_method(H, gen_specs_0, np.array([0,1]), 0)
+            al.advance_localopt_method(H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
         except: 
             assert 1, "Failed like it should have"
         else:
@@ -84,3 +86,5 @@ def test_queue_update_function():
     assert np.all(H['paused'][4:])
 
 # if __name__ == "__main__":
+#     import ipdb; ipdb.set_trace()
+#     test_failing_localopt_method()

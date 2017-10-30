@@ -54,7 +54,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
 
-    n, n_s, c_flag, O, rk_const, lhs_divisions = initialize_APOSMM(H, gen_specs)
+    n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs)
     # import ipdb; ipdb.set_trace()
@@ -66,7 +66,7 @@ def aposmm_logic(H,gen_info,gen_specs,info):
 
         updated_inds = update_history_dist(H, gen_specs, c_flag)        
 
-        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions)        
+        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions, mu, nu)        
         updated_inds.update(starting_inds) 
                 
         for ind in starting_inds:
@@ -92,12 +92,8 @@ def aposmm_logic(H,gen_info,gen_specs,info):
         inactive_runs = set()
 
         for run in gen_info['active_runs']:
-            sorted_run_inds = gen_info['run_order'][run]
-                        
-            assert all(H['returned'][sorted_run_inds])
             
-            x_new = np.ones((1,n))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
-            x_opt, exit_code = advance_localopt_method(H, gen_specs, sorted_run_inds, c_flag)
+            x_opt, exit_code, gen_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, gen_info)
 
             if np.isinf(x_new).all():
                 assert exit_code>0, "Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!"
@@ -281,49 +277,63 @@ def update_history_optimal(x_opt, H, run_inds):
 
 
 
-def advance_localopt_method(H, gen_specs, sorted_run_inds, c_flag):
+def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
+    global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
-    if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
+    while 1:
+        sorted_run_inds = gen_info['run_order'][run]
+        assert all(H['returned'][sorted_run_inds])
 
-        if gen_specs['localopt_method'] in ['LD_MMA']:
-            Run_H = H[['x_on_cube','f','grad']][sorted_run_inds] 
+        x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
+
+        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
+
+            if gen_specs['localopt_method'] in ['LD_MMA']:
+                Run_H = H[['x_on_cube','f','grad']][sorted_run_inds] 
+            else:
+                Run_H = H[['x_on_cube','f']][sorted_run_inds] 
+
+            try:
+                # import ipdb; ipdb.set_trace() 
+                x_opt, exit_code = set_up_and_run_nlopt(Run_H, gen_specs)
+            except Exception as e:
+                exit_code = 0
+                print(e.__doc__)
+                print(e.args)
+                print(Run_H['x_on_cube'])
+
+
+        elif gen_specs['localopt_method'] in ['pounders']:
+                
+            if c_flag:
+                Run_H_F = np.zeros(len(sorted_run_inds),dtype=[('fvec',float,gen_specs['components'])])
+                for i,ind in enumerate(sorted_run_inds):
+                    for j in range(gen_specs['components']):
+                        Run_H_F['fvec'][i][j] = H['f_i'][np.logical_and(H['pt_id']==H['pt_id'][ind], H['obj_component']==j)]
+                Run_H = merge_arrays([H[['x_on_cube']][sorted_run_inds],Run_H_F],flatten=True)
+            else: 
+                Run_H = H[['x_on_cube','fvec']][sorted_run_inds]
+
+            try: 
+                x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
+            except Exception as e:
+                exit_code = 0
+                print(e.__doc__)
+                print(e.args)
+
         else:
-            Run_H = H[['x_on_cube','f']][sorted_run_inds] 
+            sys.exit("Unknown localopt method. Exiting")
 
-        try:
-            # import ipdb; ipdb.set_trace() 
-            x_opt, exit_code = set_up_and_run_nlopt(Run_H, gen_specs)
-        except Exception as e:
-            exit_code = 0
-            print(e.__doc__)
-            print(e.args)
-            print(Run_H['x_on_cube'])
+        matching_ind = np.equal(x_new,H['x_on_cube']).all(1)
+        if ~matching_ind.any():
+            # Generated a new point
+            break 
+        else:
+            # We need to add a previously evaluated point into this run
+            gen_info['run_order'][run].append(np.nonzero(matching_ind)[0][0])
 
 
-    elif gen_specs['localopt_method'] in ['pounders']:
-            
-        if c_flag:
-            Run_H_F = np.zeros(len(sorted_run_inds),dtype=[('fvec',float,gen_specs['components'])])
-            for i,ind in enumerate(sorted_run_inds):
-                for j in range(gen_specs['components']):
-                    Run_H_F['fvec'][i][j] = H['f_i'][np.logical_and(H['pt_id']==H['pt_id'][ind], H['obj_component']==j)]
-            Run_H = merge_arrays([H[['x_on_cube']][sorted_run_inds],Run_H_F],flatten=True)
-        else: 
-            Run_H = H[['x_on_cube','fvec']][sorted_run_inds]
-
-        try: 
-            x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
-        except Exception as e:
-            exit_code = 0
-            print(e.__doc__)
-            print(e.args)
-
-    else:
-        sys.exit("Unknown localopt method. Exiting")
-
-    assert ~np.equal(x_new,H['x_on_cube']).all(1).any(), "Generated an already evaluated point. Exiting"
-
-    return x_opt, exit_code
+    return x_opt, exit_code, gen_info, sorted_run_inds
 
 
 
@@ -497,7 +507,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
                 H['returned'] == 1,          # have a returned function value
                 H['dist_to_better_s'] > r_k, # no better sample point within r_k (L2)
                ~H['started_run'],            # have not started a run (L3)
-                H['dist_to_unit_bounds'] >= mu, # have all components at least mu away from ub (L4)
+                H['dist_to_unit_bounds'] >= mu, # have all components at least mu away from bounds (L4)
                 np.all(sp.spatial.distance.cdist(H['x_on_cube'], H['x_on_cube'][H['local_min']]) >= nu,axis=1) # distance nu away from known local mins (L5)
             ))
     else:
@@ -505,7 +515,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
                 H['returned'] == 1,          # have a returned function value
                 H['dist_to_better_s'] > r_k, # no better sample point within r_k (L2)
                ~H['started_run'],            # have not started a run (L3)
-                H['dist_to_unit_bounds'] >= mu, # have all components at least mu away from ub (L4)
+                H['dist_to_unit_bounds'] >= mu, # have all components at least mu away from bounds (L4)
             )) # (L5) is always true when nu = 0
 
     assert gamma_quantile == 1, "This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?"
@@ -702,7 +712,17 @@ def initialize_APOSMM(H, gen_specs):
     else:
         ld = 0
 
-    return n, n_s, c_flag, O, rk_c, ld
+    if 'mu' in gen_specs:
+        mu = gen_specs['mu']
+    else:
+        mu = 0
+
+    if 'nu' in gen_specs:
+        nu = gen_specs['nu']
+    else:
+        nu = 0
+
+    return n, n_s, c_flag, O, rk_c, ld, mu, nu
 
 
 def queue_update_function(H, gen_specs, persistent_data):
