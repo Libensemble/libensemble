@@ -683,11 +683,7 @@ def initialize_APOSMM(H, gen_specs):
 
 
     if c_flag:
-        pt_ids = np.unique(H['pt_id'])
-        completely_returned_pt_ids = []
-        for i in pt_ids:
-            if np.logical_and.reduce(H['returned'][H['pt_id']==i]):
-                completely_returned_pt_ids.append(i)
+        completely_returned_pt_ids = np.where([np.all(H['returned'][H['pt_id']==j]) for j in np.unique(H['pt_id'])])[0]
         n_s = np.sum(np.logical_and.reduce((~H['local_pt'], np.in1d(H['pt_id'],completely_returned_pt_ids), H['obj_component']==0 ))) # Number of returned sampled points
     else:
         n_s = np.sum(np.logical_and(~H['local_pt'], H['returned'])) # Number of returned sampled points
