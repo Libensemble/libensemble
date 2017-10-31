@@ -42,6 +42,8 @@ def six_hump_camel_with_different_ranks_and_nodes(H, gen_info, sim_specs, libE_i
 
 
 def six_hump_camel(H, gen_info, sim_specs, libE_info):
+    del libE_info # Ignored parameter
+
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
 
