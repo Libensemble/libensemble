@@ -9,7 +9,9 @@ import time
 from branin import branin
 
 # @profile
-def call_branin(H,gen_info,sim_specs,info):
+def call_branin(H,gen_info,sim_specs,libE_info):
+    del libE_info # Ignored parameter
+
     """ Evaluates the Branin function """
 
     batch = len(H['x'])

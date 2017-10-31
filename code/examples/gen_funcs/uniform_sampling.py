@@ -4,7 +4,9 @@ from __future__ import absolute_import
 import numpy as np
 from mpi4py import MPI
 
-def uniform_random_sample_with_different_nodes_and_ranks(H,gen_info,gen_specs,info):
+def uniform_random_sample_with_different_nodes_and_ranks(H,gen_info,gen_specs,libE_info):
+    del libE_info # Ignored parameter
+
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     n = len(lb)
@@ -31,7 +33,9 @@ def uniform_random_sample_with_different_nodes_and_ranks(H,gen_info,gen_specs,in
     return O, gen_info
 
 
-def uniform_random_sample_obj_components(H,gen_info,gen_specs,info):
+def uniform_random_sample_obj_components(H,gen_info,gen_specs,libE_info):
+    del libE_info # Ignored parameter
+
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
@@ -53,7 +57,9 @@ def uniform_random_sample_obj_components(H,gen_info,gen_specs,info):
 
     return O, gen_info
 
-def uniform_random_sample(H,gen_info,gen_specs,info):
+def uniform_random_sample(H,gen_info,gen_specs,libE_info):
+    del libE_info # Ignored parameter
+
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
