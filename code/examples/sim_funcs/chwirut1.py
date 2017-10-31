@@ -220,13 +220,17 @@ y[211] =    10.0500;  t[211] =   3.7500;
 y[212] =    28.9000;  t[212] =   1.7500;
 y[213] =    28.9500;  t[213] =   1.7500;
 
-def EvaluateFunction(x):
-    f = np.zeros(NOBSERVATIONS)
-
-    for i in range(NOBSERVATIONS):
-        f[i] = y[i] - np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
+def EvaluateFunction(x,component=np.nan):
+    if np.isnan(component):
+        f = np.zeros(NOBSERVATIONS)
+        for i in range(NOBSERVATIONS):
+            f[i] = y[i] - np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
+    else:
+        i = component
+        f = y[i] - np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
 
     return f
+
 
 def EvaluateJacobian(x):
     j = np.zeros((NOBSERVATIONS,3))
@@ -253,7 +257,7 @@ def libE_func_wrapper(H,gen_info,sim_specs,info):
             if 'component_nan_frequency' in sim_specs and np.random.uniform(0,1)< sim_specs['component_nan_frequency']:
                 O['f_i'][i] = np.nan
             else:
-                O['f_i'][i] = EvaluateFunction(x)[H['obj_component'][i]]
+                O['f_i'][i] = EvaluateFunction(x, H['obj_component'][i])
 
         else:
             O['fvec'][i] = EvaluateFunction(x)
