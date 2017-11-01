@@ -52,13 +52,27 @@ gen_specs = {'gen_f': uniform_random_sample,
              'num_inst':1,
              }
 
+gen_out = [
+      ('local_pt',bool),
+      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
+      ('dist_to_unit_bounds',float),
+      ('dist_to_better_l',float),
+      ('dist_to_better_s',float),
+      ('ind_of_better_l',int),
+      ('ind_of_better_s',int),
+      ('started_run',bool),
+      ('num_active_runs',int), # Number of active runs point is involved in
+      ('local_min',bool),
+      # ('obj_component',int),
+      # ('pt_id',int), # To be used by APOSMM to identify points evaluated by different simulations
+      ]
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 10}
 
 np.random.seed(1)
 
-alloc_specs = {'alloc_f':start_persistent_local_opt_gens, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}
+alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}
 # Perform the run
 H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
 

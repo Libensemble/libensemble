@@ -40,9 +40,9 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
             break
 
         # Find candidate points for starting local opt runs
-        n, n_s, c_flag, _, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
-        update_history_dist(H, gen_specs, c_flag=False)
-        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions, mu, nu)        
+        n, n_s, c_flag, _, rk_const, lhs_divisions, mu, nu = aposmm_logic.initialize_APOSMM(H, gen_specs)
+        aposmm_logic.update_history_dist(H, gen_specs, c_flag=False)
+        starting_inds = aposmm_logic.decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions, mu, nu)        
 
         # Start up a persistent generator that is a local opt run if all workers won't be persistent generators.
         if gen_count + len(active_w[EVAL_GEN_TAG] + persis_w[PERSIS_GEN_TAG]) <= len(idle_w + active_w[EVAL_SIM_TAG]):

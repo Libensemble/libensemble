@@ -101,7 +101,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_spe
     status = MPI.Status()
 
     new_stuff = True
-    while new_stuff and len(active_w['sim']) + len(active_w['gen']) > 0:
+    while new_stuff and len(active_w[EVAL_SIM_TAG]) + len(active_w[EVAL_GEN_TAG]) > 0:
         new_stuff = False
         for w in active_w[EVAL_SIM_TAG].copy() | active_w[EVAL_GEN_TAG].copy(): 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
