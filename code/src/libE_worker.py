@@ -30,6 +30,64 @@ def worker_main(c, sim_specs, gen_specs):
     D['calc_dir']: String for directory to be copied where work should be
         performed (empty string means no directory needed) 
     """
+    comm, status, dtypes, locations = initialize_worker(c, sim_specs, gen_specs)
+
+    while 1:
+        # Receive libE_info from manager and check if STOP_TAG. 
+        libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        calc_tag = status.Get_tag()
+        if calc_tag == STOP_TAG: break
+
+        gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        calc_in, calc_info = receive_calc(comm, calc_in_len, calc_tag, dtypes)
+
+        data_out, tag_out = perform_calc(calc_in, calc_info, calc_tag, locations, sim_specs, gen_specs, comm) 
+                            
+        if tag_out == STOP_TAG: break
+        if tag_out == FINISHED_PERSISTENT_GEN_TAG: 
+            _ = comm.recv(buf=None, source=0,tag=MPI.ANY_TAG, status=status) # Need to receive an advance signal from manager
+            if status.Get_tag() == STOP_TAG: break
+
+        comm.send(obj=data_out, dest=0, tag=tag_out) 
+
+
+        if calc_tag in locations:
+            saved_dir = os.getcwd()
+            os.chdir(locations[calc_tag])
+
+        if calc_tag == EVAL_SIM_TAG: 
+            H, gen_info = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
+        else: 
+            H, gen_info = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
+
+        if calc_tag in locations:
+            os.chdir(saved_dir)
+
+        data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
+        
+        comm.send(obj=data_out, dest=0, tag=calc_tag) 
+
+    # Clean up
+    for loc in locations.values():
+        shutil.rmtree(loc)
+        shutil.rmtree(worker_dir)
+
+def receive_calc(comm, calc_in_len, calc_tag, dtypes):
+    calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
+
+    if len(calc_in) > 0: 
+        calc_in = comm.recv(buf=None, source=0)
+        # for i in calc_in.dtype.names: 
+        #     # d = comm.recv(buf=None, source=0)
+        #     # data = np.empty(calc_in[i].shape, dtype=d)
+        #     data = np.empty(calc_in[i].shape, dtype=calc_in[i].dtype)
+        #     comm.Recv(data,source=0)
+        #     calc_in[i] = data
+
+
+def initialize_worker(c, sim_specs, gen_specs):
+    """ Receive sim and gen dtypes, copy sim_dir """
+
     comm = c['comm']
     comm_color = c['color']
     rank = comm.Get_rank()
@@ -53,42 +111,6 @@ def worker_main(c, sim_specs, gen_specs):
         assert ~os.path.isdir(worker_dir), "Worker directory already exists."
         # if not os.path.exists(worker_dir):
         shutil.copytree(sim_specs['sim_dir'], worker_dir)
-
         locations[EVAL_SIM_TAG] = worker_dir 
 
-    while 1:
-        libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        calc_tag = status.Get_tag()
-        if calc_tag == STOP_TAG: break
-
-        gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
-
-        if len(calc_in) > 0: 
-            calc_in = comm.recv(buf=None, source=0)
-            # for i in calc_in.dtype.names: 
-            #     # d = comm.recv(buf=None, source=0)
-            #     # data = np.empty(calc_in[i].shape, dtype=d)
-            #     data = np.empty(calc_in[i].shape, dtype=calc_in[i].dtype)
-            #     comm.Recv(data,source=0)
-            #     calc_in[i] = data
-
-        if calc_tag in locations:
-            saved_dir = os.getcwd()
-            os.chdir(locations[calc_tag])
-
-        if calc_tag == EVAL_SIM_TAG: 
-            H, gen_info = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
-        else: 
-            H, gen_info = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
-
-        if calc_tag in locations:
-            os.chdir(saved_dir)
-
-        data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
-        
-        comm.send(obj=data_out, dest=0, tag=calc_tag) 
-
-    # Clean up
-    if 'saved_dir' in locals():
-        shutil.rmtree(worker_dir)
+    return comm, status, dtypes, locations 
