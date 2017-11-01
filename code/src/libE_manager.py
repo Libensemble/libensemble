@@ -13,6 +13,8 @@ from __future__ import absolute_import
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from message_numbers import EVAL_SIM_TAG 
 from message_numbers import EVAL_GEN_TAG 
+from message_numbers import PERSIS_SIM_TAG 
+from message_numbers import PERSIS_GEN_TAG 
 from message_numbers import STOP_TAG # manager tells worker run is over
 
 from mpi4py import MPI
@@ -31,7 +33,7 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
-        H, H_ind, active_w, idle_w, persis_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info)
+        H, H_ind, active_w, idle_w, persis_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info)
 
         persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_queue_data)
 

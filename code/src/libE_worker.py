@@ -38,7 +38,6 @@ def worker_main(c, sim_specs, gen_specs):
         calc_tag = status.Get_tag()
         if calc_tag == STOP_TAG: break
 
-        gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
         calc_in, calc_info = receive_calc(comm, calc_in_len, calc_tag, dtypes)
 
         data_out, tag_out = perform_calc(calc_in, calc_info, calc_tag, locations, sim_specs, gen_specs, comm) 
@@ -55,10 +54,6 @@ def worker_main(c, sim_specs, gen_specs):
             saved_dir = os.getcwd()
             os.chdir(locations[calc_tag])
 
-        if calc_tag == EVAL_SIM_TAG: 
-            H, gen_info = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
-        else: 
-            H, gen_info = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
 
         if calc_tag in locations:
             os.chdir(saved_dir)
@@ -70,9 +65,30 @@ def worker_main(c, sim_specs, gen_specs):
     # Clean up
     for loc in locations.values():
         shutil.rmtree(loc)
-        shutil.rmtree(worker_dir)
+
+def perform_calc(calc_in, calc_info, calc_tag, locations, sim_specs, gen_specs, comm):
+    if calc_tag in locations:
+        saved_dir = os.getcwd()
+        os.chdir(locations[calc_tag])
+
+    if calc_tag == EVAL_SIM_TAG: 
+        H, gen_info = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
+    elif calc_tag == EVAL_GEN_TAG: 
+        if 'persistent' in calc_info and calc_info['persistent']:
+            libE_info['comm'] = comm
+
+        O = gen_specs['gen_f'](calc_in,gen_specs['out'],gen_specs['params'],libE_info)
+
+
+    if calc_tag in locations:
+        os.chdir(saved_dir)
+
+    data_out = {'calc_out':O, 'calc_info': calc_info}
+
+    return data_out, tag_out
 
 def receive_calc(comm, calc_in_len, calc_tag, dtypes):
+    gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
     calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
 
     if len(calc_in) > 0: 
@@ -84,6 +100,7 @@ def receive_calc(comm, calc_in_len, calc_tag, dtypes):
         #     comm.Recv(data,source=0)
         #     calc_in[i] = data
 
+    return calc_in, gen_info
 
 def initialize_worker(c, sim_specs, gen_specs):
     """ Receive sim and gen dtypes, copy sim_dir """
