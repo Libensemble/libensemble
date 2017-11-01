@@ -23,7 +23,7 @@ import copy
 
 def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
 
-    H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
+    H, H_ind, term_test, idle_w, active_w, persis_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
     persistent_queue_data = {}; gen_info = {}
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w)
@@ -31,16 +31,18 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
-        H, H_ind, active_w, idle_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info)
+        H, H_ind, active_w, idle_w, persis_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info)
 
         persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_queue_data)
 
-        Work, gen_info = alloc_specs['alloc_f'](active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, gen_info)
+        Work, persis_w, gen_info = alloc_specs['alloc_f'](active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, gen_info)
 
         for w in Work:
             active_w, idle_w = send_to_worker_and_update_active_and_idle(comm, H, Work[w], w, sim_specs, gen_specs, active_w, idle_w)
 
-    H, gen_info, exit_flag = final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info)
+        persis_w = give_information_to_persistent_workers(comm,persis_w)
+
+    H, gen_info, exit_flag = final_receive_and_kill(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info)
 
     return H, gen_info, exit_flag
 
@@ -51,6 +53,17 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
 ######################################################################
 # Manager subroutines
 ######################################################################
+def give_information_to_persistent_workers(comm, persis_w):
+    # Tell all persistent workers to proceed
+    if len(persis_w[PERSIS_SIM_TAG] | persis_w[PERSIS_GEN_TAG]):
+        for i in persis_w[PERSIS_SIM_TAG] | persis_w[PERSIS_GEN_TAG]:
+            comm.send(obj=None, dest=i, tag=PERSIS_PROCEED)
+        persis_w[PERSIS_SIM_TAG] = set([])
+        persis_w[PERSIS_GEN_TAG] = set([])
+
+    return persis_w
+
+
 def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w):
     # Communicate the gen dtype to workers to save time on future
     # communications. (Must communicate this when workers are requesting
@@ -82,13 +95,11 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
 
     return active_w, idle_w
 
-
-def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info):
-
+def receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info, advance_pers=True):
     status = MPI.Status()
 
     new_stuff = True
-    while new_stuff:
+    while new_stuff and len(active_w['sim']) + len(active_w['gen']) > 0:
         new_stuff = False
         for w in active_w[EVAL_SIM_TAG].copy() | active_w[EVAL_GEN_TAG].copy(): 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
@@ -129,7 +140,7 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
         if not os.path.isfile(filename) and count > 0:
             np.save(filename,H)
 
-    return H, H_ind, active_w, idle_w, gen_info
+    return H, H_ind, active_w, idle_w, persis_w, gen_info
 
 
 def update_active_and_queue(active_w, idle_w, H, gen_specs, data):
@@ -326,10 +337,11 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
 
     idle_w = alloc_specs['worker_ranks'].copy()
     active_w = {EVAL_GEN_TAG:set(), EVAL_SIM_TAG:set(), 'blocked':set()}
+    persis_w = {PERSIS_SIM_TAG:set(), PERSIS_GEN_TAG:set(), 'gen_request':set(), 'sim_request':set()}
 
-    return H, H_ind, term_test, idle_w, active_w
+    return H, H_ind, term_test, idle_w, active_w, persis_w
 
-def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info):
+def final_receive_and_kill(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info):
     """ 
     Tries to receive from any active workers. 
 
@@ -342,7 +354,7 @@ def final_receive_and_kill(comm, active_w, idle_w, H, H_ind, sim_specs, gen_spec
 
     ### Receive from all active workers 
     while len(active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]):
-        H, H_ind, active_w, idle_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info)
+        H, H_ind, active_w, idle_w, persis_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info, advance_pers=False)
         if term_test(H, H_ind) == 2 and len(active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]):
             for w in active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)

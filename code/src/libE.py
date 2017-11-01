@@ -57,10 +57,12 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     # comm.Barrier()
 
     if comm.Get_rank() in alloc_specs['manager_ranks']:
+        import ipdb; ipdb.set_trace()
         H, gen_info, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # if exit_flag == 0:
         #     comm.Barrier()
     elif comm.Get_rank() in alloc_specs['worker_ranks']:
+        import ipdb; ipdb.set_trace()
         worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
         # comm.Barrier()
     else:
