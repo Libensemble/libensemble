@@ -24,7 +24,7 @@ from six_hump_camel import six_hump_camel
 
 # Import gen_func 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-from uniform_sampling import uniform_random_sample
+from uniform_or_localopt import uniform_or_localopt
 
 # Import alloc_func 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
@@ -41,9 +41,15 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              }
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_random_sample,
+gen_specs = {'gen_f': uniform_or_localopt,
              'in': [],
-             'out': [('x',float,2),
+             'out': [('x_on_cube',float,2),
+                     ('x',float,2),
+                     ('dist_to_unit_bounds',float),
+                     ('dist_to_better_l',float),
+                     ('dist_to_better_s',float),
+                     ('ind_of_better_l',int),
+                     ('ind_of_better_s',int),
                     ],
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
@@ -52,7 +58,10 @@ gen_specs = {'gen_f': uniform_random_sample,
              'num_inst':1,
              }
 
-gen_out = [
+gen_out = [('x',float,2),
+      ('x_on_cube',float,2),
+      ('sim_id',int),
+      ('priority',float),
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
@@ -63,8 +72,6 @@ gen_out = [
       ('started_run',bool),
       ('num_active_runs',int), # Number of active runs point is involved in
       ('local_min',bool),
-      # ('obj_component',int),
-      # ('pt_id',int), # To be used by APOSMM to identify points evaluated by different simulations
       ]
 
 # Tell libEnsemble when to stop

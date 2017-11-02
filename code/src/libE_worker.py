@@ -10,9 +10,7 @@ from mpi4py import MPI
 import numpy as np
 import os, shutil 
 
-from message_numbers import STOP_TAG # manager tells worker to stop
-from message_numbers import EVAL_SIM_TAG 
-from message_numbers import EVAL_GEN_TAG 
+from message_numbers import *
 
 def worker_main(c, sim_specs, gen_specs):
     """ 
@@ -38,35 +36,32 @@ def worker_main(c, sim_specs, gen_specs):
         calc_tag = status.Get_tag()
         if calc_tag == STOP_TAG: break
 
-        calc_in, calc_info = receive_calc(comm, calc_in_len, calc_tag, dtypes)
+        gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
 
-        data_out, tag_out = perform_calc(calc_in, calc_info, calc_tag, locations, sim_specs, gen_specs, comm) 
+        if len(calc_in) > 0: 
+            calc_in = comm.recv(buf=None, source=0)
+            # for i in calc_in.dtype.names: 
+            #     # d = comm.recv(buf=None, source=0)
+            #     # data = np.empty(calc_in[i].shape, dtype=d)
+            #     data = np.empty(calc_in[i].shape, dtype=calc_in[i].dtype)
+            #     comm.Recv(data,source=0)
+            #     calc_in[i] = data
+
+        data_out, tag_out = perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm) 
                             
         if tag_out == STOP_TAG: break
         if tag_out == FINISHED_PERSISTENT_GEN_TAG: 
             _ = comm.recv(buf=None, source=0,tag=MPI.ANY_TAG, status=status) # Need to receive an advance signal from manager
             if status.Get_tag() == STOP_TAG: break
 
-        comm.send(obj=data_out, dest=0, tag=tag_out) 
-
-
-        if calc_tag in locations:
-            saved_dir = os.getcwd()
-            os.chdir(locations[calc_tag])
-
-
-        if calc_tag in locations:
-            os.chdir(saved_dir)
-
-        data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
-        
         comm.send(obj=data_out, dest=0, tag=calc_tag) 
 
     # Clean up
     for loc in locations.values():
         shutil.rmtree(loc)
 
-def perform_calc(calc_in, calc_info, calc_tag, locations, sim_specs, gen_specs, comm):
+def perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm):
     if calc_tag in locations:
         saved_dir = os.getcwd()
         os.chdir(locations[calc_tag])
@@ -74,33 +69,19 @@ def perform_calc(calc_in, calc_info, calc_tag, locations, sim_specs, gen_specs, 
     if calc_tag == EVAL_SIM_TAG: 
         H, gen_info = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
     elif calc_tag == EVAL_GEN_TAG: 
-        if 'persistent' in calc_info and calc_info['persistent']:
+        if 'persistent' in libE_info and libE_info['persistent']:
             libE_info['comm'] = comm
 
-        O = gen_specs['gen_f'](calc_in,gen_specs['out'],gen_specs['params'],libE_info)
+        H, gen_info = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
 
 
     if calc_tag in locations:
         os.chdir(saved_dir)
 
-    data_out = {'calc_out':O, 'calc_info': calc_info}
+    data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
+    tag_out = calc_tag
 
     return data_out, tag_out
-
-def receive_calc(comm, calc_in_len, calc_tag, dtypes):
-    gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-    calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
-
-    if len(calc_in) > 0: 
-        calc_in = comm.recv(buf=None, source=0)
-        # for i in calc_in.dtype.names: 
-        #     # d = comm.recv(buf=None, source=0)
-        #     # data = np.empty(calc_in[i].shape, dtype=d)
-        #     data = np.empty(calc_in[i].shape, dtype=calc_in[i].dtype)
-        #     comm.Recv(data,source=0)
-        #     calc_in[i] = data
-
-    return calc_in, gen_info
 
 def initialize_worker(c, sim_specs, gen_specs):
     """ Receive sim and gen dtypes, copy sim_dir """

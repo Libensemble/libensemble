@@ -64,6 +64,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
                        'libE_info': {'H_rows': sim_ids_to_send,
                                 },
                       }
+            print('This is being given to be evaluated!', sim_ids_to_send)
 
             if block_others:
                 unassigned_workers = idle_w - set(Work.keys()) - blocked_set

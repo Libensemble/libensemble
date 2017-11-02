@@ -42,7 +42,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs
 from give_sim_work_first import give_sim_work_first
 
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
-        alloc_specs={'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
+        alloc_specs={'out':[], 'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
         c={'comm': MPI.COMM_WORLD, 'color': 0}, 
         H0=[]):
 
@@ -57,12 +57,12 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     # comm.Barrier()
 
     if comm.Get_rank() in alloc_specs['manager_ranks']:
-        import ipdb; ipdb.set_trace()
+        import ipdb; ipdb.set_trace(context=21)
         H, gen_info, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # if exit_flag == 0:
         #     comm.Barrier()
     elif comm.Get_rank() in alloc_specs['worker_ranks']:
-        import ipdb; ipdb.set_trace()
+        import ipdb; ipdb.set_trace(context=11)
         worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
         # comm.Barrier()
     else:
