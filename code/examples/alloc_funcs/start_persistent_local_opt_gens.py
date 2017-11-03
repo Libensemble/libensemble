@@ -39,12 +39,16 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
         for i in idle_w:
             gen_info[i] = {'rand_stream': np.random.RandomState(i)}
 
+    # If i is idle, but in persistent mode, and its calculated values have
+    # returned, given them back to i. Otherwise, give nothing to i
+    for i in active_w[EVAL_GEN_TAG]:
+        if i in persis_w[PERSIS_GEN_TAG]: 
+            if i in persis_w['last_index']:
+                if np.all(H['returned'][persis_w['last_index'][i]]):
+                    b = persis_w['last_index'].pop(i)
+                    persis_w['advance_info'][i] = H[['x','grad','f']][b]
+
     for i in idle_w:
-
-        if i in persis_w[PERSIS_GEN_TAG] | persis_w[PERSIS_SIM_TAG]:
-            persis_w['adv'].add(i)
-
-
         # Find candidate points for starting local opt runs if a sample point has been evaluated
         if np.any(np.logical_and(~H['local_pt'][:H_ind],H['returned'][:H_ind])):
             n, n_s, c_flag, _, rk_const, lhs_divisions, mu, nu = aposmm_logic.initialize_APOSMM(H[:H_ind], gen_specs)
@@ -53,14 +57,14 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
         else:
             starting_inds = []
 
-        # Start up a persistent generator that is a local opt run if all workers won't be persistent generators.
-        if len(starting_inds) and gen_count + len(active_w[EVAL_GEN_TAG]) + len(persis_w[PERSIS_GEN_TAG]) <= len(idle_w) + len(active_w[EVAL_SIM_TAG]):
+        # Start up a persistent generator that is a local opt run but don't do it if all workers will be persistent generators.
+        # import ipdb; ipdb.set_trace(context=21)
+        if len(starting_inds) and gen_count + len(persis_w[PERSIS_GEN_TAG]) + 1 < len(idle_w) + len(active_w[EVAL_GEN_TAG]) + len(active_w[EVAL_SIM_TAG]): 
             # Start at the best possible starting point 
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
 
-
             Work[i] = {'gen_info':gen_info[i],
-                       'H_fields': ['x'],
+                       'H_fields': ['x','grad','f'],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': np.atleast_1d(ind),
                                      'gen_num': i,
@@ -73,12 +77,18 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
 
             persis_w[PERSIS_GEN_TAG].add(i)
 
+            gen_count += 1
 
         else: 
             # Else, perform sim evaluations from existing runs
-
-            # Find indices of H where that are not given nor paused
             q_inds_logical = np.logical_and.reduce((~H['given'][:H_ind],~H['paused'][:H_ind],~already_in_Work))
+
+            if np.any(q_inds_logical):
+                b = np.logical_and(q_inds_logical,  H['local_pt'][:H_ind])
+                if np.any(b):
+                    q_inds_logical = b
+                else:
+                    q_inds_logical = np.logical_and(q_inds_logical, ~H['local_pt'][:H_ind])
 
             if np.any(q_inds_logical):
                 sim_ids_to_send = np.nonzero(q_inds_logical)[0][0] # oldest point
@@ -93,6 +103,9 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
                 already_in_Work[sim_ids_to_send] = True
 
             else:
+                if gen_count + len(persis_w[PERSIS_GEN_TAG]) > 0: 
+                    continue
+                gen_count += 1
                 # There are no points available, so we call our gen_func
                 Work[i] = {'gen_info':gen_info[i],
                            'H_fields': gen_specs['in'],

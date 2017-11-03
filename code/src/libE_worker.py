@@ -48,7 +48,7 @@ def worker_main(c, sim_specs, gen_specs):
             #     comm.Recv(data,source=0)
             #     calc_in[i] = data
 
-        data_out, tag_out = perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm) 
+        data_out, gen_info, tag_out = perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm) 
                             
         if tag_out == STOP_TAG: break
         if tag_out == FINISHED_PERSISTENT_GEN_TAG: 
@@ -79,9 +79,8 @@ def perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, g
         os.chdir(saved_dir)
 
     data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
-    tag_out = calc_tag
 
-    return data_out, tag_out
+    return data_out, gen_info, calc_tag
 
 def initialize_worker(c, sim_specs, gen_specs):
     """ Receive sim and gen dtypes, copy sim_dir """

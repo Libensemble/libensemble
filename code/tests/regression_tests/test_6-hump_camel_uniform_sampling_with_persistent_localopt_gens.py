@@ -36,13 +36,15 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
              'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float), # This is the output from the function being minimized
+             'out': [('f',float), ('grad',float,2) # This is the output from the function being minimized
                     ],
              }
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': uniform_or_localopt,
              'in': [],
+             'localopt_method':'LD_MMA',
+             'xtol_rel':1e-4,
              'out': [('x_on_cube',float,2),
                      ('x',float,2),
                      ('dist_to_unit_bounds',float),
@@ -50,10 +52,12 @@ gen_specs = {'gen_f': uniform_or_localopt,
                      ('dist_to_better_s',float),
                      ('ind_of_better_l',int),
                      ('ind_of_better_s',int),
+                     ('local_pt',bool),
+                     ('num_active_runs',bool),
                     ],
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
-             'gen_batch_size': 5,
+             'gen_batch_size': 2,
              'batch_mode': True,
              'num_inst':1,
              }
@@ -70,7 +74,6 @@ gen_out = [('x',float,2),
       ('ind_of_better_l',int),
       ('ind_of_better_s',int),
       ('started_run',bool),
-      ('num_active_runs',int), # Number of active runs point is involved in
       ('local_min',bool),
       ]
 
