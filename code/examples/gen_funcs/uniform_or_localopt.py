@@ -7,11 +7,12 @@ import sys
 
 from message_numbers import FINISHED_PERSISTENT_GEN_TAG
 from message_numbers import STOP_TAG
+from message_numbers import PERSIS_STOP
 from message_numbers import PERSIS_GEN_TAG
 from message_numbers import EVAL_GEN_TAG
 
 import nlopt
-def set_up_and_run_nlopt(H, gen_specs, libE_info):
+def try_and_run_nlopt(H, gen_specs, libE_info):
     """ Set up objective and runs nlopt
     """
 
@@ -31,7 +32,10 @@ def set_up_and_run_nlopt(H, gen_specs, libE_info):
         # Receive information from the manager (or a STOP_TAG) 
         status = MPI.Status()
         E = libE_info['comm'].recv(buf=None,source=0,tag=MPI.ANY_TAG,status=status)
-        if status.Get_tag() == STOP_TAG: sys.exit('a')
+        tag = status.Get_tag()
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            nlopt.forced_stop.message = 'tag=' + str(tag)
+            raise nlopt.forced_stop
 
         if gen_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = E['grad']
@@ -67,30 +71,31 @@ def set_up_and_run_nlopt(H, gen_specs, libE_info):
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, H, gen_specs, libE_info))
     opt.set_xtol_rel(gen_specs['xtol_rel'])
     
-    x_opt = opt.optimize(x0)
+    try:
+        x_opt = opt.optimize(x0)
+        tag_out = FINISHED_PERSISTENT_GEN_TAG
+    except Exception as e:
+        x_opt = []
+        tag_out = int(e.message.split('=')[-1])
+
     exit_code = opt.last_optimize_result()
 
-    if exit_code == 5: # NLOPT code for exhausting budget of evaluations, so not at a minimum
-        exit_code = 0
-
-
-    return x_opt, exit_code
+    return x_opt, exit_code, tag_out
 
 def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
+    ub = gen_specs['ub']
+    lb = gen_specs['lb']
 
     if 'persistent' in libE_info and libE_info['persistent']:
-        try:
-            set_up_and_run_nlopt(H, gen_specs,libE_info)
-            # tag_out = FINISHED_PERSISTENT_GEN_TAG
-            O = {}
-        except Exception as e:
-            print(e.__doc__)
-            print(e.args)
-            print(H)
+        x_opt, exit_code, tag_out = try_and_run_nlopt(H, gen_specs,libE_info)
 
+        if exit_code > 0 and exit_code < 5:
+            O = np.zeros(1, dtype=gen_specs['out'])
+            O = add_to_O(O,x_opt,0,ub,lb,local=True, active=False, minimum=True)
+        else:
+            O = []
+        return O, gen_info, tag_out
     else:
-        ub = gen_specs['ub']
-        lb = gen_specs['lb']
 
         n = len(lb)
         b = gen_specs['gen_batch_size']
@@ -101,7 +106,7 @@ def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
             x = gen_info['rand_stream'].uniform(lb,ub,(1,n))
             O = add_to_O(O,x,i,ub,lb)
 
-    return O, gen_info
+        return O, gen_info
 
 def add_to_O(O,x,i,ub,lb,local=False,active=False):
     O['x'][i] = x

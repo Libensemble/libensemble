@@ -41,12 +41,11 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, given them back to i. Otherwise, give nothing to i
-    for i in active_w[EVAL_GEN_TAG]:
-        if i in persis_w[PERSIS_GEN_TAG]: 
-            if i in persis_w['last_index']:
-                if np.all(H['returned'][persis_w['last_index'][i]]):
-                    b = persis_w['last_index'].pop(i)
-                    persis_w['advance_info'][i] = H[['x','grad','f']][b]
+    for i in persis_w[PERSIS_GEN_TAG]: 
+        if i in persis_w['last_index']:
+            if np.all(H['returned'][persis_w['last_index'][i]]):
+                b = persis_w['last_index'].pop(i)
+                persis_w['advance_info'][i] = H[['x','grad','f']][b]
 
     for i in idle_w:
         # Find candidate points for starting local opt runs if a sample point has been evaluated

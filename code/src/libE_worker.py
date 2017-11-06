@@ -48,12 +48,9 @@ def worker_main(c, sim_specs, gen_specs):
             #     comm.Recv(data,source=0)
             #     calc_in[i] = data
 
-        data_out, gen_info, tag_out = perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm) 
+        data_out, tag_out = perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm) 
                             
         if tag_out == STOP_TAG: break
-        if tag_out == FINISHED_PERSISTENT_GEN_TAG: 
-            _ = comm.recv(buf=None, source=0,tag=MPI.ANY_TAG, status=status) # Need to receive an advance signal from manager
-            if status.Get_tag() == STOP_TAG: break
 
         comm.send(obj=data_out, dest=0, tag=calc_tag) 
 
@@ -66,21 +63,31 @@ def perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, g
         saved_dir = os.getcwd()
         os.chdir(locations[calc_tag])
 
+    if 'persistent' in libE_info and libE_info['persistent']:
+        libE_info['comm'] = comm
+
     if calc_tag == EVAL_SIM_TAG: 
-        H, gen_info = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
+        out = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
     elif calc_tag == EVAL_GEN_TAG: 
-        if 'persistent' in libE_info and libE_info['persistent']:
-            libE_info['comm'] = comm
+        out = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
 
-        H, gen_info = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
-
+    if isinstance(out,np.ndarray): 
+        H = out
+    elif isinstance(out, tuple):
+        assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
+        H = out[0]
+        gen_info = out[1]
+        if len(out) >= 3:
+            calc_tag = out[2]
+    else:
+        sys.exit("Calculation output must be a tuple. Worker exiting")
 
     if calc_tag in locations:
         os.chdir(saved_dir)
 
     data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
 
-    return data_out, gen_info, calc_tag
+    return data_out, calc_tag
 
 def initialize_worker(c, sim_specs, gen_specs):
     """ Receive sim and gen dtypes, copy sim_dir """

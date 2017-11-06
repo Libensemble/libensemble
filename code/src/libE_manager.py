@@ -254,6 +254,9 @@ def update_history_x_in(H, H_ind, gen_rank, O):
         Output from gen_f
     """
 
+    if len(O) == 0:
+        return H, H_ind
+
     rows_remaining = len(H)-H_ind
     
     if 'sim_id' not in O.dtype.names:
@@ -393,6 +396,10 @@ def final_receive_and_kill(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs
     """
 
     exit_flag = 0
+
+    ### Stop any persistent workers 
+    for w in persis_w[PERSIS_SIM_TAG] | persis_w[PERSIS_GEN_TAG]:
+        comm.send(obj=None, dest=w, tag=PERSIS_STOP)
 
     ### Receive from all active workers 
     while len(active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]):
