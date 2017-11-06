@@ -109,7 +109,7 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
 
     return active_w, idle_w
 
-def receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info, advance_pers=True):
+def receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info):
     status = MPI.Status()
 
     new_stuff = True
@@ -396,7 +396,7 @@ def final_receive_and_kill(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs
 
     ### Receive from all active workers 
     while len(active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]):
-        H, H_ind, active_w, persis_w, idle_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info)
+        H, H_ind, active_w, idle_w, persis_w, gen_info = receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info)
         if term_test(H, H_ind) == 2 and len(active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]):
             for w in active_w[EVAL_SIM_TAG] | active_w[EVAL_GEN_TAG]:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)
