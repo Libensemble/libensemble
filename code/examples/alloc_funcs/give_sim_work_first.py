@@ -15,6 +15,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
 
     Work = {}
     gen_count = 0
+    already_in_Work = np.zeros(H_ind,dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
 
     if len(gen_info) == 0: 
         gen_info[0] = {}
@@ -30,7 +31,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             continue
 
         # Find indices of H where that are not given nor paused
-        q_inds_logical = np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind])
+        q_inds_logical = np.logical_and.reduce((~H['given'][:H_ind],~H['paused'][:H_ind],~already_in_Work))
 
         if np.any(q_inds_logical):
             # Give sim work if possible
@@ -64,6 +65,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
                        'libE_info': {'H_rows': sim_ids_to_send,
                                 },
                       }
+            already_in_Work[sim_ids_to_send] = True
 
             if block_others:
                 unassigned_workers = idle_w - set(Work.keys()) - blocked_set
