@@ -117,7 +117,17 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_spe
 
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 recv_tag = status.Get_tag()
-                assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_SIM_TAG, PERSIS_GEN_TAG], 'Unknown calculation tag received. Exiting'
+                assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_SIM_TAG, PERSIS_GEN_TAG, PERSIS_STOP], 'Unknown calculation tag received. Exiting'
+
+                if recv_tag == PERSIS_STOP:
+                    idle_w.add(w)
+                    if w in persis_w[PERSIS_SIM_TAG]:
+                        active_w[EVAL_SIM_TAG].remove(w)
+                        persis_w[PERSIS_SIM_TAG].remove(w)
+                    else:
+                        persis_w[PERSIS_GEN_TAG].remove(w)
+                        active_w[EVAL_GEN_TAG].remove(w)
+
 
                 if recv_tag == EVAL_SIM_TAG:
                     idle_w.add(w)

@@ -208,14 +208,14 @@ def update_history_dist(H, gen_specs, c_flag):
     else:
         p = np.logical_and.reduce((H['returned'],~np.isnan(H['f'])))
 
-    H['known_to_aposmm'][new_inds] = True # These points are now known to APOSMM
 
     for new_ind in new_inds:
-        H['dist_to_unit_bounds'][new_ind] = min(min(np.ones(n) - H['x_on_cube'][new_ind]),min(H['x_on_cube'][new_ind] - np.zeros(n)))
-
         # Loop over new returned points and update their distances
         if p[new_ind]:
+            H['known_to_aposmm'][new_ind] = True # These points are now known to APOSMM
+
             # Compute distance to boundary
+            H['dist_to_unit_bounds'][new_ind] = min(min(np.ones(n) - H['x_on_cube'][new_ind]),min(H['x_on_cube'][new_ind] - np.zeros(n)))
 
             dist_to_all = sp.spatial.distance.cdist(np.atleast_2d(H['x_on_cube'][new_ind]), H['x_on_cube'][p], 'euclidean').flatten()
             new_better_than = H['f'][new_ind] < H['f'][p]

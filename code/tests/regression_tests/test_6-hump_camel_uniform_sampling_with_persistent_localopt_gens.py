@@ -78,11 +78,14 @@ gen_out = [('x',float,2),
       ]
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 100}
+exit_criteria = {'sim_max': 1000}
 
 np.random.seed(1)
 
 alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}
+# Don't do a "persistent worker run" if only one wokrer
+if len(alloc_specs['worker_ranks'])==1:
+    quit()
 # Perform the run
 H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
 

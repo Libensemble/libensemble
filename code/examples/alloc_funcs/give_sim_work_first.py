@@ -7,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from message_numbers import EVAL_SIM_TAG 
 from message_numbers import EVAL_GEN_TAG 
 
-def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, gen_info):
+def give_sim_work_first(active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info):
     """ Decide what should be given to workers. Note that everything put into
     the Work dictionary will be given, so we are careful not to put more gen or
     sim items into Work than necessary.
@@ -15,14 +15,13 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
 
     Work = {}
     gen_count = 0
+    already_in_Work = np.zeros(H_ind,dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
 
     if len(gen_info) == 0: 
         gen_info[0] = {}
         gen_info[0]['rand_stream'] = {i:np.random.RandomState(i) for i in idle_w}
 
     for i in idle_w:
-        if term_test(H, H_ind):
-            break
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
         blocked_set = active_w['blocked'].union(*[j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
@@ -30,7 +29,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
             continue
 
         # Find indices of H where that are not given nor paused
-        q_inds_logical = np.logical_and(~H['given'][:H_ind],~H['paused'][:H_ind])
+        q_inds_logical = np.logical_and.reduce((~H['given'][:H_ind],~H['paused'][:H_ind],~already_in_Work))
 
         if np.any(q_inds_logical):
             # Give sim work if possible
@@ -64,6 +63,7 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
                        'libE_info': {'H_rows': sim_ids_to_send,
                                 },
                       }
+            already_in_Work[sim_ids_to_send] = True
             print('This is being given to be evaluated!', sim_ids_to_send)
 
             if block_others:
@@ -93,5 +93,5 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
                                 }
                        }
 
-    return Work, gen_info
+    return Work, persis_w, gen_info
 
