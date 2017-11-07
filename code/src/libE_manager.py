@@ -1,8 +1,6 @@
 """
-    import IPython; IPython.embed()
     sys.stdout.flush()
-    import ipdb; ipdb.set_trace()
-    import pdb; pdb.set_trace()
+    import ipdb; ipdb.set_trace(context=21)
 libEnsemble manager routines
 ====================================================
 """
@@ -41,7 +39,6 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
 
         persistent_queue_data = update_active_and_queue(active_w, idle_w, H[:H_ind], gen_specs, persistent_queue_data)
 
-        # import ipdb; ipdb.set_trace(context=21)
         Work, persis_w, gen_info = alloc_specs['alloc_f'](active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info)
 
         for w in Work:
@@ -65,7 +62,6 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
 def give_information_to_persistent_workers(comm, persis_w):
     # Tell all persistent workers to proceed
 
-    # import ipdb; ipdb.set_trace(context=21)
     for i in persis_w['advance_info']:
         comm.send(obj=persis_w['advance_info'][i], dest=i, tag=PERSIS_ADV)
     persis_w['advance_info'] = {}
@@ -123,13 +119,6 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_spe
                 recv_tag = status.Get_tag()
                 assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_SIM_TAG, PERSIS_GEN_TAG], 'Unknown calculation tag received. Exiting'
 
-                # if tag == REQUEST_PERSISTENT_GEN_TAG:
-                #     persis_w['gen_request'].add(w)
-                #     continue
-
-                # if recv_tag == PERSIS_GEN_TAG:
-                    # import ipdb; ipdb.set_trace(context=21)
-
                 if recv_tag == EVAL_SIM_TAG:
                     idle_w.add(w)
                     active_w[recv_tag].remove(w) 
@@ -155,6 +144,10 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, persis_w, H, H_ind, sim_spe
                 if recv_tag == FINISHED_PERSISTENT_GEN_TAG:
                     idle_w.add(w)
                     active_w[EVAL_GEN_TAG].remove(w) 
+                    persis_w[PERSIS_GEN_TAG].remove(w)
+                    H['num_active_runs'][gen_info[w]['run_order']] -= 1
+                    if len(D_recv['calc_out']):
+                        H['local_min'][np.where(np.equal(D_recv['calc_out']['x'],H['x']).all(1))[0]] = True
 
 
                 if 'libE_info' in D_recv:

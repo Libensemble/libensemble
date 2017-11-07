@@ -52,7 +52,7 @@ def worker_main(c, sim_specs, gen_specs):
                             
         if tag_out == STOP_TAG: break
 
-        comm.send(obj=data_out, dest=0, tag=calc_tag) 
+        comm.send(obj=data_out, dest=0, tag=tag_out) 
 
     # Clean up
     for loc in locations.values():

@@ -40,12 +40,13 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
             gen_info[i] = {'rand_stream': np.random.RandomState(i)}
 
     # If i is idle, but in persistent mode, and its calculated values have
-    # returned, given them back to i. Otherwise, give nothing to i
+    # returned, give them back to i. Otherwise, give nothing to i
     for i in persis_w[PERSIS_GEN_TAG]: 
         if i in persis_w['last_index']:
             if np.all(H['returned'][persis_w['last_index'][i]]):
                 b = persis_w['last_index'].pop(i)
                 persis_w['advance_info'][i] = H[['x','grad','f']][b]
+                gen_info[i]['run_order'].append(b)
 
     for i in idle_w:
         # Find candidate points for starting local opt runs if a sample point has been evaluated
@@ -57,7 +58,6 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
             starting_inds = []
 
         # Start up a persistent generator that is a local opt run but don't do it if all workers will be persistent generators.
-        # import ipdb; ipdb.set_trace(context=21)
         if len(starting_inds) and gen_count + len(persis_w[PERSIS_GEN_TAG]) + 1 < len(idle_w) + len(active_w[EVAL_GEN_TAG]) + len(active_w[EVAL_SIM_TAG]): 
             # Start at the best possible starting point 
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
@@ -75,7 +75,7 @@ def start_persistent_local_opt_gens(active_w, idle_w, persis_w, H, H_ind, sim_sp
             H['num_active_runs'][ind] += 1
 
             persis_w[PERSIS_GEN_TAG].add(i)
-
+            gen_info[i]['run_order'] = [ind]
             gen_count += 1
 
         else: 

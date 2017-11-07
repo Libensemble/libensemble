@@ -53,7 +53,8 @@ gen_specs = {'gen_f': uniform_or_localopt,
                      ('ind_of_better_l',int),
                      ('ind_of_better_s',int),
                      ('local_pt',bool),
-                     ('num_active_runs',bool),
+                     ('num_active_runs',int),
+                     ('local_min',bool),
                     ],
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
@@ -74,11 +75,10 @@ gen_out = [('x',float,2),
       ('ind_of_better_l',int),
       ('ind_of_better_s',int),
       ('started_run',bool),
-      ('local_min',bool),
       ]
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 10}
+exit_criteria = {'sim_max': 100}
 
 np.random.seed(1)
 

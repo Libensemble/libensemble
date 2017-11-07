@@ -91,7 +91,7 @@ def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
 
         if exit_code > 0 and exit_code < 5:
             O = np.zeros(1, dtype=gen_specs['out'])
-            O = add_to_O(O,x_opt,0,ub,lb,local=True, active=False, minimum=True)
+            O = add_to_O(O,x_opt,0,ub,lb,local=True, active=True, minimum=True)
         else:
             O = []
         return O, gen_info, tag_out
@@ -108,7 +108,7 @@ def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
 
         return O, gen_info
 
-def add_to_O(O,x,i,ub,lb,local=False,active=False):
+def add_to_O(O,x,i,ub,lb,local=False,active=False, minimum=False):
     O['x'][i] = x
     O['x_on_cube'][i] = (x-lb)/(ub-lb)
     O['dist_to_unit_bounds'][i] = np.inf
@@ -120,5 +120,7 @@ def add_to_O(O,x,i,ub,lb,local=False,active=False):
         O['local_pt'] = True
     if active:
         O['num_active_runs'] = 1
+    if minimum:
+        O['local_min'] = True
 
     return O

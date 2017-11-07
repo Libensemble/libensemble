@@ -22,8 +22,7 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
         'dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s',
         'ind_of_better_l', 'ind_of_better_s', 'started_run', 'num_active_runs', 'local_min'
 
-    import IPython; IPython.embed()
-    import ipdb; ipdb.set_trace() 
+    import ipdb; ipdb.set_trace(context=21) 
 
     When using libEnsemble to do individual component evaluations, APOSMM will
     return num_components copies of each point, but each component=0 version of
@@ -58,7 +57,6 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
     n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs)
-    # import ipdb; ipdb.set_trace()
     if n_s < gen_specs['initial_sample']:
         updated_inds = set() 
 
@@ -212,11 +210,12 @@ def update_history_dist(H, gen_specs, c_flag):
 
     H['known_to_aposmm'][new_inds] = True # These points are now known to APOSMM
 
-    # Loop over new returned points and update their distances
     for new_ind in new_inds:
+        H['dist_to_unit_bounds'][new_ind] = min(min(np.ones(n) - H['x_on_cube'][new_ind]),min(H['x_on_cube'][new_ind] - np.zeros(n)))
+
+        # Loop over new returned points and update their distances
         if p[new_ind]:
             # Compute distance to boundary
-            H['dist_to_unit_bounds'][new_ind] = min(min(np.ones(n) - H['x_on_cube'][new_ind]),min(H['x_on_cube'][new_ind] - np.zeros(n)))
 
             dist_to_all = sp.spatial.distance.cdist(np.atleast_2d(H['x_on_cube'][new_ind]), H['x_on_cube'][p], 'euclidean').flatten()
             new_better_than = H['f'][new_ind] < H['f'][p]
@@ -295,7 +294,6 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
                 Run_H = H[['x_on_cube','f']][sorted_run_inds] 
 
             try:
-                # import ipdb; ipdb.set_trace() 
                 x_opt, exit_code = set_up_and_run_nlopt(Run_H, gen_specs)
             except Exception as e:
                 exit_code = 0
@@ -347,7 +345,6 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     """
 
     def nlopt_obj_fun(x, grad, Run_H):
-        # import ipdb; ipdb.set_trace() 
         out = look_in_history(x, Run_H)
 
         if gen_specs['localopt_method'] in ['LD_MMA']:
