@@ -28,8 +28,19 @@ from uniform_sampling import uniform_random_sample_with_different_nodes_and_rank
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
-# libE_machinefile = open(sys.argv[1]).read().splitlines()
-libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
+import argparse
+#Parse arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('-m','--mfile',action="store",dest='machinefile',
+                    help='A machine file containing ordered list of nodes required for each libE rank')
+args = parser.parse_args()
+
+try:
+    libE_machinefile = open(args.machinefile).read().splitlines()
+except:
+    if MPI.COMM_WORLD.Get_rank() == 0:        
+        print("WARNING: No machine file provided - defaulting to local node")
+    libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [six_hump_camel_with_different_ranks_and_nodes], # This is the function whose output is being minimized
