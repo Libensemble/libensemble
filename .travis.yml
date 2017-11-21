@@ -2,10 +2,29 @@ language: python
 python:
   - 2.7
   - 3.5
+  
+os: linux
+dist: trusty
+sudo: false
 
-#cache: 
-#  pip: true
-#  apt: true
+env:
+  global:
+    - HYDRA_LAUNCHER=fork
+
+  matrix:
+    - MPI=mpich
+    - MPI=openmpi
+
+addons:
+  apt:
+    packages:
+      - gfortran
+      - libblas-dev
+      - liblapack-dev
+    
+cache: 
+  pip: true
+  apt: true
 
 # Setup Miniconda
 before_install:
@@ -18,27 +37,32 @@ before_install:
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - export HYDRA_LAUNCHER=fork
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a # For debugging any issues with conda
+  - conda config --add channels conda-forge  
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION 
   - source activate condaenv
 
-# Currently mpi4py 2.0.0 fails with mpi_init error on some platforms - need dev version from source. 
-# Means installing dependencies sep. - including MPI lib.
+# Currently mpi4py 2.0.0 fails with mpi_init error on some platforms - need dev version from source.
+# Mpich can work with conda install - but currently for multiple MPI versions - need to get mpi4py and petsc from source
+# ...until conda has a better MPI solution. Could try caching built dependencies to cut time???
 install:
-  - pip install Cython #skip dodgy Cython version
-#  - conda install cython
-  - conda install --yes mpi4py #Get MPI library
-  - conda install --yes scipy
-  - conda install --yes -c conda-forge petsc4py
-  - conda install --yes -c conda-forge nlopt
-  - pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
-  - conda install --yes pytest pytest-cov
-  - conda install --yes -c conda-forge coveralls
-#  - python setup.py install
+  #- conda install $MPI cython #Install mpi4py and petsc from src to match these - until conda packages all match
+  - conda install $MPI
+  - conda install scipy
+  #- pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
+  - pip install mpi4py
+  - pip install petsc petsc4py
+  - conda install --no-update-deps nlopt
+  - conda install pytest pytest-cov
+  - conda install coveralls
+  # For confirmation of MPI library being used.
+  - python find_mpi.py #locate compilers
+  - mpiexec --version #Show MPI library details
+  
+  #  - python setup.py install
 
 # Run test
 script:
@@ -51,4 +75,3 @@ after_success:
 
 after_failure:
   - cat code/tests/regression_tests/log.err
-  
