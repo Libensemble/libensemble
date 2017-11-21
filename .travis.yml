@@ -59,7 +59,7 @@ install:
   - conda install pytest pytest-cov
   - conda install coveralls
   # For confirmation of MPI library being used.
-  - python find_mpi.py #locate compilers
+  - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
   
   #  - python setup.py install
