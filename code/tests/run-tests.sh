@@ -131,8 +131,9 @@ unset RUN_PREFIX
 script_name=`basename "$0"`
 RUN_PREFIX=$script_name
 CLEAN_ONLY=false
+unset MPIEXEC_FLAGS
 
-while getopts ":p:n:c" opt; do
+while getopts ":p:n:a:c" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -142,6 +143,10 @@ while getopts ":p:n:c" opt; do
       echo "Parameter supplied for Test Name: $OPTARG" >&2
       RUN_PREFIX=$OPTARG
       ;;
+    a)
+      echo "Parameter supplied for mpiexec args: $OPTARG" >&2
+      MPIEXEC_FLAGS=$OPTARG
+      ;;      
     c)
       #echo "Cleaning test output: $OPTARG" >&2
       echo "Cleaning test output"
@@ -243,7 +248,7 @@ if [ "$root_found" = true ]; then
     tput bold;tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
-    
+
     cd $ROOT_DIR/$REG_TEST_SUBDIR
     
     #Check output dir exists.
@@ -303,11 +308,11 @@ if [ "$root_found" = true ]; then
         if [ "$RUN_TEST" = "true" ]; then
 
            if [ "$REG_USE_PYTEST" = true ]; then
-             mpiexec -np $NPROCS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+             mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
              #mpiexec -np $REG_TEST_PROCESS_COUNT $PYTHON_RUN -m pytest $COV_LINE_PARALLEL test_libE_on_GKLS_pytest.py >> $REG_TEST_OUTPUT
              test_code=$?
            else
-             mpiexec -np $NPROCS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+             mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
              test_code=$?
            fi
            reg_count_runs=$((reg_count_runs+1))
