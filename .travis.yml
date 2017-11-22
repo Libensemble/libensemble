@@ -10,7 +10,7 @@ sudo: false
 env:
   global:
     - HYDRA_LAUNCHER=fork
-
+    - OMPI_MCA_rmaps_base_oversubscribe=yes
   matrix:
     - MPI=mpich
     - MPI=openmpi
