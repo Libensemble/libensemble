@@ -36,9 +36,7 @@ The examples and tests require the following dependencies:
 * PETSc_ - This can optionally be installed by pip along with petsc4py
 * nlopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
-The Python packages will pip install automatically if PYPI is accessible and these are not in the sys.path. Non-Python packages (PETSc/nlopt) must be built with shared libraries enabled and present in sys.path (eg. via setting the PYTHONPATH environment variable).
-
-Conda can also be used for simple fast installation. This is probably the fastest approach for a clean installation from scratch as conda can install both the Python and non-Python dependencies - see conda directory for dependent packages/instructions. Note, however, that mpi4py should be configured to point to your systems MPI if that already exists. This can be checked by locating the mpi.cfg file in the mpi4py installation. Note that if PYTHONPATH is set these packages will take precedence over conda installed packages. TravisCI testing has also been configured to use Conda with the `Miniconda <https://conda.io/docs/install/quick.html>`_ distribution.
+PETSc and nlopt must be built with shared libraries enabled and present in sys.path (eg. via setting the PYTHONPATH environment variable). nlopt should produce a file nlopt.py if python is found on the system.
 
 .. _PETSc:  http://www.mcs.anl.gov/petsc
 .. _Python: http://www.python.org
@@ -60,7 +58,9 @@ You can download the source code from `here <https://github.com/Libensemble/libe
     
     pip3 install .
 
-The examples and tests are set up to be run from the source distribution.
+The examples and tests are set up to be run from the source distribution and do not currently require the libEnsemble package to be installed.
+
+Note: Conda can also be used for simple fast installation using mpich (see conda/conda-install-deps.sh). This is probably the fastest approach for a clean installation from scratch as conda can install both the Python and non-Python dependencies - see conda directory for dependent packages/instructions. However, to use an existing MPI, care must be taken to ensure the installed packages do not install their own MPI dependencies - this may not be trivial. In particular,  mpi4py should be configured to point to your systems MPI if that already exists. This can be checked by locating the mpi.cfg file in the mpi4py installation. TravisCI testing has also been configured to use Conda (combined with pip to work with multiple MPI libraries) with the `Miniconda <https://conda.io/docs/install/quick.html>`_ distribution.
 
 
 Testsuite
@@ -70,7 +70,7 @@ The testsuite includes both unit and regression tests and is run regularly on
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
-The testsuite requires the pytest and pytest-cov packages installed can be run from the code/tests directory of the source distribution using the following methods::
+The testsuite requires the pytest and pytest-cov packages to be installed and can be run from the code/tests directory of the source distribution using the following methods::
 
     ./run-tests.sh (optionally specify eg. -p 3 for Python3)
 
