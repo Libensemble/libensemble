@@ -50,15 +50,15 @@ PETSc and nlopt must be built with shared libraries enabled and present in sys.p
 Installation
 ------------
 
-You can download the source code from `here <https://github.com/Libensemble/libensemble>`_, and then install the libensemble package from the top level directory using::
+pip install can be used to install libEnsemble and access the libensemble module. However, to access the examples and tests the source distribution is required. This can be obtained via PYPI or github. The simplest way of obtaining a tarball for the latest release from PYPI is::
 
-    python setup.py install
-    
-    OR
-    
-    pip3 install .
+    pip download libensemble
 
-The examples and tests are set up to be run from the source distribution and do not currently require the libEnsemble package to be installed.
+You can download the source code from `github <https://github.com/Libensemble/libensemble>`_
+
+The examples and tests are set up to be run from the source distribution and do not currently require the libEnsemble package to be installed. Installing the package, however, will download any python dependencies required. This can be done from the top level directory using::
+
+    pip install .
 
 Note: Conda can also be used for simple fast installation using mpich (see conda/conda-install-deps.sh). This is probably the fastest approach for a clean installation from scratch as conda can install both the Python and non-Python dependencies - see conda directory for dependent packages/instructions. However, to use an existing MPI, care must be taken to ensure the installed packages do not install their own MPI dependencies - this may not be trivial. In particular,  mpi4py should be configured to point to your systems MPI if that already exists. This can be checked by locating the mpi.cfg file in the mpi4py installation. TravisCI testing has also been configured to use Conda (combined with pip to work with multiple MPI libraries) with the `Miniconda <https://conda.io/docs/install/quick.html>`_ distribution.
 
@@ -77,6 +77,12 @@ The testsuite requires the pytest and pytest-cov packages to be installed and ca
     python3 setup.py test
 
 Coverage reports are produced separately for unit tests and regression tests under the relevant directories. For parallel tests, the union of all processors is taken. Furthermore, a combined coverage report is created at the top level, which can be viewed online in `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
+
+
+Basic Usage
+-----------
+
+Examples can be found under code/examples. 
 
 
 Documentation
