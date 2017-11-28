@@ -19,9 +19,9 @@
   conda install --yes pytest pytest-cov 
   conda install --yes scipy 
   
-  #At time of writing - require dev version of mpi4py
-  conda install --yes cython
-  pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
+  #To use dev version of mpi4py
+  #conda install --yes cython
+  #pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
   
   echo -e "\nDo 'conda list' to see installed packages"
   echo -e "Do './run-tests.sh' to run the tests\n"
