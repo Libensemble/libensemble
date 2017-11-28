@@ -43,8 +43,8 @@ PETSc and nlopt must be built with shared libraries enabled and present in sys.p
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
 .. _NumPy:  http://www.numpy.org
 .. _SciPy:  http://www.scipy.org
-.. _mpi4py:  http://pythonhosted.org/mpi4py
-.. _petsc4py:  https://pythonhosted.org/petsc4py
+.. _mpi4py:  https://bitbucket.org/mpi4py/mpi4py
+.. _petsc4py:  https://bitbucket.org/petsc/petsc4py
 
 
 Installation
