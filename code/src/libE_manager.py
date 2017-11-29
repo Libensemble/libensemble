@@ -1,8 +1,4 @@
 """
-    import IPython; IPython.embed()
-    sys.stdout.flush()
-    import ipdb; ipdb.set_trace()
-    import pdb; pdb.set_trace()
 libEnsemble manager routines
 ====================================================
 """
@@ -22,6 +18,9 @@ import time, sys, os
 import copy
 
 def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
+    """
+    Manager routine to coordinate the generation and simulation evaluations
+    """
 
     H, H_ind, term_test, idle_w, active_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
     persistent_queue_data = {}; gen_info = {}
@@ -52,15 +51,21 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
 # Manager subroutines
 ######################################################################
 def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, idle_w):
-    # Communicate the gen dtype to workers to save time on future
-    # communications. (Must communicate this when workers are requesting
-    # libE_fields that aren't in sim_specs['out'] or gen_specs['out'])
+    """
+    Communicate the gen dtype to workers to save time on future communications.
+    (Must communicate this when workers are requesting libE_fields that aren't
+    in sim_specs['out'] or gen_specs['out'].)
+    """
     for w in idle_w:
         comm.send(obj=H[sim_specs['in']].dtype, dest=w)
         comm.send(obj=H[gen_specs['in']].dtype, dest=w)
 
 
 def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, active_w, idle_w):
+    """
+    Sends calculation information to the workers and updates the sets of
+    active/idle workers
+    """
 
     comm.send(obj=Work['libE_info'], dest=w, tag=Work['tag'])
     comm.send(obj=Work['gen_info'], dest=w, tag=Work['tag'])
@@ -84,6 +89,11 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
 
 
 def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_specs, gen_info):
+    """
+    Receive calculation output from workers. Loops over all active workers and
+    probes to see if worker is ready to communticate. If any output is
+    received, all other workers are looped back over.
+    """
 
     status = MPI.Status()
 
@@ -133,12 +143,9 @@ def receive_from_sim_and_gen(comm, active_w, idle_w, H, H_ind, sim_specs, gen_sp
 
 
 def update_active_and_queue(active_w, idle_w, H, gen_specs, data):
-    """ Decide if active work should be continued and the queue order
-
-    Parameters
-    ----------
-    H: numpy structured array
-        History array storing rows for each point.
+    """ 
+    Call a user-defined function that decides if active work should be continued
+    and possibly updated the priority of points in H.
     """
     if 'queue_update_function' in gen_specs and len(H):
         H, data = gen_specs['queue_update_function'](H,gen_specs, data)
@@ -149,11 +156,6 @@ def update_active_and_queue(active_w, idle_w, H, gen_specs, data):
 def update_history_f(H, D): 
     """
     Updates the history (in place) after a point has been evaluated
-
-    Parameters
-    ----------
-    H: numpy structured array
-        History array storing rows for each point.
     """
 
     new_inds = D['libE_info']['H_rows']
@@ -170,16 +172,6 @@ def update_history_x_out(H, q_inds, sim_rank):
     """
     Updates the history (in place) when a new point has been given out to be evaluated
 
-    Parameters
-    ----------
-    H: numpy structured array
-        History array storing rows for each point.
-    H_ind: integer
-        The new point
-    W: numpy array
-        Work to be evaluated
-    lead_rank: int
-        lead ranks for the evaluation of x 
     """
 
     for i,j in zip(q_inds,range(len(q_inds))):
@@ -198,8 +190,10 @@ def update_history_x_in(H, H_ind, gen_rank, O):
         History array storing rows for each point.
     H_ind: integer
         The new point
+    gen_rank: integer
+        The rank of the worker who generated these points
     O: numpy array
-        Output from gen_f
+        Output from gen_func
     """
 
     rows_remaining = len(H)-H_ind
@@ -232,8 +226,10 @@ def update_history_x_in(H, H_ind, gen_rank, O):
 
 
 def grow_H(H, k):
-    """ libEnsemble is requesting k rows be added to H because gen_f produced
-    more points than rows in H."""
+    """ 
+    libEnsemble is requesting k rows be added to H because the gen_func produced
+    more points than rows in H.
+    """
     H_1 = np.zeros(k, dtype=H.dtype)
     H_1['sim_id'] = -1
     H_1['given_time'] = np.inf
@@ -278,14 +274,8 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
     Returns
     ----------
     H: numpy structured array
-        History array storing rows for each point. Field names are below
-
-        | sim_id              : Identifier for each simulation (could be the same "point" just with different parameters) 
-        | given               : True if point has been given to a worker
-        | given_time          : Time point was given to a worker
-        | sim_rank            : worker rank that evaluated point
-        | gen_rank            : worker rank that generated point 
-        | returned            : True if point has been evaluated by a worker
+        History array storing rows for each point. Field names are in
+        code/src/libE_fileds.py
 
     H_ind: integer
         Where libEnsemble should start filling in H
@@ -293,6 +283,12 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
     term_test: lambda funciton
         Simplified termination test (doesn't require passing fixed quantities).
         This is nice when calling term_test in multiple places.
+
+    idle_w: python set
+        Idle worker ranks (initially all worker ranks)
+
+    active_w: python set
+        Active worker ranks (initially empty)
     """
 
     if 'sim_max' in exit_criteria:
