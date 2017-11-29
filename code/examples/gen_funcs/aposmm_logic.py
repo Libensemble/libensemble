@@ -3,8 +3,8 @@ from __future__ import absolute_import
 
 import sys, os
 import numpy as np
-import scipy as sp
-from scipy import spatial
+# import scipy as sp
+from scipy.spatial.distance import cdist
 from mpi4py import MPI
 
 from numpy.lib.recfunctions import merge_arrays
@@ -15,25 +15,26 @@ from petsc4py import PETSc
 import nlopt
 
 def aposmm_logic(H,gen_info,gen_specs,libE_info):
-    del libE_info # Ignored parameter
     """
     Receives the following data from H:
+
         'x_on_cube', 'fvec', 'f', 'local_pt', 
         'dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s',
         'ind_of_better_l', 'ind_of_better_s', 'started_run', 'num_active_runs', 'local_min'
 
-    import IPython; IPython.embed()
-    import ipdb; ipdb.set_trace() 
-
     When using libEnsemble to do individual component evaluations, APOSMM will
     return num_components copies of each point, but each component=0 version of
     the point will only be considered when 
-        - deciding where to start a run, 
-        - best nearby point, 
-        - storing the order of the points is the run
-        - storing the combined objective function value
-        - etc
 
+    - deciding where to start a run, 
+    - best nearby point, 
+    - storing the order of the points is the run
+    - storing the combined objective function value
+    - etc
+
+    """
+
+    """
     Description of intermediate variables in aposmm_logic:
 
     n:                domain dimension
@@ -54,6 +55,7 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
     exit_code:        0 if a new localopt point has been found, otherwise it's the NLopt/POUNDERS code 
     samples_needed:   counts the number of additional uniformly drawn samples needed
     """
+    # del libE_info # Ignored parameter
 
     n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
 
@@ -138,6 +140,10 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
     return O, gen_info
 
 def add_points_to_O(O, pts, len_H, gen_specs, c_flag, gen_info, local_flag=0, sorted_run_inds=[], run=[]):
+    """
+    Adds points to O, the numpy structured array to be sent back to the manager
+    """
+
     assert not local_flag or len(pts) == 1, "add_points_to_O does not support this functionality"
 
     original_len_O = len(O)
@@ -192,7 +198,9 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, gen_info, local_flag=0, so
 
 
 def update_history_dist(H, gen_specs, c_flag):
-    # Update distances for any new points that have been evaluated
+    """
+    Update distances for any new points that have been evaluated
+    """
 
     n = len(H['x_on_cube'][0])
 
@@ -218,7 +226,7 @@ def update_history_dist(H, gen_specs, c_flag):
 
         # Loop over new returned points and update their distances
         if p[new_ind]:
-            dist_to_all = sp.spatial.distance.cdist(np.atleast_2d(H['x_on_cube'][new_ind]), H['x_on_cube'][p], 'euclidean').flatten()
+            dist_to_all = cdist(np.atleast_2d(H['x_on_cube'][new_ind]), H['x_on_cube'][p], 'euclidean').flatten()
             new_better_than = H['f'][new_ind] < H['f'][p]
 
             # Update any other points if new_ind is closer and better
@@ -268,6 +276,9 @@ def update_history_dist(H, gen_specs, c_flag):
 
 
 def update_history_optimal(x_opt, H, run_inds):
+    """ 
+    Updated the history after any point has been declared a local minimum
+    """
 
     opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0]
     assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
@@ -279,6 +290,12 @@ def update_history_optimal(x_opt, H, run_inds):
 
 
 def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
+    """
+    Moves a local optimization method one iteration forward. We currently do
+    this by feeding all past evaluations from a run to the method and then
+    storing the first new point generated
+    """
+
     global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
     while 1:
@@ -347,7 +364,6 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     """
 
     def nlopt_obj_fun(x, grad, Run_H):
-        # import ipdb; ipdb.set_trace() 
         out = look_in_history(x, Run_H)
 
         if gen_specs['localopt_method'] in ['LD_MMA']:
@@ -487,12 +503,20 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     ----------
     H: numpy structured array
         History array storing rows for each point. 
+    n_s: integer
+        Number of sample points
+    rk_const: float
+        Constant in front of r_k evaluation
+    lhs_divisions: integer
+        Number of Latin hypercube sampling divisions (0 or 1 means uniform
+        random sampling over the domain)
     mu: nonnegative float
         Distance from the boundary that all starting points must satisfy
     nu: nonnegative float
         Distance from identified minima that all starting points must satisfy
     gamma_quantile: float in (0,1] 
-        Only sample points whose function values are in the lower gamma_quantile can start localopt runs
+        Only sample points whose function values are in the lower
+        gamma_quantile can start localopt runs
 
     Returns
     ----------
@@ -509,7 +533,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
                 H['dist_to_better_s'] > r_k, # no better sample point within r_k (L2)
                ~H['started_run'],            # have not started a run (L3)
                 H['dist_to_unit_bounds'] >= mu, # have all components at least mu away from bounds (L4)
-                np.all(sp.spatial.distance.cdist(H['x_on_cube'], H['x_on_cube'][H['local_min']]) >= nu,axis=1) # distance nu away from known local mins (L5)
+                np.all(cdist(H['x_on_cube'], H['x_on_cube'][H['local_min']]) >= nu,axis=1) # distance nu away from known local mins (L5)
             ))
     else:
         test_2_through_5 = np.logical_and.reduce((
@@ -575,7 +599,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     #     #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], H['dist_to_all'][:,j] <= r_k))
     #     #             else: 
     #     #                 ind_of_last = np.max(np.ix_(H['returned']))
-    #     #                 pdist_vec = sp.spatial.distance.cdist([H['x_on_cube'][j]], H['x_on_cube'][:ind_of_last+1], 'euclidean').flatten()
+    #     #                 pdist_vec = cdist([H['x_on_cube'][j]], H['x_on_cube'][:ind_of_last+1], 'euclidean').flatten()
     #     #                 pdist_vec = np.append(pdist_vec, np.zeros(len(H)-ind_of_last-1))
     #     #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], pdist_vec <= r_k))
 
@@ -684,6 +708,10 @@ def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     return r_k
 
 def initialize_APOSMM(H, gen_specs):
+    """
+    Computes common values every time that APOSMM is reinvoked
+
+    """
 
     n = len(gen_specs['ub'])
 
@@ -727,6 +755,10 @@ def initialize_APOSMM(H, gen_specs):
 
 
 def queue_update_function(H, gen_specs, persistent_data):
+    """
+    A specific queue update function that stops evaluations under a variety of
+    conditions
+    """
 
     if len(persistent_data) == 0:
         persistent_data['complete'] = set() 
