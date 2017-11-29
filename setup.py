@@ -27,7 +27,7 @@ setup(
     name='libensemble',
     version='0.1.0',    
     description='Library for managing ensemble-like collections of computations',
-    url='https://github.com/libensemble/libensemble',
+    url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson',
     author_email='libensemble@lists.mcs.anl.gov',
     license='BSD 2-clause',
