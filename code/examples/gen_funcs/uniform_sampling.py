@@ -5,6 +5,12 @@ import numpy as np
 from mpi4py import MPI
 
 def uniform_random_sample_with_different_nodes_and_ranks(H,gen_info,gen_specs,libE_info):
+    """
+    Generates points uniformly over the domain defined by gen_specs['ub'] and
+    gen_specs['lb']. Also randomly requests a different number of nodes to be
+    used in the evaluation of the generated point.
+    """
+
     del libE_info # Ignored parameter
 
     ub = gen_specs['ub']
@@ -34,6 +40,10 @@ def uniform_random_sample_with_different_nodes_and_ranks(H,gen_info,gen_specs,li
 
 
 def uniform_random_sample_obj_components(H,gen_info,gen_specs,libE_info):
+    """
+    Generates points uniformly over the domain defined by gen_specs['ub'] and
+    gen_specs['lb'] but requests each component be evaluated separately.
+    """
     del libE_info # Ignored parameter
 
     ub = gen_specs['ub']
@@ -58,6 +68,10 @@ def uniform_random_sample_obj_components(H,gen_info,gen_specs,libE_info):
     return O, gen_info
 
 def uniform_random_sample(H,gen_info,gen_specs,libE_info):
+    """
+    Generates points uniformly over the domain defined by gen_specs['ub'] and
+    gen_specs['lb'].
+    """
     del libE_info # Ignored parameter
 
     ub = gen_specs['ub']

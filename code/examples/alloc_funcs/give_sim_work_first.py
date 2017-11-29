@@ -8,9 +8,46 @@ from message_numbers import EVAL_SIM_TAG
 from message_numbers import EVAL_GEN_TAG 
 
 def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_test, gen_info):
-    """ Decide what should be given to workers. Note that everything put into
-    the Work dictionary will be given, so we are careful not to put more gen or
-    sim items into Work than necessary.
+    """ 
+    Decide what should be given to workers. This allocation function gives any
+    available simulation work first, and only when all simulations are
+    completed or running does it start (at most gen_specs['num_inst'])
+    generator instances.
+    
+    note: everything put into the Work dictionary will be given, so be
+    careful not to put more gen or sim items into Work than necessary.
+
+    Parameters
+    -----------
+    active_w: set
+        Active worker ranks
+
+    idle_w: set
+        Idle worker ranks
+
+    H: numpy structured array
+
+    H_ind: integer 
+
+    sim_specs: dictionary
+
+    gen_specs: dictionary
+
+    term_test: lambda function
+
+    gen_info: dictionary
+
+    Returns
+    -----------
+    Work: dictionary
+        Each integer key corresponds to a worker that will be given the
+        corresponding dictionary values
+    
+    gen_info: dictionary
+        Updated generation informaiton 
+    """
+    """
+    a
     """
 
     Work = {}

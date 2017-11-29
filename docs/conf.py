@@ -26,7 +26,7 @@ sys.path.append(os.path.abspath('../code/examples/alloc_funcs'))
 sys.path.append(os.path.abspath('../code/examples/gen_funcs'))
 sys.path.append(os.path.abspath('../code/examples/sim_funcs'))
 
-print(sys.path)
+# print(sys.path)
 
 # -- General configuration ------------------------------------------------
 
