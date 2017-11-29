@@ -94,11 +94,14 @@ Documentation
 * http://libensemble.readthedocs.org/
 
 
-Mailing List
-------------
+Support 
+-------
 
 You can join the libEnsemble mailing list at:
 
 * https://lists.mcs.anl.gov/mailman/listinfo/libensemble 
 
+or email questions to:
+
+* libensemble@lists.mcs.anl.gov
 

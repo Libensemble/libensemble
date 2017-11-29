@@ -20,15 +20,12 @@ def worker_main(c, sim_specs, gen_specs):
 
     Parameters
     ----------
-    comm: mpi4py communicator used to communicate with manager
+    c: dict containing fields 'comm' and 'color' for the communicator. 
 
-    The data sent from the manager should have the following:
+    sim_specs: dict with parameters/information for simulation calculations
 
-    D['form_subcomm']: List of integer ranks in comm that should form subcomm
-        (empty list means no subcomm needed)
+    gen_specs: dict with parameters/information for generation calculations
 
-    D['calc_dir']: String for directory to be copied where work should be
-        performed (empty string means no directory needed) 
     """
     comm = c['comm']
     comm_color = c['color']
