@@ -8,6 +8,11 @@ import numpy as np
 import time
 
 def six_hump_camel_with_different_ranks_and_nodes(H, gen_info, sim_specs, libE_info):
+    """
+    Evaluates the six hump camel but also performs a system call (to show one
+    way of evaluating a compiled simulation).
+    """
+
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
 
@@ -42,6 +47,9 @@ def six_hump_camel_with_different_ranks_and_nodes(H, gen_info, sim_specs, libE_i
 
 
 def six_hump_camel(H, gen_info, sim_specs, libE_info):
+    """
+    Evaluates the six_hump_camel_func and possible six_hump_camel_grad
+    """
     del libE_info # Ignored parameter
 
     batch = len(H['x'])
@@ -60,6 +68,9 @@ def six_hump_camel(H, gen_info, sim_specs, libE_info):
 
 
 def six_hump_camel_func(x):
+    """
+    Definition of the six-hump camel
+    """
     x1 = x[0]
     x2 = x[1]
     term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2;
@@ -69,6 +80,9 @@ def six_hump_camel_func(x):
     return  term1 + term2 + term3
 
 def six_hump_camel_grad(x):
+    """
+    Definition of the six-hump camel gradient
+    """
 
     x1 = x[0]
     x2 = x[1]
