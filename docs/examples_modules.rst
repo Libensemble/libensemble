@@ -15,7 +15,7 @@ Generation Functions
 --------------------
 
 aposmm_logic
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
 .. automodule:: aposmm_logic
   :members:
   :undoc-members:
