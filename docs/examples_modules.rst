@@ -1,8 +1,18 @@
 Example Modules
 ===============
 
-Gen Funcs
----------------
+Allocation Functions
+--------------------
+
+give_sim_work_first
+^^^^^^^^^^^^^^^^^^^
+.. automodule:: give_sim_work_first
+  :members:
+  :undoc-members:
+
+
+Generation Functions
+--------------------
 
 aposmm_logic
 ^^^^^^^^^^^^^^^
@@ -17,8 +27,8 @@ uniform_sampling
   :undoc-members:
 
 
-Sim Funcs
----------
+Simulation Functions
+--------------------
 
 six_hump_camel
 ^^^^^^^^^^^^^^
