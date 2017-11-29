@@ -12,10 +12,10 @@
 %%---------------------------------------------------------------------------%%
 %% VARIABLES
 %%---------------------------------------------------------------------------%%
-\wbs{2.3.3.06}
+\wbs{1.3.3.07}
 \projecttitle{Preparing PETSc/TAO for Exascale}
-\milestoneid{STMS07-9}
-\title{Provide a prototype libEnsemble with evaluations of problem usage}
+\milestoneid{STMS07-10}
+\title{Supported libEnsemble release with monitoring and pools}
 \author{Stephen Hudson (Argonne)
 \and Jeffrey Larson (Argonne)
 %   \and  Todd Munson (Argonne)
@@ -94,42 +94,44 @@ design and prototype for {\bf libEnsemble}.
 
 \subsection{Description}
 
-Release prototype of basic libEnsemble to users, and evaluate using the POUNDerS 
-optimization algorithm on a test case parameter estimation problem. Consult 
-application teams to determine requirements for libEnsemble.
+% Supported libEnsemble release with monitoring and pools.
+ Incorporate improved scheduling and basic online monitoring into libEnsemble 
+with a dynamic pool of simulations. Work with application teams to determine 
+requirements on libEnsemble and provide assistance in its usage.
 
 \subsection{Execution Plan}
 
 \begin{itemize}
-\item Survey ECP applications for libEnsemble requirements
-\item Implement test case
-\item Identify gaps in libEnsemble API and update requirements
-\item Implement updated libEnsemble API in Python
-\item Implement POUNDerS using libEnsemble API
-\item Test POUNDerS + libEnsemble on test case
+\item Identify use cases/requirements for monitoring and dynamic pool features
+\item Design and document libEnsemble API to satisfy those advanced 
+requirements
+\item Implement prototype version of libEnsemble API in Python and C
+\item Test prototype on example using Theta
 \end{itemize}
 
 \subsection{Completion Criteria}
 
 \begin{itemize}
-\item Updated libEnsemble requirements document
-\item Report on implementation and test results
-\item Software release
+\item Requirements documents for libEnsemble API
+\item Software release of Python and C API implementation, including support 
+for dynamic pools and monitoring
+\item Test results in repository
 \end{itemize}
 
 \subsection{Milestone Dependencies}
 \subsubsection{Milestone Predecessors}
 
-STMS07-8, Design and prototype an API for libEnsemble
+None
 
 \subsubsection{Milestone Successors}
 
-STMS07-10, Supported libEnsemble release with monitoring and pools
+% STMS07-9, Provide a prototype libEnsemble with evaluations of problem usage
+STMS07-8, Design and prototype an API for libEnsemble
 
 \section{Resource Requirements}
 
-We estimate that this milestone used \$250K of the project funds to support
-the effort of Jeff Larson, Stephen Hudson, and Stefan Wild.
+% We estimate that this milestone used \$250K of the project funds to support
+% the effort of Jeff Larson, Todd Munson, and Stefan Wild.
 
 \section{Technical Work Scope, Approach, and Results}
 
@@ -138,24 +140,13 @@ the effort of Jeff Larson, Stephen Hudson, and Stefan Wild.
 % some simple test cases.  A snapshot of the requirements document is found
 % in Appendix~A; this document will evolve as {\bf libEnsemble} evolves.
 
-libEnsemble now includes many regression tests that test and document the
-functionality of the implementation.  In addition to the master branch, the
-repository has two developmental branches with different persistent calculation
-paradigms.  libEnsemble can call POUNDerS in PETSc/TAO via the petsc4py package.
-We have a regression test displaying this functionality to optimize the chwirut
-test function.  All regression tests in the repository utilize the updated
-Python libEnsemble API. Running {\tt run\_tests.sh} in libensemble/code/tests
-implements libEnsemble under a variety of test problems and under various
-operational conditions.
+We published a paper on one of the generating functions (APOSMM) in {\bf 
+libEnsemble}; see \cite{LW17}.
 
 The release is found at 
 \url{https://github.com/Libensemble/libensemble}.
 
 \section{Conclusions and Future Work}
-
-Our future work is to incorporate improved scheduling and basic online monitoring into 
-libEnsemble with a dynamic pool of simulations and work with application teams to 
-determine requirements on libEnsemble and provide assistance in its usage.
 
 % Our future work is to harden the code and release a prototype of the
 % basic libEnsemble to users, and evaluate the prototype using the 
