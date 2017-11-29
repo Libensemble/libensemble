@@ -46,9 +46,6 @@ def give_sim_work_first(active_w, idle_w, H, H_ind, sim_specs, gen_specs, term_t
     gen_info: dictionary
         Updated generation informaiton 
     """
-    """
-    a
-    """
 
     Work = {}
     gen_count = 0
