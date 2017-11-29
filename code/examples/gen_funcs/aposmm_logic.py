@@ -20,7 +20,8 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
 
         'x_on_cube', 'fvec', 'f', 'local_pt', 
         'dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s',
-        'ind_of_better_l', 'ind_of_better_s', 'started_run', 'num_active_runs', 'local_min'
+        'ind_of_better_l', 'ind_of_better_s', 'started_run', 'num_active_runs',
+        'local_min'
 
     When using libEnsemble to do individual component evaluations, APOSMM will
     return num_components copies of each point, but each component=0 version of
@@ -54,7 +55,9 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
     x_opt:            the reported minimum from a localopt run (disregarded unless exit_code isn't 0)
     exit_code:        0 if a new localopt point has been found, otherwise it's the NLopt/POUNDERS code 
     samples_needed:   counts the number of additional uniformly drawn samples needed
+    
     """
+    
     # del libE_info # Ignored parameter
 
     n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
