@@ -45,10 +45,11 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         alloc_specs={'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
         c={'comm': MPI.COMM_WORLD, 'color': 0}, 
         H0=[]):
-
     """ 
-    Parameters
-    ----------
+    This is the outer libEnsemble routine. It checks each rank in c['comm']
+    against alloc_specs['manager_ranks'] or alloc_specs['worker_ranks'] and
+    either runs manager_main or worker_main 
+    (Some subroutines currently assume that the manager is always (only) rank 0.)
     """
     check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
@@ -72,6 +73,11 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
 
 def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
+    """ 
+    Check if the libEnsemble arguments are of the correct data type contain
+    sufficient information to perform a run. 
+    """
+
     assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
     assert isinstance(c,dict), "c must be a dictionary"

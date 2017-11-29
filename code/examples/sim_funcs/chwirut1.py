@@ -221,6 +221,9 @@ y[212] =    28.9000;  t[212] =   1.7500;
 y[213] =    28.9500;  t[213] =   1.7500;
 
 def EvaluateFunction(x,component=np.nan):
+    """
+    Evaluates the chwirut function 
+    """
     if np.isnan(component):
         f = np.zeros(NOBSERVATIONS)
         for i in range(NOBSERVATIONS):
@@ -233,6 +236,9 @@ def EvaluateFunction(x,component=np.nan):
 
 
 def EvaluateJacobian(x):
+    """
+    Evaluates the chwirut Jacobian 
+    """
     j = np.zeros((NOBSERVATIONS,3))
 
     for i in range(NOBSERVATIONS):
@@ -244,10 +250,11 @@ def EvaluateJacobian(x):
 
     return j
 
-def sum_squares(x):
-    return np.sum(np.power(x,2))
-
 def libE_func_wrapper(H,gen_info,sim_specs,libE_info):
+    """
+    libEnsemble wrapper around EvaluateFunction
+    """
+
     del libE_info # Ignored parameter
 
     batch = len(H['x'])
