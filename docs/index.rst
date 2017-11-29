@@ -15,7 +15,7 @@ Library for managing ensemble-like collections of computations.
    readme
    manager_modules
    worker_modules
-   examples
+   examples_modules
  
 
 Indices and tables
