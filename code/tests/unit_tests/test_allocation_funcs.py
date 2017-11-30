@@ -15,13 +15,12 @@ def test_decide_work_and_resources():
 
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
 
-    H, H_ind, _, _, _, persis_w = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    H, H_ind, _, _, persis_w = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
 
 
     # Don't give out work when idle is empty
-    active_w = set([1,2,3,4])
-    idle_w = set()
-    Work, _, gen_info = al['alloc_f'](active_w, idle_w, persis_w, H, H_ind, sim_specs, gen_specs, {})
+    nonpersis_w = {1:set([1,2,3,4]),'waiting': set()}
+    Work, gen_info = al['alloc_f'](nonpersis_w, persis_w, H, sim_specs, gen_specs, {})
     assert len(Work) == 0 
     # 
 

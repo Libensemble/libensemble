@@ -1,11 +1,6 @@
 STOP_TAG = 0
 EVAL_SIM_TAG = 1
 EVAL_GEN_TAG = 2
-PERSIS_ADV = 3                      # manager tells a persistent worker to proceed (as opposed to stop)
 PERSIS_STOP = 4                     # manager tells a persistent worker to stop (and go back into general worker mode)
-PERSIS_SIM_TAG = 5                  # talks to manager from within a persistent sim_f
-PERSIS_GEN_TAG = 6                  # talks to manager from within a persistent gen_f
-REQUEST_PERSISTENT_SIM_TAG = 9      # tells manager sim_f requested to be in persistent mode
-REQUEST_PERSISTENT_GEN_TAG = 10     # tells manager gen_f requested to be in persistent mode
 FINISHED_PERSISTENT_SIM_TAG = 11    # tells manager sim_f is done with persistent mode
 FINISHED_PERSISTENT_GEN_TAG = 12    # tells manager gen_f is done with persistent mode

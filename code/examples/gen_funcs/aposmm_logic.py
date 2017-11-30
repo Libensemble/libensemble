@@ -116,7 +116,7 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
 
     if samples_needed > 0:
         # x_new = np.random.uniform(0,1,(samples_needed,n))
-        x_new = gen_info['rand_stream'][MPI.COMM_WORLD.Get_rank()].uniform(0,1,(samples_needed,n))
+        x_new = gen_info['rand_stream'].uniform(0,1,(samples_needed,n))
 
         gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info)
 
@@ -172,17 +172,17 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, gen_info, local_flag=0, so
         O['num_active_runs'][-num_pts] += 1
         # O['priority'][-num_pts:] = 1
         # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
-        O['priority'][-num_pts:] = gen_info['rand_stream'][MPI.COMM_WORLD.Get_rank()].uniform(0,1,num_pts)
+        O['priority'][-num_pts:] = gen_info['rand_stream'].uniform(0,1,num_pts)
         gen_info['run_order'][run].append(O[-num_pts]['sim_id'])
     else:
         if c_flag:
             # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
             # p_tmp = np.random.uniform(0,1,num_pts)
-            p_tmp = gen_info['rand_stream'][MPI.COMM_WORLD.Get_rank()].uniform(0,1,num_pts)
+            p_tmp = gen_info['rand_stream'].uniform(0,1,num_pts)
         else:
             # p_tmp = np.random.uniform(0,1,num_pts)
-            # gen_info['rand_stream'][MPI.COMM_WORLD.Get_rank()].uniform(lb,ub,(1,n))
-            p_tmp = gen_info['rand_stream'][MPI.COMM_WORLD.Get_rank()].uniform(0,1,num_pts)
+            # gen_info['rand_stream'].uniform(lb,ub,(1,n))
+            p_tmp = gen_info['rand_stream'].uniform(0,1,num_pts)
         O['priority'][-num_pts:] = p_tmp
         # O['priority'][-num_pts:] = 1
 
