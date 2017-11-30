@@ -60,7 +60,7 @@ The examples and tests are set up to be run from the source distribution and do 
 
     pip install .
 
-Conda: Conda can also be used for simple fast installation using mpich (see conda/conda-install-deps.sh). This is probably the fastest approach for a clean installation from scratch as conda can install both the Python and non-Python dependencies - see conda directory for dependent packages/instructions. However, to use an existing MPI, care must be taken to ensure the installed packages do not install their own MPI dependencies - this may not be trivial. In particular,  mpi4py should be configured to point to your systems MPI if that already exists. This can be checked by locating the mpi.cfg file in the mpi4py installation. TravisCI testing has also been configured to use Conda (combined with pip to work with multiple MPI libraries) with the `Miniconda <https://conda.io/docs/install/quick.html>`_ distribution.
+Conda: Conda can also be used for simple fast installation of dependencies using mpich (see conda/conda-install-deps.sh). This is probably the fastest approach for a clean installation from scratch as conda can install both the Python and non-Python dependencies - see conda directory for dependent packages/instructions. However, to use an existing MPI, care must be taken to ensure the installed packages do not install their own MPI dependencies - this may not be trivial. In particular,  mpi4py should be configured to point to your systems MPI if that already exists. This can be checked by locating the mpi.cfg file in the mpi4py installation. TravisCI testing has also been configured to use Conda (combined with pip to work with multiple MPI libraries) with the `Miniconda <https://conda.io/docs/install/quick.html>`_ distribution.
 
 Spack: Libensemble is also available in the Spack_ distribution.
 
@@ -78,7 +78,7 @@ The testsuite requires the pytest and pytest-cov packages to be installed and ca
 
     ./run-tests.sh (optionally specify eg. -p 3 for Python3)
 
-    python3 setup.py test
+    python3 setup.py test (run from top level directory)
 
 Coverage reports are produced separately for unit tests and regression tests under the relevant directories. For parallel tests, the union of all processors is taken. Furthermore, a combined coverage report is created at the top level, which can be viewed online in `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
 
