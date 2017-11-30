@@ -25,7 +25,6 @@ export LIBE_SRC_DIR=$CODE_DIR/src
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
-#export GKLS_BUILD_DIR=$CODE_DIR/examples/sim_funcs/GKLS/GKLS_sim_src
 
 #Coverage merge and report dir - will need the relevant .coveragerc file present
 #export COV_MERGE_DIR='' #root dir
@@ -39,6 +38,20 @@ export PEP_SCOPE=$LIBE_SRC_DIR
 
 #-----------------------------------------------------------------------------------------
 #Functions
+
+#Does file exist in given dir
+#In:  Directory path, filename
+#Out: true if found, else false
+find_file_in_dir () {
+  local xdir=$1
+  local filename=$2
+  file_found_in_tree=false
+  fout=$(find "$xdir" -maxdepth 1 -name $filename)
+  if [[ ${fout##*/} == "$filename" ]]; then
+    file_found_in_tree=true
+  fi;  
+  echo "$file_found_in_tree"
+}
 
 #Print summary line like pytest
 #In:  String to print
@@ -165,13 +178,37 @@ done
 
 #-----------------------------------------------------------------------------------------
 
-# Using git root dir
+# Get project root dir
+
+# Try using git root dir
 root_found=false
 ROOT_DIR=$(git rev-parse --show-toplevel) && root_found=true
 
+#If not found using git - try search up tree for setup.py
+if [[ $root_found == "false" ]]; then
+  search_dir=`pwd`
+  search_for="setup.py"
+  while [ "$search_dir" != "/" ]
+  do
+    file_found=$(find_file_in_dir $search_dir $search_for)
+    #[[ $file_found = "true" ]] && break 
+    if [[ $file_found = "true" ]]; then
+      ROOT_DIR=$search_dir
+      root_found=true
+      break;
+    fi;
+    search_dir=`dirname "$search_dir"`
+  done
+fi;
+
+
 if [ $CLEAN_ONLY = "true" ]; then
- cleanup
- exit
+  if [ "$root_found" = true ]; then 
+    cleanup
+  else
+    echo -e "Clean up aborted - no project root directory found"
+  fi;
+  exit
 fi;
 
 #If not supplied will go to just python (no number) - eg. with tox/virtual envs
@@ -248,7 +285,7 @@ if [ "$root_found" = true ]; then
     tput bold;tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
-
+    
     cd $ROOT_DIR/$REG_TEST_SUBDIR
     
     #Check output dir exists.
@@ -259,12 +296,7 @@ if [ "$root_found" = true ]; then
     #Running without subdirs - delete any leftover output and coverage data files
     cleanup
                
-    #Build sim/gen dependencies
-    #cd $ROOT_DIR/$GKLS_BUILD_DIR 
-    #make gkls_single
-    #make gkls
-        
-    #Add further dependencies here .....
+    #Build any sim/gen source code dependencies here .....
             
     cd $ROOT_DIR/$REG_TEST_SUBDIR
         
@@ -309,7 +341,6 @@ if [ "$root_found" = true ]; then
 
            if [ "$REG_USE_PYTEST" = true ]; then
              mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-             #mpiexec -np $REG_TEST_PROCESS_COUNT $PYTHON_RUN -m pytest $COV_LINE_PARALLEL test_libE_on_GKLS_pytest.py >> $REG_TEST_OUTPUT
              test_code=$?
            else
              mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
@@ -452,6 +483,6 @@ if [ "$root_found" = true ]; then
   tput bold;tput setaf 2; echo -e "\n$RUN_PREFIX --$PYTHON_RUN: All tests passed\n"; tput sgr 0
   exit 0
 else
-  tput bold;tput setaf 1; echo -e "Abort $RUN_PREFIX:  Git repository root not found"; tput sgr 0
+  tput bold;tput setaf 1; echo -e "Abort $RUN_PREFIX:  Project root dir not found"; tput sgr 0
   exit 1
 fi
