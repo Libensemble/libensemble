@@ -69,7 +69,11 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     else:
         opt.set_initial_step(dist_to_bound)
 
-    opt.set_maxeval(100*n) # evaluate one more point
+    if 'localopt_maxeval' in gen_specs:
+        opt.set_maxeval(gen_specs['localopt_maxeval'])
+    else: 
+        opt.set_maxeval(100*n) # evaluate one more point
+
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, H, gen_specs, libE_info['comm']))
     opt.set_xtol_rel(gen_specs['xtol_rel'])
     
@@ -81,6 +85,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
             gen_info_updates = {'done': True,'x_opt':x_opt} # Only send this back so new information added to gen_info since this persistent instance started (e.g., 'run_order'), is not overwritten
         else:
             gen_info_updates = {'done': True} # Only send this back so new information added to gen_info since this persistent instance started (e.g., 'run_order'), is not overwritten
+
         tag_out = FINISHED_PERSISTENT_GEN_TAG
     except Exception as e:
         x_opt = []
