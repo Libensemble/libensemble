@@ -40,7 +40,6 @@ def six_hump_camel(H, sim_out, obj_params):
     return O
 
 def persistent_Newton(g_in,gen_out,params,info):
-    import ipdb; ipdb.set_trace()
     x = params['x0']
 
     while 1:
