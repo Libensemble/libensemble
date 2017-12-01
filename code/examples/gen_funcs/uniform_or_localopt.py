@@ -115,7 +115,7 @@ def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
         gen_info_updates = gen_info # We want to send this back so it is over written.
         return O, gen_info_updates
 
-def add_to_O(O,x,i,ub,lb,local=False,active=False, minimum=False):
+def add_to_O(O,x,i,ub,lb,local=False,active=False):
     O['x'][i] = x
     O['x_on_cube'][i] = (x-lb)/(ub-lb)
     O['dist_to_unit_bounds'][i] = np.inf
@@ -127,7 +127,5 @@ def add_to_O(O,x,i,ub,lb,local=False,active=False, minimum=False):
         O['local_pt'] = True
     if active:
         O['num_active_runs'] = 1
-    if minimum:
-        O['local_min'] = True
 
     return O
