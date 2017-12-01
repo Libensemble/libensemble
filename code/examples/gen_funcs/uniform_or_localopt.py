@@ -40,7 +40,8 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
         if gen_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = calc_in['grad']
-            f = float(calc_in['f'])
+
+        f = float(calc_in['f'])
 
         return f
 

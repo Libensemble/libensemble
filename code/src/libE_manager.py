@@ -85,6 +85,7 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
     comm.send(obj=Work['libE_info'], dest=w, tag=Work['tag'])
     comm.send(obj=Work['gen_info'], dest=w, tag=Work['tag'])
     if len(Work['libE_info']['H_rows']):
+        assert set(Work['H_fields']).issubset(H.dtype.names), "Allocation function requested the field(s): " + str(list(set(Work['H_fields']).difference(H.dtype.names))) + " be sent to worker=" + str(w) + ", but this field is not in history"
         comm.send(obj=H[Work['H_fields']][Work['libE_info']['H_rows']],dest=w)
     #     for i in Work['H_fields']:
     #         # comm.send(obj=H[i][0].dtype,dest=w)
