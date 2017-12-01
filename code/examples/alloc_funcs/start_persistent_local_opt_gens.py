@@ -56,7 +56,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
             Work[i] = {'gen_info':gen_info[i],
-                       'H_fields': ['x','grad','f'],
+                       'H_fields': sim_specs['in'] + [name[0] for name in sim_specs['out']],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': np.atleast_1d(last_ind),
                                      'gen_num': i,
@@ -80,7 +80,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
 
             Work[i] = {'gen_info':gen_info[i],
-                       'H_fields': ['x','grad','f'],
+                       'H_fields': sim_specs['in'] + [name[0] for name in sim_specs['out']],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': np.atleast_1d(ind),
                                      'gen_num': i,

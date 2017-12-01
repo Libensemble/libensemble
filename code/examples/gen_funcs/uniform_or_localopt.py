@@ -16,7 +16,8 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     """
     def nlopt_obj_fun(x, grad, H, gen_specs, comm):
         if np.array_equiv(x, H['x']):
-            grad[:] = H['grad']
+            if gen_specs['localopt_method'] in ['LD_MMA']:
+                grad[:] = H['grad']
             return np.float(H['f'])
 
         # Send back x to the manager
