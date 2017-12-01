@@ -223,7 +223,7 @@ def update_history_dist(H, gen_specs, c_flag):
 
     for new_ind in new_inds:
         # Loop over new returned points and update their distances
-            H['known_to_aposmm'][new_ind] = True # These points are now known to APOSMM
+        H['known_to_aposmm'][new_ind] = True # These points are now known to APOSMM
 
         # Compute distance to boundary
         H['dist_to_unit_bounds'][new_ind] = min(min(np.ones(n) - H['x_on_cube'][new_ind]),min(H['x_on_cube'][new_ind] - np.zeros(n)))
