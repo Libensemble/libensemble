@@ -81,6 +81,9 @@ def perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, g
     if calc_tag in locations:
         os.chdir(saved_dir)
 
+    if 'persistent' in libE_info and libE_info['persistent']:
+        del libE_info['comm']
+
     data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
 
     return data_out, calc_tag
