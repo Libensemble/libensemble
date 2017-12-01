@@ -5,14 +5,43 @@ import numpy as np
 from mpi4py import MPI
 import sys
 
-from message_numbers import STOP_TAG
-from message_numbers import PERSIS_STOP
-from message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
+from message_numbers import STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
 
 import nlopt
 
+def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
+    """
+    This generator
+        - Returns "gen_batch_size" uniformly sampled points when called in
+          nonpersistent mode. 
+        - Performs a persistent nlopt local optimization run when called in
+          persistent mode.
+    """
+    ub = gen_specs['ub']
+    lb = gen_specs['lb']
+
+    if 'persistent' in libE_info and libE_info['persistent']:
+        x_opt, gen_info_updates, tag_out = try_and_run_nlopt(H, gen_specs,libE_info)
+        O = []
+        return O, gen_info_updates, tag_out
+    else:
+        n = len(lb)
+        b = gen_specs['gen_batch_size']
+
+        O = np.zeros(b, dtype=gen_specs['out'])
+        for i in range(0,b):
+            # x = np.random.uniform(lb,ub,(1,n))
+            x = gen_info['rand_stream'].uniform(lb,ub,(1,n))
+            O = add_to_O(O,x,i,ub,lb)
+
+        gen_info_updates = gen_info # We want to send this back so it is over written.
+        return O, gen_info_updates
+
+
 def try_and_run_nlopt(H, gen_specs, libE_info):
-    """ Set up objective and runs nlopt
+    """ 
+    Set up objective and runs nlopt performing communication with the manager in
+    order receive function values for points of interest.
     """
     def nlopt_obj_fun(x, grad, H, gen_specs, comm):
         if np.array_equiv(x, H['x']):
@@ -61,7 +90,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     opt.set_lower_bounds(lb)
     opt.set_upper_bounds(ub)
 
-    # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
+    # Care must be taken with NLopt because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0),min(x0-lb))
 
     if 'dist_to_bound_multiple' in gen_specs:
@@ -77,6 +106,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, H, gen_specs, libE_info['comm']))
     opt.set_xtol_rel(gen_specs['xtol_rel'])
     
+    # Try to peform a local optimization run. 
     try:
         x_opt = opt.optimize(x0)
         exit_code = opt.last_optimize_result()
@@ -88,34 +118,20 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
         tag_out = FINISHED_PERSISTENT_GEN_TAG
     except Exception as e:
+        # This exception is raised when the manager sends a PERSIS_STOP or
+        # STOP_TAG signal
         x_opt = []
         gen_info_updates = {}
         tag_out = int(e.message.split('=')[-1])
         
     return x_opt, gen_info_updates, tag_out 
 
-def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
-    ub = gen_specs['ub']
-    lb = gen_specs['lb']
-
-    if 'persistent' in libE_info and libE_info['persistent']:
-        x_opt, gen_info_updates, tag_out = try_and_run_nlopt(H, gen_specs,libE_info)
-        O = []
-        return O, gen_info_updates, tag_out
-    else:
-        n = len(lb)
-        b = gen_specs['gen_batch_size']
-
-        O = np.zeros(b, dtype=gen_specs['out'])
-        for i in range(0,b):
-            # x = np.random.uniform(lb,ub,(1,n))
-            x = gen_info['rand_stream'].uniform(lb,ub,(1,n))
-            O = add_to_O(O,x,i,ub,lb)
-
-        gen_info_updates = gen_info # We want to send this back so it is over written.
-        return O, gen_info_updates
 
 def add_to_O(O,x,i,ub,lb,local=False,active=False):
+    """
+    Builds or inserts points into the numpy structured array O that will be sent
+    back to the manager.
+    """
     O['x'][i] = x
     O['x_on_cube'][i] = (x-lb)/(ub-lb)
     O['dist_to_unit_bounds'][i] = np.inf
