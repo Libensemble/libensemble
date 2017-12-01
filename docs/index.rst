@@ -13,6 +13,8 @@ Library for managing ensemble-like collections of computations.
    :caption: Contents:
 
    readme
+   contributing
+   release_notes
    manager_modules
    worker_modules
    examples_modules
