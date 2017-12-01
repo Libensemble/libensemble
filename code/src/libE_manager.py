@@ -124,17 +124,15 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
 
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 recv_tag = status.Get_tag()
-                assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
+                assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
 
-                
                 if recv_tag == EVAL_SIM_TAG:
                     update_history_f(H, D_recv)
 
                 if recv_tag == EVAL_GEN_TAG:
                     H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out']) 
 
-                if 'libE_info' in D_recv:
-                    if 'blocking' in D_recv['libE_info']:
+                if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
                         nonpersis_w['blocked'].difference_update(D_recv['libE_info']['blocking'])
                         nonpersis_w['waiting'].update(D_recv['libE_info']['blocking'])
 

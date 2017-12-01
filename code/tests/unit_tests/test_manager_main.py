@@ -70,16 +70,16 @@ def test_termination_test():
 
 def test_update_history_x_in():
 
-    # Don't take more points than there is space in history.
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
     H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
 
-    O = np.zeros(2*len(H), dtype=gen_specs['out'])
-    print(len(O))
+    # Don't do anything when O is empty
+    O = np.zeros(0, dtype=gen_specs['out'])
 
-    H_ind = man.update_history_x_in(H, H_ind, 1, O)
+    H, H_ind = man.update_history_x_in(H, H_ind, 1, O)
 
-    # assert H_ind == len(H)
+    assert H_ind == 0
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
+    test_update_history_x_in()
