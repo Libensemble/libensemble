@@ -32,7 +32,6 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
         tag = status.Get_tag()
         if tag in [STOP_TAG, PERSIS_STOP]:
-            import ipdb; ipdb.set_trace(context=21) 
             nlopt.forced_stop.message = 'tag=' + str(tag)
             raise nlopt.forced_stop
 
