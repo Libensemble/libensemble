@@ -3,7 +3,7 @@
 #    https://www.sfu.ca/~ssurjano/camel6.html 
 # 
 # Execute via the following command:
-#    mpiexec -np 4 python3 call_6-hump_camel.py
+#    mpiexec -np 4 python3 {FILENAME}.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 

@@ -45,6 +45,8 @@ def worker_main(c, sim_specs, gen_specs):
             #     comm.Recv(data,source=0)
             #     calc_in[i] = data
 
+        assert calc_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_tag must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
+
         data_out, tag_out = perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm) 
                             
         if tag_out == STOP_TAG: break
@@ -65,19 +67,16 @@ def perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, g
 
     if calc_tag == EVAL_SIM_TAG: 
         out = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
-    elif calc_tag == EVAL_GEN_TAG: 
+    else: 
         out = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
 
-    if isinstance(out,np.ndarray): 
-        H = out
-    elif isinstance(out, tuple):
-        assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
-        H = out[0]
-        gen_info = out[1]
-        if len(out) >= 3:
-            calc_tag = out[2]
-    else:
-        sys.exit("Calculation output must be a tuple. Worker exiting")
+    assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
+    assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
+
+    H = out[0]
+    gen_info = out[1]
+    if len(out) >= 3:
+        calc_tag = out[2]
 
     if calc_tag in locations:
         os.chdir(saved_dir)
