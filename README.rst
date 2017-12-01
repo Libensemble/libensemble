@@ -54,7 +54,9 @@ pip install can be used to install libEnsemble and access the libensemble module
 
     pip download libensemble
 
-You can also download the source code from `github <https://github.com/Libensemble/libensemble>`_
+You can also download the tarball from `github <https://github.com/Libensemble/libensemble>`_::
+
+    wget https://github.com/Libensemble/libensemble/releases/tag/v0.1.0/libensemble-0.1.0.tar.gz
 
 The examples and tests are set up to be run from the source distribution and do not currently require the libEnsemble package to be installed. Installing the package, however, will download any python dependencies required. This can be done from the top level directory using::
 

@@ -17,6 +17,9 @@ env:
     - MPI=mpich
     - MPI=openmpi
 
+allow_failures:
+  - env: MPI=openmpi
+  
 addons:
   apt:
     packages:
