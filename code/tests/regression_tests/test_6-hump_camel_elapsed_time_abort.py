@@ -26,6 +26,9 @@ from six_hump_camel import six_hump_camel
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from uniform_sampling import uniform_random_sample
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
@@ -59,8 +62,8 @@ np.random.seed(1)
 H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
-    print(flag)
-    print(H)
+    eprint(flag)
+    eprint(H)
     assert flag == 2
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
