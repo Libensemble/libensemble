@@ -9,6 +9,7 @@
 
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import print_function
 
 from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
@@ -36,7 +37,7 @@ sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is b
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'pause_time': 1,
+             'pause_time': 5,
              # 'save_every_k': 10
              }
 
@@ -54,7 +55,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'elapsed_wallclock_time': 0.1}
+exit_criteria = {'elapsed_wallclock_time': 3}
 
 np.random.seed(1)
 
