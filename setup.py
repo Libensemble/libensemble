@@ -51,12 +51,12 @@ setup(
     
     package_data={'libensemble.sim_funcs.branin': ['known_minima_and_func_values']},
     
-    install_requires=['mpi4py>=2.0',
-                      'numpy',
-                      'scipy',                      
-                      #'petsc>=3.5',
-                      'petsc4py>=3.5'
-                      ],
+#    install_requires=['mpi4py>=2.0',
+#                      'numpy',
+#                      'scipy',                      
+#                      #'petsc>=3.5',
+#                      'petsc4py>=3.5'
+#                      ],
 
     #If run tests through setup.py - downloads these but does not install
     tests_require=['pytest>=3.1',
