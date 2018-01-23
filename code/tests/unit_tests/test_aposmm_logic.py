@@ -1,11 +1,11 @@
 import sys, time, os
 import numpy as np
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs')) 
-import aposmm_logic as al
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs')) 
+import libensemble.gen_funcs.aposmm_logic as al
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
-import libE_manager as man
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
+import libensemble.libE_manager as man
 
 from test_manager_main import make_criteria_and_specs_0
 
@@ -42,9 +42,9 @@ def test_exception_raising():
 
 
 def test_decide_where_to_start_localopt():
-    sys.path.append(os.path.join(os.path.dirname(__file__), '../regression_tests'))
+    #sys.path.append(os.path.join(os.path.dirname(__file__), '../regression_tests'))
 
-    from test_branin_aposmm import gen_out 
+    from libensemble.regression_tests.test_branin_aposmm import gen_out 
     H = np.zeros(10,dtype=gen_out + [('f',float),('returned',bool)])
     H['x'] = np.random.uniform(0,1,(10,2))
     H['f'] = np.random.uniform(0,1,10)

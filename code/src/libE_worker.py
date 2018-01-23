@@ -10,7 +10,7 @@ from mpi4py import MPI
 import numpy as np
 import os, shutil 
 
-from message_numbers import *
+from libensemble.message_numbers import *
 
 def worker_main(c, sim_specs, gen_specs):
     """ 

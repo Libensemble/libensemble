@@ -7,10 +7,10 @@ from __future__ import division
 from __future__ import absolute_import
 
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
-from message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
-from message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
-from message_numbers import PERSIS_STOP
-from message_numbers import STOP_TAG # manager tells worker run is over
+from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
+from libensemble.message_numbers import PERSIS_STOP
+from libensemble.message_numbers import STOP_TAG # manager tells worker run is over
 
 from mpi4py import MPI
 import numpy as np
@@ -332,7 +332,7 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
     else:
         L = 100
 
-    from libE_fields import libE_fields
+    from libensemble.libE_fields import libE_fields
 
     H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
 

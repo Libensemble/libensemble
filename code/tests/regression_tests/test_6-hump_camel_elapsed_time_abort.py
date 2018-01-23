@@ -16,16 +16,16 @@ import sys, os             # for adding to path
 import numpy as np
 
 # Import libEnsemble main
-sys.path.append('../../src')
-from libE import libE
+#sys.path.append('../../src')
+from libensemble.libE import libE
 
 # Import sim_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
-from six_hump_camel import six_hump_camel
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 
 # Import gen_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-from uniform_sampling import uniform_random_sample
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)

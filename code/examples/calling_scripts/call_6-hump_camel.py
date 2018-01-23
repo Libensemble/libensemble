@@ -14,8 +14,8 @@ from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 import numpy as np
 
-sys.path.append('../../src')
-from libE import libE
+#sys.path.append('../../src')
+from libensemble.libE import libE
 
 def six_hump_camel(H, sim_out, obj_params,info):
     batch = len(H['x'])

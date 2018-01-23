@@ -1,9 +1,9 @@
 import sys, time, os
 import numpy as np
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 
-from libE import * 
+from libensemble.libE import * 
 from test_manager_main import make_criteria_and_specs_0
 
 al = {'manager_ranks':set([0]), 'worker_ranks':set([1,2]),'persist_gen_ranks':set([])}

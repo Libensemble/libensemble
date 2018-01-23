@@ -13,13 +13,13 @@ from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 import numpy as np
 
-sys.path.append('../../src')
-from libE import libE
+#sys.path.append('../../src')
+from libensemble.libE import libE
 
-sys.path.append('../sim_funcs')
-sys.path.append('../gen_funcs')
-from chwirut1 import sum_squares, libE_func_wrapper
-from aposmm_logic import aposmm_logic
+#sys.path.append('../sim_funcs')
+#sys.path.append('../gen_funcs')
+from libensemble.sim_funcs.chwirut1 import sum_squares, libE_func_wrapper
+from libensemble.gen_funcs.aposmm_logic import aposmm_logic
 from math import gamma, sqrt, pi
 
 

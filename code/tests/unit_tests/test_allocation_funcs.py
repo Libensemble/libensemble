@@ -2,12 +2,12 @@ import sys, time, os
 import numpy as np
 import numpy.lib.recfunctions
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
 
-import libE_manager as man
+import libensemble.libE_manager as man
 from test_manager_main import make_criteria_and_specs_1
-from give_sim_work_first import give_sim_work_first
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 al = {'alloc_f': give_sim_work_first, 'worker_ranks':set([1,2]),'persist_gen_ranks':set([]),'out':[]}
 

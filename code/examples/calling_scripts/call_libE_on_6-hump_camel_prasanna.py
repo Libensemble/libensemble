@@ -15,16 +15,16 @@ import sys, os             # for adding to path
 import numpy as np
 
 # Import libEnsemble main
-sys.path.append('../../src')
-from libE import libE
+#sys.path.append('../../src')
+from libensemble.libE import libE
 
 # Import sim_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
-from six_hump_camel import six_hump_camel_with_different_ranks_and_nodes
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_ranks_and_nodes
 
 # Import gen_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-from uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks
 
 libE_machinefile = open(sys.argv[1]).read().splitlines()
 # libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()

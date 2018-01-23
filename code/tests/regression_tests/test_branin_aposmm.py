@@ -10,17 +10,17 @@ import os
 import numpy as np
 
 # Import libEnsemble main
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
-from libE import libE
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
+from libensemble.libE import libE
 
 # Import sim_func and declare directory to be copied by each worker to do its evaluations in 
 sim_dir_name='../../examples/sim_funcs/branin'
-sys.path.append(os.path.join(os.path.dirname(__file__), sim_dir_name))
-from branin_obj import call_branin as obj_func
+#sys.path.append(os.path.join(os.path.dirname(__file__), sim_dir_name))
+from libensemble.sim_funcs.branin.branin_obj import call_branin as obj_func
 
 # Import gen_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-from aposmm_logic import aposmm_logic
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
+from libensemble.gen_funcs.aposmm_logic import aposmm_logic
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 

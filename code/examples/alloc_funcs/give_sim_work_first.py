@@ -3,9 +3,9 @@ from __future__ import absolute_import
 import numpy as np
 import sys, os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
-from message_numbers import EVAL_SIM_TAG 
-from message_numbers import EVAL_GEN_TAG 
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
+from libensemble.message_numbers import EVAL_SIM_TAG 
+from libensemble.message_numbers import EVAL_GEN_TAG 
 
 def give_sim_work_first(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_info):
     """ 
