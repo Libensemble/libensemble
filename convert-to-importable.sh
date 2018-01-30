@@ -100,7 +100,7 @@ convert_import_paths() {
   
   #Kludge to deal with using data file known_minima_and_func_values
   line_in="sim_dir_name='..\/..\/examples\/sim_funcs\/branin'"
-  line_out="import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '.')"
+  line_out="import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')"
   sed -i -e "s/${line_in}/${line_out}/g" *.py
   
   line_in="minima_and_func_val_file = os.path.join(sim_dir_name, 'known_minima_and_func_values')"
