@@ -34,7 +34,7 @@ In an interactive session (or a batch script) run the launcher:
 
   balsam launcher --consume-all
 
-Note: You will need at least 2 nodes, one for parent job and one for user apps, if you are on a machine where the schedular does not split nodes. 
+Note: You will need at least 2 nodes, one for parent job and one for user apps, if you are on a machine where the schedular does not split nodes. However, it is recommended that 5 nodes are used for good concurrency.
 
 **iii) Output and reset**
 
@@ -215,9 +215,9 @@ Interactive sessions can be launched as:
 
 .. code-block:: bash
 
-  qsub -A <project_code> -n 6 -q debug-flat-quad -t 60 -I
+  qsub -A <project_code> -n 5 -q debug-flat-quad -t 60 -I
 
-This would be a 60 minute interactive session with 6 nodes. You must have a project code.
+This would be a 60 minute interactive session with 5 nodes. You must have a project code.
 
 You will need to load the conda env in the interactive session - or source the script env_setup_theta.sh.
 
