@@ -5,7 +5,7 @@ from mpi4py import MPI
 
 import balsam.launcher.dag as dag
 
-def poll_until_state(job, state, timeout_sec=120.0, delay=5.0):
+def poll_until_state(job, state, timeout_sec=120.0, delay=2.0):
   start = time.time()
   while time.time() - start < timeout_sec:
     time.sleep(delay)
@@ -38,7 +38,7 @@ print ("Host job rank is %d Output dir is %s" % (myrank,sim_dir))
 
 start = time.time()
 for sim_id in range(steps):
-  jobname = 'outfile_' + 'for_sim_id_' + str(sim_id)  + '_ranks_' + str(myrank) + '.txt'
+  jobname = 'outfile_t2_' + 'for_sim_id_' + str(sim_id)  + '_ranks_' + str(myrank) + '.txt'
  
   current_job = dag.add_job(name = jobname,
                             workflow = "libe_workflow",

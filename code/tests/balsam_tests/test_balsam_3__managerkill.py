@@ -5,7 +5,7 @@ from mpi4py import MPI
 
 import balsam.launcher.dag as dag
 
-def poll_until_state(job, state, timeout_sec=120.0, delay=5.0):
+def poll_until_state(job, state, timeout_sec=120.0, delay=2.0):
   start = time.time()
   while time.time() - start < timeout_sec:
     time.sleep(delay)
@@ -34,7 +34,7 @@ sleep_time = 3 #+ myrank
 
 start = time.time()
 for sim_id in range(steps):
-  jobname = 'outfile_' + 'for_sim_id_' + str(sim_id)  + '_ranks_' + str(myrank) + '.txt'
+  jobname = 'outfile_t3_' + 'for_sim_id_' + str(sim_id)  + '_ranks_' + str(myrank) + '.txt'
  
   current_job = dag.add_job(name = jobname,
                             workflow = "libe_workflow",
@@ -50,14 +50,16 @@ for sim_id in range(steps):
  
     if sim_id == 1:
       #kill all sim_id 1 pending jobs in database
+      
+      time.sleep(0.5)
 
       BalsamJob = dag.BalsamJob
       
       #If job already finished will stage out results
-      #pending_sim1_jobs = BalsamJob.objects.filter(name__contains='sim_id_1').exclude(state='JOB_FINISHED')
+      pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3__for_sim_id_1').exclude(state='JOB_FINISHED')
       
       #If job already finished will NOT stage out results - once classed as USER_KILLED
-      pending_sim1_jobs = BalsamJob.objects.filter(name__contains='sim_id_1')
+      #pending_sim1_jobs = BalsamJob.objects.filter(name__contains='sim_id_1')
 
       num_pending = pending_sim1_jobs.count() #will only kill if already in database
 
