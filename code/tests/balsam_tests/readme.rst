@@ -215,9 +215,9 @@ Interactive sessions can be launched as:
 
 .. code-block:: bash
 
-  qsub -A <project_code> -n 2 -q debug-flat-quad -t 60 -I
+  qsub -A <project_code> -n 6 -q debug-flat-quad -t 60 -I
 
-This would be a 60 minute interactive session with 2 nodes. You must have a project code.
+This would be a 60 minute interactive session with 6 nodes. You must have a project code.
 
 You will need to load the conda env in the interactive session - or source the script env_setup_theta.sh.
 

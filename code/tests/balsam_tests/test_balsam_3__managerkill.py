@@ -64,7 +64,7 @@ for sim_id in range(steps):
       pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3_for_sim_id_1').exclude(state='JOB_FINISHED')
       
       #If job already finished will NOT stage out results - once classed as USER_KILLED
-      #pending_sim1_jobs = BalsamJob.objects.filter(name__contains='sim_id_1')
+      #pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3_for_sim_id_1')
 
       num_pending = pending_sim1_jobs.count() #will only kill if already in database
 
