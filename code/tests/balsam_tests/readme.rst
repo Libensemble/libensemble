@@ -30,7 +30,9 @@ This will register the applications and jobs in the database. If work_dir and si
 
 In an interactive session (or a batch script) run the launcher:
 
-> balsam launcher --consume-all
+.. code-block:: bash
+
+  balsam launcher --consume-all
 
 Note: You will need at least 2 nodes, one for parent job and one for user apps, if you are on a machine where the schedular does not split nodes. 
 
@@ -39,7 +41,10 @@ Note: You will need at least 2 nodes, one for parent job and one for user apps, 
 Output will go into test output dirs inside the balsam_tests dir - they will be created on first run.
 
 To quickly reset the tests to run again use the reset (python) script:
-> ./reset_balsam_tests.py
+
+.. code-block:: bash
+
+  ./reset_balsam_tests.py
 
 The file readme.balsam_tests.txt contains a brief explanation of the tests
 
