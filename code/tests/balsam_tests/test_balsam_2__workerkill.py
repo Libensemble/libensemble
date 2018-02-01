@@ -32,6 +32,8 @@ if myrank == 0:
       os.mkdir(sim_path)
     except:
       raise("Cannot make simulation directory %s" % sim_path)
+MPI.COMM_WORLD.Barrier() #Ensure output dir created
+
 
 print ("Host job rank is %d Output dir is %s" % (myrank,sim_dir))
 
