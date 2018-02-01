@@ -31,21 +31,6 @@ myrank=MPI.COMM_WORLD.Get_rank()
 steps=3
 sleep_time = 3 #+ myrank
 
-#Create output dir
-script_name = os.path.splitext(os.path.basename(__file__))[0]
-sim_dir = 'simdir_' + script_name.split("test_", 1).pop()
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sim_path = os.path.join(dir_path,sim_dir)
-
-if myrank == 0:
-  if not os.path.isdir(sim_path):
-    try:
-      os.mkdir(sim_path)
-    except:
-      raise("Cannot make simulation directory %s" % sim_path)
-
-print ("Host job rank is %d Output dir is %s" % (myrank,sim_dir))
-
 
 start = time.time()
 for sim_id in range(steps):
