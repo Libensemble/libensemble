@@ -2,11 +2,12 @@
 
 """ Script to set up apps and jobs for balsam tests """
 
-# Note: To see use of command line interface see setup_balsam_tests.sh script (maybe in sub-dir)
+# Note: To see use of command line interface see bash_scripts/setup_balsam_tests.sh script.
 #       Currently that script does not create deps between jobs so may run simultaneously
 #       This script tests setup within python (could in theory be integrated with job!)
 
 import os
+import sys
 import subprocess
 
 import balsam.launcher.dag as dag
@@ -18,7 +19,7 @@ def add_app(name,exepath,desc):
     """ Add application to database """
     app = AppDef()
     app.name = name
-    app.executable = exepath
+    app.executable = exepath    # “/full/path/to/python/interpreter /full/path/to/script.py" 
     app.description = desc
     #app.default_preprocess = '' # optional
     #app.default_postprocess = '' # optional
@@ -60,7 +61,9 @@ run_cmd("balsam rm jobs --all", True)
 sim_app_name = os.path.splitext(sim_app)[0]  #rm .py extension
 sim_app_path = os.path.join(sim_dir,sim_app) #Full path
 sim_app_desc = 'Run ' + sim_app_name
-add_app(sim_app_name,sim_app_path,sim_app_desc)
+run_line = sys.executable + ' ' + sim_app_path
+add_app(sim_app_name, run_line, sim_app_desc)
+
 
 #Add test jobs apps and jobs - and set to run one at a time
 prev_job_name = None
@@ -70,7 +73,8 @@ for job in job_list:
     app_name = os.path.splitext(job)[0]
     app_path = os.path.join(work_dir,job)
     app_desc = 'Run ' + app_name
-    add_app(app_name,app_path,app_desc)
+    run_line = sys.executable + ' ' + app_path
+    add_app(app_name, run_line, app_desc)
 
     job_name = 'job_' + app_name
     dag.add_job(name = job_name,

@@ -1,5 +1,6 @@
+============
 Using balsam
-------------
+============
 
 Note: To set up balsam - see instructions on setting up in balsam docs.
 
@@ -12,18 +13,20 @@ If the instructions are followed to set up a conda environment called balsam, th
 Quickstart - Balsam tests for libensemble
 -----------------------------------------
 
-Having set up balsam, the tests here can be run as follows:
+Having set up balsam, the tests here can be run as follows.  
 
-i) Set up the tests.
+**i) Set up the tests**
 
 Go to balsam_tests dir run setup script:
 
-> cd libensemble/code/tests/balsam_tests
-> ./setup_balsam_tests.py
+.. code-block:: bash
+
+  cd libensemble/code/tests/balsam_tests
+  ./setup_balsam_tests.py
 
 This will register the applications and jobs in the database. If work_dir and sim_dir paths are ok in script, it can be run from anywhere.
 
-ii) Launch the jobs
+**ii) Launch the jobs**
 
 In an interactive session (or a batch script) run the launcher:
 
@@ -31,7 +34,7 @@ In an interactive session (or a batch script) run the launcher:
 
 Note: You will need at least 2 nodes, one for parent job and one for user apps, if you are on a machine where the schedular does not split nodes. 
 
-iii) Output and reset
+**iii) Output and reset**
 
 Output will go into test output dirs inside the balsam_tests dir - they will be created on first run.
 
@@ -41,9 +44,9 @@ To quickly reset the tests to run again use the reset (python) script:
 The file readme.balsam_tests.txt contains a brief explanation of the tests
 
 
------------------------------------------
+-------------
 General Usage
------------------------------------------
+-------------
 
 1. Register applications
 ------------------------
@@ -54,20 +57,34 @@ This only need be done once - unless eg. name of application changes.
 Example (as used in tests) - run from within balsam_tests dir:
 
 Register tests:
-> balsam app --name test_balsam_1__runjobs     --exec test_balsam_1__runjobs.py     --desc "Run balsam test 1"
-> balsam app --name test_balsam_2__workerkill  --exec test_balsam_2__workerkill.py  --desc "Run balsam test 2"
-> balsam app --name test_balsam_3__managerkill --exec test_balsam_3__managerkill.py --desc "Run balsam test 3"
+
+.. code-block:: bash
+
+    balsam app --name test_balsam_1__runjobs     --exec test_balsam_1__runjobs.py     --desc "Run balsam test 1"
+    
+    balsam app --name test_balsam_2__workerkill  --exec test_balsam_2__workerkill.py  --desc "Run balsam test 2"
+    
+    balsam app --name test_balsam_3__managerkill --exec test_balsam_3__managerkill.py --desc "Run balsam test 3"
 
 Register user application that will be called inside tests:
-> balsam app --name helloworld --exec ../../examples/sim_funcs/helloworld.py  --desc "Run helloworld user app"
+
+.. code-block:: bash
+
+    balsam app --name helloworld --exec ../../examples/sim_funcs/helloworld.py  --desc "Run helloworld user app"
 
 Note: The --exec arg is the location of the script or exe, and can be absolute or relative path (the balsam app command will convert to fullpath).
 
 To list apps:
-> balsam ls apps
 
-To clean: 
-> balsam rm apps --all
+.. code-block:: bash
+
+  balsam ls apps
+
+To clean:
+
+.. code-block:: bash
+
+  balsam rm apps --all
 
 
 
@@ -80,7 +97,9 @@ Eg. Set up job for test_balsam_1:
 
 Where WORK_DIR is set to output dir for job.
 
->   balsam job --name job_test_balsam_1__runjobs
+.. code-block:: bash
+
+  balsam job --name job_test_balsam_1__runjobs
                --workflow libe_workflow
                --application test_balsam_1
                --wall-min 1 --num-nodes 1 --ranks-per-node 4
@@ -98,10 +117,16 @@ Note that the user jobs (launched in a libensemble job) are registered from with
 
 
 To list jobs: 
-> balsam ls jobs
+
+.. code-block:: bash
+
+  balsam ls jobs
 
 To clean: 
-> balsam rm jobs --all
+
+.. code-block:: bash
+
+  balsam rm jobs --all
 
 
 3 Launch job/s
@@ -110,10 +135,16 @@ To clean:
 In an interactive session (or a batch script) run the launcher:
 
 Launch all jobs:
-> balsam launcher --consume-all 
+
+.. code-block:: bash
+
+  balsam launcher --consume-all 
  
 For other launcher options:
-> balsam launcher -h
+
+.. code-block:: bash
+
+  balsam launcher -h
  
  
 4 Reset jobs
@@ -126,40 +157,60 @@ This script can be modified easily. However, to reset from the command line - wi
  
 Note: After running tests the balsam job database will contain something like the following (job_ids abbreviated for space):
 
-$ balsam ls jobs
- job_id            | name                            | workflow       | application    | latest update
-----------------------------------------------------------------------------------------------
- 29add031-8e7c-... | job_balsam1                     | libe_workflow  | test_balsam_1  | [01-30-2018 18:57:47 JOB_FINISHED]
- 9ca5f106-3fb5-... | outfile_for_sim_id_0_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:18 JOB_FINISHED]
- 6a607a91-782c-... | outfile_for_sim_id_0_ranks0.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:31 JOB_FINISHED]
- 3638ee63-0ecc-... | outfile_for_sim_id_0_ranks2.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:44 JOB_FINISHED]
- a2f08c72-fc0c-... | outfile_for_sim_id_0_ranks1.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:57 JOB_FINISHED]
- 183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 JOB_FINISHED]
-..................
+.. code-block:: bash
+
+  $ balsam ls jobs
+
+::
+  
+     job_id            | name                            | workflow       | application    | latest update
+    -------------------------------------------------------------------------------------------------------------
+     29add031-8e7c-... | job_balsam1                     | libe_workflow  | test_balsam_1  | [01-30-2018 18:57:47 JOB_FINISHED]
+     9ca5f106-3fb5-... | outfile_for_sim_id_0_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:18 JOB_FINISHED]
+     6a607a91-782c-... | outfile_for_sim_id_0_ranks0.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:31 JOB_FINISHED]
+     3638ee63-0ecc-... | outfile_for_sim_id_0_ranks2.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:44 JOB_FINISHED]
+     a2f08c72-fc0c-... | outfile_for_sim_id_0_ranks1.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:57 JOB_FINISHED]
+     183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 JOB_FINISHED]
+    ..................
 
 
 To remove only the generated jobs you can just use a sub-string of the job name eg:
-> balsam rm jobs --name outfile
+
+.. code-block:: bash
+
+  balsam rm jobs --name outfile
 
 
-$ balsam ls jobs
- job_id            | name             | workflow        | application      | latest update
------------------------------------------------------------------------------------------------------------------------
- 29add031-8e7c-... | job_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 JOB_FINISHED]
 
+.. code-block:: bash
+
+  $ balsam ls jobs
+
+::
+
+     job_id            | name             | workflow        | application      | latest update
+    -----------------------------------------------------------------------------------------------------------------------
+     29add031-8e7c-... | job_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 JOB_FINISHED]
+    
 
 To run again - change status attribute to READY (you need to specify job_id - an abbreviation is ok) eg:
-> balsam modify jobs 29ad --attr state --value READY
+
+
+.. code-block:: bash
+
+  balsam modify jobs 29ad --attr state --value READY
 
 Now you are ready to re-run.
 
 
---------------------------------
 Theta tip - Interactive sessions
 --------------------------------
 
 Interactive sessions can be launched as:
-> qsub -A <project_code> -n 2 -q debug-flat-quad -t 60 -I
+
+.. code-block:: bash
+
+  qsub -A <project_code> -n 2 -q debug-flat-quad -t 60 -I
 
 This would be a 60 minute interactive session with 2 nodes. You must have a project code.
 
@@ -169,6 +220,9 @@ At time of writing theta does not log you out of interactive sessions. But jobs 
 
 To see time remaining:
 
-> qstat -fu <username>
+
+.. code-block:: bash
+
+  qstat -fu <username>
 
 

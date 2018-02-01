@@ -27,10 +27,22 @@ if not os.path.isdir(sim_path):
   except:
     raise("Cannot make simulation directory %s" % sim_path)
 
-
 myrank=MPI.COMM_WORLD.Get_rank()
 steps=3
-sleep_time = 5 #+ myrank
+sleep_time = 3 #+ myrank
+
+#Create output dir
+script_name = os.path.splitext(os.path.basename(__file__))[0]
+sim_dir = 'simdir_' + script_name.split("test_", 1).pop()
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sim_path = os.path.join(dir_path,sim_dir)
+
+if myrank == 0:
+  if not os.path.isdir(sim_path):
+    try:
+      os.mkdir(sim_path)
+    except:
+      raise("Cannot make simulation directory %s" % sim_path)
 
 print ("Host job rank is %d Output dir is %s" % (myrank,sim_dir))
 
@@ -41,12 +53,12 @@ for sim_id in range(steps):
  
   current_job = dag.add_job(name = jobname,
                             workflow = "libe_workflow",
-                            application="helloworld",
-                            application_args=sleep_time,
-                            num_nodes=1,
-                            ranks_per_node=8,
-                            stage_out_url="local:" + sim_path,
-                            stage_out_files=jobname + ".out")
+                            application = "helloworld",
+                            application_args = str(sleep_time),                            
+                            num_nodes = 1,
+                            ranks_per_node = 8,
+                            stage_out_url = "local:" + sim_path,
+                            stage_out_files = jobname + ".out")
     
   #Kill only from manager - pending and running jobs of given ID
   if myrank == 0:
