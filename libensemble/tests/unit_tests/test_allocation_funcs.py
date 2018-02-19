@@ -6,14 +6,14 @@ import numpy.lib.recfunctions
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
 
 import libensemble.libE_manager as man
-from test_manager_main import make_criteria_and_specs_1
+import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 al = {'alloc_f': give_sim_work_first, 'worker_ranks':set([1,2]),'persist_gen_ranks':set([]),'out':[]}
 
 def test_decide_work_and_resources():
 
-    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
 
     H, H_ind, _, _, persis_w = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
 

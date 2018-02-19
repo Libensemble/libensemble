@@ -7,12 +7,29 @@ import libensemble.gen_funcs.aposmm_logic as al
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 import libensemble.libE_manager as man
 
-from test_manager_main import make_criteria_and_specs_0
+import libensemble.tests.unit_tests.setup as setup
 
+n = 2
 alloc = {'worker_ranks':set([1,2]),'persist_gen_ranks':set([]),'out':[]}
 
+gen_out = [('x',float,n),
+      ('x_on_cube',float,n),
+      ('sim_id',int),
+      ('priority',float),
+      ('local_pt',bool),
+      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
+      ('dist_to_unit_bounds',float),
+      ('dist_to_better_l',float),
+      ('dist_to_better_s',float),
+      ('ind_of_better_l',int),
+      ('ind_of_better_s',int),
+      ('started_run',bool),
+      ('num_active_runs',int), # Number of active runs point is involved in
+      ('local_min',bool),
+      ]
+
 def test_failing_localopt_method():
-    sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
+    sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
     H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[])[0]
     H['returned'] = 1
 
@@ -27,7 +44,7 @@ def test_failing_localopt_method():
 
 
 def test_exception_raising():
-    sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
+    sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
     H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[])[0]
     H['returned'] = 1
 
@@ -44,7 +61,7 @@ def test_exception_raising():
 def test_decide_where_to_start_localopt():
     #sys.path.append(os.path.join(os.path.dirname(__file__), '../regression_tests'))
 
-    from libensemble.regression_tests.test_branin_aposmm import gen_out 
+    #from libensemble.regression_tests.test_branin_aposmm import gen_out 
     H = np.zeros(10,dtype=gen_out + [('f',float),('returned',bool)])
     H['x'] = np.random.uniform(0,1,(10,2))
     H['f'] = np.random.uniform(0,1,10)
@@ -65,7 +82,7 @@ def test_calc_rk():
 
 
 def test_initialize_APOSMM():
-    sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
+    sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
     H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[])[0]
 
     al.initialize_APOSMM(H,gen_specs_0)

@@ -4,7 +4,7 @@ import numpy as np
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 
 from libensemble.libE import * 
-from test_manager_main import make_criteria_and_specs_0
+import libensemble.tests.unit_tests.setup as setup
 
 al = {'manager_ranks':set([0]), 'worker_ranks':set([1,2]),'persist_gen_ranks':set([])}
 
@@ -17,7 +17,7 @@ def test_nonworker_and_nonmanager_rank():
 def test_checking_inputs():
 
     # Don't take more points than there is space in history.
-    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_0()
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     
     H0 = np.zeros(3,dtype=sim_specs['out'] + gen_specs['out'] + [('returned',bool)])
 

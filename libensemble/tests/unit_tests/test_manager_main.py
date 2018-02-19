@@ -6,38 +6,25 @@ import numpy.lib.recfunctions
 
 
 import libensemble.libE_manager as man
+import libensemble.tests.unit_tests.setup as setup
 
 al = {'worker_ranks':set([1,2]),'persist_gen_ranks':set([]),'out':[]}
 
 def test_update_history_x_out():
     assert True
 
-def make_criteria_and_specs_0():
-    sim_specs={'sim_f': [np.linalg.norm], 'in':['x_on_cube'], 'out':[('f',float),('fvec',float,3)], }
-    gen_specs={'gen_f': [np.random.uniform], 'in':[], 'out':[('x_on_cube',float),('priority',float),('local_pt',bool)], 'ub':np.ones(1), 'nu':0}
-    exit_criteria={'sim_max':10}
-
-    return sim_specs, gen_specs, exit_criteria
-
-def make_criteria_and_specs_1():
-    sim_specs={'sim_f': [np.linalg.norm], 'in':['x'], 'out':[('g',float)], }
-    gen_specs={'gen_f': [np.random.uniform], 'in':[], 'out':[('x',float),('priority',float)], }
-    exit_criteria={'sim_max':10, 'stop_val':('g',-1), 'elapsed_wallclock_time':0.5}
-
-    return sim_specs, gen_specs, exit_criteria
-
 
 def test_termination_test():
     # termination_test should be True when we want to stop
 
-    sim_specs_0, gen_specs_0, exit_criteria_0 = make_criteria_and_specs_0()
+    sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
     H, H_ind, term_test,_,_ = man.initialize(sim_specs_0, gen_specs_0, al, exit_criteria_0,[]) 
     assert not term_test(H, H_ind)
 
 
 
     # Shouldn't terminate
-    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
     H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
     assert not term_test(H, H_ind)
     # 
@@ -70,7 +57,7 @@ def test_termination_test():
 
 def test_update_history_x_in():
 
-    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
     H, H_ind,term_test,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
 
     # Don't do anything when O is empty

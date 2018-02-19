@@ -20,8 +20,8 @@ export REG_STOP_ON_FAILURE=false
 #-----------------------------------------------------------------------------------------
      
 # Test Directories - all relative to project root dir
-export CODE_DIR=code
-export LIBE_SRC_DIR=$CODE_DIR/src
+export CODE_DIR=libensemble
+export LIBE_SRC_DIR=$CODE_DIR
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
