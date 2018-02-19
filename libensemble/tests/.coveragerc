@@ -16,8 +16,8 @@ omit =
     */setup.py
     */unit_tests/*    
     */regression_tests/*
-    */examples/sim_funcs/helloworld.py
-#    */examples/sim_funcs/*
-#    */examples/gen_funcs/*    
+    */sim_funcs/helloworld.py
+#    */sim_funcs/*
+#    */gen_funcs/*    
 exclude_lines =    
     if __name__ == .__main__.:

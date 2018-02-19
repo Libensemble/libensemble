@@ -1,6 +1,6 @@
 [run]
-source = ../../src
-        ../../examples/gen_funcs/
+source = ../..
+        ../../gen_funcs
         .
 
 branch = true

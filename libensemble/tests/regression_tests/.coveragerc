@@ -1,7 +1,7 @@
 [run]
-source = ../../src
-        ../../examples/sim_funcs/
-        ../../examples/gen_funcs/
+source = ../../
+        ../../sim_funcs
+        ../../gen_funcs
         .
         #common
 
