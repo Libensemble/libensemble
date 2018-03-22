@@ -93,7 +93,9 @@ def initialize_worker(c, sim_specs, gen_specs):
 
     comm = c['comm']
     comm_color = c['color']
+    
     rank = comm.Get_rank()
+    
     status = MPI.Status()
 
     dtypes = {}
