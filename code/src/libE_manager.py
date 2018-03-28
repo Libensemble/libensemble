@@ -36,6 +36,9 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     Manager routine to coordinate the generation and simulation evaluations
     """
 
+    #quick - until do proper timer
+    man_start_time = time.time()
+    
     H, H_ind, term_test, nonpersis_w, persis_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
     persistent_queue_data = {}; gen_info = {}
     
@@ -44,9 +47,6 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w, worker_list)
     
-
-    
-
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
@@ -63,7 +63,7 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
             
         # persis_w = give_information_to_persistent_workers(comm, persis_w)
 
-    H, gen_info, exit_flag = final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info, worker_list)
+    H, gen_info, exit_flag = final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info, worker_list, man_start_time)
 
     return H, gen_info, exit_flag
 
@@ -472,7 +472,7 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
 
     return H, H_ind, term_test, nonpersis_w, persis_w
 
-def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info, , worker_list):
+def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info, worker_list, man_start_time):
     """ 
     Tries to receive from any active workers. 
 
@@ -505,5 +505,20 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
     ### Kill the workers
     #for w in alloc_specs['worker_ranks']:
     #    comm.send(obj=None, dest=w, tag=STOP_TAG)
+    
+    #todo - clean up workers!!!
+    print("\nlibEnsemble manager total time:", time.time() - man_start_time)
+    
+    #Curretly workers report wall-clock
+    print_all_times = True #For test version
+    if (print_all_times):
+         for current_worker in worker_list:
+             #current_worker = Worker.get_worker(worker_list,w)
+             print("Worker %d:" % (current_worker.workerID))
+             for j, jb in enumerate(current_worker.joblist):
+                 print("   Job %d: %s %f" % (j,jb.get_type(),jb.time))
+             
+               
 
     return H[:H_ind], gen_info, exit_flag
+

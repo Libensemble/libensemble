@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import numpy as np
 import os, shutil
 from message_numbers import *
+from job_class import Job
 
 #Worker concept here - may have just work_units...
 #This is developed xhffi for evaluating current code but in serial - NOT eventual code
@@ -56,6 +57,7 @@ class Worker():
         self.calc_type = None
         self.calc_status = None 
         self.isdone = False 
+        self.joblist = []
         
         #self.sim_specs = Worker.sim_specs
         #self.gen_specs = Worker.gen_specs
@@ -94,12 +96,25 @@ class Worker():
         
         #Think only need self - if going to store between calls to run...
         #Work is always sent currently so those dont need to be stored right!!!
+        
+        #Add a job - decide whether or not to combine with Work - which shld also be an object - or is work unit and job different.
+        #ie. job contains info on resource -eg. process_id - output like run-time etc... where as a work_unit can run anywhere - its work to be done.
+        
+        job = Job()
+        self.joblist.append(job)
+        
+        #For now timing will include setup/teardown
+        job.start_timer()
+        
     
         #Could keep all this inside the Work dictionary .....
         #Does it need to be self - what if a just a working variable....
         libE_info = Work['libE_info']
         
         self.calc_type = Work['tag']
+        
+        #maybe shld just a job attribute - and use that - but for now just setting job to have a record of jobs at end.
+        job.calc_type = Work['tag']
         
         #This will be a separate routine - telling worker to kill its job/jobs
         #if self.calc_tag == STOP_TAG: 
@@ -129,6 +144,8 @@ class Worker():
         if tag_out == STOP_TAG: 
             self.clean()
             return #Any vals to return??? Or call a finalise function???? Clean up...
+        
+        job.stop_timer() #For blocking job
         
         return
         #return data_out #May want tag_out also
