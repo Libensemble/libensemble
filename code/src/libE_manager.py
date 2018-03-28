@@ -36,6 +36,9 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     Manager routine to coordinate the generation and simulation evaluations
     """
 
+    #set to 2 workers - cld just have a number - still blocking at moment so use same resources
+    alloc_specs['worker_ranks'] = set([0,1])
+
     #quick - until do proper timer
     man_start_time = time.time()
     
@@ -516,7 +519,9 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
              #current_worker = Worker.get_worker(worker_list,w)
              print("Worker %d:" % (current_worker.workerID))
              for j, jb in enumerate(current_worker.joblist):
-                 print("   Job %d: %s %f" % (j,jb.get_type(),jb.time))
+                 #print("   Job %d: %s %f" % (j,jb.get_type(),jb.time))
+                 #verbose
+                 print("   Job %d: %s Tot: %f Start: %f End: %f " % (j,jb.get_type(),jb.time,jb.start,jb.end))
              
                
 
