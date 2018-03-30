@@ -10,6 +10,13 @@ import numpy as np
 import os, shutil
 from message_numbers import *
 from job_class import Job
+import threading
+import logging
+#import pdb
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='(%(threadName)-10s) %(message)s',
+                    )
 
 #Worker concept here - may have just work_units...
 #This is developed xhffi for evaluating current code but in serial - NOT eventual code
@@ -56,7 +63,7 @@ class Worker():
         self.data = {}
         self.calc_type = None
         self.calc_status = None 
-        self.isdone = False 
+        self.isdone = False #Shld this be per job?
         self.joblist = []
         
         #self.sim_specs = Worker.sim_specs
@@ -81,7 +88,7 @@ class Worker():
             assert ~os.path.isdir(self.worker_dir), "Worker directory already exists."
             # if not os.path.exists(worker_dir):
             shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
-            self.locations[EVAL_SIM_TAG] = self.worker_dir 
+            self.locations[EVAL_SIM_TAG] = self.worker_dir #May change to self.sim_dir and self.gen_dir
 
 
     #Kind of inclined for the stuff sent for calc_in to be included in Work object - but
@@ -96,6 +103,10 @@ class Worker():
         
         #Think only need self - if going to store between calls to run...
         #Work is always sent currently so those dont need to be stored right!!!
+        
+        #pdb.set_trace()
+        t = threading.currentThread()
+        #logging.debug('Running thread %s on worker %d', t.getName(), self.workerID)
         
         #Add a job - decide whether or not to combine with Work - which shld also be an object - or is work unit and job different.
         #ie. job contains info on resource -eg. process_id - output like run-time etc... where as a work_unit can run anywhere - its work to be done.
@@ -112,9 +123,14 @@ class Worker():
         libE_info = Work['libE_info']
         
         self.calc_type = Work['tag']
+        #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID,self.calc_type)
         
         #maybe shld just a job attribute - and use that - but for now just setting job to have a record of jobs at end.
         job.calc_type = Work['tag']
+        
+        #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
+        logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, job.get_type())
+        
         
         #This will be a separate routine - telling worker to kill its job/jobs
         #if self.calc_tag == STOP_TAG: 
@@ -152,7 +168,7 @@ class Worker():
     
 
     def clean(self):
-        # Clean up
+        # Clean up - may need to chdir to saved dir also (saved_dir cld be object attribute)
         for loc in self.locations.values():
             shutil.rmtree(loc)
         return
@@ -170,6 +186,8 @@ class Worker():
     def _perform_calc(self, calc_in, gen_info, libE_info):
         if self.calc_type in self.locations:
             saved_dir = os.getcwd()
+            #print('current dir in _perform_calc is ', saved_dir)
+            logging.debug('current dir in _perform_calc is  %s', saved_dir)
             os.chdir(self.locations[self.calc_type])
 
         #Need to check how this works - maybe for sub-comm???
@@ -179,7 +197,12 @@ class Worker():
         ### ============================== Run calc =======================================
         #import pdb; pdb.set_trace()
         if self.calc_type == EVAL_SIM_TAG:
-            out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info)
+            #out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info)
+            
+            #experiment - cld pass workerID or cld pass worker (if import worker user-side) - ie. pass "self"
+            #           - and then cld access anything here - will need to pass job of course
+            #           - maybe thats all I need to pass - and job could contain workerID !!!!
+            out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info, self.workerID)
         else: 
             out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
         ### ===============================================================================

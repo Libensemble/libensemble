@@ -12,22 +12,31 @@ from message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
 from message_numbers import PERSIS_STOP
 from message_numbers import STOP_TAG # manager tells worker run is over
 
-from mpi4py import MPI
+#from mpi4py import MPI
 import numpy as np
 
 import time, sys, os
 import copy
 
-from libE_worker import worker_main
+#from libE_worker import worker_main
 
 from worker_class import Worker
 
+import threading
+import logging
+#import pdb
+
 #For pdb to respond to Ctrl-C - didn't work!
-def debug_signal_handler(signal, frame):
-    import pdb
-    pdb.set_trace()
-import signal
-signal.signal(signal.SIGINT, debug_signal_handler)
+#def debug_signal_handler(signal, frame):
+#    import pdb
+#    pdb.set_trace()
+#import signal
+#signal.signal(signal.SIGINT, debug_signal_handler)
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='(%(threadName)-10s) %(message)s',
+                    )
+
 
 debug_count = 0 #debugging
     
@@ -37,7 +46,7 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     """
 
     #set to 2 workers - cld just have a number - still blocking at moment so use same resources
-    alloc_specs['worker_ranks'] = set([0,1])
+    #alloc_specs['worker_ranks'] = set([0,1])
 
     #quick - until do proper timer
     man_start_time = time.time()
@@ -47,6 +56,9 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     
     #Add list of workers here
     worker_list = []
+    
+    #Maybe make attribute of worker - and/or do all worker stuff in persistent threads - but for now this and just worker.run
+    thread_list = []
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w, worker_list)
     
@@ -62,7 +74,7 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
         for w in Work:
             if term_test(H,H_ind):
                 break
-            nonpersis_w, persis_w = send_to_worker_and_update_active_and_idle(comm, H, Work[w], w, sim_specs, gen_specs, nonpersis_w, persis_w, worker_list)
+            nonpersis_w, persis_w = send_to_worker_and_update_active_and_idle(comm, H, Work[w], w, sim_specs, gen_specs, nonpersis_w, persis_w, worker_list, thread_list)
             
         # persis_w = give_information_to_persistent_workers(comm, persis_w)
 
@@ -111,7 +123,7 @@ def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w, wor
         worker_list.append(new_worker)
 
 
-def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, nonpersis_w, persis_w, worker_list):
+def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, nonpersis_w, persis_w, worker_list, thread_list):
     """
     Sends calculation information to the workers and updates the sets of
     active/idle workers
@@ -130,9 +142,16 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
         
     current_worker = Worker.get_worker(worker_list,w)
     
+    
+    #pdb.set_trace()
     #This will be non-blocking (though curently may not be)
     if current_worker is not None:
         current_worker.run(Work, calc_in)
+        #If using threads
+        #t = threading.Thread(target=current_worker.run, args=(Work, calc_in))
+        #thread_list.append(t)
+        #t.start()
+        #logging.debug('Launching thread %s', t.getName())
 
 
 #-------------------------MPI version---------------------------#
