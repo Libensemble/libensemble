@@ -26,10 +26,10 @@ Third (aspirational) tasks for libEnsemble:
 from __future__ import division
 from __future__ import absolute_import
 
-from libensemble.libE_manager import manager_main
-from libensemble.libE_worker import worker_main
+from libE_manager import manager_main
+#from libE_worker import worker_main
 
-from mpi4py import MPI
+#from mpi4py import MPI
 
 import numpy as np
 import sys,os 
@@ -38,12 +38,15 @@ import sys,os
 # sys.excepthook = ultratb.FormattedTB(mode='Verbose',
 #      color_scheme='Linux', call_pdb=1)
 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+#For non-mpi
+num_workers = 2
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
+from give_sim_work_first import give_sim_work_first
+#NOTE THAT THIS IS TO RUN SERIAL --- WORKER STARTS AT ZERO SO ZERO IS MANAGER AND WORKER FOR DEBUGGING
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
-        alloc_specs={'out':[], 'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))},
-        c={'comm': MPI.COMM_WORLD, 'color': 0}, 
+        alloc_specs={'out':[], 'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(0,num_workers))},
+        c={'comm': 0, 'color': 0}, 
         H0=[]):
     """ 
     This is the outer libEnsemble routine. It checks each rank in c['comm']
@@ -57,15 +60,15 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     # When timing libEnsemble, uncomment barrier to ensure manager and workers are in sync
     # comm.Barrier()
 
-    if comm.Get_rank() in alloc_specs['manager_ranks']:
-        H, gen_info, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+#    if comm.Get_rank() in alloc_specs['manager_ranks']:
+    H, gen_info, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         # if exit_flag == 0:
         #     comm.Barrier()
-    elif comm.Get_rank() in alloc_specs['worker_ranks']:
-        worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
-        # comm.Barrier()
-    else:
-        print("Rank: %d not manager or worker" % comm.Get_rank()); H=gen_info=exit_flag=[]
+#    elif comm.Get_rank() in alloc_specs['worker_ranks']:
+#        worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
+#        # comm.Barrier()
+#    else:
+#        print("Rank: %d not manager or worker" % comm.Get_rank()); H=gen_info=exit_flag=[]
 
     return H, gen_info, exit_flag
 
