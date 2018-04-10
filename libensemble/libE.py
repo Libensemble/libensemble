@@ -26,8 +26,8 @@ Third (aspirational) tasks for libEnsemble:
 from __future__ import division
 from __future__ import absolute_import
 
-from libE_manager import manager_main
-#from libE_worker import worker_main
+from libensemble.libE_manager import manager_main
+#from libensemble.libE_worker import worker_main
 
 #from mpi4py import MPI
 
@@ -41,8 +41,9 @@ import sys,os
 #For non-mpi
 num_workers = 2
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
-from give_sim_work_first import give_sim_work_first
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+
 #NOTE THAT THIS IS TO RUN SERIAL --- WORKER STARTS AT ZERO SO ZERO IS MANAGER AND WORKER FOR DEBUGGING
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         alloc_specs={'out':[], 'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(0,num_workers))},

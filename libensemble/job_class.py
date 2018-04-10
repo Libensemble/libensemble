@@ -1,5 +1,5 @@
 import time
-from message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
 class Job():
         

@@ -8,8 +8,8 @@ from __future__ import absolute_import
 
 import numpy as np
 import os, shutil
-from message_numbers import *
-from job_class import Job
+from libensemble.message_numbers import *
+from libensemble.job_class import Job
 import threading
 import logging
 #import pdb

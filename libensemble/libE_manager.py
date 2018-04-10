@@ -20,7 +20,7 @@ import copy
 
 #from libE_worker import worker_main
 
-from worker_class import Worker
+from libensemble.worker_class import Worker
 
 import threading
 import logging
