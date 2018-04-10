@@ -2,54 +2,132 @@
 
 """ Script to set up apps for balsam """
 
-#Quit possibly make this part of job/job_controller module - and when job is run - it will
-#for example get the sim_calc from here. In fact I'm almost sure thats where it should go now.
-#Or I guess an app object could be an attribute of job - so job relates to this app - now I'm
-#almost sure about that - thats how fickle I am!
+#Quit possibly make this part of job/job_controller module 
+#An app object could be an attribute of job - so job relates to this app
 
 import os
-import sys
 import subprocess
+import logging
 
-import balsam.launcher.dag as dag
-from balsam.service import models
-AppDef = models.ApplicationDefinition
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+logger.addHandler(stream_handler)
 
-def add_app(name,exepath,desc):
-    """ Add application to database """
-    app = AppDef()
-    app.name = name
-    app.executable = exepath    # “/full/path/to/python/interpreter /full/path/to/script.py" 
-    app.description = desc
-    #app.default_preprocess = '' # optional
-    #app.default_postprocess = '' # optional
-    app.save()
-
-#As balsam req python 3.6 lets use subprocess.run
-#For any stuff requiring CLI
-def run_cmd(cmd,echo=False):
-    """ Run a bash command """
-    if echo:
-        print("\nRunning %s ...\n" % cmd)
-    try:
-        subprocess.run(cmd.split(),check=True)
-    except:
-        raise("Error: Command %s failed to run" % cmd)
+class RegistrationException(Exception): pass
 
 
-def register_calc(full_path, calc_type='sim', desc=None):    
-    calc_dir, calc_exe = os.path.split(full_path)    
-    calc_name = calc_exe + '_' + calc_type
-    
-    if desc is None:
-        desc = calc_exe + ' ' + calc_type + ' function'
+class Application:
+    def __init__(self, full_path, calc_type='sim', desc=None, default=True):
+        self.full_path = full_path
+        self.calc_type = calc_type
+        self.desc = desc
+        self.default = default
+        self.calc_dir, self.name = os.path.split(full_path)
         
-    add_app(calc_name, full_path, desc)
+        if desc is None:
+            self.desc = self.name + ' ' + self.calc_type + ' function'
+
+#Think I will merge this into job_controller
+class Register:
     
+    def __init__(self):
+        self.sim_default_app = None
+        self.gen_default_app = None
+            
+    def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
+        
+        if default:
+            if calc_type == 'sim':
+                if self.sim_default_app is not None:
+                    #logger - either error or overwrite - error
+                    raise RegistrationException("Default sim app already set")
+                else:
+                    #Register.sim_default_app = full_path
+                    app = Application(full_path, calc_type, desc, default)
+                    self.sim_default_app = app
+            elif calc_type == 'gen':
+                if self.gen_default_app is not None:
+                    #logger - either error or overwrite - error
+                    raise RegistrationException("Default gen app already set")
+                else:
+                    #Register.sim_default_app = full_path
+                    app = Application(full_path, calc_type, desc, default)
+                    self.gen_default_app = app
+            else:
+                #Raise Exception **
+                raise RegistrationException("Unrecognized calculation type", calc_type)
+        else:
+            pass #always default currently
+        
+        #return id(app)
+        return
+ 
+ 
+#Think I will merge this into job_controller
+class BalsamRegister(Register):
+ 
+    @staticmethod
+    def del_apps():
+        """ For now just deletes all apps """
+        import balsam.launcher.dag as dag
+        from balsam.service import models
+        AppDef = models.ApplicationDefinition 
+        deletion_objs = AppDef.objects.all()
+        deletion_objs.delete()
+        logger.debug("deleted apps")
 
-def register_init():
-    #Check for empty database if poss
-    run_cmd("balsam rm apps --all", True)
-    run_cmd("balsam rm jobs --all", True)
-
-
+    @staticmethod
+    def del_jobs():
+        """ For now just deletes all jobs """
+        import balsam.launcher.dag as dag
+        from balsam.service import models
+        Job = models.BalsamJob
+        deletion_objs = Job.objects.all()
+        deletion_objs.delete()
+        logger.debug("deleted jobs")  
+        
+    @staticmethod       
+    def add_app(name,exepath,desc):
+        """ Add application to database """
+        import balsam.launcher.dag as dag
+        from balsam.service import models
+        AppDef = models.ApplicationDefinition
+        app = AppDef()
+        app.name = name
+        app.executable = exepath    # “/full/path/to/python/interpreter /full/path/to/script.py" 
+        app.description = desc
+        #app.default_preprocess = '' # optional
+        #app.default_postprocess = '' # optional
+        app.save()
+        logger.debug("Added App {}".format(app.name))
+        
+    def __init__(self):
+        super().__init__()
+        #Check for empty database if poss
+        #And/or compare with whats in database and only empty if I need to
+        BalsamRegister.del_apps()
+        BalsamRegister.del_jobs()
+        
+    
+    def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
+        super().register_calc(full_path, calc_type, desc, default) 
+        #Req python 3 to exclude args - but as Balsam requires 3.6+ I may do - or is it only __init__()
+        
+        #calc_dir, calc_name = os.path.split(full_path)    
+        
+        #Get from one place - so always matches
+        if calc_type == 'sim':
+            calc_name = self.sim_default_app.name
+            desc = self.sim_default_app.desc
+        elif calc_type == 'gen':
+            calc_name = self.gen_default_app.name
+            desc = self.gen_default_app.desc
+        else:
+            #Raise Exception **
+            raise RegistrationException("Unrecognized calculation type", calc_type)
+        
+        #if desc is None:
+            #desc = calc_exe + ' ' + calc_type + ' function'
+            
+        self.add_app(calc_name, full_path, desc)
