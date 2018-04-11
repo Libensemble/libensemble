@@ -29,11 +29,18 @@ class Application:
             self.desc = self.name + ' ' + self.calc_type + ' function'
 
 #Think I will merge this into job_controller
-class Register:
+class Register():
     
-    def __init__(self):
+    default_registry = None    
+    
+    def __init__(self, default=True):
         self.sim_default_app = None
-        self.gen_default_app = None
+        self.gen_default_app = None        
+        if default:
+            Register.default_registry = self
+
+        logger.debug("default_registry is {}".format(Register.default_registry))
+        #logger.debug("default_registry sim name is {}".format(Register.default_registry.sim_default_app))
             
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
         
