@@ -102,7 +102,7 @@ class BalsamRegister(Register):
         AppDef = models.ApplicationDefinition
         app = AppDef()
         app.name = name
-        app.executable = exepath    # “/full/path/to/python/interpreter /full/path/to/script.py" 
+        app.executable = exepath
         app.description = desc
         #app.default_preprocess = '' # optional
         #app.default_postprocess = '' # optional
