@@ -31,7 +31,8 @@ class JobController:
 
     controller = None
 
-    def _reset(self):
+    #Currently not using sub-job so reset job attributes - as opposed to job_controller attributes
+    def reset(self):
         #This may be placed in a job object (and maybe a list of jobs for controller)
         #job will have ID that can be used
         self.current_process_id = None
@@ -58,7 +59,13 @@ class JobController:
         self.nnodes = ''
         self.ppn = '--ppn'
         
-        self._reset()
+        #Job controller settings - can be set in user function.
+        self.kill_signal = SIGTERM
+        self.wait_and_kill = True #If true - wait for wait_time After signal and then kill with SIGKILL
+        self.wait_time = 60
+        
+        #Reset current job attributes
+        self.reset()
         
         JobController.controller = self
         
@@ -67,7 +74,7 @@ class JobController:
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, test=False):
      
-        self._reset()        
+        self.reset()        
         
         #Could take optional app arg - if they want to supply here - instead of taking from registry
         #Here could be options to specify an alternative function - else registry.sim_default_app
@@ -181,31 +188,49 @@ class JobController:
     def kill(self):
         #In here can set state to user killed!
         #- but if killed by remote job (eg. through balsam database) may be different ....
-         
-        #Note: opal using os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-        # - prob to send SIGTERM rather than SIGKILL and maybe group...
-
         #maybe have a function JobController.set_kill_mode() 
-        self.current_process_id.terminate() # sends SIGTERM
-        #self.current_process_id.kill() #sends SIGKILL
-        #process.send_signal(...) #to send any signal
-        
-        #Think need to use stdout=subprocess.PIPE,stderr=subprocess.PIPE on subprocess - check?
-        #stdout,stderr = self.current_process_id.communicate()
-        
-        self.current_process_id.communicate() #Wait for process to finish
+
+        #Issue signal
+        if self.kill_signal == SIGTERM:
+            self.current_process_id.terminate()
+        elif self.kill_signal == SIGKILL:
+            self.current_process_id.terminate()
+        else:
+            self.current_process_id.send_signal(self.kill_signal) #Prob only need this line!
+            
+        #Wait for job to be killed
+        if self.wait_and_kill:
+            try:
+                self.current_process_id.wait(timeout=self.wait_time)
+                #stdout,stderr = self.current_process_id.communicate(timeout=self.wait_time) #Wait for process to finish
+            except subprocess.TimeoutExpired:
+                logger.warning("Kill signal {} timed out - issuing SIGKILL".format(self.kill_signal))
+                self.current_process_id.kill()
+                self.current_process_id.wait()
+        else:
+            self.current_process_id.wait(timeout=self.wait_time)
+
         self.state = 'KILLED'
         self.finished = True
         
         #Need to test out what to do with
         #self.errcode #Can it be discovered after killing?
-        #self.success #Could set to false but should be already - only set to true on success
+        #self.success #Could set to false but should be already - only set to true on success            
+                
+    def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):        
+        if signal is not None:
+            self.kill_signal = signal
+            
+        if wait_and_kill is not None:
+            self.wait_and_kill = wait_and_kill
+            
+        if wait_time is not None: 
+            self.wait_time = wait_time
+
         
-
-
 class BalsamJobController(JobController):
 
-    def _reset(self):       
+    def reset(self):       
         pass
     
     def __init__(self):
