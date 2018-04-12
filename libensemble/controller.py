@@ -60,7 +60,7 @@ class JobController:
         self.ppn = '--ppn'
         
         #Job controller settings - can be set in user function.
-        self.kill_signal = SIGTERM
+        self.kill_signal = 'SIGTERM'
         self.wait_and_kill = True #If true - wait for wait_time After signal and then kill with SIGKILL
         self.wait_time = 60
         
@@ -153,13 +153,13 @@ class JobController:
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
         
         #Here question of checking the existing state before polling - some error handling is required
-        if self.state == KILLED:
+        if self.state == 'KILLED':
             logger.warning('Polled job has already been killed') #could poll to check....
             return self.state
-        if self.state == FAILED:
+        if self.state == 'FAILED':
             logger.warning('Polled job has already been set to failed') #could poll to check....
             return self.state
-        if self.state == FINISHED:
+        if self.state == 'FINISHED':
             logger.warning('Polled job has already been set to finished') #could poll to check....
             return self.state   
         
