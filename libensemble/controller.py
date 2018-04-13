@@ -107,7 +107,7 @@ class JobController:
     def reset(self):
         #This may be placed in a job object (and maybe a list of jobs for controller)
         #job will have ID that can be used
-        self.current_process_id = None
+        self.pid = None
         self.state = 'UNKNOWN' #Create as string or integer macro?
         self.errcode = None
         self.finished = False # True means job has run - not whether was successful
@@ -231,13 +231,13 @@ class JobController:
             
             #This was on theta - still dont think need cwd option
             if stdout is None:
-                self.current_process_id = subprocess.Popen(runline, cwd='./', shell=False)
+                self.pid = subprocess.Popen(runline, cwd='./', shell=False)
             else:
-                self.current_process_id = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
+                self.pid = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
         
-        #Could return self.current_process_id - or some independent job/process ID - which will always have common format.
+        #Could return self.pid - or some independent job/process ID - which will always have common format.
         #tmp use actual process id
-        #return self.current_process_id
+        #return self.pid
         #Mayb just return if successfully launched. Process ID can be queried.
 
     
@@ -248,7 +248,7 @@ class JobController:
     def poll(self):
         
         #Check the jobs been launched (i.e. it has a process ID)
-        if self.current_process_id is None:
+        if self.pid is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
@@ -272,22 +272,22 @@ class JobController:
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
         # Poll the job
-        poll = self.current_process_id.poll()
+        poll = self.pid.poll()
         if poll is None:
             self.state = 'RUNNING'
         else:
             self.finished = True
-            #logger.debug("Process {} Completed".format(self.current_process_id))
+            #logger.debug("Process {} Completed".format(self.pid))
             
-            if self.current_process_id.returncode == 0:
+            if self.pid.returncode == 0:
                 self.success = True
                 self.errcode = 0
-                logger.debug("Process {} completed successfully".format(self.current_process_id))
+                logger.debug("Process {} completed successfully".format(self.pid))
                 self.state = 'FINISHED'
             else:
                 #Need to differentiate failure from user killed !!!!!
                 #Currently FAILED MEANS BOTH
-                self.errcode = self.current_process_id.returncode
+                self.errcode = self.pid.returncode
                 self.state = 'FAILED'
         
         return self.state
@@ -300,23 +300,23 @@ class JobController:
 
         #Issue signal
         if self.kill_signal == SIGTERM:
-            self.current_process_id.terminate()
+            self.pid.terminate()
         elif self.kill_signal == SIGKILL:
-            self.current_process_id.terminate()
+            self.pid.terminate()
         else:
-            self.current_process_id.send_signal(self.kill_signal) #Prob only need this line!
+            self.pid.send_signal(self.kill_signal) #Prob only need this line!
             
         #Wait for job to be killed
         if self.wait_and_kill:
             try:
-                self.current_process_id.wait(timeout=self.wait_time)
-                #stdout,stderr = self.current_process_id.communicate(timeout=self.wait_time) #Wait for process to finish
+                self.pid.wait(timeout=self.wait_time)
+                #stdout,stderr = self.pid.communicate(timeout=self.wait_time) #Wait for process to finish
             except subprocess.TimeoutExpired:
                 logger.warning("Kill signal {} timed out - issuing SIGKILL".format(self.kill_signal))
-                self.current_process_id.kill()
-                self.current_process_id.wait()
+                self.pid.kill()
+                self.pid.wait()
         else:
-            self.current_process_id.wait(timeout=self.wait_time)
+            self.pid.wait(timeout=self.wait_time)
 
         self.state = 'USER_KILLED'
         self.finished = True
@@ -417,7 +417,7 @@ class BalsamJobController(JobController):
         
         if stage_out is not None:
             #For now hardcode staging - for testing
-            self.current_process_id = dag.add_job(name = self.jobname,
+            self.pid = dag.add_job(name = self.jobname,
                                                   workflow = "libe_workflow", #add arg for this
                                                   application = app.name,
                                                   application_args = self.app_args,                            
@@ -427,7 +427,7 @@ class BalsamJobController(JobController):
                                                   stage_out_files = "*")  
         else:
             #No staging
-            self.current_process_id = dag.add_job(name = self.jobname,
+            self.pid = dag.add_job(name = self.jobname,
                                                   workflow = "libe_workflow", #add arg for thi
                                                   application = app.name,
                                                   application_args = self.app_args,           
@@ -447,7 +447,7 @@ class BalsamJobController(JobController):
     def poll(self):
         
         #Check the jobs been launched (i.e. it has a process ID)
-        if self.current_process_id is None:
+        if self.pid is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
@@ -471,7 +471,7 @@ class BalsamJobController(JobController):
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
         #Get current state of jobs from Balsam database
-        job = self.current_process_id
+        job = self.pid
         job.refresh_from_db()
         self.balsam_state = job.state
         logger.debug('balsam_state is {}'.format(self.balsam_state))
@@ -507,7 +507,7 @@ class BalsamJobController(JobController):
     
     def kill(self):
         import balsam.launcher.dag as dag
-        dag.kill(self.current_process_id)
+        dag.kill(self.pid)
         #Check if can wait for kill to complete - affect signal used etc....
     
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):

@@ -77,7 +77,7 @@ while time.time() - start < timeout_sec:
     #      In mean time use the convience function for reading output files.
     
     if 'Error' in open(outfilename).read(): #Non-Balsam only currently
-    #if 'Error' in job.current_process_id.read_file_in_workdir(outfilename): #Balsam only currently
+    #if 'Error' in job.pid.read_file_in_workdir(outfilename): #Balsam only currently
         print("Found Error in ouput - cancelling job")
         job.kill()
 
