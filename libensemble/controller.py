@@ -8,9 +8,13 @@ import logging
 from libensemble.register import Register
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
 stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
+
+#For debug messages - uncomment
+logger.setLevel(logging.DEBUG)
 
 STATES = '''
 UNKNOWN
@@ -19,7 +23,6 @@ RUNNING
 FINISHED
 USER_KILLED
 FAILED'''.split()
-#Others may include FAILED, PAUSED...
 
 #IMPORTANT: Need to determine if jobcontroller controls a single job - or can be re-used
 #If to be re-used then needs not just an __init__ for controller but a refresh for a new job launch.
@@ -46,7 +49,7 @@ class JobController:
     #If static can test without creating job_controller object...
     
     #@staticmethod
-    def _job_partition(self, nprocs, nodes, ranks_per_node, machinefile=None):
+    def _job_partition(self, num_procs, num_nodes, ranks_per_node, machinefile=None):
         #""" Takes provided nprocs/nodes/ranks and outputs working configuration of procs/nodes/ranks or error"""
         """ Takes provided nprocs/nodes/ranks and sets jobs working configuration of procs/nodes/ranks or error"""
         
@@ -172,7 +175,7 @@ class JobController:
         #_job_partition - eg. balsam class  may want to call _job_partition without machinefile... as does not accept!
         
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
-        _job_partition(self, nprocs, nodes, ranks_per_node, machinefile)
+        self._job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
         
         #Static version
         #nprocs, nodes, ranks_per_node = _job_partition(nprocs, nodes, ranks_per_node, machinefile) 
@@ -194,12 +197,18 @@ class JobController:
         if self.num_procs is not None:
             runline.append(self.nprocs)
             runline.append(str(self.num_procs))
-        if self.num_nodes is not None:
-            runline.append(self.nnodes)
-            runline.append(str(self.num_nodes))
         
-        #Not currently setting ranks_per_node
+        #Not currently setting nodes
         #- as not always supported - but should always have the other two after calling _job_partition
+        #if self.num_nodes is not None:
+            #runline.append(self.nnodes)
+            #runline.append(str(self.num_nodes))
+        
+        #Currently issues - command depends on mpich/openmpi etc...
+        #if self.ranks_per_node is not None:
+            #runline.append(self.ppn)
+            #runline.append(str(self.ranks_per_node))        
+
         
         runline.append(app.full_path)
         
@@ -217,8 +226,8 @@ class JobController:
             #I'm not sure about some of these options - this would be the format of original opal line - did not work theta
             #p = subprocess.Popen(runline, cwd='./', stdout = open('out.txt','w'), shell=False, preexec_fn=os.setsid)
             
-            #testing - tmp - use logger.debug
-            print('runline is: %s' % " ".join(runline))
+
+            logger.debug("Launching job: {}".format(" ".join(runline)))
             
             #This was on theta - still dont think need cwd option
             if stdout is None:
@@ -391,7 +400,7 @@ class BalsamJobController(JobController):
             logger.warning("machinefile arg ignored - not supported in Balsam")  
         
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
-        _job_partition(self, nprocs, nodes, ranks_per_node) #Note: not included machinefile option
+        self._job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
         
         self.app_args = app_args
 
@@ -400,6 +409,9 @@ class BalsamJobController(JobController):
         
         #prob want app to go into self.app for consistency - either way be consistent
         #Either dont use self for job attributes or use for all
+        
+        #Re-do debug launch line for balsam job
+        #logger.debug("Launching job: {}".format(" ".join(runline)))
         
         if stage_out is not None:
             #For now hardcode staging - for testing
