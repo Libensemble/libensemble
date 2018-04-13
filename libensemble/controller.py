@@ -368,10 +368,12 @@ class BalsamJobController(JobController):
         #Reset current job attributes
         self.reset()
         
-        BalsamJobJobController.controller = self
+        BalsamJobController.controller = self
         
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
+        
+        import balsam.launcher.dag as dag
         
         self.reset()        
         
@@ -472,6 +474,7 @@ class BalsamJobController(JobController):
         job = self.current_process_id
         job.refresh_from_db()
         self.balsam_state = job.state
+        logger.debug('balsam_state is {}'.format(self.balsam_state))
         
         import balsam.launcher.dag as dag #Might need this before get models - test
         from balsam.service import models
@@ -495,7 +498,7 @@ class BalsamJobController(JobController):
         elif job.state in models.ACTIVE_STATES:
             self.state = 'RUNNING'
             
-        elif job.state in models.PROCESSABLE_STATES + RUNNABLE_STATES: #Does this work - concatenate lists
+        elif job.state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
             self.state = 'WAITING'
         else:
             raise JobControllerException('Job state returned from Balsam is not in known list of Balsam states. Job state is {}'.format(job.state))

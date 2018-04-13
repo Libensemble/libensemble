@@ -27,10 +27,13 @@ class Application:
         self.calc_type = calc_type
         self.desc = desc
         self.default = default
-        self.calc_dir, self.name = os.path.split(full_path)
+        self.calc_dir, self.exe = os.path.split(full_path)
+        
+        #Dont change:Why? - cos will use this name to delete jobs in database - see del_apps(), del_jobs()
+        self.name = self.exe + '.' + self.calc_type + 'func'
         
         if desc is None:
-            self.desc = self.name + ' ' + self.calc_type + ' function'
+            self.desc = self.exe + ' ' + self.calc_type + ' function'
 
 #Think I will merge this into job_controller
 class Register():
@@ -80,23 +83,49 @@ class BalsamRegister(Register):
  
     @staticmethod
     def del_apps():
-        """ For now just deletes all apps """
+        """ Deletes all apps whose names contains substring .simfunc or .genfunc"""  
+        #""" For now just deletes all apps """        
         import balsam.launcher.dag as dag
         from balsam.service import models
         AppDef = models.ApplicationDefinition 
-        deletion_objs = AppDef.objects.all()
-        deletion_objs.delete()
-        logger.debug("deleted apps")
+        #deletion_objs = AppDef.objects.all()
+        
+        #Some error handling on deletes.... is it internal
+        deletion_objs = AppDef.objects.filter(name__contains='.simfunc')
+        if deletion_objs:
+            for del_app in deletion_objs.iterator():
+                logger.debug("Deleting app {}".format(del_app.name))
+            deletion_objs.delete
+        deletion_objs = AppDef.objects.filter(name__contains='.genfunc')
+        if deletion_objs:
+            for del_app in deletion_objs.iterator():
+                logger.debug("Deleting app {}".format(del_app.name))
+            deletion_objs.delete            
 
     @staticmethod
     def del_jobs():
-        """ For now just deletes all jobs """
+        """ Deletes all jobs whose names contains substring .simfunc or .genfunc"""
+        #""" For now just deletes all jobs """
         import balsam.launcher.dag as dag
         from balsam.service import models
         Job = models.BalsamJob
-        deletion_objs = Job.objects.all()
-        deletion_objs.delete()
-        logger.debug("deleted jobs")  
+        #deletion_objs = Job.objects.all()
+        
+        deletion_objs = Job.objects.filter(name__contains='.simfunc')
+        if deletion_objs:
+            for del_job in deletion_objs.iterator():
+                logger.debug("Deleting job {}".format(del_job.name))
+            deletion_objs.delete
+        deletion_objs = Job.objects.filter(name__contains='.genfunc')
+        if deletion_objs:
+            for del_job in deletion_objs.iterator():
+                logger.debug("Deleting job {}".format(del_job.name))
+            deletion_objs.delete        
+        
+        ##May be able to use union function - to combine - see queryset help. Eg (not tested)
+        #del_simfuncs = Job.objects.filter(name__contains='.simfunc')
+        #del_genfuncs = Job.objects.filter(name__contains='.genfunc')     
+        #deletion_objs = deletion_objs.union()
         
     @staticmethod       
     def add_app(name,exepath,desc):
@@ -117,6 +146,8 @@ class BalsamRegister(Register):
         super().__init__()
         #Check for empty database if poss
         #And/or compare with whats in database and only empty if I need to
+        
+        #Currently not deleting as will delete the top level job - ie. the one running.
         BalsamRegister.del_apps()
         BalsamRegister.del_jobs()
         

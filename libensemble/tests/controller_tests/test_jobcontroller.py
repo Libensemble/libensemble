@@ -6,7 +6,8 @@ def build_simfunc():
     import subprocess
     
     #Build simfunc
-    buildstring='mpif90 -o my_simjob.x my_simjob.f90'
+    #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn in place of mpif90
+    buildstring='mpicc -o my_simjob.x my_simjob.c' # On cray need to use ftn in place of mpif90    
     os.chdir('simdir')
     #subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
@@ -14,8 +15,8 @@ def build_simfunc():
 
 #--------------- Calling script ---------------------------------------------------------------
 
-from libensemble.register import Register
-from libensemble.controller import JobController
+from libensemble.register import Register, BalsamRegister
+from libensemble.controller import JobController, BalsamJobController
 
 sim_app = 'simdir/my_simjob.x'
 #gen_app = 'gendir/my_genjob.x'
@@ -51,6 +52,8 @@ outfilename = 'out.txt'
 
 #From worker call JobController by different name to ensure getting registered app from JobController
 job = JobController.controller
+#job = BalsamJobController.controller
+
 job.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfilename)
 
 #job.launch(calc_type='sim', machinefile=machinefilename, num_procs=cores, app_args=args_for_sim,
@@ -69,7 +72,12 @@ while time.time() - start < timeout_sec:
     elif jobstate == 'RUNNING': print('Job still running ....') 
     
     #Check output file for error
-    if 'Error' in open(outfilename).read():
+    #NOTE: currently balsam creates run in its own dir - so cant see file from here
+    #      This should soon be fixed to have option to run in-place
+    #      In mean time use the convience function for reading output files.
+    
+    if 'Error' in open(outfilename).read(): #Non-Balsam only currently
+    #if 'Error' in job.current_process_id.read_file_in_workdir(outfilename): #Balsam only currently
         print("Found Error in ouput - cancelling job")
         job.kill()
 
