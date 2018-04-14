@@ -107,7 +107,7 @@ class JobController:
     def reset(self):
         #This may be placed in a job object (and maybe a list of jobs for controller)
         #job will have ID that can be used
-        self.pid = None
+        self.process = None
         self.state = 'UNKNOWN' #Create as string or integer macro?
         self.errcode = None
         self.finished = False # True means job has run - not whether was successful
@@ -231,13 +231,13 @@ class JobController:
             
             #This was on theta - still dont think need cwd option
             if stdout is None:
-                self.pid = subprocess.Popen(runline, cwd='./', shell=False)
+                self.process = subprocess.Popen(runline, cwd='./', shell=False)
             else:
-                self.pid = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
+                self.process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
         
-        #Could return self.pid - or some independent job/process ID - which will always have common format.
+        #Could return self.process - or some independent job/process ID - which will always have common format.
         #tmp use actual process id
-        #return self.pid
+        #return self.process
         #Mayb just return if successfully launched. Process ID can be queried.
 
     
@@ -248,7 +248,7 @@ class JobController:
     def poll(self):
         
         #Check the jobs been launched (i.e. it has a process ID)
-        if self.pid is None:
+        if self.process is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
@@ -264,7 +264,7 @@ class JobController:
             #logger.warning('Polled job has already been set to finished') #could poll to check....
             #return self.state   
         
-        #Quicker
+        #Quicker - maybe should poll job to check (in case self.finished set in error!)
         if self.finished:
             logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(self.state))
             return self.state
@@ -272,22 +272,22 @@ class JobController:
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
         # Poll the job
-        poll = self.pid.poll()
+        poll = self.process.poll()
         if poll is None:
             self.state = 'RUNNING'
         else:
             self.finished = True
-            #logger.debug("Process {} Completed".format(self.pid))
+            #logger.debug("Process {} Completed".format(self.process))
             
-            if self.pid.returncode == 0:
+            if self.process.returncode == 0:
                 self.success = True
                 self.errcode = 0
-                logger.debug("Process {} completed successfully".format(self.pid))
+                logger.debug("Process {} completed successfully".format(self.process))
                 self.state = 'FINISHED'
             else:
                 #Need to differentiate failure from user killed !!!!!
                 #Currently FAILED MEANS BOTH
-                self.errcode = self.pid.returncode
+                self.errcode = self.process.returncode
                 self.state = 'FAILED'
         
         return self.state
@@ -299,24 +299,24 @@ class JobController:
         #maybe have a function JobController.set_kill_mode() 
 
         #Issue signal
-        if self.kill_signal == SIGTERM:
-            self.pid.terminate()
-        elif self.kill_signal == SIGKILL:
-            self.pid.terminate()
+        if self.kill_signal == 'SIGTERM':
+            self.process.terminate()
+        elif self.kill_signal == 'SIGKILL':
+            self.process.terminate()
         else:
-            self.pid.send_signal(self.kill_signal) #Prob only need this line!
+            self.process.send_signal(self.kill_signal) #Prob only need this line!
             
         #Wait for job to be killed
         if self.wait_and_kill:
             try:
-                self.pid.wait(timeout=self.wait_time)
-                #stdout,stderr = self.pid.communicate(timeout=self.wait_time) #Wait for process to finish
+                self.process.wait(timeout=self.wait_time)
+                #stdout,stderr = self.process.communicate(timeout=self.wait_time) #Wait for process to finish
             except subprocess.TimeoutExpired:
                 logger.warning("Kill signal {} timed out - issuing SIGKILL".format(self.kill_signal))
-                self.pid.kill()
-                self.pid.wait()
+                self.process.kill()
+                self.process.wait()
         else:
-            self.pid.wait(timeout=self.wait_time)
+            self.process.wait(timeout=self.wait_time)
 
         self.state = 'USER_KILLED'
         self.finished = True
@@ -334,6 +334,12 @@ class JobController:
             
         if wait_time is not None: 
             self.wait_time = wait_time
+    
+    def read_file_in_workdir(self, filename):
+        if not os.path.exists(filename):
+            raise ValueError("%s not found in working directory".format(filename))
+        else:
+            return open(filename).read()
 
 
         
@@ -417,7 +423,7 @@ class BalsamJobController(JobController):
         
         if stage_out is not None:
             #For now hardcode staging - for testing
-            self.pid = dag.add_job(name = self.jobname,
+            self.process = dag.add_job(name = self.jobname,
                                                   workflow = "libe_workflow", #add arg for this
                                                   application = app.name,
                                                   application_args = self.app_args,                            
@@ -427,7 +433,7 @@ class BalsamJobController(JobController):
                                                   stage_out_files = "*")  
         else:
             #No staging
-            self.pid = dag.add_job(name = self.jobname,
+            self.process = dag.add_job(name = self.jobname,
                                                   workflow = "libe_workflow", #add arg for thi
                                                   application = app.name,
                                                   application_args = self.app_args,           
@@ -447,7 +453,7 @@ class BalsamJobController(JobController):
     def poll(self):
         
         #Check the jobs been launched (i.e. it has a process ID)
-        if self.pid is None:
+        if self.process is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
@@ -463,7 +469,7 @@ class BalsamJobController(JobController):
             #logger.warning('Polled job has already been set to finished') #could poll to check....
             #return self.state   
         
-        #Quicker
+        #Quicker - maybe should poll job to check (in case self.finished set in error!)
         if self.finished:
             logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(self.state))
             return self.state  
@@ -471,7 +477,7 @@ class BalsamJobController(JobController):
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
         #Get current state of jobs from Balsam database
-        job = self.pid
+        job = self.process
         job.refresh_from_db()
         self.balsam_state = job.state
         logger.debug('balsam_state is {}'.format(self.balsam_state))
@@ -507,10 +513,14 @@ class BalsamJobController(JobController):
     
     def kill(self):
         import balsam.launcher.dag as dag
-        dag.kill(self.pid)
+        dag.kill(self.process)
         #Check if can wait for kill to complete - affect signal used etc....
     
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
         logger.warning("set_kill_mode currently has no action with Balsam controller")
+        
+    def read_file_in_workdir(self, filename):
+        out = self.process.read_file_in_workdir(filename)
+        return out
         
     

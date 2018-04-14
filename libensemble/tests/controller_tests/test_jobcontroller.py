@@ -43,11 +43,72 @@ registry.register_calc(full_path=sim_app, calc_type='sim')
 #--------------- Worker: sim func -------------------------------------------------------------
 #Should work with Balsam or not
 
-import time
 
+def polling_loop(job,timeout_sec=20.0,delay=2.0):
+    import time
+    start = time.time()
+    
+    while time.time() - start < timeout_sec:
+        time.sleep(delay)
+        print('Polling at time', time.time() - start)
+        jobstate = job.poll()
+        if job.finished: break
+        elif jobstate == 'WAITING': print('Job waiting to launch')    
+        elif jobstate == 'RUNNING': print('Job still running ....') 
+        
+        #Check output file for error
+        #NOTE: currently balsam creates run in its own dir - so cant see file from here
+        #      This should soon be fixed to have option to run in-place
+        #      In mean time use the convience function for reading output files.
+        
+        #if 'Error' in open(outfilename).read(): #Non-Balsam only currently
+        if 'Error' in job.read_file_in_workdir(outfilename): #Works if job controller creates different working dir.
+            print("Found (deliberate) Error in ouput file - cancelling job")
+            job.kill()
+    
+    if job.finished:
+        if jobstate == 'FINISHED':
+            print('Job finished succesfully. Status:',jobstate)
+        elif jobstate == 'FAILED':
+            print('Job failed. Status:',jobstate)  
+        elif jobstate == 'USER_KILLED':
+            print('Job has been killed. Status:',jobstate)
+        else:
+            print('Job status:', jobstate)
+    else:
+        print("Job timed out")
+        job.kill()
+        if job.finished: 
+            print('Now killed')
+            #double check
+            jobstate = job.poll()
+            print('Job state is', jobstate)
+    
+    
+# Tests
+
+#From worker call JobController by different name to ensure getting registered app from JobController
+job = JobController.controller
+#job = BalsamJobController.controller
+
+
+print('\nTest 1 - should complete succesfully with status FINISHED :\n')
 #machinefilename = 'machinefile_for_rank'
 cores = 4
-args_for_sim = '-opt1 -xparticles'
+args_for_sim = 'sleep 5'
+outfilename = 'out.txt'
+
+job.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfilename)
+
+#job.launch(calc_type='sim', machinefile=machinefilename, num_procs=cores, app_args=args_for_sim,
+            #stdout=outfilename, test=True)
+polling_loop(job)
+
+
+print('\nTest 2 - Job should be USER_KILLED \n')
+#machinefilename = 'machinefile_for_rank'
+cores = 4
+args_for_sim = 'sleep 5 Error'
 outfilename = 'out.txt'
 
 #From worker call JobController by different name to ensure getting registered app from JobController
@@ -58,44 +119,12 @@ job.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfi
 
 #job.launch(calc_type='sim', machinefile=machinefilename, num_procs=cores, app_args=args_for_sim,
             #stdout=outfilename, test=True)
+polling_loop(job)
 
-timeout_sec=20.0
-delay=2.0
-start = time.time()
 
-while time.time() - start < timeout_sec:
-    time.sleep(delay)
-    print('Polling at time', time.time() - start)
-    jobstate = job.poll()
-    if job.finished: break
-    elif jobstate == 'WAITING': print('Job waiting to launch')    
-    elif jobstate == 'RUNNING': print('Job still running ....') 
-    
-    #Check output file for error
-    #NOTE: currently balsam creates run in its own dir - so cant see file from here
-    #      This should soon be fixed to have option to run in-place
-    #      In mean time use the convience function for reading output files.
-    
-    if 'Error' in open(outfilename).read(): #Non-Balsam only currently
-    #if 'Error' in job.pid.read_file_in_workdir(outfilename): #Balsam only currently
-        print("Found Error in ouput - cancelling job")
-        job.kill()
 
-if job.finished:
-    if jobstate == 'FINISHED':
-        print('Job finished succesfully')
-    elif jobstate == 'FAILED':
-        print('Job failed')  
-    elif jobstate == 'USER_KILLED':
-        print('Job has been killed')
-    else:
-        print('Job status is', jobstate)
-else:
-    print("Job timed out")
-    job.kill()
-    if job.finished: 
-        print('Now killed')
-        #double check
-        jobstate = job.poll()
-        print('Job state is', jobstate)
-    
+
+
+
+
+
