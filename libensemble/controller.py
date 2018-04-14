@@ -5,6 +5,7 @@
 import os
 import subprocess
 import logging
+import signal
 from libensemble.register import Register
 
 logger = logging.getLogger(__name__)
@@ -244,6 +245,8 @@ class JobController:
     #Poll returns a job state - currently as a string. Includes running or various finished/end states
     #An alternative I think may be better is if it just returns whether job is finished and then
     #you can get end_state either via an attribute directly or through a function (for API reasons).
+    #Or maybe best is if I package job specific stuff into a job object (or jobstate object) and return
+    #that object. They can then query any attribute of that object! eg. jobstate.finished, jobstate.state
     
     def poll(self):
         
@@ -302,9 +305,9 @@ class JobController:
         if self.kill_signal == 'SIGTERM':
             self.process.terminate()
         elif self.kill_signal == 'SIGKILL':
-            self.process.terminate()
+            self.process.kill()
         else:
-            self.process.send_signal(self.kill_signal) #Prob only need this line!
+            self.process.send_signal(signal.self.kill_signal) #Prob only need this line!
             
         #Wait for job to be killed
         if self.wait_and_kill:
