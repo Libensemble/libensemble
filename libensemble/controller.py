@@ -27,20 +27,8 @@ FINISHED
 USER_KILLED
 FAILED'''.split()
 
-#Ok, I'm fairly sure that launch should return job and poll should be a job routine
-#Though I still want launch/poll/kill to be jobcontroller funcs - seems more logical
-#that poll is job func - kill prob should be also but some sense to that being controller.
-#Also if poll is job func - then if kill was also - prob no need to pass jobctl to poll loop
-#Doing with ids for now anyway and still jobcontroller for launch/poll/kill
-
-#IMPORTANT: Need to determine if jobcontroller controls a single job - or can be re-used
-#If to be re-used then needs not just an __init__ for controller but a refresh for a new job launch.
-#If init controller in calling script - it will need to be latter.
-#Either need reset or jobs as sub-objects.
-
-#Also - I may want to use a top-level abstrac/base class for maximum re-use
-# - else inherited controller will be reimplementing all
-
+#I may want to use a top-level abstract/base class for maximum re-use
+# - else inherited controller will be reimplementing common code
 
 class JobControllerException(Exception): pass
 
@@ -85,18 +73,34 @@ class Job:
         else:
             return open(path).read()
 
+        
+class BalsamJob(Job):
+    
+    #newid = itertools.count() #hopefully can use the one in Job
+    
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None):
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile)
+        
+        self.balsam_state = None
+        
+        if app is not None:
+            self.jobname = 'job_' + app.name #Might set jobname in super class also
+            
+        
+    def read_file_in_workdir(self, filename):
+        out = self.process.read_file_in_workdir(filename)
+        return out
+    
+    def read_stdout(self):
+        out = self.process.read_file_in_workdir(self.stdout)
+        return out
+   
 
 class JobController:
 
     controller = None
     
     #Create unit test - that checks all combos behave as expected
-    #could set self.nodes etc.. or have as static function and set those in place
-    #If static - only need to change values when they must be changed - or add if not provided - else they pass through
-    #- if set object values here - must set all
-    #- setting self for now. - but makes more sense I think to only change values and pass through others?
-    
-    #If NOT static - then make it an internal function I think
     #If static can test without creating job_controller object...
     
     @staticmethod
@@ -184,7 +188,7 @@ class JobController:
         self.kill_signal = 'SIGTERM'
         self.wait_and_kill = True #If true - wait for wait_time After signal and then kill with SIGKILL
         self.wait_time = 60
-        self.default_job = None
+        #self.default_job = None
         self.list_of_jobs = []
         
         #Reset current job attributes
@@ -285,20 +289,14 @@ class JobController:
                 job.process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
                 job.stdout = stdout
                 
-            if not self.list_of_jobs:
-                self.default_job = job
+            #if not self.list_of_jobs:
+                #self.default_job = job
             
             self.list_of_jobs.append(job)
         
         #return job.id
         return job
 
-    
-    #Poll returns a job state - currently as a string. Includes running or various finished/end states
-    #An alternative I think may be better is if it just returns whether job is finished and then
-    #you can get end_state either via an attribute directly or through a function (for API reasons).
-    #Or maybe best is if I package job specific stuff into a job object (or jobstate object) and return
-    #that object. They can then query any attribute of that object! eg. jobstate.finished, jobstate.state
     
     def poll(self, job):
         
@@ -425,10 +423,10 @@ class BalsamJobController(JobController):
     
     controller = None
     
-    def reset(self):       
-        super().reset()
-        self.jobname = None #Might set jobname in super class also
-        self.balsam_state = None
+    #def reset(self):       
+        #super().reset()
+        #self.jobname = None #Might set jobname in super class also
+        #self.balsam_state = None
 
   
     def __init__(self, registry=None):
@@ -443,6 +441,7 @@ class BalsamJobController(JobController):
         if self.registry is None:
             raise JobControllerException("Cannot find default registry")
         
+        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
         ##Job controller settings - can be set in user function.
         #self.kill_signal = 'SIGTERM'
@@ -450,7 +449,9 @@ class BalsamJobController(JobController):
         #self.wait_time = 60
         
         #Reset current job attributes
-        self.reset()
+        #self.reset()
+        
+        self.list_of_jobs = []
         
         BalsamJobController.controller = self
         
@@ -486,119 +487,99 @@ class BalsamJobController(JobController):
             logger.warning("machinefile arg ignored - not supported in Balsam")  
         
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
-        self._job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
+        num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
         
-        self.app_args = app_args
-
-        #default
-        self.jobname = 'job_' + app.name
-        
-        #prob want app to go into self.app for consistency - either way be consistent
-        #Either dont use self for job attributes or use for all
+        ####################got here - create job - change self to job where appropriate etc............
+        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile)
         
         #Re-do debug launch line for balsam job
         #logger.debug("Launching job: {}".format(" ".join(runline)))
         
         if stage_out is not None:
             #For now hardcode staging - for testing
-            self.process = dag.add_job(name = self.jobname,
-                                       workflow = "libe_workflow", #add arg for this
-                                       application = app.name,
-                                       application_args = self.app_args,                            
-                                       num_nodes = self.num_nodes,
-                                       ranks_per_node = self.ranks_per_node,
-                                       stage_out_url = "local:" + stage_out,
-                                       stage_out_files = "*")  
+            job.process = dag.add_job(name = job.jobname,
+                                      workflow = "libe_workflow", #add arg for this
+                                      application = app.name,
+                                      application_args = job.app_args,                            
+                                      num_nodes = job.num_nodes,
+                                      ranks_per_node = job.ranks_per_node,
+                                      stage_out_url = "local:" + stage_out,
+                                      stage_out_files = "*")  
         else:
             #No staging
-            self.process = dag.add_job(name = self.jobname,
-                                       workflow = "libe_workflow", #add arg for thi
-                                       application = app.name,
-                                       application_args = self.app_args,           
-                                       num_nodes = self.num_nodes,
-                                       ranks_per_node = self.ranks_per_node)            
+            job.process = dag.add_job(name = job.jobname,
+                                      workflow = "libe_workflow", #add arg for this
+                                      application = app.name,
+                                      application_args = job.app_args,           
+                                      num_nodes = job.num_nodes,
+                                      ranks_per_node = job.ranks_per_node) 
+        
+        self.list_of_jobs.append(job)
+        return job
 
-
-    #Todo - consideration of better way of polling and extracting information on job status
-    #Balsam jobs will have more states than direct launchers.
-    #I need some generality and then maybe a more specific state
-    #E.g generality: Unknown, Waiting, Running, Finished.
-    #Detailed - everything else. Store in self.balsam_state
-    #Now I think I understand why Balsam wen't with command job.refresh_from_db() and then you query the state....
-    #Could be poll just implements a poll which updates the object. And then user does jobctrl.state
-    #Direct access to object attributes is still uncomfortable.....
     
-    def poll(self):
+    def poll(self, job):
+
+        if job is None:
+            raise JobControllerException('No job has been provided') 
         
         #Check the jobs been launched (i.e. it has a process ID)
-        if self.process is None:
+        if job.process is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
         
-        #Here question of checking the existing state before polling - some error handling is required
-        #if self.state == 'USER_KILLED':
-            #logger.warning('Polled job has already been killed') #could poll to check....
-            #return self.state
-        #if self.state == 'FAILED':
-            #logger.warning('Polled job has already been set to failed') #could poll to check....
-            #return self.state
-        #if self.state == 'FINISHED':
-            #logger.warning('Polled job has already been set to finished') #could poll to check....
-            #return self.state   
-        
         #Quicker - maybe should poll job to check (in case self.finished set in error!)
-        if self.finished:
-            logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(self.state))
-            return self.state  
+        if job.finished:
+            logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
+            return job 
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
         #Get current state of jobs from Balsam database
-        job = self.process
-        job.refresh_from_db()
-        self.balsam_state = job.state
-        logger.debug('balsam_state is {}'.format(self.balsam_state))
+        job.process.refresh_from_db()
+        job.balsam_state = job.process.state #Not really nec to copy have balsam_state - already job.process.state...
+        logger.debug('balsam_state is {}'.format(job.balsam_state))
         
         import balsam.launcher.dag as dag #Might need this before get models - test
         from balsam.service import models
 
-        if job.state in models.END_STATES:
-            self.finished = True
-            if job.state == 'JOB_FINISHED':
-                self.success = True
-                self.state = 'FINISHED'
-            elif job.state == 'PARENT_KILLED': #I'm not using this currently
-                self.state = 'USER_KILLED'
-                #self.success = False #Shld already be false - init to false
-                #self.errcode = #Can I get errcode??? - Else should remain as None
-            elif job.state in STATES: #In my states
-                self.state = job.state
-                #self.success = False #All other end states are failrues currently - bit risky
+        if job.balsam_state in models.END_STATES:
+            job.finished = True
+            if job.balsam_state == 'JOB_FINISHED':
+                job.success = True
+                job.state = 'FINISHED'
+            elif job.balsam_state == 'PARENT_KILLED': #I'm not using this currently
+                job.state = 'USER_KILLED'
+                #job.success = False #Shld already be false - init to false
+                #job.errcode = #Can I get errcode??? - Else should remain as None
+            elif job.balsam_state in STATES: #In my states
+                job.state = job.balsam_state
+                #job.success = False #All other end states are failrues currently - bit risky
             else:
-                logger.warning("Job finished, but in unrecognized Balsam state {}".format(job.state))
-                self.state = 'UNKNOWN'
+                logger.warning("Job finished, but in unrecognized Balsam state {}".format(job.balsam_state))
+                job.state = 'UNKNOWN'
                 
-        elif job.state in models.ACTIVE_STATES:
-            self.state = 'RUNNING'
+        elif job.balsam_state in models.ACTIVE_STATES:
+            job.state = 'RUNNING'
             
-        elif job.state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
-            self.state = 'WAITING'
+        elif job.balsam_state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
+            job.state = 'WAITING'
         else:
-            raise JobControllerException('Job state returned from Balsam is not in known list of Balsam states. Job state is {}'.format(job.state))
+            raise JobControllerException('Job state returned from Balsam is not in known list of Balsam states. Job state is {}'.format(job.balsam_state))
         
-        return self.state
+        #return job
     
-    def kill(self):
+    def kill(self, job):
         import balsam.launcher.dag as dag
-        dag.kill(self.process)
+        dag.kill(job.process)
         #Check if can wait for kill to complete - affect signal used etc....
     
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
         logger.warning("set_kill_mode currently has no action with Balsam controller")
         
-    def read_file_in_workdir(self, filename):
-        out = self.process.read_file_in_workdir(filename)
-        return out
+    #def read_file_in_workdir(self, filename):
+        #out = self.process.read_file_in_workdir(filename)
+        #return out
         
     
