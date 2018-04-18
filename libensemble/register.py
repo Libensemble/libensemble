@@ -95,12 +95,12 @@ class BalsamRegister(Register):
         if deletion_objs:
             for del_app in deletion_objs.iterator():
                 logger.debug("Deleting app {}".format(del_app.name))
-            deletion_objs.delete
+            deletion_objs.delete()
         deletion_objs = AppDef.objects.filter(name__contains='.genfunc')
         if deletion_objs:
             for del_app in deletion_objs.iterator():
                 logger.debug("Deleting app {}".format(del_app.name))
-            deletion_objs.delete            
+            deletion_objs.delete()           
 
     @staticmethod
     def del_jobs():
@@ -115,12 +115,12 @@ class BalsamRegister(Register):
         if deletion_objs:
             for del_job in deletion_objs.iterator():
                 logger.debug("Deleting job {}".format(del_job.name))
-            deletion_objs.delete
+            deletion_objs.delete()
         deletion_objs = Job.objects.filter(name__contains='.genfunc')
         if deletion_objs:
             for del_job in deletion_objs.iterator():
                 logger.debug("Deleting job {}".format(del_job.name))
-            deletion_objs.delete        
+            deletion_objs.delete()        
         
         ##May be able to use union function - to combine - see queryset help. Eg (not tested)
         #del_simfuncs = Job.objects.filter(name__contains='.simfunc')

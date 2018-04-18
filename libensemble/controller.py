@@ -37,7 +37,7 @@ class Job:
     
     newid = itertools.count() #.next
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, stdout = None):
         
         self.id = next(Job.newid)
                 
@@ -55,9 +55,36 @@ class Job:
         self.num_nodes = num_nodes
         self.ranks_per_node = ranks_per_node
         self.machinefile = machinefile
-        self.stdout = None
+        self.stdout = stdout
+        
+        if app is not None:
+            self.jobname = 'job_' + app.name + '_' + str(self.id)
+        else:
+            raise JobControllerException("Job must be created with an app - no app found for job ()".format(self.id))
+        
+        if stdout is not None:
+            self.stdout = stdout
+        else:
+            self.stdout = self.jobname + '.out'
         
         self.workdir = './' #Default -  run in place - setting to be implemented
+
+    def workdir_exists(self):
+        if self.workdir is None:
+            return False
+        if os.path.exists(self.workdir):
+            return True
+        else:
+            return False
+        
+    def file_exists_in_workdir(self, filename):
+        if self.workdir is None:
+            return False
+        path = os.path.join(self.workdir, filename)
+        if os.path.exists(path):
+            return True
+        else:
+            return False 
         
     def read_file_in_workdir(self, filename):
         path = os.path.join(self.workdir,filename)
@@ -65,7 +92,16 @@ class Job:
             raise ValueError("%s not found in working directory".format(filename))
         else:
             return open(path).read()
-
+                
+    def stdout_exists(self):
+        if self.workdir is None:
+            return False        
+        path = os.path.join(self.workdir, self.stdout)
+        if os.path.exists(path):
+            return True
+        else:
+            return False
+        
     def read_stdout(self):
         path = os.path.join(self.workdir, self.stdout)
         if not os.path.exists(path):
@@ -73,20 +109,27 @@ class Job:
         else:
             return open(path).read()
 
-        
+
 class BalsamJob(Job):
     
     #newid = itertools.count() #hopefully can use the one in Job
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None):
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile)
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, stdout = None):
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
         
         self.balsam_state = None
         
-        if app is not None:
-            self.jobname = 'job_' + app.name #Might set jobname in super class also
+        #prob want to override workdir attribute with Balsam value - though does it exist yet?
+        self.workdir = None #Don't know until starts running
+
+
+
+    #NOT SURE I NEED THESE OVERRIDES NOW FOR BALSAM - I THINK NORMAL JOB ONE WILL DO SAME THING AS LONG AS JOB.WORKDIR IS SET.
+
             
-        
+    #These may want some if job.active check or something - as if still Waiting output will not exist
+    #Could be reason for an active attribute - or a activated (as still can read when finished.) Or
+    #Something to first check if file exists yet.
     def read_file_in_workdir(self, filename):
         out = self.process.read_file_in_workdir(filename)
         return out
@@ -94,6 +137,26 @@ class BalsamJob(Job):
     def read_stdout(self):
         out = self.process.read_file_in_workdir(self.stdout)
         return out
+        
+        #if self.workdir == None:
+            #self.workdir = self.process.working_directory
+
+        ##With test - is it getting buffered?
+        ##Where is logging output going in Balsam?
+        #print("Printing - stdout", self.stdout)
+        #logger.debug("Printing - stdout {}".format(self.stdout)) 
+        #print("Working dir from libE controller", self.workdir)
+        #print("Working dir from balsam", self.process.working_directory)   
+        
+        #path = os.path.join(self.workdir, self.stdout)
+        #print("Path is:", path)   
+        #if not os.path.exists(path):
+            #print('Output file does not yet exist') 
+            #out = None
+        #else:
+            #out = self.process.read_file_in_workdir(self.stdout)
+        
+        #return out
    
 
 class JobController:
@@ -198,6 +261,19 @@ class JobController:
         
         #If this could share multiple launches could set default job parameters here (nodes/ranks etc...)
         
+
+# May change job_controller launch functions to use **kwargs and then init job empty - and use setattr
+#eg. To pass through args:
+#def launch(**kwargs):
+    #...
+    #job = Job()
+    #for k,v in kwargs.items():
+    #try:
+        #getattr(job, k)
+    #except AttributeError: 
+        #raise ValueError(f"Invalid field {}".format(k)) #Unless not passing through all
+    #else:
+        #setattr(job, k, v)
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
      
@@ -226,7 +302,7 @@ class JobController:
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
         
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile)
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
         
         #Static version
         #nprocs, nodes, ranks_per_node = _job_partition(nprocs, nodes, ranks_per_node, machinefile) 
@@ -283,11 +359,13 @@ class JobController:
             #e.g. job.stdout = 'out' + str(job.id) + '.txt'
             
             #This was on theta - still dont think need cwd option
-            if stdout is None:
-                job.process = subprocess.Popen(runline, cwd='./', shell=False)
-            else:
-                job.process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
-                job.stdout = stdout
+            #if stdout is None:
+                #job.process = subprocess.Popen(runline, cwd='./', shell=False) #what if no stdout? check
+            #else:
+                #job.process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
+                #job.stdout = stdout
+                
+            
                 
             #if not self.list_of_jobs:
                 #self.default_job = job
@@ -460,7 +538,7 @@ class BalsamJobController(JobController):
         
         import balsam.launcher.dag as dag
         
-        self.reset()        
+        #self.reset()        
         
         #Could take optional app arg - if they want to supply here - instead of taking from registry
         #Here could be options to specify an alternative function - else registry.sim_default_app
@@ -489,9 +567,14 @@ class BalsamJobController(JobController):
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
         
-        ####################got here - create job - change self to job where appropriate etc............
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile)
-        
+        #temp - while balsam does not accept a standard out name
+        if stdout is not None:
+            logger.warning("Balsam does not currently accept a stdout name - ignoring")
+            stdout = None
+            
+            
+        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
+       
         #Re-do debug launch line for balsam job
         #logger.debug("Launching job: {}".format(" ".join(runline)))
         
@@ -503,17 +586,30 @@ class BalsamJobController(JobController):
                                       application_args = job.app_args,                            
                                       num_nodes = job.num_nodes,
                                       ranks_per_node = job.ranks_per_node,
+                                      input_files = app.exe,
                                       stage_out_url = "local:" + stage_out,
                                       stage_out_files = "*")  
         else:
             #No staging
-            job.process = dag.add_job(name = job.jobname,
+            #job.process = dag.add_job(name = job.jobname,
+                                      #workflow = "libe_workflow", #add arg for this
+                                      #application = app.name,
+                                      #application_args = job.app_args,           
+                                      #num_nodes = job.num_nodes,
+                                      #ranks_per_node = job.ranks_per_node,
+                                      #input_files = app.exe) 
+
+            job.process = dag.spawn_child(name = job.jobname,
                                       workflow = "libe_workflow", #add arg for this
                                       application = app.name,
                                       application_args = job.app_args,           
                                       num_nodes = job.num_nodes,
-                                      ranks_per_node = job.ranks_per_node) 
+                                      ranks_per_node = job.ranks_per_node,
+                                      input_files = app.exe,
+                                      wait_for_parents=False)
         
+        
+        #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)
         return job
 
@@ -546,6 +642,8 @@ class BalsamJobController(JobController):
 
         if job.balsam_state in models.END_STATES:
             job.finished = True
+            if job.workdir == None:
+                job.workdir = job.process.working_directory            
             if job.balsam_state == 'JOB_FINISHED':
                 job.success = True
                 job.state = 'FINISHED'
@@ -562,6 +660,8 @@ class BalsamJobController(JobController):
                 
         elif job.balsam_state in models.ACTIVE_STATES:
             job.state = 'RUNNING'
+            if job.workdir == None:
+                job.workdir = job.process.working_directory
             
         elif job.balsam_state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
             job.state = 'WAITING'
