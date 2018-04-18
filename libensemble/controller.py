@@ -6,6 +6,7 @@ import os
 import subprocess
 import logging
 import signal
+import itertools
 from libensemble.register import Register
 
 logger = logging.getLogger(__name__)
@@ -19,11 +20,18 @@ logger.setLevel(logging.DEBUG)
 
 STATES = '''
 UNKNOWN
+CREATED
 WAITING
 RUNNING
 FINISHED
 USER_KILLED
 FAILED'''.split()
+
+#Ok, I'm fairly sure that launch should return job and poll should be a job routine
+#Though I still want launch/poll/kill to be jobcontroller funcs - seems more logical
+#that poll is job func - kill prob should be also but some sense to that being controller.
+#Also if poll is job func - then if kill was also - prob no need to pass jobctl to poll loop
+#Doing with ids for now anyway and still jobcontroller for launch/poll/kill
 
 #IMPORTANT: Need to determine if jobcontroller controls a single job - or can be re-used
 #If to be re-used then needs not just an __init__ for controller but a refresh for a new job launch.
@@ -35,6 +43,48 @@ FAILED'''.split()
 
 
 class JobControllerException(Exception): pass
+
+
+class Job:
+    
+    newid = itertools.count() #.next
+    
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None):
+        
+        self.id = next(Job.newid)
+                
+        #Status attributes
+        self.state = 'CREATED'
+        self.process = None        
+        self.errcode = None
+        self.finished = False  # True means job has run - not whether was successful
+        self.success = False
+        
+        #Run attributes
+        self.app = app
+        self.app_args = app_args      
+        self.num_procs = num_procs
+        self.num_nodes = num_nodes
+        self.ranks_per_node = ranks_per_node
+        self.machinefile = machinefile
+        self.stdout = None
+        
+        self.workdir = './' #Default -  run in place - setting to be implemented
+        
+    def read_file_in_workdir(self, filename):
+        path = os.path.join(self.workdir,filename)
+        if not os.path.exists(path):
+            raise ValueError("%s not found in working directory".format(filename))
+        else:
+            return open(path).read()
+
+    def read_stdout(self):
+        path = os.path.join(self.workdir, self.stdout)
+        if not os.path.exists(path):
+            raise ValueError("%s not found in working directory".format(self.stdout))
+        else:
+            return open(path).read()
+
 
 class JobController:
 
@@ -49,29 +99,25 @@ class JobController:
     #If NOT static - then make it an internal function I think
     #If static can test without creating job_controller object...
     
-    #@staticmethod
-    def _job_partition(self, num_procs, num_nodes, ranks_per_node, machinefile=None):
-        #""" Takes provided nprocs/nodes/ranks and outputs working configuration of procs/nodes/ranks or error"""
-        """ Takes provided nprocs/nodes/ranks and sets jobs working configuration of procs/nodes/ranks or error"""
+    @staticmethod
+    def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
+        """ Takes provided nprocs/nodes/ranks and outputs working configuration of procs/nodes/ranks or error """
         
         #If machinefile is provided - ignore everything else
         if machinefile is not None:        
             if num_procs is not None or num_nodes is not None or ranks_per_node is not None:
                 logger.warning('Machinefile provided - overriding procs/nodes/ranks_per_node')
-            self.num_procs = None
-            self.num_nodes = None
-            self.ranks_per_node = None
-            return
+            num_procs = None
+            num_nodes = None
+            ranks_per_node = None
+            return num_procs, num_nodes, ranks_per_node
 
         #If all set then check num_procs equals num_nodes*ranks_per_node and set values as given
         if num_procs is not None and num_nodes is not None and ranks_per_node is not None:
             if num_procs != num_nodes*ranks_per_node:
                 raise JobControllerException("num_procs does not equal num_nodes*ranks_per_node")
             else:
-                self.num_procs = num_procs #pass through
-                self.num_nodes = num_nodes #pass through
-                self.ranks_per_node = ranks_per_node #pass through
-                return
+                return num_procs, num_nodes, ranks_per_node
 
         #If num_procs not set then need num_nodes and ranks_per_node and set num_procs
         if num_procs is None:
@@ -79,46 +125,42 @@ class JobController:
             if num_nodes is None or ranks_per_node is None:
                 raise JobControllerException("Must set either num_procs or num_nodes/ranks_per_node or machinefile")
             else:
-                self.num_procs = num_nodes * ranks_per_node
-                self.num_nodes = num_nodes #pass through
-                self.ranks_per_node = ranks_per_node #pass through
-                return
+                num_procs = num_nodes * ranks_per_node
+                return num_procs, num_nodes, ranks_per_node
         
         #If num_procs is set - fill in any other values 
         if num_procs is not None:
-            self.num_procs = num_procs #pass through
             if num_nodes is None:
                 if ranks_per_node is None:
                     #Currently not auto-detecting so if only num_procs - you are on 1 node
-                    self.num_nodes = 1
-                    self.ranks_per_node = num_procs
+                    num_nodes = 1
+                    ranks_per_node = num_procs
                 else:
-                    self.ranks_per_node = ranks_per_node #pass through
-                    self.num_nodes = num_procs/ranks_per_node
+                    num_nodes = num_procs/ranks_per_node
             else:
-                self.num_nodes = num_nodes #pass through
-                self.ranks_per_node = num_procs/num_nodes
+                ranks_per_node = num_procs/num_nodes
         
         #For static version return
         #see collections model for best return type
         #return nprocs, nodes, ranks_per_node
-        return
+        return num_procs, num_nodes, ranks_per_node
 
     #Currently not using sub-job so reset job attributes - as opposed to job_controller attributes
-    def reset(self):
-        #This may be placed in a job object (and maybe a list of jobs for controller)
-        #job will have ID that can be used
-        self.process = None
-        self.state = 'UNKNOWN' #Create as string or integer macro?
-        self.errcode = None
-        self.finished = False # True means job has run - not whether was successful
-        self.success = False
+    #def reset(self):
+        ##This may be placed in a job object (and maybe a list of jobs for controller)
+        ##job will have ID that can be used
+        #self.process = None
+        #self.state = 'UNKNOWN' #Create as string or integer macro?
+        #self.errcode = None
+        #self.finished = False # True means job has run - not whether was successful
+        #self.success = False
         
-        #job job_partition - prob. replace with set_to_default function - so can have default set at job_controller level
-        self.num_procs = 1
-        self.num_nodes = 1
-        self.ranks_per_node = 1
-        self.app_args = None
+        ##job job_partition - prob. replace with set_to_default function - so can have default set at job_controller level
+        #self.app = None
+        #self.app_args = None        
+        #self.num_procs = 1
+        #self.num_nodes = 1
+        #self.ranks_per_node = 1
     
     def __init__(self, registry=None):
         
@@ -142,9 +184,11 @@ class JobController:
         self.kill_signal = 'SIGTERM'
         self.wait_and_kill = True #If true - wait for wait_time After signal and then kill with SIGKILL
         self.wait_time = 60
+        self.default_job = None
+        self.list_of_jobs = []
         
         #Reset current job attributes
-        self.reset()
+        #self.reset()
         
         JobController.controller = self
         
@@ -153,7 +197,7 @@ class JobController:
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
      
-        self.reset()        
+        #self.reset()    
         
         #Could take optional app arg - if they want to supply here - instead of taking from registry
         #Here could be options to specify an alternative function - else registry.sim_default_app
@@ -176,7 +220,9 @@ class JobController:
         #_job_partition - eg. balsam class  may want to call _job_partition without machinefile... as does not accept!
         
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
-        self._job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
+        num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
+        
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile)
         
         #Static version
         #nprocs, nodes, ranks_per_node = _job_partition(nprocs, nodes, ranks_per_node, machinefile) 
@@ -190,14 +236,14 @@ class JobController:
         
         #I will set attributes for these - eg. self.app_args - but maybe in a job object. So deferring for now.
         #Already issue of whether same job object Worker is using - already diff in e.g. timing - where launch app?
-        if machinefile is not None:
+        if job.machinefile is not None:
             runline.append(self.mfile)
-            runline.append(machinefile)
+            runline.append(job.machinefile)
         
         #self.num_procs only if used non-static _job_partition - else just num_procs
-        if self.num_procs is not None:
+        if job.num_procs is not None:
             runline.append(self.nprocs)
-            runline.append(str(self.num_procs))
+            runline.append(str(job.num_procs))
         
         #Not currently setting nodes
         #- as not always supported - but should always have the other two after calling _job_partition
@@ -211,11 +257,10 @@ class JobController:
             #runline.append(str(self.ranks_per_node))        
 
         
-        runline.append(app.full_path)
+        runline.append(job.app.full_path)
         
-        if app_args is not None:
-            self.app_args = app_args
-            app_args_list = app_args.split()
+        if job.app_args is not None:
+            app_args_list = job.app_args.split()
             for iarg in app_args_list:
                 runline.append(iarg)
         
@@ -230,16 +275,23 @@ class JobController:
 
             logger.debug("Launching job: {}".format(" ".join(runline)))
             
+            #What if no stdout supplied - should I capture - or maybe make a default based on job.id ?
+            #e.g. job.stdout = 'out' + str(job.id) + '.txt'
+            
             #This was on theta - still dont think need cwd option
             if stdout is None:
-                self.process = subprocess.Popen(runline, cwd='./', shell=False)
+                job.process = subprocess.Popen(runline, cwd='./', shell=False)
             else:
-                self.process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
+                job.process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
+                job.stdout = stdout
+                
+            if not self.list_of_jobs:
+                self.default_job = job
+            
+            self.list_of_jobs.append(job)
         
-        #Could return self.process - or some independent job/process ID - which will always have common format.
-        #tmp use actual process id
-        #return self.process
-        #Mayb just return if successfully launched. Process ID can be queried.
+        #return job.id
+        return job
 
     
     #Poll returns a job state - currently as a string. Includes running or various finished/end states
@@ -248,85 +300,96 @@ class JobController:
     #Or maybe best is if I package job specific stuff into a job object (or jobstate object) and return
     #that object. They can then query any attribute of that object! eg. jobstate.finished, jobstate.state
     
-    def poll(self):
+    def poll(self, job):
         
+        #if jobid is not None:
+            #job = self.get_job(jobid)
+            #if job is None:
+                #raise JobControllerException("Job {} not found".format(jobid))
+        #else:
+            #job = self.default_job
+        
+        if job is None:
+            raise JobControllerException('No job has been provided')
+
         #Check the jobs been launched (i.e. it has a process ID)
-        if self.process is None:
+        if job.process is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
         
-        #Here question of checking the existing state before polling - some error handling is required
-        #if self.state == 'USER_KILLED':
-            #logger.warning('Polled job has already been killed') #could poll to check....
-            #return self.state
-        #if self.state == 'FAILED':
-            #logger.warning('Polled job has already been set to failed') #could poll to check....
-            #return self.state
-        #if self.state == 'FINISHED':
-            #logger.warning('Polled job has already been set to finished') #could poll to check....
-            #return self.state   
-        
         #Quicker - maybe should poll job to check (in case self.finished set in error!)
-        if self.finished:
-            logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(self.state))
-            return self.state
+        if job.finished:
+            logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
+            return job
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
         # Poll the job
-        poll = self.process.poll()
+        poll = job.process.poll()
         if poll is None:
-            self.state = 'RUNNING'
+            job.state = 'RUNNING'
         else:
-            self.finished = True
-            #logger.debug("Process {} Completed".format(self.process))
+            job.finished = True
+            #logger.debug("Process {} Completed".format(job.process))
             
-            if self.process.returncode == 0:
-                self.success = True
-                self.errcode = 0
-                logger.debug("Process {} completed successfully".format(self.process))
-                self.state = 'FINISHED'
+            if job.process.returncode == 0:
+                job.success = True
+                job.errcode = 0
+                logger.debug("Process {} completed successfully".format(job.process))
+                job.state = 'FINISHED'
             else:
                 #Need to differentiate failure from user killed !!!!!
                 #Currently FAILED MEANS BOTH
-                self.errcode = self.process.returncode
-                self.state = 'FAILED'
+                job.errcode = job.process.returncode
+                job.state = 'FAILED'
         
-        return self.state
+        #Just updates job as provided
+        #return job
                 
     
-    def kill(self):
+    def kill(self, job):
+        
+        #if jobid is not None:
+            #job = self.get_job(jobid)
+            #if job is None:
+                #raise JobControllerException("Job {} not found".format(jobid))
+        #else:
+            #job = self.default_job
+        
+        if job is None:
+            raise JobControllerException('No job has been provided')
+        
         #In here can set state to user killed!
         #- but if killed by remote job (eg. through balsam database) may be different ....
         #maybe have a function JobController.set_kill_mode() 
 
         #Issue signal
         if self.kill_signal == 'SIGTERM':
-            self.process.terminate()
+            job.process.terminate()
         elif self.kill_signal == 'SIGKILL':
-            self.process.kill()
+            job.process.kill()
         else:
-            self.process.send_signal(signal.self.kill_signal) #Prob only need this line!
+            job.process.send_signal(signal.self.kill_signal) #Prob only need this line!
             
         #Wait for job to be killed
         if self.wait_and_kill:
             try:
-                self.process.wait(timeout=self.wait_time)
+                job.process.wait(timeout=self.wait_time)
                 #stdout,stderr = self.process.communicate(timeout=self.wait_time) #Wait for process to finish
             except subprocess.TimeoutExpired:
                 logger.warning("Kill signal {} timed out - issuing SIGKILL".format(self.kill_signal))
-                self.process.kill()
-                self.process.wait()
+                job.process.kill()
+                job.process.wait()
         else:
-            self.process.wait(timeout=self.wait_time)
+            job.process.wait(timeout=self.wait_time)
 
-        self.state = 'USER_KILLED'
-        self.finished = True
+        job.state = 'USER_KILLED'
+        job.finished = True
         
         #Need to test out what to do with
-        #self.errcode #Can it be discovered after killing?
-        #self.success #Could set to false but should be already - only set to true on success            
+        #job.errcode #Can it be discovered after killing?
+        #job.success #Could set to false but should be already - only set to true on success            
                 
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):        
         if signal is not None:
@@ -338,14 +401,26 @@ class JobController:
         if wait_time is not None: 
             self.wait_time = wait_time
     
-    def read_file_in_workdir(self, filename):
-        if not os.path.exists(filename):
-            raise ValueError("%s not found in working directory".format(filename))
-        else:
-            return open(filename).read()
+    ##Will need updating - if/when implement working dirs
+    #def read_file_in_workdir(self, filename):
+        #if not os.path.exists(filename):
+            #raise ValueError("%s not found in working directory".format(filename))
+        #else:
+            #return open(filename).read()
+    
+    def get_job(jobid):
+        if self.list_of_jobs:
+            for job in list_of_jobs:
+                if job.id == jobid:
+                    return job
+            logger.warning("Job %s not found in joblist".format(jobid))
+            return None
+        logger.warning("Job %s not found in joblist. Joblist is empty".format(jobid))
+        return None
 
 
-        
+####Got to here with multi-job version **************************************************************8
+
 class BalsamJobController(JobController):
     
     controller = None
@@ -427,21 +502,21 @@ class BalsamJobController(JobController):
         if stage_out is not None:
             #For now hardcode staging - for testing
             self.process = dag.add_job(name = self.jobname,
-                                                  workflow = "libe_workflow", #add arg for this
-                                                  application = app.name,
-                                                  application_args = self.app_args,                            
-                                                  num_nodes = self.num_nodes,
-                                                  ranks_per_node = self.ranks_per_node,
-                                                  stage_out_url = "local:" + stage_out,
-                                                  stage_out_files = "*")  
+                                       workflow = "libe_workflow", #add arg for this
+                                       application = app.name,
+                                       application_args = self.app_args,                            
+                                       num_nodes = self.num_nodes,
+                                       ranks_per_node = self.ranks_per_node,
+                                       stage_out_url = "local:" + stage_out,
+                                       stage_out_files = "*")  
         else:
             #No staging
             self.process = dag.add_job(name = self.jobname,
-                                                  workflow = "libe_workflow", #add arg for thi
-                                                  application = app.name,
-                                                  application_args = self.app_args,           
-                                                  num_nodes = self.num_nodes,
-                                                  ranks_per_node = self.ranks_per_node)            
+                                       workflow = "libe_workflow", #add arg for thi
+                                       application = app.name,
+                                       application_args = self.app_args,           
+                                       num_nodes = self.num_nodes,
+                                       ranks_per_node = self.ranks_per_node)            
 
 
     #Todo - consideration of better way of polling and extracting information on job status
