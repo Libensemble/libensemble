@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 
 """ 
-Script to clean database and create top level app/job for Balsam
+Script to clean database and create top level app/job for Balsam tests
 
 This creates only the parent job, not the sim/gen (they are created
 in libEnsemble).
 
 Run this before each run to ensure database is in correct state
+
+Usage: ./create_balsam_job.py <script_name>
+eg: ./create_balsam_job.py test_jobcontroller.py
+
+This is equivalent to creating an app and job using <balsam app> and <balsam job> on the commdand line
+
+To check create app and job do:
+balsam ls apps
+balsam ls jobs
 """
 
 import os
