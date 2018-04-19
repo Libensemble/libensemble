@@ -51,7 +51,7 @@ registry.register_calc(full_path=sim_app, calc_type='sim')
 
 #Can also use an internal iterable list of jobs in JOB_CONTROLLER - along with all_done func etc...
 
-def polling_loop(jobctl, job_list, outfilename, timeout_sec=40.0, delay=1.0):
+def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
     import time
     start = time.time()
 
@@ -121,14 +121,14 @@ job_list = []
 cores = 4
 
 for j in range(3):
-    outfilename = 'out_' + str(j) + '.txt' #Could allow launch to generate outfile names based on job.id
+    #outfilename = 'out_' + str(j) + '.txt' #Could allow launch to generate outfile names based on job.id
     sleeptime = 6 + j*3 #Change args
     args_for_sim = 'sleep' + ' ' + str(sleeptime)
     rundir = 'run_' + str(sleeptime)
-    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfilename)
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     job_list.append(job)
             
           
-polling_loop(jobctl, job_list, outfilename)
+polling_loop(jobctl, job_list)
 
 

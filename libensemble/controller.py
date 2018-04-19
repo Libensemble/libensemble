@@ -639,7 +639,7 @@ class BalsamJobController(JobController):
         #Get current state of jobs from Balsam database
         job.process.refresh_from_db()
         job.balsam_state = job.process.state #Not really nec to copy have balsam_state - already job.process.state...
-        logger.debug('balsam_state is {}'.format(job.balsam_state))
+        logger.debug('balsam_state for job {} is {}'.format(job.id, job.balsam_state))
         
         import balsam.launcher.dag as dag #Might need this before get models - test
         from balsam.service import models
