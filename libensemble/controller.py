@@ -677,6 +677,12 @@ class BalsamJobController(JobController):
     def kill(self, job):
         import balsam.launcher.dag as dag
         dag.kill(job.process)
+
+        #Could have Wait here and check with Balsam its killed - but not implemented yet.
+
+        job.state = 'USER_KILLED'
+        job.finished = True
+        
         #Check if can wait for kill to complete - affect signal used etc....
     
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
