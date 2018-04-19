@@ -73,7 +73,7 @@ if not app_exists:
 del_jobs()
 
 #Add the job
-job = dag.add_job(name = 'test_' + script_basename,
+job = dag.add_job(name = 'job_' + script_basename,
                   workflow = "libe_workflow", #add arg for this
                   application = app_name,
                   #application_args = job.app_args,           

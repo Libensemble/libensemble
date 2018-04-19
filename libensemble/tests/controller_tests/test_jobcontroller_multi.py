@@ -11,24 +11,26 @@ def build_simfunc():
     
     #Build simfunc
     #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
-    buildstring='mpicc -o my_simjob.x my_simjob.c'    
-    os.chdir('simdir')
+    buildstring='mpicc -o my_simjob.x simdir/my_simjob.c'
     #subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
-    os.chdir('../')
 
 #--------------- Calling script ---------------------------------------------------------------
 
 from libensemble.register import Register, BalsamRegister
 from libensemble.controller import JobController, BalsamJobController
 
-sim_app = 'simdir/my_simjob.x'
+#sim_app = 'simdir/my_simjob.x'
 #gen_app = 'gendir/my_genjob.x'
+
+#temp
+sim_app = './my_simjob.x'
 
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-USE_BALSAM = False
+USE_BALSAM = False #Take as arg
+#USE_BALSAM = True #Take as arg
 
 #Create and add exes to registry
 if USE_BALSAM:
@@ -70,11 +72,13 @@ def polling_loop(jobctl, job_list, outfilename, timeout_sec=40.0, delay=1.0):
                 elif job.state == 'WAITING': print('Job waiting to launch')    
                 elif job.state == 'RUNNING': print('Job still running ....') 
 
-                #With stdout read func - dont even need to supply output file name to read.
-                if 'Error' in job.read_stdout():
-                    print("Found (deliberate) Error in ouput file - cancelling job")
-                    jobctl.kill(job)
-                    continue
+                #Check output file for error
+                if job.stdout_exists():
+                    if 'Error' in job.read_stdout():
+                        print("Found (deliberate) Error in ouput file - cancelling job")
+                        jobctl.kill(job)
+                        time.sleep(delay) #Give time for kill
+                        continue
                                     
                 #But if I want to do something different - I want to make a file - no function for THAT!
                 #But you can get all the job attributes!
@@ -109,12 +113,10 @@ def polling_loop(jobctl, job_list, outfilename, timeout_sec=40.0, delay=1.0):
 
 #From worker call JobController by different name to ensure getting registered app from JobController
 jobctl = JobController.controller
-#jobctl = BalsamJobController.controller
 
 
-print('\nTest 1 - should complete succesfully with status FINISHED :\n')
+print('\nTest 1 - 3 jobs should complete succesfully with status FINISHED :\n')
 
-#Note: This is NOT yet implemented
 job_list = []
 cores = 4
 

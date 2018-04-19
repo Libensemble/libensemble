@@ -5,7 +5,6 @@ import os
 
 def build_simfunc():
     import subprocess
-    import shutil
     
     #Build simfunc
     #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
