@@ -366,7 +366,11 @@ class JobController:
                 #job.stdout = stdout
                 
             
-                
+            job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
+            
+            #To test when have workdir
+            #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
+            
             #if not self.list_of_jobs:
                 #self.default_job = job
             
@@ -531,8 +535,8 @@ class BalsamJobController(JobController):
         
         self.list_of_jobs = []
         
-        BalsamJobController.controller = self
-        
+        JobController.controller = self
+        #BalsamJobController.controller = self        
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
         
