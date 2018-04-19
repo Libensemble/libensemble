@@ -46,4 +46,10 @@ and:
 
 > balsam launcher --consume-all
 
+Note: On systems like Theta only one job can be launched per node. You will need at least 2 nodes. The first
+will run the parent script. The test test_jobcontroller_multi.py launches 3 sub-jobs which Balsam will launch as 
+nodes become available. To run all 3 concurrently would require 4 nodes.
+
+
+
 

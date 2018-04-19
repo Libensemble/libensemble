@@ -69,13 +69,13 @@ def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
                 #job.poll()
                 jobctl.poll(job)
                 if job.finished: continue
-                elif job.state == 'WAITING': print('Job waiting to launch')    
-                elif job.state == 'RUNNING': print('Job still running ....') 
+                elif job.state == 'WAITING': print('Job %d waiting to launch' % (job.id))   
+                elif job.state == 'RUNNING': print('Job %d still running ....' % (job.id)) 
 
                 #Check output file for error
                 if job.stdout_exists():
                     if 'Error' in job.read_stdout():
-                        print("Found (deliberate) Error in ouput file - cancelling job")
+                        print("Found (deliberate) Error in ouput file - cancelling job %d" % (job.id))
                         jobctl.kill(job)
                         time.sleep(delay) #Give time for kill
                         continue

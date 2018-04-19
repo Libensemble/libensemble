@@ -581,6 +581,7 @@ class BalsamJobController(JobController):
        
         #Re-do debug launch line for balsam job
         #logger.debug("Launching job: {}".format(" ".join(runline)))
+        logger.debug("Added job to Balsam database: {}".format(job.id))
         
         if stage_out is not None:
             #For now hardcode staging - for testing
