@@ -122,14 +122,6 @@ class BalsamJob(Job):
         #prob want to override workdir attribute with Balsam value - though does it exist yet?
         self.workdir = None #Don't know until starts running
 
-
-
-    #NOT SURE I NEED THESE OVERRIDES NOW FOR BALSAM - I THINK NORMAL JOB ONE WILL DO SAME THING AS LONG AS JOB.WORKDIR IS SET.
-
-            
-    #These may want some if job.active check or something - as if still Waiting output will not exist
-    #Could be reason for an active attribute - or a activated (as still can read when finished.) Or
-    #Something to first check if file exists yet.
     def read_file_in_workdir(self, filename):
         out = self.process.read_file_in_workdir(filename)
         return out
@@ -137,34 +129,11 @@ class BalsamJob(Job):
     def read_stdout(self):
         out = self.process.read_file_in_workdir(self.stdout)
         return out
-        
-        #if self.workdir == None:
-            #self.workdir = self.process.working_directory
-
-        ##With test - is it getting buffered?
-        ##Where is logging output going in Balsam?
-        #print("Printing - stdout", self.stdout)
-        #logger.debug("Printing - stdout {}".format(self.stdout)) 
-        #print("Working dir from libE controller", self.workdir)
-        #print("Working dir from balsam", self.process.working_directory)   
-        
-        #path = os.path.join(self.workdir, self.stdout)
-        #print("Path is:", path)   
-        #if not os.path.exists(path):
-            #print('Output file does not yet exist') 
-            #out = None
-        #else:
-            #out = self.process.read_file_in_workdir(self.stdout)
-        
-        #return out
    
 
 class JobController:
 
     controller = None
-    
-    #Create unit test - that checks all combos behave as expected
-    #If static can test without creating job_controller object...
     
     @staticmethod
     def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
@@ -207,27 +176,8 @@ class JobController:
             else:
                 ranks_per_node = num_procs/num_nodes
         
-        #For static version return
-        #see collections model for best return type
-        #return nprocs, nodes, ranks_per_node
         return num_procs, num_nodes, ranks_per_node
 
-    #Currently not using sub-job so reset job attributes - as opposed to job_controller attributes
-    #def reset(self):
-        ##This may be placed in a job object (and maybe a list of jobs for controller)
-        ##job will have ID that can be used
-        #self.process = None
-        #self.state = 'UNKNOWN' #Create as string or integer macro?
-        #self.errcode = None
-        #self.finished = False # True means job has run - not whether was successful
-        #self.success = False
-        
-        ##job job_partition - prob. replace with set_to_default function - so can have default set at job_controller level
-        #self.app = None
-        #self.app_args = None        
-        #self.num_procs = 1
-        #self.num_nodes = 1
-        #self.ranks_per_node = 1
     
     def __init__(self, registry=None):
         
@@ -249,22 +199,18 @@ class JobController:
         
         #Job controller settings - can be set in user function.
         self.kill_signal = 'SIGTERM'
-        self.wait_and_kill = True #If true - wait for wait_time After signal and then kill with SIGKILL
+        self.wait_and_kill = True #If true - wait for wait_time after signal and then kill with SIGKILL
         self.wait_time = 60
-        #self.default_job = None
         self.list_of_jobs = []
-        
-        #Reset current job attributes
-        #self.reset()
-        
+                
         JobController.controller = self
         
         #If this could share multiple launches could set default job parameters here (nodes/ranks etc...)
         
 
-# May change job_controller launch functions to use **kwargs and then init job empty - and use setattr
-#eg. To pass through args:
-#def launch(**kwargs):
+    # May change job_controller launch functions to use **kwargs and then init job empty - and use setattr
+    #eg. To pass through args:
+    #def launch(**kwargs):
     #...
     #job = Job()
     #for k,v in kwargs.items():
@@ -276,12 +222,10 @@ class JobController:
         #setattr(job, k, v)
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
-     
-        #self.reset()    
         
-        #Could take optional app arg - if they want to supply here - instead of taking from registry
-        #Here could be options to specify an alternative function - else registry.sim_default_app
-
+        
+        # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
+        # Could take optional app arg - if they want to supply here - instead of taking from registry
         if calc_type == 'sim':
             if self.registry.sim_default_app is None:
                 raise JobControllerException("Default sim app is not set")
@@ -297,30 +241,24 @@ class JobController:
 
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-        #_job_partition - eg. balsam class  may want to call _job_partition without machinefile... as does not accept!
         
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
         
         job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
         
-        #Static version
-        #nprocs, nodes, ranks_per_node = _job_partition(nprocs, nodes, ranks_per_node, machinefile) 
-            
+        #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_out is not None:
             logger.warning('stage_out option ignored in this job_controller - runs in-place')
          
-        #Construct run line - poss subroutine
+        #Construct run line - possibly subroutine
         runline = []
         runline.append(self.mpi_launcher)
         
-        #I will set attributes for these - eg. self.app_args - but maybe in a job object. So deferring for now.
-        #Already issue of whether same job object Worker is using - already diff in e.g. timing - where launch app?
         if job.machinefile is not None:
             runline.append(self.mfile)
             runline.append(job.machinefile)
         
-        #self.num_procs only if used non-static _job_partition - else just num_procs
         if job.num_procs is not None:
             runline.append(self.nprocs)
             runline.append(str(job.num_procs))
@@ -336,7 +274,6 @@ class JobController:
             #runline.append(self.ppn)
             #runline.append(str(self.ranks_per_node))        
 
-        
         runline.append(job.app.full_path)
         
         if job.app_args is not None:
@@ -352,27 +289,11 @@ class JobController:
             #I'm not sure about some of these options - this would be the format of original opal line - did not work theta
             #p = subprocess.Popen(runline, cwd='./', stdout = open('out.txt','w'), shell=False, preexec_fn=os.setsid)
             
-
             logger.debug("Launching job: {}".format(" ".join(runline)))
-            
-            #What if no stdout supplied - should I capture - or maybe make a default based on job.id ?
-            #e.g. job.stdout = 'out' + str(job.id) + '.txt'
-            
-            #This was on theta - still dont think need cwd option
-            #if stdout is None:
-                #job.process = subprocess.Popen(runline, cwd='./', shell=False) #what if no stdout? check
-            #else:
-                #job.process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False)
-                #job.stdout = stdout
-                
-            
             job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
             
             #To test when have workdir
             #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
-            
-            #if not self.list_of_jobs:
-                #self.default_job = job
             
             self.list_of_jobs.append(job)
         
@@ -382,23 +303,17 @@ class JobController:
     
     def poll(self, job):
         
-        #if jobid is not None:
-            #job = self.get_job(jobid)
-            #if job is None:
-                #raise JobControllerException("Job {} not found".format(jobid))
-        #else:
-            #job = self.default_job
-        
         if job is None:
             raise JobControllerException('No job has been provided')
 
-        #Check the jobs been launched (i.e. it has a process ID)
+        # Check the jobs been launched (i.e. it has a process ID)
         if job.process is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
         
-        #Quicker - maybe should poll job to check (in case self.finished set in error!)
+        # Do not poll if job already finished
+        # Maybe should re-poll job to check (in case self.finished set in error!)???
         if job.finished:
             logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
             return job
@@ -419,8 +334,10 @@ class JobController:
                 logger.debug("Process {} completed successfully".format(job.process))
                 job.state = 'FINISHED'
             else:
-                #Need to differentiate failure from user killed !!!!!
-                #Currently FAILED MEANS BOTH
+                #Need to differentiate failure from if job was user-killed !!!! What if remotely???
+                #If this process killed the job it will already be set and if not re-polling will not get here.
+                #But could query existing state here as backup?? - Also may add a REMOTE_KILL state???
+                #Not yet remote killing so assume failed....
                 job.errcode = job.process.returncode
                 job.state = 'FAILED'
         
@@ -430,19 +347,11 @@ class JobController:
     
     def kill(self, job):
         
-        #if jobid is not None:
-            #job = self.get_job(jobid)
-            #if job is None:
-                #raise JobControllerException("Job {} not found".format(jobid))
-        #else:
-            #job = self.default_job
-        
         if job is None:
             raise JobControllerException('No job has been provided')
         
         #In here can set state to user killed!
-        #- but if killed by remote job (eg. through balsam database) may be different ....
-        #maybe have a function JobController.set_kill_mode() 
+        #- but if killed by remote job (eg. through balsam database) may be different .... 
 
         #Issue signal
         if self.kill_signal == 'SIGTERM':
@@ -481,13 +390,6 @@ class JobController:
         if wait_time is not None: 
             self.wait_time = wait_time
     
-    ##Will need updating - if/when implement working dirs
-    #def read_file_in_workdir(self, filename):
-        #if not os.path.exists(filename):
-            #raise ValueError("%s not found in working directory".format(filename))
-        #else:
-            #return open(filename).read()
-    
     def get_job(jobid):
         if self.list_of_jobs:
             for job in list_of_jobs:
@@ -499,21 +401,14 @@ class JobController:
         return None
 
 
-####Got to here with multi-job version **************************************************************8
 
 class BalsamJobController(JobController):
     
-    controller = None
-    
-    #def reset(self):       
-        #super().reset()
-        #self.jobname = None #Might set jobname in super class also
-        #self.balsam_state = None
-
-  
+    #controller = None
+      
     def __init__(self, registry=None):
         
-        #Will use super - but for now dont want to set self.mpi_launcher etc...
+        #Will use super - atleast if use baseclass - but for now dont want to set self.mpi_launcher etc...
         
         if registry is None:
             self.registry = Register.default_registry #Error handling req.
@@ -524,29 +419,19 @@ class BalsamJobController(JobController):
             raise JobControllerException("Cannot find default registry")
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-        
-        ##Job controller settings - can be set in user function.
-        #self.kill_signal = 'SIGTERM'
-        #self.wait_and_kill = True #If true - wait for wait_time After signal and then kill with SIGKILL
-        #self.wait_time = 60
-        
-        #Reset current job attributes
-        #self.reset()
-        
+                
         self.list_of_jobs = []
         
         JobController.controller = self
-        #BalsamJobController.controller = self        
+        #BalsamJobController.controller = self
+    
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
         
         import balsam.launcher.dag as dag
         
-        #self.reset()        
-        
-        #Could take optional app arg - if they want to supply here - instead of taking from registry
-        #Here could be options to specify an alternative function - else registry.sim_default_app
-
+        # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
+        # Could take optional app arg - if they want to supply here - instead of taking from registry
         if calc_type == 'sim':
             if self.registry.sim_default_app is None:
                 raise JobControllerException("Default sim app is not set")
@@ -561,9 +446,7 @@ class BalsamJobController(JobController):
             raise JobControllerException("Unrecognized calculation type", calc_type)
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-        
-        #As above - I will set attributes (eg. self.app_args) - but maybe in a job object.
-        
+               
         #Specific to this class
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")  
@@ -612,8 +495,7 @@ class BalsamJobController(JobController):
                                       ranks_per_node = job.ranks_per_node,
                                       input_files = app.exe,
                                       wait_for_parents=False)
-        
-        
+                
         #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)
         return job
@@ -624,20 +506,20 @@ class BalsamJobController(JobController):
         if job is None:
             raise JobControllerException('No job has been provided') 
         
-        #Check the jobs been launched (i.e. it has a process ID)
+        # Check the jobs been launched (i.e. it has a process ID)
         if job.process is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
             raise JobControllerException('Polled job has no process ID - check jobs been launched')
         
-        #Quicker - maybe should poll job to check (in case self.finished set in error!)
+        # Do not poll if job already finished
         if job.finished:
             logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
             return job 
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
-        #Get current state of jobs from Balsam database
+        # Get current state of jobs from Balsam database
         job.process.refresh_from_db()
         job.balsam_state = job.process.state #Not really nec to copy have balsam_state - already job.process.state...
         logger.debug('balsam_state for job {} is {}'.format(job.id, job.balsam_state))
@@ -689,8 +571,3 @@ class BalsamJobController(JobController):
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
         logger.warning("set_kill_mode currently has no action with Balsam controller")
         
-    #def read_file_in_workdir(self, filename):
-        #out = self.process.read_file_in_workdir(filename)
-        #return out
-        
-    
