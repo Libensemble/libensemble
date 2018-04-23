@@ -17,6 +17,7 @@ Library for managing ensemble-like collections of computations.
    release_notes
    manager_modules
    worker_modules
+   job_controller
    examples_modules
  
 
