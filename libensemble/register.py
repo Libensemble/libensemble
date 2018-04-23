@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Module to register applications to libEnsemble"""
+"""Module to register applications to libEnsemble."""
 
 import os
 import subprocess

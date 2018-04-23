@@ -17,9 +17,21 @@ Library for managing ensemble-like collections of computations.
    release_notes
    manager_modules
    worker_modules
-   job_controller
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Job Controller:  
+
+   job_controller/overview
+   job_controller/register
+   job_controller/job_controller
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples:  
+
    examples_modules
- 
+
 
 Indices and tables
 ==================

@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 """
-Job controller modules
-======================
-
 Module to launch and control running jobs.
 
 Contains job_controller, job, and inherited classes. A job_controller can
@@ -323,9 +320,6 @@ class JobController:
             print('stdout to', stdout)
             #logger.info(runline)
         else:          
-            #I'm not sure about some of these options - this would be the format of original opal line - did not work theta
-            #p = subprocess.Popen(runline, cwd='./', stdout = open('out.txt','w'), shell=False, preexec_fn=os.setsid)
-            
             logger.debug("Launching job: {}".format(" ".join(runline)))
             job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
             
