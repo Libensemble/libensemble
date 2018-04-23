@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 
-""" Script to launch and control running jobs """
+"""
+Job controller modules
+======================
+
+Module to launch and control running jobs.
+
+Contains job_controller, job, and inherited classes. A job_controller can
+create and manage multiple jobs. The worker or user-side code can issue
+and manage jobs using the launch, poll and kill functions. Job attributes
+are queried to determine status. Functions are also provided to access
+and interrogate files in the job's working directory.
+
+"""
 
 import os
 import subprocess
@@ -35,10 +47,15 @@ class JobControllerException(Exception): pass
 
 class Job:
     
-    newid = itertools.count() #.next
+    '''Manage the creation, configuration and status of a launchable job.'''
+
+    newid = itertools.count()
     
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, stdout = None):
+        '''Instantiate a new Job instance.
         
+        A new job object is created with an id, status and configuration attributes
+        '''
         self.id = next(Job.newid)
                 
         #Status attributes
@@ -70,6 +87,7 @@ class Job:
         self.workdir = './' #Default -  run in place - setting to be implemented
 
     def workdir_exists(self):
+        ''' Returns True if the job's workdir exists, else False '''
         if self.workdir is None:
             return False
         if os.path.exists(self.workdir):
@@ -78,6 +96,7 @@ class Job:
             return False
         
     def file_exists_in_workdir(self, filename):
+        ''' Returns True if the named file exists in the job's workdir, else False '''
         if self.workdir is None:
             return False
         path = os.path.join(self.workdir, filename)
@@ -87,6 +106,7 @@ class Job:
             return False 
         
     def read_file_in_workdir(self, filename):
+        ''' Open and reads the named file in the job's workdir '''
         path = os.path.join(self.workdir,filename)
         if not os.path.exists(path):
             raise ValueError("%s not found in working directory".format(filename))
@@ -94,6 +114,7 @@ class Job:
             return open(path).read()
                 
     def stdout_exists(self):
+        ''' Returns True if the job's stdout file exists in the workdir, else False '''
         if self.workdir is None:
             return False        
         path = os.path.join(self.workdir, self.stdout)
@@ -103,6 +124,7 @@ class Job:
             return False
         
     def read_stdout(self):
+        ''' Open and reads the job's stdout file in the job's workdir '''
         path = os.path.join(self.workdir, self.stdout)
         if not os.path.exists(path):
             raise ValueError("%s not found in working directory".format(self.stdout))
@@ -112,9 +134,15 @@ class Job:
 
 class BalsamJob(Job):
     
+    '''Wraps a Balsam Job from the Balsam service.'''
+    
     #newid = itertools.count() #hopefully can use the one in Job
     
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, stdout = None):
+        '''Instantiate a new BalsamJob instance.
+        
+        A new BalsamJob object is created with an id, status and configuration attributes
+        '''
         super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
         
         self.balsam_state = None
@@ -132,7 +160,9 @@ class BalsamJob(Job):
    
 
 class JobController:
-
+    
+    ''' The job_controller can create, poll and kill runnable jobs '''
+    
     controller = None
     
     @staticmethod
@@ -180,6 +210,10 @@ class JobController:
 
     
     def __init__(self, registry=None):
+        '''Instantiate a new JobController instance.
+        
+        A new JobController object is created with an application registry and configuration attributes
+        '''
         
         if registry is None:
             self.registry = Register.default_registry #Error handling req.
@@ -222,7 +256,10 @@ class JobController:
         #setattr(job, k, v)
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
+        ''' Creates a new job, and either launches or schedules to launch in the job controller
         
+        The created job object is returned.
+        '''
         
         # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
         # Could take optional app arg - if they want to supply here - instead of taking from registry
@@ -302,6 +339,7 @@ class JobController:
 
     
     def poll(self, job):
+        ''' Polls and updates the status attributes of the supplied job '''
         
         if job is None:
             raise JobControllerException('No job has been provided')
@@ -346,6 +384,7 @@ class JobController:
                 
     
     def kill(self, job):
+        ''' Kills or cancels the supplied job '''
         
         if job is None:
             raise JobControllerException('No job has been provided')
@@ -380,7 +419,8 @@ class JobController:
         #job.errcode #Can it be discovered after killing?
         #job.success #Could set to false but should be already - only set to true on success            
                 
-    def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):        
+    def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
+        ''' Configures the kill mode for the job_controller '''
         if signal is not None:
             self.kill_signal = signal
             
@@ -391,6 +431,7 @@ class JobController:
             self.wait_time = wait_time
     
     def get_job(jobid):
+        ''' Returns the job object for the supplied job ID '''
         if self.list_of_jobs:
             for job in list_of_jobs:
                 if job.id == jobid:
@@ -404,12 +445,17 @@ class JobController:
 
 class BalsamJobController(JobController):
     
+    '''Inherits from JobController and wraps the Balsam job management service'''
+    
     #controller = None
       
     def __init__(self, registry=None):
+        '''Instantiate a new BalsamJobController instance.
+        
+        A new BalsamJobController object is created with an application registry and configuration attributes
+        '''        
         
         #Will use super - atleast if use baseclass - but for now dont want to set self.mpi_launcher etc...
-        
         if registry is None:
             self.registry = Register.default_registry #Error handling req.
         else:
@@ -427,7 +473,10 @@ class BalsamJobController(JobController):
     
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
+        ''' Creates a new job, and either launches or schedules to launch in the job controller
         
+        The created job object is returned.
+        '''        
         import balsam.launcher.dag as dag
         
         # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
@@ -502,7 +551,7 @@ class BalsamJobController(JobController):
 
     
     def poll(self, job):
-
+        ''' Polls and updates the status attributes of the supplied job '''
         if job is None:
             raise JobControllerException('No job has been provided') 
         
@@ -558,6 +607,7 @@ class BalsamJobController(JobController):
         #return job
     
     def kill(self, job):
+        ''' Kills or cancels the supplied job '''
         import balsam.launcher.dag as dag
         dag.kill(job.process)
 
@@ -569,5 +619,6 @@ class BalsamJobController(JobController):
         #Check if can wait for kill to complete - affect signal used etc....
     
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
+        ''' Not currently implemented for BalsamJobController'''
         logger.warning("set_kill_mode currently has no action with Balsam controller")
         
