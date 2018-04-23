@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-""" Script to set up apps for balsam """
-
-#Quit possibly make this part of job/job_controller module 
-#An app object could be an attribute of job - so job relates to this app
+"""Module to register applications to libEnsemble"""
 
 import os
 import subprocess
@@ -22,7 +19,11 @@ class RegistrationException(Exception): pass
 
 
 class Application:
+    
+    '''An application is an executable user-program (e.g. Implementing a sim/gen function).'''
+
     def __init__(self, full_path, calc_type='sim', desc=None, default=True):
+        '''Instantiate a new Application instance.'''
         self.full_path = full_path
         self.calc_type = calc_type
         self.desc = desc
@@ -35,12 +36,15 @@ class Application:
         if desc is None:
             self.desc = self.exe + ' ' + self.calc_type + ' function'
 
-#Think I will merge this into job_controller
+#May merge this into job_controller
 class Register():
     
-    default_registry = None    
+    '''Registers and stores user applications'''
+    
+    default_registry = None
     
     def __init__(self, default=True):
+        '''Instantiate a new Register instance.'''
         self.sim_default_app = None
         self.gen_default_app = None        
         if default:
@@ -50,7 +54,7 @@ class Register():
         #logger.debug("default_registry sim name is {}".format(Register.default_registry.sim_default_app))
             
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
-        
+        '''Registers a user applications to libEnsemble.'''
         if default:
             if calc_type == 'sim':
                 if self.sim_default_app is not None:
@@ -78,13 +82,13 @@ class Register():
         return
  
  
-#Think I will merge this into job_controller
 class BalsamRegister(Register):
- 
+    
+    '''Registers and stores user applications in libEnsemble and Balsam'''
+    
     @staticmethod
     def del_apps():
-        """ Deletes all apps whose names contains substring .simfunc or .genfunc"""  
-        #""" For now just deletes all apps """        
+        """ Deletes all Balsam apps whose names contains substring .simfunc or .genfunc"""         
         import balsam.launcher.dag as dag
         from balsam.service import models
         AppDef = models.ApplicationDefinition 
@@ -104,8 +108,7 @@ class BalsamRegister(Register):
 
     @staticmethod
     def del_jobs():
-        """ Deletes all jobs whose names contains substring .simfunc or .genfunc"""
-        #""" For now just deletes all jobs """
+        """ Deletes all Balsam jobs whose names contains substring .simfunc or .genfunc"""
         import balsam.launcher.dag as dag
         from balsam.service import models
         Job = models.BalsamJob
@@ -129,7 +132,7 @@ class BalsamRegister(Register):
         
     @staticmethod       
     def add_app(name,exepath,desc):
-        """ Add application to database """
+        """ Add application to Balsam database """
         import balsam.launcher.dag as dag
         from balsam.service import models
         AppDef = models.ApplicationDefinition
@@ -143,6 +146,7 @@ class BalsamRegister(Register):
         logger.debug("Added App {}".format(app.name))
         
     def __init__(self):
+        '''Instantiate a new BalsamRegister instance.'''
         super().__init__()
         #Check for empty database if poss
         #And/or compare with whats in database and only empty if I need to
@@ -153,11 +157,12 @@ class BalsamRegister(Register):
         
     
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
+        '''Registers a user applications to libEnsemble and Balsam.'''
         super().register_calc(full_path, calc_type, desc, default) 
         #Req python 3 to exclude args - but as Balsam requires 3.6+ I may do - or is it only __init__()
         
         #calc_dir, calc_name = os.path.split(full_path)    
-        
+
         #Get from one place - so always matches
         if calc_type == 'sim':
             calc_name = self.sim_default_app.name
