@@ -72,14 +72,14 @@ class Job:
         self.stdout = stdout
         
         if app is not None:
-            self.jobname = 'job_' + app.name + '_' + str(self.id)
+            self.name = 'job_' + app.name + '_' + str(self.id)
         else:
             raise JobControllerException("Job must be created with an app - no app found for job ()".format(self.id))
         
         if stdout is not None:
             self.stdout = stdout
         else:
-            self.stdout = self.jobname + '.out'
+            self.stdout = self.name + '.out'
         
         self.workdir = './' #Default -  run in place - setting to be implemented
 
@@ -511,7 +511,7 @@ class BalsamJobController(JobController):
         
         if stage_out is not None:
             #For now hardcode staging - for testing
-            job.process = dag.add_job(name = job.jobname,
+            job.process = dag.add_job(name = job.name,
                                       workflow = "libe_workflow", #add arg for this
                                       application = app.name,
                                       application_args = job.app_args,                            
@@ -522,7 +522,7 @@ class BalsamJobController(JobController):
                                       stage_out_files = "*")  
         else:
             #No staging
-            #job.process = dag.add_job(name = job.jobname,
+            #job.process = dag.add_job(name = job.name,
                                       #workflow = "libe_workflow", #add arg for this
                                       #application = app.name,
                                       #application_args = job.app_args,           
@@ -530,7 +530,7 @@ class BalsamJobController(JobController):
                                       #ranks_per_node = job.ranks_per_node,
                                       #input_files = app.exe) 
 
-            job.process = dag.spawn_child(name = job.jobname,
+            job.process = dag.spawn_child(name = job.name,
                                       workflow = "libe_workflow", #add arg for this
                                       application = app.name,
                                       application_args = job.app_args,           

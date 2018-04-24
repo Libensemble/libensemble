@@ -45,22 +45,24 @@ In user sim func::
                 
 Following is a list of job status and configuration attributes that can be retrieved from job.
 
-Job Status attributes include::
+Job Status attributes include:
 
-    job.state = ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
-    job.process = The process object used by the underlying process manager (e.g. return value of subprocess.Popen)
-    job.errcode = The errorcode/return code used by the underlying process manager
-    job.finished = True means job has finished running - not whether was successful
-    job.success = Did job complete succesfully (e.g. returncode is zero)
-        
-Run configuration attributes - Some will be auto-generated::
+:job.state: ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
 
-    job.workdir = Work directory for the job
-    job.app = Use application/executable, registered using registry.register_calc
-    job.app_args = Application arguments as a string  
-    job.num_procs = Total number of processors for job
-    job.num_nodes = Number of nodes for job
-    job.ranks_per_node = Ranks per node for job
-    job.machinefile = Name of machinefile is provided
-    job.stdout = Name of file where the job's standard output is written
-    job.jobname = Name of job - auto-generated 
+:job.process: The process object used by the underlying process manager (e.g. return value of subprocess.Popen)
+:job.errcode: The errorcode/return code used by the underlying process manager
+:job.finished: True means job has finished running - not whether was successful
+:job.success: Did job complete succesfully (e.g. returncode is zero)
+
+Run configuration attributes - Some will be auto-generated:
+
+:job.workdir: Work directory for the job
+:job.name: Name of job - auto-generated
+:job.app: Use application/executable, registered using registry.register_calc
+:job.app_args: Application arguments as a string  
+:job.num_procs: Total number of processors for job
+:job.num_nodes: Number of nodes for job
+:job.ranks_per_node: Ranks per node for job
+:job.machinefile: Name of machinefile is provided
+:job.stdout: Name of file where the standard output of the job is written
+
