@@ -48,7 +48,7 @@ class Job:
 
     newid = itertools.count()
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, stdout = None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None):
         '''Instantiate a new Job instance.
         
         A new job object is created with an id, status and configuration attributes
@@ -81,7 +81,8 @@ class Job:
         else:
             self.stdout = self.name + '.out'
         
-        self.workdir = './' #Default -  run in place - setting to be implemented
+        #self.workdir = './' #Default -  run in place - setting to be implemented
+        self.workdir = workdir
 
     def workdir_exists(self):
         ''' Returns True if the job's workdir exists, else False '''
@@ -135,12 +136,12 @@ class BalsamJob(Job):
     
     #newid = itertools.count() #hopefully can use the one in Job
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, stdout = None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None):
         '''Instantiate a new BalsamJob instance.
         
         A new BalsamJob object is created with an id, status and configuration attributes
         '''
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, workdir, stdout)
         
         self.balsam_state = None
         
@@ -252,7 +253,7 @@ class JobController:
     #else:
         #setattr(job, k, v)
     
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
         
         The created job object is returned.
@@ -279,11 +280,13 @@ class JobController:
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
         
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
+        
+        default_workdir = os.getcwd() #Will be possible to override with arg when implemented
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout)
         
         #Temporary perhaps - though when create workdirs - will probably keep output in place
-        if stage_out is not None:
-            logger.warning('stage_out option ignored in this job_controller - runs in-place')
+        if stage_inout is not None:
+            logger.warning('stage_inout option ignored in this job_controller - runs in-place')
          
         #Construct run line - possibly subroutine
         runline = []
@@ -466,7 +469,7 @@ class BalsamJobController(JobController):
         #BalsamJobController.controller = self
     
     
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_out=None, test=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
         
         The created job object is returned.
@@ -502,14 +505,14 @@ class BalsamJobController(JobController):
             logger.warning("Balsam does not currently accept a stdout name - ignoring")
             stdout = None
             
-            
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, stdout)
+        default_workdir = None #Will be possible to override with arg when implemented (else wait for Balsam to assign)
+        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout)
        
         #Re-do debug launch line for balsam job
         #logger.debug("Launching job: {}".format(" ".join(runline)))
         logger.debug("Added job to Balsam database: {}".format(job.id))
         
-        if stage_out is not None:
+        if stage_inout is not None:
             #For now hardcode staging - for testing
             job.process = dag.add_job(name = job.name,
                                       workflow = "libe_workflow", #add arg for this
@@ -517,27 +520,40 @@ class BalsamJobController(JobController):
                                       application_args = job.app_args,                            
                                       num_nodes = job.num_nodes,
                                       ranks_per_node = job.ranks_per_node,
-                                      input_files = app.exe,
-                                      stage_out_url = "local:" + stage_out,
-                                      stage_out_files = "*")  
+                                      #input_files = app.exe,
+                                      stage_in_url = "local:" + stage_inout,
+                                      stage_out_url = "local:" + stage_inout,
+                                      stage_out_files = "*.out")
+                                      #stage_out_files = "*") #Current fails if there are directories
+                                      
+            #job.process = dag.spawn_child(name = job.name,
+                                      #workflow = "libe_workflow", #add arg for this
+                                      #application = app.name,
+                                      #application_args = job.app_args,                            
+                                      #num_nodes = job.num_nodes,
+                                      #ranks_per_node = job.ranks_per_node,
+                                      ##input_files = app.exe,
+                                      #stage_in_url = "local:" + stage_inout,
+                                      #stage_out_url = "local:" + stage_inout,
+                                      #stage_out_files = "*",
+                                      #wait_for_parents=False)            
         else:
             #No staging
-            #job.process = dag.add_job(name = job.name,
+            job.process = dag.add_job(name = job.name,
+                                      workflow = "libe_workflow", #add arg for this
+                                      application = app.name,
+                                      application_args = job.app_args,           
+                                      num_nodes = job.num_nodes,
+                                      ranks_per_node = job.ranks_per_node) 
+
+            #job.process = dag.spawn_child(name = job.name,
                                       #workflow = "libe_workflow", #add arg for this
                                       #application = app.name,
                                       #application_args = job.app_args,           
                                       #num_nodes = job.num_nodes,
                                       #ranks_per_node = job.ranks_per_node,
-                                      #input_files = app.exe) 
-
-            job.process = dag.spawn_child(name = job.name,
-                                      workflow = "libe_workflow", #add arg for this
-                                      application = app.name,
-                                      application_args = job.app_args,           
-                                      num_nodes = job.num_nodes,
-                                      ranks_per_node = job.ranks_per_node,
-                                      input_files = app.exe,
-                                      wait_for_parents=False)
+                                      #input_files = app.exe,
+                                      #wait_for_parents=False)
                 
         #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)
