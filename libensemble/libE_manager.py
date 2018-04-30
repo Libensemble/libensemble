@@ -12,7 +12,11 @@ from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TA
 from libensemble.message_numbers import PERSIS_STOP
 from libensemble.message_numbers import STOP_TAG # manager tells worker run is over
 
-#from mpi4py import MPI
+#if MPI --------------------
+from mpi4py import MPI
+from libensemble.worker_class import worker_main
+#---------------------------
+
 import numpy as np
 
 import time, sys, os
@@ -39,14 +43,26 @@ logging.basicConfig(level=logging.DEBUG,
 
 
 debug_count = 0 #debugging
-    
-def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
+
+# How to support different worker concurrency modes - composition/inheritence etc.... current solution is temp.
+# Currently thinking in terms of a class inside manager (not whole of manager) like worker_comms which could
+# be inherited for different worker concurrency schemes - and maybe the "import MPI" could be in the MPI inhertied class
+# E.g. "Class worker_comm" (baseclass or used when run serial)
+# "Class MPIworker_comm(worker_comm)"
+# "Class Threadworker_comm(worker_comm)"
+# etc...
+# Then something like worker_comm.setup(), worker_comm.data_in(), worker_comm.data_out()
+
+def manager_main(mpi_mode_in, comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
 
     #set to 2 workers - cld just have a number - still blocking at moment so use same resources
     #alloc_specs['worker_ranks'] = set([0,1])
+    
+    global MPI_MODE
+    MPI_MODE = mpi_mode_in
 
     #quick - until do proper timer
     man_start_time = time.time()
@@ -59,7 +75,7 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
     
     #Maybe make attribute of worker - and/or do all worker stuff in persistent threads - but for now this and just worker.run
     thread_list = []
-
+    #import pdb;pdb.set_trace()
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w, worker_list)
     
     ### Continue receiving and giving until termination test is satisfied
@@ -106,21 +122,24 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
 
 def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w, worker_list):
 
-#-------------------------MPI version
-#for w in nonpersis_w['waiting']:
-        #comm.send(obj=H[sim_specs['in']].dtype, dest=w)
-        #comm.send(obj=H[gen_specs['in']].dtype, dest=w)
-    
-    Worker.init_workers(sim_specs, gen_specs)
-    
-    #Can the set in nonpersis_w contain objects - or only IDs (integers)?
-    #For now have list of workers - pointing to objects....
-    #Added worker_list init above
-    
-    #still concept like sending to workers here - for now - see worker_class
-    for i, w in enumerate(nonpersis_w['waiting']):  
-        new_worker = Worker(w, H)
-        worker_list.append(new_worker)
+    if MPI_MODE:
+        for w in nonpersis_w['waiting']:
+            comm.send(obj=H[sim_specs['in']].dtype, dest=w)
+            comm.send(obj=H[gen_specs['in']].dtype, dest=w)
+            
+        #Test: Construct a mirror list of the workers to keep up to date info - this should be at most optional as could
+        #be very wasteful - might be good for debugging - I like it on serial version - duplicate here as will be optional...
+        Worker.init_workers(sim_specs, gen_specs)
+        for i, w in enumerate(nonpersis_w['waiting']):
+            #new_worker = Worker(w, H)
+            new_worker = Worker(w,empty=True) #Note empty - wont setup dirs etc
+            worker_list.append(new_worker)
+    else:
+        Worker.init_workers(sim_specs, gen_specs)
+        for i, w in enumerate(nonpersis_w['waiting']):
+            #new_worker = Worker(w, H)
+            new_worker = Worker(w)
+            worker_list.append(new_worker)
 
 
 def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, nonpersis_w, persis_w, worker_list, thread_list):
@@ -128,30 +147,31 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
     Sends calculation information to the workers and updates the sets of
     active/idle workers
     """
-
-    #For original - a loop here for the calc_in send - but not on receiving end currently!!!!
-    #For now I'll assume only one - as otherwise current worker would not work!
     
-    if len(Work['libE_info']['H_rows']):            
+    work_rows = Work['libE_info']['H_rows']
+    
+    if len(work_rows):            
         assert set(Work['H_fields']).issubset(H.dtype.names), "Allocation function requested the field(s): " + str(list(set(Work['H_fields']).difference(H.dtype.names))) + " be sent to worker=" + str(w) + ", but this field is not in history"
-
-        #Can this be included in Work - does it need to be separate?
         calc_in = H[Work['H_fields']][Work['libE_info']['H_rows']]
     else:
         calc_in = None
         
-    current_worker = Worker.get_worker(worker_list,w)
     
-    
-    #pdb.set_trace()
-    #This will be non-blocking (though curently may not be)
-    if current_worker is not None:
-        current_worker.run(Work, calc_in)
-        #If using threads
-        #t = threading.Thread(target=current_worker.run, args=(Work, calc_in))
-        #thread_list.append(t)
-        #t.start()
-        #logging.debug('Launching thread %s', t.getName())
+    if MPI_MODE:
+        comm.send(obj=Work, dest=w, tag=Work['tag']) #Kept tag for now but NOT going to use it like this
+        if len(work_rows):
+            comm.send(obj=H[Work['H_fields']][Work['libE_info']['H_rows']],dest=w)
+    else:
+        current_worker = Worker.get_worker(worker_list,w)
+
+        #This could be non-blocking (though currently may not be)
+        if current_worker is not None:
+            current_worker.run(Work, calc_in)
+            #If using threads
+            #t = threading.Thread(target=current_worker.run, args=(Work, calc_in))
+            #thread_list.append(t)
+            #t.start()
+            #logging.debug('Launching thread %s', t.getName())
 
 
 #-------------------------MPI version---------------------------#
@@ -195,16 +215,40 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
     #Various approaches - may iterate through worker_list - where dont need to return IDs.
     #Will most likely get rid of these nonpersis_w etc lists - and store in worker object.
 
-    global debug_count
-    debug_count += 1
+    #global debug_count
+    #debug_count += 1
     #import pdb; pdb.set_trace()  
-    
+
     new_stuff = True
-    while new_stuff and len(nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]) > 0:   
+    while new_stuff and len(nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]) > 0:
         new_stuff = False
-        for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]:
-            current_worker = Worker.get_worker(worker_list,w)
-            if current_worker.isdone: #Maybe a get status - as could be finsihed/killed/errored? etc.. error used like tag!!!!! ***todo
+        for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]: 
+                
+            #The aim of this is to combine loop body for MPI and non-MPI mode.
+            process_worker = False # New flag
+            
+            if MPI_MODE:
+                status = MPI.Status() # Do I need this?
+                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
+                    #D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                    current_worker = comm.recv(source=w, tag=MPI.ANY_TAG, status=status) #Whole worker object
+                    
+                    # With mirror list -----------------------------------------------------------------------
+                    # This is just a way to get information about the workers stored on MPI master rank.
+                    # Create a list of (empty) workers and then when MPI receive worker - put into that
+                    # For performance we may not send back the whole worker, but for now it helps to see whats
+                    # going on.                            
+                    widx = Worker.get_worker_index(worker_list,w) #WorkerID must match MPI rank
+                    worker_list[widx] = current_worker
+                    
+                    if current_worker.isdone:
+                        process_worker = True                    
+            else:
+                current_worker = Worker.get_worker(worker_list,w)
+                if current_worker.isdone:
+                    process_worker = True                   
+            
+            if process_worker:
                 new_stuff = True
                 #check tag/error status here****
                 worker_out = current_worker.data
@@ -221,71 +265,30 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
                 
                 if calc_type == EVAL_GEN_TAG:
                     H, H_ind = update_history_x_in(H, H_ind, w, worker_out['calc_out'])
-
+    
                 # Not sure about blocking approach - but keep for now
                 if 'libE_info' in worker_out and 'blocking' in worker_out['libE_info']:
                         nonpersis_w['blocked'].difference_update(worker_out['libE_info']['blocking'])
                         nonpersis_w['waiting'].update(worker_out['libE_info']['blocking'])
-
+    
                 if 'gen_info' in worker_out:
                     for key in worker_out['gen_info'].keys():
                         gen_info[w][key] = worker_out['gen_info'][key]
-
+    
                 #Should it be worker_status or calc_type ....
                 if worker_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
                     persis_w[EVAL_GEN_TAG].difference_update([w])
                     persis_w[EVAL_SIM_TAG].difference_update([w])
                     nonpersis_w['waiting'].add(w)
-
+    
                 else: 
                     if 'libE_info' in worker_out and 'persistent' in worker_out['libE_info']:
                         persis_w['waiting'][calc_type].add(w)
                         persis_w[calc_type].remove(w)
                     else:
                         nonpersis_w['waiting'].add(w)
-                        nonpersis_w[calc_type].remove(w)                    
-                
-                    
-#    #Why is this here? - initialization or what?
-#    status = MPI.Status()
-#
-#    new_stuff = True
-#    while new_stuff and len(nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]) > 0:
-#        new_stuff = False
-#        for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]: 
-#            if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-#                new_stuff = True
-#
-#                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-#                recv_tag = status.Get_tag()
-#                assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
-#
-#                if recv_tag == EVAL_SIM_TAG:
-#                    update_history_f(H, D_recv)
-#
-#                if recv_tag == EVAL_GEN_TAG:
-#                    H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out']) 
-#
-#                if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
-#                        nonpersis_w['blocked'].difference_update(D_recv['libE_info']['blocking'])
-#                        nonpersis_w['waiting'].update(D_recv['libE_info']['blocking'])
-#
-#                if 'gen_info' in D_recv:
-#                    for key in D_recv['gen_info'].keys():
-#                        gen_info[w][key] = D_recv['gen_info'][key]
-#
-#                if recv_tag in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
-#                    persis_w[EVAL_GEN_TAG].difference_update([w])
-#                    persis_w[EVAL_SIM_TAG].difference_update([w])
-#                    nonpersis_w['waiting'].add(w)
-#
-#                else: 
-#                    if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
-#                        persis_w['waiting'][recv_tag].add(w)
-#                        persis_w[recv_tag].remove(w)
-#                    else:
-#                        nonpersis_w['waiting'].add(w)
-#                        nonpersis_w[recv_tag].remove(w)
+                        nonpersis_w[calc_type].remove(w)                   
+
 
     #Could make common if I have sep serial/MPI functions....
     if 'save_every_k' in sim_specs:
@@ -524,9 +527,10 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
             break
     
     #For serial replace by a clean-up routine
-    ### Kill the workers
-    #for w in alloc_specs['worker_ranks']:
-    #    comm.send(obj=None, dest=w, tag=STOP_TAG)
+    if MPI_MODE:
+        # Kill the workers
+        for w in alloc_specs['worker_ranks']:
+           comm.send(obj=None, dest=w, tag=STOP_TAG)
     
     #todo - clean up workers!!!
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)

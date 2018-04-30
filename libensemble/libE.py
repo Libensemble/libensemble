@@ -27,9 +27,12 @@ from __future__ import division
 from __future__ import absolute_import
 
 from libensemble.libE_manager import manager_main
-#from libensemble.libE_worker import worker_main
 
-#from mpi4py import MPI
+#if MPI --------------------
+#can this be conditional at this level... (could put in routine - but same for manager??)
+from mpi4py import MPI
+from libensemble.worker_class import worker_main
+#---------------------------
 
 import numpy as np
 import sys,os 
@@ -38,6 +41,8 @@ import sys,os
 # sys.excepthook = ultratb.FormattedTB(mode='Verbose',
 #      color_scheme='Linux', call_pdb=1)
 
+MPI_MODE = True
+
 #For non-mpi
 num_workers = 2
 
@@ -45,8 +50,13 @@ num_workers = 2
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 #NOTE THAT THIS IS TO RUN SERIAL --- WORKER STARTS AT ZERO SO ZERO IS MANAGER AND WORKER FOR DEBUGGING
+
+
+# How to support different worker concurrency modes - composition/inheritence etc.... current solution is temp.
+# Currently thinking in terms of a class inside manager (not whole of manager) like worker_comms which could
+# be inherited for different worker concurrency schemes
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
-        alloc_specs={'out':[], 'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': set(range(0,num_workers))},
+        alloc_specs={'out':[], 'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': None},
         c={'comm': 0, 'color': 0}, 
         H0=[]):
     """ 
@@ -55,25 +65,34 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     either runs manager_main or worker_main 
     (Some subroutines currently assume that the manager is always (only) rank 0.)
     """
+    
+    if MPI_MODE:
+        alloc_specs['worker_ranks'] = set(range(1,MPI.COMM_WORLD.Get_size()))
+        c={'comm': MPI.COMM_WORLD, 'color': 0}
+    else:
+        alloc_specs['worker_ranks'] = set(range(0,num_workers))
+        c={'comm': 0, 'color': 0}
+
+    
     check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
     comm = c['comm']
     # When timing libEnsemble, uncomment barrier to ensure manager and workers are in sync
     # comm.Barrier()
-
-#    if comm.Get_rank() in alloc_specs['manager_ranks']:
-    H, gen_info, exit_flag = manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
-        # if exit_flag == 0:
-        #     comm.Barrier()
-#    elif comm.Get_rank() in alloc_specs['worker_ranks']:
-#        worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
-#        # comm.Barrier()
-#    else:
-#        print("Rank: %d not manager or worker" % comm.Get_rank()); H=gen_info=exit_flag=[]
-
+    
+    if MPI_MODE:
+        if comm.Get_rank() in alloc_specs['manager_ranks']:
+            H, gen_info, exit_flag = manager_main(MPI_MODE, comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+            #if exit_flag == 0:
+            #    comm.Barrier()
+        elif comm.Get_rank() in alloc_specs['worker_ranks']:
+            worker_main(c, sim_specs, gen_specs); H=gen_info=exit_flag=[]
+            # comm.Barrier()
+        else:
+            print("Rank: %d not manager or worker" % comm.Get_rank()); H=gen_info=exit_flag=[]
+    else:
+        H, gen_info, exit_flag = manager_main(MPI_MODE, comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     return H, gen_info, exit_flag
-
-
 
 
 def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
