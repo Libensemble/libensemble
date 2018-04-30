@@ -18,8 +18,7 @@
 # set the email address where job-related notifications will be sent
 #PBS -M jmlarson@anl.gov
 
-# Number of nodes 
-##PBS -l nodes=2:ppn=32
+# Number of nodes (request 4)
 #PBS -l nodes=4:ppn=16
 
 # Specify CPU time needed
@@ -45,10 +44,11 @@ NPROCS="$(wc -l < $PBS_NODEFILE)"
 echo This job has allocated $NPROCS cores
 
 rm libE_machinefile
-# Uncomment the next two lines if you want 1 worker per node (and one node has a manager too)
+# Parse the PBS_NODEFILE to a machinefile (to be used below) in order to put
+# ranks 1-4 on each of the 4 nodes, and put rank 0 (the manager) on the first
+# node as well. 
 head -n 1 $PBS_NODEFILE > libE_machinefile
 cat $PBS_NODEFILE | sort | uniq >> libE_machinefile
-#cat $PBS_NODEFILE | sort | uniq >> machinefile
 
 
 # Put in a timestamp

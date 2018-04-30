@@ -63,7 +63,7 @@ exit_criteria = {'sim_max': 10}
 np.random.seed(1)
 
 # Perform the run
-H = libE(sim_specs, gen_specs, exit_criteria)
+H,_,_ = libE(sim_specs, gen_specs, exit_criteria)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     filename = '6-hump_camel_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
