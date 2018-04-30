@@ -1,0 +1,41 @@
+#!/bin/bash
+#SBATCH -J libE_test
+#SBATCH -p bdwall 
+#SBATCH -o tlib.%j.%N.out
+#SBATCH -e tlib.%j.%N.error
+#SBATCH --nodes=4
+#SBATCH -t 00:01:00
+#SBATCH --mail-user=name@email.com
+
+cd $SLURM_SUBMIT_DIR
+#export PATH=/home/neveu/opal-1.9/bdw/bin:$PATH
+
+# A little useful information for the log file...
+echo Master process running on: $HOSTNAME
+echo Directory is:  $PWD
+echo PBS has allocated the following nodes: $SLURM_JOB_NODELIST 
+echo This job has allocated $SLURM_ARRAY_TASK_ID
+
+rm libE_machinefile
+# Uncomment the next two lines if you want 1 worker per node (and one node has a manager too)
+head -n 1 $SLURM_JOB_NODELIST > libE_machinefile
+cat $SLURM_JOB_NODELIST | sort | uniq >> libE_machinefile
+
+# Put in a timestamp
+echo Starting executation at: `date`
+
+pwd
+which mpirun
+cmd="mpirun -np 5 machinefile libE_machinefile python2 libE_calling_script.py libE_machinefile"
+# This note that this command passes the libE_machinefile to both MPI and the
+# libE_calling_script, in the latter script, it can be parsed and given to the 
+# alloc_func
+
+echo The command is: $cmd
+echo End PBS script information. 
+echo All further output is from the process being run and not the pbs script.\n\n
+$cmd
+
+# Print the date again -- when finished
+echo Finished at: `date`
+

@@ -16,7 +16,7 @@
 #PBS -m aeb
 
 # set the email address where job-related notifications will be sent
-#PBS -M jmlarson@anl.gov
+#PBS -M name@email.com
 
 # Number of nodes (request 4)
 #PBS -l nodes=4:ppn=16
@@ -55,7 +55,10 @@ cat $PBS_NODEFILE | sort | uniq >> libE_machinefile
 echo Starting executation at: `date`
 
 pwd
-cmd="mpiexec -np 5 -machinefile libE_machinefile python2 call_libE_on_6-hump_camel_prasanna.py libE_machinefile"
+cmd="mpiexec -np 5 -machinefile libE_machinefile python2 libE_calling_script.py libE_machinefile"
+# This note that this command passes the libE_machinefile to both MPI and the
+# libE_calling_script, in the latter script, it can be parsed and given to the 
+# alloc_func
 
 echo The command is: $cmd
 echo End PBS script information. 
