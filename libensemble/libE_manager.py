@@ -21,6 +21,7 @@ import numpy as np
 
 import time, sys, os
 import copy
+import glob
 
 #from libE_worker import worker_main
 
@@ -129,11 +130,12 @@ def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w, wor
             
         #Test: Construct a mirror list of the workers to keep up to date info - this should be at most optional as could
         #be very wasteful - might be good for debugging - I like it on serial version - duplicate here as will be optional...
-        Worker.init_workers(sim_specs, gen_specs)
-        for i, w in enumerate(nonpersis_w['waiting']):
-            #new_worker = Worker(w, H)
-            new_worker = Worker(w,empty=True) #Note empty - wont setup dirs etc
-            worker_list.append(new_worker)
+        #Worker.init_workers(sim_specs, gen_specs)
+        #for i, w in enumerate(nonpersis_w['waiting']):
+            ##new_worker = Worker(w, H)
+            #new_worker = Worker(w,empty=True) #Note empty - wont setup dirs etc
+            #worker_list.append(new_worker)
+            
     else:
         Worker.init_workers(sim_specs, gen_specs)
         for i, w in enumerate(nonpersis_w['waiting']):
@@ -238,8 +240,8 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
                     # Create a list of (empty) workers and then when MPI receive worker - put into that
                     # For performance we may not send back the whole worker, but for now it helps to see whats
                     # going on.                            
-                    widx = Worker.get_worker_index(worker_list,w) #WorkerID must match MPI rank
-                    worker_list[widx] = current_worker
+                    #widx = Worker.get_worker_index(worker_list,w) #WorkerID must match MPI rank
+                    #worker_list[widx] = current_worker
                     
                     if current_worker.isdone:
                         process_worker = True                    
@@ -535,18 +537,38 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
     #todo - clean up workers!!!
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
     
-    #Curretly workers report wall-clock
-    print_all_times = True #For test version
-    if (print_all_times):
-         for current_worker in worker_list:
-             #current_worker = Worker.get_worker(worker_list,w)
-             print("Worker %d:" % (current_worker.workerID))
-             for j, jb in enumerate(current_worker.joblist):
-                 #print("   Job %d: %s %f" % (j,jb.get_type(),jb.time))
-                 #verbose
-                 print("   Job %d: %s Tot: %f Start: %f End: %f " % (j,jb.get_type(),jb.time,jb.start,jb.end))
-             
-               
+    #Currently workers report wall-clock
+    print_times_in_output = False #For test version
+    if (print_times_in_output):
+        for current_worker in worker_list:
+            #current_worker = Worker.get_worker(worker_list,w)
+            print("Worker %d:" % (current_worker.workerID))
+            for j, jb in enumerate(current_worker.joblist):
+                print("   Job %d: %s Tot: %f" % (j,jb.get_type(),jb.time))
+                #verbose - shows start/end each job - see concurrency
+                #print("   Job %d: %s Tot: %f Start: %f End: %f " % (j,jb.get_type(),jb.time,jb.start,jb.end))
+    
+    #Create timing file
+    timing_file = 'timing.dat'
+    if MPI_MODE:
+        #May need to wait - or get message back from worker when done...
+        time.sleep(3)
+        #This has to match worker filenames
+        timing_files = sorted(glob.glob('timing.dat.w*'))
+        with open(timing_file, 'w') as outfile:
+            for fname in timing_files:
+                with open(fname) as infile:
+                    outfile.write(infile.read())
+                    #for line in infile:
+                        #outfile.write(line)
+        for file in timing_files:
+            os.remove(file)
+    else:
+        for current_worker in worker_list:        
+            with open(timing_file,'w') as f:
+                f.write("Worker %d:\n" % (current_worker.workerID))
+                for j, jb in enumerate(current_worker.joblist):
+                    f.write("   Job %d: %s Tot: %f\n" % (j,jb.get_type(),jb.time))
 
     return H[:H_ind], gen_info, exit_flag
 

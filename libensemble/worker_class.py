@@ -59,6 +59,7 @@ def worker_main(c, sim_specs, gen_specs):
     
     #workerID could be MPI rank - or could just be zero (or enumerate if ever have multi workers on an MPI task)
     #workerID = 0
+    print('rank', rank)
     workerID = rank # To use mirror list
     #worker_list.append(new_worker) #For now no worker list as only going to have one - but could easily add.
     
@@ -129,6 +130,13 @@ def worker_main(c, sim_specs, gen_specs):
     
     if 'clean_jobs' in sim_specs: worker.clean()
     
+    # Print joblist here
+    timing_file = 'timing.dat.w' + str(worker.workerID)
+    with open(timing_file,'w') as f:
+        f.write("Worker %d:\n" % (worker.workerID))
+        for j, jb in enumerate(worker.joblist):
+            f.write("   Job %d: %s Tot: %f\n" % (j,jb.get_type(),jb.time))
+            
     #Destroy worker object???
 
 # NO MPI in here
@@ -331,6 +339,7 @@ class Worker():
             #           - and then cld access anything here - will need to pass job of course
             #           - maybe thats all I need to pass - and job could contain workerID !!!!
             out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info, self.workerID)
+            #out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info)            
         else: 
             out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
         ### ===============================================================================
