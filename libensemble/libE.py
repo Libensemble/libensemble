@@ -44,7 +44,7 @@ import sys,os
 MPI_MODE = True
 
 #For non-mpi
-num_workers = 2
+num_workers = 1
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs'))
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first

@@ -48,7 +48,7 @@ class Job:
 
     newid = itertools.count()
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None, workerid = None):
         '''Instantiate a new Job instance.
         
         A new job object is created with an id, status and configuration attributes
@@ -70,9 +70,13 @@ class Job:
         self.ranks_per_node = ranks_per_node
         self.machinefile = machinefile
         self.stdout = stdout
+        self.workerID = workerid
         
         if app is not None:
-            self.name = 'job_' + app.name + '_' + str(self.id)
+            if self.workerID is not None:
+                self.name = 'job_' + app.name + '_worker' + str(self.workerID)  + '_' +  str(self.id)
+            else:
+                self.name = 'job_' + app.name + '_' + str(self.id)
         else:
             raise JobControllerException("Job must be created with an app - no app found for job ()".format(self.id))
         
@@ -136,12 +140,12 @@ class BalsamJob(Job):
     
     #newid = itertools.count() #hopefully can use the one in Job
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None, workerid = None):
         '''Instantiate a new BalsamJob instance.
         
         A new BalsamJob object is created with an id, status and configuration attributes
         '''
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, workdir, stdout)
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, workdir, stdout, workerid)
         
         self.balsam_state = None
         
@@ -234,6 +238,7 @@ class JobController:
         self.wait_and_kill = True #If true - wait for wait_time after signal and then kill with SIGKILL
         self.wait_time = 60
         self.list_of_jobs = []
+        self.workerID = None
                 
         JobController.controller = self
         
@@ -282,7 +287,7 @@ class JobController:
         
         
         default_workdir = os.getcwd() #Will be possible to override with arg when implemented
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout)
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout, self.workerID)
         
         #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_inout is not None:
@@ -427,7 +432,7 @@ class JobController:
         if wait_time is not None: 
             self.wait_time = wait_time
     
-    def get_job(jobid):
+    def get_job(self, jobid):
         ''' Returns the job object for the supplied job ID '''
         if self.list_of_jobs:
             for job in list_of_jobs:
@@ -438,7 +443,8 @@ class JobController:
         logger.warning("Job %s not found in joblist. Joblist is empty".format(jobid))
         return None
 
-
+    def set_workerID(self, workerid):
+        self.workerID = workerid
 
 class BalsamJobController(JobController):
     
@@ -492,10 +498,15 @@ class BalsamJobController(JobController):
             raise JobControllerException("Unrecognized calculation type", calc_type)
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-               
+        
+        #Need test somewhere for if no breakdown supplied.... or only machinefile
+        
         #Specific to this class
         if machinefile is not None:
-            logger.warning("machinefile arg ignored - not supported in Balsam")  
+            logger.warning("machinefile arg ignored - not supported in Balsam")
+            if num_procs is None and num_nodes is None and ranks_per_node is None:
+                raise JobControllerException("No procs/nodes provided - aborting")
+            
         
         #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
@@ -506,11 +517,13 @@ class BalsamJobController(JobController):
             stdout = None
             
         default_workdir = None #Will be possible to override with arg when implemented (else wait for Balsam to assign)
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout)
+        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout, self.workerID)
        
         #Re-do debug launch line for balsam job
         #logger.debug("Launching job: {}".format(" ".join(runline)))
-        logger.debug("Added job to Balsam database: {}".format(job.id))
+        #logger.debug("Added job to Balsam database: {}".format(job.id))
+        
+        logger.debug("Added job to Balsam database: Worker {} JobID {} nodes {} ppn {}".format(self.workerID, job.id, job.num_nodes, job.ranks_per_node))
         
         if stage_inout is not None:
             #For now hardcode staging - for testing
@@ -581,7 +594,7 @@ class BalsamJobController(JobController):
         # Get current state of jobs from Balsam database
         job.process.refresh_from_db()
         job.balsam_state = job.process.state #Not really nec to copy have balsam_state - already job.process.state...
-        logger.debug('balsam_state for job {} is {}'.format(job.id, job.balsam_state))
+        #logger.debug('balsam_state for job {} is {}'.format(job.id, job.balsam_state))
         
         import balsam.launcher.dag as dag #Might need this before get models - test
         from balsam.service import models
@@ -596,10 +609,11 @@ class BalsamJobController(JobController):
             elif job.balsam_state == 'PARENT_KILLED': #I'm not using this currently
                 job.state = 'USER_KILLED'
                 #job.success = False #Shld already be false - init to false
-                #job.errcode = #Can I get errcode??? - Else should remain as None
+                #job.errcode = #Not currently returned by Balsam API - requested - else will remain as None
             elif job.balsam_state in STATES: #In my states
                 job.state = job.balsam_state
                 #job.success = False #All other end states are failrues currently - bit risky
+                #job.errcode = #Not currently returned by Balsam API - requested - else will remain as None
             else:
                 logger.warning("Job finished, but in unrecognized Balsam state {}".format(job.balsam_state))
                 job.state = 'UNKNOWN'

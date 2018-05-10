@@ -8,15 +8,16 @@ from __future__ import absolute_import
 
 import numpy as np
 import os, shutil
+import socket
 from libensemble.message_numbers import *
 from libensemble.job_class import Job
 import threading
 import logging
-#import pdb
+from libensemble.controller import JobController
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='(%(threadName)-10s) %(message)s',
-                    )
+#logging.basicConfig(level=logging.DEBUG,
+                    #format='(%(threadName)-10s) %(message)s',
+                    #)
 
 # All routines in Worker Class have no MPI and can be called regardless of worker
 # concurrency mode. The routine worker_main is only used for MPI mode.
@@ -49,7 +50,7 @@ def worker_main(c, sim_specs, gen_specs):
     status = MPI.Status()
     
     Worker.init_workers(sim_specs, gen_specs) # Store in Worker Class
-
+    
     sim_type = comm.recv(buf=None, source=0)
     gen_type = comm.recv(buf=None, source=0)
     
@@ -59,7 +60,7 @@ def worker_main(c, sim_specs, gen_specs):
     
     #workerID could be MPI rank - or could just be zero (or enumerate if ever have multi workers on an MPI task)
     #workerID = 0
-    print('rank', rank)
+    #print('rank', rank)
     workerID = rank # To use mirror list
     #worker_list.append(new_worker) #For now no worker list as only going to have one - but could easily add.
     
@@ -67,29 +68,43 @@ def worker_main(c, sim_specs, gen_specs):
     worker = Worker(workerID)
     #comm, status, dtypes, locations = initialize_worker(c, sim_specs, gen_specs)
     
+    print('Worker %d initiated on MPI rank %d on node %s' % (workerID, rank, socket.gethostname()))
+    
     while True:
         
-        #Hmmm - I want to change this - now repeating stuff in worker.run - maybe
-        #that should just be sent extracted components and comm.recv can either
-        #receive components or receive Work and extract here.
-        
-        #Either send components or just send Work - for now I'm just sending work - discuss...
-        Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        
-        #This is for STOP only - and I think it should be a separate MPI - not using status!
+        #Note: This comm is experimental change - solution req. discussion.... not there yet!
+        #May want a finish to override a kill though came after ... anyway prob.
+        #Prob should put in function wait_on_manager()
+        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)          
+        mtag = status.Get_tag()
+        if mtag == STOP_TAG:
+            man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
+            if man_signal == MAN_SIGNAL_FINISH: #shutdown the worker
+                break
+            #What if get kill here rather than finish??? (kill means just kill running jobs - dont shut down worker)
+            #Would mean not received the message yet for job I have to kill......
+            #May then need to deal with message count as could have two to deal with - whereas finish - it doesnt matter.
+        else:
+            Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+       
+        #Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
         #Can add an mpi_iprobe or mpi_test for stop signal
-        calc_tag = status.Get_tag()
-        if calc_tag == STOP_TAG:
-            #if 'clean_jobs' in sim_specs: worker.clean()
-            break
-        
+        #calc_tag = status.Get_tag()
+        #if calc_tag == STOP_TAG:
+            ##if 'clean_jobs' in sim_specs: worker.clean()
+            #break
+
+        ##Now repeating stuff in worker.run - maybe
+        ##that should just be sent extracted components and comm.recv can either
+        ##receive components or receive Work and extract here.        
         libE_info = Work['libE_info']
         calc_type = Work['tag'] #If send components - send tag separately (dont use MPI.status!)
         
         calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_type])
         if len(calc_in) > 0: 
             calc_in = comm.recv(buf=None, source=0)
-        
+
+        ##Either send components or just send Work - for now I'm just sending work - discuss...        
         worker.run(Work, calc_in) #Change to send extracted components required....
         
         ## Receive libE_info from manager and check if STOP_TAG. 
@@ -110,33 +125,38 @@ def worker_main(c, sim_specs, gen_specs):
         
         #End signal from inside worker....
         #Do I want to send data back first (if got it??) - and do I want to send the kill info back to manager?
-        if worker.calc_status == STOP_TAG:
-            #if 'clean_jobs' in sim_specs: worker.clean()
+        #if worker.calc_status == STOP_TAG:
+        if worker.calc_status == MAN_SIGNAL_FINISH:
             break
         
 
-        #Why did I call data rather than data_out ???? - change back to data_out
-        #Also shall I send back entire worker object - is that unnecessary??? Is it too much - esp if inc. all job data???
-        #to do - remove tag right ...
-
         #print('tag',worker.calc_status)
         #comm.send(obj=worker, dest=0, tag=worker.calc_status)      # Whole object (inc. joblist if set up for example - so can print timings)
-        comm.send(obj=worker, dest=0)
+        comm.send(obj=worker, dest=0) #blocking
+        #comm.isend(obj=worker, dest=0) # Non-blocking - failing but if to recieve a kill when blocking- manger has to recv this first
         #comm.send(obj=worker.data, dest=0, tag=tag_out) # Just worker.data - as was doing before 
         
-        #Another idea might be - that on getting a STOP signal from manager - return the whole worker - so can get jobs info - but
-        #not every time - rest time just return data. This would mean a less overlap in manager receive routines though - as the
-        #serial case is based around a worker object.
+        #May be that on getting a STOP signal from manager - return the whole worker - so can get jobs info - but
+        #not every time - rest time just return data.
     
-    if 'clean_jobs' in sim_specs: worker.clean()
+    if 'clean_jobs' in sim_specs:
+        worker.clean()
     
     # Print joblist here
     timing_file = 'timing.dat.w' + str(worker.workerID)
     with open(timing_file,'w') as f:
         f.write("Worker %d:\n" % (worker.workerID))
         for j, jb in enumerate(worker.joblist):
-            f.write("   Job %d: %s Tot: %f\n" % (j,jb.get_type(),jb.time))
-            
+            #prob make this line a function of job object
+            #f.write("   Job %d: %s Tot: %f\n" % (j, jb.get_type(), jb.time))
+            f.write("   Job %d: %s Time: %.2f Start: %s End: %s Status: %s\n" % (j, jb.get_type() ,jb.time, jb.date_start, jb.date_end, jb.status))
+    
+    #Ideally send message to manager to say when done - before manager collates files.
+    #comm.send(obj=None, dest=0, tag = WORKER_DONE) #do it jeffs way!
+    #comm.isend(obj=WORKER_DONE, dest=0, tag = WORKER_DONE) #do it jeffs way!
+    
+    #print('Sent it back worker')
+    
     #Destroy worker object???
 
 # NO MPI in here
@@ -193,23 +213,11 @@ class Worker():
         self.data = {}
         self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
-        self.isdone = False #Shld this be per job?
+        self.isdone = False
         self.joblist = []
         
         #self.sim_specs = Worker.sim_specs
-        #self.gen_specs = Worker.gen_specs
-        #self.libE_info = {}
-        #self.gen_info = {}
-        #self.tag = ""
-        #self. = 
-        #check whether all need to be attributes - are some just temps....???
-        #Check through those set elsewhere and initialise here - #todo!
-
-        #self.dtypes[EVAL_SIM_TAG] = H[Worker.sim_specs['in']].dtype
-        #self.dtypes[EVAL_GEN_TAG] = H[Worker.gen_specs['in']].dtype
-        
-        #self.dtypes[EVAL_SIM_TAG] = sim_type
-        #self.dtypes[EVAL_GEN_TAG] = gen_type
+        #self.gen_specs = Worker.gen_specs       
         
         if not empty:
             if 'sim_dir' in Worker.sim_specs:
@@ -223,86 +231,64 @@ class Worker():
                 # if not os.path.exists(worker_dir):
                 shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
                 self.locations[EVAL_SIM_TAG] = self.worker_dir #May change to self.sim_dir and self.gen_dir
-    
+                
+                #Optional - set workerID in job_controller - so will be added to jobnames
+                jobctl = JobController.controller
+                jobctl.set_workerID(workerID)
 
-    #Kind of inclined for the stuff sent for calc_in to be included in Work object - but
-    #maybe a reason why not???
-    #worker.run - maybe bring _perform_calc into this - as MPI uses wrapper code anyway
+
+    #worker.run
     def run(self, Work, calc_in):
- 
-        #Original code - receives libE_info - and STOP_TAG?
-        #libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        #calc_tag = status.Get_tag()
-        #if calc_tag == STOP_TAG: break 
         
-        #Think only need self - if going to store between calls to run...
-        #Work is always sent currently so those dont need to be stored right!!!
+        self.data = {}
+        self.calc_type = None
+        self.calc_status = UNSET_TAG #From message_numbers
+        self.isdone = False  
         
-        #pdb.set_trace()
-        t = threading.currentThread()
+        #t = threading.currentThread()
         #logging.debug('Running thread %s on worker %d', t.getName(), self.workerID)
         
-        #Add a job - decide whether or not to combine with Work - which shld also be an object - or is work unit and job different.
-        #ie. job contains info on resource -eg. process_id - output like run-time etc... where as a work_unit can run anywhere - its work to be done.
-        
+        #Add a job (This is user job - currently different level to system job (in JobController). Discuss. 
+        #User job object is to contain info to be stored for each job (in joblist)
         job = Job()
         self.joblist.append(job)
         
-        #For now timing will include setup/teardown
+        #Timing will include setup/teardown
         job.start_timer()
         
-    
-        #Could keep all this inside the Work dictionary .....
-        #Does it need to be self - what if a just a working variable....
+        #Could keep all this inside the Work dictionary if sending all Work ...
         libE_info = Work['libE_info']
-        
         self.calc_type = Work['tag']
-        #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID,self.calc_type)
-        
-        #maybe shld just a job attribute - and use that - but for now just setting job to have a record of jobs at end.
         job.calc_type = Work['tag']
-        
+        gen_info = Work['gen_info']        
         #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
-        logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, job.get_type())
-        #import pdb;pdb.set_trace()
-        
-        #This will be a separate routine - telling worker to kill its job/jobs
-        #if self.calc_tag == STOP_TAG: 
-        #    self.clean()
-        #    return #Any vals to return??? Or call a finalise function???? Clean up...
-                 
-        #Does it need to be self - what if a just a working variable....
-        gen_info = Work['gen_info']
-        
-        #import pdb; pdb.set_trace()
-        #default....
-        #if calc_in is None:
-            #calc_in = np.zeros(len(libE_info['H_rows']),dtype=self.dtypes[self.calc_type])
-        #else:
-            #calc_in =  calc_in
         
         assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
         
-        data_out, tag_out = self._perform_calc(calc_in, gen_info, libE_info) 
-        #Note: Removed comm argument
-        
+        data_out, tag_out = self._perform_calc(calc_in, gen_info, libE_info)
         self.calc_status = tag_out
+        
+        #This is a libe feature that is to be reviewed for best solution
+        if self.calc_status == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
+            job.status = "Manager killed on finish" #Currently a string/description
+        elif self.calc_status == MAN_SIGNAL_KILL: 
+            job.status = "Manager killed job"
+        elif self.calc_status == WORKER_KILL:
+            job.status = "Worker killed job"
+        elif self.calc_status == JOB_FAILED:
+            job.status = "Job Failed"        
+        else:
+            job.status = "Completed"
+            
         self.data = data_out
         self.isdone = True
         
         job.stop_timer()
-        
-        #Dont think this makes sense here - put in worker loop in MPI case
-        ##End signal from inside worker....
-        #if tag_out == STOP_TAG: 
-            #if 'clean_jobs' in sim_specs: self.clean()
                 
         return # Can retrieve output from worker.data
     
-        #return data_out #May want tag_out also
-    
-    # Do we want to be removing these by default??? Maybe an option
-    # Could be option in sim_specs or something - clean up job dirs...
+    # Do we want to be removing these dirs by default??? Maybe an option
+    # Could be option in sim_specs - "clean_jobdirs"
     def clean(self):
         # Clean up - may need to chdir to saved dir also (saved_dir cld be object attribute)
         for loc in self.locations.values():
@@ -310,23 +296,18 @@ class Worker():
         return
     
     def isdone(self):
-        #Poll job - for now its blocking so return self.isdone.
+        #Poll job - Dont need function
         return self.isdone
-    
-    #Dont think need getter funcs in python - can access atrributes externally but feels weird!
-    #def calc_type(self):
-    #    return self.calc_type
 
-
-    #Prob internal only -so _perform_calc ????
+    #Prob internal only
     def _perform_calc(self, calc_in, gen_info, libE_info):
         if self.calc_type in self.locations:
             saved_dir = os.getcwd()
             #print('current dir in _perform_calc is ', saved_dir)
-            logging.debug('current dir in _perform_calc is  %s', saved_dir)
+            #logging.debug('current dir in _perform_calc is  %s', saved_dir)
             os.chdir(self.locations[self.calc_type])
 
-        #Need to check how this works - maybe for sub-comm???
+        #Need to check how this works
         #if 'persistent' in libE_info and libE_info['persistent']:
         #    libE_info['comm'] = comm
         
@@ -335,9 +316,8 @@ class Worker():
         if self.calc_type == EVAL_SIM_TAG:
             #out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info)
             
-            #experiment - cld pass workerID or cld pass worker (if import worker user-side) - ie. pass "self"
-            #           - and then cld access anything here - will need to pass job of course
-            #           - maybe thats all I need to pass - and job could contain workerID !!!!
+            #experiment - cld pass workerID OR worker (ie. pass "self") OR pass the job - with workerID contained.
+            #Also alternative route through registry/job_controller
             out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info, self.workerID)
             #out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info)            
         else: 
@@ -357,7 +337,6 @@ class Worker():
         if self.calc_type in self.locations:
             os.chdir(saved_dir)
 
-        #Prob internal only -so _perform_calc ????
         #if 'persistent' in libE_info and libE_info['persistent']:
         #    del libE_info['comm']
 

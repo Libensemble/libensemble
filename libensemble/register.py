@@ -5,7 +5,9 @@
 import os
 import subprocess
 import logging
-
+#if MPI --------------------
+from mpi4py import MPI
+#---------------------------
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
 stream_handler = logging.StreamHandler()
@@ -50,7 +52,7 @@ class Register():
         if default:
             Register.default_registry = self
 
-        logger.debug("default_registry is {}".format(Register.default_registry))
+        #logger.debug("default_registry is {}".format(Register.default_registry))
         #logger.debug("default_registry sim name is {}".format(Register.default_registry.sim_default_app))
             
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
@@ -152,8 +154,11 @@ class BalsamRegister(Register):
         #And/or compare with whats in database and only empty if I need to
         
         #Currently not deleting as will delete the top level job - ie. the one running.
-        BalsamRegister.del_apps()
-        BalsamRegister.del_jobs()
+        
+        #Will put MPI_MODE in a settings module...
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            BalsamRegister.del_apps()
+            BalsamRegister.del_jobs()
         
     
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
@@ -176,5 +181,6 @@ class BalsamRegister(Register):
         
         #if desc is None:
             #desc = calc_exe + ' ' + calc_type + ' function'
-            
-        self.add_app(calc_name, full_path, desc)
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            self.add_app(calc_name, full_path, desc)
+

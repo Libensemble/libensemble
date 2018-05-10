@@ -10,7 +10,10 @@ from __future__ import absolute_import
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.message_numbers import PERSIS_STOP
-from libensemble.message_numbers import STOP_TAG # manager tells worker run is over
+from libensemble.message_numbers import STOP_TAG # tag for manager interupt messages to workers (sh: maybe change name)
+from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
+from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
+from libensemble.message_numbers import WORKER_DONE
 
 #if MPI --------------------
 from mpi4py import MPI
@@ -18,10 +21,10 @@ from libensemble.worker_class import worker_main
 #---------------------------
 
 import numpy as np
-
 import time, sys, os
 import copy
 import glob
+import socket
 
 #from libE_worker import worker_main
 
@@ -38,9 +41,9 @@ import logging
 #import signal
 #signal.signal(signal.SIGINT, debug_signal_handler)
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='(%(threadName)-10s) %(message)s',
-                    )
+#logging.basicConfig(level=logging.DEBUG,
+                    #format='(%(threadName)-10s) %(message)s',
+                    #)
 
 
 debug_count = 0 #debugging
@@ -64,6 +67,9 @@ def manager_main(mpi_mode_in, comm, alloc_specs, sim_specs, gen_specs, failure_p
     
     global MPI_MODE
     MPI_MODE = mpi_mode_in
+    
+    if MPI_MODE:
+        print('Manager initiated on MPI rank %d on node %s' % (comm.Get_rank(), socket.gethostname()))
 
     #quick - until do proper timer
     man_start_time = time.time()
@@ -168,7 +174,7 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
 
         #This could be non-blocking (though currently may not be)
         if current_worker is not None:
-            current_worker.run(Work, calc_in)
+            current_worker.run(Work, calc_in) #Can now get calc_status returned
             #If using threads
             #t = threading.Thread(target=current_worker.run, args=(Work, calc_in))
             #thread_list.append(t)
@@ -243,8 +249,8 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
                     #widx = Worker.get_worker_index(worker_list,w) #WorkerID must match MPI rank
                     #worker_list[widx] = current_worker
                     
-                    if current_worker.isdone:
-                        process_worker = True                    
+                    if current_worker.isdone: 
+                        process_worker = True
             else:
                 current_worker = Worker.get_worker(worker_list,w)
                 if current_worker.isdone:
@@ -252,6 +258,7 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
             
             if process_worker:
                 new_stuff = True
+                #May set current_worker.isdone to false here
                 #check tag/error status here****
                 worker_out = current_worker.data
                 worker_status = current_worker.calc_status
@@ -499,6 +506,15 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
 
     return H, H_ind, term_test, nonpersis_w, persis_w
 
+#Create a utils module for stuff like this
+def smart_sort(l):
+    import re
+    """ Sort the given iterable in the way that humans expect.""" 
+    convert = lambda text: int(text) if text.isdigit() else text 
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+    return sorted(l, key = alphanum_key)
+
+
 def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info, worker_list, man_start_time):
     """ 
     Tries to receive from any active workers. 
@@ -521,10 +537,12 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
             print("Termination due to elapsed_wallclock_time has occurred.\n"\
               "A last attempt has been made to receive any completed work.\n"\
               "Posting nonblocking receives and kill messages for all active workers\n")
-            
+            sys.stdout.flush()
+            sys.stderr.flush()            
             #For serial doubt I need if not doing anything with it - but look at this in review pass anyway
-            #for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]:
-            #    comm.irecv(source=w, tag=MPI.ANY_TAG)
+            if MPI_MODE:
+                for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]:
+                    comm.irecv(source=w, tag=MPI.ANY_TAG)
             exit_flag = 2
             break
     
@@ -532,9 +550,23 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
     if MPI_MODE:
         # Kill the workers
         for w in alloc_specs['worker_ranks']:
-           comm.send(obj=None, dest=w, tag=STOP_TAG)
+           stop_signal = MAN_SIGNAL_FINISH
+           comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
+           #comm.send(obj=None, dest=w, tag=STOP_TAG)
+        #print('manager at step 1')
+        
+        #time.sleep(3)
+        ##Not working....
+        #reqs = []
+        #worker_signals = []
+        #for w in alloc_specs['worker_ranks']:
+           ##comm.recv(obj=None, source=w, tag=WORKER_DONE) #Not working....           
+           #reqs[w] = comm.irecv(source=w, tag=WORKER_DONE) #Not working....         
+        ##print('manager at step 2')           
+        #for w in alloc_specs['worker_ranks']:
+            ##comm.recv(obj=None, source=w, tag=WORKER_DONE) #Not working....           
+            #worker_signals[w] = req[w].wait(source=w, tag=WORKER_DONE) #Not working....         
     
-    #todo - clean up workers!!!
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
     
     #Currently workers report wall-clock
@@ -544,31 +576,34 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
             #current_worker = Worker.get_worker(worker_list,w)
             print("Worker %d:" % (current_worker.workerID))
             for j, jb in enumerate(current_worker.joblist):
-                print("   Job %d: %s Tot: %f" % (j,jb.get_type(),jb.time))
+                #print("   Job %d: %s Tot: %f" % (j,jb.get_type(),jb.time))
                 #verbose - shows start/end each job - see concurrency
-                #print("   Job %d: %s Tot: %f Start: %f End: %f " % (j,jb.get_type(),jb.time,jb.start,jb.end))
+                print("   Job %d: %s Tot: %f Start: %s End: %s" % (j, jb.get_type(), jb.time, jb.date_start, jb.date_end))
     
     #Create timing file
     timing_file = 'timing.dat'
     if MPI_MODE:
         #May need to wait - or get message back from worker when done...
-        time.sleep(3)
+        time.sleep(5)
         #This has to match worker filenames
-        timing_files = sorted(glob.glob('timing.dat.w*'))
+        #timing_files = sorted(glob.glob('timing.dat.w*'))
+        timing_files = smart_sort(glob.glob('timing.dat.w*'))        
         with open(timing_file, 'w') as outfile:
             for fname in timing_files:
                 with open(fname) as infile:
                     outfile.write(infile.read())
                     #for line in infile:
                         #outfile.write(line)
+        keep_all = False
         for file in timing_files:
-            os.remove(file)
+            if not keep_all:
+                os.remove(file)
     else:
         for current_worker in worker_list:        
             with open(timing_file,'w') as f:
                 f.write("Worker %d:\n" % (current_worker.workerID))
                 for j, jb in enumerate(current_worker.joblist):
-                    f.write("   Job %d: %s Tot: %f\n" % (j,jb.get_type(),jb.time))
-
+                    #f.write("   Job %d: %s Tot: %f\n" % (j,jb.get_type(),jb.time))
+                    f.write("   Job %d: %s Tot: %f Start: %s End: %s\n" % (j, jb.get_type() ,jb.time, jb.date_start, jb.date_end))
     return H[:H_ind], gen_info, exit_flag
 
