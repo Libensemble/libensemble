@@ -394,7 +394,8 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
 
     opt.set_maxeval(len(Run_H)+1) # evaluate one more point
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
-    opt.set_xtol_rel(gen_specs['xtol_rel'])
+    if 'xtol_rel' in gen_specs:
+        opt.set_xtol_rel(gen_specs['xtol_rel'])
     
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()
