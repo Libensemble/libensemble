@@ -43,7 +43,6 @@ sim_specs = {'sim_f': [obj_func], # This is the function whose output is being m
 if w == 1:
     sim_specs['sim_dir_prefix'] = '~' 
 
-
 if w == 3: 
     sim_specs['uniform_random_pause_ub'] = 0.05
 
