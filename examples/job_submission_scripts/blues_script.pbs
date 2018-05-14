@@ -1,0 +1,69 @@
+#!/bin/sh
+
+# Job name to be reported by qstat
+#PBS -N libE_run
+
+# Declare Job, non-rerunable
+#PBS -r n
+
+# Specify name for output log file
+#PBS -o log_libE_run
+
+# Join standard output and error so we only get one logfile
+#PBS -j oe
+
+# Mail to user on a=abort, b=begin, e=end
+#PBS -m aeb
+
+# set the email address where job-related notifications will be sent
+#PBS -M name@email.com
+
+# Number of nodes (request 4)
+#PBS -l nodes=4:ppn=16
+
+# Specify CPU time needed
+#PBS -l walltime=0:01:00
+
+# Select queue 
+##PBS -q haswell
+##PBS -q biggpu
+##PBS -q ivy
+#PBS -q shared
+
+export NLOPT_PYTHON_HOME="/home/jlarson/software/nlopt_install/lib/python2.7/site-packages"
+export PYTHONPATH="${PYTHONPATH}:${NLOPT_PYTHON_HOME}"
+
+cd $PBS_O_WORKDIR
+
+# A little useful information for the log file...
+echo Master process running on: $HOSTNAME
+echo Directory is:  $PWD
+echo PBS has allocated the following nodes:
+cat $PBS_NODEFILE
+NPROCS="$(wc -l < $PBS_NODEFILE)"
+echo This job has allocated $NPROCS cores
+
+rm libE_machinefile
+# Parse the PBS_NODEFILE to a machinefile (to be used below) in order to put
+# ranks 1-4 on each of the 4 nodes, and put rank 0 (the manager) on the first
+# node as well. 
+head -n 1 $PBS_NODEFILE > libE_machinefile
+cat $PBS_NODEFILE | sort | uniq >> libE_machinefile
+
+
+# Put in a timestamp
+echo Starting executation at: `date`
+
+pwd
+cmd="mpiexec -np 5 -machinefile libE_machinefile python2 libE_calling_script.py libE_machinefile"
+# This note that this command passes the libE_machinefile to both MPI and the
+# libE_calling_script, in the latter script, it can be parsed and given to the 
+# alloc_func
+
+echo The command is: $cmd
+echo End PBS script information. 
+echo All further output is from the process being run and not the pbs script.\n\n
+$cmd
+
+# Print the date again -- when finished
+echo Finished at: `date`
