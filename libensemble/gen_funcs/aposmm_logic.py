@@ -62,7 +62,7 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
 
     n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
 
-    # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs)
+    # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,gen_info=gen_info)
     if n_s < gen_specs['initial_sample']:
         updated_inds = set() 
 
@@ -394,7 +394,8 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
 
     opt.set_maxeval(len(Run_H)+1) # evaluate one more point
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
-    opt.set_xtol_rel(gen_specs['xtol_rel'])
+    if 'xtol_rel' in gen_specs:
+        opt.set_xtol_rel(gen_specs['xtol_rel'])
     
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()
@@ -727,7 +728,7 @@ def initialize_APOSMM(H, gen_specs):
         completely_returned_pt_ids = np.where([np.all(H['returned'][H['pt_id']==j]) for j in np.unique(H['pt_id'])])[0]
         n_s = np.sum(np.logical_and.reduce((~H['local_pt'], np.in1d(H['pt_id'],completely_returned_pt_ids), H['obj_component']==0 ))) # Number of returned sampled points
     else:
-        n_s = np.sum(np.logical_and(~H['local_pt'], H['returned'])) # Number of returned sampled points
+        n_s = np.sum(np.logical_and.reduce((~np.isnan(H['f']),~H['local_pt'], H['returned']))) # Number of returned sampled points (excluding nans)
 
     # Rather than build up a large output, we will just make changes in the 
     # given H, and then send back the rows corresponding to updated H entries. 

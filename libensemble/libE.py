@@ -134,13 +134,14 @@ def check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_
     from libensemble.libE_fields import libE_fields
 
     if ('sim_id',int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
-        print('\n' + 79*'*' + '\n'
-               "User generator script will be creating sim_id.\n"\
-               "Take care to do this sequentially.\n"\
-               "Also, any information given back for existing sim_id values will be overwritten!\n"\
-               "So everything in gen_out should be in gen_in!"\
-                '\n' + 79*'*' + '\n\n')
-        sys.stdout.flush()
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            print('\n' + 79*'*' + '\n'
+                   "User generator script will be creating sim_id.\n"\
+                   "Take care to do this sequentially.\n"\
+                   "Also, any information given back for existing sim_id values will be overwritten!\n"\
+                   "So everything in gen_out should be in gen_in!"\
+                    '\n' + 79*'*' + '\n\n')
+            sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
 
     H = np.zeros(1 + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out']) 
