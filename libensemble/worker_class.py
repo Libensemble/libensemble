@@ -146,10 +146,9 @@ def worker_main(c, sim_specs, gen_specs):
     timing_file = 'timing.dat.w' + str(worker.workerID)
     with open(timing_file,'w') as f:
         f.write("Worker %d:\n" % (worker.workerID))
-        for j, jb in enumerate(worker.joblist):
-            #prob make this line a function of job object
-            #f.write("   Job %d: %s Tot: %f\n" % (j, jb.get_type(), jb.time))
-            f.write("   Job %d: %s Time: %.2f Start: %s End: %s Status: %s\n" % (j, jb.get_type() ,jb.time, jb.date_start, jb.date_end, jb.status))
+        #for j, jb in enumerate(worker.joblist):
+        for jb in worker.joblist:            
+            jb.printjob(f)
     
     #Ideally send message to manager to say when done - before manager collates files.
     #comm.send(obj=None, dest=0, tag = WORKER_DONE) #do it jeffs way!

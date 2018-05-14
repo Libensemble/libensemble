@@ -602,8 +602,10 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
         for current_worker in worker_list:        
             with open(timing_file,'w') as f:
                 f.write("Worker %d:\n" % (current_worker.workerID))
-                for j, jb in enumerate(current_worker.joblist):
-                    #f.write("   Job %d: %s Tot: %f\n" % (j,jb.get_type(),jb.time))
-                    f.write("   Job %d: %s Tot: %f Start: %s End: %s\n" % (j, jb.get_type() ,jb.time, jb.date_start, jb.date_end))
+                #for j, jb in enumerate(current_worker.joblist):
+                for jb in current_worker.joblist:    
+                    #f.write("   Job %d: %s Tot: %f Start: %s End: %s\n" % (j, jb.get_type() ,jb.time, jb.date_start, jb.date_end))
+                    jb.printjob(f)
+                    
     return H[:H_ind], gen_info, exit_flag
 

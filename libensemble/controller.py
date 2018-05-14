@@ -204,9 +204,9 @@ class JobController:
                     num_nodes = 1
                     ranks_per_node = num_procs
                 else:
-                    num_nodes = num_procs/ranks_per_node
+                    num_nodes = num_procs//ranks_per_node
             else:
-                ranks_per_node = num_procs/num_nodes
+                ranks_per_node = num_procs//num_nodes
         
         return num_procs, num_nodes, ranks_per_node
 
