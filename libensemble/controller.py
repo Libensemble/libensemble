@@ -286,7 +286,6 @@ class JobController:
 
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-        import pdb;pdb.set_trace()
         if machinefile is None and self.auto_machinefile:
             #machinefilename = 'machinefile_for_worker_' + str(self.workerID)
             machinefile = 'machinefile_autogen'
