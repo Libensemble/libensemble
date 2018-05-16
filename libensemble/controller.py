@@ -78,7 +78,7 @@ class Job:
             else:
                 self.name = 'job_' + app.name + '_' + str(self.id)
         else:
-            raise JobControllerException("Job must be created with an app - no app found for job ()".format(self.id))
+            raise JobControllerException("Job must be created with an app - no app found for job {}".format(self.id))
         
         if stdout is not None:
             self.stdout = stdout
@@ -224,6 +224,9 @@ class JobController:
         
         if self.registry is None:
             raise JobControllerException("Cannot find default registry")
+        
+        self.top_level_dir = os.getcwd()
+        logger.debug("top_level_dir is {}".format(self.top_level_dir))
         
         #Configured possiby by a launcher abstract class/subclasses for launcher type - based on autodetection
         #currently hardcode here - prob prefix with cmd - eg. self.cmd_nprocs
@@ -445,6 +448,80 @@ class JobController:
 
     def set_workerID(self, workerid):
         self.workerID = workerid
+        
+    #Maybe hyperthreads should be mpi_hyperthreads - also may want option to store and re-use machinefile (in software)...
+    def create_machinefile(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+        
+        from libensemble.resources import get_available_nodes, get_cpu_cores
+        
+        #import pdb; pdb.set_trace()    
+        if machinefile is None:
+            machinefile = 'machinefile'
+        
+        if os.path.isfile(machinefile):
+            os.remove(machinefile)
+            
+        node_list = get_available_nodes(rundir=self.top_level_dir)
+        cores_avail_per_node = get_cpu_cores(hyperthreads)
+        
+        #import pdb; pdb.set_trace()
+        
+        if not node_list:
+            raise JobControllerException("Node list is empty - aborting")
+        
+        #If no decomposition supplied - use all available cores/nodes
+        if num_procs is None and num_nodes is None and ranks_per_node is None:
+            num_nodes = len(node_list)
+            ranks_per_node = cores_avail_per_node        
+            #logger
+            print("In creating machinefile - no decomposition supplied - using all available resource. Nodes: {}  ranks_per_node {}".format(num_nodes,ranks_per_node))
+        elif num_nodes is None and ranks_per_node is None:
+            #Got just num_procs
+            num_nodes = len(node_list)
+            #Here is where really want a compact/scatter option - go for scatter (could get cores and say if less than one node - but then hyperthreads complication if no psutil installed)
+        elif num_procs is None and ranks_per_node is None:
+            #Who would just put num_nodes???
+            ranks_per_node = cores_avail_per_node
+        elif num_procs is None and num_nodes is None:
+            num_nodes = len(node_list)
+        
+        num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)
+        #import pdb; pdb.set_trace()
+        if num_nodes > len(node_list):
+            #Could just downgrade to those available with warning - for now error
+            raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes,len(node_list)))
+        
+        elif ranks_per_node > cores_avail_per_node:
+            #Could just downgrade to those available with warning - for now error
+            raise JobControllerException("Not enough ranks_per_node to honour arguments. Requested {}. Only {} available".format(ranks_per_node,cores_avail_per_node))
+        
+        elif num_procs > (cores_avail_per_node * len(node_list)):
+            #Could just downgrade to those available with warning - for now error
+            raise JobControllerException("Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs,cores_avail_per_node*len(node_list)))      
+        
+        else:
+            if num_nodes < len(node_list):
+                logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes,len(node_list)))
+                
+            logger.debug("Creating machinefile with {} nodes and {} ranks per node".format(num_nodes,ranks_per_node))
+            
+            node_count = 0
+            with open(machinefile,'w') as f:
+                for node in node_list:
+                    node_count += 1
+                    if node_count > num_nodes:
+                        break
+                    for rank in range(ranks_per_node):
+                        f.write(node + '\n')
+    
+        #Return true if created and not empty
+        if os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0:
+            return True
+        else:
+            return False        
+        
+        
+        
 
 class BalsamJobController(JobController):
     
