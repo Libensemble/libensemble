@@ -71,6 +71,7 @@ class Job:
         self.machinefile = machinefile
         self.stdout = stdout
         self.workerID = workerid
+        self.manager_signal = None
         
         if app is not None:
             if self.workerID is not None:
@@ -394,7 +395,28 @@ class JobController:
         #Just updates job as provided
         #return job
                 
-    
+    def manager_poll(self, job):
+        ''' Polls for a manager signal '''
+        
+        #Will use MPI_MODE from settings.py but for now assume MPI
+        from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH,MAN_SIGNAL_KILL
+        from mpi4py import MPI
+        
+        # Manager Signals
+        # Stop tag may be manager interupt as diff kill/stop/pause....
+        comm = MPI.COMM_WORLD
+        status = MPI.Status()
+        if comm.Iprobe(source=0, tag=STOP_TAG, status=status):        
+            logger.info('Manager probe hit true during job {}'.format(job.name))
+            man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
+            if man_signal == MAN_SIGNAL_FINISH:
+                job.manager_signal = 'finish'
+            elif man_signal == MAN_SIGNAL_KILL:
+                job.manager_signal = 'kill'
+            else:
+                logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))        
+        
+        
     def kill(self, job):
         ''' Kills or cancels the supplied job '''
         
