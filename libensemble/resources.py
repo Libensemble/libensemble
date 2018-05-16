@@ -33,7 +33,6 @@ def get_slurm_nodelist():
     splitstr = fullstr.split('-',1)
     prefix = splitstr[0]
     nidstr = splitstr[1].strip("[]")
-    print(nidstr) 
     nidgroups = nidstr.split(',')
     for nidgroup in nidgroups:
         if (nidgroup.find("-") != -1):
@@ -232,9 +231,8 @@ def get_cpu_cores(hyperthreads=False):
                 ranks_per_node = _cpu_count_physical()
             except:
                 import multiprocessing
-                ranks_per_node = multiprocessing.cpu_count()                 
-                #logger            
-                print('Warning: get_cores: Logical cores (with hyperthreads) returned - install psutil to get physical cores - or specify ranks_per_node')
+                ranks_per_node = multiprocessing.cpu_count()                            
+                logger.warning('Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override')
     return ranks_per_node
 
   
