@@ -242,6 +242,8 @@ class JobController:
         self.wait_time = 60
         self.list_of_jobs = []
         self.workerID = None
+
+        self.auto_machinefile = True #Create a machinefile automatically
                 
         JobController.controller = self
         
@@ -261,7 +263,7 @@ class JobController:
     #else:
         #setattr(job, k, v)
     
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
         
         The created job object is returned.
@@ -284,9 +286,15 @@ class JobController:
 
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-        
-        #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
-        num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
+        import pdb;pdb.set_trace()
+        if machinefile is None and self.auto_machinefile:
+            #machinefilename = 'machinefile_for_worker_' + str(self.workerID)
+            machinefile = 'machinefile_autogen'
+            mfile_created, num_procs, num_nodes, ranks_per_node = self.create_machinefile(machinefile, num_procs, num_nodes, ranks_per_node, hyperthreads)
+            if not mfile_created:
+                raise JobControllerException("Auto-creation of machinefile failed")
+        else:
+            num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
         
         
         default_workdir = os.getcwd() #Will be possible to override with arg when implemented
@@ -461,6 +469,11 @@ class JobController:
         if os.path.isfile(machinefile):
             os.remove(machinefile)
             
+        #sh - todo: May replace bulk of below with auto_detect function (prob. in resources.py) - though have to decide how
+        #fits with JobController.job_partition.
+        #Then auto_detect can fill in missing resource requirements for using in either machinefile creation or
+        #or just creating num_procs/num_nodes/ranks_per_node (e.g. with balsam)
+        
         node_list = get_available_nodes(rundir=self.top_level_dir)
         cores_avail_per_node = get_cpu_cores(hyperthreads)
         
@@ -516,11 +529,12 @@ class JobController:
     
         #Return true if created and not empty
         if os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0:
-            return True
+            built_mfile = True
         else:
-            return False        
+            built_mfile = False        
         
-        
+        #Return new values for num_procs,num_nodes,ranks_per_node - in case want to use
+        return built_mfile, num_procs, num_nodes, ranks_per_node
         
 
 class BalsamJobController(JobController):
@@ -546,13 +560,15 @@ class BalsamJobController(JobController):
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
                 
-        self.list_of_jobs = []
+        self.list_of_jobs = [] #Why did I put here? Will inherit
+        
+        self.auto_machinefile = False #May in future use the auto_detect part though - to fill in procs/nodes/ranks_per_node
         
         JobController.controller = self
         #BalsamJobController.controller = self
     
-    
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False):
+    #sh - need to deal with hyperthreads option - if procs/nodes/ppn not specified
+    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
         
         The created job object is returned.
