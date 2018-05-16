@@ -191,6 +191,30 @@ def get_available_nodes(rundir=None):
     return local_nodelist
 
 
+def _open_binary(fname, **kwargs):
+    return open(fname, "rb", **kwargs)
+
+def _cpu_count_physical():
+    """Return the number of physical cores in the system."""
+    mapping = {}
+    current_info = {}
+    with _open_binary('/proc/cpuinfo') as f:        
+        for line in f:
+            line = line.strip().lower()
+            if not line:
+                # new section
+                if (b'physical id' in current_info and
+                        b'cpu cores' in current_info):
+                    mapping[current_info[b'physical id']] = current_info[b'cpu cores']
+                current_info = {}
+            else:
+                if (line.startswith(b'physical id') or
+                        line.startswith(b'cpu cores')):
+                    key, value = line.split(b'\t:', 1)
+                    current_info[key] = int(value)
+
+    return sum(mapping.values()) or None
+
 def get_cpu_cores(hyperthreads=False):
     try:
         import psutil
@@ -200,11 +224,17 @@ def get_cpu_cores(hyperthreads=False):
             ranks_per_node = psutil.cpu_count(logical=False)
     except ImportError:
         #logger
-        import multiprocessing
-        ranks_per_node = multiprocessing.cpu_count()
-        if not hyperthreads:
-            #logger            
-            print('Warning: get_cores: Logical cores (with hyperthreads) returned - install psutil to get physical cores - or specify ranks_per_node')
+        if hyperthreads:
+            import multiprocessing
+            ranks_per_node = multiprocessing.cpu_count()
+        else:
+            try:
+                ranks_per_node = _cpu_count_physical()
+            except:
+                import multiprocessing
+                ranks_per_node = multiprocessing.cpu_count()                 
+                #logger            
+                print('Warning: get_cores: Logical cores (with hyperthreads) returned - install psutil to get physical cores - or specify ranks_per_node')
     return ranks_per_node
 
   
