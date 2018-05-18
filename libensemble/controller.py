@@ -495,7 +495,7 @@ class JobController:
         #Then auto_detect can fill in missing resource requirements for using in either machinefile creation or
         #or just creating num_procs/num_nodes/ranks_per_node (e.g. with balsam)
         
-        node_list = get_available_nodes(rundir=self.top_level_dir)
+        node_list = get_available_nodes(rundir=self.top_level_dir, workerID=self.workerID)
         cores_avail_per_node = get_cpu_cores(hyperthreads)
         
         #import pdb; pdb.set_trace()

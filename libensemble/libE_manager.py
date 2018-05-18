@@ -70,6 +70,8 @@ def manager_main(mpi_mode_in, comm, alloc_specs, sim_specs, gen_specs, failure_p
     
     if MPI_MODE:
         print('Manager initiated on MPI rank %d on node %s' % (comm.Get_rank(), socket.gethostname()))
+        #test
+        print('Manager exit_criteria: ',exit_criteria)
 
     #quick - until do proper timer
     man_start_time = time.time()
