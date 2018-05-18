@@ -13,6 +13,7 @@ Module for detecting and returning system resources
 import os
 import socket
 import logging
+import itertools
 
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
@@ -135,7 +136,14 @@ def get_available_nodes(rundir=None, workerID=None):
     
     #Currently require even split for distrib mode - to match machinefile
     num_nodes = len(global_nodelist)
-    if distrib_mode:
+    
+    sub_node_workers = False
+    if num_workers >= num_nodes:
+        sub_node_workers = True
+        workers_per_node = num_workers//num_nodes
+        global_nodelist = list(itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist))
+    
+    if distrib_mode and not sub_node_workers:
         #Maybe should just read in the libe machinefile and use that - but this should match
         #Alt. create machine file with same algorithm as best_split
         nodes_per_worker, remainder = divmod(num_nodes,num_workers)

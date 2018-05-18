@@ -488,7 +488,10 @@ class JobController:
             machinefile = 'machinefile'
         
         if os.path.isfile(machinefile):
-            os.remove(machinefile)
+            try:
+                os.remove(machinefile)
+            except:
+                pass
             
         #sh - todo: May replace bulk of below with auto_detect function (prob. in resources.py) - though have to decide how
         #fits with JobController.job_partition.
@@ -508,7 +511,7 @@ class JobController:
             num_nodes = len(node_list)
             ranks_per_node = cores_avail_per_node        
             #logger
-            print("In creating machinefile - no decomposition supplied - using all available resource. Nodes: {}  ranks_per_node {}".format(num_nodes,ranks_per_node))
+            logger.debug("In creating machinefile - no decomposition supplied - using all available resource. Nodes: {}  ranks_per_node {}".format(num_nodes,ranks_per_node))
         elif num_nodes is None and ranks_per_node is None:
             #Got just num_procs
             num_nodes = len(node_list)
