@@ -3,12 +3,6 @@ Module for detecting and returning system resources
 
 """
 
-#dev notes:
-#Currently just a module - may make class if use inhertience - eg detecting resources from
-#different schedular environments etc...
-#Also currently set to work for distributed MPI mode only - can use workerID to work in central mode
-#and alternative worker concurrency modes.
-
 #from mpi4py import MPI
 import os
 import socket
@@ -28,6 +22,7 @@ class ResourcesException(Exception): pass
 
 
 def get_slurm_nodelist():
+    """Get global libEnsemble nodelist from the Slurm environment"""
     nidlst = []
     NID_LIST_VAR = 'SLURM_NODELIST'
     fullstr = os.environ[NID_LIST_VAR]
@@ -58,6 +53,7 @@ def get_slurm_nodelist():
 
 
 def get_cobalt_nodelist():
+    """Get global libEnsemble nodelist from the Cobalt environment"""
     nidlst = []
     NID_LIST_VAR = 'COBALT_PARTNAME'
     nidstr = os.environ[NID_LIST_VAR]
@@ -79,35 +75,43 @@ def get_cobalt_nodelist():
             nidlst.append(nid)
     nidlst = sorted(list(set(nidlst)))
     return nidlst
-    
+
+
 def get_num_workers():
+    """Return the total number of workers"""
     #Will use MPI_MODE from settyings.py global - for now assume using mpi.
     #Or the function may be in some worker_concurrency module
     from mpi4py import MPI
     num_workers = MPI.COMM_WORLD.Get_size() - 1
     return num_workers
 
+
 def best_split(a, n):
+    """Create the most even split of list a into n parts and return list of lists"""
     k, m = divmod(len(a), n)
     return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
-#For now via worker file - could use env
-def get_available_nodes(rundir=None, workerID=None):
+
+def get_global_nodelist(rundir=None):
+    """
+    Return the list of nodes available to all libEnsemble workers
     
-    #Or could get from alloc_specs passed by manager - For now - assume all but manager
+    If a worker_list file exists this is used, otherwise the environment
+    is interrogated for a node list. Constraint: The latter currently assumes all nodes
+    are available to workers.
+    
+    """
     if rundir is not None:
         top_level_dir = rundir
     else:
         top_level_dir = os.getcwd()
 
-    #This will only work in distributed worker mode - alt work out from workerID
-    local_host = socket.gethostname()
     worker_list_file = os.path.join(top_level_dir,'worker_list')
     
+    global_nodelist = []
     if os.path.isfile(worker_list_file):
         logger.debug("worker_list found - getting nodelist from worker_list")
         num_nodes = 0
-        global_nodelist = []
         with open(worker_list_file,'r') as f:
             for line in f:                
                 global_nodelist.append(line.rstrip())
@@ -123,7 +127,33 @@ def get_available_nodes(rundir=None, workerID=None):
         else:
             raise ResourcesException("Error. Can not find nodelist from environment")
     
-    logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
+    #logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
+    #This will only work in distributed worker mode - alt work out from workerID
+    
+    if global_nodelist:
+        return global_nodelist
+    else:
+        raise ResourcesException("Error. global_nodelist is empty")
+
+
+def get_workers_on_a_node(rundir=None):
+    """ Returns the number of workers that can be placed on each node"""
+    global_nodelist = get_global_nodelist(rundir=rundir)
+    num_workers = get_num_workers()
+    num_nodes = len(global_nodelist)
+
+    #Round up if theres a remainder
+    workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)
+    
+    return workers_per_node
+
+
+def get_available_nodes(rundir=None, workerID=None):
+    """Returns the list of nodes available to the current worker"""
+    
+    global_nodelist = get_global_nodelist(rundir=rundir)
+    
+    local_host = socket.gethostname()
     
     #But if use env nodelist then even in central mode - it will be in list - must exclude control nodes...
     distrib_mode = False
@@ -133,8 +163,6 @@ def get_available_nodes(rundir=None, workerID=None):
             break
  
     num_workers = get_num_workers()
-    
-    #Currently require even split for distrib mode - to match machinefile
     num_nodes = len(global_nodelist)
     
     sub_node_workers = False
@@ -143,6 +171,7 @@ def get_available_nodes(rundir=None, workerID=None):
         workers_per_node = num_workers//num_nodes
         global_nodelist = list(itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist))
     
+    #Currently require even split for distrib mode - to match machinefile    
     if distrib_mode and not sub_node_workers:
         #Maybe should just read in the libe machinefile and use that - but this should match
         #Alt. create machine file with same algorithm as best_split
@@ -155,7 +184,7 @@ def get_available_nodes(rundir=None, workerID=None):
         
     split_list = list(best_split(global_nodelist, num_workers))
     
-    logger.debug("split_list is {}".format(split_list)) #tmp
+    #logger.debug("split_list is {}".format(split_list)) #tmp
     local_nodelist = []
     if workerID is not None:
         local_nodelist = split_list[workerID - 1]
@@ -200,7 +229,7 @@ def _open_binary(fname, **kwargs):
     return open(fname, "rb", **kwargs)
 
 def _cpu_count_physical():
-    """Return the number of physical cores in the system."""
+    """Returns the number of physical cores on the node."""
     mapping = {}
     current_info = {}
     with _open_binary('/proc/cpuinfo') as f:        
@@ -221,6 +250,11 @@ def _cpu_count_physical():
     return sum(mapping.values()) or None
 
 def get_cpu_cores(hyperthreads=False):
+    """Returns the number of cores on the node.
+    
+    If hyperthreads is true, this is the logical cpu cores, else
+    the physical cores are returned
+    """    
     try:
         import psutil
         if hyperthreads:

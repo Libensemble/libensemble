@@ -168,6 +168,8 @@ class JobController:
     
     controller = None
     
+    #May change name to check_partition or check_decomp - as its really checking and creating consistency
+    #Not check resources
     @staticmethod
     def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
         """ Takes provided nprocs/nodes/ranks and outputs working configuration of procs/nodes/ranks or error """
@@ -227,7 +229,7 @@ class JobController:
             raise JobControllerException("Cannot find default registry")
         
         self.top_level_dir = os.getcwd()
-        logger.debug("top_level_dir is {}".format(self.top_level_dir))
+        #logger.debug("top_level_dir is {}".format(self.top_level_dir))
         
         #Configured possiby by a launcher abstract class/subclasses for launcher type - based on autodetection
         #currently hardcode here - prob prefix with cmd - eg. self.cmd_nprocs
@@ -481,7 +483,8 @@ class JobController:
     #Maybe hyperthreads should be mpi_hyperthreads - also may want option to store and re-use machinefile (in software)...
     def create_machinefile(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
         
-        from libensemble.resources import get_available_nodes, get_cpu_cores
+        #from libensemble.resources import get_available_nodes, get_cpu_cores, sub_node_workers, get_workers_per_node
+        import libensemble.resources as resources
         
         #import pdb; pdb.set_trace()    
         if machinefile is None:
@@ -498,43 +501,56 @@ class JobController:
         #Then auto_detect can fill in missing resource requirements for using in either machinefile creation or
         #or just creating num_procs/num_nodes/ranks_per_node (e.g. with balsam)
         
-        node_list = get_available_nodes(rundir=self.top_level_dir, workerID=self.workerID)
-        cores_avail_per_node = get_cpu_cores(hyperthreads)
-        
+        node_list = resources.get_available_nodes(rundir=self.top_level_dir, workerID=self.workerID)
+        cores_avail_per_node = resources.get_cpu_cores(hyperthreads)
+            
         #import pdb; pdb.set_trace()
-        
+                    
+        num_workers = resources.get_num_workers()
+        if num_workers > len(node_list):
+            workers_per_node = resources.get_workers_on_a_node(rundir=self.top_level_dir)
+            cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
+        else:
+            cores_avail_per_node_per_worker = cores_avail_per_node
+               
         if not node_list:
             raise JobControllerException("Node list is empty - aborting")
         
         #If no decomposition supplied - use all available cores/nodes
         if num_procs is None and num_nodes is None and ranks_per_node is None:
             num_nodes = len(node_list)
-            ranks_per_node = cores_avail_per_node        
+            ranks_per_node = cores_avail_per_node_per_worker        
             #logger
-            logger.debug("In creating machinefile - no decomposition supplied - using all available resource. Nodes: {}  ranks_per_node {}".format(num_nodes,ranks_per_node))
+            logger.debug("No decomposition supplied - using all available resource. Nodes: {}  ranks_per_node {}".format(num_nodes,ranks_per_node))
         elif num_nodes is None and ranks_per_node is None:
             #Got just num_procs
             num_nodes = len(node_list)
             #Here is where really want a compact/scatter option - go for scatter (could get cores and say if less than one node - but then hyperthreads complication if no psutil installed)
         elif num_procs is None and ranks_per_node is None:
             #Who would just put num_nodes???
-            ranks_per_node = cores_avail_per_node
+            ranks_per_node = cores_avail_per_node_per_worker            
         elif num_procs is None and num_nodes is None:
             num_nodes = len(node_list)
         
+        #checks config is consistent and sufficient to express - does not check actual resources
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)
+
         #import pdb; pdb.set_trace()
         if num_nodes > len(node_list):
             #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes,len(node_list)))
+            raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, len(node_list)))
         
         elif ranks_per_node > cores_avail_per_node:
             #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough ranks_per_node to honour arguments. Requested {}. Only {} available".format(ranks_per_node,cores_avail_per_node))
+            raise JobControllerException("Not enough processors on a node to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node))
+        
+        elif ranks_per_node > cores_avail_per_node_per_worker:
+            #Could just downgrade to those available with warning - for now error
+            raise JobControllerException("Not enough processors per worker to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node_per_worker))
         
         elif num_procs > (cores_avail_per_node * len(node_list)):
             #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs,cores_avail_per_node*len(node_list)))      
+            raise JobControllerException("Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs, cores_avail_per_node*len(node_list)))      
         
         else:
             if num_nodes < len(node_list):
