@@ -17,6 +17,7 @@ import logging
 import signal
 import itertools
 from libensemble.register import Register
+from libensemble.resources import Resources
 
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
@@ -229,6 +230,7 @@ class JobController:
             raise JobControllerException("Cannot find default registry")
         
         self.top_level_dir = os.getcwd()
+        
         #logger.debug("top_level_dir is {}".format(self.top_level_dir))
         
         #Configured possiby by a launcher abstract class/subclasses for launcher type - based on autodetection
@@ -249,6 +251,8 @@ class JobController:
         self.auto_machinefile = True #Create a machinefile automatically
                 
         JobController.controller = self
+        
+        self.resources = Resources(top_level_dir = self.top_level_dir)
         
         #If this could share multiple launches could set default job parameters here (nodes/ranks etc...)
         
@@ -477,38 +481,34 @@ class JobController:
         logger.warning("Job %s not found in joblist. Joblist is empty".format(jobid))
         return None
 
+
     def set_workerID(self, workerid):
         self.workerID = workerid
+
+
+    #Reformat create_machinefile to use this and also use this for non-machinefile cases when auto-detecting
+    def get_resources(self, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+        """
+        Reconciles user supplied options with available Worker resources to produce run configuration.
         
-    #Maybe hyperthreads should be mpi_hyperthreads - also may want option to store and re-use machinefile (in software)...
-    def create_machinefile(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+        Detects resources available to worker, checks if an existing user supplied config is valid,
+        and fills in any missing config information (ie. num_procs/num_nodes/ranks_per_node)
         
-        #from libensemble.resources import get_available_nodes, get_cpu_cores, sub_node_workers, get_workers_per_node
-        import libensemble.resources as resources
+        User supplied config options are honoured, and an exception is raised if these are infeasible.
+        """
         
-        #import pdb; pdb.set_trace()    
-        if machinefile is None:
-            machinefile = 'machinefile'
+        node_list = self.resources.local_nodelist
         
-        if os.path.isfile(machinefile):
-            try:
-                os.remove(machinefile)
-            except:
-                pass
-            
-        #sh - todo: May replace bulk of below with auto_detect function (prob. in resources.py) - though have to decide how
-        #fits with JobController.job_partition.
-        #Then auto_detect can fill in missing resource requirements for using in either machinefile creation or
-        #or just creating num_procs/num_nodes/ranks_per_node (e.g. with balsam)
-        
-        node_list = resources.get_available_nodes(rundir=self.top_level_dir, workerID=self.workerID)
-        cores_avail_per_node = resources.get_cpu_cores(hyperthreads)
-            
-        #import pdb; pdb.set_trace()
+        if hyperthreads:
+            cores_avail_per_node = self.resources.logical_cores_avail_per_node
+        else:
+            cores_avail_per_node = self.resources.physical_cores_avail_per_node
                     
-        num_workers = resources.get_num_workers()
-        if num_workers > len(node_list):
-            workers_per_node = resources.get_workers_on_a_node(rundir=self.top_level_dir)
+        num_workers = self.resources.num_workers
+        local_node_count = self.resources.local_node_count
+        
+        if num_workers > local_node_count:
+            workers_per_node = self.resources.workers_per_node
             cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
         else:
             cores_avail_per_node_per_worker = cores_avail_per_node
@@ -518,27 +518,27 @@ class JobController:
         
         #If no decomposition supplied - use all available cores/nodes
         if num_procs is None and num_nodes is None and ranks_per_node is None:
-            num_nodes = len(node_list)
+            num_nodes = local_node_count
             ranks_per_node = cores_avail_per_node_per_worker        
             #logger
             logger.debug("No decomposition supplied - using all available resource. Nodes: {}  ranks_per_node {}".format(num_nodes,ranks_per_node))
         elif num_nodes is None and ranks_per_node is None:
             #Got just num_procs
-            num_nodes = len(node_list)
+            num_nodes = local_node_count
             #Here is where really want a compact/scatter option - go for scatter (could get cores and say if less than one node - but then hyperthreads complication if no psutil installed)
         elif num_procs is None and ranks_per_node is None:
             #Who would just put num_nodes???
             ranks_per_node = cores_avail_per_node_per_worker            
         elif num_procs is None and num_nodes is None:
-            num_nodes = len(node_list)
+            num_nodes = local_node_count
         
         #checks config is consistent and sufficient to express - does not check actual resources
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)
 
         #import pdb; pdb.set_trace()
-        if num_nodes > len(node_list):
+        if num_nodes > local_node_count:
             #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, len(node_list)))
+            raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, local_node_count))
         
         elif ranks_per_node > cores_avail_per_node:
             #Could just downgrade to those available with warning - for now error
@@ -548,24 +548,45 @@ class JobController:
             #Could just downgrade to those available with warning - for now error
             raise JobControllerException("Not enough processors per worker to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node_per_worker))
         
-        elif num_procs > (cores_avail_per_node * len(node_list)):
+        elif num_procs > (cores_avail_per_node * local_node_count):
             #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs, cores_avail_per_node*len(node_list)))      
+            raise JobControllerException("Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs, cores_avail_per_node*local_node_count))      
         
         else:
-            if num_nodes < len(node_list):
-                logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes,len(node_list)))
-                
-            logger.debug("Creating machinefile with {} nodes and {} ranks per node".format(num_nodes,ranks_per_node))
+            if num_nodes < local_node_count:
+                logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes,local_node_count))
+        
+        return num_procs, num_nodes, ranks_per_node
+    
+    
+
+    def create_machinefile(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+        """Create a machinefile based on user supplied config options, completed by detected machine resources"""
+        
+        #Maybe hyperthreads should be mpi_hyperthreads
+   
+        if machinefile is None:
+            machinefile = 'machinefile'
+        
+        if os.path.isfile(machinefile):
+            try:
+                os.remove(machinefile)
+            except:
+                pass
             
-            node_count = 0
-            with open(machinefile,'w') as f:
-                for node in node_list:
-                    node_count += 1
-                    if node_count > num_nodes:
-                        break
-                    for rank in range(ranks_per_node):
-                        f.write(node + '\n')
+        num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
+        node_list = self.resources.local_nodelist
+        
+        logger.debug("Creating machinefile with {} nodes and {} ranks per node".format(num_nodes,ranks_per_node))
+            
+        node_count = 0
+        with open(machinefile,'w') as f:
+            for node in node_list:
+                node_count += 1
+                if node_count > num_nodes:
+                    break
+                for rank in range(ranks_per_node):
+                    f.write(node + '\n')
     
         #Return true if created and not empty
         if os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0:
@@ -641,8 +662,13 @@ class BalsamJobController(JobController):
                 raise JobControllerException("No procs/nodes provided - aborting")
             
         
-        #Set self.num_procs, self.num_nodes and self.ranks_per_node for this job
-        num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
+        #Set num_procs, num_nodes and ranks_per_node for this job
+        
+        #Without resource detection
+        #num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
+        
+        #With resource detection
+        num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
         
         #temp - while balsam does not accept a standard out name
         if stdout is not None:
