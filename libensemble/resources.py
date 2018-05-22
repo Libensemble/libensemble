@@ -37,12 +37,25 @@ class Resources:
         self.logical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=True)
         self.physical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=False)
         
-        #For stored for this worker
-        self.workerID = workerID
-        #self.local_nodelist = Resources.get_available_nodes(rundir=self.top_level_dir, workerID=self.workerID, global_nodelist=self.global_nodelist)
-        self.local_nodelist = self.get_available_nodes()        
-        self.local_node_count = len(self.local_nodelist)
-        self.workers_per_node = self.get_workers_on_a_node()
+        #kluge - need routine to test if manager - as this now worked out on init - also called by manager
+        #though that may help with removing manager nodes from env generated node list.
+        
+        if not Resources.am_I_manager():           
+            #For stored for this worker
+            self.workerID = workerID
+            #self.local_nodelist = Resources.get_available_nodes(rundir=self.top_level_dir, workerID=self.workerID, global_nodelist=self.global_nodelist:)
+            self.local_nodelist = self.get_available_nodes()        
+            self.local_node_count = len(self.local_nodelist)
+            self.workers_per_node = self.get_workers_on_a_node()
+
+    @staticmethod
+    def am_I_manager():
+        from mpi4py import MPI
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            return True
+        else:
+            return False
+       
 
     @staticmethod
     def get_slurm_nodelist():
