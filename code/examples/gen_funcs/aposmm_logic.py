@@ -826,7 +826,8 @@ def queue_update_function(H, gen_specs, persistent_data):
 
 
 # if __name__ == "__main__":
-#     [H,gen_specs] = [np.load('H856.npz')[i] for i in ['H','gen_specs']]
+#     [H,gen_specs,gen_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','gen_info']]
 #     gen_specs = gen_specs.item()
+#     gen_info = gen_info.item()
 #     import ipdb; ipdb.set_trace() 
-#     aposmm_logic(H,[],gen_specs,{})
+#     aposmm_logic(H,gen_info,gen_specs,{})
