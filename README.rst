@@ -50,13 +50,11 @@ PETSc and nlopt must be built with shared libraries enabled and present in sys.p
 Installation
 ------------
 
-pip install can be used to install libEnsemble and access the libensemble module. However, to access the examples and tests the source distribution is required. This can be obtained via PYPI or github. The simplest way of obtaining a tarball for the latest release from PYPI is::
+pip install can be used to install libEnsemble and access the libensemble module. However, to access the examples and tests the source distribution is required. This can be obtained via PYPI or github.
 
-    pip download libensemble
+You can download the tarball from the latest github `release <https://github.com/Libensemble/libensemble/releases/tag/v0.1.0/>`_::
 
-You can also download the tarball from `github <https://github.com/Libensemble/libensemble>`_::
-
-    wget https://github.com/Libensemble/libensemble/releases/tag/v0.1.0/libensemble-0.1.0.tar.gz
+    wget https://github.com/Libensemble/libensemble/tarball/v0.1.0/libensemble-0.1.0.tar.gz
 
 The examples and tests are set up to be run from the source distribution and do not currently require the libEnsemble package to be installed. Installing the package, however, will download any python dependencies required. This can be done from the top level directory using::
 
