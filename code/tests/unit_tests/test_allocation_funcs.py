@@ -23,6 +23,3 @@ def test_decide_work_and_resources():
     Work, gen_info = al['alloc_f'](nonpersis_w, persis_w, H, sim_specs, gen_specs, {})
     assert len(Work) == 0 
     # 
-
-if __name__ == "__main__":
-    test_initialize_history()
