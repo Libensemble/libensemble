@@ -63,8 +63,8 @@ install:
   - pip install mpi4py
   - pip install petsc petsc4py
   - conda install --no-update-deps nlopt
-  - conda install pytest pytest-cov
-  - conda install coveralls
+  - conda install --no-update-deps pytest pytest-cov
+  - conda install --no-update-deps coveralls
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
