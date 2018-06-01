@@ -56,7 +56,9 @@ before_install:
 install:
   #- conda install $MPI cython #Install mpi4py and petsc from src to match these - until conda packages all match
   - conda install $MPI
-  - conda install scipy
+  #- conda install scipy
+  - conda install numpy
+  - pip install scipy
   #- pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
   - pip install mpi4py
   - pip install petsc petsc4py
