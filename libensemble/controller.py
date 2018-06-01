@@ -49,7 +49,7 @@ class Job:
 
     newid = itertools.count()
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None, workerid = None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir = None, stdout = None, workerid = None):
         '''Instantiate a new Job instance.
         
         A new job object is created with an id, status and configuration attributes
@@ -70,6 +70,7 @@ class Job:
         self.num_nodes = num_nodes
         self.ranks_per_node = ranks_per_node
         self.machinefile = machinefile
+        self.hostlist = hostlist
         self.stdout = stdout
         self.workerID = workerid
         self.manager_signal = None
@@ -142,12 +143,12 @@ class BalsamJob(Job):
     
     #newid = itertools.count() #hopefully can use the one in Job
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, workdir = None, stdout = None, workerid = None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir = None, stdout = None, workerid = None):
         '''Instantiate a new BalsamJob instance.
         
         A new BalsamJob object is created with an id, status and configuration attributes
         '''
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, workdir, stdout, workerid)
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
         
         self.balsam_state = None
         
@@ -230,16 +231,26 @@ class JobController:
             raise JobControllerException("Cannot find default registry")
         
         self.top_level_dir = os.getcwd()
+        self.resources = Resources(top_level_dir = self.top_level_dir)
         
         #logger.debug("top_level_dir is {}".format(self.top_level_dir))
         
-        #Configured possiby by a launcher abstract class/subclasses for launcher type - based on autodetection
-        #currently hardcode here - prob prefix with cmd - eg. self.cmd_nprocs
+        #todo Configure by autodetection
+        #In fact it will be a sub-object - most likely with inhertience - based on detection or specification
+        #Also the construction of the run-line itself will prob. be a function of that object
         self.mpi_launcher = 'mpirun'
         self.mfile = '-machinefile'
         self.nprocs = '-np'
         self.nnodes = ''
         self.ppn = '--ppn'
+        self.hostlist = '-hosts'        
+
+        #self.mpi_launcher = 'srun'
+        #self.mfile = '-m arbitrary'
+        #self.nprocs = '--ntasks'
+        #self.nnodes = '--nodes'
+        #self.ppn = '--ntasks-per-node'
+        #self.hostlist = '-w'
         
         #Job controller settings - can be set in user function.
         self.kill_signal = 'SIGTERM'
@@ -252,7 +263,7 @@ class JobController:
                 
         JobController.controller = self
         
-        self.resources = Resources(top_level_dir = self.top_level_dir)
+        #self.resources = Resources(top_level_dir = self.top_level_dir)
         
         #If this could share multiple launches could set default job parameters here (nodes/ranks etc...)
         
@@ -294,17 +305,29 @@ class JobController:
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         if machinefile is None and self.auto_machinefile:
-            #machinefilename = 'machinefile_for_worker_' + str(self.workerID)
-            machinefile = 'machinefile_autogen'
-            mfile_created, num_procs, num_nodes, ranks_per_node = self.create_machinefile(machinefile, num_procs, num_nodes, ranks_per_node, hyperthreads)
-            if not mfile_created:
-                raise JobControllerException("Auto-creation of machinefile failed")
+            
+            #klugging this for now - not nec machinefile if more than one node - try a hostlist
+            
+            num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
+            
+            hostlist = None
+            if num_nodes > 1:
+                #hostlist
+                hostlist = self.get_hostlist()
+            else:
+                #machinefile
+                #machinefilename = 'machinefile_for_worker_' + str(self.workerID)
+                machinefile = 'machinefile_autogen'
+                mfile_created, num_procs, num_nodes, ranks_per_node = self.create_machinefile(machinefile, num_procs, num_nodes, ranks_per_node, hyperthreads)
+                if not mfile_created:
+                    raise JobControllerException("Auto-creation of machinefile failed")
+        
         else:
             num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
         
         
         default_workdir = os.getcwd() #Will be possible to override with arg when implemented
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout, self.workerID)
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
         
         #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_inout is not None:
@@ -315,23 +338,31 @@ class JobController:
         runline.append(self.mpi_launcher)
         
         if job.machinefile is not None:
+            #os.environ['SLURM_HOSTFILE'] = job.machinefile
             runline.append(self.mfile)
             runline.append(job.machinefile)
         
+        #Should be else - if machine file - dont need any other config
+        
+        if job.hostlist is not None:
+            #os.environ['SLURM_HOSTFILE'] = job.machinefile
+            runline.append(self.hostlist)
+            runline.append(job.hostlist)
+
         if job.num_procs is not None:
             runline.append(self.nprocs)
             runline.append(str(job.num_procs))
         
         #Not currently setting nodes
         #- as not always supported - but should always have the other two after calling _job_partition
-        #if self.num_nodes is not None:
+        #if job.num_nodes is not None:
             #runline.append(self.nnodes)
-            #runline.append(str(self.num_nodes))
+            #runline.append(str(job.num_nodes))
         
         #Currently issues - command depends on mpich/openmpi etc...
-        #if self.ranks_per_node is not None:
-            #runline.append(self.ppn)
-            #runline.append(str(self.ranks_per_node))        
+        if job.ranks_per_node is not None:
+            runline.append(self.ppn)
+            runline.append(str(job.ranks_per_node))        
 
         runline.append(job.app.full_path)
         
@@ -574,7 +605,7 @@ class JobController:
             except:
                 pass
             
-        num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
+        #num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
         node_list = self.resources.local_nodelist
         
         logger.debug("Creating machinefile with {} nodes and {} ranks per node".format(num_nodes,ranks_per_node))
@@ -596,6 +627,14 @@ class JobController:
         
         #Return new values for num_procs,num_nodes,ranks_per_node - in case want to use
         return built_mfile, num_procs, num_nodes, ranks_per_node
+    
+    #will prob want to adjust based on input
+    #def get_hostlist(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+    def get_hostlist(self):
+        
+        node_list = self.resources.local_nodelist
+        hostlist_str = ",".join([str(x) for x in node_list])  
+        return hostlist_str
         
 
 class BalsamJobController(JobController):
@@ -618,7 +657,10 @@ class BalsamJobController(JobController):
         
         if self.registry is None:
             raise JobControllerException("Cannot find default registry")
-        
+
+        self.top_level_dir = os.getcwd()
+        self.resources = Resources(top_level_dir = self.top_level_dir, central_mode=True)
+
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
                 
         self.list_of_jobs = [] #Why did I put here? Will inherit
@@ -667,7 +709,8 @@ class BalsamJobController(JobController):
         #Without resource detection
         #num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
         
-        #With resource detection
+        #With resource detection (may do only if under-specified?? though that will not tell if larger than possible
+        #for static allocation - but Balsam does allow dynamic allocation if too large!!
         num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
         
         #temp - while balsam does not accept a standard out name
@@ -676,7 +719,8 @@ class BalsamJobController(JobController):
             stdout = None
             
         default_workdir = None #Will be possible to override with arg when implemented (else wait for Balsam to assign)
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, default_workdir, stdout, self.workerID)
+        hostlist = None
+        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
        
         #Re-do debug launch line for balsam job
         #logger.debug("Launching job: {}".format(" ".join(runline)))

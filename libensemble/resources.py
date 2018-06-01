@@ -24,15 +24,17 @@ class Resources:
     
     """Provide system resources to libEnsemble and job controller with knowledge of workers"""
     
-    def __init__(self, top_level_dir=None, workerID=None):
+    def __init__(self, top_level_dir=None, workerID=None, central_mode=False):
         """Initialise new Resources instance"""
         if top_level_dir is None:
             self.top_level_dir = os.getcwd()
         else:
             self.top_level_dir = top_level_dir
         
+        self.central_mode = central_mode
+        
         #This is global nodelist avail to workers - may change to global_worker_nodelist
-        self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir)       
+        self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode)       
         self.num_workers = Resources.get_num_workers()
         self.logical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=True)
         self.physical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=False)
@@ -42,12 +44,18 @@ class Resources:
         
         if not Resources.am_I_manager():           
             #For stored for this worker
-            self.workerID = workerID
+            if workerID is not None:
+                self.workerID = workerID
+            else:
+                self.workerID = Resources.get_workerID()
             #self.local_nodelist = Resources.get_available_nodes(rundir=self.top_level_dir, workerID=self.workerID, global_nodelist=self.global_nodelist:)
             self.local_nodelist = self.get_available_nodes()        
             self.local_node_count = len(self.local_nodelist)
             self.workers_per_node = self.get_workers_on_a_node()
 
+
+    #Will be in comms module ------------------------------------------------
+    
     @staticmethod
     def am_I_manager():
         from mpi4py import MPI
@@ -55,8 +63,39 @@ class Resources:
             return True
         else:
             return False
-       
 
+    @staticmethod
+    def get_workerID():
+        from mpi4py import MPI
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            logger.warning('get_workerID called by manager - returning 0')
+        return MPI.COMM_WORLD.Get_rank()
+
+    @staticmethod
+    def get_num_workers():
+        """Return the total number of workers"""
+        #Will use MPI_MODE from settyings.py global - for now assume using mpi.
+        #Or the function may be in some worker_concurrency module
+        from mpi4py import MPI
+        num_workers = MPI.COMM_WORLD.Get_size() - 1
+        return num_workers
+    
+    #Call from all libE tasks (pref. inc. manager)
+    @staticmethod
+    def get_libE_nodes():
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        #rank = MPI.COMM_WORLD.Get_rank()
+        
+        #This is a libE node
+        local_host = socket.gethostname() #or MPI version
+        #all_hosts=[]
+        all_hosts = comm.allgather(local_host)
+        return all_hosts
+        
+    #---------------------------------------------------------------------------
+    
+    
     @staticmethod
     def get_slurm_nodelist():
         """Get global libEnsemble nodelist from the Slurm environment"""
@@ -91,13 +130,19 @@ class Resources:
     @staticmethod
     def get_cobalt_nodelist():
         """Get global libEnsemble nodelist from the Cobalt environment"""
+        prefix='nid'    
+        hostname = socket.gethostname()
+        numberfield = hostname[len(prefix):]
+        nnum_len = len(numberfield)
         nidlst = []
         NID_LIST_VAR = 'COBALT_PARTNAME'
         nidstr = os.environ[NID_LIST_VAR]
+        print('original node list',nidstr)
         nidgroups = nidstr.split(',')
         for nidgroup in nidgroups:
             if (nidgroup.find("-") != -1):
                 a, b = nidgroup.split("-", 1)
+                #nnum_len = len(a)
                 a = int(a)
                 b = int(b)
                 if (a > b):
@@ -106,27 +151,31 @@ class Resources:
                     a = tmp
                 b = b + 1 #need one more for inclusive
             else:
+                #a = nidgroup
+                #nnum_len = len(a)
                 a = int(nidgroup)
                 b = a + 1
             for nid in range(a, b):
-                nidlst.append(nid)
+                nidlst.append(prefix + str(nid).zfill(nnum_len)) 
+                #nidlst.append(nid)
         nidlst = sorted(list(set(nidlst)))
         return nidlst
     
-    @staticmethod
-    def get_num_workers():
-        """Return the total number of workers"""
-        #Will use MPI_MODE from settyings.py global - for now assume using mpi.
-        #Or the function may be in some worker_concurrency module
-        from mpi4py import MPI
-        num_workers = MPI.COMM_WORLD.Get_size() - 1
-        return num_workers
+
+    #def remove_non_app_nodes(global_nodelist_in):
     
-    
-    #def remove_non_worker_nodes(global_nodelist_in):
-        ##Will use MPI_MODE from settyings.py global - for now assume using mpi.   
-        ##MPI routines will use either inheritance/composition for diff concurrencies
-        #from mpi4py import MPI
+    #This is for central mode where libE nodes will not share with app nodes
+    #ie this is not for removing a manager node in distributed mode.
+    def remove_libE_nodes(global_nodelist_in):
+        libE_nodes_gather = Resources.get_libE_nodes()
+        libE_nodes_set = set(libE_nodes_gather)
+        
+        #Lose ordering this way
+        #global_nodelist_in_set = set(global_nodelist_in)
+        #global_nodelist_set = global_nodelist_in_set - libE_nodes_set
+        #global_nodelist = list(global_nodelist_set)
+        global_nodelist = list(filter(lambda x: x not in libE_nodes_set, global_nodelist_in))
+        return global_nodelist
         
     @staticmethod
     def best_split(a, n):
@@ -137,7 +186,7 @@ class Resources:
     
     #prob wont be static? - top_level_dir could be moved to resources attribute - set once on init
     @staticmethod
-    def get_global_nodelist(rundir=None):
+    def get_global_nodelist(rundir=None,central_mode=False):
         """
         Return the list of nodes available to all libEnsemble workers
         
@@ -171,8 +220,11 @@ class Resources:
                 global_nodelist = Resources.get_cobalt_nodelist()
             else:
                 raise ResourcesException("Error. Can not find nodelist from environment")
-        
-        #logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
+            
+            if central_mode:
+                global_nodelist = Resources.remove_libE_nodes(global_nodelist)
+                
+        logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
         #This will only work in distributed worker mode - alt work out from workerID
         
         if global_nodelist:
