@@ -56,13 +56,15 @@ before_install:
 install:
   #- conda install $MPI cython #Install mpi4py and petsc from src to match these - until conda packages all match
   - conda install $MPI
-  - conda install scipy
+  #- conda install scipy
+  - conda install numpy
+  - pip install scipy
   #- pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
   - pip install mpi4py
   - pip install petsc petsc4py
   - conda install --no-update-deps nlopt
-  - conda install pytest pytest-cov
-  - conda install coveralls
+  - conda install --no-update-deps pytest pytest-cov
+  - conda install --no-update-deps coveralls
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
