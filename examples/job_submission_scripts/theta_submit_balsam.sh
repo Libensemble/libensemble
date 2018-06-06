@@ -65,24 +65,25 @@ if [[ ! -d $BALSAM_DB_PATH ]]; then
 fi;
 
 # Currently need atleast one DB connection per worker (for postgres).
-if [[ $NUM_WORKERS > 100 ]]
+if [[ $NUM_WORKERS -gt 100 ]]
 then
    #Add a margin
    echo -e "max_connections=$(($NUM_WORKERS+10)) #Appended by submission script" >> $BALSAM_DB_PATH/balsamdb/postgresql.conf
 fi
+wait
 
 #Start Balsam database server running
 # balsam dbserver --stop #In case running
 balsam dbserver --reset $BALSAM_DB_PATH
 balsam dbserver --start 
 wait
-sleep 3
+sleep 5
 
 # Make sure no existing apps/jobs
 balsam rm apps --all --force
 balsam rm jobs --all --force
 wait
-sleep 3
+sleep 5
 
 # Add calling script to Balsam database as app and job.
 THIS_DIR=$PWD
