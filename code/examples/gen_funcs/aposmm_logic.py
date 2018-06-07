@@ -1,7 +1,7 @@
 from __future__ import division
 from __future__ import absolute_import
 
-import sys, os
+import sys, os, traceback
 import numpy as np
 # import scipy as sp
 from scipy.spatial.distance import cdist
@@ -108,7 +108,12 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
                 updated_inds.update(sorted_run_inds) 
 
             else: 
-                gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                matching_ind = np.where(np.equal(x_new,O['x_on_cube']).all(1))[0]
+                if len(matching_ind) == 0:
+                    gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                else:
+                    assert len(matching_ind) == 1, "This point shouldn't have ended up in the O twice!"
+                    gen_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
 
         for i in inactive_runs:
             gen_info['active_runs'].remove(i)
@@ -320,7 +325,12 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
                 exit_code = 0
                 print(e.__doc__)
                 print(e.args)
-                print(Run_H['x_on_cube'])
+                print("These are the points in the run that has failed:", Run_H['x_on_cube'])
+                _, _, tb = sys.exc_info()
+                traceback.print_tb(tb) # Fixed format
+                tb_info = traceback.extract_tb(tb)
+                filename, line, func, text = tb_info[-1]
+                print('An error occurred on line {} in statement {}'.format(line, text))
 
 
         elif gen_specs['localopt_method'] in ['pounders']:
@@ -340,7 +350,12 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
                 exit_code = 0
                 print(e.__doc__)
                 print(e.args)
-
+                print("These are the points in the run that has failed:", Run_H['x_on_cube'])
+                _, _, tb = sys.exc_info()
+                traceback.print_tb(tb) # Fixed format
+                tb_info = traceback.extract_tb(tb)
+                filename, line, func, text = tb_info[-1]
+                print('An error occurred on line {} in statement {}'.format(line, text))
         else:
             sys.exit("Unknown localopt method. Exiting")
 
@@ -351,7 +366,6 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
         else:
             # We need to add a previously evaluated point into this run
             gen_info['run_order'][run].append(np.nonzero(matching_ind)[0][0])
-
 
     return x_opt, exit_code, gen_info, sorted_run_inds
 
@@ -386,6 +400,7 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
 
     # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0),min(x0-lb))
+    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small for NLopt to handle"
 
     if 'dist_to_bound_multiple' in gen_specs:
         opt.set_initial_step(dist_to_bound*gen_specs['dist_to_bound_multiple'])
@@ -747,7 +762,7 @@ def initialize_APOSMM(H, gen_specs):
     if 'mu' in gen_specs:
         mu = gen_specs['mu']
     else:
-        mu = 0
+        mu = 1e-4
 
     if 'nu' in gen_specs:
         nu = gen_specs['nu']
