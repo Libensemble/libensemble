@@ -379,6 +379,8 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     through Run_H, sets the parameters and starting points for the run.
     """
 
+    assert 'xtol_rel' or 'xtol_abs' or 'ftol_rel' or 'ftol_abs' in gen_specs, "NLopt can cycle if xtol_rel, xtol_abs, ftol_rel, or ftol_abs are not set" 
+
     def nlopt_obj_fun(x, grad, Run_H):
         out = look_in_history(x, Run_H)
 
@@ -411,6 +413,12 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
     if 'xtol_rel' in gen_specs:
         opt.set_xtol_rel(gen_specs['xtol_rel'])
+    if 'ftol_rel' in gen_specs:
+        opt.set_xtol_rel(gen_specs['ftol_rel'])
+    if 'xtol_abs' in gen_specs:
+        opt.set_xtol_rel(gen_specs['xtol_abs'])
+    if 'ftol_abs' in gen_specs:
+        opt.set_xtol_rel(gen_specs['ftol_abs'])
     
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()

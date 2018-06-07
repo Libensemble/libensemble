@@ -86,6 +86,11 @@ for run in range(2):
         gen_specs['mu']= 1e-4
         gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
 
+        gen_specs.pop('xtol_rel')
+        gen_specs['ftol_rel'] = 1e-2
+        gen_specs['xtol_abs'] = 1e-3
+        gen_specs['ftol_abs'] = 1e-8
+
     H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
