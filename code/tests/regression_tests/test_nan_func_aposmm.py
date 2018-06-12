@@ -1,9 +1,8 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html 
+# Runs libEnsemble on a function that returns only nan; tests APOSMM functionality 
 # 
 # Execute via the following command:
-#    mpiexec -np 4 python3 call_6-hump_camel.py
+#    mpiexec -np 4 python3 test_nan_func_aposmm.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
