@@ -28,13 +28,14 @@ n = 2
 
 def nan_func(calc_in,gen_info,sim_specs,libE_info):
     H = np.zeros(1,dtype=sim_specs['out'])
+    H['f_i'] = np.nan
     H['f'] = np.nan
     return (H, gen_info)
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': [nan_func], # This is the function whose output is being minimized
              'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float),('grad',float,n), # This is the output from the function being minimized
+             'out': [('f',float),('f_i',float),('grad',float,n), # This is the output from the function being minimized
                     ],
              }
 
@@ -58,7 +59,7 @@ gen_out = [('x',float,n),
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': aposmm_logic,
-             'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
+             'in': [o[0] for o in gen_out] + ['f','f_i', 'grad', 'returned'],
              'out': gen_out,
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
@@ -71,6 +72,11 @@ gen_specs = {'gen_f': aposmm_logic,
              'num_inst':1,
              }
 
+w = MPI.COMM_WORLD.Get_size()-1
+if w == 3:
+    gen_specs['single_component_at_a_time'] = True
+    gen_specs['components'] = 1
+    gen_specs['combine_component_func'] = np.linalg.norm
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 1000}
