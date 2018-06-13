@@ -33,7 +33,7 @@ def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
 
         H, H_ind, nonpersis_w, persis_w, gen_info = receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info)
 
-        persistent_queue_data = update_active_and_queue(H[:H_ind], gen_specs, persistent_queue_data)
+        persistent_queue_data = update_active_and_queue(H[:H_ind], libE_specs, gen_specs, persistent_queue_data)
 
         Work, gen_info = alloc_specs['alloc_f'](nonpersis_w, persis_w, H[:H_ind], sim_specs, gen_specs, gen_info)
 
@@ -174,13 +174,13 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
     return H, H_ind, nonpersis_w, persis_w, gen_info
 
 
-def update_active_and_queue(H, gen_specs, data):
+def update_active_and_queue(H, libE_specs, gen_specs, data):
     """ 
     Call a user-defined function that decides if active work should be continued
     and possibly updated the priority of points in H.
     """
-    if 'queue_update_function' in gen_specs and len(H):
-        H, data = gen_specs['queue_update_function'](H,gen_specs, data)
+    if 'queue_update_function' in libE_specs and len(H):
+        H, data = libE_specs['queue_update_function'](H,gen_specs, data)
     
     return data
 

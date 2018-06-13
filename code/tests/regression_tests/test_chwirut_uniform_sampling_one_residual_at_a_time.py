@@ -59,15 +59,15 @@ gen_specs = {'gen_f': uniform_random_sample_obj_components,
              'batch_mode': True,
              'stop_on_NaNs': True, 
              'stop_partial_fvec_eval': True,
-             'queue_update_function': queue_update_function 
              }
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
                   }
 
+libE_specs = {'queue_update_function': queue_update_function}
 np.random.seed(1)
 # Perform the run
-H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
+H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0
