@@ -18,12 +18,12 @@ import numpy as np
 import time, sys, os
 import copy
 
-def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
+def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
 
-    H, H_ind, term_test, nonpersis_w, persis_w = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0)
+    H, H_ind, term_test, nonpersis_w, persis_w, comm = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
     persistent_queue_data = {}; gen_info = {}
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w)
@@ -44,7 +44,7 @@ def manager_main(comm, alloc_specs, sim_specs, gen_specs, failure_processing, ex
 
         # persis_w = give_information_to_persistent_workers(comm, persis_w)
 
-    H, gen_info, exit_flag = final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info)
+    H, gen_info, exit_flag = final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, gen_info)
 
     return H, gen_info, exit_flag
 
@@ -302,7 +302,7 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     return False
 
 
-def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
+def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run 
@@ -356,12 +356,14 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0):
     start_time = time.time()
     term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
 
-    nonpersis_w = {'waiting': alloc_specs['worker_ranks'].copy(), EVAL_GEN_TAG:set(), EVAL_SIM_TAG:set(), 'blocked':set()}
+    nonpersis_w = {'waiting': libE_specs['worker_ranks'].copy(), EVAL_GEN_TAG:set(), EVAL_SIM_TAG:set(), 'blocked':set()}
     persis_w = {'waiting':{EVAL_SIM_TAG:set(),EVAL_GEN_TAG:set()}, EVAL_SIM_TAG:set(), EVAL_GEN_TAG:set()}
 
-    return H, H_ind, term_test, nonpersis_w, persis_w
+    comm = libE_specs['comm']
 
-def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, alloc_specs, gen_info):
+    return H, H_ind, term_test, nonpersis_w, persis_w, comm
+
+def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, gen_info):
     """ 
     Tries to receive from any active workers. 
 
@@ -386,7 +388,7 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
             break
 
     ### Kill the workers
-    for w in alloc_specs['worker_ranks']:
+    for w in libE_specs['worker_ranks']:
         comm.send(obj=None, dest=w, tag=STOP_TAG)
 
     return H[:H_ind], gen_info, exit_flag

@@ -9,13 +9,13 @@ import libE_manager as man
 from test_manager_main import make_criteria_and_specs_1
 from give_sim_work_first import give_sim_work_first
 
-al = {'alloc_f': give_sim_work_first, 'worker_ranks':set([1,2]),'persist_gen_ranks':set([]),'out':[]}
-
+al = {'alloc_f': give_sim_work_first,'persist_gen_ranks':set([]),'out':[]}
+libE_specs = {'comm': {}, 'worker_ranks':set([1,2])}
 def test_decide_work_and_resources():
 
     sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1()
 
-    H, H_ind, _, _, persis_w = man.initialize(sim_specs, gen_specs, al, exit_criteria,[]) 
+    H, H_ind, _, _, persis_w, _ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[],libE_specs) 
 
 
     # Don't give out work when idle is empty
