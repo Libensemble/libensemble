@@ -80,6 +80,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
 
     if 'comm' not in libE_specs:
         libE_specs['comm'] = MPI.COMM_WORLD
+        libE_specs['manager_ranks'] = set([0])
+        libE_specs['worker_ranks'] = set(range(1,MPI.COMM_WORLD.Get_size()))
 
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
@@ -130,8 +132,6 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
         assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields not in H. Exiting"
         if 'returned' in fields:
             assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
-        if 'obj_component' in fields:
-            assert np.max(H0['obj_component']) < gen_specs['components'], "H0 has more obj_components than exist for this problem. Exiting."
 
         for field in fields:
             assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"

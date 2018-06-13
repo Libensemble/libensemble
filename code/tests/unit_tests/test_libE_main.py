@@ -7,7 +7,7 @@ from libE import *
 from test_manager_main import make_criteria_and_specs_0
 
 al = {'persist_gen_ranks':set([])}
-libE_specs = {'manager_ranks':set([0]), 'worker_ranks':set([1,2])}
+libE_specs = {'comm':[], 'manager_ranks':set([0]), 'worker_ranks':set([1,2])}
 
 def test_nonworker_and_nonmanager_rank():
 
@@ -38,20 +38,6 @@ def test_checking_inputs():
     H0 = rmfield( H0, 'returned')
     check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
 
-
-    # Adding 'obj_component' but more than expected
-    H1 = np.zeros(len(H0),dtype=[('obj_component',int)])
-    H1['obj_component'] = np.arange(len(H1))
-    H2 = np.lib.recfunctions.merge_arrays((H0,H1), flatten = True, usemask = False)
-    gen_specs['components'] = 2
-    gen_specs['out'] += [('obj_component','int')]
-
-    try: 
-        check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H2) 
-    except AssertionError:
-        assert 1
-    else:
-        assert 0
 
 def rmfield( a, *fieldnames_to_remove ):
         return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]
