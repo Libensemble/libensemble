@@ -34,7 +34,7 @@ from start_persistent_local_opt_gens import start_persistent_local_opt_gens
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
+sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), ('grad',float,2) # This is the output from the function being minimized
                     ],

@@ -33,7 +33,7 @@ def nan_func(calc_in,gen_info,sim_specs,libE_info):
     return (H, gen_info)
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': [nan_func], # This is the function whose output is being minimized
+sim_specs = {'sim_f': nan_func, # This is the function whose output is being minimized
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float),('f_i',float),('grad',float,n), # This is the output from the function being minimized
                     ],

@@ -66,7 +66,7 @@ def perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, g
         libE_info['comm'] = comm
 
     if calc_tag == EVAL_SIM_TAG: 
-        out = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
+        out = sim_specs['sim_f'](calc_in,gen_info,sim_specs,libE_info)
     else: 
         out = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
 

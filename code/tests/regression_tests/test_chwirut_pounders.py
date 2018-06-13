@@ -32,7 +32,7 @@ m = 214
 n = 3
 max_sim_budget = 10
 
-sim_specs = {'sim_f': [libE_func_wrapper],
+sim_specs = {'sim_f': libE_func_wrapper,
              'in': ['x'],
              'out': [('f',float), ('fvec',float,m),
                      ],
