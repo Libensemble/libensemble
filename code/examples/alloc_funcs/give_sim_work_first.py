@@ -119,9 +119,9 @@ def give_sim_work_first(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_info
             # Give gen work 
             gen_count += 1 
 
-            Work[i] = {'gen_info':gen_info[i],
+            Work[i] = {'gen_info': gen_info[i],
                        'H_fields': gen_specs['in'],
-                       'tag':EVAL_GEN_TAG, 
+                       'tag': EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': range(0,len(H)),
                                      'gen_num': i
                                 }

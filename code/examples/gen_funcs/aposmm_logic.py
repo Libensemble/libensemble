@@ -79,14 +79,16 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
             if not np.any(H['started_run']):
                 gen_info['active_runs'] = set()
                 gen_info['run_order'] = {}
+                gen_info['total_runs'] = 0
 
-            new_run_num = len(gen_info['run_order'])
+            new_run_num = gen_info['total_runs']
 
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
 
             gen_info['run_order'][new_run_num] = [ind] 
             gen_info['active_runs'].update([new_run_num])
+            gen_info['total_runs'] +=1
             
         # Find the next point for any uncompleted runs. I currently save this
         # information to file and re-load. (Given a history of points, I don't
@@ -117,6 +119,7 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
 
         for i in inactive_runs:
             gen_info['active_runs'].remove(i)
+            gen_info['run_order'].pop(i) # Deletes any information about this run 
 
     if len(H) == 0:
         samples_needed = gen_specs['initial_sample']
@@ -315,17 +318,17 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
 
             if gen_specs['localopt_method'] in ['LD_MMA']:
-                Run_H = H[['x_on_cube','f','grad']][sorted_run_inds] 
+                fields_to_pass = ['x_on_cube','f','grad']
             else:
-                Run_H = H[['x_on_cube','f']][sorted_run_inds] 
+                fields_to_pass = ['x_on_cube','f']
 
             try:
-                x_opt, exit_code = set_up_and_run_nlopt(Run_H, gen_specs)
+                x_opt, exit_code = set_up_and_run_nlopt(H[fields_to_pass][sorted_run_inds], gen_specs)
             except Exception as e:
                 exit_code = 0
                 print(e.__doc__)
                 print(e.args)
-                print("These are the points in the run that has failed:", Run_H['x_on_cube'])
+                print("These are the points in the run that has failed:", H['x_on_cube'][sorted_run_inds])
                 _, _, tb = sys.exc_info()
                 traceback.print_tb(tb) # Fixed format
                 tb_info = traceback.extract_tb(tb)
