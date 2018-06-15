@@ -85,8 +85,8 @@ exit_criteria = {'sim_max': 10} # Intentially set low so as to test that a worke
 np.random.seed(1)
 
 alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens}
-# Don't do a "persistent worker run" if only one wokrer
 if MPI.COMM_WORLD.Get_size() == 2: 
+    # Can't do a "persistent worker run" if only one worker
     quit()
 # Perform the run
 H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)

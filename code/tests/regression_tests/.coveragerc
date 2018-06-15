@@ -2,6 +2,7 @@
 source = ../../src
         ../../examples/sim_funcs/
         ../../examples/gen_funcs/
+        ../../examples/alloc_funcs/
         .
         #common
 
