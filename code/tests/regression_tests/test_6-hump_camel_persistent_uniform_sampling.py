@@ -53,9 +53,12 @@ np.random.seed(1)
 
 alloc_specs = {'out':[], 'alloc_f':alloc_f}
 
+if MPI.COMM_WORLD.Get_size()==2:
+    # Can't do a "persistent worker run" if only one worker
+    quit() 
+
 # Perform the run
 H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
 
-if MPI.COMM_WORLD.Get_rank()==0: 
-    print(H)
-    print(H.dtype)
+if MPI.COMM_WORLD.Get_rank() == 0:
+    assert flag == 0
