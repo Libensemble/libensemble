@@ -57,7 +57,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 # be inherited for different worker concurrency schemes
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         alloc_specs={'out':[], 'alloc_f': give_sim_work_first, 'manager_ranks': set([0]), 'worker_ranks': None},
-        c={'comm': 0, 'color': 0}, 
+        c=None, 
         H0=[]):
     """ 
     This is the outer libEnsemble routine. It checks each rank in c['comm']
@@ -66,13 +66,18 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     (Some subroutines currently assume that the manager is always (only) rank 0.)
     """
     
+    #For release - prob just back to MPI by default - but for doing tests.
     if MPI_MODE:
-        alloc_specs['worker_ranks'] = set(range(1,MPI.COMM_WORLD.Get_size()))
-        c={'comm': MPI.COMM_WORLD, 'color': 0}
+        if alloc_specs['worker_ranks'] is None:
+            alloc_specs['worker_ranks'] = set(range(1,MPI.COMM_WORLD.Get_size()))
+        if c is None:
+            c={'comm': MPI.COMM_WORLD, 'color': 0}
     else:
-        alloc_specs['worker_ranks'] = set(range(0,num_workers))
-        c={'comm': 0, 'color': 0}
-
+        if alloc_specs['worker_ranks'] is None:
+            alloc_specs['worker_ranks'] = set(range(0,num_workers))
+        if c is None: 
+            c={'comm': 0, 'color': 0}
+    
     
     check_inputs(c, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
