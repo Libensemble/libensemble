@@ -16,6 +16,7 @@ import subprocess
 import logging
 import signal
 import itertools
+import time
 from libensemble.register import Register
 from libensemble.resources import Resources
 
@@ -62,6 +63,9 @@ class Job:
         self.errcode = None
         self.finished = False  # True means job has run - not whether was successful
         self.success = False
+        self.launch_time = None       
+        self.runtime = None
+        self.total_time = None
         
         #Run attributes
         self.app = app
@@ -135,6 +139,26 @@ class Job:
             raise ValueError("%s not found in working directory".format(self.stdout))
         else:
             return open(path).read()
+        
+        
+    #note - this is currently ONLY FINAL TIME FOR JOB. So why is it calling on poll ????????????????????????
+    #And prob want to use for polling in sim func - esp in balsam - where want acutal runtime not time since launch
+    def calc_job_timing(self):
+        """Calculate timing information for this job"""
+        if self.launch_time is None:
+            logger.warning("Cannot calc job timing - launch time not set")
+            return
+        
+        #In case already been killed and set then
+        if self.runtime is None:
+            self.runtime = time.time() - self.launch_time
+            
+        #For direct launched jobs - these should be the same.
+        if self.total_time is None:
+            if self.runtime is not None:
+                self.total_time = self.runtime
+            else:
+                self.total_time = time.time() - self.launch_time    
 
 
 class BalsamJob(Job):
@@ -162,7 +186,19 @@ class BalsamJob(Job):
     def read_stdout(self):
         out = self.process.read_file_in_workdir(self.stdout)
         return out
-   
+
+    def calc_job_timing(self):
+        """Calculate timing information for this job"""
+        
+        #Get runtime from Balsam
+        self.runtime = self.process.runtime_seconds
+
+        if self.launch_time is None:
+            logger.warning("Cannot calc job total_time - launch time not set")
+            return
+    
+        if self.total_time is None:
+            self.total_time = time.time() - self.launch_time   
 
 class JobController:
     
@@ -214,7 +250,23 @@ class JobController:
                 ranks_per_node = num_procs//num_nodes
         
         return num_procs, num_nodes, ranks_per_node
-
+    
+    #def _calc_job_timing(job):
+        
+        #if job.launch_time is None:
+            #logger.warning("Cannot calc job timing - launch time not set")
+            #return
+        
+        ##In case already been killed and set then
+        #if job.runtime is None:
+            #job.runtime = time.time() - job.launch_time
+            
+        ##For direct launched jobs - these should be the same.
+        #if job.total_time is None:
+            #if job.runtime is not None:
+                #job.total_time = job.runtime
+            #else:
+                #job.total_time = time.time() - job.launch_time
     
     def __init__(self, registry=None):
         '''Instantiate a new JobController instance.
@@ -256,6 +308,9 @@ class JobController:
         self.kill_signal = 'SIGTERM'
         self.wait_and_kill = True #If true - wait for wait_time after signal and then kill with SIGKILL
         self.wait_time = 60
+        
+        #list_of_jobs: Need to decide on reset... - reset for each calc?
+        #and how link to libe job (or calc) class - if reset for each calc - could store this in job
         self.list_of_jobs = []
         self.workerID = None
 
@@ -377,6 +432,11 @@ class JobController:
             #logger.info(runline)
         else:          
             logger.debug("Launching job: {}".format(" ".join(runline)))
+            
+            #not good for timing job itself as dont know when finishes - if use this prob. change to date time or
+            #use for timeout. For now using for timing with approx end....
+            job.launch_time = time.time()
+            
             job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
             
             #To test when have workdir
@@ -415,6 +475,8 @@ class JobController:
         else:
             job.finished = True
             #logger.debug("Process {} Completed".format(job.process))
+            
+            job.calc_job_timing()               
             
             if job.process.returncode == 0:
                 job.success = True
@@ -485,6 +547,8 @@ class JobController:
 
         job.state = 'USER_KILLED'
         job.finished = True
+        
+        job.calc_job_timing()
         
         #Need to test out what to do with
         #job.errcode #Can it be discovered after killing?
@@ -635,7 +699,7 @@ class JobController:
         node_list = self.resources.local_nodelist
         hostlist_str = ",".join([str(x) for x in node_list])  
         return hostlist_str
-        
+           
 
 class BalsamJobController(JobController):
     
@@ -670,6 +734,17 @@ class BalsamJobController(JobController):
         JobController.controller = self
         #BalsamJobController.controller = self
     
+    #def _calc_job_timing(job):
+        ##Get runtime from Balsam
+        #if job.launch_time is None:
+            #logger.warning("Cannot calc job total_time - launch time not set")
+            #return
+    
+        #if job.total_time is None:
+            #job.total_time = time.time() - job.launch_time
+        
+        
+        
     #sh - need to deal with hyperthreads option - if procs/nodes/ppn not specified
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
@@ -727,6 +802,10 @@ class BalsamJobController(JobController):
         #logger.debug("Added job to Balsam database: {}".format(job.id))
         
         logger.debug("Added job to Balsam database: Worker {} JobID {} nodes {} ppn {}".format(self.workerID, job.id, job.num_nodes, job.ranks_per_node))
+        
+        #This is not used with Balsam for run-time as this would include wait time
+        #Again considering changing launch to submit - or whatever I chose before.....
+        job.launch_time = time.time() #Not good for timing job - as I dont know when it finishes - only poll/kill est.
         
         if stage_inout is not None:
             #For now hardcode staging - for testing
@@ -804,6 +883,9 @@ class BalsamJobController(JobController):
 
         if job.balsam_state in models.END_STATES:
             job.finished = True
+            
+            job.calc_job_timing()
+            
             if job.workdir == None:
                 job.workdir = job.process.working_directory            
             if job.balsam_state == 'JOB_FINISHED':
@@ -842,6 +924,7 @@ class BalsamJobController(JobController):
 
         job.state = 'USER_KILLED'
         job.finished = True
+        job.calc_job_timing()
         
         #Check if can wait for kill to complete - affect signal used etc....
     
