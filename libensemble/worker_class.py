@@ -22,6 +22,9 @@ from libensemble.controller import JobController
 # All routines in Worker Class have no MPI and can be called regardless of worker
 # concurrency mode. The routine worker_main is only used for MPI mode.
 
+#Prob. change job module used here to calc and all job names to calc - inc. print 
+#to timing.dat - which may also be calc_summary.dat or something.
+
 #Question over whether have separate MPI_worker module - so no MPI in this module - but for
 #now put in here and only load MPI in this routine - NO MPI in Worker Class (below)
 #Might change this function name to worker_MPI or something....
@@ -70,6 +73,11 @@ def worker_main(c, sim_specs, gen_specs):
     
     print('Worker %d initiated on MPI rank %d on node %s' % (workerID, rank, socket.gethostname()))
     
+    # Print joblist on-the-fly
+    timing_file = 'timing.dat.w' + str(worker.workerID)
+    with open(timing_file,'w') as f:
+        f.write("Worker %d:\n" % (worker.workerID))
+
     while True:
         
         #Note: This comm is experimental change - solution req. discussion.... not there yet!
@@ -123,6 +131,9 @@ def worker_main(c, sim_specs, gen_specs):
             ##     comm.Recv(data,source=0)
             ##     calc_in[i] = data 
         
+        with open(timing_file,'a') as f:
+            worker.joblist[-1].printjob(f)     
+                
         #End signal from inside worker....
         #Do I want to send data back first (if got it??) - and do I want to send the kill info back to manager?
         #if worker.calc_status == STOP_TAG:
@@ -140,15 +151,16 @@ def worker_main(c, sim_specs, gen_specs):
         #not every time - rest time just return data.
     
     if 'clean_jobs' in sim_specs:
-        worker.clean()
+        if sim_specs['clean_jobs']:
+            worker.clean()
     
-    # Print joblist here
-    timing_file = 'timing.dat.w' + str(worker.workerID)
-    with open(timing_file,'w') as f:
-        f.write("Worker %d:\n" % (worker.workerID))
-        #for j, jb in enumerate(worker.joblist):
-        for jb in worker.joblist:            
-            jb.printjob(f)
+    ## Print joblist here
+    #timing_file = 'timing.dat.w' + str(worker.workerID)
+    #with open(timing_file,'w') as f:
+        #f.write("Worker %d:\n" % (worker.workerID))
+        ##for j, jb in enumerate(worker.joblist):
+        #for jb in worker.joblist:            
+            #jb.printjob(f)
     
     #Ideally send message to manager to say when done - before manager collates files.
     #comm.send(obj=None, dest=0, tag = WORKER_DONE) #do it jeffs way!
@@ -214,6 +226,7 @@ class Worker():
         self.calc_status = UNSET_TAG #From message_numbers
         self.isdone = False
         self.joblist = []
+        self.job_controller_set = False
         
         #self.sim_specs = Worker.sim_specs
         #self.gen_specs = Worker.gen_specs       
@@ -232,8 +245,16 @@ class Worker():
                 self.locations[EVAL_SIM_TAG] = self.worker_dir #May change to self.sim_dir and self.gen_dir
                 
                 #Optional - set workerID in job_controller - so will be added to jobnames
-                jobctl = JobController.controller
-                jobctl.set_workerID(workerID)
+                try:
+                    jobctl = JobController.controller
+                    jobctl.set_workerID(workerID)
+                except Exception as e:
+                    #logger
+                    print("Info: No job_controller set on worker", workerID)
+                    self.job_controller_set = False
+                else:
+                    self.job_controller_set = True
+                    #jobctl.set_workerID(workerID)
 
 
     #worker.run
@@ -317,8 +338,8 @@ class Worker():
             
             #experiment - cld pass workerID OR worker (ie. pass "self") OR pass the job - with workerID contained.
             #Also alternative route through registry/job_controller
-            out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info, self.workerID)
-            #out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info)            
+            #out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info, self.workerID)
+            out = Worker.sim_specs['sim_f'][0](calc_in,gen_info,Worker.sim_specs,libE_info)            
         else: 
             out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
         ### ===============================================================================
