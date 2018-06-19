@@ -1,7 +1,7 @@
 from __future__ import division
 from __future__ import absolute_import
 
-import sys, os
+import sys, os, traceback
 import numpy as np
 # import scipy as sp
 from scipy.spatial.distance import cdist
@@ -79,14 +79,16 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
             if not np.any(H['started_run']):
                 gen_info['active_runs'] = set()
                 gen_info['run_order'] = {}
+                gen_info['total_runs'] = 0
 
-            new_run_num = len(gen_info['run_order'])
+            new_run_num = gen_info['total_runs']
 
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
 
             gen_info['run_order'][new_run_num] = [ind] 
             gen_info['active_runs'].update([new_run_num])
+            gen_info['total_runs'] +=1
             
         # Find the next point for any uncompleted runs. I currently save this
         # information to file and re-load. (Given a history of points, I don't
@@ -108,10 +110,16 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
                 updated_inds.update(sorted_run_inds) 
 
             else: 
-                gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                matching_ind = np.where(np.equal(x_new,O['x_on_cube']).all(1))[0]
+                if len(matching_ind) == 0:
+                    gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                else:
+                    assert len(matching_ind) == 1, "This point shouldn't have ended up in the O twice!"
+                    gen_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
 
         for i in inactive_runs:
             gen_info['active_runs'].remove(i)
+            gen_info['run_order'].pop(i) # Deletes any information about this run 
 
     if len(H) == 0:
         samples_needed = gen_specs['initial_sample']
@@ -229,7 +237,7 @@ def update_history_dist(H, gen_specs, c_flag):
             # Compute distance to boundary
             H['dist_to_unit_bounds'][new_ind] = min(min(np.ones(n) - H['x_on_cube'][new_ind]),min(H['x_on_cube'][new_ind] - np.zeros(n)))
 
-            dist_to_all = cdist(np.atleast_2d(H['x_on_cube'][new_ind]), H['x_on_cube'][p], 'euclidean').flatten()
+            dist_to_all = cdist(H['x_on_cube'][[new_ind]], H['x_on_cube'][p], 'euclidean').flatten()
             new_better_than = H['f'][new_ind] < H['f'][p]
 
             # Update any other points if new_ind is closer and better
@@ -310,17 +318,22 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
 
             if gen_specs['localopt_method'] in ['LD_MMA']:
-                Run_H = H[['x_on_cube','f','grad']][sorted_run_inds] 
+                fields_to_pass = ['x_on_cube','f','grad']
             else:
-                Run_H = H[['x_on_cube','f']][sorted_run_inds] 
+                fields_to_pass = ['x_on_cube','f']
 
             try:
-                x_opt, exit_code = set_up_and_run_nlopt(Run_H, gen_specs)
+                x_opt, exit_code = set_up_and_run_nlopt(H[fields_to_pass][sorted_run_inds], gen_specs)
             except Exception as e:
                 exit_code = 0
                 print(e.__doc__)
                 print(e.args)
-                print(Run_H['x_on_cube'])
+                print("These are the points in the run that has failed:", H['x_on_cube'][sorted_run_inds])
+                _, _, tb = sys.exc_info()
+                traceback.print_tb(tb) # Fixed format
+                tb_info = traceback.extract_tb(tb)
+                filename, line, func, text = tb_info[-1]
+                print('An error occurred on line {} in statement {}'.format(line, text))
 
 
         elif gen_specs['localopt_method'] in ['pounders']:
@@ -340,7 +353,12 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
                 exit_code = 0
                 print(e.__doc__)
                 print(e.args)
-
+                print("These are the points in the run that has failed:", Run_H['x_on_cube'])
+                _, _, tb = sys.exc_info()
+                traceback.print_tb(tb) # Fixed format
+                tb_info = traceback.extract_tb(tb)
+                filename, line, func, text = tb_info[-1]
+                print('An error occurred on line {} in statement {}'.format(line, text))
         else:
             sys.exit("Unknown localopt method. Exiting")
 
@@ -351,7 +369,6 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
         else:
             # We need to add a previously evaluated point into this run
             gen_info['run_order'][run].append(np.nonzero(matching_ind)[0][0])
-
 
     return x_opt, exit_code, gen_info, sorted_run_inds
 
@@ -364,6 +381,8 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
+
+    assert 'xtol_rel' or 'xtol_abs' or 'ftol_rel' or 'ftol_abs' in gen_specs, "NLopt can cycle if xtol_rel, xtol_abs, ftol_rel, or ftol_abs are not set" 
 
     def nlopt_obj_fun(x, grad, Run_H):
         out = look_in_history(x, Run_H)
@@ -386,6 +405,7 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
 
     # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0),min(x0-lb))
+    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small for NLopt to handle"
 
     if 'dist_to_bound_multiple' in gen_specs:
         opt.set_initial_step(dist_to_bound*gen_specs['dist_to_bound_multiple'])
@@ -396,6 +416,12 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
     if 'xtol_rel' in gen_specs:
         opt.set_xtol_rel(gen_specs['xtol_rel'])
+    if 'ftol_rel' in gen_specs:
+        opt.set_xtol_rel(gen_specs['ftol_rel'])
+    if 'xtol_abs' in gen_specs:
+        opt.set_xtol_rel(gen_specs['xtol_abs'])
+    if 'ftol_abs' in gen_specs:
+        opt.set_xtol_rel(gen_specs['ftol_abs'])
     
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()
@@ -719,14 +745,16 @@ def initialize_APOSMM(H, gen_specs):
     n = len(gen_specs['ub'])
 
     if 'single_component_at_a_time' in gen_specs and gen_specs['single_component_at_a_time']:
+        assert gen_specs['batch_mode'], "Must be in batch mode when using 'single_component_at_a_time' and APOSMM"
         c_flag = True
     else:
         c_flag = False
 
 
     if c_flag:
-        completely_returned_pt_ids = np.where([np.all(H['returned'][H['pt_id']==j]) for j in np.unique(H['pt_id'])])[0]
-        n_s = np.sum(np.logical_and.reduce((~H['local_pt'], np.in1d(H['pt_id'],completely_returned_pt_ids), H['obj_component']==0 ))) # Number of returned sampled points
+        pt_ids = H['pt_id'][np.logical_and(H['returned'],~np.isnan(H['f_i']))] # Get the pt_id for non-nan, returned points
+        _, counts = np.unique(pt_ids,return_counts=True)
+        n_s = np.sum(counts == gen_specs['components'])
     else:
         n_s = np.sum(np.logical_and.reduce((~np.isnan(H['f']),~H['local_pt'], H['returned']))) # Number of returned sampled points (excluding nans)
 
@@ -747,7 +775,7 @@ def initialize_APOSMM(H, gen_specs):
     if 'mu' in gen_specs:
         mu = gen_specs['mu']
     else:
-        mu = 0
+        mu = 1e-4
 
     if 'nu' in gen_specs:
         nu = gen_specs['nu']
@@ -826,7 +854,8 @@ def queue_update_function(H, gen_specs, persistent_data):
 
 
 # if __name__ == "__main__":
-#     [H,gen_specs] = [np.load('H856.npz')[i] for i in ['H','gen_specs']]
+#     [H,gen_specs,gen_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','gen_info']]
 #     gen_specs = gen_specs.item()
+#     gen_info = gen_info.item()
 #     import ipdb; ipdb.set_trace() 
-#     aposmm_logic(H,[],gen_specs,{})
+#     aposmm_logic(H,gen_info,gen_specs,{})
