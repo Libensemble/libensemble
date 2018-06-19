@@ -137,7 +137,7 @@ class Resources:
         nidlst = []
         NID_LIST_VAR = 'COBALT_PARTNAME'
         nidstr = os.environ[NID_LIST_VAR]
-        print('original node list',nidstr)
+        #print('original node list',nidstr)
         nidgroups = nidstr.split(',')
         for nidgroup in nidgroups:
             if (nidgroup.find("-") != -1):
@@ -224,7 +224,7 @@ class Resources:
             if central_mode:
                 global_nodelist = Resources.remove_libE_nodes(global_nodelist)
                 
-        logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
+        #logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
         #This will only work in distributed worker mode - alt work out from workerID
         
         if global_nodelist:
