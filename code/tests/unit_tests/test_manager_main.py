@@ -7,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 
 import libE_manager as man
 
-al = {'persist_gen_ranks':set([]),'out':[]}
+al = {'out':[]}
 libE_specs ={'comm':{},'worker_ranks':set([1,2])}
 
 def test_update_history_x_out():

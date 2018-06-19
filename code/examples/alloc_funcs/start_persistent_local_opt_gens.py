@@ -52,7 +52,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
     for i in persis_w['waiting'][EVAL_GEN_TAG]: 
-        gen_inds = H['gen_rank']==i 
+        gen_inds = H['gen_worker']==i 
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
             Work[i] = {'gen_info':gen_info[i],

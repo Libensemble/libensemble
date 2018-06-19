@@ -200,7 +200,7 @@ def update_history_f(H, D):
         H['returned'][ind] = True
 
 
-def update_history_x_out(H, q_inds, sim_rank):
+def update_history_x_out(H, q_inds, sim_worker):
     """
     Updates the history (in place) when a new point has been given out to be evaluated
 
@@ -209,10 +209,10 @@ def update_history_x_out(H, q_inds, sim_rank):
     for i,j in zip(q_inds,range(len(q_inds))):
         H['given'][i] = True
         H['given_time'][i] = time.time()
-        H['sim_rank'][i] = sim_rank
+        H['sim_worker'][i] = sim_worker
 
 
-def update_history_x_in(H, H_ind, gen_rank, O):
+def update_history_x_in(H, H_ind, gen_worker, O):
     """
     Updates the history (in place) when a new point has been returned from a gen
 
@@ -222,8 +222,8 @@ def update_history_x_in(H, H_ind, gen_rank, O):
         History array storing rows for each point.
     H_ind: integer
         The new point
-    gen_rank: integer
-        The rank of the worker who generated these points
+    gen_worker: integer
+        The worker who generated these points
     O: numpy array
         Output from gen_func
     """
@@ -254,7 +254,7 @@ def update_history_x_in(H, H_ind, gen_rank, O):
     for field in O.dtype.names:
         H[field][update_inds] = O[field]
 
-    H['gen_rank'][update_inds] = gen_rank
+    H['gen_worker'][update_inds] = gen_worker
 
     H_ind += num_new
 
@@ -321,10 +321,10 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
         This is nice when calling term_test in multiple places.
 
     idle_w: python set
-        Idle worker ranks (initially all worker ranks)
+        Idle worker (initially all workers)
 
     active_w: python set
-        Active worker ranks (initially empty)
+        Active worker (initially empty)
     """
 
     if 'sim_max' in exit_criteria:

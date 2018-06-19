@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from libE import * 
 from test_manager_main import make_criteria_and_specs_0
 
-al = {'persist_gen_ranks':set([])}
+al = {}
 libE_specs = {'comm':[], 'manager_ranks':set([0]), 'worker_ranks':set([1,2])}
 
 def test_nonworker_and_nonmanager_rank():

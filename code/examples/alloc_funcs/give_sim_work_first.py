@@ -19,12 +19,6 @@ def give_sim_work_first(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_info
 
     Parameters
     -----------
-    active_w: set
-        Active worker ranks
-
-    idle_w: set
-        Idle worker ranks
-
     H: numpy structured array
 
     H_ind: integer 

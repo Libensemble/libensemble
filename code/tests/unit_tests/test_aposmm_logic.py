@@ -9,7 +9,7 @@ import libE_manager as man
 
 from test_manager_main import make_criteria_and_specs_0
 
-alloc = {'persist_gen_ranks':set([]),'out':[]}
+alloc = {'out':[]}
 libE_specs = {'comm':{}, 'worker_ranks':set([1,2])}
 
 def test_failing_localopt_method():
