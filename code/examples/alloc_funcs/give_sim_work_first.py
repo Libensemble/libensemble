@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from message_numbers import EVAL_SIM_TAG 
 from message_numbers import EVAL_GEN_TAG 
 
+@profile
 def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
     """ 
     Decide what should be given to workers. This allocation function gives any
@@ -43,7 +44,6 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
 
     Work = {}
     gen_count = 0
-    already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
 
     if len(gen_info) == 0: 
         gen_info = {}
@@ -57,12 +57,11 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
         if i in blocked_set:
             continue
 
-        # Find indices of H where that are not given nor paused
-        q_inds_logical = np.logical_and.reduce((~H['given'],~H['paused'],~already_in_Work))
-
-        if np.any(q_inds_logical):
+        # Find indices of H where that are not yet allocated
+        if np.any(~H['allocated']):
             # Give sim work if possible
-
+   
+            q_inds_logical = ~H['allocated']
             if 'priority' in H.dtype.fields:
                 if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
                     # Give all points with highest priority
@@ -92,7 +91,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
                        'libE_info': {'H_rows': sim_ids_to_send,
                                 },
                       }
-            already_in_Work[sim_ids_to_send] = True
+            H['allocated'][sim_ids_to_send] = True
 
             if block_others:
                 unassigned_workers = worker_sets['nonpersis_w']['waiting'] - set(Work.keys()) - blocked_set

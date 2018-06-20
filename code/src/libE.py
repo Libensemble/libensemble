@@ -42,7 +42,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../examples/alloc_funcs
 from give_sim_work_first import give_sim_work_first
 
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
-        alloc_specs={'alloc_f': give_sim_work_first, 'out':[]} ,
+        alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]} ,
         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, 
         H0=[]):
     """ 
