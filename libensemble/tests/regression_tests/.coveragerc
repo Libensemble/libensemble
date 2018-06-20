@@ -2,8 +2,8 @@
 source = ../../
         ../../sim_funcs
         ../../gen_funcs
+        ../../alloc_funcs
         .
-        #common
 
 branch = true
 	 

@@ -1,6 +1,8 @@
 [run]
 source = ../..
         ../../gen_funcs
+        ../../gen_funcs
+        ../../alloc_funcs
         .
 
 branch = true
