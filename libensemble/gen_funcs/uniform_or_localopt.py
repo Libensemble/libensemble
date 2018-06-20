@@ -53,20 +53,45 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         O = np.zeros(1, dtype=gen_specs['out'])
         O = add_to_O(O,x,0,gen_specs['ub'],gen_specs['lb'],local=True,active=True)
         D = {'calc_out':O, 'libE_info': {'persistent':True}}
+
+
+        #----------------------------------------------------------------------------------        
         comm.send(obj=D,dest=0,tag=EVAL_GEN_TAG)
 
+        ## Receive information from the manager (or a STOP_TAG) 
+        #status = MPI.Status()
+
+        #libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)       
+
+        #tag = status.Get_tag()
+        #if tag in [STOP_TAG, PERSIS_STOP]:
+            #nlopt.forced_stop.message = 'tag=' + str(tag)
+            #raise nlopt.forced_stop
+
+        #_ = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        #calc_in = comm.recv(buf=None,source=0,tag=MPI.ANY_TAG,status=status)
+
+        #----------------------------------------------------------------------------------
+
+
         # Receive information from the manager (or a STOP_TAG) 
-        status = MPI.Status()
-
-        libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-
+        status = MPI.Status()     
+        
+        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)          
         tag = status.Get_tag()
-        if tag in [STOP_TAG, PERSIS_STOP]:
+        if tag in [STOP_TAG, PERSIS_STOP]:            
+            #sh - What is this doing...
             nlopt.forced_stop.message = 'tag=' + str(tag)
-            raise nlopt.forced_stop
-
-        _ = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        calc_in = comm.recv(buf=None,source=0,tag=MPI.ANY_TAG,status=status)
+            raise nlopt.forced_stop           
+            #man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
+            #if man_signal == MAN_SIGNAL_FINISH: #shutdown the worker
+                #break
+        else:
+            Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        
+        libE_info = Work['libE_info']
+        calc_in = comm.recv(buf=None, source=0)
+        #----------------------------------------------------------------------------------
 
         if gen_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = calc_in['grad']
@@ -107,6 +132,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     opt.set_xtol_rel(gen_specs['xtol_rel'])
     
     # Try to peform a local optimization run. 
+    #import pdb;pdb.set_trace()
     try:
         x_opt = opt.optimize(x0)
         exit_code = opt.last_optimize_result()
@@ -122,7 +148,10 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         # STOP_TAG signal
         x_opt = []
         gen_info_updates = {}
-        tag_out = int(e.message.split('=')[-1])
+        print('e is', str(e)) #test
+        #sh - getting error - no message attribute - tmp fix
+        #tag_out = int(e.message.split('=')[-1]) 
+        tag_out = int(str(e).split('=')[-1])  
         
     return x_opt, gen_info_updates, tag_out 
 

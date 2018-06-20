@@ -221,84 +221,45 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
     received, all other workers are looped back over.
     """
     
-    #This will be different but for now want to get on to simulator - just do like MPI version.
-    #Various approaches - may iterate through worker_list - where dont need to return IDs.
-    #Will most likely get rid of these nonpersis_w etc lists - and store in worker object.
-
-    #global debug_count
-    #debug_count += 1
-    #import pdb; pdb.set_trace()  
+    status = MPI.Status()
 
     new_stuff = True
     while new_stuff and len(nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]) > 0:
         new_stuff = False
         for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]: 
-                
-            #The aim of this is to combine loop body for MPI and non-MPI mode.
-            process_worker = False # New flag
-            
-            if MPI_MODE:
-                status = MPI.Status() # Do I need this?
-                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-                    #D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                    current_worker = comm.recv(source=w, tag=MPI.ANY_TAG, status=status) #Whole worker object
-                    
-                    # With mirror list -----------------------------------------------------------------------
-                    # This is just a way to get information about the workers stored on MPI master rank.
-                    # Create a list of (empty) workers and then when MPI receive worker - put into that
-                    # For performance we may not send back the whole worker, but for now it helps to see whats
-                    # going on.                            
-                    #widx = Worker.get_worker_index(worker_list,w) #WorkerID must match MPI rank
-                    #worker_list[widx] = current_worker
-                    
-                    if current_worker.isdone: 
-                        process_worker = True
-            else:
-                current_worker = Worker.get_worker(worker_list,w)
-                if current_worker.isdone:
-                    process_worker = True                   
-            
-            if process_worker:
+            if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                 new_stuff = True
-                #May set current_worker.isdone to false here
-                #check tag/error status here****
-                worker_out = current_worker.data
-                worker_status = current_worker.calc_status
-                calc_type = current_worker.calc_type
-                
-                #If use common names could make this stuff a commmon function.
-                
-                #I've changed so only output from calc - separate to calc_type - so check possiblities
-                #assert worker_status in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
-                
-                if calc_type == EVAL_SIM_TAG:
-                    update_history_f(H, worker_out)
-                
-                if calc_type == EVAL_GEN_TAG:
-                    H, H_ind = update_history_x_in(H, H_ind, w, worker_out['calc_out'])
-    
-                # Not sure about blocking approach - but keep for now
-                if 'libE_info' in worker_out and 'blocking' in worker_out['libE_info']:
-                        nonpersis_w['blocked'].difference_update(worker_out['libE_info']['blocking'])
-                        nonpersis_w['waiting'].update(worker_out['libE_info']['blocking'])
-    
-                if 'gen_info' in worker_out:
-                    for key in worker_out['gen_info'].keys():
-                        gen_info[w][key] = worker_out['gen_info'][key]
-    
-                #Should it be worker_status or calc_type ....
-                if worker_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
+
+                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                recv_tag = status.Get_tag()
+                assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
+
+                if recv_tag == EVAL_SIM_TAG:
+                    update_history_f(H, D_recv)
+
+                if recv_tag == EVAL_GEN_TAG:
+                    H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out']) 
+
+                if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
+                        nonpersis_w['blocked'].difference_update(D_recv['libE_info']['blocking'])
+                        nonpersis_w['waiting'].update(D_recv['libE_info']['blocking'])
+
+                if 'gen_info' in D_recv:
+                    for key in D_recv['gen_info'].keys():
+                        gen_info[w][key] = D_recv['gen_info'][key]
+
+                if recv_tag in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
                     persis_w[EVAL_GEN_TAG].difference_update([w])
                     persis_w[EVAL_SIM_TAG].difference_update([w])
                     nonpersis_w['waiting'].add(w)
-    
+
                 else: 
-                    if 'libE_info' in worker_out and 'persistent' in worker_out['libE_info']:
-                        persis_w['waiting'][calc_type].add(w)
-                        persis_w[calc_type].remove(w)
+                    if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
+                        persis_w['waiting'][recv_tag].add(w)
+                        persis_w[recv_tag].remove(w)
                     else:
                         nonpersis_w['waiting'].add(w)
-                        nonpersis_w[calc_type].remove(w)                   
+                        nonpersis_w[recv_tag].remove(w)
 
 
     #Could make common if I have sep serial/MPI functions....

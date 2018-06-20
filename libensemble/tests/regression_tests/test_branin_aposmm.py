@@ -14,7 +14,7 @@ import numpy as np
 from libensemble.libE import libE
 
 # Import sim_func and declare directory to be copied by each worker to do its evaluations in 
-sim_dir_name='../../examples/sim_funcs/branin'
+import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')
 #sys.path.append(os.path.join(os.path.dirname(__file__), sim_dir_name))
 from libensemble.sim_funcs.branin.branin_obj import call_branin as obj_func
 
@@ -34,7 +34,8 @@ sim_specs = {'sim_f': [obj_func], # This is the function whose output is being m
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'sim_dir': sim_dir_name, # to be copied by each worker 
+             'sim_dir': sim_dir_name, # to be copied by each worker
+             'clean_jobs': True,
              }
 
 # As an example, have the workers put their directories in a different
@@ -96,7 +97,7 @@ if __name__ == "__main__":
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
         np.save(filename, H)
 
-        minima_and_func_val_file = os.path.join(sim_dir_name, 'known_minima_and_func_values') 
+        import pkg_resources; minima_and_func_val_file = pkg_resources.resource_filename('libensemble.sim_funcs.branin', 'known_minima_and_func_values') 
 
         if os.path.isfile(minima_and_func_val_file):
             M = np.loadtxt(minima_and_func_val_file)

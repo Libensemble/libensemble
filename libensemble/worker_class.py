@@ -111,9 +111,23 @@ def worker_main(c, sim_specs, gen_specs):
         calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_type])
         if len(calc_in) > 0: 
             calc_in = comm.recv(buf=None, source=0)
-
+            
+        #print("Work:",Work)
+        #print("calc_in:",calc_in)        
+        
+        #This is current kluge for persistent worker - comm will be in the future comms module...
+        libE_info = Work['libE_info']
+        if 'persistent' in libE_info and libE_info['persistent']:
+            libE_info['comm'] = comm
+            Work['libE_info'] = libE_info 
+            
         ##Either send components or just send Work - for now I'm just sending work - discuss...        
         worker.run(Work, calc_in) #Change to send extracted components required....
+        
+        
+        if 'persistent' in worker.libE_info and worker.libE_info['persistent']:
+            del worker.libE_info['comm']        
+        
         
         ## Receive libE_info from manager and check if STOP_TAG. 
         #libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
@@ -143,7 +157,17 @@ def worker_main(c, sim_specs, gen_specs):
 
         #print('tag',worker.calc_status)
         #comm.send(obj=worker, dest=0, tag=worker.calc_status)      # Whole object (inc. joblist if set up for example - so can print timings)
-        comm.send(obj=worker, dest=0) #blocking
+        #comm.send(obj=worker, dest=0) #blocking
+        
+        worker_out = {'calc_out': worker.calc_out,
+                      'gen_info': worker.gen_info,
+                      'libE_info': worker.libE_info,
+                      'calc_status': worker.calc_status,
+                      'calc_type': worker.calc_type}
+        
+        #comm.send(obj=worker_out, dest=0) #blocking
+        comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
+        
         #comm.isend(obj=worker, dest=0) # Non-blocking - failing but if to recieve a kill when blocking- manger has to recv this first
         #comm.send(obj=worker.data, dest=0, tag=tag_out) # Just worker.data - as was doing before 
         
@@ -221,7 +245,8 @@ class Worker():
         self.locations = {}
         self.worker_dir = ""
         self.workerID = workerID
-        self.data = {}
+        
+        self.calc_out = {}
         self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
         self.isdone = False
@@ -260,10 +285,13 @@ class Worker():
     #worker.run
     def run(self, Work, calc_in):
         
-        self.data = {}
+        #Reset run specific attributes - these should maybe be in a calc object
+        self.calc_out = {}
         self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
         self.isdone = False  
+        self.gen_info = None
+        self.libE_info = None
         
         #t = threading.currentThread()
         #logging.debug('Running thread %s on worker %d', t.getName(), self.workerID)
@@ -277,16 +305,18 @@ class Worker():
         job.start_timer()
         
         #Could keep all this inside the Work dictionary if sending all Work ...
-        libE_info = Work['libE_info']
+        self.libE_info = Work['libE_info']
         self.calc_type = Work['tag']
         job.calc_type = Work['tag']
-        gen_info = Work['gen_info']        
+        self.gen_info = Work['gen_info']        
         #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
         
         assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
         
-        data_out, tag_out = self._perform_calc(calc_in, gen_info, libE_info)
-        self.calc_status = tag_out
+        #data_out, tag_out = self._perform_calc(calc_in, gen_info, libE_info)
+        #data_out, tag_out = self._perform_calc(calc_in)   
+        
+        self.calc_out, self.gen_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.gen_info, self.libE_info)
         
         #This is a libe feature that is to be reviewed for best solution
         if self.calc_status == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
@@ -300,12 +330,13 @@ class Worker():
         else:
             job.status = "Completed"
             
-        self.data = data_out
+        #self.calc_out = data_out
         self.isdone = True
         
         job.stop_timer()
                 
         return # Can retrieve output from worker.data
+
     
     # Do we want to be removing these dirs by default??? Maybe an option
     # Could be option in sim_specs - "clean_jobdirs"
@@ -314,12 +345,14 @@ class Worker():
         for loc in self.locations.values():
             shutil.rmtree(loc)
         return
+
     
     def isdone(self):
         #Poll job - Dont need function
         return self.isdone
 
-    #Prob internal only
+
+    #Prob internal only - may make this static - no self vars
     def _perform_calc(self, calc_in, gen_info, libE_info):
         if self.calc_type in self.locations:
             saved_dir = os.getcwd()
@@ -327,9 +360,9 @@ class Worker():
             #logging.debug('current dir in _perform_calc is  %s', saved_dir)
             os.chdir(self.locations[self.calc_type])
 
-        #Need to check how this works
+        #sh Need to check how this works
         #if 'persistent' in libE_info and libE_info['persistent']:
-        #    libE_info['comm'] = comm
+            #libE_info['comm'] = comm
         
         ### ============================== Run calc =======================================
         #import pdb; pdb.set_trace()
@@ -358,9 +391,12 @@ class Worker():
             os.chdir(saved_dir)
 
         #if 'persistent' in libE_info and libE_info['persistent']:
-        #    del libE_info['comm']
+            #del libE_info['comm']
 
-        data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
-
-        return data_out, calc_tag
+        #data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
+        
+        return H, gen_info, libE_info, calc_tag
+        
+        #return data_out
+        #return data_out, calc_tag
         

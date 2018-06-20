@@ -8,7 +8,8 @@ from libensemble.message_numbers import EVAL_SIM_TAG
 from libensemble.message_numbers import EVAL_GEN_TAG 
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-import libensemble.gen_funcs.aposmm_logic 
+import libensemble.gen_funcs.aposmm_logic as aposmm_logic
+#from libensemble.gen_funcs.aposmm_logic import aposmm_logic
 
 def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_info):
     """ Decide what should be given to workers. Note that everything put into
@@ -40,6 +41,9 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
 
     # If a persistent localopt run has just finished, use run_order to update H
     # and then remove other information from gen_info
+    
+    #print('run_order',gen_info[i]['run_order'])
+    print('here1')
     for i in gen_info.keys():
         if 'done' in gen_info[i]:
             H['num_active_runs'][gen_info[i]['run_order']] -= 1
@@ -53,6 +57,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
     # returned, give them back to i. Otherwise, give nothing to i
     for i in persis_w['waiting'][EVAL_GEN_TAG]: 
         gen_inds = H['gen_rank']==i 
+        print('here2')
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
             Work[i] = {'gen_info':gen_info[i],
@@ -63,6 +68,8 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
                                      'persistent': True
                                 }
                        }
+            print('here3a',i)
+            print('here3',i,gen_info[i]['run_order'])
             gen_info[i]['run_order'].append(last_ind)
 
     for i in nonpersis_w['waiting']:

@@ -2,7 +2,7 @@
 # Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
 # problem. # Execute via the following command: 
 
-# mpiexec -np 4 python3 call_chwirut_aposmm_one_residual_at_a_time.py
+# mpiexec -np 4 python3 test_chwirut_pounders.py
 
 # """
 

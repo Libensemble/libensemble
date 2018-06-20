@@ -3,7 +3,7 @@
 #    https://www.sfu.ca/~ssurjano/camel6.html 
 # 
 # Execute via the following command:
-#    mpiexec -np 4 python3 call_6-hump_camel_test_elapsed_time.py
+#    mpiexec -np 4 python3 test_6-hump_camel_elapsed_time_abort.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
