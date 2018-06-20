@@ -33,8 +33,7 @@ cache:
 
 # Setup Miniconda
 before_install:
-  # Do this conditionally because it saves some downloading if the
-  # version is the same.
+  # Do this conditionally because it saves some downloading if the version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -50,25 +49,20 @@ before_install:
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION 
   - source activate condaenv
 
-# Currently mpi4py 2.0.0 fails with mpi_init error on some platforms - need dev version from source.
-# Mpich can work with conda install - but currently for multiple MPI versions - need to get mpi4py and petsc from source
-# ...until conda has a better MPI solution. Could try caching built dependencies to cut time???
 install:
-  #- conda install $MPI cython #Install mpi4py and petsc from src to match these - until conda packages all match
   - conda install $MPI
-  - conda install scipy
-  #- pip install git+https://bitbucket.org/mpi4py/mpi4py.git@master
+  - pip install numpy
+  - pip install scipy
   - pip install mpi4py
   - pip install petsc petsc4py
-  - conda install --no-update-deps nlopt
-  - conda install pytest pytest-cov
-  - conda install coveralls
+  - pip install pytest
+  - pip install pytest-cov
+  - pip install coveralls
+  - conda install --no-deps nlopt  
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
   - pip install .
-  
-  #  - python setup.py install
 
 # Run test
 script:
