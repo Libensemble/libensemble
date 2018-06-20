@@ -66,17 +66,18 @@ install:
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
+  - pip install .
   
   #  - python setup.py install
 
 # Run test
 script:
-  - code/tests/run-tests.sh
+  - libensemble/tests/run-tests.sh
 
 # Coverage
 after_success:
-  - mv code/tests/.cov* .
+  - mv libensemble/tests/.cov* .
   - coveralls
 
 after_failure:
-  - cat code/tests/regression_tests/log.err
+  - cat libensemble/tests/regression_tests/log.err
