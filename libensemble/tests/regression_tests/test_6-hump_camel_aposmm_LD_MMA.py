@@ -32,7 +32,7 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 n = 2
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
+sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float),('grad',float,n), # This is the output from the function being minimized
                     ],
@@ -81,10 +81,15 @@ np.random.seed(1)
 
 for run in range(2):
     if run == 1:
-        # Change the bounds to put a solution at a corner point (to test APOSMM's ability to give back a previously evaluated point)
+        # Change the bounds to put a local min at a corner point (to test that APOSMM handles the same point being in multiple runs)  ability to give back a previously evaluated point)
         gen_specs['ub']= np.array([-2.9, -1.9])
         gen_specs['mu']= 1e-4
-        exit_criteria['sim_max'] = 200
+        gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
+
+        gen_specs.pop('xtol_rel')
+        gen_specs['ftol_rel'] = 1e-2
+        gen_specs['xtol_abs'] = 1e-3
+        gen_specs['ftol_abs'] = 1e-8
 
     H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
 

@@ -43,7 +43,7 @@ except:
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': [six_hump_camel_with_different_ranks_and_nodes], # This is the function whose output is being minimized
+sim_specs = {'sim_f': six_hump_camel_with_different_ranks_and_nodes, # This is the function whose output is being minimized
              'in': ['x','num_nodes','ranks_per_node'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],

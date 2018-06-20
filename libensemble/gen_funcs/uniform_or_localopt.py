@@ -148,10 +148,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         # STOP_TAG signal
         x_opt = []
         gen_info_updates = {}
-        print('e is', str(e)) #test
-        #sh - getting error - no message attribute - tmp fix
-        #tag_out = int(e.message.split('=')[-1]) 
-        tag_out = int(str(e).split('=')[-1])  
+        tag_out = int(e.message.split('=')[-1])
         
     return x_opt, gen_info_updates, tag_out 
 

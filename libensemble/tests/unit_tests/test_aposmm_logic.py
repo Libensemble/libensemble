@@ -10,7 +10,8 @@ import libensemble.libE_manager as man
 import libensemble.tests.unit_tests.setup as setup
 
 n = 2
-alloc = {'worker_ranks':set([1,2]),'persist_gen_ranks':set([]),'out':[]}
+alloc = {'out':[]}
+libE_specs = {'comm':{}, 'worker_ranks':set([1,2])}
 
 gen_out = [('x',float,n),
       ('x_on_cube',float,n),
@@ -30,7 +31,7 @@ gen_out = [('x',float,n),
 
 def test_failing_localopt_method():
     sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
-    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[])[0]
+    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[],libE_specs)[0]
     H['returned'] = 1
 
     gen_specs_0['localopt_method'] = 'BADNAME'
@@ -45,7 +46,7 @@ def test_failing_localopt_method():
 
 def test_exception_raising():
     sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
-    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[])[0]
+    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[],libE_specs)[0]
     H['returned'] = 1
 
     for method in ['LN_SBPLX','pounders']:
@@ -83,7 +84,7 @@ def test_calc_rk():
 
 def test_initialize_APOSMM():
     sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
-    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[])[0]
+    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[],libE_specs)[0]
 
     al.initialize_APOSMM(H,gen_specs_0)
     

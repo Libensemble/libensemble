@@ -7,7 +7,6 @@ PERSIS_STOP = 4                     # manager tells a persistent worker to stop 
 FINISHED_PERSISTENT_SIM_TAG = 11    # tells manager sim_f is done with persistent mode
 FINISHED_PERSISTENT_GEN_TAG = 12    # tells manager gen_f is done with persistent mode
 
-#sh temp - this is a libe feature that is to be reviewed for best solution - currently these are messages not tags....
 MAN_SIGNAL_FINISH = 20 # Kill jobs and shutdown worker
 MAN_SIGNAL_KILL = 21   # Kill running job - but don't stop worker
 WORKER_KILL = 22

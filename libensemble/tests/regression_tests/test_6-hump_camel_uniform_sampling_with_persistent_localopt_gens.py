@@ -34,7 +34,7 @@ from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persis
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': [six_hump_camel], # This is the function whose output is being minimized
+sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), ('grad',float,2) # This is the output from the function being minimized
                     ],
@@ -82,9 +82,9 @@ exit_criteria = {'sim_max': 1000}
 
 np.random.seed(1)
 
-alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}
+alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens}
 # Don't do a "persistent worker run" if only one wokrer
-if len(alloc_specs['worker_ranks'])==1:
+if MPI.COMM_WORLD.Get_size() == 2:
     quit()
 # Perform the run
 H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
