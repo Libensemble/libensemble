@@ -5,7 +5,7 @@ import numpy as np
 from mpi4py import MPI
 import sys
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
+from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
 
 import nlopt
 
@@ -52,9 +52,12 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         # Send back x to the manager
         O = np.zeros(1, dtype=gen_specs['out'])
         O = add_to_O(O,x,0,gen_specs['ub'],gen_specs['lb'],local=True,active=True)
-        D = {'calc_out':O, 'libE_info': {'persistent':True}}
-
-
+                
+        D = {'calc_out':O,
+             'libE_info': {'persistent':True},
+             'calc_status': UNSET_TAG,
+             'calc_type': EVAL_GEN_TAG
+            }
         #----------------------------------------------------------------------------------        
         comm.send(obj=D,dest=0,tag=EVAL_GEN_TAG)
 

@@ -11,6 +11,12 @@ from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TA
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.message_numbers import PERSIS_STOP
 from libensemble.message_numbers import STOP_TAG # tag for manager interupt messages to workers (sh: maybe change name)
+from libensemble.message_numbers import UNSET_TAG
+from libensemble.message_numbers import WORKER_KILL
+from libensemble.message_numbers import JOB_FAILED 
+from libensemble.message_numbers import WORKER_DONE
+
+
 from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
 from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
 
@@ -128,14 +134,35 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
                 new_stuff = True
 
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                recv_tag = status.Get_tag()
-                assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
-
-                if recv_tag == EVAL_SIM_TAG:
-                    update_history_f(H, D_recv)
-
-                if recv_tag == EVAL_GEN_TAG:
-                    H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out']) 
+                #print('D_recv',D_recv)
+                calc_type = D_recv['calc_type']
+                calc_status = D_recv['calc_status']
+                #recv_tag = status.Get_tag()
+                
+                assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], 'Unknown calculation type received. Exiting'
+                
+                assert calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, WORKER_KILL, JOB_FAILED], 'Unknown calculation status received. Exiting'
+                
+                #assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
+                
+                if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
+                    worker_sets['persis_w'][EVAL_GEN_TAG].difference_update([w])
+                    worker_sets['persis_w'][EVAL_SIM_TAG].difference_update([w])
+                    worker_sets['nonpersis_w']['waiting'].add(w)
+                else:
+                    
+                    if calc_type in [EVAL_SIM_TAG]:
+                        update_history_f(H, D_recv)
+                    
+                    if calc_type in [EVAL_GEN_TAG]:
+                        H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out']) 
+                        
+                    if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
+                        worker_sets['persis_w']['waiting'][calc_type].add(w)
+                        worker_sets['persis_w'][calc_type].remove(w)
+                    else:
+                        worker_sets['nonpersis_w']['waiting'].add(w)
+                        worker_sets['nonpersis_w'][calc_type].remove(w)                        
 
                 if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
                         worker_sets['nonpersis_w']['blocked'].difference_update(D_recv['libE_info']['blocking'])
@@ -144,19 +171,6 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
                 if 'gen_info' in D_recv:
                     for key in D_recv['gen_info'].keys():
                         gen_info[w][key] = D_recv['gen_info'][key]
-
-                if recv_tag in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
-                    worker_sets['persis_w'][EVAL_GEN_TAG].difference_update([w])
-                    worker_sets['persis_w'][EVAL_SIM_TAG].difference_update([w])
-                    worker_sets['nonpersis_w']['waiting'].add(w)
-
-                else: 
-                    if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
-                        worker_sets['persis_w']['waiting'][recv_tag].add(w)
-                        worker_sets['persis_w'][recv_tag].remove(w)
-                    else:
-                        worker_sets['nonpersis_w']['waiting'].add(w)
-                        worker_sets['nonpersis_w'][recv_tag].remove(w)
 
 
     if 'save_every_k' in sim_specs:

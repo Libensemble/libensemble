@@ -112,9 +112,9 @@ def worker_main(c, sim_specs, gen_specs):
                       'calc_status': worker.calc_status,
                       'calc_type': worker.calc_type}
         
-        #comm.send(obj=worker_out, dest=0) #blocking
+        comm.send(obj=worker_out, dest=0) #blocking
         #comm.isend(obj=worker, dest=0) # Non-blocking        
-        comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
+        #comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
     
     
     if 'clean_jobs' in sim_specs:
