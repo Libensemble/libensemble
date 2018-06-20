@@ -7,7 +7,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from message_numbers import EVAL_SIM_TAG 
 from message_numbers import EVAL_GEN_TAG 
 
-@profile
 def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
     """ 
     Decide what should be given to workers. This allocation function gives any
