@@ -78,6 +78,9 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
     sufficient information to perform a run. 
     """
 
+    if 'comm' not in libE_specs and ('manager_ranks' in libE_specs or 'worker_ranks' in libE_specs):
+        sys.exit('Must give a communicator when specifying manager and worker ranks')
+
     if 'comm' not in libE_specs:
         libE_specs['comm'] = MPI.COMM_WORLD
         libE_specs['manager_ranks'] = set([0])

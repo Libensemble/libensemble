@@ -5,7 +5,7 @@ import numpy as np
 from mpi4py import MPI
 import sys
 
-from message_numbers import STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
+from message_numbers import STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG
 
 import nlopt
 

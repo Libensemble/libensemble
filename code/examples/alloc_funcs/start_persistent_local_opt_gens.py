@@ -10,7 +10,7 @@ from message_numbers import EVAL_GEN_TAG
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 import aposmm_logic 
 
-def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_info):
+def start_persistent_local_opt_gens(worker_sets, H, sim_specs, gen_specs, gen_info):
     """ Decide what should be given to workers. Note that everything put into
     the Work dictionary will be given, so we are careful not to put more gen or
     sim items into Work than necessary.
@@ -35,7 +35,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
     # At startup, build an intial gen_info
     if len(gen_info) == 0: 
         gen_info = {}
-        for i in nonpersis_w['waiting']:
+        for i in worker_sets['nonpersis_w']['waiting']:
             gen_info[i] = {'rand_stream': np.random.RandomState(i)}
 
     # If a persistent localopt run has just finished, use run_order to update H
@@ -51,7 +51,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in persis_w['waiting'][EVAL_GEN_TAG]: 
+    for i in worker_sets['persis_w']['waiting'][EVAL_GEN_TAG]: 
         gen_inds = H['gen_worker']==i 
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
@@ -65,7 +65,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
                        }
             gen_info[i]['run_order'].append(last_ind)
 
-    for i in nonpersis_w['waiting']:
+    for i in worker_sets['nonpersis_w']['waiting']:
         # Find candidate points for starting local opt runs if a sample point has been evaluated
         if np.any(np.logical_and(~H['local_pt'],H['returned'])):
             n, n_s, c_flag, _, rk_const, lhs_divisions, mu, nu = aposmm_logic.initialize_APOSMM(H, gen_specs)
@@ -75,7 +75,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
             starting_inds = []
 
         # Start up a persistent generator that is a local opt run but don't do it if all workers will be persistent generators.
-        if len(starting_inds) and gen_count + len(persis_w[EVAL_GEN_TAG]) + 1 < len(nonpersis_w['waiting']) + len(nonpersis_w[EVAL_GEN_TAG]) + len(nonpersis_w[EVAL_SIM_TAG]): 
+        if len(starting_inds) and gen_count + len(worker_sets['persis_w'][EVAL_GEN_TAG]) + 1 < len(worker_sets['nonpersis_w']['waiting']) + len(worker_sets['nonpersis_w'][EVAL_GEN_TAG]) + len(worker_sets['nonpersis_w'][EVAL_SIM_TAG]): 
             # Start at the best possible starting point 
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
 
@@ -119,7 +119,7 @@ def start_persistent_local_opt_gens(nonpersis_w, persis_w, H, sim_specs, gen_spe
 
             else:
                 # Finally, generate points since there is nothing else to do. 
-                if gen_count + len(nonpersis_w[EVAL_GEN_TAG] | persis_w['waiting'][EVAL_GEN_TAG] | persis_w[EVAL_GEN_TAG]) > 0: 
+                if gen_count + len(worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w']['waiting'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]) > 0: 
                     continue
                 gen_count += 1
                 # There are no points available, so we call our gen_func

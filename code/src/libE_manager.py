@@ -23,28 +23,26 @@ def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
     Manager routine to coordinate the generation and simulation evaluations
     """
 
-    H, H_ind, term_test, nonpersis_w, persis_w, comm = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
+    H, H_ind, term_test, worker_sets, comm = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
     persistent_queue_data = {}; gen_info = {}
 
-    send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w)
+    send_initial_info_to_workers(comm, H, sim_specs, gen_specs, worker_sets)
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind):
 
-        H, H_ind, nonpersis_w, persis_w, gen_info = receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info)
+        H, H_ind, worker_sets, gen_info = receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, gen_info)
 
         persistent_queue_data = update_active_and_queue(H[:H_ind], libE_specs, gen_specs, persistent_queue_data)
 
-        Work, gen_info = alloc_specs['alloc_f'](nonpersis_w, persis_w, H[:H_ind], sim_specs, gen_specs, gen_info)
+        Work, gen_info = alloc_specs['alloc_f'](worker_sets, H[:H_ind], sim_specs, gen_specs, gen_info)
 
         for w in Work:
             if term_test(H,H_ind):
                 break
-            nonpersis_w, persis_w = send_to_worker_and_update_active_and_idle(comm, H, Work[w], w, sim_specs, gen_specs, nonpersis_w, persis_w)
+            worker_sets = send_to_worker_and_update_active_and_idle(comm, H, Work[w], w, sim_specs, gen_specs, worker_sets)
 
-        # persis_w = give_information_to_persistent_workers(comm, persis_w)
-
-    H, gen_info, exit_flag = final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, gen_info)
+    H, gen_info, exit_flag = final_receive_and_kill(comm, worker_sets, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, gen_info)
 
     return H, gen_info, exit_flag
 
@@ -55,28 +53,13 @@ def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
 ######################################################################
 # Manager subroutines
 ######################################################################
-# def give_information_to_persistent_workers(comm, persis_w):
-    """
-    Communicate the gen dtype to workers to save time on future communications.
-    (Must communicate this when workers are requesting libE_fields that aren't
-    in sim_specs['out'] or gen_specs['out'].)
-    """
-        
-
-#     for i in persis_w['stop']:
-#         comm.send(obj=None, dest=i, tag=STOP_TAG)
-#     persis_w['stop'] = set([])
-
-#     return persis_w
-
-
-def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, nonpersis_w):
-    for w in nonpersis_w['waiting']:
+def send_initial_info_to_workers(comm, H, sim_specs, gen_specs, worker_sets):
+    for w in worker_sets['nonpersis_w']['waiting']:
         comm.send(obj=H[sim_specs['in']].dtype, dest=w)
         comm.send(obj=H[gen_specs['in']].dtype, dest=w)
 
 
-def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, nonpersis_w, persis_w):
+def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, worker_sets):
     """
     Sends calculation information to the workers and updates the sets of
     active/idle workers
@@ -92,23 +75,23 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
     #         comm.Send(H[i][Work['libE_info']['H_rows']], dest=w)
 
     # Remove worker from either 'waiting' set and add it to the appropriate 'active' set
-    nonpersis_w['waiting'].difference_update([w]); 
-    persis_w['waiting'][Work['tag']].difference_update([w])
+    worker_sets['nonpersis_w']['waiting'].difference_update([w]); 
+    worker_sets['persis_w']['waiting'][Work['tag']].difference_update([w])
     if 'libE_info' in Work and 'persistent' in Work['libE_info']:
-        persis_w[Work['tag']].add(w)
+        worker_sets['persis_w'][Work['tag']].add(w)
     else:
-        nonpersis_w[Work['tag']].add(w)
+        worker_sets['nonpersis_w'][Work['tag']].add(w)
 
     if 'blocking' in Work['libE_info']:
-        nonpersis_w['blocked'].update(Work['libE_info']['blocking'])
-        nonpersis_w['waiting'].difference_update(Work['libE_info']['blocking'])
+        worker_sets['nonpersis_w']['blocked'].update(Work['libE_info']['blocking'])
+        worker_sets['nonpersis_w']['waiting'].difference_update(Work['libE_info']['blocking'])
 
     if Work['tag'] == EVAL_SIM_TAG:
         update_history_x_out(H, Work['libE_info']['H_rows'], w)
 
-    return nonpersis_w, persis_w
+    return worker_sets 
 
-def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info):
+def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, gen_info):
     """
     Receive calculation output from workers. Loops over all active workers and
     probes to see if worker is ready to communticate. If any output is
@@ -117,9 +100,9 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
     status = MPI.Status()
 
     new_stuff = True
-    while new_stuff and len(nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]) > 0:
+    while new_stuff and len(worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]) > 0:
         new_stuff = False
-        for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]: 
+        for w in worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                 new_stuff = True
 
@@ -134,25 +117,25 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
                     H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out']) 
 
                 if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
-                        nonpersis_w['blocked'].difference_update(D_recv['libE_info']['blocking'])
-                        nonpersis_w['waiting'].update(D_recv['libE_info']['blocking'])
+                        worker_sets['nonpersis_w']['blocked'].difference_update(D_recv['libE_info']['blocking'])
+                        worker_sets['nonpersis_w']['waiting'].update(D_recv['libE_info']['blocking'])
 
                 if 'gen_info' in D_recv:
                     for key in D_recv['gen_info'].keys():
                         gen_info[w][key] = D_recv['gen_info'][key]
 
                 if recv_tag in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
-                    persis_w[EVAL_GEN_TAG].difference_update([w])
-                    persis_w[EVAL_SIM_TAG].difference_update([w])
-                    nonpersis_w['waiting'].add(w)
+                    worker_sets['persis_w'][EVAL_GEN_TAG].difference_update([w])
+                    worker_sets['persis_w'][EVAL_SIM_TAG].difference_update([w])
+                    worker_sets['nonpersis_w']['waiting'].add(w)
 
                 else: 
                     if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
-                        persis_w['waiting'][recv_tag].add(w)
-                        persis_w[recv_tag].remove(w)
+                        worker_sets['persis_w']['waiting'][recv_tag].add(w)
+                        worker_sets['persis_w'][recv_tag].remove(w)
                     else:
-                        nonpersis_w['waiting'].add(w)
-                        nonpersis_w[recv_tag].remove(w)
+                        worker_sets['nonpersis_w']['waiting'].add(w)
+                        worker_sets['nonpersis_w'][recv_tag].remove(w)
 
 
     if 'save_every_k' in sim_specs:
@@ -171,7 +154,7 @@ def receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, g
         if not os.path.isfile(filename) and count > 0:
             np.save(filename,H)
 
-    return H, H_ind, nonpersis_w, persis_w, gen_info
+    return H, H_ind, worker_sets, gen_info
 
 
 def update_active_and_queue(H, libE_specs, gen_specs, data):
@@ -356,14 +339,15 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
     start_time = time.time()
     term_test = lambda H, H_ind: termination_test(H, H_ind, exit_criteria, start_time, len(H0))
 
-    nonpersis_w = {'waiting': libE_specs['worker_ranks'].copy(), EVAL_GEN_TAG:set(), EVAL_SIM_TAG:set(), 'blocked':set()}
-    persis_w = {'waiting':{EVAL_SIM_TAG:set(),EVAL_GEN_TAG:set()}, EVAL_SIM_TAG:set(), EVAL_GEN_TAG:set()}
+    worker_sets = {}
+    worker_sets['nonpersis_w'] = {'waiting': libE_specs['worker_ranks'].copy(), EVAL_GEN_TAG:set(), EVAL_SIM_TAG:set(), 'blocked':set()}
+    worker_sets['persis_w'] = {'waiting':{EVAL_SIM_TAG:set(),EVAL_GEN_TAG:set()}, EVAL_SIM_TAG:set(), EVAL_GEN_TAG:set()}
 
     comm = libE_specs['comm']
 
-    return H, H_ind, term_test, nonpersis_w, persis_w, comm
+    return H, H_ind, term_test, worker_sets, comm
 
-def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, gen_info):
+def final_receive_and_kill(comm, worker_sets, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, gen_info):
     """ 
     Tries to receive from any active workers. 
 
@@ -375,14 +359,14 @@ def final_receive_and_kill(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen
     exit_flag = 0
 
     ### Receive from all active workers 
-    while len(nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]):
-        H, H_ind, nonpersis_w, persis_w, gen_info = receive_from_sim_and_gen(comm, nonpersis_w, persis_w, H, H_ind, sim_specs, gen_specs, gen_info)
-        if term_test(H, H_ind) == 2 and len(nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]):
+    while len(worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]):
+        H, H_ind, worker_sets, gen_info = receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, gen_info)
+        if term_test(H, H_ind) == 2 and len(worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]):
             print("Termination due to elapsed_wallclock_time has occurred.\n"\
               "A last attempt has been made to receive any completed work.\n"\
               "Posting nonblocking receives and kill messages for all active workers\n")
 
-            for w in nonpersis_w[EVAL_SIM_TAG] | nonpersis_w[EVAL_GEN_TAG] | persis_w[EVAL_SIM_TAG] | persis_w[EVAL_GEN_TAG]:
+            for w in worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)
             exit_flag = 2
             break

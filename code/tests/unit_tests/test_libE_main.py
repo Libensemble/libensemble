@@ -38,6 +38,15 @@ def test_checking_inputs():
     H0 = rmfield( H0, 'returned')
     check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
 
+    # Should fail because worker_ranks is given, but not a communicator
+    libE_specs.pop('comm')
+    try:
+        check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
+    except SystemExit:
+        assert 1
+    else:
+        assert 0
+
 
 def rmfield( a, *fieldnames_to_remove ):
         return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]

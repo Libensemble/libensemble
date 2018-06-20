@@ -10,7 +10,7 @@ from message_numbers import EVAL_GEN_TAG
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 import aposmm_logic 
 
-def only_persistent_gens(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_info):
+def only_persistent_gens(worker_sets, H, sim_specs, gen_specs, gen_info):
     """ Decide what should be given to workers. Note that everything put into
     the Work dictionary will be given, so we are careful not to put more gen or
     sim items into Work than necessary.
@@ -35,13 +35,13 @@ def only_persistent_gens(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_inf
     # At startup, build an initial gen_info
     if len(gen_info) == 0: 
         gen_info = {}
-        for i in nonpersis_w['waiting']:
+        for i in worker_sets['nonpersis_w']['waiting']:
             gen_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in persis_w['waiting'][EVAL_GEN_TAG]: 
+    for i in worker_sets['persis_w']['waiting'][EVAL_GEN_TAG]: 
         gen_inds = H['gen_worker']==i 
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
@@ -54,7 +54,7 @@ def only_persistent_gens(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_inf
                                 }
                        }
 
-    for i in nonpersis_w['waiting']:
+    for i in worker_sets['nonpersis_w']['waiting']:
         # perform sim evaluations from existing runs (if they exist).
         q_inds_logical = np.logical_and.reduce((~H['given'],~H['paused'],~already_in_Work))
 
@@ -72,7 +72,7 @@ def only_persistent_gens(nonpersis_w, persis_w, H, sim_specs, gen_specs, gen_inf
 
         else:
             # Finally, generate points since there is nothing else to do. 
-            if gen_count + len(nonpersis_w[EVAL_GEN_TAG] | persis_w['waiting'][EVAL_GEN_TAG] | persis_w[EVAL_GEN_TAG]) > 0: 
+            if gen_count + len(worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w']['waiting'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]) > 0: 
                 continue
             gen_count += 1
             # There are no points available, so we call our gen_func
