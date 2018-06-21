@@ -29,7 +29,8 @@ if not os.path.isfile(sim_app):
     build_simfunc()
 
 registry = Register()
-jobctrl = JobController(registry = registry, auto_resources = False)
+#jobctrl = JobController(registry = registry, auto_resources = False)
+jobctrl = JobController(registry = registry, auto_resources = True)
 registry.register_calc(full_path=sim_app, calc_type='sim')
     
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)

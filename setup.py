@@ -33,7 +33,6 @@ setup(
     license='BSD 2-clause',
 
     packages=['libensemble',
-              'libensemble.job_controller',
               'libensemble.gen_funcs',
               'libensemble.sim_funcs',
               'libensemble.sim_funcs.branin',	      

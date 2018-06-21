@@ -33,7 +33,7 @@ def job_control_hworld(H, gen_info, sim_specs, libE_info):
     jobctl = JobController.controller
     cores = sim_specs['cores']
     args_for_sim = 'sleep 3'
-    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
     jobstate = polling_loop(jobctl, job)
     
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)

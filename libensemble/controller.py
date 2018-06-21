@@ -632,8 +632,7 @@ class JobController:
         
         #checks config is consistent and sufficient to express - does not check actual resources
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)
-
-        #import pdb; pdb.set_trace()
+        
         if num_nodes > local_node_count:
             #Could just downgrade to those available with warning - for now error
             raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, local_node_count))
