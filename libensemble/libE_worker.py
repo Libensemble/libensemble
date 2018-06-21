@@ -10,7 +10,7 @@ import numpy as np
 import os, shutil
 import socket
 from libensemble.message_numbers import *
-from libensemble.job_class import Job
+from libensemble.calc_info import CalcInfo
 import threading
 import logging
 from libensemble.controller import JobController
@@ -63,8 +63,8 @@ def worker_main(c, sim_specs, gen_specs):
     #Setup logging
     print('Worker %d initiated on MPI rank %d on node %s' % (workerID, rank, socket.gethostname()))
     
-    # Print joblist on-the-fly
-    timing_file = 'timing.dat.w' + str(worker.workerID)
+    # Print calc_list on-the-fly
+    timing_file = CalcInfo.stat_file + '.w' + str(worker.workerID)
     with open(timing_file,'w') as f:
         f.write("Worker %d:\n" % (worker.workerID))
 
@@ -98,7 +98,7 @@ def worker_main(c, sim_specs, gen_specs):
             del worker.libE_info['comm']        
         
         with open(timing_file,'a') as f:
-            worker.joblist[-1].printjob(f)     
+            worker.calc_list[-1].print_calc(f)     
                 
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first
@@ -121,13 +121,12 @@ def worker_main(c, sim_specs, gen_specs):
         if sim_specs['clean_jobs']:
             worker.clean()
     
-    ## Print joblist here
+    ## Print calc_list here
     #timing_file = 'timing.dat.w' + str(worker.workerID)
     #with open(timing_file,'w') as f:
         #f.write("Worker %d:\n" % (worker.workerID))
-        ##for j, jb in enumerate(worker.joblist):
-        #for jb in worker.joblist:            
-            #jb.printjob(f)
+        #for jb in worker.calc_list:            
+            #jb.print_calc(f)
     
     #Destroy worker object?
 
@@ -180,7 +179,7 @@ class Worker():
         self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
         self.isdone = False
-        self.joblist = []
+        self.calc_list = []
         self.job_controller_set = False
         
         #self.sim_specs = Worker.sim_specs
@@ -223,18 +222,17 @@ class Worker():
         self.gen_info = None
         self.libE_info = None
         
-        #Add a job (This is user job - currently different level to system job (in JobController). 
-        #User job object is to contain info to be stored for each job (in joblist)
-        job = Job()
-        self.joblist.append(job)
+        # calc_stats stores timing and summary info for this Calc (sim or gen)
+        calc_stats = CalcInfo()
+        self.calc_list.append(calc_stats)
         
         #Timing will include setup/teardown
-        job.start_timer()
+        calc_stats.start_timer()
         
         #Could keep all this inside the Work dictionary if sending all Work ...
         self.libE_info = Work['libE_info']
         self.calc_type = Work['tag']
-        job.calc_type = Work['tag']
+        calc_stats.calc_type = Work['tag']
         self.gen_info = Work['gen_info']        
         #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
         
@@ -247,18 +245,18 @@ class Worker():
         
         #This is a libe feature that is to be reviewed for best solution
         if self.calc_status == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
-            job.status = "Manager killed on finish" #Currently a string/description
+            calc_stats.status = "Manager killed on finish" #Currently a string/description
         elif self.calc_status == MAN_SIGNAL_KILL: 
-            job.status = "Manager killed job"
+            calc_stats.status = "Manager killed calc_stats"
         elif self.calc_status == WORKER_KILL:
-            job.status = "Worker killed job"
+            calc_stats.status = "Worker killed calc_stats"
         elif self.calc_status == JOB_FAILED:
-            job.status = "Job Failed"        
+            calc_stats.status = "Job Failed"        
         else:
-            job.status = "Completed"
+            calc_stats.status = "Completed"
             
         self.isdone = True
-        job.stop_timer()
+        calc_stats.stop_timer()
                 
         return # Can retrieve output from worker.data
 

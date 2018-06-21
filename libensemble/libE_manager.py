@@ -24,7 +24,7 @@ from libensemble.message_numbers import JOB_FAILED
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
 from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
-
+from libensemble.calc_info import CalcInfo
 
 def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
     """
@@ -416,12 +416,14 @@ def final_receive_and_kill(comm, worker_sets, H, H_ind, sim_specs, gen_specs, te
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
        
     #Create timing file
-    timing_file = 'timing.dat'
+    #timing_file = 'timing.dat'
+    timing_file = CalcInfo.stat_file
+    timing_tmp_files = CalcInfo.stat_file + '.w'
 
     #May need to wait - or get message back from worker when done...
     time.sleep(5)
     #This has to match worker filenames
-    timing_files = smart_sort(glob.glob('timing.dat.w*'))        
+    timing_files = smart_sort(glob.glob(timing_tmp_files + '*'))        
     with open(timing_file, 'w') as outfile:
         for fname in timing_files:
             with open(fname) as infile:
