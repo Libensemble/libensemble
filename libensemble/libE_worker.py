@@ -141,12 +141,14 @@ class Worker():
     gen_specs = {}
     
     #Class methods
+    @staticmethod
     def init_workers(sim_specs_in, gen_specs_in):
         
         #Class attributes? Maybe should be worker specific??
         Worker.sim_specs = sim_specs_in
         Worker.gen_specs = gen_specs_in
         
+    @staticmethod    
     def get_worker(worker_list,workerID):
         
         for worker in worker_list:
@@ -154,7 +156,8 @@ class Worker():
                 return worker
         #Does not exist
         return None
-
+    
+    @staticmethod
     def get_worker_index(worker_list,workerID):
         
         index=0

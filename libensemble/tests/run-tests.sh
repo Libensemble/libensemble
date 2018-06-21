@@ -129,7 +129,7 @@ cleanup() {
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
     filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
-    filelist=(timing.dat*);            [ -e ${filelist[0]} ] && rm timing.dat*
+    filelist=(libe_summary.txt*);      [ -e ${filelist[0]} ] && rm libe_summary.txt*
 }
 
 #-----------------------------------------------------------------------------------------
