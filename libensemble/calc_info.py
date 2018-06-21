@@ -1,6 +1,7 @@
 import time
 import datetime
 import itertools
+import os
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
 class CalcInfo():

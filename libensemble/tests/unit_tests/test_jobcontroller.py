@@ -141,7 +141,7 @@ def test_launch_and_poll_multijobs():
         
 
 if __name__ == "__main__":
-    #test_launch_and_poll()    
+    test_launch_and_poll()    
     #test_kill_on_file()
     #test_kill_on_timeout()
-    test_launch_and_poll_multijobs()
+    #test_launch_and_poll_multijobs()
