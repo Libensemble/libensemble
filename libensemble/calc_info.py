@@ -8,7 +8,7 @@ class CalcInfo():
     newid = itertools.count()
     stat_file = 'libe_summary.txt'
     worker_statfile = None
-    keep_worker_stat_files = True
+    keep_worker_stat_files = False
     
     @staticmethod
     def smart_sort(l):
