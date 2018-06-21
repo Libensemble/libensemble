@@ -10,8 +10,6 @@ from mpi4py import MPI
 import numpy as np
 import time, sys, os
 import copy
-import glob
-import logging
 
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
@@ -370,16 +368,16 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
     return H, H_ind, term_test, worker_sets, comm
 
 
-#Create a utils module for stuff like this
-def smart_sort(l):
-    import re
-    """ Sort the given iterable in the way that humans expect.
+##Create a utils module for stuff like this
+#def smart_sort(l):
+    #import re
+    #""" Sort the given iterable in the way that humans expect.
     
-    For example: Worker10 comes after Worker9. No padding required
-    """ 
-    convert = lambda text: int(text) if text.isdigit() else text 
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
-    return sorted(l, key = alphanum_key)
+    #For example: Worker10 comes after Worker9. No padding required
+    #""" 
+    #convert = lambda text: int(text) if text.isdigit() else text 
+    #alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+    #return sorted(l, key = alphanum_key)
 
 
 def final_receive_and_kill(comm, worker_sets, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, gen_info, man_start_time):
@@ -415,24 +413,8 @@ def final_receive_and_kill(comm, worker_sets, H, H_ind, sim_specs, gen_specs, te
        
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
        
-    #Create timing file
-    #timing_file = 'timing.dat'
-    timing_file = CalcInfo.stat_file
-    timing_tmp_files = CalcInfo.stat_file + '.w'
-
-    #May need to wait - or get message back from worker when done...
+    # Create calc summary file
     time.sleep(5)
-    #This has to match worker filenames
-    timing_files = smart_sort(glob.glob(timing_tmp_files + '*'))        
-    with open(timing_file, 'w') as outfile:
-        for fname in timing_files:
-            with open(fname) as infile:
-                outfile.write(infile.read())
-                #for line in infile:
-                    #outfile.write(line)
-    keep_all = False
-    for file in timing_files:
-        if not keep_all:
-            os.remove(file)
+    CalcInfo.merge_statfiles()
 
     return H[:H_ind], gen_info, exit_flag

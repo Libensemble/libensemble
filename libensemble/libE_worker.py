@@ -20,11 +20,6 @@ from libensemble.controller import JobController
                     #format='(%(threadName)-10s) %(message)s',
                     #)
 
-#Prob. change job module used here to calc and all job names to calc - inc. print 
-#to timing.dat - which may also be libe_calc_summary.dat or something.
-
-
-
 #The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
     """ 
@@ -64,9 +59,10 @@ def worker_main(c, sim_specs, gen_specs):
     print('Worker %d initiated on MPI rank %d on node %s' % (workerID, rank, socket.gethostname()))
     
     # Print calc_list on-the-fly
-    timing_file = CalcInfo.stat_file + '.w' + str(worker.workerID)
-    with open(timing_file,'w') as f:
-        f.write("Worker %d:\n" % (worker.workerID))
+    CalcInfo.create_worker_statfile(worker.workerID)
+    #timing_file = CalcInfo.stat_file + '.w' + str(worker.workerID)
+    #with open(timing_file,'w', buffering=1) as f:
+        #f.write("Worker %d:\n" % (worker.workerID))
 
     while True:
         
@@ -97,8 +93,9 @@ def worker_main(c, sim_specs, gen_specs):
         if 'persistent' in worker.libE_info and worker.libE_info['persistent']:
             del worker.libE_info['comm']        
         
-        with open(timing_file,'a') as f:
-            worker.calc_list[-1].print_calc(f)     
+        CalcInfo.add_calc_worker_statfile(workerID = worker.workerID, calc = worker.calc_list[-1])
+        #with open(timing_file,'a') as f:
+            #worker.calc_list[-1].print_calc(f)     
                 
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first

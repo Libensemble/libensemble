@@ -3,12 +3,48 @@ import datetime
 import itertools
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
-#Could be class JobStats - to differentiate from job in JobController....
-
 class CalcInfo():
     
     newid = itertools.count()
     stat_file = 'libe_summary.txt'
+    worker_statfile = None
+    keep_worker_stat_files = True
+    
+    @staticmethod
+    def smart_sort(l):
+        import re
+        """ Sort the given iterable in the way that humans expect.
+        
+        For example: Worker10 comes after Worker9. No padding required
+        """ 
+        convert = lambda text: int(text) if text.isdigit() else text 
+        alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+        return sorted(l, key = alphanum_key)
+
+    @staticmethod
+    def create_worker_statfile(workerID):
+        CalcInfo.worker_statfile = CalcInfo.stat_file + '.w' + str(workerID)
+        with open(CalcInfo.worker_statfile,'w') as f:
+            f.write("Worker %d:\n" % (workerID))        
+
+    @staticmethod
+    def add_calc_worker_statfile(workerID, calc):
+        with open(CalcInfo.worker_statfile,'a') as f:
+            calc.print_calc(f)
+
+    @staticmethod
+    def merge_statfiles():
+        import glob
+        worker_stat_files = CalcInfo.stat_file + '.w'
+        stat_files = CalcInfo.smart_sort(glob.glob(worker_stat_files + '*'))        
+        with open(CalcInfo.stat_file, 'w') as outfile:
+            for fname in stat_files:
+                with open(fname) as infile:
+                    outfile.write(infile.read())
+        for file in stat_files:
+            if not CalcInfo.keep_worker_stat_files:
+                os.remove(file)        
+    
     
     def __init__(self):
         self.time = 0.0
@@ -22,6 +58,7 @@ class CalcInfo():
         
         #Includes use of strings/descriptions for calc.status.
         self.status = "Not complete" 
+    
         
     def start_timer(self):
         self.start = time.time()
