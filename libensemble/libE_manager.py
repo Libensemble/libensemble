@@ -6,6 +6,13 @@ libEnsemble manager routines
 from __future__ import division
 from __future__ import absolute_import
 
+from mpi4py import MPI
+import numpy as np
+import time, sys, os
+import copy
+import glob
+import logging
+
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
@@ -15,28 +22,9 @@ from libensemble.message_numbers import UNSET_TAG
 from libensemble.message_numbers import WORKER_KILL
 from libensemble.message_numbers import JOB_FAILED 
 from libensemble.message_numbers import WORKER_DONE
-
-
 from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
 from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
 
-#if MPI --------------------
-from mpi4py import MPI
-from libensemble.worker_class import worker_main
-#---------------------------
-
-import numpy as np
-import time, sys, os
-import copy
-import glob
-import socket
-
-#from libE_worker import worker_main
-
-from libensemble.worker_class import Worker
-
-import threading
-import logging
 
 def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
     """

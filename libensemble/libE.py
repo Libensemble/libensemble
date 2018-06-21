@@ -27,13 +27,9 @@ from __future__ import division
 from __future__ import absolute_import
 
 from libensemble.libE_manager import manager_main
+from libensemble.libE_worker import Worker, worker_main
 
-#if MPI --------------------
-#can this be conditional at this level... (could put in routine - but same for manager??)
 from mpi4py import MPI
-from libensemble.worker_class import worker_main
-#---------------------------
-
 import numpy as np
 import sys,os 
 

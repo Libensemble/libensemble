@@ -1,17 +1,31 @@
 """
-libEnsemble worker routines
+libEnsemble worker class
 ====================================================
 """
+
 from __future__ import division
 from __future__ import absolute_import
 
-
-from mpi4py import MPI
 import numpy as np
-import os, shutil 
-
+import os, shutil
+import socket
 from libensemble.message_numbers import *
+from libensemble.job_class import Job
+import threading
+import logging
+from libensemble.controller import JobController
 
+#logging to be added
+#logging.basicConfig(level=logging.DEBUG,
+                    #format='(%(threadName)-10s) %(message)s',
+                    #)
+
+#Prob. change job module used here to calc and all job names to calc - inc. print 
+#to timing.dat - which may also be libe_calc_summary.dat or something.
+
+
+
+#The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
     """ 
     Evaluate calculations given to it by the manager 
@@ -25,97 +39,274 @@ def worker_main(c, sim_specs, gen_specs):
     gen_specs: dict with parameters/information for generation calculations
 
     """
-    comm, status, dtypes, locations = initialize_worker(c, sim_specs, gen_specs)
-
-    while 1:
-        # Receive libE_info from manager and check if STOP_TAG. 
-        libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        calc_tag = status.Get_tag()
-        if calc_tag == STOP_TAG: break
-
-        gen_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_tag])
-
-        if len(calc_in) > 0: 
-            calc_in = comm.recv(buf=None, source=0)
-            # for i in calc_in.dtype.names: 
-            #     # d = comm.recv(buf=None, source=0)
-            #     # data = np.empty(calc_in[i].shape, dtype=d)
-            #     data = np.empty(calc_in[i].shape, dtype=calc_in[i].dtype)
-            #     comm.Recv(data,source=0)
-            #     calc_in[i] = data
-
-        assert calc_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_tag must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
-
-        data_out, tag_out = perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm) 
-                            
-        if tag_out == STOP_TAG: break
-
-        comm.send(obj=data_out, dest=0, tag=tag_out) 
-
-    # Clean up
-    for loc in locations.values():
-        shutil.rmtree(loc)
-
-def perform_calc(calc_in, gen_info, libE_info, calc_tag, locations, sim_specs, gen_specs, comm):
-    if calc_tag in locations:
-        saved_dir = os.getcwd()
-        os.chdir(locations[calc_tag])
-
-    if 'persistent' in libE_info and libE_info['persistent']:
-        libE_info['comm'] = comm
-
-    if calc_tag == EVAL_SIM_TAG: 
-        out = sim_specs['sim_f'][0](calc_in,gen_info,sim_specs,libE_info)
-    else: 
-        out = gen_specs['gen_f'](calc_in,gen_info,gen_specs,libE_info)
-
-    assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
-    assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
-
-    H = out[0]
-    gen_info = out[1]
-    if len(out) >= 3:
-        calc_tag = out[2]
-
-    if calc_tag in locations:
-        os.chdir(saved_dir)
-
-    if 'persistent' in libE_info and libE_info['persistent']:
-        del libE_info['comm']
-
-    data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
-
-    return data_out, calc_tag
-
-def initialize_worker(c, sim_specs, gen_specs):
-    """ Receive sim and gen dtypes, copy sim_dir """
-
+    
+    #Idea is dont have to have it unless using MPI option.
+    from mpi4py import MPI
+    
     comm = c['comm']
     comm_color = c['color']
     
     rank = comm.Get_rank()
+    workerID = rank    
     
     status = MPI.Status()
-
+    Worker.init_workers(sim_specs, gen_specs) # Store in Worker Class
+    sim_type = comm.recv(buf=None, source=0)
+    gen_type = comm.recv(buf=None, source=0)
     dtypes = {}
+    dtypes[EVAL_SIM_TAG] = sim_type
+    dtypes[EVAL_GEN_TAG] = gen_type
+    
+    #worker = Worker(workerID, sim_type, gen_type)
+    worker = Worker(workerID)
+    
+    #Setup logging
+    print('Worker %d initiated on MPI rank %d on node %s' % (workerID, rank, socket.gethostname()))
+    
+    # Print joblist on-the-fly
+    timing_file = 'timing.dat.w' + str(worker.workerID)
+    with open(timing_file,'w') as f:
+        f.write("Worker %d:\n" % (worker.workerID))
 
-    dtypes[EVAL_SIM_TAG] = comm.recv(buf=None, source=0)
-    dtypes[EVAL_GEN_TAG] = comm.recv(buf=None, source=0)
+    while True:
+        
+        # General probe for manager communication
+        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)          
+        mtag = status.Get_tag()
+        if mtag == STOP_TAG:
+            man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
+            if man_signal == MAN_SIGNAL_FINISH: #shutdown the worker
+                break
+            #Need to handle manager job kill here - as well as finish
+        else:
+            Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+              
+        libE_info = Work['libE_info']
+        calc_type = Work['tag'] #If send components - send tag separately (dont use MPI.status!)
+        calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_type])
+        if len(calc_in) > 0: 
+            calc_in = comm.recv(buf=None, source=0)   
+        
+        #This is current kluge for persistent worker - comm will be in the future comms module...
+        if 'persistent' in libE_info and libE_info['persistent']:
+            libE_info['comm'] = comm
+            Work['libE_info'] = libE_info 
+                 
+        worker.run(Work, calc_in)
+        
+        if 'persistent' in worker.libE_info and worker.libE_info['persistent']:
+            del worker.libE_info['comm']        
+        
+        with open(timing_file,'a') as f:
+            worker.joblist[-1].printjob(f)     
+                
+        #Check if sim/gen func recieved a finish signal...
+        #Currently this means do not send data back first
+        if worker.calc_status == MAN_SIGNAL_FINISH:
+            break
+        
+        # Determine data to be returned to manager
+        worker_out = {'calc_out': worker.calc_out,
+                      'gen_info': worker.gen_info,
+                      'libE_info': worker.libE_info,
+                      'calc_status': worker.calc_status,
+                      'calc_type': worker.calc_type}
+        
+        comm.send(obj=worker_out, dest=0) #blocking
+        #comm.isend(obj=worker, dest=0) # Non-blocking        
+        #comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
+    
+    
+    if 'clean_jobs' in sim_specs:
+        if sim_specs['clean_jobs']:
+            worker.clean()
+    
+    ## Print joblist here
+    #timing_file = 'timing.dat.w' + str(worker.workerID)
+    #with open(timing_file,'w') as f:
+        #f.write("Worker %d:\n" % (worker.workerID))
+        ##for j, jb in enumerate(worker.joblist):
+        #for jb in worker.joblist:            
+            #jb.printjob(f)
+    
+    #Destroy worker object?
+
+
+######################################################################
+# Worker Class
+######################################################################
+
+# All routines in Worker Class have no MPI and can be called regardless of worker
+# concurrency mode.
+class Worker():
+
+    #Class attributes    
+    sim_specs = {}
+    gen_specs = {}
+    
+    #Class methods
+    def init_workers(sim_specs_in, gen_specs_in):
+        
+        #Class attributes? Maybe should be worker specific??
+        Worker.sim_specs = sim_specs_in
+        Worker.gen_specs = gen_specs_in
+        
+    def get_worker(worker_list,workerID):
+        
+        for worker in worker_list:
+            if worker.workerID == workerID:
+                return worker
+        #Does not exist
+        return None
+
+    def get_worker_index(worker_list,workerID):
+        
+        index=0
+        for worker in worker_list:
+            if worker.workerID == workerID:
+                return index
+            index += 1
+        #Does not exist
+        return None
+    
+    #Worker Object methods
+    def __init__(self, workerID, empty=False):
+
+        self.locations = {}
+        self.worker_dir = ""
+        self.workerID = workerID
+        
+        self.calc_out = {}
+        self.calc_type = None
+        self.calc_status = UNSET_TAG #From message_numbers
+        self.isdone = False
+        self.joblist = []
+        self.job_controller_set = False
+        
+        #self.sim_specs = Worker.sim_specs
+        #self.gen_specs = Worker.gen_specs       
+        
+        if not empty:
+            if 'sim_dir' in Worker.sim_specs:
+                #worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
+                self.worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(self.workerID)
+    
+                if 'sim_dir_prefix' in Worker.sim_specs:
+                    self.worker_dir =  os.path.join(os.path.expanduser(Worker.sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(self.worker_dir)))[1])
+    
+                assert ~os.path.isdir(self.worker_dir), "Worker directory already exists."
+                # if not os.path.exists(worker_dir):
+                shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
+                self.locations[EVAL_SIM_TAG] = self.worker_dir
+                
+                #Optional - set workerID in job_controller - so will be added to jobnames
+                try:
+                    jobctl = JobController.controller
+                    jobctl.set_workerID(workerID)
+                except Exception as e:
+                    #logger
+                    print("Info: No job_controller set on worker", workerID)
+                    self.job_controller_set = False
+                else:
+                    self.job_controller_set = True
+                    #jobctl.set_workerID(workerID)
+
+
+    #worker.run
+    def run(self, Work, calc_in):
+        
+        #Reset run specific attributes - these should maybe be in a calc object
+        self.calc_out = {}
+        self.calc_type = None
+        self.calc_status = UNSET_TAG #From message_numbers
+        self.isdone = False  
+        self.gen_info = None
+        self.libE_info = None
+        
+        #Add a job (This is user job - currently different level to system job (in JobController). 
+        #User job object is to contain info to be stored for each job (in joblist)
+        job = Job()
+        self.joblist.append(job)
+        
+        #Timing will include setup/teardown
+        job.start_timer()
+        
+        #Could keep all this inside the Work dictionary if sending all Work ...
+        self.libE_info = Work['libE_info']
+        self.calc_type = Work['tag']
+        job.calc_type = Work['tag']
+        self.gen_info = Work['gen_info']        
+        #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
+        
+        assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
+        
+        #data_out, tag_out = self._perform_calc(calc_in, gen_info, libE_info)
+        #data_out, tag_out = self._perform_calc(calc_in)   
+        
+        self.calc_out, self.gen_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.gen_info, self.libE_info)
+        
+        #This is a libe feature that is to be reviewed for best solution
+        if self.calc_status == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
+            job.status = "Manager killed on finish" #Currently a string/description
+        elif self.calc_status == MAN_SIGNAL_KILL: 
+            job.status = "Manager killed job"
+        elif self.calc_status == WORKER_KILL:
+            job.status = "Worker killed job"
+        elif self.calc_status == JOB_FAILED:
+            job.status = "Job Failed"        
+        else:
+            job.status = "Completed"
+            
+        self.isdone = True
+        job.stop_timer()
+                
+        return # Can retrieve output from worker.data
 
     
-    locations = {}
+    # Do we want to be removing these dirs by default??? Maybe an option
+    # Could be option in sim_specs - "clean_jobdirs"
+    def clean(self):
+        # Clean up - may need to chdir to saved dir also (saved_dir cld be object attribute)
+        for loc in self.locations.values():
+            shutil.rmtree(loc)
+        return
 
-    # Make the directory for the worker to do their sim work in
-    if 'sim_dir' in sim_specs:
-        worker_dir = sim_specs['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
+    
+    def isdone(self):
+        #Poll job - Dont need function
+        return self.isdone
 
-        if 'sim_dir_prefix' in sim_specs:
-            worker_dir = os.path.join(os.path.expanduser(sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(worker_dir)))[1])
 
-        assert ~os.path.isdir(worker_dir), "Worker directory already exists."
-        # if not os.path.exists(worker_dir):
-        shutil.copytree(sim_specs['sim_dir'], worker_dir)
-        locations[EVAL_SIM_TAG] = worker_dir 
+    #Prob internal only - may make this static - no self vars
+    def _perform_calc(self, calc_in, gen_info, libE_info):
+        if self.calc_type in self.locations:
+            saved_dir = os.getcwd()
+            #print('current dir in _perform_calc is ', saved_dir)
+            #logging.debug('current dir in _perform_calc is  %s', saved_dir)
+            os.chdir(self.locations[self.calc_type])
+        
+        ### ============================== Run calc ====================================
+        if self.calc_type == EVAL_SIM_TAG:
+            out = Worker.sim_specs['sim_f'](calc_in,gen_info,Worker.sim_specs,libE_info)            
+        else: 
+            out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
+        ### ============================================================================
 
-    return comm, status, dtypes, locations 
+        assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
+        assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
+
+        H = out[0]
+        gen_info = out[1]
+        
+        calc_tag = UNSET_TAG #None
+        if len(out) >= 3:
+            calc_tag = out[2]
+
+        if self.calc_type in self.locations:
+            os.chdir(saved_dir)
+
+        #data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
+        
+        #return data_out, calc_tag
+        return H, gen_info, libE_info, calc_tag
+        
