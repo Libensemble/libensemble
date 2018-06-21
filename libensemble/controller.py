@@ -268,7 +268,7 @@ class JobController:
             #else:
                 #job.total_time = time.time() - job.launch_time
     
-    def __init__(self, registry=None):
+    def __init__(self, registry=None, auto_resources=True):
         '''Instantiate a new JobController instance.
         
         A new JobController object is created with an application registry and configuration attributes
@@ -283,7 +283,10 @@ class JobController:
             raise JobControllerException("Cannot find default registry")
         
         self.top_level_dir = os.getcwd()
-        self.resources = Resources(top_level_dir = self.top_level_dir)
+        self.auto_resources = auto_resources
+        
+        if self.auto_resources:
+            self.resources = Resources(top_level_dir = self.top_level_dir)
         
         #logger.debug("top_level_dir is {}".format(self.top_level_dir))
         
@@ -314,7 +317,7 @@ class JobController:
         self.list_of_jobs = []
         self.workerID = None
 
-        self.auto_machinefile = True #Create a machinefile automatically
+        #self.auto_machinefile = True #Create a machinefile automatically
                 
         JobController.controller = self
         
@@ -359,13 +362,13 @@ class JobController:
 
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-        if machinefile is None and self.auto_machinefile:
+        hostlist = None
+        if machinefile is None and self.auto_resources:
             
             #klugging this for now - not nec machinefile if more than one node - try a hostlist
             
             num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
             
-            hostlist = None
             if num_nodes > 1:
                 #hostlist
                 hostlist = self.get_hostlist()
@@ -707,7 +710,7 @@ class BalsamJobController(JobController):
     
     #controller = None
       
-    def __init__(self, registry=None):
+    def __init__(self, registry=None, auto_resources=True):
         '''Instantiate a new BalsamJobController instance.
         
         A new BalsamJobController object is created with an application registry and configuration attributes
@@ -723,13 +726,16 @@ class BalsamJobController(JobController):
             raise JobControllerException("Cannot find default registry")
 
         self.top_level_dir = os.getcwd()
-        self.resources = Resources(top_level_dir = self.top_level_dir, central_mode=True)
+        self.auto_resources = auto_resources
+        
+        if self.auto_resources:
+            self.resources = Resources(top_level_dir = self.top_level_dir, central_mode=True)
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
                 
         self.list_of_jobs = [] #Why did I put here? Will inherit
         
-        self.auto_machinefile = False #May in future use the auto_detect part though - to fill in procs/nodes/ranks_per_node
+        #self.auto_machinefile = False #May in future use the auto_detect part though - to fill in procs/nodes/ranks_per_node
         
         JobController.controller = self
         #BalsamJobController.controller = self
@@ -786,7 +792,12 @@ class BalsamJobController(JobController):
         
         #With resource detection (may do only if under-specified?? though that will not tell if larger than possible
         #for static allocation - but Balsam does allow dynamic allocation if too large!!
-        num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
+        #For now allow user to specify - but default is True....
+        if auto_resources:
+            num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
+        else:
+            #Without resource detection
+            num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
         
         #temp - while balsam does not accept a standard out name
         if stdout is not None:

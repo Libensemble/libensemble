@@ -32,7 +32,7 @@ class Resources:
             self.top_level_dir = top_level_dir
         
         self.central_mode = central_mode
-        
+
         #This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode)       
         self.num_workers = Resources.get_num_workers()
@@ -219,7 +219,13 @@ class Resources:
                 logger.debug("Cobalt env found - getting nodelist from Cobalt")
                 global_nodelist = Resources.get_cobalt_nodelist()
             else:
-                raise ResourcesException("Error. Can not find nodelist from environment")
+                #It could be a standalone machine. Assume is if all workers on same node - though give warning.
+                #Perhaps should check its not in central mode also...
+                if len(set(Resources.get_libE_nodes())) == 1:
+                    logger.warning("Can not find nodelist from environment. Assuming standalone")
+                    global_nodelist.append(socket.gethostname())
+                else:
+                    raise ResourcesException("Error. Can not find nodelist from environment")
             
             if central_mode:
                 global_nodelist = Resources.remove_libE_nodes(global_nodelist)
