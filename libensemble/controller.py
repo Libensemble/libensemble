@@ -492,6 +492,11 @@ class JobController:
             
             job.calc_job_timing()               
             
+            #tttttttttttttttttmp
+            print("returncode: ",job.process.returncode)
+            time.sleep(1)
+            print("returncode aft sleep: ",job.process.returncode)
+            
             if job.process.returncode == 0:
                 job.success = True
                 job.errcode = 0
