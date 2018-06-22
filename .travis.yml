@@ -13,7 +13,6 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
-    #- HWLOC_HIDE_ERRORS=1
   matrix:
     - MPI=mpich
     - MPI=openmpi
@@ -55,37 +54,19 @@ install:
   - pip install numpy
   - pip install scipy
   - pip install mpi4py
-  #- pip install petsc petsc4py
+  - pip install petsc petsc4py
   - pip install pytest
   - pip install pytest-cov
   - pip install coveralls
-  #- conda install --no-deps nlopt  
+  - conda install --no-deps nlopt  
   # For confirmation of MPI library being used.
-  #- python conda/find_mpi.py #locate compilers
+  - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
   - pip install .
 
 # Run test
 script:
-  - mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c
-  - mpirun -np 1 ./my_simjob.x sleep 3 > tmp.out
-  - ls -lFrt
-  - cat *.out
-  - cd libensemble/tests/unit_tests
-  - mpicc -o my_simjob.x simdir/my_simjob.c
-  - mpirun -np 1 ./my_simjob.x sleep 3 > tmp.out
-  #- mpirun -np 1 -npernode 1 ./my_simjob.x sleep 3 > tmp2.out  
-  - ls -lFrt
-  - cat *.out
-  - python -u test_jobcontroller.py
-  - ls -lFrt
-  - cat *.out
-  #- python run_c_test.py > run_c_test.out
-  #- python run_c_test_2cores.py > run_c_test_2cores.out
-  #- ls -lFrt
-  #- cat *.out  
-  
-  #- libensemble/tests/run-tests.sh
+  - libensemble/tests/run-tests.sh
 
 # Coverage
 after_success:
@@ -93,4 +74,4 @@ after_success:
   - coveralls
 
 after_failure:
-  - cat libensemble/tests/regression_tests/log.err
+- cat libensemble/tests/regression_tests/log.err
