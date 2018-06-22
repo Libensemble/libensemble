@@ -54,7 +54,7 @@ install:
   - pip install numpy
   - pip install scipy
   - pip install mpi4py
-  - pip install petsc petsc4py
+  #- pip install petsc petsc4py
   - pip install pytest
   - pip install pytest-cov
   - pip install coveralls
@@ -66,7 +66,11 @@ install:
 
 # Run test
 script:
-  - libensemble/tests/run-tests.sh
+  - mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c
+  - mpirun -np 1 ./my_simjob.x sleep 3 > tmp.out
+  - ls -lFrt
+  - cat *.out
+  #- libensemble/tests/run-tests.sh
 
 # Coverage
 after_success:
