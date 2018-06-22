@@ -293,12 +293,23 @@ class JobController:
         #todo Configure by autodetection
         #In fact it will be a sub-object - most likely with inhertience - based on detection or specification
         #Also the construction of the run-line itself will prob. be a function of that object
-        self.mpi_launcher = 'mpirun'
-        self.mfile = '-machinefile'
-        self.nprocs = '-np'
-        self.nnodes = ''
-        self.ppn = '--ppn'
-        self.hostlist = '-hosts'        
+        #For now though - do like this:
+        
+        mpi_variant = Resources.get_MPI_variant()
+        if mpi_variant == 'mpich':
+            self.mpi_launcher = 'mpirun'
+            self.mfile = '-machinefile'
+            self.nprocs = '-np'
+            self.nnodes = ''
+            self.ppn = '--ppn'
+            self.hostlist = '-hosts'
+        elif mpi_variant == 'openmpi':
+            self.mpi_launcher = 'mpirun'
+            self.mfile = '-machinefile'
+            self.nprocs = '-np'
+            self.nnodes = ''
+            self.ppn = '-npernode'
+            self.hostlist = '-host'        
 
         #self.mpi_launcher = 'srun'
         #self.mfile = '-m arbitrary'
@@ -633,6 +644,16 @@ class JobController:
         #checks config is consistent and sufficient to express - does not check actual resources
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)
         
+        #print('config aft ranks_per_node:',ranks_per_node)
+        #print('config aft cores_avail_per_node:',cores_avail_per_node)       
+        #print('config aft workers_per_node:',workers_per_node)               
+        #print('config aft cores_avail_per_node_per_worker:',cores_avail_per_node_per_worker)       
+        #print('config aft num_nodes:',num_nodes) 
+        #print('config aft local_node_count:',local_node_count) 
+        #print('config aft :',) 
+        #print('config aft :',) 
+        
+        #import pdb; pdb.set_trace()
         if num_nodes > local_node_count:
             #Could just downgrade to those available with warning - for now error
             raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, local_node_count))

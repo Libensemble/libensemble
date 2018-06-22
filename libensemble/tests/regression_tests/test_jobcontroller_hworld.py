@@ -55,7 +55,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              'save_every_k': 10
              }
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 10}
+exit_criteria = {'sim_max': 5}
 
 np.random.seed(1)
 

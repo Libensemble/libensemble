@@ -8,6 +8,7 @@ import os
 import socket
 import logging
 import itertools
+import subprocess
 
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
@@ -92,6 +93,16 @@ class Resources:
         #all_hosts=[]
         all_hosts = comm.allgather(local_host)
         return all_hosts
+
+    @staticmethod    
+    def get_MPI_variant():
+        try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT)
+        stdout, _ = try_mpich.communicate()
+        if 'unrecognized argument npernode' in stdout.decode():
+            return 'mpich'
+        else:
+            return 'openmpi'      
         
     #---------------------------------------------------------------------------
     
