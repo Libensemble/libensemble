@@ -52,8 +52,8 @@ before_install:
 install:
   - conda install $MPI
   - pip install numpy
-  #- pip install scipy
-  #- pip install mpi4py
+  - pip install scipy
+  - pip install mpi4py
   #- pip install petsc petsc4py
   - pip install pytest
   - pip install pytest-cov
@@ -73,8 +73,13 @@ script:
   - cd libensemble/tests/unit_tests
   - mpicc -o my_simjob.x simdir/my_simjob.c
   - mpirun -np 1 ./my_simjob.x sleep 3 > tmp.out
+  - mpirun -np 1 -npernode 1 ./my_simjob.x sleep 3 > tmp2.out  
   - ls -lFrt
   - cat *.out
+  - python -u test_jobcontroller.py
+  - ls -lFrt
+  - cat *.out  
+  
   #- libensemble/tests/run-tests.sh
 
 # Coverage
