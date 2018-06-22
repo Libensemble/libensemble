@@ -71,7 +71,7 @@ script:
   - ls -lFrt
   - cat *.out
   - cd libensemble/tests/unit_tests
-  - mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c
+  - mpicc -o my_simjob.x simdir/my_simjob.c
   - mpirun -np 1 ./my_simjob.x sleep 3 > tmp.out
   - ls -lFrt
   - cat *.out
