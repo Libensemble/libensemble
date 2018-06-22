@@ -60,7 +60,7 @@ install:
   - pip install coveralls
   #- conda install --no-deps nlopt  
   # For confirmation of MPI library being used.
-  - python conda/find_mpi.py #locate compilers
+  #- python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
   - pip install .
 
