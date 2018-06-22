@@ -77,13 +77,13 @@ script:
   #- mpirun -np 1 -npernode 1 ./my_simjob.x sleep 3 > tmp2.out  
   - ls -lFrt
   - cat *.out
-  #- python -u test_jobcontroller.py
-  #- ls -lFrt
-  #- cat *.out
-  - python run_c_test.py > run_c_test.out
-  - python run_c_test_2cores.py > run_c_test_2cores.out
+  - python -u test_jobcontroller.py
   - ls -lFrt
-  - cat *.out  
+  - cat *.out
+  #- python run_c_test.py > run_c_test.out
+  #- python run_c_test_2cores.py > run_c_test_2cores.out
+  #- ls -lFrt
+  #- cat *.out  
   
   #- libensemble/tests/run-tests.sh
 

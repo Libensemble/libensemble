@@ -94,7 +94,7 @@ def test_launch_and_poll():
     cores = NCORES
     args_for_sim = 'sleep 3'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    jobstate = polling_loop(jobctl, job)
+    job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
@@ -105,7 +105,7 @@ def test_kill_on_file():
     cores = NCORES
     args_for_sim = 'sleep 3 Error'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    polling_loop(jobctl, job)
+    job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)
 
@@ -115,7 +115,7 @@ def test_kill_on_timeout():
     cores = NCORES
     args_for_sim = 'sleep 12'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    polling_loop(jobctl, job)
+    job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)
 
@@ -135,7 +135,7 @@ def test_launch_and_poll_multijobs():
         job_list.append(job) 
         
     job_list_return = polling_loop_multijob(jobctl, job_list)
-    for job in job_list:
+    for job in job_list_return:
         assert job.finished, "job.finished should be True. Returned " + str(job.finished)
         assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
         
