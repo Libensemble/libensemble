@@ -52,13 +52,13 @@ before_install:
 install:
   - conda install $MPI
   - pip install numpy
-  - pip install scipy
-  - pip install mpi4py
+  #- pip install scipy
+  #- pip install mpi4py
   #- pip install petsc petsc4py
   - pip install pytest
   - pip install pytest-cov
   - pip install coveralls
-  - conda install --no-deps nlopt  
+  #- conda install --no-deps nlopt  
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
@@ -66,6 +66,11 @@ install:
 
 # Run test
 script:
+  - mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c
+  - mpirun -np 1 ./my_simjob.x sleep 3 > tmp.out
+  - ls -lFrt
+  - cat *.out
+  - cd libensemble/tests/unit_tests
   - mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c
   - mpirun -np 1 ./my_simjob.x sleep 3 > tmp.out
   - ls -lFrt
