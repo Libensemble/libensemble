@@ -12,7 +12,8 @@ sudo: false
 env:
   global:
     - HYDRA_LAUNCHER=fork
-    #- OMPI_MCA_rmaps_base_oversubscribe=yes
+    - OMPI_MCA_rmaps_base_oversubscribe=yes
+    - HWLOC_HIDE_ERRORS=1
   matrix:
     - MPI=mpich
     - MPI=openmpi
