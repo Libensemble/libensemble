@@ -13,12 +13,12 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
+    - allow_failures:
+      - env: MPI=openmpi    
   matrix:
     - MPI=mpich
     - MPI=openmpi
-    - allow_failures:
-      - env: MPI=openmpi
-  
+
 addons:
   apt:
     packages:
