@@ -18,6 +18,8 @@ from libensemble.message_numbers import PERSIS_STOP
 from libensemble.message_numbers import STOP_TAG # tag for manager interupt messages to workers (sh: maybe change name)
 from libensemble.message_numbers import UNSET_TAG
 from libensemble.message_numbers import WORKER_KILL
+from libensemble.message_numbers import WORKER_KILL_ON_ERR
+from libensemble.message_numbers import WORKER_KILL_ON_TIMEOUT
 from libensemble.message_numbers import JOB_FAILED 
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
@@ -125,9 +127,9 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
                 calc_status = D_recv['calc_status']
                 #recv_tag = status.Get_tag()
                 
-                assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], 'Unknown calculation type received. Exiting'
+                assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], 'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
                 
-                assert calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, WORKER_KILL, JOB_FAILED], 'Unknown calculation status received. Exiting'
+                assert calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, WORKER_KILL, JOB_FAILED, WORKER_DONE], 'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
                 
                 #assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
                 

@@ -121,6 +121,12 @@ total_time() {
 #Cleanup - esp regression test run directory
 #Changes dirs
 cleanup() {
+  THISDIR=${PWD}
+  cd $ROOT_DIR/$TESTING_DIR
+    filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*    
+  cd $ROOT_DIR/$UNIT_TEST_SUBDIR
+    filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
+    filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
@@ -130,7 +136,8 @@ cleanup() {
     filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
     filelist=(job_my_simjob.x.*.out);  [ -e ${filelist[0]} ] && rm job_my_simjob.x.*.out
-    filelist=(libe_summary.txt*);      [ -e ${filelist[0]} ] && rm libe_summary.txt*
+    filelist=(*.libe_summary.txt);     [ -e ${filelist[0]} ] && rm *.libe_summary.txt
+  cd $THISDIR
 }
 
 #-----------------------------------------------------------------------------------------
@@ -256,6 +263,9 @@ fi;
 
 if [ "$root_found" = true ]; then
 
+  #Running without subdirs - delete any leftover output and coverage data files
+  cleanup  
+
   cd $ROOT_DIR/
 
   # Run Unit Tests -----------------------------------------------------------------------
@@ -294,9 +304,6 @@ if [ "$root_found" = true ]; then
     if [ ! -d output ]; then
       mkdir output/
     fi;
-
-    #Running without subdirs - delete any leftover output and coverage data files
-    cleanup
                
     #Build any sim/gen source code dependencies here .....
             

@@ -385,8 +385,10 @@ class JobController:
                 hostlist = self.get_hostlist()
             else:
                 #machinefile
-                #machinefilename = 'machinefile_for_worker_' + str(self.workerID)
-                machinefile = 'machinefile_autogen'
+                if self.workerID is not None:
+                    machinefile = 'machinefile_autogen_for_worker_' + str(self.workerID)
+                else:
+                    machinefile = 'machinefile_autogen'
                 mfile_created, num_procs, num_nodes, ranks_per_node = self.create_machinefile(machinefile, num_procs, num_nodes, ranks_per_node, hyperthreads)
                 if not mfile_created:
                     raise JobControllerException("Auto-creation of machinefile failed")

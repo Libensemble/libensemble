@@ -4,12 +4,27 @@ import itertools
 import os
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
+#Maybe these should be set in here - and make manager signals diff? Would mean called by sim_func...
+#Currently get from message_numbers
+from libensemble.message_numbers import UNSET_TAG
+from libensemble.message_numbers import WORKER_KILL
+from libensemble.message_numbers import WORKER_KILL_ON_ERR
+from libensemble.message_numbers import WORKER_KILL_ON_TIMEOUT
+from libensemble.message_numbers import JOB_FAILED 
+from libensemble.message_numbers import WORKER_DONE
+from libensemble.message_numbers import MAN_SIGNAL_FINISH
+from libensemble.message_numbers import MAN_SIGNAL_KILL
+
 class CalcInfo():
     
     newid = itertools.count()
     stat_file = 'libe_summary.txt'
     worker_statfile = None
     keep_worker_stat_files = False
+
+    @staticmethod
+    def set_statfile_name(name):
+        CalcInfo.stat_file = name
     
     @staticmethod
     def smart_sort(l):
@@ -46,21 +61,16 @@ class CalcInfo():
             if not CalcInfo.keep_worker_stat_files:
                 os.remove(file)        
     
-    
     def __init__(self):
         self.time = 0.0
         self.start = 0.0
         self.end = 0.0
         self.date_start = None
         self.date_end = None        
-        self.pid = 0 #process ID - not currently used.
         self.calc_type = None
         self.id = next(CalcInfo.newid)
-        
-        #Includes use of strings/descriptions for calc.status.
         self.status = "Not complete" 
     
-        
     def start_timer(self):
         self.start = time.time()
         self.date_start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -84,3 +94,25 @@ class CalcInfo():
             return 'No type set'
         else:
             return 'Unknown type'
+
+    def set_calc_status(self, calc_status_flag):
+        """Set status description for this calc"""
+        #Prob should store both flag and description (as string)
+        if calc_status_flag == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
+            self.status = "Manager killed on finish" #Currently a string/description
+        elif calc_status_flag == MAN_SIGNAL_KILL: 
+            self.status = "Manager killed job"
+        elif calc_status_flag == WORKER_KILL_ON_ERR:
+            self.status = "Worker killed job on Error"
+        elif calc_status_flag == WORKER_KILL_ON_TIMEOUT:
+            self.status = "Worker killed job on Timeout"   
+        elif calc_status_flag == WORKER_KILL:
+            self.status = "Worker killed"               
+        elif calc_status_flag == JOB_FAILED:
+            self.status = "Job Failed"
+        elif calc_status_flag == WORKER_DONE:
+            self.status = "Completed"            
+        else:
+            #For now assuming if not got an error - it was ok
+            self.status = "Completed"
+            #self.status = "Status Unknown"

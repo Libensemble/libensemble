@@ -9,7 +9,9 @@ from __future__ import absolute_import
 import numpy as np
 import os, shutil
 import socket
-from libensemble.message_numbers import *
+from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import UNSET_TAG, STOP_TAG
+from libensemble.message_numbers import MAN_SIGNAL_KILL, MAN_SIGNAL_FINISH
 from libensemble.calc_info import CalcInfo
 import threading
 import logging
@@ -51,7 +53,7 @@ def worker_main(c, sim_specs, gen_specs):
     dtypes = {}
     dtypes[EVAL_SIM_TAG] = sim_type
     dtypes[EVAL_GEN_TAG] = gen_type
-    
+
     #worker = Worker(workerID, sim_type, gen_type)
     worker = Worker(workerID)
     
@@ -148,25 +150,25 @@ class Worker():
         Worker.sim_specs = sim_specs_in
         Worker.gen_specs = gen_specs_in
         
-    @staticmethod    
-    def get_worker(worker_list,workerID):
+    #@staticmethod    
+    #def get_worker(worker_list,workerID):
         
-        for worker in worker_list:
-            if worker.workerID == workerID:
-                return worker
-        #Does not exist
-        return None
+        #for worker in worker_list:
+            #if worker.workerID == workerID:
+                #return worker
+        ##Does not exist
+        #return None
     
-    @staticmethod
-    def get_worker_index(worker_list,workerID):
+    #@staticmethod
+    #def get_worker_index(worker_list,workerID):
         
-        index=0
-        for worker in worker_list:
-            if worker.workerID == workerID:
-                return index
-            index += 1
-        #Does not exist
-        return None
+        #index=0
+        #for worker in worker_list:
+            #if worker.workerID == workerID:
+                #return index
+            #index += 1
+        ##Does not exist
+        #return None
     
     #Worker Object methods
     def __init__(self, workerID, empty=False):
@@ -184,7 +186,7 @@ class Worker():
         
         #self.sim_specs = Worker.sim_specs
         #self.gen_specs = Worker.gen_specs       
-        
+
         if not empty:
             if 'sim_dir' in Worker.sim_specs:
                 #worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
@@ -198,17 +200,18 @@ class Worker():
                 shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
                 self.locations[EVAL_SIM_TAG] = self.worker_dir
                 
-                #Optional - set workerID in job_controller - so will be added to jobnames
-                try:
-                    jobctl = JobController.controller
-                    jobctl.set_workerID(workerID)
-                except Exception as e:
-                    #logger
-                    print("Info: No job_controller set on worker", workerID)
-                    self.job_controller_set = False
-                else:
-                    self.job_controller_set = True
-                    #jobctl.set_workerID(workerID)
+            #Optional - set workerID in job_controller - so will be added to jobnames
+            try:
+                jobctl = JobController.controller
+                jobctl.set_workerID(workerID)
+                print('workerid',jobctl.workerID)
+            except Exception as e:
+                #logger
+                print("Info: No job_controller set on worker", workerID)
+                self.job_controller_set = False
+            else:
+                self.job_controller_set = True
+                #jobctl.set_workerID(workerID)
 
 
     #worker.run
@@ -244,16 +247,8 @@ class Worker():
         self.calc_out, self.gen_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.gen_info, self.libE_info)
         
         #This is a libe feature that is to be reviewed for best solution
-        if self.calc_status == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
-            calc_stats.status = "Manager killed on finish" #Currently a string/description
-        elif self.calc_status == MAN_SIGNAL_KILL: 
-            calc_stats.status = "Manager killed calc_stats"
-        elif self.calc_status == WORKER_KILL:
-            calc_stats.status = "Worker killed calc_stats"
-        elif self.calc_status == JOB_FAILED:
-            calc_stats.status = "Job Failed"        
-        else:
-            calc_stats.status = "Completed"
+        #Should atleast put in calc_stats.
+        calc_stats.set_calc_status(self.calc_status)
             
         self.isdone = True
         calc_stats.stop_timer()
@@ -268,11 +263,6 @@ class Worker():
         for loc in self.locations.values():
             shutil.rmtree(loc)
         return
-
-    
-    def isdone(self):
-        #Poll job - Dont need function
-        return self.isdone
 
 
     #Prob internal only - may make this static - no self vars

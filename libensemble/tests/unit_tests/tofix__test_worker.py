@@ -4,6 +4,10 @@ from libensemble.libE_worker import Worker
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 import numpy as np
 
+
+def simfunc():
+    pass
+
 def test_worker_init_run():
     
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
