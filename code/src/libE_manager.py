@@ -264,6 +264,11 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
     Return nonzero if the libEnsemble run should stop 
     """
 
+    # Time should be checked first to ensure proper timeout
+    if 'elapsed_wallclock_time' in exit_criteria:
+        if time.time() - start_time >= exit_criteria['elapsed_wallclock_time']:
+            return 2
+
     if 'sim_max' in exit_criteria:
         if np.sum(H['given']) >= exit_criteria['sim_max'] + lenH0:
             return 1
@@ -277,10 +282,6 @@ def termination_test(H, H_ind, exit_criteria, start_time, lenH0):
         val = exit_criteria['stop_val'][1]
         if np.any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
             return 1
-
-    if 'elapsed_wallclock_time' in exit_criteria:
-        if time.time() - start_time >= exit_criteria['elapsed_wallclock_time']:
-            return 2
 
     return False
 
