@@ -116,8 +116,7 @@ def worker_main(c, sim_specs, gen_specs):
         #comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
     
     
-    if 'clean_jobs' in sim_specs:
-        if sim_specs['clean_jobs']:
+    if 'clean_jobs' in sim_specs and sim_specs['clean_jobs']:
             worker.clean()
     
     ## Print calc_list here
@@ -171,7 +170,7 @@ class Worker():
         #return None
     
     #Worker Object methods
-    def __init__(self, workerID, empty=False):
+    def __init__(self, workerID):
 
         self.locations = {}
         self.worker_dir = ""
@@ -187,31 +186,30 @@ class Worker():
         #self.sim_specs = Worker.sim_specs
         #self.gen_specs = Worker.gen_specs       
 
-        if not empty:
-            if 'sim_dir' in Worker.sim_specs:
-                #worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
-                self.worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(self.workerID)
+        if 'sim_dir' in Worker.sim_specs:
+            #worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
+            self.worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(self.workerID)
     
-                if 'sim_dir_prefix' in Worker.sim_specs:
-                    self.worker_dir =  os.path.join(os.path.expanduser(Worker.sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(self.worker_dir)))[1])
+            if 'sim_dir_prefix' in Worker.sim_specs:
+                self.worker_dir =  os.path.join(os.path.expanduser(Worker.sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(self.worker_dir)))[1])
     
-                assert ~os.path.isdir(self.worker_dir), "Worker directory already exists."
-                # if not os.path.exists(worker_dir):
-                shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
-                self.locations[EVAL_SIM_TAG] = self.worker_dir
-                
-            #Optional - set workerID in job_controller - so will be added to jobnames
-            try:
-                jobctl = JobController.controller
-                jobctl.set_workerID(workerID)
-                print('workerid',jobctl.workerID)
-            except Exception as e:
-                #logger
-                print("Info: No job_controller set on worker", workerID)
-                self.job_controller_set = False
-            else:
-                self.job_controller_set = True
-                #jobctl.set_workerID(workerID)
+            assert ~os.path.isdir(self.worker_dir), "Worker directory already exists."
+            # if not os.path.exists(worker_dir):
+            shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
+            self.locations[EVAL_SIM_TAG] = self.worker_dir
+            
+        #Optional - set workerID in job_controller - so will be added to jobnames
+        try:
+            jobctl = JobController.controller
+            jobctl.set_workerID(workerID)
+            print('workerid',jobctl.workerID)
+        except Exception as e:
+            #logger
+            print("Info: No job_controller set on worker", workerID)
+            self.job_controller_set = False
+        else:
+            self.job_controller_set = True
+            #jobctl.set_workerID(workerID)
 
 
     #worker.run
