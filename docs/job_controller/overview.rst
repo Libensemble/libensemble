@@ -34,11 +34,20 @@ In user sim func::
     
     while time.time() - start < timeout_sec:
         time.sleep(delay)
+        
+        # Has manager sent a finish signal
+        jobctl.manager_poll(job)
+        if job.manager_signal == 'finish':
+            jobctl.kill(job)        
+        
+        # Poll job to see if completed
         jobctl.poll(job)
         if job.finished:
             print(job.state)
             break
-         if job.stdout_exists():
+            
+        # Check output file for error and kill job
+        if job.stdout_exists():
             if 'Error' in job.read_stdout():
                 jobctl.kill(job)
                 break
@@ -47,22 +56,24 @@ Following is a list of job status and configuration attributes that can be retri
 
 Job Status attributes include:
 
-:job.state: ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
+:job.state: (string) The job status. One of: ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
 
-:job.process: The process object used by the underlying process manager (e.g. return value of subprocess.Popen)
-:job.errcode: The errorcode/return code used by the underlying process manager
-:job.finished: True means job has finished running - not whether was successful
-:job.success: Did job complete succesfully (e.g. returncode is zero)
+:job.process: (process obj) The process object used by the underlying process manager (e.g. return value of subprocess.Popen)
+:job.errcode: (int) The errorcode/return code used by the underlying process manager
+:job.finished: (Boolean) True means job has finished running - not whether was successful
+:job.success: (Boolean) Did job complete succesfully (e.g. returncode is zero)
+:job.manager_signal: (String) Contains any signals received by manager. ('none'|'finish'|'kill')
 
 Run configuration attributes - Some will be auto-generated:
 
-:job.workdir: Work directory for the job
-:job.name: Name of job - auto-generated
-:job.app: Use application/executable, registered using registry.register_calc
-:job.app_args: Application arguments as a string  
-:job.num_procs: Total number of processors for job
-:job.num_nodes: Number of nodes for job
-:job.ranks_per_node: Ranks per node for job
-:job.machinefile: Name of machinefile is provided
-:job.stdout: Name of file where the standard output of the job is written
+:job.workdir: (string) Work directory for the job
+:job.name: (string) Name of job - auto-generated
+:job.app: (app obj) Use application/executable, registered using registry.register_calc
+:job.app_args: (string) Application arguments as a string  
+:job.num_procs: (int) Total number of processors for job
+:job.num_nodes: (int) Number of nodes for job
+:job.ranks_per_node: (int) Ranks per node for job
+:job.machinefile: (string) Name of machinefile is provided
+:job.stdout: (string) Name of file where the standard output of the job is written (in job.workdir)
 
+A list of job_controller and job functions can be found under the Job Controller Module.

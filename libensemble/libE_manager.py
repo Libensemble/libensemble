@@ -316,7 +316,7 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
     ----------
     H: numpy structured array
         History array storing rows for each point. Field names are in
-        code/src/libE_fileds.py
+        libensemble/libE_fields.py
 
     H_ind: integer
         Where libEnsemble should start filling in H

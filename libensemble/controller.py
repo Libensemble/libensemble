@@ -46,7 +46,10 @@ class JobControllerException(Exception): pass
 
 class Job:
     
-    '''Manage the creation, configuration and status of a launchable job.'''
+    '''
+    Manage the creation, configuration and status of a launchable job.
+
+    '''
 
     newid = itertools.count()
     
@@ -54,11 +57,12 @@ class Job:
         '''Instantiate a new Job instance.
         
         A new job object is created with an id, status and configuration attributes
+        This will normally be created by the job_controller on a launch
         '''
         self.id = next(Job.newid)
                 
         #Status attributes
-        self.state = 'CREATED'
+        self.state = 'CREATED' #: test1 docstring
         self.process = None        
         self.errcode = None
         self.finished = False  # True means job has run - not whether was successful
@@ -66,6 +70,7 @@ class Job:
         self.launch_time = None       
         self.runtime = None
         self.total_time = None
+        self.manager_signal = 'none'        
         
         #Run attributes
         self.app = app
@@ -77,7 +82,7 @@ class Job:
         self.hostlist = hostlist
         self.stdout = stdout
         self.workerID = workerid
-        self.manager_signal = None
+
         
         if app is not None:
             if self.workerID is not None:
@@ -141,7 +146,7 @@ class Job:
             return open(path).read()
         
         
-    #note - this is currently ONLY FINAL TIME FOR JOB. So why is it calling on poll ????????????????????????
+    #Note - this is currently only final job-time. May make running job time.
     #And prob want to use for polling in sim func - esp in balsam - where want acutal runtime not time since launch
     def calc_job_timing(self):
         """Calculate timing information for this job"""
@@ -171,6 +176,7 @@ class BalsamJob(Job):
         '''Instantiate a new BalsamJob instance.
         
         A new BalsamJob object is created with an id, status and configuration attributes
+        This will normally be created by the job_controller on a launch
         '''
         super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
         
@@ -206,8 +212,6 @@ class JobController:
     
     controller = None
     
-    #May change name to check_partition or check_decomp - as its really checking and creating consistency
-    #Not check resources
     @staticmethod
     def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
         """ Takes provided nprocs/nodes/ranks and outputs working configuration of procs/nodes/ranks or error """
@@ -596,6 +600,7 @@ class JobController:
 
 
     def set_workerID(self, workerid):
+        """Sets the worker ID for this job_controller"""
         self.workerID = workerid
 
 
@@ -712,7 +717,7 @@ class JobController:
     #will prob want to adjust based on input
     #def get_hostlist(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
     def get_hostlist(self):
-        
+        """Create a hostlist based on user supplied config options, completed by detected machine resources"""
         node_list = self.resources.local_nodelist
         hostlist_str = ",".join([str(x) for x in node_list])  
         return hostlist_str
@@ -763,9 +768,8 @@ class BalsamJobController(JobController):
         #if job.total_time is None:
             #job.total_time = time.time() - job.launch_time
         
-        
-        
-    #sh - need to deal with hyperthreads option - if procs/nodes/ppn not specified
+
+
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
         
