@@ -29,7 +29,13 @@ Dependencies
 
 * NumPy_
 
-The examples and tests require the following dependencies:
+Optional dependency:
+
+* Balsam_
+ 
+From v0.2.0, libEnsemble has the option of using the Balsam job manager. This is required for running on some supercomputing platforms (eg. Cray XC40); platforms which do not support launching jobs on compute nodes.
+
+The example sim/gen functions and tests require the following dependencies:
 
 * SciPy_
 * petsc4py_
@@ -45,29 +51,24 @@ PETSc and nlopt must be built with shared libraries enabled and present in sys.p
 .. _SciPy:  http://www.scipy.org
 .. _mpi4py:  https://bitbucket.org/mpi4py/mpi4py
 .. _petsc4py:  https://bitbucket.org/petsc/petsc4py
+.. _Balsam: https://www.alcf.anl.gov/balsam
 
 
 Installation
 ------------
 
-pip install can be used to install libEnsemble and access the libensemble module. However, to access the examples and tests the source distribution is required. This can be obtained via PYPI or github. The simplest way of obtaining a tarball for the latest release from PYPI is::
+You can use pip to install libEnsemble and its dependencies::
 
-    pip download libensemble
-
-You can also download the tarball from `github <https://github.com/Libensemble/libensemble>`_::
-
-    wget https://github.com/Libensemble/libensemble/releases/tag/v0.1.0/libensemble-0.1.0.tar.gz
-
-The examples and tests are set up to be run from the source distribution and do not currently require the libEnsemble package to be installed. Installing the package, however, will download any python dependencies required. This can be done from the top level directory using::
-
-    pip install .
-
-Conda: Conda can also be used for simple fast installation of dependencies using mpich (see conda/conda-install-deps.sh). This is probably the fastest approach for a clean installation from scratch as conda can install both the Python and non-Python dependencies - see conda directory for dependent packages/instructions. However, to use an existing MPI, care must be taken to ensure the installed packages do not install their own MPI dependencies - this may not be trivial. In particular,  mpi4py should be configured to point to your systems MPI if that already exists. This can be checked by locating the mpi.cfg file in the mpi4py installation. TravisCI testing has also been configured to use Conda (combined with pip to work with multiple MPI libraries) with the `Miniconda <https://conda.io/docs/install/quick.html>`_ distribution.
+    pip install libensemble
 
 Spack: Libensemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
+The tests/examples can be accessed by the `github <https://github.com/Libensemble/libensemble>`_ repository. A tarball is available at::
+
+    wget https://github.com/Libensemble/libensemble/releases/tag/v0.2.0/libensemble-0.2.0.tar.gz
+    
 
 Testsuite
 ---------
@@ -76,23 +77,34 @@ The testsuite includes both unit and regression tests and is run regularly on
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
-The testsuite requires the pytest and pytest-cov packages to be installed and can be run from the code/tests directory of the source distribution using the following methods::
+The testsuite requires the pytest and pytest-cov packages to be installed and can be run from the libensemble/tests directory of the source distribution using the following methods::
 
     ./run-tests.sh (optionally specify eg. -p 3 for Python3)
 
     python3 setup.py test (run from top level directory)
+    
+To clean the test repositories run::
 
-Coverage reports are produced separately for unit tests and regression tests under the relevant directories. For parallel tests, the union of all processors is taken. Furthermore, a combined coverage report is created at the top level, which can be viewed online in `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
+    ./run-tests.sh -c
+
+Coverage reports are produced separately for unit tests and regression tests under the relevant directories. For parallel tests, the union of all processors is taken. Furthermore, a combined coverage report is created at the top level, which can be viewed after running the tests via the html file libensemble/tests/cov_merge/index.html. The travis results are given online in `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_. 
+
+Note for v0.2.0: The job_controller tests can be run using the direct-launch or Balsam job controllers. However, currently only the direct-launch versions can be run on Travis CI, which reduces the test coverage results.
 
 
 Basic Usage
 -----------
 
-Examples can be found under code/examples. 
+The best example user scripts are the regression tests. These can be found under libensemble/tests directory. 
+
+Example submission scripts can be found in examples/job_submission_scripts
+
+See the `user-guide <http://libensemble.readthedocs.org>`_ for more information.
 
 
 Documentation
 -------------
+
 * http://libensemble.readthedocs.org/
 
 
