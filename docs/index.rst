@@ -10,15 +10,35 @@ Library for managing ensemble-like collections of computations.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
+   :caption: libEnsemble:
+   
    readme
    contributing
    release_notes
+   user_guide
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: libEnsemble API:
+   
+   libe_module
    manager_modules
    worker_modules
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Job Controller:  
+
+   job_controller/overview
+   job_controller/register
+   job_controller/job_controller
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples:  
+
    examples_modules
- 
+
 
 Indices and tables
 ==================

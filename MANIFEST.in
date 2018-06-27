@@ -3,11 +3,9 @@ include *.cfg
 include *.rst
 include LICENSE
 include CONTRIBUTING
-include requirements.txt
-include tox.ini
 include conda/*
 
-recursive-include code *
+recursive-include libensemble *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * cov_*

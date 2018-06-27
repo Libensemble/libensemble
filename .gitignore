@@ -6,4 +6,3 @@ cov_*
 .cov_*
 code/tests/regression_tests/output/
 .cache
-.pytest_cache

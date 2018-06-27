@@ -12,14 +12,15 @@ sudo: false
 env:
   global:
     - HYDRA_LAUNCHER=fork
-    - OMPI_MCA_rmaps_base_oversubscribe=yes
+    - OMPI_MCA_rmaps_base_oversubscribe=yes  
   matrix:
     - MPI=mpich
     - MPI=openmpi
 
-allow_failures:
-  - env: MPI=openmpi
-  
+matrix:
+  allow_failures:
+    - env: MPI=openmpi
+    
 addons:
   apt:
     packages:
@@ -33,8 +34,7 @@ cache:
 
 # Setup Miniconda
 before_install:
-  # Do this conditionally because it saves some downloading if the
-  # version is the same.
+  # Do this conditionally because it saves some downloading if the version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -50,11 +50,7 @@ before_install:
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION 
   - source activate condaenv
 
-# Currently mpi4py 2.0.0 fails with mpi_init error on some platforms - need dev version from source.
-# Mpich can work with conda install - but currently for multiple MPI versions - need to get mpi4py and petsc from source
-# ...until conda has a better MPI solution. Could try caching built dependencies to cut time???
 install:
-  #- conda install $MPI cython #Install mpi4py and petsc from src to match these - until conda packages all match
   - conda install $MPI
   - pip install numpy
   - pip install scipy
@@ -67,17 +63,16 @@ install:
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
-  
-  #  - python setup.py install
+  - pip install .
 
 # Run test
 script:
-  - code/tests/run-tests.sh
+  - libensemble/tests/run-tests.sh
 
 # Coverage
 after_success:
-  - mv code/tests/.cov* .
+  - mv libensemble/tests/.cov* .
   - coveralls
 
 after_failure:
-  - cat code/tests/regression_tests/log.err
+- cat libensemble/tests/regression_tests/log.err
