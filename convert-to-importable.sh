@@ -22,14 +22,15 @@ echo -e "then can do <pip install .> or <pip install --upgrade .> from the proje
 REPO_DIR=${PWD}/$1
 REPO_DIR=${REPO_DIR%/} #Remove if trailing slash
 
-export CODE_DIR=$REPO_DIR/code
+export CODE_DIR=$REPO_DIR/libensemble
 
 #List python package dirs
-export LIBE_DIR=$CODE_DIR/src
-export SIM_FUNCS_DIR=$CODE_DIR/examples/sim_funcs
+export LIBE_DIR=$CODE_DIR
+export EXAMPLES_DIR=$REPO_DIR/examples/calling_scripts
+export SIM_FUNCS_DIR=$CODE_DIR/sim_funcs
 export BRANIN_DIR=$SIM_FUNCS_DIR/branin
-export GEN_FUNCS_DIR=$CODE_DIR/examples/gen_funcs
-export ALLOC_FUNCS_DIR=$CODE_DIR/examples/alloc_funcs
+export GEN_FUNCS_DIR=$CODE_DIR/gen_funcs
+export ALLOC_FUNCS_DIR=$CODE_DIR/alloc_funcs
 export UTESTS_DIR=$CODE_DIR/tests/unit_tests
 export REG_TESTS_DIR=$CODE_DIR/tests/regression_tests
 
@@ -119,35 +120,35 @@ ALLOC_FUNCS_FILES=`find $ALLOC_FUNCS_DIR -maxdepth 1 -name "*.py" -exec basename
 UTESTS_FILES=`find $UTESTS_DIR -maxdepth 1 -name "*.py" -exec basename {} \;`
 REG_TESTS_FILES=`find $REG_TESTS_DIR -maxdepth 1 -name "*.py" -exec basename {} \;`
 
+
 echo -e "Converting libensemble src dir:"
 cd $REPO_DIR
 
-cd code/src
+cd $LIBE_DIR
 convert_import_paths
 
 echo -e "Converting libensemble examples:"
-cd ../examples/
-
-cd calling_scripts
+cd $EXAMPLES_DIR
+# cd calling_scripts
 convert_import_paths
 
-cd ../alloc_funcs
+cd $ALLOC_FUNCS_DIR
 convert_import_paths
 
-cd ../sim_funcs
+cd $SIM_FUNCS_DIR
 convert_import_paths
-cd branin/
+cd $BRANIN_DIR
 convert_import_paths
-cd ..
+# cd ..
 
-cd ../gen_funcs
+cd $GEN_FUNCS_DIR
 convert_import_paths
 cd ..
 
 echo -e "Converting libensemble tests:"
-cd ../tests/
-cd unit_tests
+cd $UTESTS_DIR
+# cd unit_tests
 convert_import_paths
 
-cd ../regression_tests
+cd $REG_TESTS_DIR
 convert_import_paths
