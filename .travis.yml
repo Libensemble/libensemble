@@ -12,13 +12,15 @@ sudo: false
 env:
   global:
     - HYDRA_LAUNCHER=fork
-    - OMPI_MCA_rmaps_base_oversubscribe=yes
-    - allow_failures:
-      - env: MPI=openmpi    
+    - OMPI_MCA_rmaps_base_oversubscribe=yes  
   matrix:
     - MPI=mpich
     - MPI=openmpi
 
+matrix:
+  allow_failures:
+    - env: MPI=openmpi
+    
 addons:
   apt:
     packages:
