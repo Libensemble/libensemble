@@ -21,18 +21,11 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
             calc_status = MAN_SIGNAL_FINISH # Worker will pick this up and close down
             print('Job {} killed by manager on worker {}'.format(job.id,jobctl.workerID)) 
             break         
-        elif job.manager_signal == 'kill':
-            jobctl.kill(job)
-            calc_status = MAN_SIGNAL_KILL
-            print('Job {} killed by manager on worker {}'.format(job.id,jobctl.workerID)) 
-            break
         
         #print('Polling job at time', time.time() - start)
         jobctl.poll(job)        
         if job.finished: 
-            break
-        elif job.state == 'WAITING':
-            print('Job {} waiting to launch on worker {}'.format(job.id,jobctl.workerID))    
+            break  
         elif job.state == 'RUNNING':
             print('Job {} still running on worker {} ....'.format(job.id,jobctl.workerID))
         
