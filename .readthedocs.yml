@@ -1,2 +1,5 @@
+python:
+   setup_py_install: true
+
 conda:
     file: conda/environment.yml
