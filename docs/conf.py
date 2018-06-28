@@ -32,9 +32,9 @@ MOCK_MODULES = ['argparse', 'numpy', 'mpi4py' , 'scipy', 'numpy.lib', 'numpy.lib
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 #import libensemble
-import libensemble.alloc_funcs
-import libensemble.gen_funcs
-import libensemble.sim_funcs
+#import libensemble.alloc_funcs
+#import libensemble.gen_funcs
+#import libensemble.sim_funcs
 
 from libensemble import *
 from libensemble.alloc_funcs import *
