@@ -42,11 +42,11 @@ The example sim/gen functions and tests require the following dependencies:
 * SciPy_
 * petsc4py_
 * PETSc_ - This can optionally be installed by pip along with petsc4py
-* nlopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
+* NLopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
-PETSc and nlopt must be built with shared libraries enabled and present in
-sys.path (eg. via setting the PYTHONPATH environment variable). nlopt should
-produce a file nlopt.py if python is found on the system.
+PETSc and NLopt must be built with shared libraries enabled and present in
+sys.path (eg. via setting the PYTHONPATH environment variable). NLopt should
+produce a file nlopt.py if Python is found on the system.
 
 .. _PETSc:  http://www.mcs.anl.gov/petsc
 .. _Python: http://www.python.org
@@ -92,15 +92,24 @@ To clean the test repositories run::
 
     ./run-tests.sh -c
 
-Coverage reports are produced separately for unit tests and regression tests under the relevant directories. For parallel tests, the union of all processors is taken. Furthermore, a combined coverage report is created at the top level, which can be viewed after running the tests via the html file libensemble/tests/cov_merge/index.html. The travis results are given online in `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_. 
+Coverage reports are produced separately for unit tests and regression tests
+under the relevant directories. For parallel tests, the union of all processors
+is taken. Furthermore, a combined coverage report is created at the top level,
+which can be viewed after running the tests via the html file
+libensemble/tests/cov_merge/index.html. The Travis coverage results are given
+online in
+`Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_. 
 
-Note for v0.2.0: The job_controller tests can be run using the direct-launch or Balsam job controllers. However, currently only the direct-launch versions can be run on Travis CI, which reduces the test coverage results.
+Note for v0.2.0: The job_controller tests can be run using the direct-launch or
+Balsam job controllers. However, currently only the direct-launch versions can
+be run on Travis CI, which reduces the test coverage results.
 
 
 Basic Usage
 -----------
 
-The best example user scripts are the regression tests. These can be found under libensemble/tests directory. 
+The best example user scripts are the regression tests. These can be found
+under libensemble/tests directory. 
 
 Example submission scripts can be found in examples/job_submission_scripts
 
