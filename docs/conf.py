@@ -35,6 +35,12 @@ import libensemble.alloc_funcs
 import libensemble.gen_funcs
 import libensemble.sim_funcs
 
+from libensemble import *
+from libensemble.alloc_funcs import *
+from ibensemble.gen_funcs import *
+from libensemble.sim_funcs import *
+
+
 sys.path.insert(0, os.path.abspath('.'))
 #sys.path.append(os.path.abspath('../libensemble'))
 ##sys.path.append(os.path.abspath('../libensemble'))
