@@ -1,9 +1,10 @@
 [run]
-source = ../../
-        ../../sim_funcs
-        ../../gen_funcs
-        ../../alloc_funcs
-        .
+source = ../..
+
+omit =
+    */tests/*
+    */unit_tests/*
+    */regression_tests/*
 
 branch = true
 	 
@@ -16,9 +17,11 @@ include = *.py
 
 [report]
 omit =
-    */__init__.py
-    */.tox/*
-    */setup.py
+    */__init__.py/*
+    */setup.py/*
+    */tests/*
+    */unit_tests/*
+    */regression_tests/*
 
 exclude_lines =
     if __name__ == .__main__.:

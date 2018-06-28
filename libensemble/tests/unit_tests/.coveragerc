@@ -1,9 +1,10 @@
 [run]
 source = ../..
-        ../../gen_funcs
-        ../../gen_funcs
-        ../../alloc_funcs
-        .
+
+omit =
+    */tests/*
+    */unit_tests/*
+    */regression_tests/*
 
 branch = true
 	 
@@ -13,9 +14,11 @@ data_file = .cov_unit_out
 
 [report]
 omit =
-    */__init__.py
-    */.tox/*
-    */setup.py
+    */__init__.py/*
+    */setup.py/*
+    */tests/*
+    */unit_tests/*
+    */regression_tests/*
 
 
 [html]    

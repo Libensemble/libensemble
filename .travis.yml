@@ -73,7 +73,6 @@ script:
 after_success:
   - mv libensemble/tests/.cov* .
   - cat .cov_merge_out
-  - cat libensemble/tests/unit_tests/.cov_merge_out 
   - cat libensemble/tests/unit_tests/.cov_unit_out
   - cat libensemble/tests/regression_tests/.cov_reg_out  
   - coveralls
