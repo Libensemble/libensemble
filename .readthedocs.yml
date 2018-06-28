@@ -1,2 +1,10 @@
 conda:
     file: conda/environment.yml
+
+]build:
+    image: latest
+    
+python:
+   pip_install: true
+
+

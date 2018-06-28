@@ -63,7 +63,7 @@ install:
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
-  - pip install .
+  - pip install -e .
 
 # Run test
 script:
@@ -71,7 +71,7 @@ script:
 
 # Coverage
 after_success:
-  - mv libensemble/tests/.cov* .
+  - mv libensemble/tests/.cov* . 
   - coveralls
 
 after_failure:
