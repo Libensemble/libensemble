@@ -5,9 +5,8 @@
 import os
 import subprocess
 import logging
-#if MPI --------------------
 from mpi4py import MPI
-#---------------------------
+
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
 stream_handler = logging.StreamHandler()

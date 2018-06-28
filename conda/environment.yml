@@ -1,4 +1,7 @@
+python:
+   setup_py_install: true
+   
 dependencies:
- - python=3.5
+ - python=3.6
  - mpi4py
  - numpy
