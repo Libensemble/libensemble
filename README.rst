@@ -33,7 +33,9 @@ Optional dependency:
 
 * Balsam_
  
-From v0.2.0, libEnsemble has the option of using the Balsam job manager. This is required for running on some supercomputing platforms (eg. Cray XC40); platforms which do not support launching jobs on compute nodes.
+From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
+is required for running on some supercomputing platforms (eg. Cray XC40);
+platforms which do not support launching jobs on compute nodes.
 
 The example sim/gen functions and tests require the following dependencies:
 
@@ -42,7 +44,9 @@ The example sim/gen functions and tests require the following dependencies:
 * PETSc_ - This can optionally be installed by pip along with petsc4py
 * nlopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
-PETSc and nlopt must be built with shared libraries enabled and present in sys.path (eg. via setting the PYTHONPATH environment variable). nlopt should produce a file nlopt.py if python is found on the system.
+PETSc and nlopt must be built with shared libraries enabled and present in
+sys.path (eg. via setting the PYTHONPATH environment variable). nlopt should
+produce a file nlopt.py if python is found on the system.
 
 .. _PETSc:  http://www.mcs.anl.gov/petsc
 .. _Python: http://www.python.org
@@ -70,19 +74,20 @@ The tests and examples can be accessed in the `github <https://github.com/Libens
     wget https://github.com/Libensemble/libensemble/releases/tag/v0.2.0/libensemble-0.2.0.tar.gz
     
 
-Testsuite
+Testing
 ---------
 
-The testsuite includes both unit and regression tests and is run regularly on
+The provide test suite includes both unit and regression tests and is run
+regularly on
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
-The testsuite requires the pytest and pytest-cov packages to be installed and can be run from the libensemble/tests directory of the source distribution using the following methods::
+The test suite requires the pytest and pytest-cov packages to be installed and
+can be run from the libensemble/tests directory of the source distribution
+using the following methods::
 
     ./run-tests.sh (optionally specify eg. -p 3 for Python3)
 
-    python3 setup.py test (run from top level directory)
-    
 To clean the test repositories run::
 
     ./run-tests.sh -c
