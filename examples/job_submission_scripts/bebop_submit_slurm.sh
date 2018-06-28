@@ -1,8 +1,8 @@
-#!/bin/bash 
-#SBATCH -J mid_test
+#!/bin/bash
+#SBATCH -J libE_test
 #SBATCH -N 4
-#SBATCH -p knlall 
-#SBATCH -A COMPASSOPT
+#SBATCH -p knlall
+##SBATCH -A <my_project>
 #SBATCH -o tlib.%j.%N.out 
 #SBATCH -e tlib.%j.%N.error 
 #SBATCH -t 01:00:00 
