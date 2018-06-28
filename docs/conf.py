@@ -37,7 +37,7 @@ import libensemble.sim_funcs
 
 from libensemble import *
 from libensemble.alloc_funcs import *
-from ibensemble.gen_funcs import *
+from libensemble.gen_funcs import *
 from libensemble.sim_funcs import *
 
 
