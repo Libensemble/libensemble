@@ -65,7 +65,7 @@ Spack: Libensemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
-The tests/examples can be accessed by the `github <https://github.com/Libensemble/libensemble>`_ repository. A tarball is available at::
+The tests and examples can be accessed by the `github <https://github.com/Libensemble/libensemble>`_ repository. A tarball is available at::
 
     wget https://github.com/Libensemble/libensemble/releases/tag/v0.2.0/libensemble-0.2.0.tar.gz
     
