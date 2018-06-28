@@ -1,14 +1,10 @@
 #!/bin/bash -x
-##COBALT -A <...project code...>
 #COBALT -t 60
 #COBALT -O libE_test
 #COBALT -n 5 #no. nodes
-##COBALT -q default
-##COBALT -q debug-flat-quad #For small runs only
-##COBALT -o tlib.%j.%N.out
-##COBALT -e tlib.%j.%N.error
-##COBALT --proccount 
-##COBALT --attrs mcdram=cache:numa=quad #Experiment here
+#COBALT -q debug-flat-quad #For small runs only
+##COBALT -q default #For large jobs
+##COBALT -A <...project code...>
 
 # Script to launch libEnsemble using Balsam within Conda. Conda environment must be set up.
 
