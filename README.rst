@@ -96,8 +96,8 @@ Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors
 is taken. Furthermore, a combined coverage report is created at the top level,
 which can be viewed after running the tests via the html file
-libensemble/tests/cov_merge/index.html. The Travis coverage results are given
-online in
+libensemble/tests/cov_merge/index.html. The Travis CI coverage results are
+given online at
 `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_. 
 
 Note for v0.2.0: The job_controller tests can be run using the direct-launch or
