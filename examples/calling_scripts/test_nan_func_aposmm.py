@@ -1,0 +1,1 @@
+../../libensemble/tests/regression_tests/test_nan_func_aposmm.py

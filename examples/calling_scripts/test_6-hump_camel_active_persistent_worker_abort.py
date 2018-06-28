@@ -1,0 +1,1 @@
+../../libensemble/tests/regression_tests/test_6-hump_camel_active_persistent_worker_abort.py

@@ -1,0 +1,1 @@
+../../libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py
