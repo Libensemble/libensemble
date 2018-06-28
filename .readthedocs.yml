@@ -1,5 +1,10 @@
-python:
-   setup_py_install: true
-
 conda:
     file: conda/environment.yml
+
+]build:
+    image: latest
+    
+python:
+   pip_install: true
+
+
