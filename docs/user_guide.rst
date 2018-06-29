@@ -4,14 +4,14 @@ libEnsemble User Guide
 libEnsemble overview
 --------------------
 libEnsemble is a software library to coordinate the concurrent evaluation of ensembles of calculations. libEnsemble uses a manager to allocate work to various workers. (A libEnsemble worker is the smallest indivisible unit to perform some calculation.) The work performed by libEnsemble is governed by three routines:
+
 * gen_f: Generates inputs to sim_f.
 * sim_f: Evaluates a simulation or other evaluation at output from gen_f.
-* alloc_f: Decides whether sim_f or gen_f should be called (and with what input/resources) as workers
-become available. (Can decide neither sim_f nor gen_f should be called.)
+* alloc_f: Decides whether sim_f or gen_f should be called (and with what input/resources) as workers become available.
 
-The default alloc_f tells each available worker to call sim_f with the highest priority unit of work from gen_f. If a worker is idle and there is no gen_f output to give, the worker is told to call gen_f. Example sim_f, gen_f, and alloc_f routines can be found in the libensemble directory under the sim_funcs, gen_funcs, alloc_funcs directories respectively; Example running
-scripts are available in libensemble/regression_tests
+Example sim_f, gen_f, and alloc_f routines can be found in the examples/sim_funcs, examples/gen_funcs, and examples/alloc_funcs directories, respectively. Examples of scripts used for calling libEnsemble can be found at examples/calling_scripts/. To enable portability, a job_controller interface is supplied for users to launch and monitor jobs in their user-provided sim_f and gen_f routines.
 
+The default alloc_f tells each available worker to call sim_f with the highest priority unit of work from gen_f. If a worker is idle and there is no gen_f output to give, the worker is told to call gen_f.
 
 
 Expected use cases
@@ -40,7 +40,7 @@ Below are some expected libEnsemble use cases that we support (or are working to
   desired at each identified optimum. libEnsemble can use the points from the APOSMM gen_f to identify optima and after a point is ruled to be an optimum, a different gen_f can produce a collection of parameters necessary for sensitivity analysis of sim_f.
   
 
-Naturally, combinations use cases is supported as well. libEnsemble can be used to optimize simulations fail frequently.
+Naturally, combinations of these use cases are supported as well. An example of such a combination is using libEnsemble to solve an optimization problem that relies on simulations that fail frequently.
 
 
 The libEnsemble History Array

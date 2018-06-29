@@ -2,4 +2,4 @@ libE Module
 ===========
 .. automodule:: libE
   :members:
-  :undoc-members:
+  :no-undoc-members:

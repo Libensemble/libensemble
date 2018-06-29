@@ -77,8 +77,8 @@ The tests and examples can be accessed in the `github <https://github.com/Libens
 Testing
 ---------
 
-The provide test suite includes both unit and regression tests and is run
-regularly on
+The provided test suite includes both unit and regression tests and is run
+regularly on:
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
@@ -108,10 +108,7 @@ be run on Travis CI, which reduces the test coverage results.
 Basic Usage
 -----------
 
-The best example user scripts are the regression tests. These can be found
-under libensemble/tests directory. 
-
-Example submission scripts can be found in examples/job_submission_scripts
+The examples directory contains example libEnsemble calling scripts, sim functions, gen functions, alloc functions and job submission scripts.
 
 See the `user-guide <http://libensemble.readthedocs.org>`_ for more information.
 

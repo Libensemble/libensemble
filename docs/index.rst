@@ -22,6 +22,7 @@ Library for managing ensemble-like collections of computations.
    :caption: libEnsemble API:
    
    libe_module
+   sim_gen_funcs
    manager_modules
    worker_modules
 
