@@ -1,10 +1,7 @@
 conda:
     file: conda/environment.yml
-
-]build:
-    image: latest
     
 python:
-   pip_install: true
-
+    version: 3.5
+    pip_install: true
 

@@ -1,4 +1,4 @@
- dependencies:
- - python=3.6
+dependencies:
+ - python==3.5
  - mpi4py
  - numpy

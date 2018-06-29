@@ -19,7 +19,7 @@ Second tasks to be included in libEnsemble:
 Third (aspirational) tasks for libEnsemble:
     - change resources given to a simulation midrun [sim]
     - recover resources when simulation fails [MPI/Hydra]
-    - gracefully pause cimulation [sim]
+    - gracefully pause simulation [sim]
 
 """
 
