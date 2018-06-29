@@ -21,9 +21,8 @@ Dependencies
 
 * Python_ 2.7, 3.4 or above.
 
-* A functional MPI 1.x/2.x/3.x implementation like `MPICH
-  <http://www.mpich.org/>`_ or `Open MPI <http://www.open-mpi.org/>`_
-  built with shared/dynamic libraries.
+* A functional MPI 1.x/2.x/3.x implementation such as `MPICH
+  <http://www.mpich.org/>`_  built with shared/dynamic libraries.
 
 * mpi4py_ v2.0.0 or above
 
