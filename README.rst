@@ -37,7 +37,7 @@ From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running on some supercomputing platforms (eg. Cray XC40);
 platforms which do not support launching jobs on compute nodes.
 
-The example sim/gen functions and tests require the following dependencies:
+The example sim and gen functions and tests require the following dependencies:
 
 * SciPy_
 * petsc4py_
@@ -65,13 +65,13 @@ You can use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
-Spack: Libensemble is also available in the Spack_ distribution.
+Libensemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
 The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository. A tarball is available at::
 
-    wget https://github.com/Libensemble/libensemble/releases/tag/v0.2.0/libensemble-0.2.0.tar.gz
+    wget https://github.com/Libensemble/libensemble/tarball/v0.2.0/libensemble-0.2.0.tar.gz
     
 
 Testing
