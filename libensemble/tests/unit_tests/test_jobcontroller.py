@@ -93,7 +93,7 @@ def test_launch_and_poll():
     jobctl = JobController.controller
     cores = NCORES
     args_for_sim = 'sleep 3'
-    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, machinefile='machinefile')
     job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
@@ -149,6 +149,46 @@ def test_get_job():
     # A = jobctl.list_of_jobs.append('a')
     # A = jobctl.get_job('a')
     # print(A)
+
+def test_procs_and_machinefile_logic():
+    """ Test of counting num_procs etc."""
+
+    # Testing machinefile
+    setup_job_controller()
+    jobctl = JobController.controller
+    job = jobctl.launch(calc_type='sim', machinefile='machinefile')
+    job = polling_loop(jobctl, job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
+
+    # Testing num_procs = num_nodes*ranks_per_node (shouldn't fail)
+    job = jobctl.launch(calc_type='sim', num_procs=10, num_nodes=2, ranks_per_node=5)
+    job = polling_loop(jobctl, job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
+
+    # Testing num_procs not num_nodes*ranks_per_node (should fail)
+    try: 
+        job = jobctl.launch(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5)
+    except: 
+        assert 1
+    else:
+        assert 0
+
+    # Testing no num_procs (shouldn't fail)
+    job = jobctl.launch(calc_type='sim', num_nodes=2, ranks_per_node=5)
+    assert 1
+
+    # Testing nothing given (should fail)
+    try:
+        job = jobctl.launch(calc_type='sim')
+    except: 
+        assert 1
+    else:
+        assert 0
+
+    job = jobctl.launch(calc_type='sim',num_procs=2,ranks_per_node=2)
+    assert 1
 
 if __name__ == "__main__":
     test_launch_and_poll()    
