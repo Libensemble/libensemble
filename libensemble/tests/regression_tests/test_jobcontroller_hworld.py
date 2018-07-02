@@ -36,7 +36,7 @@ registry = Register()
 #jobctrl = JobController(registry = registry, auto_resources = False)
 jobctrl = JobController(registry = registry, auto_resources = True)
 registry.register_calc(full_path=sim_app, calc_type='sim')
-summary_file_name = short_name + '.lib_summary.txt'
+summary_file_name = short_name + '.libe_summary.txt'
 CalcInfo.set_statfile_name(summary_file_name) 
 num_workers = Resources.get_num_workers()
     

@@ -127,6 +127,7 @@ cleanup() {
   cd $ROOT_DIR/$UNIT_TEST_SUBDIR
     filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
+    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
@@ -136,7 +137,8 @@ cleanup() {
     filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
     filelist=(job_my_simjob.x.*.out);  [ -e ${filelist[0]} ] && rm job_my_simjob.x.*.out
-    filelist=(*.libe_summary.txt);     [ -e ${filelist[0]} ] && rm *.libe_summary.txt
+    filelist=(*libe_summary.txt);      [ -e ${filelist[0]} ] && rm *libe_summary.txt
+    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
   cd $THISDIR
 }
 
