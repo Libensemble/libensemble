@@ -139,6 +139,16 @@ def test_launch_and_poll_multijobs():
         assert job.finished, "job.finished should be True. Returned " + str(job.finished)
         assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
         
+def test_get_job():
+    """ Test of killing job based on something in output file"""    
+    setup_job_controller()
+    jobctl = JobController.controller    
+    A = jobctl.get_job('a')
+    print(A)
+
+    # A = jobctl.list_of_jobs.append('a')
+    # A = jobctl.get_job('a')
+    # print(A)
 
 if __name__ == "__main__":
     test_launch_and_poll()    

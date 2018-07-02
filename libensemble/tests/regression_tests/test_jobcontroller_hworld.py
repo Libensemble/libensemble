@@ -38,6 +38,8 @@ jobctrl = JobController(registry = registry, auto_resources = True)
 registry.register_calc(full_path=sim_app, calc_type='sim')
 summary_file_name = short_name + '.libe_summary.txt'
 CalcInfo.set_statfile_name(summary_file_name) 
+if MPI.COMM_WORLD.Get_size() == 4:
+    CalcInfo.keep_worker_stat_files = True # Testing this functionality 
 num_workers = Resources.get_num_workers()
     
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)

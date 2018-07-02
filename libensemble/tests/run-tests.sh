@@ -137,7 +137,7 @@ cleanup() {
     filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
     filelist=(job_my_simjob.x.*.out);  [ -e ${filelist[0]} ] && rm job_my_simjob.x.*.out
-    filelist=(*libe_summary.txt);      [ -e ${filelist[0]} ] && rm *libe_summary.txt
+    filelist=(*libe_summary.txt.w*);  [ -e ${filelist[0]} ] && rm *libe_summary.txt.w*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
   cd $THISDIR
 }

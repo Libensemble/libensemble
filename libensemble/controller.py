@@ -590,7 +590,7 @@ class JobController:
     def get_job(self, jobid):
         ''' Returns the job object for the supplied job ID '''
         if self.list_of_jobs:
-            for job in list_of_jobs:
+            for job in self.list_of_jobs:
                 if job.id == jobid:
                     return job
             logger.warning("Job %s not found in joblist".format(jobid))
