@@ -457,7 +457,8 @@ class JobController:
             #use for timeout. For now using for timing with approx end....
             job.launch_time = time.time()
             
-            job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
+            #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
+            job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
             
             #To test when have workdir
             #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
@@ -545,13 +546,22 @@ class JobController:
         #In here can set state to user killed!
         #- but if killed by remote job (eg. through balsam database) may be different .... 
 
+
         #Issue signal
+        #if self.kill_signal == 'SIGTERM':
+            #job.process.terminate()
+        #elif self.kill_signal == 'SIGKILL':
+            #job.process.kill()
+        #else:
+            #job.process.send_signal(signal.self.kill_signal) #um what was I doing...
+        
         if self.kill_signal == 'SIGTERM':
-            job.process.terminate()
+            os.killpg(os.getpgid(job.process.pid), signal.SIGTERM)
         elif self.kill_signal == 'SIGKILL':
-            job.process.kill()
-        else:
-            job.process.send_signal(signal.self.kill_signal) #Prob only need this line!
+            os.killpg(os.getpgid(job.process.pid), signal.SIGKILL)
+        else: 
+            raise JobControllerException('Unknown kill signal')
+            #os.killpg(os.getpgid(job.process.pid), signal.self.kill_signal) #um what was I doing...
             
         #Wait for job to be killed
         if self.wait_and_kill:
