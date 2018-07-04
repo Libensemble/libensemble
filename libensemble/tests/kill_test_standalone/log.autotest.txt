@@ -72,14 +72,25 @@ Theta (intelmpi)::
 
     Single node on 4 processes:
 
-
-    kill 1: Fails
+    kill 1: Fails (Works with 'module unload xalt')
     kill 2: Launch does not work
 
     Two nodes with 2 processes each:
 
-    kill 1: Fails
+    kill 1: Fails (Works with 'module unload xalt')
     kill 2: Launch does not work
-
-
+    
+    Kill type 2:
+      Detaches subprocess from controlling terminal - but ALPS uses PID to keep track of things
+      so cannot do this on Theta.
+      
+    Solution:
+    Module unload xalt
+    
+    Now kill type 1 works (presumably supported by ALPS system).
+    xalt creates a wrapper around aprun - and kill just kills the wrapping process.
+    
+    Alternative - may be to use apkill. This may work without unloading xalt - not tried.
+    
+    
     
