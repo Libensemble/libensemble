@@ -120,9 +120,9 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
         for w in worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                 new_stuff = True
+                print('\n\n------------------------------------\nman receiving from',w)
 
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                #print('D_recv',D_recv)
                 calc_type = D_recv['calc_type']
                 calc_status = D_recv['calc_status']
                 #recv_tag = status.Get_tag()
@@ -196,12 +196,23 @@ def update_history_f(H, D):
     Updates the history (in place) after a point has been evaluated
     """
 
-    new_inds = D['libE_info']['H_rows']
+    new_inds = D['libE_info']['H_rows'] # The list of rows (as a numpy array)
     H_0 = D['calc_out']
 
     for j,ind in enumerate(new_inds): 
         for field in H_0.dtype.names:
-            H[field][ind] = H_0[field][j]
+            
+            if np.isscalar(H_0[field][j]):
+                H[field][ind] = H_0[field][j]
+            else:
+                #len or np.size
+                H0_size = len(H_0[field][j])
+                assert H0_size <= len(H[field][ind]), "Manager Error: Too many values received for" + field 
+                if H0_size:
+                    if H0_size == len(H[field][ind]):
+                        H[field][ind] = H_0[field][j] #ref
+                    else:
+                        H[field][ind][:H0_size] = H_0[field][j] #Slice copy
 
         H['returned'][ind] = True
 
