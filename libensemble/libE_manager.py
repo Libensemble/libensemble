@@ -10,6 +10,8 @@ from mpi4py import MPI
 import numpy as np
 import time, sys, os
 import copy
+import logging
+import socket
 
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
@@ -26,15 +28,29 @@ from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker
 from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
 from libensemble.calc_info import CalcInfo
 
+logger = logging.getLogger(__name__)
+formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+#For debug messages - uncomment
+logger.setLevel(logging.DEBUG)
+
+class ManagerException(Exception): pass
+
 def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
 
-    #quick - until do proper timer
     man_start_time = time.time()
     
     H, H_ind, term_test, worker_sets, comm = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
+    
+    logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
+    logger.info("Manager exit_criteria: {}".format(exit_criteria))    
+    
     persistent_queue_data = {}; gen_info = {}
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, worker_sets)
@@ -120,9 +136,16 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
         for w in worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                 new_stuff = True
-                print('\n\n------------------------------------\nman receiving from',w)
+                logger.debug("Manager receiving from Worker: {}".format(w))
+                try:
+                    D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                except Exception as e:
+                    logger.error("Exception on Manager receive: {}".format(e))
+                    logger.error("From worker: {}".format(w))                      
+                    raise ManagerException('Manager Receive failed') #Could catch above and try end gracefully
+                    #Could try to send finish signals to workers, collate summary files and end cleanly - currently Abort
+                    #comm.Abort()
 
-                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 calc_type = D_recv['calc_type']
                 calc_status = D_recv['calc_status']
                 #recv_tag = status.Get_tag()

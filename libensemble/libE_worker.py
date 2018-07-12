@@ -16,6 +16,18 @@ from libensemble.calc_info import CalcInfo
 import threading
 import logging
 from libensemble.controller import JobController
+import sys
+
+logger = logging.getLogger(__name__)
+formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+#For debug messages - uncomment
+logger.setLevel(logging.DEBUG)
+
+class WorkerException(Exception): pass
 
 #logging to be added
 #logging.basicConfig(level=logging.DEBUG,
@@ -58,15 +70,17 @@ def worker_main(c, sim_specs, gen_specs):
     worker = Worker(workerID)
     
     #Setup logging
-    print('Worker %d initiated on MPI rank %d on node %s' % (workerID, rank, socket.gethostname()))
+    logger.info("Worker {} initiated on MPI rank {} on node {}".format(workerID, rank, socket.gethostname()))
     
     # Print calc_list on-the-fly
     CalcInfo.create_worker_statfile(worker.workerID)
-    #timing_file = CalcInfo.stat_file + '.w' + str(worker.workerID)
-    #with open(timing_file,'w', buffering=1) as f:
-        #f.write("Worker %d:\n" % (worker.workerID))
-
+   
+    worker_iter = 0
+    sim_iter = 0
+    gen_iter = 0
+    
     while True:
+        worker_iter += 1
         
         # General probe for manager communication
         comm.probe(source=0, tag=MPI.ANY_TAG, status=status)          
@@ -81,9 +95,16 @@ def worker_main(c, sim_specs, gen_specs):
               
         libE_info = Work['libE_info']
         calc_type = Work['tag'] #If send components - send tag separately (dont use MPI.status!)
+        
+        if calc_type == EVAL_GEN_TAG:
+            gen_iter += 1
+        elif calc_type == EVAL_SIM_TAG:
+            sim_iter += 1
+        
         calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_type])
         if len(calc_in) > 0: 
-            calc_in = comm.recv(buf=None, source=0)   
+            calc_in = comm.recv(buf=None, source=0)
+            logger.debug("Worker {} received calc_in of len {}".format(workerID, np.size(calc_in)))
         
         #This is current kluge for persistent worker - comm will be in the future comms module...
         if 'persistent' in libE_info and libE_info['persistent']:
@@ -95,9 +116,7 @@ def worker_main(c, sim_specs, gen_specs):
         if 'persistent' in worker.libE_info and worker.libE_info['persistent']:
             del worker.libE_info['comm']        
         
-        CalcInfo.add_calc_worker_statfile(workerID = worker.workerID, calc = worker.calc_list[-1])
-        #with open(timing_file,'a') as f:
-            #worker.calc_list[-1].print_calc(f)     
+        CalcInfo.add_calc_worker_statfile(workerID = worker.workerID, calc = worker.calc_list[-1])    
                 
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first
@@ -110,7 +129,9 @@ def worker_main(c, sim_specs, gen_specs):
                       'libE_info': worker.libE_info,
                       'calc_status': worker.calc_status,
                       'calc_type': worker.calc_type}
-        
+
+        #print("worker {} worker_out: {}".format(workerID,worker_out))
+        logger.debug("Worker {} sending to Manager with status {}".format(workerID, worker.calc_status))
         comm.send(obj=worker_out, dest=0) #blocking
         #comm.isend(obj=worker, dest=0) # Non-blocking        
         #comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
@@ -118,13 +139,6 @@ def worker_main(c, sim_specs, gen_specs):
     
     if 'clean_jobs' in sim_specs and sim_specs['clean_jobs']:
             worker.clean()
-    
-    ## Print calc_list here
-    #timing_file = 'timing.dat.w' + str(worker.workerID)
-    #with open(timing_file,'w') as f:
-        #f.write("Worker %d:\n" % (worker.workerID))
-        #for jb in worker.calc_list:            
-            #jb.print_calc(f)
     
     #Destroy worker object?
 
@@ -198,18 +212,16 @@ class Worker():
             shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
             self.locations[EVAL_SIM_TAG] = self.worker_dir
             
-        #Optional - set workerID in job_controller - so will be added to jobnames
+        #Optional - set workerID in job_controller - so will be added to jobnames and accesible to calcs
         try:
             jobctl = JobController.controller
             jobctl.set_workerID(workerID)
-            print('workerid',jobctl.workerID)
+            #print('workerid',jobctl.workerID)
         except Exception as e:
-            #logger
-            print("Info: No job_controller set on worker", workerID)
+            logger.info("No job_controller set on worker {}".format(workerID))
             self.job_controller_set = False
         else:
             self.job_controller_set = True
-            #jobctl.set_workerID(workerID)
 
 
     #worker.run
@@ -241,6 +253,8 @@ class Worker():
         
         #data_out, tag_out = self._perform_calc(calc_in, gen_info, libE_info)
         #data_out, tag_out = self._perform_calc(calc_in)   
+        #if self.calc_type == EVAL_SIM_TAG:
+            #import pdb; pdb.set_trace()
         
         self.calc_out, self.gen_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.gen_info, self.libE_info)
         
@@ -272,6 +286,9 @@ class Worker():
             os.chdir(self.locations[self.calc_type])
         
         ### ============================== Run calc ====================================
+        #sh - this should be in a try/except block to allow continuation if exception is raised in user code
+        #Also must govern appropriate output and calc_status in that case.
+        #Even if action was to print to summary file and raise exception in libE_worker.py...
         if self.calc_type == EVAL_SIM_TAG:
             out = Worker.sim_specs['sim_f'](calc_in,gen_info,Worker.sim_specs,libE_info)            
         else: 
@@ -293,6 +310,8 @@ class Worker():
 
         #data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
         
+        #print('H is:', H)
+        
         #return data_out, calc_tag
         return H, gen_info, libE_info, calc_tag
-        
+ 
