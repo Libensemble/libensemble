@@ -10,7 +10,7 @@ import numpy as np
 import os, shutil
 import socket
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.message_numbers import UNSET_TAG, STOP_TAG
+from libensemble.message_numbers import UNSET_TAG, STOP_TAG, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_KILL, MAN_SIGNAL_FINISH
 from libensemble.calc_info import CalcInfo
 import threading
@@ -79,6 +79,8 @@ def worker_main(c, sim_specs, gen_specs):
     sim_iter = 0
     gen_iter = 0
     
+    #create_exception = this_does_not_exist
+    
     while True:
         worker_iter += 1
         
@@ -116,7 +118,7 @@ def worker_main(c, sim_specs, gen_specs):
         if 'persistent' in worker.libE_info and worker.libE_info['persistent']:
             del worker.libE_info['comm']        
         
-        CalcInfo.add_calc_worker_statfile(workerID = worker.workerID, calc = worker.calc_list[-1])    
+        CalcInfo.add_calc_worker_statfile(calc = worker.calc_list[-1])    
                 
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first
@@ -234,18 +236,19 @@ class Worker():
         self.isdone = False  
         self.gen_info = None
         self.libE_info = None
+        self.calc_stats = None
         
         # calc_stats stores timing and summary info for this Calc (sim or gen)
-        calc_stats = CalcInfo()
-        self.calc_list.append(calc_stats)
+        self.calc_stats = CalcInfo()
+        self.calc_list.append(self.calc_stats)
         
         #Timing will include setup/teardown
-        calc_stats.start_timer()
+        self.calc_stats.start_timer()
         
         #Could keep all this inside the Work dictionary if sending all Work ...
         self.libE_info = Work['libE_info']
         self.calc_type = Work['tag']
-        calc_stats.calc_type = Work['tag']
+        self.calc_stats.calc_type = Work['tag']
         self.gen_info = Work['gen_info']        
         #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
         
@@ -260,10 +263,10 @@ class Worker():
         
         #This is a libe feature that is to be reviewed for best solution
         #Should atleast put in calc_stats.
-        calc_stats.set_calc_status(self.calc_status)
+        self.calc_stats.set_calc_status(self.calc_status)
             
         self.isdone = True
-        calc_stats.stop_timer()
+        self.calc_stats.stop_timer()
                 
         return # Can retrieve output from worker.data
 
@@ -286,13 +289,29 @@ class Worker():
             os.chdir(self.locations[self.calc_type])
         
         ### ============================== Run calc ====================================
-        #sh - this should be in a try/except block to allow continuation if exception is raised in user code
-        #Also must govern appropriate output and calc_status in that case.
-        #Even if action was to print to summary file and raise exception in libE_worker.py...
+        # This is in a try/except block to allow handling if exception is raised in user code
+        # Currently report exception to summary file and pass exception up (where libE will mpi_abort)
+        # Continuation of ensemble may be added as an option.
         if self.calc_type == EVAL_SIM_TAG:
-            out = Worker.sim_specs['sim_f'](calc_in,gen_info,Worker.sim_specs,libE_info)            
+            try:
+                out = Worker.sim_specs['sim_f'](calc_in,gen_info,Worker.sim_specs,libE_info)
+            except Exception as e:
+                # Write to workers summary file and pass exception up
+                self.calc_stats.stop_timer()
+                self.calc_status = CALC_EXCEPTION
+                self.calc_stats.set_calc_status(self.calc_status)
+                CalcInfo.add_calc_worker_statfile(calc = self.calc_stats)
+                raise
         else: 
-            out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
+            try:
+                out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
+            except Exception as e:
+                # Write to workers summary file and pass exception up
+                self.calc_stats.stop_timer()
+                self.calc_status = CALC_EXCEPTION
+                self.calc_stats.set_calc_status(self.calc_status)
+                CalcInfo.add_calc_worker_statfile(calc = self.calc_stats)
+                raise            
         ### ============================================================================
 
         assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"

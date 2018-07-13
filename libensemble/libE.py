@@ -33,6 +33,7 @@ from libensemble.libE_worker import Worker, worker_main
 from mpi4py import MPI
 import numpy as np
 import sys,os 
+import traceback
 
 # from IPython.core import ultratb
 # sys.excepthook = ultratb.FormattedTB(mode='Verbose',
@@ -167,7 +168,12 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             eprint("Manager exception raised: \"{}\" in {} line {} .. aborting ensemble".format(e,fname, exc_tb.tb_lineno))
-            libE_specs['comm'].Abort()
+            libE_specs['comm'].Abort
+            eprint("\nManager exception raised .. aborting ensemble:\n")
+            eprint(traceback.format_exc())
+            sys.stdout.flush()
+            sys.stderr.flush()
+            libE_specs['comm'].Abort()            
         # if exit_flag == 0:
         #     libE_specs['comm'].Barrier()
     elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
@@ -175,10 +181,11 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             worker_main(libE_specs, sim_specs, gen_specs); H=gen_info=exit_flag=[]
         except Exception as e:
             # Currently make worker exceptions fatal
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            eprint("Worker exception raised on rank {}: \"{}\" in {} line {} .. aborting ensemble".format(libE_specs['comm'].Get_rank(),e,fname, exc_tb.tb_lineno))
-            libE_specs['comm'].Abort() 
+            eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
+            eprint(traceback.format_exc())
+            sys.stdout.flush()
+            sys.stderr.flush()
+            libE_specs['comm'].Abort()
         # libE_specs['comm'].Barrier()
     else:
         print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=gen_info=exit_flag=[]
