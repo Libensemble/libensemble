@@ -53,7 +53,8 @@ class Job:
 
     newid = itertools.count()
     
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir = None, stdout = None, workerid = None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None,
+                 env=None, machinefile=None, hostlist=None, workdir = None, stdout = None, workerid = None):
         '''Instantiate a new Job instance.
         
         A new job object is created with an id, status and configuration attributes
@@ -78,6 +79,7 @@ class Job:
         self.num_procs = num_procs
         self.num_nodes = num_nodes
         self.ranks_per_node = ranks_per_node
+        self.env = env
         self.machinefile = machinefile
         self.hostlist = hostlist
         self.stdout = stdout
@@ -178,7 +180,7 @@ class BalsamJob(Job):
         A new BalsamJob object is created with an id, status and configuration attributes
         This will normally be created by the job_controller on a launch
         '''
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, env, machinefile, hostlist, workdir, stdout, workerid)
         
         self.balsam_state = None
         
@@ -307,6 +309,7 @@ class JobController:
             self.nnodes = ''
             self.ppn = '--ppn'
             self.hostlist = '-hosts'
+            self.cmd_env = '--env'
         elif mpi_variant == 'openmpi':
             self.mpi_launcher = 'mpirun'
             self.mfile = '-machinefile'
@@ -314,7 +317,7 @@ class JobController:
             self.nnodes = ''
             self.ppn = '-npernode'
             self.hostlist = '-host'        
-
+            self.cmd_env = '-x'
         #self.mpi_launcher = 'srun'
         #self.mfile = '-m arbitrary'
         #self.nprocs = '--ntasks'
@@ -354,7 +357,8 @@ class JobController:
     #else:
         #setattr(job, k, v)
     
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
+               env=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
         
         The created job object is returned.
@@ -402,7 +406,7 @@ class JobController:
         
         
         default_workdir = os.getcwd() #Will be possible to override with arg when implemented
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, env, machinefile, hostlist, default_workdir, stdout, self.workerID)
         
         #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_inout is not None:
@@ -412,6 +416,12 @@ class JobController:
         runline = []
         runline.append(self.mpi_launcher)
         
+        #env question - pass env to argument in subprocess or specify in mpirun line???
+        #Currently doing both - but test
+        if job.env is not None:
+            runline.append(self.cmd_env)
+            runline.append(job.env)
+
         if job.machinefile is not None:
             #os.environ['SLURM_HOSTFILE'] = job.machinefile
             runline.append(self.mfile)
@@ -451,14 +461,17 @@ class JobController:
             print('stdout to', stdout)
             #logger.info(runline)
         else:          
-            logger.debug("Launching job: {}".format(" ".join(runline)))
+            logger.debug("Launching job {}: {}".format(job.name, " ".join(runline))) #One line
+            #logger.debug("Launching job {}:\n{}{}".format(job.name, " "*32, " ".join(runline))) #With newline
             
             #not good for timing job itself as dont know when finishes - if use this prob. change to date time or
             #use for timeout. For now using for timing with approx end....
             job.launch_time = time.time()
             
+            #env question - pass to subprocess or specify in mpirun line???
             #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
-            job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
+            
+            job.process = subprocess.Popen(runline, cwd='./', env=job.env, stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
             
             #To test when have workdir
             #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
@@ -485,7 +498,7 @@ class JobController:
         # Maybe should re-poll job to check (in case self.finished set in error!)???
         if job.finished:
             logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
-            return job
+            return
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
         
@@ -546,7 +559,12 @@ class JobController:
         #In here can set state to user killed!
         #- but if killed by remote job (eg. through balsam database) may be different .... 
 
-
+        if job.finished:
+            logger.warning('Trying to kill job that is no longer running. Job {}: Status is {}'.format(job.name, job.state))
+            return
+        
+        logger.debug("Killing job {}".format(job.name))
+        
         #Issue signal
         #if self.kill_signal == 'SIGTERM':
             #job.process.terminate()
@@ -556,9 +574,17 @@ class JobController:
             #job.process.send_signal(signal.self.kill_signal) #um what was I doing...
         
         if self.kill_signal == 'SIGTERM':
-            os.killpg(os.getpgid(job.process.pid), signal.SIGTERM)
+            try:
+                os.killpg(os.getpgid(job.process.pid), signal.SIGTERM)
+            except ProcessLookupError:
+                logger.warning("Tried to kill job {}. No process found {}".format(job.name, job.process.pid))
+                
         elif self.kill_signal == 'SIGKILL':
-            os.killpg(os.getpgid(job.process.pid), signal.SIGKILL)
+            try:
+                os.killpg(os.getpgid(job.process.pid), signal.SIGKILL)
+            except ProcessLookupError:
+                logger.warning("Tried to kill job {}. No process found {}".format(job.name, job.process.pid))
+            
         else: 
             raise JobControllerException('Unknown kill signal')
             #os.killpg(os.getpgid(job.process.pid), signal.self.kill_signal) #um what was I doing...

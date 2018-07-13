@@ -142,9 +142,7 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
                 except Exception as e:
                     logger.error("Exception on Manager receive: {}".format(e))
                     logger.error("From worker: {}".format(w))                      
-                    raise ManagerException('Manager Receive failed') #Could catch above and try end gracefully
-                    #Could try to send finish signals to workers, collate summary files and end cleanly - currently Abort
-                    #comm.Abort()
+                    raise ManagerException('Manager Receive failed') # Catch above and try end gracefully
 
                 calc_type = D_recv['calc_type']
                 calc_status = D_recv['calc_status']

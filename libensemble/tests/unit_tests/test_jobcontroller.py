@@ -2,6 +2,7 @@
 #Integration Test of job controller module for libensemble
 #Test does not require running full libensemble
 import os
+import time
 from libensemble.register import Register
 from libensemble.controller import JobController, BalsamJobController
 
@@ -30,7 +31,7 @@ def setup_job_controller():
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
 def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
-    import time
+    #import time
     start = time.time()
     
     while time.time() - start < timeout_sec:
@@ -57,7 +58,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
     
     
 def polling_loop_multijob(jobctl, job_list, timeout_sec=8.0, delay=0.5):
-    import time
+    #import time
     start = time.time()
 
     while time.time() - start < timeout_sec:
@@ -190,8 +191,51 @@ def test_procs_and_machinefile_logic():
     job = jobctl.launch(calc_type='sim',num_procs=2,ranks_per_node=2)
     assert 1
 
+
+def test_doublekill():
+    """Test attempt to kill already killed job
+    
+    Kill should have no effect (except warning message) and should remain in state killed
+    """
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    args_for_sim = 'sleep 3'
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim) 
+    jobctl.kill(job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
+    jobctl.kill(job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
+
+
+def test_finish_and_kill():
+    """Test attempt to kill already finished job
+    
+    Kill should have no effect (except warning message) and should remain in state FINISHED
+    """
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    args_for_sim = 'sleep 1'
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim) 
+    while not job.finished:
+        time.sleep(0.5)
+        jobctl.poll(job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)   
+    jobctl.kill(job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)   
+
+
 if __name__ == "__main__":
     test_launch_and_poll()    
     test_kill_on_file()
     test_kill_on_timeout()
     test_launch_and_poll_multijobs()
+    test_get_job()
+    test_procs_and_machinefile_logic
+    test_doublekill()
+    test_finish_and_kill()    
