@@ -165,10 +165,6 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             H, gen_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
         except Exception as e:
             # Manager exceptions are fatal
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            eprint("Manager exception raised: \"{}\" in {} line {} .. aborting ensemble".format(e,fname, exc_tb.tb_lineno))
-            libE_specs['comm'].Abort
             eprint("\nManager exception raised .. aborting ensemble:\n")
             eprint(traceback.format_exc())
             sys.stdout.flush()

@@ -25,7 +25,7 @@ if USE_DILL:
     import mpi4py
     # Note for mpi4py v3+ - have to initialize differently than previous
     if int(mpi4py.__version__[0]) >= 3:
-        MPI.pickle.__init__(dill.dumps, dill.loads) # Python 3
+        MPI.pickle.__init__(dill.dumps, dill.loads)
     else:
         MPI.pickle.dumps = dill.dumps
         MPI.pickle.loads = dill.loads
