@@ -168,7 +168,9 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
                         comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
                         pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                         D_recv = pickle.load(open(pkl_recv, "rb"))
-
+                        #If want to delete file
+                        os.remove(pkl_recv)
+                        
                 # Manager read
                 #workdir_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 #D_recv = man_read_from_file(workdir_recv)
