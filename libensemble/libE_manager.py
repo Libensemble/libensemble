@@ -12,6 +12,7 @@ import time, sys, os
 import copy
 import logging
 import socket
+import pickle
 
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
@@ -26,6 +27,7 @@ from libensemble.message_numbers import JOB_FAILED
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
 from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
+from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
 from libensemble.calc_info import CalcInfo
 
 logger = logging.getLogger(__name__)
@@ -139,11 +141,38 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
                 logger.debug("Manager receiving from Worker: {}".format(w))
                 try:
                     D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                    logger.debug("Message size", status.Get_count())
                 except Exception as e:
-                    logger.error("Exception on Manager receive: {}".format(e))
-                    logger.error("From worker: {}".format(w))                      
-                    raise ManagerException('Manager Receive failed') # Catch above and try end gracefully
+                    logger.error("Exception caught on Manager receive: {}".format(e))
+                    logger.error("From worker: {}".format(w)) 
+                    logger.error("Message size of errored message", status.Get_count())
+                    logger.error("Messages status error code", status.Get_error())
+                    
+                    
+                    # Need to clear message faulty message - somehow
+                    status.Set_cancelled(True) #Make sure cancelled before re-send
+                    
+                    # Check on working with peristent data - curently set only one to True
+                    man_request_resend_on_error = False
+                    man_request_pkl_dump_on_error = True
+                    
+                    if man_request_resend_on_error:
+                        comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG) #Ideally use status.Get_source() for MPI rank - this relise on rank being workerID
+                    
+                        #to re-receive message
+                        D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                        # Could error handle this - perhaps go to pickle...
+                    
+                    if man_request_pkl_dump_on_error:
+                        # Req worker to dump pickle file and manager reads
+                        comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+                        pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                        D_recv = pickle.load(open(pkl_recv, "rb"))
 
+                # Manager read
+                #workdir_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                #D_recv = man_read_from_file(workdir_recv)
+                    
                 calc_type = D_recv['calc_type']
                 calc_status = D_recv['calc_status']
                 #recv_tag = status.Get_tag()

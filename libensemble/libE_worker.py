@@ -9,9 +9,16 @@ from __future__ import absolute_import
 import numpy as np
 import os, shutil
 import socket
+
+#In future these will be in CalcInfo or Comms modules
+#CalcInfo
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.message_numbers import UNSET_TAG, STOP_TAG, CALC_EXCEPTION
+
+#Comms
 from libensemble.message_numbers import MAN_SIGNAL_KILL, MAN_SIGNAL_FINISH
+from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+
 from libensemble.calc_info import CalcInfo
 import threading
 import logging
@@ -81,17 +88,37 @@ def worker_main(c, sim_specs, gen_specs):
     
     #create_exception = this_does_not_exist
     
+    #Init in case of manager request before filled
+    worker_out={}
+    
     while True:
         worker_iter += 1
+        logger.debug("Worker {}. Iteration {}".format(workerID,worker_iter))
         
         # General probe for manager communication
         comm.probe(source=0, tag=MPI.ANY_TAG, status=status)          
         mtag = status.Get_tag()
-        if mtag == STOP_TAG:
+        if mtag == STOP_TAG: #If multiple choices prob change this to MANAGER_SIGNAL_TAG or something
             man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
             if man_signal == MAN_SIGNAL_FINISH: #shutdown the worker
                 break
             #Need to handle manager job kill here - as well as finish
+            if man_signal == MAN_SIGNAL_REQ_RESEND:               
+                #And resend
+                logger.debug("Worker {} re-sending to Manager with status {}".format(workerID, worker.calc_status))
+                comm.send(obj=worker_out, dest=0)            
+                continue
+           
+            if man_signal == MAN_SIGNAL_REQ_PICKLE_DUMP:
+                # Worker is requested to dump pickle file (either for read by manager or for debugging)
+                import pickle                
+                pfilename="pickled_worker_" + str(workerID) + '_sim_' + str(sim_iter) + '.pkl'
+                pickle.dump(worker_out, open(pfilename, "wb"))
+                worker_post_pickle_file = pickle.load(open(pfilename, "rb"))  #check can read in this side
+                logger.debug("Worker {} dumping pickle and notifying manager: status {}".format(workerID, worker.calc_status))
+                comm.send(obj=pfilename, dest=0)
+                continue
+                
         else:
             Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
               
@@ -124,6 +151,7 @@ def worker_main(c, sim_specs, gen_specs):
         #Currently this means do not send data back first
         if worker.calc_status == MAN_SIGNAL_FINISH:
             break
+            
         
         # Determine data to be returned to manager
         worker_out = {'calc_out': worker.calc_out,
