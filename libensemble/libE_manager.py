@@ -141,12 +141,12 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
                 logger.debug("Manager receiving from Worker: {}".format(w))
                 try:
                     D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                    logger.debug("Message size", status.Get_count())
+                    logger.debug("Message size {}".format(status.Get_count()))
                 except Exception as e:
                     logger.error("Exception caught on Manager receive: {}".format(e))
                     logger.error("From worker: {}".format(w)) 
-                    logger.error("Message size of errored message", status.Get_count())
-                    logger.error("Messages status error code", status.Get_error())
+                    logger.error("Message size of errored message {}".format(status.Get_count()))
+                    logger.error("Message status error code {}".format(status.Get_error()))
                     
                     
                     # Need to clear message faulty message - somehow
