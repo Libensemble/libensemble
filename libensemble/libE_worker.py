@@ -328,6 +328,8 @@ class Worker():
                 out = Worker.sim_specs['sim_f'](calc_in,gen_info,Worker.sim_specs,libE_info)
             except Exception as e:
                 # Write to workers summary file and pass exception up
+                if self.calc_type in self.locations:
+                    os.chdir(saved_dir)                
                 self.calc_stats.stop_timer()
                 self.calc_status = CALC_EXCEPTION
                 self.calc_stats.set_calc_status(self.calc_status)
@@ -338,6 +340,8 @@ class Worker():
                 out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
             except Exception as e:
                 # Write to workers summary file and pass exception up
+                if self.calc_type in self.locations:
+                    os.chdir(saved_dir)
                 self.calc_stats.stop_timer()
                 self.calc_status = CALC_EXCEPTION
                 self.calc_stats.set_calc_status(self.calc_status)
