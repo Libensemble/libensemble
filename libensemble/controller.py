@@ -20,7 +20,12 @@ import time
 from libensemble.register import Register
 from libensemble.resources import Resources
 
-logger = logging.getLogger(__name__)
+if Resources.am_I_manager():
+    wrkid = 'Manager'
+else:
+    wrkid = 'w' + str(Resources.get_workerID())    
+
+logger = logging.getLogger(__name__ + '(' + wrkid + ')')
 formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
@@ -492,12 +497,12 @@ class JobController:
         if job.process is None:
             #logger.warning('Polled job has no process ID - returning stored state')
             #Prob should be recoverable and return state - but currently fatal
-            raise JobControllerException('Polled job has no process ID - check jobs been launched')
+            raise JobControllerException('Polled job {} has no process ID - check jobs been launched'.format(job.name))
         
         # Do not poll if job already finished
         # Maybe should re-poll job to check (in case self.finished set in error!)???
         if job.finished:
-            logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
+            logger.warning('Polled job {} has already finished. Not re-polling. Status is {}'.format(job.name, job.state))
             return
         
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
@@ -515,7 +520,8 @@ class JobController:
             if job.process.returncode == 0:
                 job.success = True
                 job.errcode = 0
-                logger.debug("Process {} completed successfully".format(job.process))
+                #logger.debug("Process {} completed successfully".format(job.process))
+                logger.debug("Job {} completed successfully".format(job.name))                
                 job.state = 'FINISHED'
             else:
                 #Need to differentiate failure from if job was user-killed !!!! What if remotely???
@@ -523,6 +529,7 @@ class JobController:
                 #But could query existing state here as backup?? - Also may add a REMOTE_KILL state???
                 #Not yet remote killing so assume failed....
                 job.errcode = job.process.returncode
+                logger.debug("Job {} failed".format(job.name)) 
                 job.state = 'FAILED'
         
         #Just updates job as provided

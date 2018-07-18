@@ -24,8 +24,11 @@ import threading
 import logging
 from libensemble.controller import JobController
 import sys
+from libensemble.resources import Resources
 
-logger = logging.getLogger(__name__)
+wrkid = 'w' + str(Resources.get_workerID())
+#logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__ + '(' + wrkid + ')')
 formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
