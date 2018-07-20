@@ -28,7 +28,7 @@ from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
-for time in [0]:
+for time in np.append([0], np.logspace(-5,-1,5)):
     for rep in range(1): 
         #State the objective function, its arguments, output, and necessary parameters (and their sizes)
         sim_specs = {'sim_f': six_hump_camel_simple, # This is the function whose output is being minimized
@@ -51,6 +51,9 @@ for time in [0]:
                      'num_total_gens':1,
                      }
 
+        if time == 0:
+            gen_specs['num_total_gens'] = 2
+            gen_specs['gen_batch_size'] = num_pts/2
 
         # Tell libEnsemble when to stop
         exit_criteria = {'sim_max': num_pts}
