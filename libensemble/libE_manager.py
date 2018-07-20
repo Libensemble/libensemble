@@ -10,6 +10,9 @@ from mpi4py import MPI
 import numpy as np
 import time, sys, os
 import copy
+import logging
+import socket
+import pickle
 
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
@@ -24,17 +27,32 @@ from libensemble.message_numbers import JOB_FAILED
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
 from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
+from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
 from libensemble.calc_info import CalcInfo
+
+logger = logging.getLogger(__name__)
+formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+#For debug messages - uncomment
+logger.setLevel(logging.DEBUG)
+
+class ManagerException(Exception): pass
 
 def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
 
-    #quick - until do proper timer
     man_start_time = time.time()
     
     H, H_ind, term_test, worker_sets, comm = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
+    
+    logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
+    logger.info("Manager exit_criteria: {}".format(exit_criteria))    
+    
     persistent_queue_data = {}; gen_info = {}
 
     send_initial_info_to_workers(comm, H, sim_specs, gen_specs, worker_sets)
@@ -120,9 +138,43 @@ def receive_from_sim_and_gen(comm, worker_sets, H, H_ind, sim_specs, gen_specs, 
         for w in worker_sets['nonpersis_w'][EVAL_SIM_TAG] | worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_SIM_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                 new_stuff = True
-
-                D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                #print('D_recv',D_recv)
+                logger.debug("Manager receiving from Worker: {}".format(w))
+                try:
+                    D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                    logger.debug("Message size {}".format(status.Get_count()))
+                except Exception as e:
+                    logger.error("Exception caught on Manager receive: {}".format(e))
+                    logger.error("From worker: {}".format(w)) 
+                    logger.error("Message size of errored message {}".format(status.Get_count()))
+                    logger.error("Message status error code {}".format(status.Get_error()))
+                    
+                    
+                    # Need to clear message faulty message - somehow
+                    status.Set_cancelled(True) #Make sure cancelled before re-send
+                    
+                    # Check on working with peristent data - curently set only one to True
+                    man_request_resend_on_error = False
+                    man_request_pkl_dump_on_error = True
+                    
+                    if man_request_resend_on_error:
+                        comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG) #Ideally use status.Get_source() for MPI rank - this relise on rank being workerID
+                    
+                        #to re-receive message
+                        D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                        # Could error handle this - perhaps go to pickle...
+                    
+                    if man_request_pkl_dump_on_error:
+                        # Req worker to dump pickle file and manager reads
+                        comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+                        pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                        D_recv = pickle.load(open(pkl_recv, "rb"))
+                        #If want to delete file
+                        os.remove(pkl_recv)
+                        
+                # Manager read
+                #workdir_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+                #D_recv = man_read_from_file(workdir_recv)
+                    
                 calc_type = D_recv['calc_type']
                 calc_status = D_recv['calc_status']
                 #recv_tag = status.Get_tag()
@@ -196,12 +248,23 @@ def update_history_f(H, D):
     Updates the history (in place) after a point has been evaluated
     """
 
-    new_inds = D['libE_info']['H_rows']
+    new_inds = D['libE_info']['H_rows'] # The list of rows (as a numpy array)
     H_0 = D['calc_out']
 
     for j,ind in enumerate(new_inds): 
         for field in H_0.dtype.names:
-            H[field][ind] = H_0[field][j]
+            
+            if np.isscalar(H_0[field][j]):
+                H[field][ind] = H_0[field][j]
+            else:
+                #len or np.size
+                H0_size = len(H_0[field][j])
+                assert H0_size <= len(H[field][ind]), "Manager Error: Too many values received for" + field 
+                if H0_size:
+                    if H0_size == len(H[field][ind]):
+                        H[field][ind] = H_0[field][j] #ref
+                    else:
+                        H[field][ind][:H0_size] = H_0[field][j] #Slice copy
 
         H['returned'][ind] = True
 

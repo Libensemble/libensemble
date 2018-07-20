@@ -96,6 +96,7 @@ class Resources:
 
     @staticmethod    
     def get_MPI_variant():
+        # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
         try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT)
         stdout, _ = try_mpich.communicate()

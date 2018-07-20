@@ -14,6 +14,7 @@ from libensemble.message_numbers import JOB_FAILED
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import MAN_SIGNAL_KILL
+from libensemble.message_numbers import CALC_EXCEPTION
 
 class CalcInfo():
     
@@ -44,7 +45,7 @@ class CalcInfo():
             f.write("Worker %d:\n" % (workerID))        
 
     @staticmethod
-    def add_calc_worker_statfile(workerID, calc):
+    def add_calc_worker_statfile(calc):
         with open(CalcInfo.worker_statfile,'a') as f:
             calc.print_calc(f)
 
@@ -98,6 +99,11 @@ class CalcInfo():
     def set_calc_status(self, calc_status_flag):
         """Set status description for this calc"""
         #Prob should store both flag and description (as string)
+        
+        if calc_status_flag is None:
+            self.status = "Unknown Status"
+            return
+        
         if calc_status_flag == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
             self.status = "Manager killed on finish" #Currently a string/description
         elif calc_status_flag == MAN_SIGNAL_KILL: 
@@ -112,6 +118,8 @@ class CalcInfo():
             self.status = "Job Failed"
         elif calc_status_flag == WORKER_DONE:
             self.status = "Completed"            
+        elif calc_status_flag == CALC_EXCEPTION:
+            self.status = "Exception occurred"
         else:
             #For now assuming if not got an error - it was ok
             self.status = "Completed"

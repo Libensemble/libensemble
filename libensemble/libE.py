@@ -25,6 +25,7 @@ Third (aspirational) tasks for libEnsemble:
 
 from __future__ import division
 from __future__ import absolute_import
+from __future__ import print_function
 
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import Worker, worker_main
@@ -32,12 +33,16 @@ from libensemble.libE_worker import Worker, worker_main
 from mpi4py import MPI
 import numpy as np
 import sys,os 
+import traceback
 
 # from IPython.core import ultratb
 # sys.excepthook = ultratb.FormattedTB(mode='Verbose',
 #      color_scheme='Linux', call_pdb=1)
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         alloc_specs={'alloc_f': give_sim_work_first, 'out':[]} ,
@@ -156,11 +161,27 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     # libE_specs['comm'].Barrier()
     
     if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
-        H, gen_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+        try:
+            H, gen_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+        except Exception as e:
+            # Manager exceptions are fatal
+            eprint("\nManager exception raised .. aborting ensemble:\n")
+            eprint(traceback.format_exc())
+            sys.stdout.flush()
+            sys.stderr.flush()
+            libE_specs['comm'].Abort()            
         # if exit_flag == 0:
         #     libE_specs['comm'].Barrier()
-    elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:
-        worker_main(libE_specs, sim_specs, gen_specs); H=gen_info=exit_flag=[]
+    elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
+        try:
+            worker_main(libE_specs, sim_specs, gen_specs); H=gen_info=exit_flag=[]
+        except Exception as e:
+            # Currently make worker exceptions fatal
+            eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
+            eprint(traceback.format_exc())
+            sys.stdout.flush()
+            sys.stderr.flush()
+            libE_specs['comm'].Abort()
         # libE_specs['comm'].Barrier()
     else:
         print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=gen_info=exit_flag=[]

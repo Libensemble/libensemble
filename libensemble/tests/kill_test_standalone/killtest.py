@@ -19,19 +19,38 @@ def kill_job_2(process):
 if len(sys.argv) != 4:
     raise Exception("Usage: python killtest.py <kill_type> <num_nodes> <num_procs_per_node>")
 
+#user_code = "./burn_time.x"    
+user_code = "./sleep_and_print.x"
+
 # sys.argv[0] is python exe.
 kill_type = int(sys.argv[1]) # 1, 2
 num_nodes = int(sys.argv[2])
 num_procs_per_node = int(sys.argv[3])
 num_procs = num_nodes * num_procs_per_node
 
-print("\nKill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type,num_nodes,num_procs_per_node))
+print("Running Kill test with program", user_code)
+print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type,num_nodes,num_procs_per_node))
+
 
 # Create common components of launch line (currently all of it)
-mpicmd_launcher = 'mpirun'
-mpicmd_numprocs = '-np'
-mpicmd_ppn = '-ppn'
-user_code = "./burn_time.x"
+
+# Am I in an aprun environment
+launcher = 'mpich' #Includes mpich based - eg. intelmpi
+try: 
+    subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+except:
+    launcher = 'mpich'
+else:
+    launcher = 'aprun'
+
+if launcher == 'mpich':
+    mpicmd_launcher = 'mpirun'
+    mpicmd_numprocs = '-np'
+    mpicmd_ppn = '-ppn'
+elif launcher == 'aprun':
+    mpicmd_launcher = 'aprun'
+    mpicmd_numprocs = '-n'
+    mpicmd_ppn = '-N'
 
 # As runline common to jobs currently - construct here.
 runline = []                            # E.g: 2 nodes run
@@ -50,6 +69,7 @@ for run_num in range(2):
     time.sleep(4) #Show gap where none should be running
     stdout = "out_" + str(run_num) + ".txt"
     #runline = ['mpirun', '-np', str(num_procs), user_code]
+    print('---------------------------------------------------------------')
     print('\nRun num: {}   Runline: {}\n'.format(run_num," ".join(runline)))
     
     if kill_type == 1:
@@ -59,7 +79,7 @@ for run_num in range(2):
     else:
         raise Exception("kill_type not recognized")
 
-    time_limit = 6
+    time_limit = 4
     start_time  = time.time()
     finished = False
     state = "Not started"
@@ -79,7 +99,7 @@ for run_num in range(2):
                 state = 'FAILED'
         
         if(time.time() - start_time > time_limit):
-            print('killing job', run_num)
+            print('Killing job', run_num)
             #kill_job(process, user_code)
             
             if kill_type == 1:
@@ -88,8 +108,38 @@ for run_num in range(2):
                 kill_job_2(process)
             state = 'KILLED'
             finished = True
+    
+    # Assert job killed
+    assert state == 'KILLED', "Job not registering as killed. State is: " + state
+    
+    # Checking if processes still running and producing output
+    grace_period = 1   # Seconds after kill when first read last line
+    recheck_period = 2 # Recheck last line after this many seconds
+    num_rechecks = 2   # Number of times to check for new output
+    
+    time.sleep(grace_period) # Give chance to kill
+    
+    # Test if job is still producing output
+    with open(stdout, 'rb') as fh:
+        line_on_kill = fh.readlines()[-1].decode().rstrip()
+    print("Last line after job kill:  {}".format(line_on_kill))
+    
+    if 'has finished' in line_on_kill:
+        raise Exception('Job may have already finished - test invalid')
+    
+    for recheck in range(1,num_rechecks+1):
+        time.sleep(recheck_period)
+        with open(stdout, 'rb') as fh:
+            lastline = fh.readlines()[-1].decode().rstrip()
+        print("Last line after {} seconds: {}".format(recheck_period*recheck, lastline))
+        
+        if lastline != line_on_kill:
+            print("Job {} still producing output".format(run_num))
+            #print("Last line check 1:", line_on_kill)
+            #print("Last line check 2:", lastline)            
+            assert 0
 
 total_end_time = time.time()   
 total_time = total_end_time - total_start_time
-print("Total_time {}. State {}".format(total_time,state))
+print("\nJob kill test completed in {} seconds\n".format(total_time))
 
