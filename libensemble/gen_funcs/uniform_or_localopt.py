@@ -9,7 +9,7 @@ from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_G
 
 import nlopt
 
-def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
+def uniform_or_localopt(H,persis_info,gen_specs,libE_info):
     """
     This generator
         - Returns "gen_batch_size" uniformly sampled points when called in
@@ -21,9 +21,9 @@ def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
     lb = gen_specs['lb']
 
     if 'persistent' in libE_info and libE_info['persistent']:
-        x_opt, gen_info_updates, tag_out = try_and_run_nlopt(H, gen_specs,libE_info)
+        x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs,libE_info)
         O = []
-        return O, gen_info_updates, tag_out
+        return O, persis_info_updates, tag_out
     else:
         n = len(lb)
         b = gen_specs['gen_batch_size']
@@ -31,11 +31,11 @@ def uniform_or_localopt(H,gen_info,gen_specs,libE_info):
         O = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0,b):
             # x = np.random.uniform(lb,ub,(1,n))
-            x = gen_info['rand_stream'].uniform(lb,ub,(1,n))
+            x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
             O = add_to_O(O,x,i,ub,lb)
 
-        gen_info_updates = gen_info # We want to send this back so it is over written.
-        return O, gen_info_updates
+        persis_info_updates = persis_info # We want to send this back so it is over written.
+        return O, persis_info_updates
 
 
 def try_and_run_nlopt(H, gen_specs, libE_info):
@@ -141,19 +141,19 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         exit_code = opt.last_optimize_result()
 
         if exit_code > 0 and exit_code < 5:
-            gen_info_updates = {'done': True,'x_opt':x_opt} # Only send this back so new information added to gen_info since this persistent instance started (e.g., 'run_order'), is not overwritten
+            persis_info_updates = {'done': True,'x_opt':x_opt} # Only send this back so new information added to persis_info since this persistent instance started (e.g., 'run_order'), is not overwritten
         else:
-            gen_info_updates = {'done': True} # Only send this back so new information added to gen_info since this persistent instance started (e.g., 'run_order'), is not overwritten
+            persis_info_updates = {'done': True} # Only send this back so new information added to persis_info since this persistent instance started (e.g., 'run_order'), is not overwritten
 
         tag_out = FINISHED_PERSISTENT_GEN_TAG
     except Exception as e:
         # This exception is raised when the manager sends a PERSIS_STOP or
         # STOP_TAG signal
         x_opt = []
-        gen_info_updates = {}
+        persis_info_updates = {}
         tag_out = int(e.message.split('=')[-1])
         
-    return x_opt, gen_info_updates, tag_out 
+    return x_opt, persis_info_updates, tag_out 
 
 
 def add_to_O(O,x,i,ub,lb,local=False,active=False):

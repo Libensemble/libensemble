@@ -7,7 +7,7 @@ import numpy as np
 
 import time
 
-def six_hump_camel_with_different_ranks_and_nodes(H, gen_info, sim_specs, libE_info):
+def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel but also performs a system call (to show one
     way of evaluating a compiled simulation).
@@ -43,10 +43,10 @@ def six_hump_camel_with_different_ranks_and_nodes(H, gen_info, sim_specs, libE_i
         # print('About to sleep for :' + str(v))
         # time.sleep(v)
     
-    return O, gen_info
+    return O, persis_info
 
 
-def six_hump_camel(H, gen_info, sim_specs, libE_info):
+def six_hump_camel(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six_hump_camel_func and possible six_hump_camel_grad
     """
@@ -64,8 +64,22 @@ def six_hump_camel(H, gen_info, sim_specs, libE_info):
         if 'pause_time' in sim_specs:
             time.sleep(sim_specs['pause_time'])
 
-    return O, gen_info
+    return O, persis_info
 
+def six_hump_camel_simple(x, persis_info, sim_specs, libE_info):
+    """
+    Evaluates the six_hump_camel_func and possible six_hump_camel_grad
+    """
+    del libE_info # Ignored parameter
+
+    O = np.zeros(1,dtype=sim_specs['out'])
+
+    O['f'] = six_hump_camel_func(x[0][0])
+
+    if 'pause_time' in sim_specs:
+        time.sleep(sim_specs['pause_time'])
+
+    return O, persis_info
 
 def six_hump_camel_func(x):
     """

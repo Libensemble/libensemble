@@ -9,7 +9,7 @@ import time
 from libensemble.sim_funcs.branin.branin import branin
 
 # @profile
-def call_branin(H,gen_info,sim_specs,libE_info):
+def call_branin(H,persis_info,sim_specs,libE_info):
     del libE_info # Ignored parameter
 
     """ Evaluates the Branin function """
@@ -35,4 +35,4 @@ def call_branin(H,gen_info,sim_specs,libE_info):
         #         print('blam')
         #         O['f'][i] = np.nan
 
-    return O, gen_info
+    return O, persis_info

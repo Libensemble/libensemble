@@ -15,19 +15,15 @@ import sys, os             # for adding to path
 import numpy as np
 
 # Import libEnsemble main
-#sys.path.append('../../src')
 from libensemble.libE import libE
 
 # Import sim_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 
 # Import gen_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt
 
 # Import alloc_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
 from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens
 
 
@@ -83,13 +79,16 @@ gen_out = [('x',float,2),
 exit_criteria = {'sim_max': 10} # Intentially set low so as to test that a worker in persistent mode can be terminated correctly
 
 np.random.seed(1)
+persis_info = {}
+for i in range(MPI.COMM_WORLD.Get_size()):
+    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens}
 if MPI.COMM_WORLD.Get_size() == 2: 
     # Can't do a "persistent worker run" if only one worker
     quit()
 # Perform the run
-H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0

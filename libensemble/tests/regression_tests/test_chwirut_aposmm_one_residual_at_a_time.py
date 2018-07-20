@@ -14,15 +14,12 @@ import sys, os             # for adding to path
 import numpy as np
 
 # Import libEnsemble main
-#sys.path.append('../../src')
 from libensemble.libE import libE
 
 # Import sim_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
 from libensemble.sim_funcs.chwirut1 import libE_func_wrapper
 
 # Import gen_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from libensemble.gen_funcs.aposmm_logic import aposmm_logic, queue_update_function
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -83,8 +80,11 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
 
 libE_specs = {'queue_update_function': queue_update_function}
 np.random.seed(1)
+persis_info = {}
+for i in range(MPI.COMM_WORLD.Get_size()):
+    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
-H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, persis_info=persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert len(H) >= max_sim_budget

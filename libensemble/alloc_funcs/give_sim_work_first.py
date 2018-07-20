@@ -7,7 +7,7 @@ import sys, os
 from libensemble.message_numbers import EVAL_SIM_TAG 
 from libensemble.message_numbers import EVAL_GEN_TAG 
 
-def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
+def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
     """ 
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
@@ -29,7 +29,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
 
     term_test: lambda function
 
-    gen_info: dictionary
+    persis_info: dictionary
 
     Returns
     -----------
@@ -37,18 +37,13 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
         Each integer key corresponds to a worker that will be given the
         corresponding dictionary values
     
-    gen_info: dictionary
+    persis_info: dictionary
         Updated generation informaiton 
     """
 
     Work = {}
     gen_count = 0
     already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
-
-    if len(gen_info) == 0: 
-        gen_info = {}
-        for i in worker_sets['nonpersis_w']['waiting']:
-            gen_info[i] = {'rand_stream': np.random.RandomState(i)}
 
     for i in worker_sets['nonpersis_w']['waiting']:
 
@@ -87,7 +82,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
                 block_others = False
 
             Work[i] = {'H_fields': sim_specs['in'],
-                       'gen_info': {}, # Our sims don't need information about how points were generatored
+                       'persis_info': {}, # Our sims don't need information about how points were generatored
                        'tag':EVAL_SIM_TAG, 
                        'libE_info': {'H_rows': sim_ids_to_send,
                                 },
@@ -113,7 +108,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
             # Give gen work 
             gen_count += 1 
 
-            Work[i] = {'gen_info': gen_info[i],
+            Work[i] = {'persis_info': persis_info[i],
                        'H_fields': gen_specs['in'],
                        'tag': EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': range(0,len(H)),
@@ -121,5 +116,5 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, gen_info):
                                 }
                        }
 
-    return Work, gen_info
+    return Work, persis_info
 

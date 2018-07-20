@@ -70,9 +70,12 @@ gen_specs = {'gen_f': uniform_random_sample,
 exit_criteria = {'elapsed_wallclock_time': 15}
 
 np.random.seed(1)
+persis_info = {}
+for i in range(MPI.COMM_WORLD.Get_size()):
+    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
-H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     print('\nChecking expected job status against Workers ...\n')
