@@ -45,11 +45,11 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
-        alloc_specs={'alloc_f': give_sim_work_first, 'out':[]} ,
+        alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]},
         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, 
-        H0=[]):
+        H0=[], persis_info={}):
     """ 
-    libE(sim_specs, gen_specs, exit_criteria, failure_processing={}, alloc_specs={'alloc_f': give_sim_work_first, 'out':[]} , libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, H0=[])
+    libE(sim_specs, gen_specs, exit_criteria, failure_processing={}, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, H0=[], persis_info={})
     
     This is the outer libEnsemble routine. It checks each rank in libE_specs['comm']
     against libE_specs['manager_ranks'] or libE_specs['worker_ranks'] and
@@ -139,7 +139,8 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     H0: numpy array: 
         A previous libEnsemble history to be prepended to the history in the current libEnsemble run.
         
-        
+    persis_info [dict] :
+    
     Returns
     -------
 
@@ -147,8 +148,8 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         History array storing rows for each point. Field names are in
         libensemble/libE_fields.py 
         
-    gen_info: Dict
-        Dictionary containing generator info
+    persis_info: Dict
+        Dictionary containing persistent info
     
     exit_flag: int
         Flag containing job status: 0 = No errors, 2 = Manager timed out and ended simulation
@@ -158,23 +159,29 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
     # When timing libEnsemble, uncomment barrier to ensure manager and workers are in sync
-    # libE_specs['comm'].Barrier()
+    libE_specs['comm'].Barrier()
+    start = time.time()
     
     if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
         try:
-            H, gen_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+            H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
         except Exception as e:
             # Manager exceptions are fatal
-            eprint("\nManager exception raised .. aborting ensemble:\n")
+            eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
+            #Could have timing in here still...
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            libE_specs['comm'].Abort()            
-        # if exit_flag == 0:
-        #     libE_specs['comm'].Barrier()
+            libE_specs['comm'].Abort()
+        else:
+            print(libE_specs['comm'].Get_size(),exit_criteria,end-start)
+            sys.stdout.flush()
+            #if exit_flag == 0:
+                #libE_specs['comm'].Barrier()
+
     elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
         try:
-            worker_main(libE_specs, sim_specs, gen_specs); H=gen_info=exit_flag=[]
+            worker_main(libE_specs, sim_specs, gen_specs); H=exit_flag=[]
         except Exception as e:
             # Currently make worker exceptions fatal
             eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
@@ -182,11 +189,12 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             sys.stdout.flush()
             sys.stderr.flush()
             libE_specs['comm'].Abort()
-        # libE_specs['comm'].Barrier()
+        #else:
+            #libE_specs['comm'].Barrier()
     else:
-        print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=gen_info=exit_flag=[]
+        print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=exit_flag=[]
 
-    return H, gen_info, exit_flag
+    return H, persis_info, exit_flag
 
 
 
