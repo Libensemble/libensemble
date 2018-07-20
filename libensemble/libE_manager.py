@@ -467,7 +467,7 @@ def final_receive_and_kill(comm, worker_sets, H, H_ind, sim_specs, gen_specs, te
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
        
     # Create calc summary file
-    time.sleep(0.1)
+    time.sleep(1)
     CalcInfo.merge_statfiles()
 
     return H[:H_ind], persis_info, exit_flag
