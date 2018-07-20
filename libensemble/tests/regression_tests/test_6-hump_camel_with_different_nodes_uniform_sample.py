@@ -15,15 +15,12 @@ import sys, os             # for adding to path
 import numpy as np
 
 # Import libEnsemble main
-#sys.path.append('../../src')
 from libensemble.libE import libE
 
 # Import sim_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_ranks_and_nodes
 
 # Import gen_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -74,9 +71,12 @@ gen_specs = {'gen_f': uniform_random_sample_with_different_nodes_and_ranks,
 exit_criteria = {'sim_max': 10}
 
 np.random.seed(1)
+persis_info = {}
+for i in range(MPI.COMM_WORLD.Get_size()):
+    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
-H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0

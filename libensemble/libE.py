@@ -158,10 +158,6 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
  
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
-    # When timing libEnsemble, uncomment barrier to ensure manager and workers are in sync
-    libE_specs['comm'].Barrier()
-    start = time.time()
-    
     if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
         try:
             H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
@@ -174,10 +170,8 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             sys.stderr.flush()
             libE_specs['comm'].Abort()
         else:
-            print(libE_specs['comm'].Get_size(),exit_criteria,end-start)
+            print(libE_specs['comm'].Get_size(),exit_criteria)
             sys.stdout.flush()
-            #if exit_flag == 0:
-                #libE_specs['comm'].Barrier()
 
     elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
         try:
@@ -189,8 +183,6 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             sys.stdout.flush()
             sys.stderr.flush()
             libE_specs['comm'].Abort()
-        #else:
-            #libE_specs['comm'].Barrier()
     else:
         print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=exit_flag=[]
 

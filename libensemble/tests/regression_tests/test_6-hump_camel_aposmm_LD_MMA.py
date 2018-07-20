@@ -15,15 +15,12 @@ import sys, os             # for adding to path
 import numpy as np
 
 # Import libEnsemble main
-#sys.path.append('../../src')
 from libensemble.libE import libE
 
 # Import sim_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 
 # Import gen_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from libensemble.gen_funcs.aposmm_logic import aposmm_logic
 
 from math import gamma, pi, sqrt
@@ -76,9 +73,11 @@ gen_specs = {'gen_f': aposmm_logic,
 exit_criteria = {'sim_max': 1000}
 
 np.random.seed(1)
+persis_info = {}
+for i in range(MPI.COMM_WORLD.Get_size()):
+    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
-
 for run in range(2):
     if run == 1:
         # Change the bounds to put a local min at a corner point (to test that APOSMM handles the same point being in multiple runs)  ability to give back a previously evaluated point)
@@ -91,7 +90,7 @@ for run in range(2):
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
 
-    H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
         short_name = script_name.split("test_", 1).pop()

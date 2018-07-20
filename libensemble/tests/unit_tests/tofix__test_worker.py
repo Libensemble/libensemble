@@ -27,7 +27,7 @@ def test_worker_init_run():
     
     #For loop - increment sim_ids here
     
-    Work = {'tag': EVAL_SIM_TAG, 'gen_info': {}, 'libE_info': {'H_rows': sim_ids}, 'H_fields': sim_specs['in']}
+    Work = {'tag': EVAL_SIM_TAG, 'persis_info': {}, 'libE_info': {'H_rows': sim_ids}, 'H_fields': sim_specs['in']}
     calc_in = H[Work['H_fields']][Work['libE_info']['H_rows']]
     
     Worker.init_workers(sim_specs, gen_specs)

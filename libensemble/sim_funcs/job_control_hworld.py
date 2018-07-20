@@ -60,7 +60,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
     return job, calc_status
 
 
-def job_control_hworld(H, gen_info, sim_specs, libE_info):
+def job_control_hworld(H, persis_info, sim_specs, libE_info):
     """ Test of launching and polling job and exiting on job finish"""
     jobctl = JobController.controller
     cores = sim_specs['cores']
@@ -100,7 +100,7 @@ def job_control_hworld(H, gen_info, sim_specs, libE_info):
     # print('About to sleep for :' + str(v))
     # time.sleep(v)
     
-    return O, gen_info, calc_status
+    return O, persis_info, calc_status
 
 
 def six_hump_camel_func(x):

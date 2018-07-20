@@ -10,16 +10,13 @@ import os
 import numpy as np
 
 # Import libEnsemble main
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 from libensemble.libE import libE
 
 # Import sim_func and declare directory to be copied by each worker to do its evaluations in 
 import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')
-#sys.path.append(os.path.join(os.path.dirname(__file__), sim_dir_name))
 from libensemble.sim_funcs.branin.branin_obj import call_branin as obj_func
 
 # Import gen_func 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from libensemble.gen_funcs.aposmm_logic import aposmm_logic
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -86,10 +83,13 @@ exit_criteria = {'sim_max': max_sim_budget,
                 }
 
 np.random.seed(1)
+persis_info = {}
+for i in range(MPI.COMM_WORLD.Get_size()):
+    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
 
 if __name__ == "__main__":
-    H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
 
     if MPI.COMM_WORLD.Get_rank() == 0:    
         short_name = script_name.split("test_", 1).pop()

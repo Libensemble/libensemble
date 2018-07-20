@@ -70,11 +70,11 @@ def worker_main(c, sim_specs, gen_specs):
     
     status = MPI.Status()
     Worker.init_workers(sim_specs, gen_specs) # Store in Worker Class
-    sim_type = comm.recv(buf=None, source=0)
-    gen_type = comm.recv(buf=None, source=0)
     dtypes = {}
-    dtypes[EVAL_SIM_TAG] = sim_type
-    dtypes[EVAL_GEN_TAG] = gen_type
+    dtypes[EVAL_SIM_TAG] = None
+    dtypes[EVAL_GEN_TAG] = None 
+    dtypes[EVAL_SIM_TAG] = comm.bcast(dtypes[EVAL_SIM_TAG] , root=0)
+    dtypes[EVAL_GEN_TAG] = comm.bcast(dtypes[EVAL_GEN_TAG] , root=0)
 
     #worker = Worker(workerID, sim_type, gen_type)
     worker = Worker(workerID)
@@ -158,7 +158,7 @@ def worker_main(c, sim_specs, gen_specs):
         
         # Determine data to be returned to manager
         worker_out = {'calc_out': worker.calc_out,
-                      'gen_info': worker.gen_info,
+                      'persis_info': worker.persis_info,
                       'libE_info': worker.libE_info,
                       'calc_status': worker.calc_status,
                       'calc_type': worker.calc_type}
@@ -265,7 +265,7 @@ class Worker():
         self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
         self.isdone = False  
-        self.gen_info = None
+        self.persis_info = None
         self.libE_info = None
         self.calc_stats = None
         
@@ -280,17 +280,17 @@ class Worker():
         self.libE_info = Work['libE_info']
         self.calc_type = Work['tag']
         self.calc_stats.calc_type = Work['tag']
-        self.gen_info = Work['gen_info']        
+        self.persis_info = Work['persis_info']        
         #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
         
         assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
         
-        #data_out, tag_out = self._perform_calc(calc_in, gen_info, libE_info)
+        #data_out, tag_out = self._perform_calc(calc_in, persis_info, libE_info)
         #data_out, tag_out = self._perform_calc(calc_in)   
         #if self.calc_type == EVAL_SIM_TAG:
             #import pdb; pdb.set_trace()
         
-        self.calc_out, self.gen_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.gen_info, self.libE_info)
+        self.calc_out, self.persis_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.persis_info, self.libE_info)
         
         #This is a libe feature that is to be reviewed for best solution
         #Should atleast put in calc_stats.
@@ -312,7 +312,7 @@ class Worker():
 
 
     #Prob internal only - may make this static - no self vars
-    def _perform_calc(self, calc_in, gen_info, libE_info):
+    def _perform_calc(self, calc_in, persis_info, libE_info):
         if self.calc_type in self.locations:
             saved_dir = os.getcwd()
             #print('current dir in _perform_calc is ', saved_dir)
@@ -325,7 +325,7 @@ class Worker():
         # Continuation of ensemble may be added as an option.
         if self.calc_type == EVAL_SIM_TAG:
             try:
-                out = Worker.sim_specs['sim_f'](calc_in,gen_info,Worker.sim_specs,libE_info)
+                out = Worker.sim_specs['sim_f'](calc_in,persis_info,Worker.sim_specs,libE_info)
             except Exception as e:
                 # Write to workers summary file and pass exception up
                 if self.calc_type in self.locations:
@@ -337,7 +337,7 @@ class Worker():
                 raise
         else: 
             try:
-                out = Worker.gen_specs['gen_f'](calc_in,gen_info,Worker.gen_specs,libE_info)
+                out = Worker.gen_specs['gen_f'](calc_in,persis_info,Worker.gen_specs,libE_info)
             except Exception as e:
                 # Write to workers summary file and pass exception up
                 if self.calc_type in self.locations:
@@ -353,7 +353,7 @@ class Worker():
         assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
 
         H = out[0]
-        gen_info = out[1]
+        persis_info = out[1]
         
         calc_tag = UNSET_TAG #None
         if len(out) >= 3:
@@ -362,10 +362,10 @@ class Worker():
         if self.calc_type in self.locations:
             os.chdir(saved_dir)
 
-        #data_out = {'calc_out':H, 'gen_info':gen_info, 'libE_info': libE_info}
+        #data_out = {'calc_out':H, 'persis_info':persis_info, 'libE_info': libE_info}
         
         #print('H is:', H)
         
         #return data_out, calc_tag
-        return H, gen_info, libE_info, calc_tag
+        return H, persis_info, libE_info, calc_tag
  

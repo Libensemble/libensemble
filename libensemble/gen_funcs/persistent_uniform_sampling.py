@@ -9,7 +9,7 @@ from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_G
 
 import nlopt
 
-def persistent_uniform(H,gen_info,gen_specs,libE_info):
+def persistent_uniform(H,persis_info,gen_specs,libE_info):
     """
     This generator
         - Returns "gen_batch_size" uniformly sampled points when called in
@@ -29,7 +29,7 @@ def persistent_uniform(H,gen_info,gen_specs,libE_info):
     while 1: 
         O = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0,b):
-            x = gen_info['rand_stream'].uniform(lb,ub,(1,n))
+            x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
             O['x'][i] = x
 
         D = {'calc_out':O,
@@ -53,4 +53,4 @@ def persistent_uniform(H,gen_info,gen_specs,libE_info):
         libE_info = Work['libE_info']
         calc_in = comm.recv(buf=None, source=0)
 
-    return O, gen_info, tag
+    return O, persis_info, tag

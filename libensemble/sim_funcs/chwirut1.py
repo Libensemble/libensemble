@@ -250,7 +250,7 @@ def EvaluateJacobian(x):
 
     return j
 
-def libE_func_wrapper(H,gen_info,sim_specs,libE_info):
+def libE_func_wrapper(H,persis_info,sim_specs,libE_info):
     """
     libEnsemble wrapper around EvaluateFunction
     """
@@ -271,7 +271,7 @@ def libE_func_wrapper(H,gen_info,sim_specs,libE_info):
             O['fvec'][i] = EvaluateFunction(x)
             O['f'][i] = sim_specs['combine_component_func'](O['fvec'][i])
 
-    return O, gen_info
+    return O, persis_info
         
 # if __name__ == '__main__':
 #     x = np.zeros(3)

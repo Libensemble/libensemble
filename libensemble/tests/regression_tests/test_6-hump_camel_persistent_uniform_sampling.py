@@ -15,20 +15,16 @@ import sys, os             # for adding to path
 import numpy as np
 
 # Import libEnsemble main
-#sys.path.append('../../src')
 from libensemble.libE import libE
 
 
 # Import sim_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 # Import gen_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 
 # Import alloc_func 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
@@ -51,6 +47,9 @@ gen_specs = {'gen_f': gen_f,
 exit_criteria = {'sim_max': 40}
 
 np.random.seed(1)
+persis_info = {}
+for i in range(MPI.COMM_WORLD.Get_size()):
+    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 alloc_specs = {'out':[], 'alloc_f':alloc_f}
 
@@ -59,7 +58,7 @@ if MPI.COMM_WORLD.Get_size()==2:
     quit() 
 
 # Perform the run
-H, gen_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0

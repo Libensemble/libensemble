@@ -14,7 +14,7 @@ from math import log, gamma, pi, sqrt
 from petsc4py import PETSc
 import nlopt
 
-def aposmm_logic(H,gen_info,gen_specs,libE_info):
+def aposmm_logic(H,persis_info,gen_specs,libE_info):
     """
     Receives the following data from H:
 
@@ -62,7 +62,7 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
 
     n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
 
-    # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,gen_info=gen_info)
+    # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
     if n_s < gen_specs['initial_sample']:
         updated_inds = set() 
 
@@ -77,18 +77,18 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
         for ind in starting_inds:
             # Find the run number 
             if not np.any(H['started_run']):
-                gen_info['active_runs'] = set()
-                gen_info['run_order'] = {}
-                gen_info['total_runs'] = 0
+                persis_info['active_runs'] = set()
+                persis_info['run_order'] = {}
+                persis_info['total_runs'] = 0
 
-            new_run_num = gen_info['total_runs']
+            new_run_num = persis_info['total_runs']
 
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
 
-            gen_info['run_order'][new_run_num] = [ind] 
-            gen_info['active_runs'].update([new_run_num])
-            gen_info['total_runs'] +=1
+            persis_info['run_order'][new_run_num] = [ind] 
+            persis_info['active_runs'].update([new_run_num])
+            persis_info['total_runs'] +=1
             
         # Find the next point for any uncompleted runs. I currently save this
         # information to file and re-load. (Given a history of points, I don't
@@ -98,9 +98,9 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
                 
         inactive_runs = set()
 
-        for run in gen_info['active_runs']:
+        for run in persis_info['active_runs']:
             
-            x_opt, exit_code, gen_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, gen_info)
+            x_opt, exit_code, persis_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
 
             if np.isinf(x_new).all():
                 assert exit_code>0, "Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!"
@@ -112,14 +112,14 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
             else: 
                 matching_ind = np.where(np.equal(x_new,O['x_on_cube']).all(1))[0]
                 if len(matching_ind) == 0:
-                    gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                    persis_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, persis_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
                 else:
                     assert len(matching_ind) == 1, "This point shouldn't have ended up in the O twice!"
-                    gen_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
+                    persis_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
 
         for i in inactive_runs:
-            gen_info['active_runs'].remove(i)
-            gen_info['run_order'].pop(i) # Deletes any information about this run 
+            persis_info['active_runs'].remove(i)
+            persis_info['run_order'].pop(i) # Deletes any information about this run 
 
     if len(H) == 0:
         samples_needed = gen_specs['initial_sample']
@@ -130,9 +130,9 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
 
     if samples_needed > 0:
         # x_new = np.random.uniform(0,1,(samples_needed,n))
-        x_new = gen_info['rand_stream'].uniform(0,1,(samples_needed,n))
+        x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
 
-        gen_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, gen_info)
+        persis_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, persis_info)
 
     # O = np.append(H[[o[0] for o in gen_specs['out']]][np.array(list(updated_inds),dtype=int)],O)
 
@@ -147,9 +147,9 @@ def aposmm_logic(H,gen_info,gen_specs,libE_info):
     #     B = H[vec][[o[0] for o in gen_specs['out']]]
     #     # B = H[[o[0] for o in gen_specs['out']]][vec]
     #     O = np.append(B,O)
-    return O, gen_info
+    return O, persis_info
 
-def add_points_to_O(O, pts, len_H, gen_specs, c_flag, gen_info, local_flag=0, sorted_run_inds=[], run=[]):
+def add_points_to_O(O, pts, len_H, gen_specs, c_flag, persis_info, local_flag=0, sorted_run_inds=[], run=[]):
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
@@ -190,21 +190,21 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, gen_info, local_flag=0, so
         O['num_active_runs'][-num_pts] += 1
         # O['priority'][-num_pts:] = 1
         # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
-        O['priority'][-num_pts:] = gen_info['rand_stream'].uniform(0,1,num_pts)
-        gen_info['run_order'][run].append(O[-num_pts]['sim_id'])
+        O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0,1,num_pts)
+        persis_info['run_order'][run].append(O[-num_pts]['sim_id'])
     else:
         if c_flag:
             # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
             # p_tmp = np.random.uniform(0,1,num_pts)
-            p_tmp = gen_info['rand_stream'].uniform(0,1,num_pts)
+            p_tmp = persis_info['rand_stream'].uniform(0,1,num_pts)
         else:
             # p_tmp = np.random.uniform(0,1,num_pts)
-            # gen_info['rand_stream'].uniform(lb,ub,(1,n))
-            p_tmp = gen_info['rand_stream'].uniform(0,1,num_pts)
+            # persis_info['rand_stream'].uniform(lb,ub,(1,n))
+            p_tmp = persis_info['rand_stream'].uniform(0,1,num_pts)
         O['priority'][-num_pts:] = p_tmp
         # O['priority'][-num_pts:] = 1
 
-    return gen_info
+    return persis_info
 
 
 def update_history_dist(H, gen_specs, c_flag):
@@ -300,7 +300,7 @@ def update_history_optimal(x_opt, H, run_inds):
 
 
 
-def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
+def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
     """
     Moves a local optimization method one iteration forward. We currently do
     this by feeding all past evaluations from a run to the method and then
@@ -310,7 +310,7 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
     global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
     while 1:
-        sorted_run_inds = gen_info['run_order'][run]
+        sorted_run_inds = persis_info['run_order'][run]
         assert all(H['returned'][sorted_run_inds])
 
         x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
@@ -368,9 +368,9 @@ def advance_localopt_method(H, gen_specs, c_flag, run, gen_info):
             break 
         else:
             # We need to add a previously evaluated point into this run
-            gen_info['run_order'][run].append(np.nonzero(matching_ind)[0][0])
+            persis_info['run_order'][run].append(np.nonzero(matching_ind)[0][0])
 
-    return x_opt, exit_code, gen_info, sorted_run_inds
+    return x_opt, exit_code, persis_info, sorted_run_inds
 
 
 
@@ -854,8 +854,8 @@ def queue_update_function(H, gen_specs, persistent_data):
 
 
 # if __name__ == "__main__":
-#     [H,gen_specs,gen_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','gen_info']]
+#     [H,gen_specs,persis_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','persis_info']]
 #     gen_specs = gen_specs.item()
-#     gen_info = gen_info.item()
+#     persis_info = persis_info.item()
 #     import ipdb; ipdb.set_trace() 
-#     aposmm_logic(H,gen_info,gen_specs,{})
+#     aposmm_logic(H,persis_info,gen_specs,{})
