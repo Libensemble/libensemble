@@ -63,10 +63,6 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
             if 'num_active_gens' in gen_specs and len(worker_sets['nonpersis_w'][EVAL_GEN_TAG]) + gen_count >= gen_specs['num_active_gens']:
                 break
 
-            # ...unless there are already more than total_gen_calls 
-            if 'total_gen_calls' in gen_specs and persis_info['total_gen_calls'] >= gen_specs['total_gen_calls']:
-                break
-
             # Give gen work 
             persis_info['total_gen_calls'] += 1
             gen_count += 1 
@@ -74,8 +70,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
             Work[i] = {'persis_info': persis_info[i],
                        'H_fields': gen_specs['in'],
                        'tag': EVAL_GEN_TAG, 
-                       'libE_info': {'H_rows': range(0,len(H)),
-                                }
+                       'libE_info': {'H_rows': []}
                        }
 
     return Work, persis_info

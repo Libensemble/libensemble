@@ -48,12 +48,10 @@ for time in np.append([0], np.logspace(-5,-1,5)):
                      'ub': np.array([ 3, 2]),
                      'gen_batch_size': num_pts,
                      'num_active_gens':1,
-                     'num_total_gens':1,
                      }
 
         if time == 0:
-            gen_specs['num_total_gens'] = 2
-            gen_specs['gen_batch_size'] = num_pts/2
+            gen_specs['gen_batch_size'] = num_pts//2
 
         # Tell libEnsemble when to stop
         exit_criteria = {'sim_max': num_pts}

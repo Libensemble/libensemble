@@ -80,10 +80,7 @@ def uniform_random_sample(H,persis_info,gen_specs,libE_info):
     b = gen_specs['gen_batch_size']
 
     O = np.zeros(b, dtype=gen_specs['out'])
-    for i in range(0,b):
-        # x = np.random.uniform(lb,ub,(1,n))
-        x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
 
-        O['x'][i] = x
+    O['x'] = persis_info['rand_stream'].uniform(lb,ub,(b,n))
 
     return O, persis_info
