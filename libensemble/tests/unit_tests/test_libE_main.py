@@ -5,15 +5,29 @@ import numpy as np
 
 from libensemble.libE import * 
 import libensemble.tests.unit_tests.setup as setup
+from mpi4py import MPI
 
 al = {}
-libE_specs = {'comm':[], 'manager_ranks':set([0]), 'worker_ranks':set([1,2])}
+libE_specs = {'comm':MPI.COMM_WORLD, 'manager_ranks':set([0]), 'worker_ranks':set([1,2])}
 
 def test_nonworker_and_nonmanager_rank():
 
-    # Intentionally making worker 0 not be a manager or worker rank
-    libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager_ranks':set([1]), 'worker_ranks':set([1])})
+    # Intentionally making worker 0 not be a manager or worker rank. (Resulting in a failure.) 
+    try:
+        libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager_ranks':set([1]), 'worker_ranks':set([1])})
+    except AssertionError: 
+        assert 1
+    else:
+        assert 0
 
+# def test_exception_raising():
+#     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
+#     try:
+#         libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager_ranks':set([0]), 'worker_ranks':set([1])})
+#     except KeyError: 
+#         assert 1
+#     else:
+#         assert 0
 
 def test_checking_inputs():
 
@@ -24,7 +38,7 @@ def test_checking_inputs():
 
     # Should fail because H0 has points with 'return'==False
     try:
-        check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
+        check_inputs(libE_specs, al, sim_specs, gen_specs, {}, exit_criteria,H0) 
     except AssertionError:
         assert 1
     else:
@@ -48,7 +62,7 @@ def test_checking_inputs():
         assert 0
 
 def rmfield( a, *fieldnames_to_remove ):
-        return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]
+    return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]
 
 if __name__ == "__main__":
     # import ipdb; ipdb.set_trace()
