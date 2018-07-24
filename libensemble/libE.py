@@ -174,7 +174,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             print(libE_specs['comm'].Get_size(),exit_criteria)
             sys.stdout.flush()
 
-    elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
+    else libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
@@ -184,8 +184,6 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             sys.stdout.flush()
             sys.stderr.flush()
             # libE_specs['comm'].Abort()
-    else:
-        print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=exit_flag=[]
 
     return H, persis_info, exit_flag
 
@@ -208,6 +206,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
 
+    assert libE_specs['comm'].Get_rank() in libE_specs['worker_ranks'] | libE_specs['manager_ranks'], \
+            "The communicator has a rank that is not a worker and not a manager"
     assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs,dict), "libE_specs must be a dictionary"

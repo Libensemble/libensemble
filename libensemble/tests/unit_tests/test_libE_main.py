@@ -5,14 +5,20 @@ import numpy as np
 
 from libensemble.libE import * 
 import libensemble.tests.unit_tests.setup as setup
+from mpi4py import MPI
 
 al = {}
-libE_specs = {'comm':[], 'manager_ranks':set([0]), 'worker_ranks':set([1,2])}
+libE_specs = {'comm':MPI.COMM_WORLD, 'manager_ranks':set([0]), 'worker_ranks':set([1,2])}
 
 def test_nonworker_and_nonmanager_rank():
 
-    # Intentionally making worker 0 not be a manager or worker rank
-    libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager_ranks':set([1]), 'worker_ranks':set([1])})
+    # Intentionally making worker 0 not be a manager or worker rank (Fails)
+    try: 
+        libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager_ranks':set([1]), 'worker_ranks':set([1])})
+    except AssertionError: 
+        assert 1
+    else:
+        assert 0
 
 
 def test_checking_inputs():
