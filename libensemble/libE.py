@@ -156,6 +156,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
     """
  
+    H=exit_flag=[]
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
     if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
@@ -168,21 +169,21 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            libE_specs['comm'].Abort()
+            # libE_specs['comm'].Abort()
         else:
             print(libE_specs['comm'].Get_size(),exit_criteria)
             sys.stdout.flush()
 
     elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
         try:
-            worker_main(libE_specs, sim_specs, gen_specs); H=exit_flag=[]
+            worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
             # Currently make worker exceptions fatal
             eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            libE_specs['comm'].Abort()
+            # libE_specs['comm'].Abort()
     else:
         print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=exit_flag=[]
 
