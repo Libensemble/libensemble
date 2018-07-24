@@ -278,7 +278,8 @@ if [ "$root_found" = true ]; then
     tput sgr 0    
     
     cd $ROOT_DIR/$UNIT_TEST_SUBDIR  
-    $PYTHON_RUN -m pytest $COV_LINE_SERIAL 
+#     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
+    $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
     code=$?
     if [ "$code" -eq "0" ]; then
       echo

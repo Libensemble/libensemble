@@ -58,6 +58,7 @@ install:
   - pip install petsc petsc4py
   - pip install pytest
   - pip install pytest-cov
+  - pip install pytest-timeout 
   - pip install coveralls
   - conda install --no-deps nlopt  
   # For confirmation of MPI library being used.

@@ -2,7 +2,9 @@
 #Integration Test of job controller module for libensemble
 #Test does not require running full libensemble
 import os
+import sys
 import time
+import pytest
 from libensemble.register import Register
 from libensemble.controller import JobController, BalsamJobController
 
@@ -90,6 +92,7 @@ def polling_loop_multijob(jobctl, job_list, timeout_sec=8.0, delay=0.5):
 # Tests
 def test_launch_and_poll():
     """ Test of launching and polling job and exiting on job finish"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller
     cores = NCORES
@@ -100,7 +103,8 @@ def test_launch_and_poll():
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
 def test_kill_on_file():
-    """ Test of killing job based on something in output file"""    
+    """ Test of killing job based on something in output file"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller    
     cores = NCORES
@@ -111,6 +115,7 @@ def test_kill_on_file():
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)
 
 def test_kill_on_timeout():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller    
     cores = NCORES
@@ -121,6 +126,7 @@ def test_kill_on_timeout():
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)
 
 def test_launch_and_poll_multijobs():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller  
     job_list = []
@@ -141,62 +147,100 @@ def test_launch_and_poll_multijobs():
         assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
         
 def test_get_job():
-    """ Test of killing job based on something in output file"""    
+    """Return job from given job id"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
-    jobctl = JobController.controller    
+    jobctl = JobController.controller
+    
+    #Try with no jobs set up
     A = jobctl.get_job('a')
-    print(A)
+    assert A is None, 'Job found when joblist should be empty'
+    
+    #Set up job and getid
+    cores = NCORES
+    args_for_sim = 'sleep 0'
+    job0 = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    jobid = job0.id
+    print("jobid is: {}".format(jobid))
+    A = jobctl.get_job(jobid)
+    assert A is job0 , 'Job get_job returned unexpected job' + str(A)
+    job0 = polling_loop(jobctl, job0)
+    
+    #Get non-existent jobid
+    A = jobctl.get_job(jobid+1)
+    assert A is None, 'Job found when supplied jobid should not exist'
+    
 
     # A = jobctl.list_of_jobs.append('a')
     # A = jobctl.get_job('a')
     # print(A)
 
+@pytest.mark.timeout(30)
 def test_procs_and_machinefile_logic():
-    """ Test of counting num_procs etc."""
+    """ Test of supplying various input configurations when auto_resources is False."""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    
+    #Note: Could test job_partition routine directly - without launching jobs...
 
     # Testing machinefile
     setup_job_controller()
     jobctl = JobController.controller
+    args_for_sim = 'sleep 0'
     #job = jobctl.launch(calc_type='sim', machinefile='machinefile')
     #job = polling_loop(jobctl, job)
     #assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     #assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
     # Testing num_procs = num_nodes*ranks_per_node (shouldn't fail)
-    job = jobctl.launch(calc_type='sim', num_procs=10, num_nodes=2, ranks_per_node=5)
-    job = polling_loop(jobctl, job)
+    job = jobctl.launch(calc_type='sim', num_procs=6, num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
+    job = polling_loop(jobctl, job, delay=0.3)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
     # Testing num_procs not num_nodes*ranks_per_node (should fail)
     try: 
-        job = jobctl.launch(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5)
-    except: 
+        job = jobctl.launch(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5, app_args=args_for_sim)
+    except:         
         assert 1
     else:
         assert 0
 
     # Testing no num_procs (shouldn't fail)
-    job = jobctl.launch(calc_type='sim', num_nodes=2, ranks_per_node=5)
+    job = jobctl.launch(calc_type='sim', num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
     assert 1
+    job = polling_loop(jobctl, job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
     # Testing nothing given (should fail)
     try:
-        job = jobctl.launch(calc_type='sim')
+        job = jobctl.launch(calc_type='sim', app_args=args_for_sim)
     except: 
         assert 1
     else:
         assert 0
-
-    job = jobctl.launch(calc_type='sim',num_procs=2,ranks_per_node=2)
+    
+    # Testing no num_nodes (shouldn't fail)
+    job = jobctl.launch(calc_type='sim',num_procs=2,ranks_per_node=2, app_args=args_for_sim)
     assert 1
+    job = polling_loop(jobctl, job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
+    # Testing no ranks_per_node (shouldn't fail)
+    job = jobctl.launch(calc_type='sim',num_nodes=1,num_procs=2, app_args=args_for_sim)
+    assert 1
+    job = polling_loop(jobctl, job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
+@pytest.mark.timeout(30)
 def test_doublekill():
     """Test attempt to kill already killed job
     
     Kill should have no effect (except warning message) and should remain in state killed
     """
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller
     cores = NCORES
@@ -215,6 +259,7 @@ def test_finish_and_kill():
     
     Kill should have no effect (except warning message) and should remain in state FINISHED
     """
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller
     cores = NCORES
@@ -231,11 +276,11 @@ def test_finish_and_kill():
 
 
 if __name__ == "__main__":
-    test_launch_and_poll()    
-    test_kill_on_file()
-    test_kill_on_timeout()
-    test_launch_and_poll_multijobs()
-    test_get_job()
-    test_procs_and_machinefile_logic
-    test_doublekill()
-    test_finish_and_kill()    
+    #test_launch_and_poll()    
+    #test_kill_on_file()
+    #test_kill_on_timeout()
+    #test_launch_and_poll_multijobs()
+    #test_get_job()
+    test_procs_and_machinefile_logic()
+    #test_doublekill()
+    #test_finish_and_kill() 
