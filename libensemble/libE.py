@@ -155,7 +155,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
         Flag containing job status: 0 = No errors, 2 = Manager timed out and ended simulation
 
     """
-    H=persis_info=exit_flag=[]
+    H=exit_flag=[]
 
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
 
