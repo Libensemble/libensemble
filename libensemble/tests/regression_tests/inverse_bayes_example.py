@@ -3,7 +3,8 @@
 #    https://www.sfu.ca/~ssurjano/camel6.html 
 # 
 # Execute via the following command:
-#    mpiexec -np 4 python3 {FILENAME}.py
+#    mpiexec -np 4 python3 inverse_bayes_example.py
+#    mpiexec -np 4 xterm -e "python3 inverse_bayes_example.py"
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
@@ -13,6 +14,7 @@ from __future__ import absolute_import
 from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
+import pdb
 
 # Import libEnsemble main
 from libensemble.libE import libE
@@ -60,3 +62,4 @@ if MPI.COMM_WORLD.Get_size()==2:
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
+np.save('in_bayes_ex', H)
