@@ -20,6 +20,10 @@ def test_nonworker_and_nonmanager_rank():
     else:
         assert 0
 
+def test_exception_raising():
+    # Intentionally running without sim_specs['in'] to test exception raising (Fails)
+    H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager_ranks':set([0]), 'worker_ranks':set([1])})
+    assert H==[]
 
 def test_checking_inputs():
 

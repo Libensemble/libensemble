@@ -174,7 +174,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             print(libE_specs['comm'].Get_size(),exit_criteria)
             sys.stdout.flush()
 
-    else libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
+    else: #libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
