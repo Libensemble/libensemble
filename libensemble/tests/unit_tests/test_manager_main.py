@@ -12,6 +12,9 @@ al = {'out':[]}
 libE_specs ={'comm':{},'worker_ranks':set([1,2])}
 
 
+def test_update_history_f():
+    assert True
+
 def test_update_history_x_out():
     assert True
 
@@ -74,4 +77,4 @@ def test_update_history_x_in():
 
 
 if __name__ == "__main__":
-    test_update_history_x_in()
+    test_update_history_f()

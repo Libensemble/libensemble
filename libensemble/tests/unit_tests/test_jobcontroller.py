@@ -234,24 +234,24 @@ def test_procs_and_machinefile_logic():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
-@pytest.mark.timeout(30)
-def test_doublekill():
-    """Test attempt to kill already killed job
+# @pytest.mark.timeout(30)
+# def test_doublekill():
+#     """Test attempt to kill already killed job
     
-    Kill should have no effect (except warning message) and should remain in state killed
-    """
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
-    setup_job_controller()
-    jobctl = JobController.controller
-    cores = NCORES
-    args_for_sim = 'sleep 3'
-    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim) 
-    jobctl.kill(job)
-    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
-    assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
-    jobctl.kill(job)
-    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
-    assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
+#     Kill should have no effect (except warning message) and should remain in state killed
+#     """
+#     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+#     setup_job_controller()
+#     jobctl = JobController.controller
+#     cores = NCORES
+#     args_for_sim = 'sleep 3'
+#     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim) 
+#     jobctl.kill(job)
+#     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+#     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
+#     jobctl.kill(job)
+#     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+#     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
 
 
 def test_finish_and_kill():
