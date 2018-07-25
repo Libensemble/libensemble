@@ -160,7 +160,24 @@ CLEAN_ONLY=false
 unset MPIEXEC_FLAGS
 PYTEST_SHOW_OUT_ERR=false
 
-while getopts ":p:n:a:csu" opt; do
+usage() {
+  echo -e "\nUsage:"
+  echo "  $0 [-hcsu] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
+  echo ""
+  echo "Options:"
+  echo "  -h              Show this help message and exit"
+  echo "  -c              Clean up test directories and exit"  
+  echo "  -s              Print stdout and stderr to screen when running pytest (unit tests)"  
+  echo "  -u              Run only the unit tests"  
+  echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
+  echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
+  echo "  -n {name}       Supply a name to this test run"  
+  echo "  -a {args}       Supply a string of args to add to mpiexec line"  
+  echo ""
+  exit 1
+}
+  
+while getopts ":p:n:a:hcsu" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -186,9 +203,13 @@ while getopts ":p:n:a:csu" opt; do
     u)
       echo "Running only unit tests"
       export RUN_REG_TESTS=false
-      ;;     
+      ;;
+    h)
+      usage
+      ;;      
     \?)
       echo "Invalid option supplied: -$OPTARG" >&2
+      usage
       exit 1
       ;;
     :)
@@ -197,7 +218,10 @@ while getopts ":p:n:a:csu" opt; do
       ;;
   esac
 done
-
+# shift $((OPTIND-1))
+# if [ -z "${s}" ] || [ -z "${p}" ]; then
+#     usage
+# fi
 #-----------------------------------------------------------------------------------------
 
 # Get project root dir
