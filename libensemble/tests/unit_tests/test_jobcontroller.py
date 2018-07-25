@@ -260,7 +260,6 @@ def test_procs_and_machinefile_logic():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
-
 @pytest.mark.timeout(20)
 def test_doublekill():
     """Test attempt to kill already killed job
@@ -282,7 +281,6 @@ def test_doublekill():
     jobctl.kill(job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
-
 
 @pytest.mark.timeout(20)
 def test_finish_and_kill():
