@@ -157,6 +157,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
     """
  
+    H=exit_flag=[]
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
     
     if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
@@ -169,23 +170,21 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            libE_specs['comm'].Abort()
+            # libE_specs['comm'].Abort()
         else:
             print(libE_specs['comm'].Get_size(),exit_criteria)
             sys.stdout.flush()
 
-    elif libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
+    else: #libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
         try:
-            worker_main(libE_specs, sim_specs, gen_specs); H=exit_flag=[]
+            worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
             # Currently make worker exceptions fatal
             eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            libE_specs['comm'].Abort()
-    else:
-        print("Rank: %d not manager or worker" % libE_specs['comm'].Get_rank()); H=exit_flag=[]
+            # libE_specs['comm'].Abort()
 
     # Create calc summary file
     libE_specs['comm'].Barrier()
@@ -213,6 +212,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
 
+    assert libE_specs['comm'].Get_rank() in libE_specs['worker_ranks'] | libE_specs['manager_ranks'], \
+            "The communicator has a rank that is not a worker and not a manager"
     assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs,dict), "libE_specs must be a dictionary"
@@ -223,7 +224,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
 
     assert len(exit_criteria)>0, "Must have some exit criterion"
     valid_term_fields = ['sim_max','gen_max','elapsed_wallclock_time','stop_val']
-    assert any([term_field in exit_criteria for term_field in valid_term_fields]), "Must have a valid termination option: " + valid_term_fields 
+    assert any([term_field in exit_criteria for term_field in valid_term_fields]), "Must have a valid termination option: " + str(valid_term_fields)
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert len(gen_specs['out']), "gen_specs must have 'out' entries"

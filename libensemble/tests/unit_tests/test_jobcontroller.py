@@ -260,7 +260,6 @@ def test_procs_and_machinefile_logic():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
-
 @pytest.mark.timeout(20)
 def test_doublekill():
     """Test attempt to kill already killed job
@@ -282,7 +281,6 @@ def test_doublekill():
     jobctl.kill(job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
-
 
 @pytest.mark.timeout(20)
 def test_finish_and_kill():
@@ -375,8 +373,59 @@ def test_launch_no_app():
 
 
 def test_kill_job_with_no_launch():
-    pass
-
+    
+    from libensemble.controller import Job
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    
+    #Try kill invalid job
+    try:
+        jobctl.kill('myjob')
+    except: 
+        assert 1
+    else:
+        assert 0   
+        
+    # Create a job directly with no launch (Not supported for users)
+    registry = Register.default_registry
+    myapp = registry.sim_default_app
+    job1 = Job(app = myapp, stdout = 'stdout.txt')
+    try:
+        jobctl.kill(job1)
+    except: 
+        assert 1
+    else:
+        assert 0 
+    
+def test_poll_job_with_no_launch():
+    
+    from libensemble.controller import Job
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    
+    #Try poll invalid job
+    try:
+        jobctl.poll('myjob')
+    except: 
+        assert 1
+    else:
+        assert 0   
+        
+    # Create a job directly with no launch (Not supported for users)
+    registry = Register.default_registry
+    myapp = registry.sim_default_app
+    job1 = Job(app = myapp, stdout = 'stdout.txt')
+    try:
+        jobctl.poll(job1)
+    except: 
+        assert 1
+    else:
+        assert 0    
+    
 def test_set_kill_mode():
     pass
     
@@ -395,5 +444,6 @@ if __name__ == "__main__":
     test_launch_default_reg()
     test_launch_no_app()
     test_kill_job_with_no_launch()
+    test_poll_job_with_no_launch()    
     test_set_kill_mode()
     
