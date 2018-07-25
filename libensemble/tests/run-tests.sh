@@ -160,7 +160,7 @@ CLEAN_ONLY=false
 unset MPIEXEC_FLAGS
 PYTEST_SHOW_OUT_ERR=false
 
-while getopts ":p:n:a:cs" opt; do
+while getopts ":p:n:a:csu" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -183,6 +183,10 @@ while getopts ":p:n:a:cs" opt; do
       echo "Will show stdout and stderr during pytest"
       PYTEST_SHOW_OUT_ERR=true
       ;;
+    u)
+      echo "Running only unit tests"
+      export RUN_REG_TESTS=false
+      ;;     
     \?)
       echo "Invalid option supplied: -$OPTARG" >&2
       exit 1
