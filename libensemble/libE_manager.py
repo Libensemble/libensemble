@@ -256,12 +256,12 @@ def update_history_f(H, D):
             else:
                 #len or np.size
                 H0_size = len(H_0[field][j])
-                assert H0_size <= len(H[field][ind]), "Manager Error: Too many values received for" + field 
-                if H0_size:
-                    if H0_size == len(H[field][ind]):
-                        H[field][ind] = H_0[field][j] #ref
-                    else:
-                        H[field][ind][:H0_size] = H_0[field][j] #Slice copy
+                assert H0_size <= len(H[field][ind]), "Manager Error: Too many values received for " + field 
+                assert H0_size, "Manager Error: No values in this field " + field
+                if H0_size == len(H[field][ind]):
+                    H[field][ind] = H_0[field][j] #ref
+                else:
+                    H[field][ind][:H0_size] = H_0[field][j] #Slice copy
 
         H['returned'][ind] = True
 

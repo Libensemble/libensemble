@@ -60,7 +60,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'out': gen_out,
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
-             'initial_sample': 100,
+             'initial_sample': 10,
              'localopt_method': 'LD_MMA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-2,
@@ -76,7 +76,7 @@ if w == 3:
     gen_specs['combine_component_func'] = np.linalg.norm
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 100}
 
 np.random.seed(1)
 persis_info = {}

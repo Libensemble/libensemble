@@ -66,7 +66,6 @@ gen_specs = {'gen_f': aposmm_logic,
              'localopt_method': 'LD_MMA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-2,
-             'lhs_divisions':2,
              'batch_mode': True,
              'num_inst':1,
              'num_active_gens':1,
@@ -95,6 +94,7 @@ for run in range(2):
         gen_specs['ub']= np.array([-2.9, -1.9])
         gen_specs['mu']= 1e-4
         gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
+        gen_specs['lhs_divisions'] = 2
 
         gen_specs.pop('xtol_rel')
         gen_specs['ftol_rel'] = 1e-2
