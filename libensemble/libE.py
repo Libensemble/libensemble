@@ -189,7 +189,8 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
     # Create calc summary file
     libE_specs['comm'].Barrier()
-    CalcInfo.merge_statfiles()
+    if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
+        CalcInfo.merge_statfiles()
 
     return H, persis_info, exit_flag
 
