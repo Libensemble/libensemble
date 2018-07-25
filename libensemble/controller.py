@@ -493,8 +493,8 @@ class JobController:
     def poll(self, job):
         ''' Polls and updates the status attributes of the supplied job '''
         
-        if job is None:
-            raise JobControllerException('No job has been provided')
+        if not isinstance(job, Job):
+            raise JobControllerException('Invalid job has been provided') 
 
         # Check the jobs been launched (i.e. it has a process ID)
         if job.process is None:
@@ -583,8 +583,8 @@ class JobController:
     def kill(self, job):
         ''' Kills or cancels the supplied job '''
         
-        if job is None:
-            raise JobControllerException('No job has been provided') 
+        if not isinstance(job, Job):
+            raise JobControllerException('Invalid job has been provided') 
 
         if job.finished:
             logger.warning('Trying to kill job that is no longer running. Job {}: Status is {}'.format(job.name, job.state))
@@ -957,8 +957,8 @@ class BalsamJobController(JobController):
     
     def poll(self, job):
         ''' Polls and updates the status attributes of the supplied job '''
-        if job is None:
-            raise JobControllerException('No job has been provided') 
+        if not isinstance(job, BalsamJob):
+            raise JobControllerException('Invalid job has been provided') 
         
         # Check the jobs been launched (i.e. it has a process ID)
         if job.process is None:
@@ -1017,6 +1017,10 @@ class BalsamJobController(JobController):
     
     def kill(self, job):
         ''' Kills or cancels the supplied job '''
+        
+        if not isinstance(job, BalsamJob):
+            raise JobControllerException('Invalid job has been provided') 
+        
         import balsam.launcher.dag as dag
         dag.kill(job.process)
 

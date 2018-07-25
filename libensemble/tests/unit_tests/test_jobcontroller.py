@@ -375,8 +375,59 @@ def test_launch_no_app():
 
 
 def test_kill_job_with_no_launch():
-    pass
-
+    
+    from libensemble.controller import Job
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    
+    #Try kill invalid job
+    try:
+        jobctl.kill('myjob')
+    except: 
+        assert 1
+    else:
+        assert 0   
+        
+    # Create a job directly with no launch (Not supported for users)
+    registry = Register.default_registry
+    myapp = registry.sim_default_app
+    job1 = Job(app = myapp, stdout = 'stdout.txt')
+    try:
+        jobctl.kill(job1)
+    except: 
+        assert 1
+    else:
+        assert 0 
+    
+def test_poll_job_with_no_launch():
+    
+    from libensemble.controller import Job
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    
+    #Try poll invalid job
+    try:
+        jobctl.poll('myjob')
+    except: 
+        assert 1
+    else:
+        assert 0   
+        
+    # Create a job directly with no launch (Not supported for users)
+    registry = Register.default_registry
+    myapp = registry.sim_default_app
+    job1 = Job(app = myapp, stdout = 'stdout.txt')
+    try:
+        jobctl.poll(job1)
+    except: 
+        assert 1
+    else:
+        assert 0    
+    
 def test_set_kill_mode():
     pass
     
@@ -395,5 +446,6 @@ if __name__ == "__main__":
     test_launch_default_reg()
     test_launch_no_app()
     test_kill_job_with_no_launch()
+    test_poll_job_with_no_launch()    
     test_set_kill_mode()
     
