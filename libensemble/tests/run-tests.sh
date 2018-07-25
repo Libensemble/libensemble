@@ -128,6 +128,8 @@ cleanup() {
     filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
+    filelist=(job_my_simjob.x*.out);   [ -e ${filelist[0]} ] && rm job_my_simjob.x*.out
+    filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile    
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
@@ -156,8 +158,9 @@ script_name=`basename "$0"`
 RUN_PREFIX=$script_name
 CLEAN_ONLY=false
 unset MPIEXEC_FLAGS
+PYTEST_SHOW_OUT_ERR=false
 
-while getopts ":p:n:a:c" opt; do
+while getopts ":p:n:a:cs" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -175,6 +178,10 @@ while getopts ":p:n:a:c" opt; do
       #echo "Cleaning test output: $OPTARG" >&2
       echo "Cleaning test output"
       CLEAN_ONLY=true
+      ;;
+    s)
+      echo "Will show stdout and stderr during pytest"
+      PYTEST_SHOW_OUT_ERR=true
       ;;
     \?)
       echo "Invalid option supplied: -$OPTARG" >&2
@@ -279,7 +286,12 @@ if [ "$root_found" = true ]; then
     
     cd $ROOT_DIR/$UNIT_TEST_SUBDIR  
 #     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
-    $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
+    if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
+      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL #To see std out/err while running
+    else
+      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
+    fi;
+
     code=$?
     if [ "$code" -eq "0" ]; then
       echo

@@ -5,10 +5,12 @@ import os
 import sys
 import time
 import pytest
+import socket
 from libensemble.register import Register
 from libensemble.controller import JobController, BalsamJobController
 
 NCORES = 1
+sim_app = './my_simjob.x'
 
 def build_simfunc():
     import subprocess
@@ -22,7 +24,7 @@ def build_simfunc():
 # This would typically be in the user calling script
 # Cannot test auto_resources here - as no workers set up.
 def setup_job_controller():
-    sim_app = './my_simjob.x'
+    #sim_app = './my_simjob.x'
     if not os.path.isfile(sim_app):
         build_simfunc()
 
@@ -32,7 +34,7 @@ def setup_job_controller():
     
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
-def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
+def polling_loop(jobctl, job, timeout_sec=4.0, delay=0.5):
     #import time
     start = time.time()
     
@@ -59,7 +61,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
     return job
     
     
-def polling_loop_multijob(jobctl, job_list, timeout_sec=8.0, delay=0.5):
+def polling_loop_multijob(jobctl, job_list, timeout_sec=6.0, delay=0.25):
     #import time
     start = time.time()
 
@@ -96,7 +98,7 @@ def test_launch_and_poll():
     setup_job_controller()
     jobctl = JobController.controller
     cores = NCORES
-    args_for_sim = 'sleep 3'
+    args_for_sim = 'sleep 2'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
@@ -108,7 +110,7 @@ def test_kill_on_file():
     setup_job_controller()
     jobctl = JobController.controller    
     cores = NCORES
-    args_for_sim = 'sleep 3 Error'
+    args_for_sim = 'sleep 1 Error'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
@@ -135,7 +137,7 @@ def test_launch_and_poll_multijobs():
     for j in range(3):
         #outfilename = 'out_' + str(j) + '.txt' #Could allow launch to generate outfile names based on job.id
         outfile = 'multijob_job_' + str(j) + '.out'
-        sleeptime = 3 + j #Change args
+        sleeptime = 1 + j #Change args
         args_for_sim = 'sleep' + ' ' + str(sleeptime)
         rundir = 'run_' + str(sleeptime)
         job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfile)
@@ -186,10 +188,17 @@ def test_procs_and_machinefile_logic():
     setup_job_controller()
     jobctl = JobController.controller
     args_for_sim = 'sleep 0'
-    #job = jobctl.launch(calc_type='sim', machinefile='machinefile')
-    #job = polling_loop(jobctl, job)
-    #assert job.finished, "job.finished should be True. Returned " + str(job.finished)
-    #assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
+    
+    machinefilename = "my_machinefile"
+    cores = NCORES
+    with open(machinefilename,'w') as f:
+        for rank in range(cores):
+            f.write(socket.gethostname() + '\n')
+
+    job = jobctl.launch(calc_type='sim', machinefile=machinefilename, app_args=args_for_sim)   
+    job = polling_loop(jobctl, job, delay=0.3)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
     # Testing num_procs = num_nodes*ranks_per_node (shouldn't fail)
     job = jobctl.launch(calc_type='sim', num_procs=6, num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
@@ -208,7 +217,7 @@ def test_procs_and_machinefile_logic():
     # Testing no num_procs (shouldn't fail)
     job = jobctl.launch(calc_type='sim', num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
     assert 1
-    job = polling_loop(jobctl, job)
+    job = polling_loop(jobctl, job, delay=0.3)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
@@ -223,18 +232,18 @@ def test_procs_and_machinefile_logic():
     # Testing no num_nodes (shouldn't fail)
     job = jobctl.launch(calc_type='sim',num_procs=2,ranks_per_node=2, app_args=args_for_sim)
     assert 1
-    job = polling_loop(jobctl, job)
+    job = polling_loop(jobctl, job, delay=0.3)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
     # Testing no ranks_per_node (shouldn't fail)
     job = jobctl.launch(calc_type='sim',num_nodes=1,num_procs=2, app_args=args_for_sim)
     assert 1
-    job = polling_loop(jobctl, job)
+    job = polling_loop(jobctl, job, delay=0.3)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(20)
 def test_doublekill():
     """Test attempt to kill already killed job
     
@@ -246,6 +255,9 @@ def test_doublekill():
     cores = NCORES
     args_for_sim = 'sleep 3'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim) 
+    jobctl.poll(job)
+    #jobctl.set_kill_mode(wait_and_kill=True, wait_time=5)
+    
     jobctl.kill(job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
@@ -253,7 +265,7 @@ def test_doublekill():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
 
-
+@pytest.mark.timeout(20)
 def test_finish_and_kill():
     """Test attempt to kill already finished job
     
@@ -274,13 +286,65 @@ def test_finish_and_kill():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)   
 
+@pytest.mark.timeout(20)
+def test_launch_and_kill():
+    """Test launching and immediately killing jobs with no poll"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    args_for_sim = 'sleep 2'
+    job_list = []
+    for jobid in range(5):
+        job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+        jobctl.kill(job)
+        job_list.append(job)
+    
+    for job in job_list:
+        assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+        assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)        
+    
+    
+def test_launch_as_gen():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    args_for_sim = 'sleep 1'
+    
+    #Try launching as gen when not registered as gen
+    try:
+        job = jobctl.launch(calc_type='gen', num_procs=cores, app_args=args_for_sim)
+    except: 
+        assert 1
+    else:
+        assert 0    
+    
+    registry = Register.default_registry
+    registry.register_calc(full_path=sim_app, calc_type='gen')
+    job = jobctl.launch(calc_type='gen', num_procs=cores, app_args=args_for_sim)
+    job = polling_loop(jobctl, job, delay=0.3)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
+
+def test_kill_job_with_no_launch():
+    pass
+
+def test_set_kill_mode():
+    pass
+    
 
 if __name__ == "__main__":
-    #test_launch_and_poll()    
-    #test_kill_on_file()
-    #test_kill_on_timeout()
-    #test_launch_and_poll_multijobs()
-    #test_get_job()
+    test_launch_and_poll()    
+    test_kill_on_file()
+    test_kill_on_timeout()
+    test_launch_and_poll_multijobs()
+    test_get_job()
     test_procs_and_machinefile_logic()
-    #test_doublekill()
-    #test_finish_and_kill() 
+    test_doublekill()
+    test_finish_and_kill() 
+    test_launch_and_kill()
+    test_launch_as_gen()
+    test_kill_job_with_no_launch()
+    test_set_kill_mode()
+    
