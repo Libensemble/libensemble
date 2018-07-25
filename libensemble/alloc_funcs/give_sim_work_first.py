@@ -43,7 +43,6 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
 
     Work = {}
     gen_count = 0
-    already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
 
     for i in worker_sets['nonpersis_w']['waiting']:
 
@@ -53,22 +52,21 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
             continue
 
         # Find indices of H where that are not given nor paused
-        q_inds_logical = np.logical_and.reduce((~H['given'],~H['paused'],~already_in_Work))
-
-        if np.any(q_inds_logical):
+        jj = list(H['allocated'])
+        if not all(jj):
             # Give sim work if possible
 
             if 'priority' in H.dtype.fields:
                 if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
                     # Give all points with highest priority
-                    q_inds = H['priority'][q_inds_logical] == np.max(H['priority'][q_inds_logical])
-                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][q_inds]
+                    q_inds = H['priority'][~H['allocated']] == np.max(H['priority'][~H['allocated']])
+                    sim_ids_to_send = np.nonzero(~H['allocated'])[0][q_inds]
                 else:
                     # Give first point with highest priority
-                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][np.argmax(H['priority'][q_inds_logical])]
+                    sim_ids_to_send = np.nonzero(~H['allocated'])[0][np.argmax(H['priority'][~H['allocated']])]
             else:
                 # Give oldest point
-                sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]
+                sim_ids_to_send = np.nonzero(~H['allocated'])[0][0]
 
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
@@ -87,7 +85,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
                        'libE_info': {'H_rows': sim_ids_to_send,
                                 },
                       }
-            already_in_Work[sim_ids_to_send] = True
+            H['allocated'][sim_ids_to_send] = True
 
             if block_others:
                 unassigned_workers = worker_sets['nonpersis_w']['waiting'] - set(Work.keys()) - blocked_set
