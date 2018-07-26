@@ -39,7 +39,7 @@ sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimi
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'out': [('x',float,2),('batch',int),('subbatch',int)],
+             'out': [('x',float,2),('batch',int),('subbatch',int),('prior',float,1),('prop',float,1), ('weight',float,1)],
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
              'subbatch_size': 3,
@@ -63,3 +63,5 @@ if MPI.COMM_WORLD.Get_size()==2:
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
 np.save('in_bayes_ex', H)
+print(H)
+print(H.dtype)

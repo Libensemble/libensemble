@@ -33,6 +33,8 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
                 O['x'][row] = x
                 O['subbatch'][row] = j
                 O['batch'][row] = batch
+                O['prior'][row] = np.random.randn()
+                O['prop'][row] = np.random.randn()
         
         # What is being sent to manager to pass on to workers
         D = {'calc_out':O,
@@ -55,6 +57,7 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
         # Not sure why there are two comm.recv
         libE_info = Work['libE_info']
         calc_in = comm.recv(buf=None, source=0)
+        O['weight'] = O['prior'] + calc_in['like'] - O['prop']
         
 
     return O, persis_info, tag
