@@ -29,6 +29,7 @@ from __future__ import print_function
 
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import Worker, worker_main
+from libensemble.calc_info import CalcInfo
 
 from mpi4py import MPI
 import numpy as np
@@ -184,6 +185,11 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
             sys.stdout.flush()
             sys.stderr.flush()
             # libE_specs['comm'].Abort()
+
+    # Create calc summary file
+    libE_specs['comm'].Barrier()
+    if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
+        CalcInfo.merge_statfiles()
 
     return H, persis_info, exit_flag
 

@@ -23,6 +23,9 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 # Import gen_func 
 from libensemble.gen_funcs.aposmm_logic import aposmm_logic
 
+# Import alloc_func 
+from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
+
 from math import gamma, pi, sqrt
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -63,34 +66,42 @@ gen_specs = {'gen_f': aposmm_logic,
              'localopt_method': 'LD_MMA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-2,
-             'lhs_divisions':2,
              'batch_mode': True,
              'num_inst':1,
+             'num_active_gens':1,
              }
 
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 1000}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
+alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
 # Perform the run
 for run in range(2):
+    np.random.seed(1)
+
+    persis_info = {'next_to_give':0}
+    persis_info['flag'] = False
+    persis_info['old_len'] = 0
+    persis_info['total_gen_calls'] = 0
+
+    for i in range(MPI.COMM_WORLD.Get_size()):
+        persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+
     if run == 1:
         # Change the bounds to put a local min at a corner point (to test that APOSMM handles the same point being in multiple runs)  ability to give back a previously evaluated point)
         gen_specs['ub']= np.array([-2.9, -1.9])
         gen_specs['mu']= 1e-4
         gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
+        gen_specs['lhs_divisions'] = 2
 
         gen_specs.pop('xtol_rel')
         gen_specs['ftol_rel'] = 1e-2
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, alloc_specs=alloc_specs)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
         short_name = script_name.split("test_", 1).pop()

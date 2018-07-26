@@ -79,15 +79,17 @@ regularly on:
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
-The test suite requires the pytest and pytest-cov packages to be installed and
-can be run from the libensemble/tests directory of the source distribution
-using the following methods::
+The test suite requires the pytest, pytest-cov and pytest-timeout packages to be installed and can be run from the libensemble/tests directory of the source distribution by running::
 
-    ./run-tests.sh (optionally specify eg. -p 3 for Python3)
+    ./run-tests.sh
 
 To clean the test repositories run::
 
     ./run-tests.sh -c
+    
+Further options are available. To see a complete list of options run::
+
+    ./run-tests.sh -h
 
 Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors

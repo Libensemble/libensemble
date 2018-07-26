@@ -256,8 +256,8 @@ def update_history_f(H, D):
             else:
                 #len or np.size
                 H0_size = len(H_0[field][j])
-                assert H0_size <= len(H[field][ind]), "Manager Error: Too many values received for" + field 
-                assert H0_size, "Why is there nothing in this field" + field 
+                assert H0_size <= len(H[field][ind]), "Manager Error: Too many values received for " + field 
+                assert H0_size, "Manager Error: No values in this field " + field
                 if H0_size == len(H[field][ind]):
                     H[field][ind] = H_0[field][j] #ref
                 else:
@@ -465,9 +465,4 @@ def final_receive_and_kill(comm, worker_sets, H, H_ind, sim_specs, gen_specs, te
         comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
        
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
-       
-    # Create calc summary file
-    time.sleep(1)
-    CalcInfo.merge_statfiles()
-
     return H[:H_ind], persis_info, exit_flag
