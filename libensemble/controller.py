@@ -43,6 +43,11 @@ FINISHED
 USER_KILLED
 FAILED'''.split()
 
+SIGNALS = '''
+SIGTERM
+SIGKILL'''.split()
+
+
 #I may want to use a top-level abstract/base class for maximum re-use
 # - else inherited controller will be reimplementing common code
 
@@ -604,12 +609,12 @@ class JobController:
             try:
                 JobController._kill_process(job.process, signal.SIGTERM)
             except ProcessLookupError:
-                logger.warning("Tried to kill job {}. No process found {}".format(job.name, job.process.pid))
+                logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
         elif self.kill_signal == 'SIGKILL':
             try:
                 JobController._kill_process(job.process, signal.SIGKILL)
             except ProcessLookupError:
-                logger.warning("Tried to kill job {}. No process found {}".format(job.name, job.process.pid))
+                logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
         else: 
             raise JobControllerException('Unknown kill signal')
 
@@ -646,18 +651,25 @@ class JobController:
         #Need to test out what to do with
         #job.errcode #Can it be discovered after killing?
         #job.success #Could set to false but should be already - only set to true on success            
-                
+
+
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
         ''' Configures the kill mode for the job_controller '''
         if signal is not None:
-            self.kill_signal = signal
+            if signal in SIGNALS:
+                self.kill_signal = signal
+            else:
+                raise JobControllerException("Unknown signal {} supplied to set_kill_mode".format(signal))
             
         if wait_and_kill is not None:
             self.wait_and_kill = wait_and_kill
             
         if wait_time is not None: 
             self.wait_time = wait_time
-    
+            if not wait_and_kill:
+                logger.warning('wait_time set but will have no effect while wait_and_kill is False')
+
+
     def get_job(self, jobid):
         ''' Returns the job object for the supplied job ID '''
         if self.list_of_jobs:
