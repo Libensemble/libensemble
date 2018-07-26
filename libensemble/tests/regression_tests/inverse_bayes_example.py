@@ -63,5 +63,7 @@ if MPI.COMM_WORLD.Get_size()==2:
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
 np.save('in_bayes_ex', H)
-print(H)
-print(H.dtype)
+
+if MPI.COMM_WORLD.Get_rank() == 0:
+    print(H)
+    print(H.dtype)
