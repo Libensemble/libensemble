@@ -39,6 +39,9 @@ if rank == 0:
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                 D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
                 mess_count += 1
+                #print('Message count', mess_count)
+                #print('Message size (bytes): ', status.Get_count())
+                
                 #To test values
                 x = w * 1000.0
                 assert np.all(D_recv['arr_vals'] == x), "Array values do not all match"
