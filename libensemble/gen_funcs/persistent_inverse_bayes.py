@@ -25,6 +25,8 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
     while 1: 
         batch += 1
         O = np.zeros(gen_specs['subbatch_size']*gen_specs['num_subbatches'], dtype=gen_specs['out'])
+        if 'w' in vars(): 
+            O['weight'] = w
         row = -1
         for j in range(gen_specs['num_subbatches']):
             for i in range(0,gen_specs['subbatch_size']):
@@ -57,9 +59,11 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
         # Not sure why there are two comm.recv
         libE_info = Work['libE_info']
         calc_in = comm.recv(buf=None, source=0)
-        pdb.set_trace() 
-        O['weight'][:] = O['prior'] + calc_in['like'] - O['prop']
-
+        print('x = ',O['x'] )
+        print('prior = ', O['prior'])
+        print('prop = ', O['prop'])
+        print('calc_in = ', calc_in)
+        w = O['prior'] + calc_in['like'] - O['prop']
         
 
     return O, persis_info, tag

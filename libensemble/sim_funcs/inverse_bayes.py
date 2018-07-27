@@ -14,9 +14,8 @@ def likelihood_calculator(H, persis_info, sim_specs, libE_info):
     Evaluates likelihood
     """
     del libE_info # Ignored parameter
-
     O = np.zeros(len(H['x']),dtype=sim_specs['out'])
-
+    print('x = ', H['x'])  
     for i,x in enumerate(H['x']):
         O['like'][i] = six_hump_camel_func(x)
 

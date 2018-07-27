@@ -32,12 +32,15 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
     # give output back to i. Otherwise, give nothing to i
     for i in worker_sets['persis_w']['waiting'][EVAL_GEN_TAG]: 
         inds_generated_by_i = H['gen_worker']==i #it there is more than 1 persistant generator make sure you assign the correct work to it 
-        #pdb.set_trace()
         if np.all(H['returned'][inds_generated_by_i]): # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch
             last_batch_inds = H['batch'][inds_generated_by_i]==np.max(H['batch'][inds_generated_by_i])
             inds_to_send_back = np.where(inds_generated_by_i[last_batch_inds])[0] 
-
+            pdb.set_trace()
+            #if H['batch'][-1] > 0:
+                #n = gen_specs['subbatch_size']*gen_specs['num_subbatches']
+                #k = H['batch'][-1]
+                #H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]    
             Work[i] = {'persis_info': persis_info[i],
                        'H_fields': ['like'],
                        'tag':EVAL_GEN_TAG, 
@@ -50,10 +53,8 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
     for i in worker_sets['nonpersis_w']['waiting']:
         # perform sim evaluations (if any point hasn't been given).
         q_inds_logical = np.logical_and(~H['given'],~already_in_Work) 
-        #pdb.set_trace()
         if np.any(q_inds_logical):
             sim_ids_to_send = np.nonzero(q_inds_logical)[0][H['subbatch'][q_inds_logical]==np.min(H['subbatch'][q_inds_logical])]
-
             Work[i] = {'H_fields': sim_specs['in'], #things to evaluate
                        'persis_info': {}, # Our sims don't need information about how points were generated
                        'tag':EVAL_SIM_TAG, 
@@ -78,6 +79,7 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
                                 }
 
                        }
+     
 
     return Work, persis_info
 

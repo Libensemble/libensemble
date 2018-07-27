@@ -44,10 +44,11 @@ gen_specs = {'gen_f': gen_f,
              'ub': np.array([ 3, 2]),
              'subbatch_size': 3,
              'num_subbatches': 2,
+             'num_batches': 10,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 40}
+exit_criteria = {'sim_max': gen_specs['num_subbatches']*gen_specs['num_batches']}
 
 np.random.seed(1)
 persis_info = {}
@@ -66,4 +67,4 @@ np.save('in_bayes_ex', H)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     print(H)
-    print(H.dtype)
+    #print(H.dtype)
