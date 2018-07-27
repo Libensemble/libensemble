@@ -59,10 +59,6 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
         # Not sure why there are two comm.recv
         libE_info = Work['libE_info']
         calc_in = comm.recv(buf=None, source=0)
-        print('x = ',O['x'] )
-        print('prior = ', O['prior'])
-        print('prop = ', O['prop'])
-        print('calc_in = ', calc_in)
         w = O['prior'] + calc_in['like'] - O['prop']
         
 

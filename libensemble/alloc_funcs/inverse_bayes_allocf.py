@@ -36,11 +36,10 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
             # Then give back everything in the last batch
             last_batch_inds = H['batch'][inds_generated_by_i]==np.max(H['batch'][inds_generated_by_i])
             inds_to_send_back = np.where(np.logical_and(inds_generated_by_i,last_batch_inds))[0] 
-            pdb.set_trace()
-            #if H['batch'][-1] > 0:
-                #n = gen_specs['subbatch_size']*gen_specs['num_subbatches']
-                #k = H['batch'][-1]
-                #H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]    
+            if H['batch'][-1] > 0:
+                n = gen_specs['subbatch_size']*gen_specs['num_subbatches']
+                k = H['batch'][-1]
+                H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]    
             Work[i] = {'persis_info': persis_info[i],
                        'H_fields': ['like'],
                        'tag':EVAL_GEN_TAG, 
