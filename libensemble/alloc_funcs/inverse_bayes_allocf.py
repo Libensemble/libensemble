@@ -35,7 +35,7 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
         if np.all(H['returned'][inds_generated_by_i]): # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch
             last_batch_inds = H['batch'][inds_generated_by_i]==np.max(H['batch'][inds_generated_by_i])
-            inds_to_send_back = np.where(inds_generated_by_i[last_batch_inds])[0] 
+            inds_to_send_back = np.where(np.logical_and(inds_generated_by_i,last_batch_inds))[0] 
             pdb.set_trace()
             #if H['batch'][-1] > 0:
                 #n = gen_specs['subbatch_size']*gen_specs['num_subbatches']
