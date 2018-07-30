@@ -164,13 +164,13 @@ class Resources:
         """Get global libEnsemble nodelist from the Cobalt environment"""
         prefix='nid'
         hostname = socket.gethostname()
-        numberfield = hostname[len(prefix):]
-        nnum_len = len(numberfield)
+        nnum_len = 5 # default
+        if hostname.startswith(prefix):
+            nnum_len = len(hostname[len(prefix):])
         nidlst = []
         nidstr = os.environ[node_list_env]
         if not len(nidstr):
             return []
-        #print('original node list',nidstr)
         nidgroups = nidstr.split(',')
         for nidgroup in nidgroups:
             if (nidgroup.find("-") != -1):
