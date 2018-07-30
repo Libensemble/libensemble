@@ -218,6 +218,7 @@ class BalsamJob(Job):
         if self.total_time is None:
             self.total_time = time.time() - self.launch_time   
 
+
 class JobController:
     
     ''' The job_controller can create, poll and kill runnable jobs '''
@@ -285,7 +286,7 @@ class JobController:
             #else:
                 #job.total_time = time.time() - job.launch_time
     
-    def __init__(self, registry=None, auto_resources=True):
+    def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm = None, nodelist_env_cobalt = None):
         '''Instantiate a new JobController instance.
         
         A new JobController object is created with an application registry and configuration attributes
@@ -303,7 +304,9 @@ class JobController:
         self.auto_resources = auto_resources
         
         if self.auto_resources:
-            self.resources = Resources(top_level_dir = self.top_level_dir)
+            self.resources = Resources(top_level_dir = self.top_level_dir, 
+                                       nodelist_env_slurm = nodelist_env_slurm,
+                                       nodelist_env_cobalt = nodelist_env_cobalt)
         
         #logger.debug("top_level_dir is {}".format(self.top_level_dir))
         

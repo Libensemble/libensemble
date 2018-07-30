@@ -25,17 +25,36 @@ class Resources:
     
     """Provide system resources to libEnsemble and job controller with knowledge of workers"""
     
-    def __init__(self, top_level_dir=None, workerID=None, central_mode=False):
+    # These can be overridden by passing in (e.g. nodelist_env_slurm) on init.
+    default_nodelist_env_slurm = 'SLURM_NODELIST'
+    default_nodelist_env_cobalt = 'COBALT_PARTNAME'
+    
+    def __init__(self, top_level_dir=None, workerID=None, central_mode=False, 
+                 nodelist_env_slurm = None,
+                 nodelist_env_cobalt = None):
         """Initialise new Resources instance"""
+        
+        if nodelist_env_slurm is None:
+            nodelist_env_slurm = Resources.default_nodelist_env_slurm
+            
+        if nodelist_env_cobalt is None:
+            nodelist_env_cobalt = Resources.default_nodelist_env_cobalt
+        
         if top_level_dir is None:
             self.top_level_dir = os.getcwd()
         else:
             self.top_level_dir = top_level_dir
         
         self.central_mode = central_mode
+        
+        # These presence of these env vars will be used to detect schedular
+        self.nodelist_env_slurm = nodelist_env_slurm
+        self.nodelist_env_cobalt = nodelist_env_cobalt
 
         #This is global nodelist avail to workers - may change to global_worker_nodelist
-        self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode)       
+        self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode,
+                                                             nodelist_env_slurm = nodelist_env_slurm,
+                                                             nodelist_env_cobalt = nodelist_env_cobalt)       
         self.num_workers = Resources.get_num_workers()
         self.logical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=True)
         self.physical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=False)
@@ -109,11 +128,12 @@ class Resources:
     
     
     @staticmethod
-    def get_slurm_nodelist():
+    def get_slurm_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Slurm environment"""
         nidlst = []
-        NID_LIST_VAR = 'SLURM_NODELIST'
-        fullstr = os.environ[NID_LIST_VAR]
+        fullstr = os.environ[node_list_env]
+        if not len(fullstr):
+            return []
         splitstr = fullstr.split('-',1)
         prefix = splitstr[0]
         nidstr = splitstr[1].strip("[]")
@@ -140,15 +160,16 @@ class Resources:
         return nidlst
     
     @staticmethod
-    def get_cobalt_nodelist():
+    def get_cobalt_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Cobalt environment"""
-        prefix='nid'    
+        prefix='nid'
         hostname = socket.gethostname()
         numberfield = hostname[len(prefix):]
         nnum_len = len(numberfield)
         nidlst = []
-        NID_LIST_VAR = 'COBALT_PARTNAME'
-        nidstr = os.environ[NID_LIST_VAR]
+        nidstr = os.environ[node_list_env]
+        if not len(nidstr):
+            return []
         #print('original node list',nidstr)
         nidgroups = nidstr.split(',')
         for nidgroup in nidgroups:
@@ -196,9 +217,12 @@ class Resources:
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
     
     
-    #prob wont be static? - top_level_dir could be moved to resources attribute - set once on init
+    #Consider changing from static? - top_level_dir could be moved to resources attribute - set once on init
+    #Also nodelist_env_slurm etc could just use self values.
     @staticmethod
-    def get_global_nodelist(rundir=None,central_mode=False):
+    def get_global_nodelist(rundir=None, central_mode=False,
+                            nodelist_env_slurm = None,
+                            nodelist_env_cobalt = None):
         """
         Return the list of nodes available to all libEnsemble workers
         
@@ -211,7 +235,13 @@ class Resources:
             top_level_dir = rundir
         else:
             top_level_dir = os.getcwd()
-    
+
+        if nodelist_env_slurm is None:
+            nodelist_env_slurm = Resources.default_nodelist_env_slurm
+            
+        if nodelist_env_cobalt is None:
+            nodelist_env_cobalt = Resources.default_nodelist_env_cobalt            
+        
         worker_list_file = os.path.join(top_level_dir,'worker_list')
         
         global_nodelist = []
@@ -224,17 +254,17 @@ class Resources:
         else: 
             #Need a way to know if using a manager node though - this will give simply all nodes.
             logger.debug("No worker_list found - searching for nodelist in environment")
-            if os.environ.get('SLURM_NODELIST'):
+            if os.environ.get(nodelist_env_slurm):
                 logger.debug("Slurm env found - getting nodelist from Slurm")
-                global_nodelist = Resources.get_slurm_nodelist()
-            elif os.environ.get('COBALT_PARTNAME'):
+                global_nodelist = Resources.get_slurm_nodelist(nodelist_env_slurm)
+            elif os.environ.get(nodelist_env_cobalt):
                 logger.debug("Cobalt env found - getting nodelist from Cobalt")
-                global_nodelist = Resources.get_cobalt_nodelist()
+                global_nodelist = Resources.get_cobalt_nodelist(nodelist_env_cobalt)
             else:
                 #It could be a standalone machine. Assume is if all workers on same node - though give warning.
                 #Perhaps should check its not in central mode also...
                 if len(set(Resources.get_libE_nodes())) == 1:
-                    logger.warning("Can not find nodelist from environment. Assuming standalone")
+                    logger.info("Can not find nodelist from environment. Assuming standalone")
                     global_nodelist.append(socket.gethostname())
                 else:
                     raise ResourcesException("Error. Can not find nodelist from environment")
