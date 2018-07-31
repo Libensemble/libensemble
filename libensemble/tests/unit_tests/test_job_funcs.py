@@ -4,6 +4,40 @@ import shutil
 from libensemble.register import Register
 from libensemble.controller import Job, JobController, JobControllerException
 
+def setup_module(module):
+    print ("setup_module      module:%s" % module.__name__)
+    if JobController.controller is not None:
+        ctrl = JobController.controller
+        del ctrl
+        JobController.controller = None
+    if Register.default_registry:
+        defreg = Register.default_registry
+        del defreg
+        Register.default_registry = None
+
+def setup_function(function):
+    print ("setup_function    function:%s" % function.__name__)
+    if JobController.controller is not None:
+        ctrl = JobController.controller
+        del ctrl
+        JobController.controller = None
+    if Register.default_registry:
+        defreg = Register.default_registry
+        del defreg
+        Register.default_registry = None
+
+def teardown_module(module):
+    print ("teardown_module   module:%s" % module.__name__)
+    if JobController.controller is not None:
+        ctrl = JobController.controller
+        del ctrl
+        JobController.controller = None
+    if Register.default_registry:
+        defreg = Register.default_registry
+        del defreg
+        Register.default_registry = None 
+
+
 def test_job_funcs():
     dummyappname = os.getcwd() + '/myapp.x'
     registry = Register()

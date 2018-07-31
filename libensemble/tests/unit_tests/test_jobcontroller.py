@@ -6,11 +6,53 @@ import sys
 import time
 import pytest
 import socket
-from libensemble.register import Register
+from libensemble.register import Register, BalsamRegister
 from libensemble.controller import JobController, BalsamJobController
+
+USE_BALSAM = False
 
 NCORES = 1
 sim_app = './my_simjob.x'
+
+
+def setup_module(module):
+    print ("setup_module      module:%s" % module.__name__)
+    if JobController.controller is not None:
+        ctrl = JobController.controller
+        del ctrl
+        JobController.controller = None
+    if Register.default_registry:
+        defreg = Register.default_registry
+        del defreg
+        Register.default_registry = None
+
+def setup_function(function):
+    print ("setup_function    function:%s" % function.__name__)
+    if JobController.controller is not None:
+        ctrl = JobController.controller
+        del ctrl
+        JobController.controller = None
+    if Register.default_registry:
+        defreg = Register.default_registry
+        del defreg
+        Register.default_registry = None
+
+def teardown_module(module):
+    print ("teardown_module   module:%s" % module.__name__)
+    if JobController.controller is not None:
+        ctrl = JobController.controller
+        del ctrl
+        JobController.controller = None
+    if Register.default_registry:
+        defreg = Register.default_registry
+        del defreg
+        Register.default_registry = None    
+
+
+#def setup_module(module):
+    #import pdb; pdb.set_trace
+    #if JobController.controller is not None:
+        #print('controller found')
 
 def build_simfunc():
     import subprocess
@@ -28,27 +70,41 @@ def setup_job_controller():
     if not os.path.isfile(sim_app):
         build_simfunc()
 
-    registry = Register()
-    jobctrl = JobController(registry = registry, auto_resources = False)
+    if USE_BALSAM:
+        registry = BalsamRegister()
+        jobctrl = BalsamJobController(registry = registry, auto_resources = False)
+    else:
+        registry = Register()
+        jobctrl = JobController(registry = registry, auto_resources = False)
+        
     registry.register_calc(full_path=sim_app, calc_type='sim')
 
 def setup_job_controller_noreg():
     #sim_app = './my_simjob.x'
     if not os.path.isfile(sim_app):
         build_simfunc()
-
-    registry = Register()
-    jobctrl = JobController(auto_resources = False)
+    
+    if USE_BALSAM:
+        registry = BalsamRegister()
+        jobctrl = BalsamJobController(auto_resources = False)
+    else: 
+        registry = Register()
+        jobctrl = JobController(auto_resources = False)
+        
     registry.register_calc(full_path=sim_app, calc_type='sim')
 
 def setup_job_controller_noapp():
     #sim_app = './my_simjob.x'
     if not os.path.isfile(sim_app):
         build_simfunc()
-
-    registry = Register()
-    jobctrl = JobController(registry = registry, auto_resources = False) 
     
+    if USE_BALSAM:
+        registry = BalsamRegister()
+        jobctrl = BalsamJobController(registry = registry, auto_resources = False) 
+    else:    
+        registry = Register()
+        jobctrl = JobController(registry = registry, auto_resources = False)  
+        
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
 def polling_loop(jobctl, job, timeout_sec=4.0, delay=0.5):
@@ -108,7 +164,8 @@ def polling_loop_multijob(jobctl, job_list, timeout_sec=6.0, delay=0.25):
                         continue
     return job_list
 
-# Tests
+
+# Tests ========================================================================================
 def test_launch_and_poll():
     """ Test of launching and polling job and exiting on job finish"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
@@ -260,6 +317,7 @@ def test_procs_and_machinefile_logic():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
+
 @pytest.mark.timeout(20)
 def test_doublekill():
     """Test attempt to kill already killed job
@@ -282,6 +340,7 @@ def test_doublekill():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'USER_KILLED', "job.state should be USER_KILLED. Returned " + str(job.state)   
 
+
 @pytest.mark.timeout(20)
 def test_finish_and_kill():
     """Test attempt to kill already finished job
@@ -301,8 +360,12 @@ def test_finish_and_kill():
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)   
     jobctl.kill(job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
-    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)   
-
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state) 
+    #Try polling after finish - should return with no effect
+    jobctl.poll(job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state) 
+    
 
 @pytest.mark.timeout(20)
 def test_launch_and_kill():
@@ -344,7 +407,15 @@ def test_launch_as_gen():
     job = polling_loop(jobctl, job, delay=0.3)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
-
+    
+    #Try launching as 'alloc' which is not a type
+    try:
+        job = jobctl.launch(calc_type='alloc', num_procs=cores, app_args=args_for_sim)
+    except: 
+        assert 1
+    else:
+        assert 0     
+    
 
 def test_launch_default_reg():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
@@ -356,6 +427,19 @@ def test_launch_default_reg():
     job = polling_loop(jobctl, job, delay=0.3)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
+
+
+def test_create_jobcontroller_no_registry():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    cores = NCORES
+    args_for_sim = 'sleep 1' 
+    #import pdb;pdb.set_trace()
+    try:    
+        jobctrl = JobController(auto_resources = False)
+    except: 
+        assert 1
+    else:
+        assert 0  
 
 
 def test_launch_no_app():
@@ -373,7 +457,6 @@ def test_launch_no_app():
 
 
 def test_kill_job_with_no_launch():
-    
     from libensemble.controller import Job
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
@@ -398,9 +481,9 @@ def test_kill_job_with_no_launch():
         assert 1
     else:
         assert 0 
-    
+
+
 def test_poll_job_with_no_launch():
-    
     from libensemble.controller import Job
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
@@ -425,12 +508,62 @@ def test_poll_job_with_no_launch():
         assert 1
     else:
         assert 0    
-    
+
+
 def test_set_kill_mode():
-    pass
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    
+    signal_b4 = jobctl.kill_signal
+    wait_and_kill_b4 = jobctl.wait_and_kill
+    wait_time_b4 = jobctl.wait_time
+    
+    # Change nothing.
+    jobctl.set_kill_mode()
+    assert jobctl.kill_signal == signal_b4
+    assert jobctl.wait_and_kill == wait_and_kill_b4
+    assert jobctl.wait_time == wait_time_b4
+    
+    # While these options are set - wait_time will not be used. Result is warning.
+    jobctl.set_kill_mode(signal='SIGKILL', wait_and_kill=False, wait_time=10)
+    assert jobctl.kill_signal == 'SIGKILL'
+    assert not jobctl.wait_and_kill
+    assert jobctl.wait_time == 10
+    
+    # Now correct
+    jobctl.set_kill_mode(signal='SIGTERM', wait_and_kill=True, wait_time=20)
+    assert jobctl.kill_signal == 'SIGTERM'
+    assert jobctl.wait_and_kill
+    assert jobctl.wait_time == 20
+    
+    #Todo:
+    #Testing wait_and_kill is harder - need to create a process that does not respond to sigterm in time.
+    
+    # Try set to unknown signal
+    try:
+        jobctl.set_kill_mode(signal='SIGDIE')
+    except: 
+        assert 1
+    else:
+        assert 0
+    
+    
+def test_job_failure():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    args_for_sim = 'sleep 1 Fail'  
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    job = polling_loop(jobctl, job, delay=0.3)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FAILED', "job.state should be FAILED. Returned " + str(job.state)     
     
 
 if __name__ == "__main__":
+    #setup_module(__file__)
     test_launch_and_poll()    
     test_kill_on_file()
     test_kill_on_timeout()
@@ -442,8 +575,11 @@ if __name__ == "__main__":
     test_launch_and_kill()
     test_launch_as_gen()
     test_launch_default_reg()
+    test_create_jobcontroller_no_registry()
     test_launch_no_app()
     test_kill_job_with_no_launch()
     test_poll_job_with_no_launch()    
     test_set_kill_mode()
+    test_job_failure()
+    #teardown_module(__file__)
     

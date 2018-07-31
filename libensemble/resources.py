@@ -25,23 +25,39 @@ class Resources:
     
     """Provide system resources to libEnsemble and job controller with knowledge of workers"""
     
-    def __init__(self, top_level_dir=None, workerID=None, central_mode=False):
+    # These can be overridden by passing in (e.g. nodelist_env_slurm) on init.
+    default_nodelist_env_slurm = 'SLURM_NODELIST'
+    default_nodelist_env_cobalt = 'COBALT_PARTNAME'
+    
+    def __init__(self, top_level_dir=None, workerID=None, central_mode=False, 
+                 nodelist_env_slurm = None,
+                 nodelist_env_cobalt = None):
         """Initialise new Resources instance"""
+        
+        if nodelist_env_slurm is None:
+            nodelist_env_slurm = Resources.default_nodelist_env_slurm
+            
+        if nodelist_env_cobalt is None:
+            nodelist_env_cobalt = Resources.default_nodelist_env_cobalt
+        
         if top_level_dir is None:
             self.top_level_dir = os.getcwd()
         else:
             self.top_level_dir = top_level_dir
         
         self.central_mode = central_mode
+        
+        # These presence of these env vars will be used to detect schedular
+        self.nodelist_env_slurm = nodelist_env_slurm
+        self.nodelist_env_cobalt = nodelist_env_cobalt
 
         #This is global nodelist avail to workers - may change to global_worker_nodelist
-        self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode)       
+        self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode,
+                                                             nodelist_env_slurm = nodelist_env_slurm,
+                                                             nodelist_env_cobalt = nodelist_env_cobalt)       
         self.num_workers = Resources.get_num_workers()
         self.logical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=True)
         self.physical_cores_avail_per_node = Resources.get_cpu_cores(hyperthreads=False)
-        
-        #kluge - need routine to test if manager - as this now worked out on init - also called by manager
-        #though that may help with removing manager nodes from env generated node list.
         
         if not Resources.am_I_manager():           
             #For stored for this worker
@@ -109,11 +125,12 @@ class Resources:
     
     
     @staticmethod
-    def get_slurm_nodelist():
+    def get_slurm_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Slurm environment"""
         nidlst = []
-        NID_LIST_VAR = 'SLURM_NODELIST'
-        fullstr = os.environ[NID_LIST_VAR]
+        fullstr = os.environ[node_list_env]
+        if not len(fullstr):
+            return []
         splitstr = fullstr.split('-',1)
         prefix = splitstr[0]
         nidstr = splitstr[1].strip("[]")
@@ -140,16 +157,17 @@ class Resources:
         return nidlst
     
     @staticmethod
-    def get_cobalt_nodelist():
+    def get_cobalt_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Cobalt environment"""
-        prefix='nid'    
+        prefix='nid'
         hostname = socket.gethostname()
-        numberfield = hostname[len(prefix):]
-        nnum_len = len(numberfield)
+        nnum_len = 5 # default
+        if hostname.startswith(prefix):
+            nnum_len = len(hostname[len(prefix):])
         nidlst = []
-        NID_LIST_VAR = 'COBALT_PARTNAME'
-        nidstr = os.environ[NID_LIST_VAR]
-        #print('original node list',nidstr)
+        nidstr = os.environ[node_list_env]
+        if not len(nidstr):
+            return []
         nidgroups = nidstr.split(',')
         for nidgroup in nidgroups:
             if (nidgroup.find("-") != -1):
@@ -174,11 +192,11 @@ class Resources:
         return nidlst
     
 
-    #def remove_non_app_nodes(global_nodelist_in):
-    
     #This is for central mode where libE nodes will not share with app nodes
     #ie this is not for removing a manager node in distributed mode.
+    @staticmethod
     def remove_libE_nodes(global_nodelist_in):
+        """Any node containing a libensemble task is removed from the global nodelist"""
         libE_nodes_gather = Resources.get_libE_nodes()
         libE_nodes_set = set(libE_nodes_gather)
         
@@ -196,22 +214,32 @@ class Resources:
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
     
     
-    #prob wont be static? - top_level_dir could be moved to resources attribute - set once on init
+    #Consider changing from static - top_level_dir could be moved to resources attribute - set once on init
+    #Also nodelist_env_slurm etc could just use self values.
     @staticmethod
-    def get_global_nodelist(rundir=None,central_mode=False):
+    def get_global_nodelist(rundir=None, central_mode=False,
+                            nodelist_env_slurm = None,
+                            nodelist_env_cobalt = None):
         """
         Return the list of nodes available to all libEnsemble workers
         
         If a worker_list file exists this is used, otherwise the environment
-        is interrogated for a node list. Constraint: The latter currently assumes all nodes
-        are available to workers.
+        is interrogated for a node list. If a dedicated manager node is used, 
+        then a worker_list file is recommended.
         
+        In central mode, any node with a libE worker is removed from the list.
         """
         if rundir is not None:
             top_level_dir = rundir
         else:
             top_level_dir = os.getcwd()
-    
+
+        if nodelist_env_slurm is None:
+            nodelist_env_slurm = Resources.default_nodelist_env_slurm
+            
+        if nodelist_env_cobalt is None:
+            nodelist_env_cobalt = Resources.default_nodelist_env_cobalt            
+        
         worker_list_file = os.path.join(top_level_dir,'worker_list')
         
         global_nodelist = []
@@ -222,28 +250,23 @@ class Resources:
                 for line in f:                
                     global_nodelist.append(line.rstrip())
         else: 
-            #Need a way to know if using a manager node though - this will give simply all nodes.
             logger.debug("No worker_list found - searching for nodelist in environment")
-            if os.environ.get('SLURM_NODELIST'):
+            if os.environ.get(nodelist_env_slurm):
                 logger.debug("Slurm env found - getting nodelist from Slurm")
-                global_nodelist = Resources.get_slurm_nodelist()
-            elif os.environ.get('COBALT_PARTNAME'):
+                global_nodelist = Resources.get_slurm_nodelist(nodelist_env_slurm)
+            elif os.environ.get(nodelist_env_cobalt):
                 logger.debug("Cobalt env found - getting nodelist from Cobalt")
-                global_nodelist = Resources.get_cobalt_nodelist()
+                global_nodelist = Resources.get_cobalt_nodelist(nodelist_env_cobalt)
             else:
-                #It could be a standalone machine. Assume is if all workers on same node - though give warning.
-                #Perhaps should check its not in central mode also...
+                #Assume a standalone machine if all workers on same node - though give warning.
                 if len(set(Resources.get_libE_nodes())) == 1:
-                    logger.warning("Can not find nodelist from environment. Assuming standalone")
+                    logger.info("Can not find nodelist from environment. Assuming standalone")
                     global_nodelist.append(socket.gethostname())
                 else:
                     raise ResourcesException("Error. Can not find nodelist from environment")
             
-            if central_mode:
-                global_nodelist = Resources.remove_libE_nodes(global_nodelist)
-                
-        #logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
-        #This will only work in distributed worker mode - alt work out from workerID
+        if central_mode:
+            global_nodelist = Resources.remove_libE_nodes(global_nodelist)
         
         if global_nodelist:
             return global_nodelist
@@ -263,79 +286,97 @@ class Resources:
     
     
     def get_available_nodes(self):        
-        """Returns the list of nodes available to the current worker"""
+        """Returns the list of nodes available to the current worker
+        
+        Assumes that self.global_nodelist has been calculated (in __init__).
+        Also self.global_nodelist will have already removed non-application nodes
+        """
 
         global_nodelist = self.global_nodelist
         workerID = self.workerID
-        
-        local_host = socket.gethostname()
-        
-        #But if use env nodelist then even in central mode - it will be in list - must exclude control nodes...
-        distrib_mode = False
-        for node in global_nodelist:
-            if (node == local_host):
-                distrib_mode = True
-                break
-     
         num_workers = self.num_workers
-        num_nodes = len(global_nodelist)
+        num_nodes = len(global_nodelist)        
         
+        # Check if current host in nodelist - if it is then in distributed mode.
+        local_host = socket.gethostname()
+        distrib_mode = False
+        
+        #for node in global_nodelist:
+            #if (node == local_host):
+                #distrib_mode = True
+                #break
+        if local_host in global_nodelist:
+            distrib_mode = True
+        
+        # If not in central mode (ie. in distrib mode) then this host should be in nodelist.
+        # Either an error - or set to central mode. Currently make error for transparency
+        if not self.central_mode and not distrib_mode:
+            raise ResourcesException("Not in central mode, yet worker hostname is not in node list - aborting")
+        
+        # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = False
         if num_workers >= num_nodes:
             sub_node_workers = True
             workers_per_node = num_workers//num_nodes
             global_nodelist = list(itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist))
         
-        #Currently require even split for distrib mode - to match machinefile    
+        # Currently require even split for distrib mode - to match machinefile - throw away remainder
         if distrib_mode and not sub_node_workers:
             #Could just read in the libe machinefile and use that - but this should match
-            #Alt. create machine file with same algorithm as best_split
+            #Alt. create machinefile/host-list with same algorithm as best_split - future soln.
             nodes_per_worker, remainder = divmod(num_nodes,num_workers)
             if remainder != 0:
+                # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
                 logger.warning("Nodes to workers not evenly distributed. Wasted nodes. {} workers and {} nodes"\
                                 .format(num_workers,num_nodes))
                 num_nodes = num_nodes - remainder
                 global_nodelist = global_nodelist[0:num_nodes]
-            
-        split_list = list(Resources.best_split(global_nodelist, num_workers))
         
-        #logger.debug("split_list is {}".format(split_list)) #tmp
+        # Divide global list between workers
+        split_list = list(Resources.best_split(global_nodelist, num_workers))
+        #logger.debug("split_list is {}".format(split_list))
         local_nodelist = []
         if workerID is not None:
             local_nodelist = split_list[workerID - 1]
         else:
-            if distrib_mode:
-                for loc_list in split_list:
-                    if loc_list[0] == local_host:
-                        local_nodelist = loc_list
-                        break
-            else:
-                raise ResourcesException("Not in distrib_mode and no workerID - aborting")
+            # Should always have workerID
+            raise ResourcesException("Worker has no workerID - aborting")
+            #if distrib_mode:
+                #Alternative - find this host ID at head of a sub-list
+                #for loc_list in split_list:
+                    #if loc_list[0] == local_host:
+                        #local_nodelist = loc_list
+                        #break
+            #else:
+                #raise ResourcesException("Not in distrib_mode and no workerID - aborting")
             
-            if not local_nodelist and distrib_mode:
-                logger.debug("Could not find local node at start of a sub-list - trying to find with even split")
-                #Resort to old way - requires even breakdown
-                num_nodes = len(global_nodelist)
-                nodes_per_worker = num_nodes//num_workers
-                node_count = 0  
-                found_start = False  
-                for node in global_nodelist:
-                    if node_count == nodes_per_worker:
-                        break
-                    if found_start:
-                        node_count += 1
-                        local_nodelist.append(node)
-                    elif (node == local_host):
-                        #distrib_mode = True
-                        found_start = True
-                        local_nodelist.append(node)
-                        node_count = 1
+            ##If cannot find - resort to old way - requires even breakdown
+            #if not local_nodelist and distrib_mode:
+                #logger.debug("Could not find local node at start of a sub-list - trying to find with even split")
+                #num_nodes = len(global_nodelist)
+                #nodes_per_worker = num_nodes//num_workers
+                #node_count = 0  
+                #found_start = False  
+                #for node in global_nodelist:
+                    #if node_count == nodes_per_worker:
+                        #break
+                    #if found_start:
+                        #node_count += 1
+                        #local_nodelist.append(node)
+                    #elif (node == local_host):
+                        ##distrib_mode = True
+                        #found_start = True
+                        #local_nodelist.append(node)
+                        #node_count = 1
             
-            if not local_nodelist:
-                raise ResourcesException("Current node {} not in list - no local_nodelist".format(local_host))
-            
-                #raise ResourcesException("Current node {} not in list - this only  works in distrib mode - aborting".format(local_host)) 
-            
+            #if not local_nodelist:
+                #raise ResourcesException("Current node {} not in list - no local_nodelist".format(local_host))
+        
+        # If in distrib_mode local host must be in local nodelist
+        if distrib_mode:
+            if local_host not in local_nodelist:
+                raise ResourcesException("In distributed mode, but local host is not in local nodelist - aborting")
+
         logger.debug("local_nodelist is {}".format(local_nodelist))    
         return local_nodelist
     

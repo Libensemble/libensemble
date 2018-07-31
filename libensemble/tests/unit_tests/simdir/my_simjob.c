@@ -21,6 +21,11 @@ int main(int argc, char **argv)
             error=1;
         }
     }    
+    if (argc >=4) {
+        if (strcmp( argv[3],"Fail") == 0 ) {
+            return(1);
+        }
+    }    
     ierr = MPI_Init(&argc, &argv);
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);

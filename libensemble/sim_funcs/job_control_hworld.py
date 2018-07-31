@@ -47,8 +47,8 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
                 calc_status = WORKER_DONE
             elif job.state == 'FAILED':
                 calc_status = JOB_FAILED
-            elif job.state == 'USER_KILLED': 
-                calc_status = WORKER_KILL
+            #elif job.state == 'USER_KILLED': 
+                #calc_status = WORKER_KILL
     else:
         #assert job.state == 'RUNNING', "job.state expected to be RUNNING. Returned: " + str(job.state)
         print("Job {} timed out - killing on worker {}".format(job.id,jobctl.workerID))
@@ -78,6 +78,8 @@ def job_control_hworld(H, persis_info, sim_specs, libE_info):
         args_for_sim = 'sleep 5' # Worker kill on timeout
         timeout = 3.0
     elif sim_count==4:
+        args_for_sim = 'sleep 1 Fail' # Manager kill - if signal received else completes      
+    elif sim_count==5:
         args_for_sim = 'sleep 18' # Manager kill - if signal received else completes
         timeout = 20.0        
         
