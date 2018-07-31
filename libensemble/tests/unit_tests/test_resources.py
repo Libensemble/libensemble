@@ -43,7 +43,6 @@ def test_slurm_nodelist_empty():
     exp_out = [] #empty
     nodelist = Resources.get_slurm_nodelist(node_list_env = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned is does not match expected"
-    print(nodelist)
 
 
 def test_slurm_nodelist_single():
@@ -115,7 +114,6 @@ def test_cobalt_nodelist_groups():
     exp_out = ['nid00020', 'nid00021', 'nid00022', 'nid00137', 'nid00138', 'nid00139', 'nid01234'] 
     nodelist = Resources.get_cobalt_nodelist(node_list_env = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned is does not match expected"
-    #print(nodelist) 
 
 
 def test_cobalt_nodelist_reverse_grp():
@@ -172,8 +170,7 @@ def test_get_global_nodelist_frm_wrklst_file():
                                                     nodelist_env_slurm = "THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                                     nodelist_env_cobalt = "LIBE_RESOURCES_TEST_NODE_LIST")       
     assert global_nodelist2 == exp_out, "global_nodelist returned does not match expected"
-    #print(global_nodelist2)
-    #os.remove('worker_list')
+    os.remove('worker_list')
     
 
 def test_remove_libE_nodes():
@@ -192,9 +189,7 @@ def test_remove_libE_nodes():
         if i==1 or i==4 or i==6:
             nodes_in.append(mynode)
     nodes_out = Resources.remove_libE_nodes(nodes_in)
-    #print(nodes_in)
-    assert nodes_out == exp_out, "nodelist returned does not match expected"
-    #print(nodes_out)    
+    assert nodes_out == exp_out, "nodelist returned does not match expected"   
         
 
 def test_get_available_nodes_central_mode():
@@ -245,9 +240,9 @@ def test_get_available_nodes_central_mode_remove_libE_proc():
             f.write(node + '\n')
             if i==3:
                 f.write(mynode + '\n')
-    #import pdb; pdb.set_trace()
+
     resources = Resources(central_mode = True)
-    print('global list is', resources.global_nodelist)
+    
     #Now mock up some more stuff - so consistent
     
     #Spoof current process as each worker and check nodelist.
@@ -282,6 +277,102 @@ def test_get_available_nodes_central_mode_remove_libE_proc():
         local_nodelist = resources.get_available_nodes()
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
     
+    os.remove('worker_list')
+
+
+def test_get_available_nodes_distrib_mode_host_not_in_list():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
+    resources = Resources(nodelist_env_slurm = "LIBE_RESOURCES_TEST_NODE_LIST", central_mode = False)
+    
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 8
+    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    
+    # Test running distributed mode without current host in list.
+    resources.workerID = 2
+    try:
+        local_nodelist = resources.get_available_nodes()
+    except: 
+        assert 1
+    else:
+        assert 0    
+
+        
+def test_get_available_nodes_distrib_mode():
+    mynode = socket.gethostname()
+    #nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
+    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139']
+    with open('worker_list','w') as f:
+        for i, node in enumerate(nodelist_in):
+            f.write(node + '\n')
+            if i==3:
+                f.write(mynode + '\n')
+
+    resources = Resources(central_mode = False)
+
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 8
+    
+    #Test workerID not in local_nodelist
+    resources.workerID = 4
+    try:
+        local_nodelist = resources.get_available_nodes()
+    except: 
+        assert 1
+    else:
+        assert 0
+        
+    resources.workerID = 5
+    exp_out = [mynode]
+    local_nodelist = resources.get_available_nodes()
+    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    
+    resources.num_workers = 1
+    resources.workerID = 1
+    exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', mynode, 'knl-0137','knl-0138', 'knl-0139']
+    local_nodelist = resources.get_available_nodes()
+    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    
+    resources.num_workers = 4
+    resources.workerID = 3
+    exp_out = [mynode, 'knl-0137']
+    local_nodelist = resources.get_available_nodes()
+    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"    
+    
+    #Sub-node workers
+    resources.num_workers = 16
+    
+    resources.workerID = 9
+    exp_out = [mynode]
+    local_nodelist = resources.get_available_nodes()
+    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"    
+
+    resources.workerID = 10
+    exp_out = [mynode]
+    #import pdb; pdb.set_trace()
+    local_nodelist = resources.get_available_nodes()
+    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"    
+    os.remove('worker_list')
+    
+
+def test_get_available_nodes_distrib_mode_uneven_split():
+    mynode = socket.gethostname()
+    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
+    with open('worker_list','w') as f:
+        for i, node in enumerate(nodelist_in):
+            f.write(node + '\n')
+            if i==4:
+                f.write(mynode + '\n')
+
+    resources = Resources(central_mode = False)
+    resources.num_workers = 2
+    
+    # May not be at head of list - should perhaps be warning or enforced
+    resources.workerID = 2
+    exp_out = ['knl-0137', mynode, 'knl-0138', 'knl-0139']
+    local_nodelist = resources.get_available_nodes()
+    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    os.remove('worker_list')
 
 
 if __name__ == "__main__":
@@ -304,6 +395,9 @@ if __name__ == "__main__":
     test_remove_libE_nodes()
     test_get_available_nodes_central_mode()
     test_get_available_nodes_central_mode_remove_libE_proc()
+    test_get_available_nodes_distrib_mode_host_not_in_list()
+    test_get_available_nodes_distrib_mode()
+    test_get_available_nodes_distrib_mode_uneven_split()
     teardown_standalone_run()
     
     
