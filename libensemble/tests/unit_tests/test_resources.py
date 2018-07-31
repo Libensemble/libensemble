@@ -1,4 +1,5 @@
 import os
+import socket
 from libensemble.resources import Resources
 
 
@@ -43,6 +44,7 @@ def test_slurm_nodelist_empty():
     nodelist = Resources.get_slurm_nodelist(node_list_env = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned is does not match expected"
     print(nodelist)
+
 
 def test_slurm_nodelist_single():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-0056"
@@ -174,6 +176,114 @@ def test_get_global_nodelist_frm_wrklst_file():
     #os.remove('worker_list')
     
 
+def test_remove_libE_nodes():
+    mynode = socket.gethostname()
+    exp_out = ['knl-0019', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-2345']
+    
+    #Add at beginning
+    nodes_in = [mynode] + exp_out
+    nodes_out = Resources.remove_libE_nodes(nodes_in)
+    assert nodes_out == exp_out, "nodelist returned does not match expected"
+
+    #Add twice in middle and at end
+    nodes_in = []
+    for i, node in enumerate(exp_out):
+        nodes_in.append(node)
+        if i==1 or i==4 or i==6:
+            nodes_in.append(mynode)
+    nodes_out = Resources.remove_libE_nodes(nodes_in)
+    #print(nodes_in)
+    assert nodes_out == exp_out, "nodelist returned does not match expected"
+    #print(nodes_out)    
+        
+
+def test_get_available_nodes_central_mode():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
+    resources = Resources(nodelist_env_slurm = "LIBE_RESOURCES_TEST_NODE_LIST", central_mode = True)
+    
+    #Now mock up some more stuff - so consistent
+    
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 8
+    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"    
+    
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 4
+    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137','knl-0138'], ['knl-0139', 'knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 1
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+    
+    #Test the best_split algorithm
+    resources.num_workers = 3
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+  
+
+# The main tests are same as above - note for when fixtures set up
+def test_get_available_nodes_central_mode_remove_libE_proc():
+    mynode = socket.gethostname()
+    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
+    with open('worker_list','w') as f:
+        for i, node in enumerate(nodelist_in):
+            f.write(node + '\n')
+            if i==3:
+                f.write(mynode + '\n')
+    #import pdb; pdb.set_trace()
+    resources = Resources(central_mode = True)
+    print('global list is', resources.global_nodelist)
+    #Now mock up some more stuff - so consistent
+    
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 8
+    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"    
+    
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 4
+    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137','knl-0138'], ['knl-0139', 'knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+
+    #Spoof current process as each worker and check nodelist.
+    resources.num_workers = 1
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+    
+    #Test the best_split algorithm
+    resources.num_workers = 3
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
+    for wrk in range(resources.num_workers):
+        resources.workerID = wrk + 1
+        local_nodelist = resources.get_available_nodes()
+        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+    
+
+
 if __name__ == "__main__":
     setup_standalone_run()
     test_slurm_nodelist_empty
@@ -191,6 +301,9 @@ if __name__ == "__main__":
     test_get_global_nodelist_frm_slurm()
     test_get_global_nodelist_frm_cobalt()
     test_get_global_nodelist_frm_wrklst_file()
+    test_remove_libE_nodes()
+    test_get_available_nodes_central_mode()
+    test_get_available_nodes_central_mode_remove_libE_proc()
     teardown_standalone_run()
     
     

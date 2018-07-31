@@ -195,11 +195,11 @@ class Resources:
         return nidlst
     
 
-    #def remove_non_app_nodes(global_nodelist_in):
-    
     #This is for central mode where libE nodes will not share with app nodes
     #ie this is not for removing a manager node in distributed mode.
+    @staticmethod
     def remove_libE_nodes(global_nodelist_in):
+        """Any node containing a libensemble task is removed from the global nodelist"""
         libE_nodes_gather = Resources.get_libE_nodes()
         libE_nodes_set = set(libE_nodes_gather)
         
@@ -269,8 +269,8 @@ class Resources:
                 else:
                     raise ResourcesException("Error. Can not find nodelist from environment")
             
-            if central_mode:
-                global_nodelist = Resources.remove_libE_nodes(global_nodelist)
+        if central_mode:
+            global_nodelist = Resources.remove_libE_nodes(global_nodelist)
                 
         #logger.debug("global_nodelist is {}".format(global_nodelist)) #tmp
         #This will only work in distributed worker mode - alt work out from workerID
