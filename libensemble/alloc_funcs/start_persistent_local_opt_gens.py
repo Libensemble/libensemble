@@ -45,7 +45,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']~=0)]:
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']!=0)]:
         gen_inds = H['gen_worker']==i 
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
@@ -69,7 +69,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
             starting_inds = []
 
         # Start up a persistent generator that is a local opt run but don't do it if all workers will be persistent generators.
-        if len(starting_inds) and gen_count + sum(W['persis_state']==EVAL_GEN_TAG]) + 1 < len(W) 
+        if len(starting_inds) and gen_count + sum(W['persis_state']==EVAL_GEN_TAG) + 1 < len(W) :
             # Start at the best possible starting point 
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
 

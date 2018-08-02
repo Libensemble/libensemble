@@ -34,7 +34,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']~=0)]:
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']!=0)]:
         gen_inds = H['gen_worker']==i 
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
