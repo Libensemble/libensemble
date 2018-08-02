@@ -14,7 +14,7 @@ from math import log, gamma, pi, sqrt
 from petsc4py import PETSc
 import nlopt
 
-def aposmm_logic(H,persis_info,gen_specs,libE_info):
+def aposmm_logic(H,persis_info,gen_specs,_):
     """
     Receives the following data from H:
 
@@ -58,8 +58,6 @@ def aposmm_logic(H,persis_info,gen_specs,libE_info):
     
     """
     
-    # del libE_info # Ignored parameter
-
     n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)

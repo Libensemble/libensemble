@@ -60,7 +60,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
     return job, calc_status
 
 
-def job_control_hworld(H, persis_info, sim_specs, libE_info):
+def job_control_hworld(H, persis_info, sim_specs, _):
     """ Test of launching and polling job and exiting on job finish"""
     jobctl = JobController.controller
     cores = sim_specs['cores']

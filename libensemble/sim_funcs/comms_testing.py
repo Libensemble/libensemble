@@ -5,7 +5,7 @@ import numpy as np
 from libensemble.controller import JobController
 
 
-def float_x1000(H, persis_info, sim_specs, libE_info):
+def float_x1000(H, persis_info, sim_specs, _):
     """
     Multiplies worker ID by 1000 and sends back values
     Input (X) is ignored in this case
@@ -24,7 +24,7 @@ def float_x1000(H, persis_info, sim_specs, libE_info):
     return output, persis_info
 
 
-#def input_double(H, persis_info, sim_specs, libE_info):
+#def input_double(H, persis_info, sim_specs, _):
     #"""
     #Not yet implemented
     #Multiplies input X values by 2 and sends back values

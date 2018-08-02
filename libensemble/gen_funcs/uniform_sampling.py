@@ -3,15 +3,12 @@ from __future__ import absolute_import
 
 import numpy as np
 
-def uniform_random_sample_with_different_nodes_and_ranks(H,persis_info,gen_specs,libE_info):
+def uniform_random_sample_with_different_nodes_and_ranks(H,persis_info,gen_specs,_):
     """
     Generates points uniformly over the domain defined by gen_specs['ub'] and
     gen_specs['lb']. Also randomly requests a different number of nodes to be
     used in the evaluation of the generated point.
     """
-
-    del libE_info # Ignored parameter
-
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     n = len(lb)
@@ -38,13 +35,11 @@ def uniform_random_sample_with_different_nodes_and_ranks(H,persis_info,gen_specs
     return O, persis_info
 
 
-def uniform_random_sample_obj_components(H,persis_info,gen_specs,libE_info):
+def uniform_random_sample_obj_components(H,persis_info,gen_specs,_):
     """
     Generates points uniformly over the domain defined by gen_specs['ub'] and
     gen_specs['lb'] but requests each component be evaluated separately.
     """
-    del libE_info # Ignored parameter
-
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
@@ -66,13 +61,11 @@ def uniform_random_sample_obj_components(H,persis_info,gen_specs,libE_info):
 
     return O, persis_info
 
-def uniform_random_sample(H,persis_info,gen_specs,libE_info):
+def uniform_random_sample(H,persis_info,gen_specs,_):
     """
     Generates points uniformly over the domain defined by gen_specs['ub'] and
     gen_specs['lb'].
     """
-    del libE_info # Ignored parameter
-
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 

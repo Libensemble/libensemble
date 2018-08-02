@@ -46,11 +46,10 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
     return O, persis_info
 
 
-def six_hump_camel(H, persis_info, sim_specs, libE_info):
+def six_hump_camel(H, persis_info, sim_specs, _):
     """
     Evaluates the six_hump_camel_func and possible six_hump_camel_grad
     """
-    del libE_info # Ignored parameter
 
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
@@ -66,11 +65,10 @@ def six_hump_camel(H, persis_info, sim_specs, libE_info):
 
     return O, persis_info
 
-def six_hump_camel_simple(x, persis_info, sim_specs, libE_info):
+def six_hump_camel_simple(x, persis_info, sim_specs, _):
     """
     Evaluates the six_hump_camel_func and possible six_hump_camel_grad
     """
-    del libE_info # Ignored parameter
 
     O = np.zeros(1,dtype=sim_specs['out'])
 

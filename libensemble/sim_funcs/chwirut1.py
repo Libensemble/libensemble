@@ -250,12 +250,10 @@ def EvaluateJacobian(x):
 
     return j
 
-def libE_func_wrapper(H,persis_info,sim_specs,libE_info):
+def libE_func_wrapper(H,persis_info,sim_specs,_):
     """
     libEnsemble wrapper around EvaluateFunction
     """
-
-    del libE_info # Ignored parameter
 
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
