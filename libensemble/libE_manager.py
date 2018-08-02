@@ -444,7 +444,7 @@ def final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, l
         
         H, H_ind, W, persis_info = receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_info)
         
-        if term_test(H, H_ind, given_count) == 2 and not all(W['active']):
+        if term_test(H, H_ind, given_count) == 2 and any(W['active']):
             
             print("Termination due to elapsed_wallclock_time has occurred.\n"\
               "A last attempt has been made to receive any completed work.\n"\
