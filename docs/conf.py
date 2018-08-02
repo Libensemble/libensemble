@@ -56,6 +56,7 @@ sys.path.append(os.path.abspath('../libensemble/sim_funcs'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+#extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'numpydoc']
 #extensions = ['sphinx.ext.autodoc', 'breathe']
 #breathe_projects = { "libEnsemble": "../code/src/xml/" }
 #breathe_default_project = "libEnsemble"
