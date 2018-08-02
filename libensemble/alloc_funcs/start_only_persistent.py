@@ -29,12 +29,12 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = 0
+    gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
     already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in W['persis_w']['waiting'][EVAL_GEN_TAG]: 
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']~=0)]:
         gen_inds = H['gen_worker']==i 
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
@@ -47,7 +47,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
                                 }
                        }
 
-    for i in W['nonpersis_w']['waiting']:
+
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']==0)]:
         # perform sim evaluations from existing runs (if they exist).
         q_inds_logical = np.logical_and.reduce((~H['given'],~H['paused'],~already_in_Work))
 
@@ -65,7 +66,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
 
         else:
             # Finally, generate points since there is nothing else to do. 
-            if gen_count + len(W['nonpersis_w'][EVAL_GEN_TAG] | W['persis_w']['waiting'][EVAL_GEN_TAG] | W['persis_w'][EVAL_GEN_TAG]) > 0: 
+            if gen_count > 0: 
                 continue
             gen_count += 1
             # There are no points available, so we call our gen_func

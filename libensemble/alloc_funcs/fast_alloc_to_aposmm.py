@@ -40,11 +40,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
         Updated generation informaiton 
     """
 
-    Work = {}; gen_count = 0
+    Work = {}; 
+    gen_count = sum(W['active'] == EVAL_GEN_TAG)
 
-    for i in W['nonpersis_w']['waiting']:
+    for i in W['worker_id'][W['active']==0]:
 
-        # Find indices of H where that are not yet allocated
+        # Find indices of H that are not yet allocated
         if persis_info['next_to_give'] < len(H):
             # Give sim work if possible
             Work[i] = {'H_fields': sim_specs['in'],
@@ -57,7 +58,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
 
         else:
             # ...unless there are already more than num_active_gen instances
-            if 'num_active_gens' in gen_specs and len(W['nonpersis_w'][EVAL_GEN_TAG]) + gen_count >= gen_specs['num_active_gens']:
+            if 'num_active_gens' in gen_specs and gen_count >= gen_specs['num_active_gens']:
                 break
 
             # Don't give out any gen instances if in batch mode and any point has not been returned
