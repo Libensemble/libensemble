@@ -6,7 +6,7 @@ import sys, os
 from libensemble.message_numbers import EVAL_SIM_TAG 
 from libensemble.message_numbers import EVAL_GEN_TAG 
 
-def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """ 
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
@@ -41,11 +41,11 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = 0
+    gen_count = sum(W['active'] == EVAL_GEN_TAG)
 
-    for i in worker_sets['nonpersis_w']['waiting']:
+    for i in W['worker_id'][W['active']==0]:
 
-        # Find indices of H where that are not yet allocated
+        # Find indices of H that are not yet allocated
         if persis_info['next_to_give'] < len(H):
             # Give sim work if possible
             Work[i] = {'H_fields': sim_specs['in'],
@@ -60,7 +60,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
             # Since there is no sim work to give, give gen work...
 
             # ...unless there are already more than num_active_gen instances
-            if 'num_active_gens' in gen_specs and len(worker_sets['nonpersis_w'][EVAL_GEN_TAG]) + gen_count >= gen_specs['num_active_gens']:
+            if 'num_active_gens' in gen_specs and gen_count >= gen_specs['num_active_gens']:
                 break
 
             # Give gen work 

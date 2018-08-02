@@ -7,7 +7,7 @@ import sys, os
 from libensemble.message_numbers import EVAL_SIM_TAG 
 from libensemble.message_numbers import EVAL_GEN_TAG 
 
-def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """ 
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
@@ -42,16 +42,16 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = 0
+    gen_count = sum(W['active'] == EVAL_GEN_TAG)
 
-    for i in worker_sets['nonpersis_w']['waiting']:
+    for i in W['worker_id'][W['active']==0]:
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
-        blocked_set = worker_sets['nonpersis_w']['blocked'].union(*[j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
+        blocked_set = set(W['worker_id'][W['blocked']]).union(*[j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
         if i in blocked_set:
             continue
 
-        # Find indices of H where that are not given nor paused
+        # Find indices of H that are not given nor paused
         jj = list(H['allocated'])
         if not all(jj):
             # Give sim work if possible
@@ -72,7 +72,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
 
             # Only give work if enough idle workers
             if 'num_nodes' in H.dtype.names and np.any(H[sim_ids_to_send]['num_nodes'] > 1):
-                if np.any(H[sim_ids_to_send]['num_nodes'] > len(worker_sets['nonpersis_w']['waiting']) - len(Work) - len(blocked_set)):
+                if np.any(H[sim_ids_to_send]['num_nodes'] > sum(W['active']==0) - len(Work) - len(blocked_set)):
                     # Worker i doesn't get any work. Just waiting for other resources to open up
                     continue
                 block_others = True
@@ -88,7 +88,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
             H['allocated'][sim_ids_to_send] = True
 
             if block_others:
-                unassigned_workers = worker_sets['nonpersis_w']['waiting'] - set(Work.keys()) - blocked_set
+                unassigned_workers = set(W['worker_id'][W['active']==0]) - set(Work.keys()) - blocked_set
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
                 Work[i]['libE_info']['blocking'] = set(workers_to_block)
 
@@ -96,7 +96,7 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
             # Since there is no sim work to give, give gen work. 
 
             # Limit number of gen instances if given
-            if 'num_inst' in gen_specs and len(worker_sets['nonpersis_w'][EVAL_GEN_TAG]) + gen_count >= gen_specs['num_inst']:
+            if 'num_inst' in gen_specs and gen_count >= gen_specs['num_inst']:
                 break
 
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
