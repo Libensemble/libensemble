@@ -20,8 +20,8 @@ def test_decide_work_and_resources():
 
 
     # Don't give out work when idle is empty
-    worker_sets = {}
-    worker_sets['nonpersis_w'] = {1:set([1,2,3,4]),'waiting': set()}
-    Work, persis_info = al['alloc_f'](worker_sets, H, sim_specs, gen_specs, {})
+    W = {}
+    W['nonpersis_w'] = {1:set([1,2,3,4]),'waiting': set()}
+    Work, persis_info = al['alloc_f'](W, H, sim_specs, gen_specs, {})
     assert len(Work) == 0 
     # 
