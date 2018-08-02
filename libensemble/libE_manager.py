@@ -59,8 +59,6 @@ def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processi
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(H, H_ind, given_count):
-        print(H_ind); sys.stdout.flush()
-        import ipdb; ipdb.set_trace()
 
         H, H_ind, W, persis_info = receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_info)
 
@@ -94,9 +92,12 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
     """
     Sends calculation information to the workers and updates the sets of
     active/idle workers
+
+    Note that W is indexed from 0, but the worker_ids are indexed from 1, hence the
+    use of the w-1 when refering to rows in W.
     """
     assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
-    assert W[w]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
+    assert W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
     
     comm.send(obj=Work, dest=w, tag=Work['tag']) 
     work_rows = Work['libE_info']['H_rows']    
@@ -107,16 +108,16 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
     #         # comm.send(obj=H[i][0].dtype,dest=w)
     #         comm.Send(H[i][Work['libE_info']['H_rows']], dest=w)  
     
-    W[w]['active'] = Work['tag']
+    W[w-1]['active'] = Work['tag']
 
     if 'libE_info' in Work and 'persistent' in Work['libE_info']:
-        W[w]['persis_state'] = Work['tag']
+        W[w-1]['persis_state'] = Work['tag']
 
     if 'blocking' in Work['libE_info']:
         for w_i in Work['libE_info']['blocking']:
-            assert W[w_i]['active'] == 0, "Active worker being blocked; aborting"
-            W[w_i]['blocked'] = 1
-            W[w_i]['active'] = 1
+            assert W[w_i-1]['active'] == 0, "Active worker being blocked; aborting"
+            W[w_i-1]['blocked'] = 1
+            W[w_i-1]['active'] = 1
 
     if Work['tag'] == EVAL_SIM_TAG:
         update_history_x_out(H, work_rows, w)
@@ -136,7 +137,7 @@ def receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_inf
     new_stuff = True
     while new_stuff and any(W['active']):
         new_stuff = False
-        for w in np.where(W['active'])[0]: 
+        for w in W['worker_id'][W['active']>0]: 
             if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                 new_stuff = True
                 logger.debug("Manager receiving from Worker: {}".format(w))
@@ -182,9 +183,9 @@ def receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_inf
                 
                 #assert recv_tag in [EVAL_SIM_TAG, EVAL_GEN_TAG, FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG], 'Unknown calculation tag received. Exiting'
                 
-                W[w]['active'] = 0
+                W[w-1]['active'] = 0
                 if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
-                    W[w]['persis_state'] = 0
+                    W[w-1]['persis_state'] = 0
                 else:
                     
                     if calc_type in [EVAL_SIM_TAG]:
@@ -195,13 +196,13 @@ def receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_inf
                         
                     if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                         # Now a waiting, persistent worker
-                        W[w]['persis_state'] = calc_type
+                        W[w-1]['persis_state'] = calc_type
 
                 if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
                     # Now done blocking these workers
                     for w_i in D_recv['libE_info']['blocking']:
-                        W[w_i]['blocked'] = 0
-                        W[w_i]['active'] = 0
+                        W[w_i-1]['blocked'] = 0
+                        W[w_i-1]['active'] = 0
 
                 if 'persis_info' in D_recv:
                     for key in D_recv['persis_info'].keys():
@@ -451,7 +452,7 @@ def final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, l
             sys.stdout.flush()
             sys.stderr.flush()            
 
-            for w in np.where(W['active'])[0]:
+            for w in W['worker_id'][W['active']>0]:
                 comm.irecv(source=w, tag=MPI.ANY_TAG)
             exit_flag = 2
             break

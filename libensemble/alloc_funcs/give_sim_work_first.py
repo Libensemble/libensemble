@@ -44,14 +44,14 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     Work = {}
     gen_count = sum(W['active'] == EVAL_GEN_TAG)
 
-    for i in np.where(W['active'] == 0)[0]:
+    for i in W['worker_id'][W['active']==0]:
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
-        blocked_set = set(np.where(W['blocked'])[0]).union([j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
+        blocked_set = set(W['worker_id'][W['blocked']]).union([j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
         if i in blocked_set:
             continue
 
-        # Find indices of H where that are not given nor paused
+        # Find indices of H that are not given nor paused
         jj = list(H['allocated'])
         if not all(jj):
             # Give sim work if possible
@@ -88,7 +88,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
             H['allocated'][sim_ids_to_send] = True
 
             if block_others:
-                unassigned_workers = set(np.where(W['active']==0)[0]) - set(Work.keys()) - blocked_set
+                unassigned_workers = set(W['worker_id'][W['active']==0]) - set(Work.keys()) - blocked_set
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
                 Work[i]['libE_info']['blocking'] = set(workers_to_block)
 
