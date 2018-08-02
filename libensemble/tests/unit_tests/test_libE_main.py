@@ -39,7 +39,7 @@ def test_checking_inputs():
 
     # Should fail because H0 has points with 'return'==False
     try:
-        check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
+        check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
     except AssertionError:
         assert 1
     else:
@@ -47,16 +47,16 @@ def test_checking_inputs():
 
     # Should not fail 
     H0['returned']=True
-    check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
+    check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
 
     # Removing 'returned' and then testing again.
     H0 = rmfield( H0, 'returned')
-    check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
+    check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
 
     # Should fail because worker_ranks is given, but not a communicator
     libE_specs.pop('comm')
     try:
-        check_inputs(libE_specs,al, sim_specs, gen_specs, {}, exit_criteria,H0) 
+        check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
     except SystemExit:
         assert 1
     else:

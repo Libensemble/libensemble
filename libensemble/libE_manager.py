@@ -41,7 +41,7 @@ logger.setLevel(logging.DEBUG)
 
 class ManagerException(Exception): pass
 
-def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info):
+def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
