@@ -2,36 +2,6 @@ sim_specs
 =========
 
 
------------------------------diff layouts---------------------------------
-
-Simulation function specifications to be set in user calling script and passed to libE.libE()
-
-
-    sim_specs: [dict]:
-
-        Required keys :    
-        
-        'sim_f' [func] : 
-            the simulation function being evaluated
-        'in' [list] :
-            field names (as strings) that will be given to sim_f
-        'out' [list of tuples (field name, data type, [size])] :
-            sim_f outputs that will be stored in the libEnsemble history
-            
-        Optional keys :
-        
-        'save_every_k' [int] :
-            Save history array every k steps
-        'sim_dir' [str] :
-            Name of simulation directory which will be copied for each worker
-        'sim_dir_prefix' [str] :
-            A prefix path specifying where to create sim directories
-        
-        Additional entires in sim_specs will be given to sim_f
-
-        
------------OR in box????
-
 Simulation function specifications to be set in user calling script and passed to libE.libE()::
 
 
