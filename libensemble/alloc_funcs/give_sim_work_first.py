@@ -110,7 +110,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
                        'H_fields': gen_specs['in'],
                        'tag': EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': range(0,len(H)),
-                                     'gen_num': i
                                 }
                        }
 
