@@ -419,7 +419,8 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
     start_time = time.time()
     term_test = lambda H, H_ind, given_count: termination_test(H, H_ind, given_count, exit_criteria, start_time, len(H0))
 
-    W = np.zeros(len(libE_specs['worker_ranks']), dtype=[('active',int), ('persis_state',int), ('blocked',bool)])
+    W = np.zeros(len(libE_specs['worker_ranks']), dtype=[('worker_id',int),('active',int),('persis_state',int),('blocked',bool)])
+    W['worker_id'] = sorted(libE_specs['worker_ranks'])
 
     comm = libE_specs['comm']
 
