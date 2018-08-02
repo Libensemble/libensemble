@@ -45,12 +45,12 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
+def libE(sim_specs, gen_specs, exit_criteria, 
         alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]},
         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, 
         H0=[], persis_info={}):
     """ 
-    libE(sim_specs, gen_specs, exit_criteria, failure_processing={}, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, H0=[], persis_info={})
+    libE(sim_specs, gen_specs, exit_criteria, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, H0=[], persis_info={})
     
     This is the outer libEnsemble routine. It checks each rank in libE_specs['comm']
     against libE_specs['manager_ranks'] or libE_specs['worker_ranks'] and
@@ -158,11 +158,11 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
     """
  
     H=exit_flag=[]
-    libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0)
+    libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     
     if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
         try:
-            H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
+            H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)
         except Exception as e:
             # Manager exceptions are fatal
             eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
@@ -195,7 +195,7 @@ def libE(sim_specs, gen_specs, exit_criteria, failure_processing={},
 
 
 
-def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0):
+def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
     """ 
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run. 

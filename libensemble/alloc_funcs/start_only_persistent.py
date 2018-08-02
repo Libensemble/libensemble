@@ -42,7 +42,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
                        'H_fields': sim_specs['in'] + [name[0] for name in sim_specs['out']],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': np.atleast_1d(last_ind),
-                                     'gen_num': i,
                                      'persistent': True
                                 }
                        }
@@ -74,7 +73,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
                        'H_fields': gen_specs['in'],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': [],
-                                     'gen_num': i,
                                      'persistent': True
                                 }
 

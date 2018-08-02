@@ -90,7 +90,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
             if block_others:
                 unassigned_workers = set(W['worker_id'][W['active']==0]) - set(Work.keys()) - blocked_set
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
-                Work[i]['libE_info']['blocking'] = set(workers_to_block)
+                Work[i]['libE_info']['blocking'] = workers_to_block
 
         else:
             # Since there is no sim work to give, give gen work. 
@@ -110,7 +110,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
                        'H_fields': gen_specs['in'],
                        'tag': EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': range(0,len(H)),
-                                     'gen_num': i
                                 }
                        }
 
