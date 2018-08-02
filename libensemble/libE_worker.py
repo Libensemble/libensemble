@@ -67,6 +67,7 @@ def worker_main(c, sim_specs, gen_specs):
     
     rank = comm.Get_rank()
     workerID = rank    
+    import ipdb;ipdb.set_trace()
     
     status = MPI.Status()
     Worker.init_workers(sim_specs, gen_specs) # Store in Worker Class
