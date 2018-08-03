@@ -18,8 +18,6 @@ Generation function specifications to be set in user calling script and passed t
     
         'save_every_k' [int] :
             Save history array every k steps
-        'queue_update_function' [func] :
-            Additional entires in gen_specs will be given to gen_f
 
 :Examples:
 
