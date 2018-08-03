@@ -9,7 +9,7 @@ import libensemble.libE_manager as man
 import libensemble.tests.unit_tests.setup as setup
 
 al = {'out':[]}
-libE_specs ={'comm':{},'worker_ranks':set([1,2])}
+libE_specs ={'comm':{},'workers':set([1,2])}
 
 
 def test_update_history_f():

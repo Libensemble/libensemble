@@ -10,7 +10,7 @@ import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 al = {'alloc_f': give_sim_work_first,'out':[]}
-libE_specs = {'comm': {}, 'worker_ranks':set([1,2])}
+libE_specs = {'comm': {}, 'workers':set([1,2])}
 
 def test_decide_work_and_resources():
 

@@ -20,8 +20,10 @@
 import os
 import sys
 
-from unittest.mock import MagicMock
-#from mock import MagicMock
+if sys.version_info >= (3, 3):
+    from unittest.mock import MagicMock
+else:
+    from mock import MagicMock
 
 class Mock(MagicMock):
     @classmethod

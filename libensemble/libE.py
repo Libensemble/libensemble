@@ -47,13 +47,13 @@ def eprint(*args, **kwargs):
 
 def libE(sim_specs, gen_specs, exit_criteria, 
         alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]},
-        libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, 
+        libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager': set([0]), 'workers': set(range(1,MPI.COMM_WORLD.Get_size()))}, 
         H0=[], persis_info={}):
     """ 
-    libE(sim_specs, gen_specs, exit_criteria, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager_ranks': set([0]), 'worker_ranks': set(range(1,MPI.COMM_WORLD.Get_size()))}, H0=[], persis_info={})
+    libE(sim_specs, gen_specs, exit_criteria, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager': set([0]), 'workers': set(range(1,MPI.COMM_WORLD.Get_size()))}, H0=[], persis_info={})
     
     This is the outer libEnsemble routine. It checks each rank in libE_specs['comm']
-    against libE_specs['manager_ranks'] or libE_specs['worker_ranks'] and
+    against libE_specs['manager'] or libE_specs['workers'] and
     either runs manager_main or worker_main 
     (Some subroutines currently assume that the manager is always (only) rank 0.)
     
@@ -98,7 +98,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
     H=exit_flag=[]
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     
-    if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
+    if libE_specs['comm'].Get_rank() in libE_specs['manager']:
         try:
             H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)
         except Exception as e:
@@ -113,7 +113,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
             print(libE_specs['comm'].Get_size(),exit_criteria)
             sys.stdout.flush()
 
-    else: #libE_specs['comm'].Get_rank() in libE_specs['worker_ranks']:        
+    else: #libE_specs['comm'].Get_rank() in libE_specs['workers']:        
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
@@ -126,7 +126,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     # Create calc summary file
     libE_specs['comm'].Barrier()
-    if libE_specs['comm'].Get_rank() in libE_specs['manager_ranks']:
+    if libE_specs['comm'].Get_rank() in libE_specs['manager']:
         CalcInfo.merge_statfiles()
 
     return H, persis_info, exit_flag
@@ -139,26 +139,26 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
     sufficient information to perform a run. 
     """
 
-    if 'comm' not in libE_specs and ('manager_ranks' in libE_specs or 'worker_ranks' in libE_specs):
+    if 'comm' not in libE_specs and ('manager' in libE_specs or 'workers' in libE_specs):
         sys.exit('Must give a communicator when specifying manager and worker ranks')
 
     if 'comm' not in libE_specs:
         libE_specs['comm'] = MPI.COMM_WORLD
-        libE_specs['manager_ranks'] = set([0])
-        libE_specs['worker_ranks'] = set(range(1,MPI.COMM_WORLD.Get_size()))
+        libE_specs['manager'] = set([0])
+        libE_specs['workers'] = set(range(1,MPI.COMM_WORLD.Get_size()))
 
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
 
-    assert libE_specs['comm'].Get_rank() in libE_specs['worker_ranks'] | libE_specs['manager_ranks'], \
+    assert libE_specs['comm'].Get_rank() in libE_specs['workers'] | libE_specs['manager'], \
             "The communicator has a rank that is not a worker and not a manager"
     assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs,dict), "libE_specs must be a dictionary"
     assert isinstance(alloc_specs,dict), "alloc_specs must be a dictionary"
     assert isinstance(exit_criteria,dict), "exit_criteria must be a dictionary"
-    assert isinstance(libE_specs['worker_ranks'],set), "libE_specs['worker_ranks'] must be a set"
-    assert isinstance(libE_specs['manager_ranks'],set), "libE_specs['manager_ranks'] must be a set"
+    assert isinstance(libE_specs['workers'],set), "libE_specs['workers'] must be a set"
+    assert isinstance(libE_specs['manager'],set), "libE_specs['manager'] must be a set"
 
     assert len(exit_criteria)>0, "Must have some exit criterion"
     valid_term_fields = ['sim_max','gen_max','elapsed_wallclock_time','stop_val']
@@ -166,8 +166,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert len(gen_specs['out']), "gen_specs must have 'out' entries"
-    assert len(libE_specs['worker_ranks']), "Must have at least one worker rank"
-    assert len(libE_specs['manager_ranks']), "Must have at least one manager rank"
+    assert len(libE_specs['workers']), "Must have at least one worker rank"
+    assert len(libE_specs['manager']), "Must have at least one manager rank"
 
     if 'stop_val' in exit_criteria:
         assert exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']],\

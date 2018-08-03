@@ -420,8 +420,8 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
     start_time = time.time()
     term_test = lambda H, H_ind, given_count: termination_test(H, H_ind, given_count, exit_criteria, start_time, len(H0))
 
-    W = np.zeros(len(libE_specs['worker_ranks']), dtype=[('worker_id',int),('active',int),('persis_state',int),('blocked',bool)])
-    W['worker_id'] = sorted(libE_specs['worker_ranks'])
+    W = np.zeros(len(libE_specs['workers']), dtype=[('worker_id',int),('active',int),('persis_state',int),('blocked',bool)])
+    W['worker_id'] = sorted(libE_specs['workers'])
 
     comm = libE_specs['comm']
 
@@ -458,7 +458,7 @@ def final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, l
             break
     
     ### Kill the workers
-    for w in libE_specs['worker_ranks']:
+    for w in libE_specs['workers']:
         stop_signal = MAN_SIGNAL_FINISH
         comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
        
