@@ -81,7 +81,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'libEnsemble'
-copyright = '2017, Jeffrey Larson'
+copyright = '2018, Jeffrey Larson'
 author = 'Jeffrey Larson and Stephen Hudson'
 
 # The version info for the project you're documenting, acts as replacement for

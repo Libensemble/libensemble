@@ -73,7 +73,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         :doc:`data_structures/alloc_specs` for this ensemble   
         
     libE_specs: dict :
-        :doc:`data_structures/libe_specs` for this ensemble       
+        :doc:`data_structures/libE_specs` for this ensemble       
     
     H0: :doc:`data_structures/history_array` : 
         A previous libEnsemble history to be prepended to the history in the current libEnsemble run.

@@ -22,7 +22,7 @@ Library for managing ensemble-like collections of computations.
    
    user_guide
    data_structures/data_structures
-   libe_module
+   libE_module
    sim_gen_funcs
    manager_modules
    worker_modules

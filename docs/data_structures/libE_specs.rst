@@ -1,4 +1,4 @@
-libe_specs
+libE_specs
 ==========
 
 Specifications for libEnsemble::

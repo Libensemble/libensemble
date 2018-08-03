@@ -8,7 +8,8 @@ libEnsemble has the following data structures.
    :caption: libEnsemble Data Structures:
    
    history_array
-   libe_specs
+   worker_array
+   libE_specs
    sim_specs
    gen_specs
    exit_criteria   
