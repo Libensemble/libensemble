@@ -9,6 +9,7 @@ libEnsemble has the following data structures.
    
    history_array
    worker_array
+   work_dict
    libE_specs
    sim_specs
    gen_specs

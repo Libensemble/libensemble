@@ -60,37 +60,56 @@ def libE(sim_specs, gen_specs, exit_criteria,
     Parameters
     ----------
     
-    sim_specs: dict:
-        :doc:`data_structures/sim_specs` for this ensemble
+    sim_specs: :obj:`dict`
+
+        Specifications for the simulation function
+        :doc:`(example)<data_structures/sim_specs>` 
         
-    gen_specs: dict:
-        :doc:`data_structures/gen_specs` for this ensemble
+    gen_specs: :obj:`dict`
+
+        Specifications for the generator function
+        :doc:`(example)<data_structures/gen_specs>` 
             
-    exit_criteria: dict: 
-        :doc:`data_structures/exit_criteria` for this ensemble   
+    exit_criteria: :obj:`dict`
+
+        Tell libEnsemble when to stop a run 
+        :doc:`(example)<data_structures/exit_criteria>` 
         
-    alloc_specs: dict, optional :
-        :doc:`data_structures/alloc_specs` for this ensemble   
+    alloc_specs: :obj:`dict`, optional 
+
+        Specifications for the allocation function
+        :doc:`(example)<data_structures/alloc_specs>` 
         
-    libE_specs: dict :
-        :doc:`data_structures/libE_specs` for this ensemble       
+    libE_specs: :obj:`dict`, optional 
+
+        Specifications for libEnsemble
+        :doc:`(example)<data_structures/libE_specs>` 
     
-    H0: :doc:`data_structures/history_array` : 
-        A previous libEnsemble history to be prepended to the history in the current libEnsemble run.
+    H0: :obj:`dict`, optional
+
+        A previous libEnsemble history to be prepended to the history in the
+        current libEnsemble run
+        :doc:`(example)<data_structures/history_array>`
         
-    persis_info: dict :
-        :doc:`data_structures/persis_info` for this ensemble      
+    persis_info: :obj:`dict`, optional 
+
+        Persistent information to be passed between user functions 
+        :doc:`(example)<data_structures/persis_info>` 
     
     Returns
     -------
 
-    H: :doc:`data_structures/history_array`:
-        History array storing rows for each point.
+    H: :obj:`dict` 
+
+        History array storing rows for each point.  :doc:`(example)<data_structures/history_array>`
         
-    persis_info: Dict:
-        :doc:`data_structures/persis_info`
-    
-    exit_flag: int:
+    persis_info: :obj:`dict` 
+
+        Final state of persistent information 
+        :doc:`(example)<data_structures/persis_info>` 
+
+    exit_flag: :obj:`int`
+
         Flag containing job status: 0 = No errors, 2 = Manager timed out and ended simulation
 
     """

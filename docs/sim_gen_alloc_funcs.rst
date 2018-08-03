@@ -27,4 +27,32 @@ The alloc_f calculations will be called by libEnsemble with the following API::
 
   Work, persis_info = alloc_f(W, H, sim_specs, gen_specs, persis_info)
 
-where Work[i] is a dictionary of work to be sent to worker i. Work[i] should contain the following fields:
+Parameters:
+***********
+
+**W**: :obj:`numpy strucutred array`
+:doc:`(example)<data_structures/worker_array>`
+
+**H**: :obj:`numpy strucutred array`
+:doc:`(example)<data_structures/history_array>`
+
+**sim_specs**: :obj:`dict`
+:doc:`(example)<data_structures/sim_specs>`
+
+**gen_specs**: :obj:`dict`
+:doc:`(example)<data_structures/gen_specs>`
+
+**persis_info**: :obj:`dict`
+:doc:`(example)<data_structures/persis_info>`
+
+
+Returns:
+********
+
+**Work**: :obj:`dict`
+Dictionary with integer keys ``i`` for work to be send to worker ``i``.
+:doc:`(example)<data_structures/work_dict>`
+
+**persis_info**: :obj:`dict`
+:doc:`(example)<data_structures/persis_info>`
+
