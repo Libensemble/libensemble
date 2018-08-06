@@ -34,7 +34,7 @@ sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is bei
              'in': ['x'], # These keys will be given to the above function
              'out': [('f',float), # This is the output from the function being minimized
                     ],
-             'pause_time': 5,
+             'pause_time': 2,
              # 'save_every_k': 10
              }
 
@@ -52,7 +52,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'elapsed_wallclock_time': 3}
+exit_criteria = {'elapsed_wallclock_time': 1}
 
 np.random.seed(1)
 persis_info = {}

@@ -43,6 +43,11 @@ FINISHED
 USER_KILLED
 FAILED'''.split()
 
+SIGNALS = '''
+SIGTERM
+SIGKILL'''.split()
+
+
 #I may want to use a top-level abstract/base class for maximum re-use
 # - else inherited controller will be reimplementing common code
 
@@ -213,6 +218,7 @@ class BalsamJob(Job):
         if self.total_time is None:
             self.total_time = time.time() - self.launch_time   
 
+
 class JobController:
     
     ''' The job_controller can create, poll and kill runnable jobs '''
@@ -249,7 +255,8 @@ class JobController:
                 return num_procs, num_nodes, ranks_per_node
         
         #If num_procs is set - fill in any other values 
-        if num_procs is not None:
+        #if num_procs is not None:
+        else:
             if num_nodes is None:
                 if ranks_per_node is None:
                     #Currently not auto-detecting so if only num_procs - you are on 1 node
@@ -279,7 +286,7 @@ class JobController:
             #else:
                 #job.total_time = time.time() - job.launch_time
     
-    def __init__(self, registry=None, auto_resources=True):
+    def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm = None, nodelist_env_cobalt = None):
         '''Instantiate a new JobController instance.
         
         A new JobController object is created with an application registry and configuration attributes
@@ -297,7 +304,9 @@ class JobController:
         self.auto_resources = auto_resources
         
         if self.auto_resources:
-            self.resources = Resources(top_level_dir = self.top_level_dir)
+            self.resources = Resources(top_level_dir = self.top_level_dir, 
+                                       nodelist_env_slurm = nodelist_env_slurm,
+                                       nodelist_env_cobalt = nodelist_env_cobalt)
         
         #logger.debug("top_level_dir is {}".format(self.top_level_dir))
         
@@ -377,7 +386,7 @@ class JobController:
             else:
                 app = self.registry.sim_default_app
         elif calc_type == 'gen':
-            if self.registry.gen_default_app is not None:
+            if self.registry.gen_default_app is None:
                 raise JobControllerException("Default gen app is not set")
             else:
                 app = self.registry.gen_default_app
@@ -476,7 +485,9 @@ class JobController:
             #env question - pass to subprocess or specify in mpirun line???
             #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
             
-            job.process = subprocess.Popen(runline, cwd='./', env=job.env, stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
+            job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
+
+            #job.process = subprocess.Popen(runline, cwd='./', env=job.env, stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
             
             #To test when have workdir
             #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
@@ -490,8 +501,8 @@ class JobController:
     def poll(self, job):
         ''' Polls and updates the status attributes of the supplied job '''
         
-        if job is None:
-            raise JobControllerException('No job has been provided')
+        if not isinstance(job, Job):
+            raise JobControllerException('Invalid job has been provided') 
 
         # Check the jobs been launched (i.e. it has a process ID)
         if job.process is None:
@@ -556,80 +567,112 @@ class JobController:
             else:
                 logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))        
         
+    @staticmethod
+    def _kill_process(process, signal):
+        """Launch the process kill for this system"""
+        time.sleep(0.1) # Without a small wait - kill signal can not work
+        os.killpg(os.getpgid(process.pid), signal) # Kill using process group (see launch with preexec_fn=os.setsid)
+
+        #process.send_signal(signal) # Kill by sending direct signal
         
+    # Just for you, python2
+    @staticmethod
+    def _time_out(process, timeout):
+        """Loop to wait for process to finish after a kill"""
+        start_wait_time = time.time()
+        while time.time() - start_wait_time < timeout:
+            time.sleep(0.01)
+            poll = process.poll()
+            if poll is not None:
+                return False # process has finished - no timeout
+        return True # process has not finished - timeout
+
+
     def kill(self, job):
         ''' Kills or cancels the supplied job '''
         
-        if job is None:
-            raise JobControllerException('No job has been provided')
-        
-        #In here can set state to user killed!
-        #- but if killed by remote job (eg. through balsam database) may be different .... 
+        if not isinstance(job, Job):
+            raise JobControllerException('Invalid job has been provided') 
 
         if job.finished:
             logger.warning('Trying to kill job that is no longer running. Job {}: Status is {}'.format(job.name, job.state))
             return
         
+        if job.process is None:
+            time.sleep(1)
+            if job.process is None:
+                #logger.warning('Polled job has no process ID - returning stored state')
+                #Prob should be recoverable and return state - but currently fatal
+                raise JobControllerException('Attempting to kill job {} that has no process ID - check jobs been launched'.format(job.name))
+        
         logger.debug("Killing job {}".format(job.name))
         
-        #Issue signal
-        #if self.kill_signal == 'SIGTERM':
-            #job.process.terminate()
-        #elif self.kill_signal == 'SIGKILL':
-            #job.process.kill()
-        #else:
-            #job.process.send_signal(signal.self.kill_signal) #um what was I doing...
-        
-        if self.kill_signal == 'SIGTERM':
+        # Issue signal
+        if self.kill_signal == 'SIGTERM':           
             try:
-                os.killpg(os.getpgid(job.process.pid), signal.SIGTERM)
+                JobController._kill_process(job.process, signal.SIGTERM)
             except ProcessLookupError:
-                logger.warning("Tried to kill job {}. No process found {}".format(job.name, job.process.pid))
-                
+                logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
         elif self.kill_signal == 'SIGKILL':
             try:
-                os.killpg(os.getpgid(job.process.pid), signal.SIGKILL)
+                JobController._kill_process(job.process, signal.SIGKILL)
             except ProcessLookupError:
-                logger.warning("Tried to kill job {}. No process found {}".format(job.name, job.process.pid))
-            
+                logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
         else: 
             raise JobControllerException('Unknown kill signal')
-            #os.killpg(os.getpgid(job.process.pid), signal.self.kill_signal) #um what was I doing...
-            
-        #Wait for job to be killed
+
+        # Wait for job to be killed
         if self.wait_and_kill:
-            job.process.wait() #tmp - works python2
+            
+            # My python2 method works ok for py2 and py3
+            if JobController._time_out(job.process, self.wait_time):
+                logger.warning("Kill signal {} timed out for job {}: Issuing SIGKILL".format(self.kill_signal, job.name))
+                JobController._kill_process(job.process, signal.SIGKILL)
+                job.process.wait()
+            
+            #Using subprocess timeout attribute where available (py3)
             #try:
                 #job.process.wait(timeout=self.wait_time)
                 ##stdout,stderr = self.process.communicate(timeout=self.wait_time) #Wait for process to finish
+            #except TypeError: #eg. Python2
+                ##logger.warning("TimeoutExpired not supported in this version of Python. Issuing SIGKILL to job {}".format(job.name))
+                #if JobController._time_out(job.process, self.wait_time):
+                    #logger.warning("Kill signal {} timed out for job {}: Issuing SIGKILL".format(self.kill_signal, job.name))
+                    #JobController._kill_process(job.process, signal.SIGKILL)
+                    #job.process.wait()
             #except subprocess.TimeoutExpired:
-                #logger.warning("Kill signal {} timed out - issuing SIGKILL".format(self.kill_signal))
-                #job.process.kill()
+                #logger.warning("Kill signal {} timed out for job {}: Issuing SIGKILL".format(self.kill_signal, job.name))
+                #JobController._kill_process(job.process, signal.SIGKILL)
                 #job.process.wait()
         else:
-            #job.process.wait(timeout=self.wait_time)
-            job.process.wait() #tmp - works python2
+            job.process.wait()
 
         job.state = 'USER_KILLED'
         job.finished = True
-        
         job.calc_job_timing()
         
         #Need to test out what to do with
         #job.errcode #Can it be discovered after killing?
         #job.success #Could set to false but should be already - only set to true on success            
-                
+
+
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
         ''' Configures the kill mode for the job_controller '''
         if signal is not None:
-            self.kill_signal = signal
+            if signal in SIGNALS:
+                self.kill_signal = signal
+            else:
+                raise JobControllerException("Unknown signal {} supplied to set_kill_mode".format(signal))
             
         if wait_and_kill is not None:
             self.wait_and_kill = wait_and_kill
             
         if wait_time is not None: 
             self.wait_time = wait_time
-    
+            if not wait_and_kill:
+                logger.warning('wait_time set but will have no effect while wait_and_kill is False')
+
+
     def get_job(self, jobid):
         ''' Returns the job object for the supplied job ID '''
         if self.list_of_jobs:
@@ -929,8 +972,8 @@ class BalsamJobController(JobController):
     
     def poll(self, job):
         ''' Polls and updates the status attributes of the supplied job '''
-        if job is None:
-            raise JobControllerException('No job has been provided') 
+        if not isinstance(job, BalsamJob):
+            raise JobControllerException('Invalid job has been provided') 
         
         # Check the jobs been launched (i.e. it has a process ID)
         if job.process is None:
@@ -989,6 +1032,10 @@ class BalsamJobController(JobController):
     
     def kill(self, job):
         ''' Kills or cancels the supplied job '''
+        
+        if not isinstance(job, BalsamJob):
+            raise JobControllerException('Invalid job has been provided') 
+        
         import balsam.launcher.dag as dag
         dag.kill(job.process)
 

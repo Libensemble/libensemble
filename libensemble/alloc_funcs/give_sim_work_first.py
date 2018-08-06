@@ -7,11 +7,11 @@ import sys, os
 from libensemble.message_numbers import EVAL_SIM_TAG 
 from libensemble.message_numbers import EVAL_GEN_TAG 
 
-def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """ 
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
-    completed or running does it start (at most gen_specs['num_inst'])
+    completed or running does it start (at most ``gen_specs['num_inst']``)
     generator instances.
     
     note: everything put into the Work dictionary will be given, so be
@@ -19,62 +19,63 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
 
     Parameters
     -----------
-    H: numpy structured array
+    W: :obj:`numpy strucutred array`
+        :doc:`(example)<data_structures/worker_array>`
 
-    H_ind: integer 
+    H: :obj:`numpy structured array`
+        :doc:`(example)<data_structures/history_array>`
 
-    sim_specs: dictionary
+    sim_specs: :obj:`dict`
+        :doc:`(example)<data_structures/sim_specs>`
 
-    gen_specs: dictionary
+    gen_specs: :obj:`dict`
+        :doc:`(example)<data_structures/gen_specs>`
 
-    term_test: lambda function
-
-    persis_info: dictionary
+    persis_info: :obj:`dict`
+        :doc:`(example)<data_structures/persis_info>`
 
     Returns
     -----------
-    Work: dictionary
-        Each integer key corresponds to a worker that will be given the
-        corresponding dictionary values
+    Work: :obj:`dict`
+        Dictionary with integer keys ``i`` for work to be send to worker ``i``.
+        :doc:`(example)<data_structures/work_dict>`
     
-    persis_info: dictionary
-        Updated generation informaiton 
+    persis_info: :obj:`dict`
+        :doc:`(example)<data_structures/persis_info>`
     """
 
     Work = {}
-    gen_count = 0
-    already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
+    gen_count = sum(W['active'] == EVAL_GEN_TAG)
 
-    for i in worker_sets['nonpersis_w']['waiting']:
+    for i in W['worker_id'][W['active']==0]:
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
-        blocked_set = worker_sets['nonpersis_w']['blocked'].union(*[j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
+        blocked_set = set(W['worker_id'][W['blocked']]).union(*[j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
         if i in blocked_set:
             continue
 
-        # Find indices of H where that are not given nor paused
-        q_inds_logical = np.logical_and.reduce((~H['given'],~H['paused'],~already_in_Work))
-
-        if np.any(q_inds_logical):
+        # Find indices of H that are not given nor paused
+        jj = list(H['allocated'])
+        if not all(jj):
             # Give sim work if possible
 
             if 'priority' in H.dtype.fields:
                 if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
                     # Give all points with highest priority
-                    q_inds = H['priority'][q_inds_logical] == np.max(H['priority'][q_inds_logical])
-                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][q_inds]
+                    q_inds = H['priority'][~H['allocated']] == np.max(H['priority'][~H['allocated']])
+                    sim_ids_to_send = np.nonzero(~H['allocated'])[0][q_inds]
                 else:
                     # Give first point with highest priority
-                    sim_ids_to_send = np.nonzero(q_inds_logical)[0][np.argmax(H['priority'][q_inds_logical])]
+                    sim_ids_to_send = np.nonzero(~H['allocated'])[0][np.argmax(H['priority'][~H['allocated']])]
             else:
                 # Give oldest point
-                sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]
+                sim_ids_to_send = np.nonzero(~H['allocated'])[0][0]
 
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
             # Only give work if enough idle workers
             if 'num_nodes' in H.dtype.names and np.any(H[sim_ids_to_send]['num_nodes'] > 1):
-                if np.any(H[sim_ids_to_send]['num_nodes'] > len(worker_sets['nonpersis_w']['waiting']) - len(Work) - len(blocked_set)):
+                if np.any(H[sim_ids_to_send]['num_nodes'] > sum(W['active']==0) - len(Work) - len(blocked_set)):
                     # Worker i doesn't get any work. Just waiting for other resources to open up
                     continue
                 block_others = True
@@ -87,18 +88,18 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
                        'libE_info': {'H_rows': sim_ids_to_send,
                                 },
                       }
-            already_in_Work[sim_ids_to_send] = True
+            H['allocated'][sim_ids_to_send] = True
 
             if block_others:
-                unassigned_workers = worker_sets['nonpersis_w']['waiting'] - set(Work.keys()) - blocked_set
+                unassigned_workers = set(W['worker_id'][W['active']==0]) - set(Work.keys()) - blocked_set
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
-                Work[i]['libE_info']['blocking'] = set(workers_to_block)
+                Work[i]['libE_info']['blocking'] = workers_to_block
 
         else:
             # Since there is no sim work to give, give gen work. 
 
             # Limit number of gen instances if given
-            if 'num_inst' in gen_specs and len(worker_sets['nonpersis_w'][EVAL_GEN_TAG]) + gen_count >= gen_specs['num_inst']:
+            if 'num_inst' in gen_specs and gen_count >= gen_specs['num_inst']:
                 break
 
             # Don't give out any gen instances if in batch mode and any point has not been returned or paused
@@ -112,7 +113,6 @@ def give_sim_work_first(worker_sets, H, sim_specs, gen_specs, persis_info):
                        'H_fields': gen_specs['in'],
                        'tag': EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': range(0,len(H)),
-                                     'gen_num': i
                                 }
                        }
 

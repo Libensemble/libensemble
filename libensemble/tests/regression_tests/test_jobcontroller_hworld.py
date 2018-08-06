@@ -9,11 +9,13 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
-from libensemble.register import Register
+from libensemble.register import Register, BalsamRegister
 from libensemble.controller import JobController, BalsamJobController
 from libensemble.calc_info import CalcInfo
 from libensemble.resources import Resources
 from libensemble.message_numbers import *
+
+USE_BALSAM = False
 
 def build_simfunc():
     import subprocess
@@ -32,17 +34,21 @@ sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-registry = Register()
-#jobctrl = JobController(registry = registry, auto_resources = False)
-jobctrl = JobController(registry = registry, auto_resources = True)
+if USE_BALSAM:
+    registry = BalsamRegister()
+    jobctrl = BalsamJobController(registry = registry, auto_resources = True)  
+else:
+    registry = Register()
+    jobctrl = JobController(registry = registry, auto_resources = True)
 registry.register_calc(full_path=sim_app, calc_type='sim')
+
 summary_file_name = short_name + '.libe_summary.txt'
 CalcInfo.set_statfile_name(summary_file_name) 
-if MPI.COMM_WORLD.Get_size() == 4:
-    CalcInfo.keep_worker_stat_files = True # Testing this functionality 
-    jobctrl = JobController(registry = registry, auto_resources = True)
-num_workers = Resources.get_num_workers()
+#if MPI.COMM_WORLD.Get_size() == 4:
+    #CalcInfo.keep_worker_stat_files = True # Testing this functionality 
     
+num_workers = Resources.get_num_workers()
+
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': job_control_hworld, # This is the function whose output is being minimized
              'in': ['x'], # These keys will be given to the above function
@@ -60,7 +66,7 @@ gen_specs = {'gen_f': uniform_random_sample,
                     ],
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
-             'gen_batch_size': 4*num_workers,
+             'gen_batch_size': 5*num_workers,
              'batch_mode': True,
              'num_inst':1,
              'save_every_k': 20
@@ -82,14 +88,19 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 
     #Expected list: Last is zero as will not be entered into H array on manager kill - but should show in the summary file.
     #Repeat expected lists num_workers times and compare with list of status's received from workers
-    calc_status_list_in = np.asarray([WORKER_DONE,WORKER_KILL_ON_ERR,WORKER_KILL_ON_TIMEOUT, 0])
+    calc_status_list_in = np.asarray([WORKER_DONE,WORKER_KILL_ON_ERR,WORKER_KILL_ON_TIMEOUT, JOB_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in,num_workers)
-    assert np.array_equal(H['cstat'], calc_status_list), "Error - unexpected calc status. Received" + str(H['cstat'])
+    
+    #For debug 
+    print("Expecting: {}".format(calc_status_list))
+    print("Received:  {}\n".format(H['cstat']))
+    
+    assert np.array_equal(H['cstat'], calc_status_list), "Error - unexpected calc status. Received: " + str(H['cstat'])
              
     #Check summary file:
     print('Checking expected job status against job summary file ...\n')
 
-    calc_desc_list_in = ['Completed','Worker killed job on Error','Worker killed job on Timeout','Manager killed on finish']
+    calc_desc_list_in = ['Completed','Worker killed job on Error','Worker killed job on Timeout', 'Job Failed', 'Manager killed on finish']
     #Repeat N times for N workers and insert Completed at start for generator
     calc_desc_list = ['Completed'] + calc_desc_list_in * num_workers
     with open(summary_file_name,'r') as f:

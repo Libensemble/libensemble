@@ -20,8 +20,10 @@
 import os
 import sys
 
-from unittest.mock import MagicMock
-#from mock import MagicMock
+if sys.version_info >= (3, 3):
+    from unittest.mock import MagicMock
+else:
+    from mock import MagicMock
 
 class Mock(MagicMock):
     @classmethod
@@ -56,6 +58,7 @@ sys.path.append(os.path.abspath('../libensemble/sim_funcs'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+#extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'numpydoc']
 #extensions = ['sphinx.ext.autodoc', 'breathe']
 #breathe_projects = { "libEnsemble": "../code/src/xml/" }
 #breathe_default_project = "libEnsemble"
@@ -78,7 +81,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'libEnsemble'
-copyright = '2017, Jeffrey Larson'
+copyright = '2018, Jeffrey Larson'
 author = 'Jeffrey Larson and Stephen Hudson'
 
 # The version info for the project you're documenting, acts as replacement for

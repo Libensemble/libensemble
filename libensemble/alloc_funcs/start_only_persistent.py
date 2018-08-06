@@ -10,7 +10,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 import libensemble.gen_funcs.aposmm_logic as aposmm_logic
 
-def only_persistent_gens(worker_sets, H, sim_specs, gen_specs, persis_info):
+def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     """ Decide what should be given to workers. Note that everything put into
     the Work dictionary will be given, so we are careful not to put more gen or
     sim items into Work than necessary.
@@ -29,12 +29,12 @@ def only_persistent_gens(worker_sets, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = 0
+    gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
     already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in worker_sets['persis_w']['waiting'][EVAL_GEN_TAG]: 
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']!=0)]:
         gen_inds = H['gen_worker']==i 
         if np.all(H['returned'][gen_inds]):
             last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
@@ -42,12 +42,12 @@ def only_persistent_gens(worker_sets, H, sim_specs, gen_specs, persis_info):
                        'H_fields': sim_specs['in'] + [name[0] for name in sim_specs['out']],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': np.atleast_1d(last_ind),
-                                     'gen_num': i,
                                      'persistent': True
                                 }
                        }
 
-    for i in worker_sets['nonpersis_w']['waiting']:
+
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']==0)]:
         # perform sim evaluations from existing runs (if they exist).
         q_inds_logical = np.logical_and.reduce((~H['given'],~H['paused'],~already_in_Work))
 
@@ -65,7 +65,7 @@ def only_persistent_gens(worker_sets, H, sim_specs, gen_specs, persis_info):
 
         else:
             # Finally, generate points since there is nothing else to do. 
-            if gen_count + len(worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w']['waiting'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]) > 0: 
+            if gen_count > 0: 
                 continue
             gen_count += 1
             # There are no points available, so we call our gen_func
@@ -73,7 +73,6 @@ def only_persistent_gens(worker_sets, H, sim_specs, gen_specs, persis_info):
                        'H_fields': gen_specs['in'],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': [],
-                                     'gen_num': i,
                                      'persistent': True
                                 }
 

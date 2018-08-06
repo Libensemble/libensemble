@@ -3,7 +3,7 @@
 #include <mpi.h>
 #include <time.h>
 
-/* A C code to burn time without using sleep */
+/* A parallel C code where each process prints to file at regular intervals */
 int main(int argc, char **argv)
 {
     int ierr, num_procs, rank, delay, count, num_sleeps;

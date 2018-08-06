@@ -15,14 +15,15 @@ Library for managing ensemble-like collections of computations.
    readme
    contributing
    release_notes
-   user_guide
    
 .. toctree::
    :maxdepth: 2
-   :caption: libEnsemble API:
+   :caption: libEnsemble Reference:
    
-   libe_module
-   sim_gen_funcs
+   user_guide
+   data_structures/data_structures
+   libE_module
+   sim_gen_alloc_funcs
    manager_modules
    worker_modules
 
