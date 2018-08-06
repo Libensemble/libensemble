@@ -27,18 +27,18 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-
-
 from mpi4py import MPI
 import numpy as np
 import sys,os 
+import logging
 import traceback
 
 # from IPython.core import ultratb
 # sys.excepthook = ultratb.FormattedTB(mode='Verbose',
 #      color_scheme='Linux', call_pdb=1)
 
-# Set root logger (Set above libe imports so errors in import are captured)
+# Set root logger 
+# (Set above libe imports so errors in import are captured)
 # LEVEL: DEBUG/INFO/WARNING
 logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
 
