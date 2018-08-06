@@ -68,7 +68,7 @@ Returns:
 ********
 
   **H**: :obj:`numpy strucutred array`
-  with keys/value-sizes matching those in sim_specs['out'].
+  with keys/value-sizes matching those in gen_specs['out'].
   :doc:`(example)<data_structures/history_array>`
 
   **persis_info**: :obj:`dict`
