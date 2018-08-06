@@ -1,5 +1,5 @@
-Work
-====
+work dictionary
+===============
 
 Dictionary with integer keys ``i`` and dictionary values to be given to worker ``i``. 
 ``Work[i]`` has the following form::
@@ -26,7 +26,16 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
         
 :Examples:
 
-:See Also:
+.. How to link directly to the file?
 
+| For allocation functions using persistent workers, see 
+| ``libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py`` 
+| or 
+| ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
+|
+| For allocation functions giving work that blocks other workers, see 
+| ``libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
+
+:See Also:
 
 

@@ -11,7 +11,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """ 
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
-    completed or running does it start (at most gen_specs['num_inst'])
+    completed or running does it start (at most ``gen_specs['num_inst']``)
     generator instances.
     
     note: everything put into the Work dictionary will be given, so be
@@ -19,26 +19,29 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
 
     Parameters
     -----------
-    H: numpy structured array
+    W: :obj:`numpy strucutred array`
+        :doc:`(example)<data_structures/worker_array>`
 
-    H_ind: integer 
+    H: :obj:`numpy structured array`
+        :doc:`(example)<data_structures/history_array>`
 
-    sim_specs: dictionary
+    sim_specs: :obj:`dict`
+        :doc:`(example)<data_structures/sim_specs>`
 
-    gen_specs: dictionary
+    gen_specs: :obj:`dict`
+        :doc:`(example)<data_structures/gen_specs>`
 
-    term_test: lambda function
-
-    persis_info: dictionary
+    persis_info: :obj:`dict`
+        :doc:`(example)<data_structures/persis_info>`
 
     Returns
     -----------
-    Work: dictionary
-        Each integer key corresponds to a worker that will be given the
-        corresponding dictionary values
+    Work: :obj:`dict`
+        Dictionary with integer keys ``i`` for work to be send to worker ``i``.
+        :doc:`(example)<data_structures/work_dict>`
     
-    persis_info: dictionary
-        Updated generation informaiton 
+    persis_info: :obj:`dict`
+        :doc:`(example)<data_structures/persis_info>`
     """
 
     Work = {}
