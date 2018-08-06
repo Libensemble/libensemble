@@ -37,7 +37,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 #For debug messages - uncomment
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
 class ManagerException(Exception): pass
 
