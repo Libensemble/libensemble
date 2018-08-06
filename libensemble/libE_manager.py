@@ -31,13 +31,8 @@ from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PI
 from libensemble.calc_info import CalcInfo
 
 logger = logging.getLogger(__name__)
-formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
-
-#For debug messages - uncomment
-logger.setLevel(logging.DEBUG)
+#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#logger.setLevel(logging.DEBUG)
 
 class ManagerException(Exception): pass
 
@@ -99,6 +94,7 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
     assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
     assert W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
     
+    logger.debug("Manager sending work unit to worker {}".format(w)) #rank
     comm.send(obj=Work, dest=w, tag=Work['tag']) 
     work_rows = Work['libE_info']['H_rows']    
     if len(work_rows):            
@@ -346,20 +342,24 @@ def termination_test(H, H_ind, given_count, exit_criteria, start_time, lenH0):
     # Time should be checked first to ensure proper timeout
     if 'elapsed_wallclock_time' in exit_criteria:
         if time.time() - start_time >= exit_criteria['elapsed_wallclock_time']:
+            logger.debug("Term test tripped: elapsed_wallclock_time")            
             return 2
 
     if 'sim_max' in exit_criteria:
         if given_count >= exit_criteria['sim_max'] + lenH0:
+            logger.debug("Term test tripped: sim_max")            
             return 1
 
     if 'gen_max' in exit_criteria:
         if H_ind >= exit_criteria['gen_max'] + lenH0:
+            logger.debug("Term test tripped: gen_max")            
             return 1 
 
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
-        if np.any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val): 
+        if np.any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val):
+            logger.debug("Term test tripped: stop_val")            
             return 1
 
     return False
