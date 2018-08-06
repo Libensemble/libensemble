@@ -38,6 +38,7 @@ Returns:
   Used to tell manager why a persistent worker is stopping.
 
 ..  literalinclude:: ../libensemble/message_numbers.py
+    :lines: 1-8
 
 gen_f API
 ---------
@@ -77,6 +78,7 @@ Returns:
   Used to tell manager why a persistent worker is stopping.
 
 ..  literalinclude:: ../libensemble/message_numbers.py
+    :lines: 1-8
 
 alloc_f API
 -----------
