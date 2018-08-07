@@ -13,7 +13,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 
 
 
-def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs, persis_info):
+def only_persistent_gens_for_inverse_bayse(W, H, sim_specs, gen_specs, persis_info):
     """ 
     Starts up to gen_count number of persistent generators.
     These persistent generators produce points (x) in batches and subbatches. 
@@ -25,12 +25,12 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
     """
 
     Work = {}
-    gen_count = 0
+    gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
     already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
     
     # If i is idle, but in persistent mode, and generated work has all returned
     # give output back to i. Otherwise, give nothing to i
-    for i in worker_sets['persis_w']['waiting'][EVAL_GEN_TAG]: 
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']!=0)]:
         inds_generated_by_i = H['gen_worker']==i #it there is more than 1 persistant generator make sure you assign the correct work to it 
         if np.all(H['returned'][inds_generated_by_i]): # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch
@@ -44,12 +44,11 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
                        'H_fields': ['like'],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': np.atleast_1d(inds_to_send_back), #atleast_1d -> Convert inputs to arrays with at least one dimension.
-                                     'gen_num': i,
                                      'persistent': True
                                 }
                        }
 
-    for i in worker_sets['nonpersis_w']['waiting']:
+    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']==0)]:
         # perform sim evaluations (if any point hasn't been given).
         q_inds_logical = np.logical_and(~H['given'],~already_in_Work) 
         if np.any(q_inds_logical):
@@ -65,7 +64,7 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
 
         else:
             # Finally, generate points since there is nothing else to do. 
-            if gen_count + len(worker_sets['nonpersis_w'][EVAL_GEN_TAG] | worker_sets['persis_w']['waiting'][EVAL_GEN_TAG] | worker_sets['persis_w'][EVAL_GEN_TAG]) > 0: 
+            if gen_count > 0: 
                 continue # continue with the next loop of the iteration
             gen_count += 1
             # There are no points available, so we call our gen_func
@@ -73,7 +72,6 @@ def only_persistent_gens_for_inverse_bayse(worker_sets, H, sim_specs, gen_specs,
                        'H_fields': gen_specs['in'],
                        'tag':EVAL_GEN_TAG, 
                        'libE_info': {'H_rows': [],
-                                     'gen_num': i,
                                      'persistent': True
                                 }
 

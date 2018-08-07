@@ -69,6 +69,5 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     # Change the last weights to correct values (H is a list on other cores and only array on manager)
     ind = 2*gen_specs['subbatch_size']*gen_specs['num_subbatches']
     H[-ind:] = H['prior'][-ind:] + H['like'][-ind:] - H['prop'][-ind:]
-    np.save('in_bayes_ex', H)
-    print(H)
-    print(H.dtype)
+    # np.save('in_bayes_ex', H)
+    assert len(H) == 60, "Failed"
