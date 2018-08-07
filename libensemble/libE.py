@@ -27,20 +27,29 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-from libensemble.libE_manager import manager_main
-from libensemble.libE_worker import Worker, worker_main
-from libensemble.calc_info import CalcInfo
-
 from mpi4py import MPI
 import numpy as np
 import sys,os 
+import logging
 import traceback
 
 # from IPython.core import ultratb
 # sys.excepthook = ultratb.FormattedTB(mode='Verbose',
 #      color_scheme='Linux', call_pdb=1)
 
+# Set root logger 
+# (Set above libe imports so errors in import are captured)
+# LEVEL: DEBUG/INFO/WARNING
+logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
+
+from libensemble.libE_manager import manager_main
+from libensemble.libE_worker import Worker, worker_main
+from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+
+logger = logging.getLogger(__name__)
+#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#logger.setLevel(logging.DEBUG)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -129,6 +138,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
             sys.stderr.flush()
             # libE_specs['comm'].Abort()
         else:
+            logger.debug("Manager exiting")
             print(libE_specs['comm'].Get_size(),exit_criteria)
             sys.stdout.flush()
 
@@ -142,7 +152,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
             sys.stdout.flush()
             sys.stderr.flush()
             # libE_specs['comm'].Abort()
-
+        else:
+            logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+            
     # Create calc summary file
     libE_specs['comm'].Barrier()
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
