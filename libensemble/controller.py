@@ -175,7 +175,10 @@ class Job:
 
 class BalsamJob(Job):
     
-    '''Wraps a Balsam Job from the Balsam service.'''
+    '''Wraps a Balsam Job from the Balsam service.
+    
+    The same attributes and query routines are implemented.
+    '''
     
     #newid = itertools.count() #hopefully can use the one in Job
     
@@ -291,7 +294,8 @@ class JobController:
     def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm = None, nodelist_env_cobalt = None):
         '''Instantiate a new JobController instance.
         
-        A new JobController object is created with an application registry and configuration attributes.
+        A new JobController object is created with an application registry and configuration attributes. A
+        registry object must have been created.
         
         This is typically created in the user calling script. If auto_resources is True, an evaluation of system resources is performance during this call.
         
@@ -688,7 +692,7 @@ class JobController:
             The job object.to be polled.             
         
         
-        The signal determined by the job_controller attirbute <kill_signal> will be send to the job, 
+        The signal used is determined by the job_controller attirbute <kill_signal> will be send to the job, 
         followed by a wait for the process to terminate. If the <wait_and_kill> attribute is True, then
         a SIGKILL will be sent if the job has not finished after <wait_time> seconds. The kill can be
         configured using the set_kill_mode function.
@@ -931,11 +935,15 @@ class JobController:
 
 class BalsamJobController(JobController):
     
-    '''Inherits from JobController and wraps the Balsam job management service'''
+    '''Inherits from JobController and wraps the Balsam job management service
+    
+    .. note::  Job kills are currently not configurable. The set_kill_mode function will do nothing but print a warning.
+    
+    '''
     
     #controller = None
       
-    def __init__(self, registry=None, auto_resources=True):
+    def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm = None, nodelist_env_cobalt = None):
         '''Instantiate a new BalsamJobController instance.
         
         A new BalsamJobController object is created with an application registry and configuration attributes
@@ -954,7 +962,9 @@ class BalsamJobController(JobController):
         self.auto_resources = auto_resources
         
         if self.auto_resources:
-            self.resources = Resources(top_level_dir = self.top_level_dir, central_mode=True)
+            self.resources = Resources(top_level_dir = self.top_level_dir, central_mode=True, 
+                                       nodelist_env_slurm = nodelist_env_slurm,
+                                       nodelist_env_cobalt = nodelist_env_cobalt)
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
                 
@@ -1168,6 +1178,9 @@ class BalsamJobController(JobController):
         #Check if can wait for kill to complete - affect signal used etc....
     
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        ''' Not currently implemented for BalsamJobController'''
+        ''' Not currently implemented for BalsamJobController.
+        
+        No action is taken
+        '''
         logger.warning("set_kill_mode currently has no action with Balsam controller")
         
