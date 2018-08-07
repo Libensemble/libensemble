@@ -56,7 +56,7 @@ class Register():
             Make this the default_registry (Default is True)
         
         
-        .. note::  Currently, only a default registry is supported.
+        Note: Currently, only a default registry is supported.
     
         '''
         self.sim_default_app = None
@@ -187,7 +187,7 @@ class BalsamRegister(Register):
             Make this the default_registry (Default is True)
         
         
-        .. note::  Currently, only a default registry is supported.
+        Note: Currently, only a default registry is supported.
     
         '''
         
