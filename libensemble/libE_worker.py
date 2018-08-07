@@ -26,16 +26,15 @@ from libensemble.controller import JobController
 import sys
 from libensemble.resources import Resources
 
-wrkid = 'w' + str(Resources.get_workerID())
-#logger = logging.getLogger(__name__)
-logger = logging.getLogger(__name__ + '(' + wrkid + ')')
-formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
+# Rem: run on import - though Manager should never be printed - workerID/rank
+if Resources.am_I_manager():
+    wrkid = 'Manager'
+else:
+    wrkid = 'w' + str(Resources.get_workerID())    
 
-#For debug messages - uncomment
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__ + '(' + wrkid + ')')
+#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#logger.setLevel(logging.DEBUG)
 
 class WorkerException(Exception): pass
 
