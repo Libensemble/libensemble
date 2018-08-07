@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Module to register applications to libEnsemble."""
+"""Module to register applications to libEnsemble"""
 
 import os
 import subprocess
@@ -35,12 +35,30 @@ class Application:
 #May merge this into job_controller
 class Register():
     
-    '''Registers and stores user applications'''
+    '''Registers and stores user applications
+    
+    Attributes
+    ----------
+    default_registry : Obj: Register or inherited class.
+        A class attribute holding the default registry.    
+    
+    '''
     
     default_registry = None
     
     def __init__(self, default=True):
-        '''Instantiate a new Register instance.'''
+        '''Instantiate a new Register instance
+        
+        Parameters
+        ----------
+        
+        default: Boolean, optional  
+            Make this the default_registry (Default is True)
+        
+        
+        .. note::  Currently, only a default registry is supported.
+    
+        '''
         self.sim_default_app = None
         self.gen_default_app = None        
         if default:
@@ -50,7 +68,25 @@ class Register():
         #logger.debug("default_registry sim name is {}".format(Register.default_registry.sim_default_app))
             
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
-        '''Registers a user applications to libEnsemble.'''
+        '''Registers a user application to libEnsemble
+        
+        Parameters
+        ----------
+
+        full_path: String
+            The full path of the user application to be registered.
+        
+        calc_type: String
+            Calculation type: Is this application part of a 'sim' or 'gen' function.
+            
+        desc: String, optional  
+            Description of this application.
+        
+        default: Boolean, optional  
+            Register to the default_registry (Default is True).
+        
+        
+        '''
         if default:
             if calc_type == 'sim':
                 if self.sim_default_app is not None:
@@ -141,9 +177,21 @@ class BalsamRegister(Register):
         app.save()
         logger.debug("Added App {}".format(app.name))
         
-    def __init__(self):
-        '''Instantiate a new BalsamRegister instance.'''
-        super().__init__()
+    def __init__(self, default=True):
+        '''Instantiate a new BalsamRegister instance
+        
+        Parameters
+        ----------
+        
+        default: Boolean, optional  
+            Make this the default_registry (Default is True)
+        
+        
+        .. note::  Currently, only a default registry is supported.
+    
+        '''
+        
+        super().__init__(default)
         #Check for empty database if poss
         #And/or compare with whats in database and only empty if I need to
         
@@ -156,7 +204,25 @@ class BalsamRegister(Register):
         
     
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
-        '''Registers a user applications to libEnsemble and Balsam.'''
+        '''Registers a user applications to libEnsemble and Balsam
+        
+        Parameters
+        ----------
+
+        full_path: String
+            The full path of the user application to be registered.
+        
+        calc_type: String
+            Calculation type: Is this application part of a 'sim' or 'gen' function.
+            
+        desc: String, optional  
+            Description of this application.
+        
+        default: Boolean, optional  
+            Register to the default_registry (Default is True).
+        
+        
+        '''
         super().register_calc(full_path, calc_type, desc, default) 
         #Req python 3 to exclude args - but as Balsam requires 3.6+ I may do - or is it only __init__()
         

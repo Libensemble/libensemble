@@ -223,7 +223,7 @@ class JobController:
     
     Attributes
     ----------
-    controller : JobController or inherited class.
+    controller : Obj: JobController or inherited class.
         A class attribute holding the default job_controller.
     
     '''
