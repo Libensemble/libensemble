@@ -31,8 +31,13 @@ from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PI
 from libensemble.calc_info import CalcInfo
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
-#logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+#For debug messages - uncomment
+# logger.setLevel(logging.DEBUG)
 
 class ManagerException(Exception): pass
 
