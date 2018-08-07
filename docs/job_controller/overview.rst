@@ -51,8 +51,13 @@ In user sim func::
             if 'Error' in job.read_stdout():
                 jobctl.kill(job)
                 break
+
+Job Attributes
+--------------
                 
-Following is a list of job status and configuration attributes that can be retrieved from job.
+Following is a list of job status and configuration attributes that can be retrieved from a job.
+
+:NOTE: These should not be set directly. Jobs are launched by the job controller and job information can be queired through the job attributes below and the query funcitons. See the :doc:`job_controller<job_controller>` interface for API.  
 
 Job Status attributes include:
 
@@ -73,7 +78,8 @@ Run configuration attributes - Some will be auto-generated:
 :job.num_procs: (int) Total number of processors for job
 :job.num_nodes: (int) Number of nodes for job
 :job.ranks_per_node: (int) Ranks per node for job
-:job.machinefile: (string) Name of machinefile is provided
+:job.machinefile: (string) Name of machinefile is provided if one has been created.
+:job.hostlist: (string) List of nodes for job is provided if one has been created.
 :job.stdout: (string) Name of file where the standard output of the job is written (in job.workdir)
 
 A list of job_controller and job functions can be found under the Job Controller Module.

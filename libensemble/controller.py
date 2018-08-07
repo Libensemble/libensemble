@@ -216,7 +216,14 @@ class BalsamJob(Job):
 
 class JobController:
     
-    ''' The job_controller can create, poll and kill runnable jobs '''
+    ''' The job_controller can create, poll and kill runnable jobs 
+    
+    Attributes
+    ----------
+    controller : JobController or inherited class.
+        A class attribute holding the default job_controller.
+    
+    '''
     
     controller = None
     
@@ -284,7 +291,26 @@ class JobController:
     def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm = None, nodelist_env_cobalt = None):
         '''Instantiate a new JobController instance.
         
-        A new JobController object is created with an application registry and configuration attributes
+        A new JobController object is created with an application registry and configuration attributes.
+        
+        This is typically created in the user calling script. If auto_resources is True, an evaluation of system resources is performance during this call.
+        
+        Parameters
+        ----------
+        registry: obj: Registry, optional
+            A registry containing the applications to use in this job_controller (Default: Use Register.default_registry).
+        
+        auto_resources: Boolean, optional
+            Auto-detect available processor resources and assign to jobs if not explicitly provided on launch.
+        
+        nodelist_env_slurm: String, optional
+            The environment variable giving a node list in Slurm format (Default: Uses SLURM_NODELIST)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+        
+        nodelist_env_cobalt: String, optional
+            The environment variable giving a node list in Cobalt format (Default: Uses COBALT_PARTNAME)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+        
         '''
         
         if registry is None:
@@ -367,10 +393,57 @@ class JobController:
         #setattr(job, k, v)
     
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
-               env=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
+               env=None, machinefile=None, app_args=None, stdout=None, stage_inout=None,  hyperthreads=False, test=False,):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
         
         The created job object is returned.
+        
+        Parameters
+        ----------   
+        
+        calc_type: String
+            The calculation type: 'sim' or 'gen'
+            
+        num_procs: int, optional
+            The total number of MPI tasks on which to launch the job.
+            
+        num_nodes: int, optional
+            The number of nodes on which to launch the job.
+        
+        ranks_per_node: int, optional
+            The ranks per node for this job.
+        
+        env: string, optional
+            String of environment variables to pass to job
+        
+        machinefile: string, optional
+            Name of a machinefile for this job to use.
+        
+        app_args: string, optional
+            A string of the application arguments to be added to job launch command line.
+        
+        stdout: string, optional
+            A standard output filename.
+        
+        stage_inout: string, optional
+            A directory to copy files from. Default will take from current directory.
+        
+        hyperthreads: boolean, optional
+            Whether to launch MPI tasks to hyperthreads
+        
+        test: boolean, optional
+            Whether this is a test - No job will be launched. Instead runline is printed to logger (At INFO level).
+        
+        
+        Returns
+        -------
+        
+        job: obj: Job
+            The lauched job object.
+        
+        
+        Note that if some combination of num_procs, num_nodes and ranks_per_node are provided, these will be honored if possible. If resource detection is on and these are omitted, then the available resources will be divided amongst workers.
+        
         '''
         
         # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
@@ -466,8 +539,10 @@ class JobController:
                 runline.append(iarg)
         
         if test:
-            print('runline args are', runline)
-            print('stdout to', stdout)
+            logger.info('Test selected: Not launching job')
+            logger.info('runline args are {}'.format(runline))
+            #print('runline args are', runline)
+            #print('stdout to', stdout)
             #logger.info(runline)
         else:          
             logger.debug("Launching job {}: {}".format(job.name, " ".join(runline))) #One line
@@ -494,7 +569,15 @@ class JobController:
 
     
     def poll(self, job):
-        ''' Polls and updates the status attributes of the supplied job '''
+        ''' Polls and updates the status attributes of the supplied job
+        
+        Parameters
+        -----------
+        
+        job: obj: Job
+            The job object.to be polled.       
+        
+        '''
         
         if not isinstance(job, Job):
             raise JobControllerException('Invalid job has been provided') 
@@ -542,7 +625,18 @@ class JobController:
         #return job
                 
     def manager_poll(self, job):
-        ''' Polls for a manager signal '''
+        ''' Polls for a manager signal 
+        
+        Parameters
+        -----------
+        
+        job: obj: Job
+            The job object.to be polled.             
+        
+        
+        The job status attribute job.manager_signal will be updated.
+        
+        '''
         
         #Will use MPI_MODE from settings.py but for now assume MPI
         from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH,MAN_SIGNAL_KILL
@@ -561,7 +655,8 @@ class JobController:
                 job.manager_signal = 'kill'
             else:
                 logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))        
-        
+    
+    
     @staticmethod
     def _kill_process(process, signal):
         """Launch the process kill for this system"""
@@ -584,7 +679,21 @@ class JobController:
 
 
     def kill(self, job):
-        ''' Kills or cancels the supplied job '''
+        ''' Kills or cancels the supplied job
+        
+        Parameters
+        -----------
+        
+        job: obj: Job
+            The job object.to be polled.             
+        
+        
+        The signal determined by the job_controller attirbute <kill_signal> will be send to the job, 
+        followed by a wait for the process to terminate. If the <wait_and_kill> attribute is True, then
+        a SIGKILL will be sent if the job has not finished after <wait_time> seconds. The kill can be
+        configured using the set_kill_mode function.
+        
+        '''
         
         if not isinstance(job, Job):
             raise JobControllerException('Invalid job has been provided') 
@@ -652,7 +761,23 @@ class JobController:
 
 
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        ''' Configures the kill mode for the job_controller '''
+        ''' Configures the kill mode for the job_controller
+        
+        Parameters
+        ----------   
+        
+        signal: String, optional
+            The signal type to be sent to kill job: 'SIGTERM' or 'SIGKILL'
+            
+        wait_and_kill: boolean, optional
+            If True, a SIGKILL will be sent after <wait_time> seconds if the process has not terminated.
+            
+        wait_time: int, optional
+            The number of seconds to wait for the job to finish before sending a SIGKILL when wait_and_kill is set.
+            (Default is 60).
+        
+        
+        '''
         if signal is not None:
             if signal in SIGNALS:
                 self.kill_signal = signal
