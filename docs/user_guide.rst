@@ -37,13 +37,13 @@ to support) and plan to have examples of:
   simulation sim_f at various parameter values and gen_f would return candidate
   parameter values (possibly after each sim_f output).
 
-* A user is has a gen_f that produces different meshes to be used within a
+* A user has a gen_f that produces different meshes to be used within a
   sim_f. Given the sim_f output, gen_f will refine a mesh or produce a new
   mesh. libEnsemble can ensure that the calculated meshes can be used by
   multiple simulations without requiring movement of data.
 
 * A user is attempting to sample a simulation sim_f at some parameter values,
-  many of which are will cause the simulation to fail. libEnsemble can stop
+  many of which will cause the simulation to fail. libEnsemble can stop
   unresponsive evaluations, and recover computational resources for future
   evaluations. gen_f can possibly update the sampling after discovering regions
   where evaluations of sim_f fail.
@@ -51,7 +51,7 @@ to support) and plan to have examples of:
 * A user has a simulation sim_f that requires calculating multiple expensive
   quantities, some of which depend on other quantities. sim_f can observe
   intermediate quantities in order to stop related calculations and preempt
-  future calculations associated with a poor parameter values.
+  future calculations associated with poor parameter values.
 
 * A user has a simulation sim_f with multiple fidelities, with the
   higher-fidelity evaluations requiring more computational resources, and a
@@ -61,7 +61,7 @@ to support) and plan to have examples of:
 
 * A user wishes to identify multiple local optima for a sim_f. Furthermore,
   sensitivity analysis is desired at each identified optimum. libEnsemble can
-  use the points from the APOSMM gen_f to identify optima and after a point is
+  use the points from the APOSMM gen_f to identify optima; and after a point is
   ruled to be an optimum, a different gen_f can produce a collection of
   parameters necessary for sensitivity analysis of sim_f.
   
@@ -100,7 +100,7 @@ to/from the manager.):
 
 * gen_worker' [int]: libEnsemble worker that generated this sim_id
 
-* returned' [bool]: Has this a worker completed the evaluation of this unit of
+* returned' [bool]: Has this worker completed the evaluation of this unit of
   work?
 
 * paused' [bool]: Has this evaluation been paused?

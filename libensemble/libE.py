@@ -5,7 +5,7 @@ Main libEnsemble routine
 First tasks to be included in libEnsemble: [depends on]
     - generate input for simulations 
     - launch simulations
-    - receive ouptut from simulations [sim]
+    - receive output from simulations [sim]
     - coordinate concurrent simulations [sim]
     - track simulation history
 
