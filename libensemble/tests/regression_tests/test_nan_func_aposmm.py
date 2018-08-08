@@ -50,7 +50,6 @@ gen_out = [('x',float,n),
       ('started_run',bool),
       ('num_active_runs',int), # Number of active runs point is involved in
       ('local_min',bool),
-      ('obj_component',int),
       ('pt_id',int), # To be used by APOSMM to identify points evaluated by different simulations
       ]
 
