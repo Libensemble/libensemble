@@ -24,8 +24,6 @@ Library for managing ensemble-like collections of computations.
    data_structures/data_structures
    libE_module
    sim_gen_alloc_funcs
-   manager_modules
-   worker_modules
 
 .. toctree::
    :maxdepth: 2
@@ -40,6 +38,14 @@ Library for managing ensemble-like collections of computations.
    :caption: Examples:  
 
    examples/examples_index
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer Guide:
+   
+   dev_guide/developer_API.rst
+ 
+   
 
 
 Indices and tables
