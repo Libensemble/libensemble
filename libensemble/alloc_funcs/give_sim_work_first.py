@@ -20,28 +20,28 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     Parameters
     -----------
     W: :obj:`numpy strucutred array`
-        :doc:`(example)<data_structures/worker_array>`
+        :ref:`(example)<datastruct-worker-array>`
 
     H: :obj:`numpy structured array`
-        :doc:`(example)<data_structures/history_array>`
+        :ref:`(example)<datastruct-history-array>`
 
     sim_specs: :obj:`dict`
-        :doc:`(example)<data_structures/sim_specs>`
+        :ref:`(example)<datastruct-sim-specs>`
 
     gen_specs: :obj:`dict`
-        :doc:`(example)<data_structures/gen_specs>`
+        :ref:`(example)<datastruct-gen-specs>`
 
     persis_info: :obj:`dict`
-        :doc:`(example)<data_structures/persis_info>`
+        :ref:`(example)<datastruct-persis-info>`
 
     Returns
     -----------
     Work: :obj:`dict`
         Dictionary with integer keys ``i`` for work to be send to worker ``i``.
-        :doc:`(example)<data_structures/work_dict>`
+        :ref:`(example)<datastruct-work-dict>`
     
     persis_info: :obj:`dict`
-        :doc:`(example)<data_structures/persis_info>`
+        :ref:`(example)<datastruct-persis-info>`
     """
 
     Work = {}

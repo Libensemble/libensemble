@@ -1,3 +1,5 @@
+.. _datastruct-sim-specs:
+
 sim_specs
 =========
 

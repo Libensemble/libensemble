@@ -39,7 +39,7 @@ Library for managing ensemble-like collections of computations.
    :maxdepth: 2
    :caption: Examples:  
 
-   examples_modules
+   examples/examples_index
 
 
 Indices and tables

@@ -1,3 +1,5 @@
+.. _datastruct-gen-specs:
+
 gen_specs
 =========
 
