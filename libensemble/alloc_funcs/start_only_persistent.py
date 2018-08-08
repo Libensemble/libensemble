@@ -11,12 +11,13 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 import libensemble.gen_funcs.aposmm_logic as aposmm_logic
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
-    """ Decide what should be given to workers. Note that everything put into
+    """
+    Decide what should be given to workers. Note that everything put into
     the Work dictionary will be given, so we are careful not to put more gen or
     sim items into Work than necessary.
 
-
-    This allocation function will 
+    This allocation function will:
+    
     - Start up a persistent generator that is a local opt run at the first point
       identified by APOSMM's decide_where_to_start_localopt.
     - It will only do this if at least one worker will be left to perform
@@ -25,7 +26,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
       value is chosen. 
     - If no candidate starting points exist, points from existing runs will be
       evaluated (oldest first)
-    - If no points are left, call the gen_f 
+    - If no points are left, call the gen_f
+    
     """
 
     Work = {}
