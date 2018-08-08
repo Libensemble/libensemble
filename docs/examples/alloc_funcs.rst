@@ -1,6 +1,8 @@
 Allocation Functions
 ====================
 
+Below are example allocation functions available in libEnsemble.
+
 .. IMPORTANT::
   See the API for allocation functions :ref:`here<api_alloc_f>`
 

@@ -1,6 +1,8 @@
 Generation Functions
 ====================
 
+Below are example generation functions available in libEnsemble.
+
 .. IMPORTANT::
   See the API for generation functions :ref:`here<api_gen_f>`
 
