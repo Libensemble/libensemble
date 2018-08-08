@@ -2,6 +2,8 @@ from libensemble.controller import JobController
 from libensemble.message_numbers import *
 import numpy as np
 
+__all__ = ['job_control_hworld']
+
 #Alt send values through X
 sim_count = 0
 

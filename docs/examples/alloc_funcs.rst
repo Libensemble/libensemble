@@ -1,7 +1,8 @@
 Allocation Functions
 ====================
 
-See the API for allocation functions :ref:`here<api_alloc_f>`
+.. IMPORTANT::
+  See the API for allocation functions :ref:`here<api_alloc_f>`
 
 .. note:: The default alloc_func is give_sim_work_first.
 

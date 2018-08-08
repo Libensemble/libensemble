@@ -1,3 +1,4 @@
+__all__ = ['libE_func_wrapper'] 
 import numpy as np
 
 NOBSERVATIONS = 214

@@ -1,7 +1,8 @@
 Simulation Functions
 ====================
 
-See the API for simulation functions :ref:`here<api_sim_f>`
+.. IMPORTANT::
+  See the API for simulation functions :ref:`here<api_sim_f>`
 
 six_hump_camel
 --------------
