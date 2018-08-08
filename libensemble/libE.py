@@ -2,30 +2,14 @@
 Main libEnsemble routine 
 ============================================
 
-First tasks to be included in libEnsemble: [depends on]
-    - generate input for simulations 
-    - launch simulations
-    - receive ouptut from simulations [sim]
-    - coordinate concurrent simulations [sim]
-    - track simulation history
-
-Second tasks to be included in libEnsemble:
-    - allocate resources to simulations [machinefiles or sim or queue system]
-    - receive intermediate output from simulations [sim]
-    - tolerate failed simulations [MPI/Hydra]
-    - exploit persistent data (e.g., checkpointing, meshes, iterative solvers) [sim & OS/memory]
-    - gracefully terminate simulations [sim & ??]
-
-Third (aspirational) tasks for libEnsemble:
-    - change resources given to a simulation midrun [sim]
-    - recover resources when simulation fails [MPI/Hydra]
-    - gracefully pause simulation [sim]
 
 """
 
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
+
+__all__ = ['libE']
 
 from mpi4py import MPI
 import numpy as np

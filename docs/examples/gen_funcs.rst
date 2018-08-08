@@ -1,7 +1,8 @@
 Generation Functions
 ====================
 
-See the API for generation functions :ref:`here<api_gen_f>`
+.. IMPORTANT::
+  See the API for generation functions :ref:`here<api_gen_f>`
 
 uniform_sampling
 ----------------

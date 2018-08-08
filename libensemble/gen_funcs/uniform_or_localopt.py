@@ -1,6 +1,8 @@
 from __future__ import division
 from __future__ import absolute_import
 
+__all__ = ['uniform_or_localopt']
+
 import numpy as np
 from mpi4py import MPI
 import sys

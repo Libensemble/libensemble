@@ -1,6 +1,8 @@
 from __future__ import division
 from __future__ import absolute_import
 
+__all__ = ['aposmm_logic']
+
 import sys, os, traceback
 import numpy as np
 # import scipy as sp
