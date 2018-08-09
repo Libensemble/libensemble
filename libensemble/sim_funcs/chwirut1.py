@@ -259,10 +259,10 @@ def chwirut_eval(H,persis_info,sim_specs,_):
     are evaluated and returned in the ``'fvec'`` field.
 
     :See: 
-        /libensemble/tests/regression_tests/test_chwirut_pounders.py for an example where the entire fvec is computed.
+        ``/libensemble/tests/regression_tests/test_chwirut_pounders.py`` for an example where the entire fvec is computed.
 
     :See: 
-        /libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py
+        ``/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
     """
 
     batch = len(H['x'])

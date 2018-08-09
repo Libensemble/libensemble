@@ -29,10 +29,10 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     nearby them. This generation function produces/requires the following
     fields in ``H``:
 
-    - ``'x'`` [n floats]: Parameters being optimized over
-    - ``'x_on_cube' [n floats]:`` Parameters scaled to the unit cube 
-    - ``'f'`` [float]: Objective function being minimized
-    - ``'local_pt'`` [bool]: True if point from a local optimization run, false if it is a sample point
+    - ``'x' [n floats]``: Parameters being optimized over
+    - ``'x_on_cube' [n floats]``: Parameters scaled to the unit cube 
+    - ``'f' [float]``: Objective function being minimized
+    - ``'local_pt' [bool]``: True if point from a local optimization run, false if it is a sample point
     - ``'dist_to_unit_bounds' [float]``: Distance to domain boundary
     - ``'dist_to_better_l' [float]``: Distance to closest better local optimization point 
     - ``'dist_to_better_s' [float]``: Distance to closest better sample optimization point 
@@ -44,11 +44,11 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     and optionally
 
-    - ``'priority'`` [float]: Value quanitifing a point's desirability 
-    - ``'f_i'`` [float]: Value of ith objective component (if calculated one at a time) 
-    - ``'fvec'`` [m floats]: All objective components (if calculated together)
-    - ``'obj_component'`` [int]: Index corresponding to value in ``'f_i``' 
-    - ``'pt_id'`` [int]: Identify the point 
+    - ``'priority' [float]``: Value quanitifing a point's desirability 
+    - ``'f_i' [float]``: Value of ith objective component (if calculated one at a time) 
+    - ``'fvec' [m floats]``: All objective components (if calculated together)
+    - ``'obj_component' [int]``: Index corresponding to value in ``'f_i``' 
+    - ``'pt_id' [int]``: Identify the point 
 
     When using libEnsemble to do individual objective component evaluations,
     APOSMM will return ``gen_specs['components']`` copies of each point, but
@@ -63,6 +63,11 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     :Note: 
         ``gen_specs['combine_component_func']`` must be defined when there are
         multiple objective components.
+
+    :Note: 
+        APOSMM critically uses ``persis_info`` to store information about
+        active runs, order of points in each run, etc. The allocation function
+        must ensure it's always given. 
 
     :See: 
         ``libensemble/tests/regression_tests/test_branin_aposmm.py``
@@ -246,6 +251,9 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, persis_info, local_flag=0,
 def update_history_dist(H, gen_specs, c_flag):
     """
     Updates distances/indices after new points that have been evaluated.
+
+    :See: 
+        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
     n = len(H['x_on_cube'][0])
@@ -558,7 +566,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     We don't consider points in the history that have not returned from
     computation, or that have a ``nan`` value. Also, note that ``mu`` and ``nu``
     implicitly depend on the scaling that is happening with the domain. That
-    is, adjusting the initial domain can make a run nu start (or not start) at
+    is, adjusting the initial domain can make a run start (or not start) at
     a point that didn't (or did) previously. 
 
     Parameters
@@ -584,6 +592,10 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     ----------
     start_inds: list
         Indices where a local opt run should be started
+
+
+    :See: 
+        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
     n = len(H['x_on_cube'][0])
@@ -773,6 +785,8 @@ def initialize_APOSMM(H, gen_specs):
     """
     Computes common values every time that APOSMM is reinvoked
 
+    :See: 
+        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
     n = len(gen_specs['ub'])

@@ -18,7 +18,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
     using a machinefile (to show one way of evaluating a compiled simulation).
 
     :See: 
-        /libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py:
+        ``/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
     """
 
     batch = len(H['x'])
@@ -62,7 +62,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     defined.
 
     :See: 
-        /libensemble/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py
+        ``/libensemble/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py``
     """
 
     batch = len(H['x'])
@@ -84,7 +84,7 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     Evaluates the six hump camel function for a single point ``x``.
 
     :See: 
-        /libensemble/libensemble/tests/regression_tests/test_fast_alloc.py
+        ``/libensemble/libensemble/tests/regression_tests/test_fast_alloc.py``
     """
 
     O = np.zeros(1,dtype=sim_specs['out'])
