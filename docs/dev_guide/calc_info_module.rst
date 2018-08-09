@@ -6,3 +6,5 @@ Calc_info Module
 .. autoclass:: CalcInfo
   :member-order: bysource
   :members:
+  
+  .. automethod:: __init__

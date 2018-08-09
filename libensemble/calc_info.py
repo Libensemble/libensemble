@@ -161,9 +161,6 @@ class CalcInfo():
         ----------
         calc_status_flag: int
             Integer representing status of calc
-            
-        Return: String:
-            String describing job status
         
         """
 

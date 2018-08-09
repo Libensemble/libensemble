@@ -18,7 +18,33 @@ class ResourcesException(Exception): pass
 
 class Resources:
        
-    """Provide system resources to libEnsemble and job controller with knowledge of workers"""
+    """Provide system resources to libEnsemble and job controller with knowledge of workers.
+    
+    This is intialised when the job_controller is created with auto_resources set to True.
+    
+    **Class Attributes:**
+    
+    :cvar string default_nodelist_env_slurm: Default SLRUM nodelist environment variable
+    :cvar string default_nodelist_env_cobalt: Default Cobal nodelist environment variable
+    
+    **Object Attributes:**
+    
+    These are set on initialisation.
+    
+    :ivar string top_level_dir: Directory where searches for worker_list file.
+    :ivar boolean central_mode: If true, then running in central mode, else distributed.
+    :ivar string nodelist_env_slurm: Slurm environment variable giving node-list.
+    :ivar string list_env_cobalt: Cobalt environment variable giving node-list.
+    :ivar list global_nodelist: A list of all nodes available for running user applications
+    :ivar int num_workers: Total number of workers
+    :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node.
+    :ivar int physical_cores_avail_per_node: Physical cores available on a node.
+    :ivar int workerID: workerID
+    :ivar list local_nodelist: A list of all nodes assigned to this worker       
+    :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number)
+    :ivar int workers_per_node: The number of workers per node (if using sub-node workers)
+    
+    """
     
     # These can be overridden by passing in (e.g. nodelist_env_slurm) on init.
     default_nodelist_env_slurm = 'SLURM_NODELIST'
@@ -138,7 +164,9 @@ class Resources:
     def get_MPI_variant():
         """Returns MPI base implementation
         
-        Return: String:
+        Returns
+        -------
+        mpi_variant: string:
             MPI variant 'mpich' or 'openmpi'
         
         """
