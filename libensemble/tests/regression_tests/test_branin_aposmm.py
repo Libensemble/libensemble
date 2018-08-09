@@ -17,7 +17,7 @@ import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.
 from libensemble.sim_funcs.branin.branin_obj import call_branin as obj_func
 
 # Import gen_func 
-from libensemble.gen_funcs.aposmm_logic import aposmm_logic
+from libensemble.gen_funcs.aposmm import aposmm_logic
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 

@@ -3,7 +3,7 @@ import numpy as np
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 
-from libensemble.libE import * 
+from libensemble.libE import check_inputs, libE
 import libensemble.tests.unit_tests.setup as setup
 from mpi4py import MPI
 

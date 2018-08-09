@@ -1,6 +1,8 @@
 sim, gen, and alloc functions
 =============================
 
+.. _api_sim_f:
+
 sim_f API
 ---------
 
@@ -39,6 +41,8 @@ Returns:
 
 ..  literalinclude:: ../libensemble/message_numbers.py
     :lines: 1-8
+
+.. _api_gen_f:
 
 gen_f API
 ---------
@@ -79,6 +83,8 @@ Returns:
 
 ..  literalinclude:: ../libensemble/message_numbers.py
     :lines: 1-8
+
+.. _api_alloc_f:
 
 alloc_f API
 -----------

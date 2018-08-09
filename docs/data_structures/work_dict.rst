@@ -1,3 +1,5 @@
+.. _datastruct-work-dict:
+
 work dictionary
 ===============
 

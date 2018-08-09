@@ -178,6 +178,7 @@ class BalsamJob(Job):
     '''Wraps a Balsam Job from the Balsam service.
     
     The same attributes and query routines are implemented.
+
     '''
     
     #newid = itertools.count() #hopefully can use the one in Job
@@ -937,7 +938,9 @@ class BalsamJobController(JobController):
     
     '''Inherits from JobController and wraps the Balsam job management service
     
-    .. note::  Job kills are currently not configurable. The set_kill_mode function will do nothing but print a warning.
+    .. note::  Job kills are currently not configurable in the Balsam job_controller.
+    
+    The set_kill_mode function will do nothing but print a warning.
     
     '''
     

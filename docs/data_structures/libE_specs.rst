@@ -1,3 +1,5 @@
+.. _datastruct-libe-specs:
+
 libE_specs
 ==========
 

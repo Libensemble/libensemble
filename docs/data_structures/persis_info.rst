@@ -1,3 +1,5 @@
+.. _datastruct-persis-info:
+
 persis_info
 ===========
 

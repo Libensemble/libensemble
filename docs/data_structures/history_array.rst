@@ -1,3 +1,5 @@
+.. _datastruct-history-array:
+
 history array
 =============
 

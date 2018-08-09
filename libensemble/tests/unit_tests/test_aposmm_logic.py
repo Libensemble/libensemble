@@ -2,7 +2,7 @@ import sys, time, os
 import numpy as np
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs')) 
-import libensemble.gen_funcs.aposmm_logic as al
+import libensemble.gen_funcs.aposmm as al
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 import libensemble.libE_manager as man
