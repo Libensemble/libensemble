@@ -113,7 +113,7 @@ def worker_main(c, sim_specs, gen_specs):
            
             if man_signal == MAN_SIGNAL_REQ_PICKLE_DUMP:
                 # Worker is requested to dump pickle file (either for read by manager or for debugging)
-                import pickle                
+                import pickle
                 pfilename="pickled_worker_" + str(workerID) + '_sim_' + str(sim_iter) + '.pkl'
                 pickle.dump(worker_out, open(pfilename, "wb"))
                 worker_post_pickle_file = pickle.load(open(pfilename, "rb"))  #check can read in this side
@@ -138,13 +138,13 @@ def worker_main(c, sim_specs, gen_specs):
             logger.debug("Worker {} received calc_in of len {}".format(workerID, np.size(calc_in)))
         
         #This is current kluge for persistent worker - comm will be in the future comms module...
-        if 'persistent' in libE_info and libE_info['persistent']:
+        if libE_info.get('persistent'):
             libE_info['comm'] = comm
             Work['libE_info'] = libE_info 
                  
         worker.run(Work, calc_in)
-        
-        if 'persistent' in worker.libE_info and worker.libE_info['persistent']:
+
+        if worker.libE_info.get('persistent'):
             del worker.libE_info['comm']        
         
         CalcInfo.add_calc_worker_statfile(calc = worker.calc_list[-1])    
@@ -168,9 +168,8 @@ def worker_main(c, sim_specs, gen_specs):
         #comm.isend(obj=worker, dest=0) # Non-blocking        
         #comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
     
-    
-    if 'clean_jobs' in sim_specs and sim_specs['clean_jobs']:
-            worker.clean()
+    if sim_specs.get('clean_jobs'):
+        worker.clean()
     
     #Destroy worker object?
 
