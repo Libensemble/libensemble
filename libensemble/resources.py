@@ -206,16 +206,9 @@ class Resources:
 
         In central mode, any node with a libE worker is removed from the list.
         """
-        if rundir is not None:
-            top_level_dir = rundir
-        else:
-            top_level_dir = os.getcwd()
-
-        if nodelist_env_slurm is None:
-            nodelist_env_slurm = Resources.default_nodelist_env_slurm
-
-        if nodelist_env_cobalt is None:
-            nodelist_env_cobalt = Resources.default_nodelist_env_cobalt
+        top_level_dir = rundir or os.getcwd()
+        nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
+        nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
 
         worker_list_file = os.path.join(top_level_dir,'worker_list')
 
@@ -276,14 +269,7 @@ class Resources:
 
         # Check if current host in nodelist - if it is then in distributed mode.
         local_host = socket.gethostname()
-        distrib_mode = False
-
-        #for node in global_nodelist:
-            #if (node == local_host):
-                #distrib_mode = True
-                #break
-        if local_host in global_nodelist:
-            distrib_mode = True
+        distrib_mode = local_host in global_nodelist
 
         # If not in central mode (ie. in distrib mode) then this host should be in nodelist.
         # Either an error - or set to central mode. Currently make error for transparency
@@ -417,5 +403,3 @@ class Resources:
                     ranks_per_node = multiprocessing.cpu_count()
                     logger.warning('Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override')
         return ranks_per_node #This is ranks available per node
-
-
