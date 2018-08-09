@@ -7,8 +7,6 @@ import sys
 
 from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
 
-import nlopt
-
 def persistent_uniform(H,persis_info,gen_specs,libE_info):
     """
     This generation function always enters into persistent mode and returns
