@@ -34,7 +34,7 @@ class Resources:
 
         # These presence of these env vars will be used to detect scheduler
         self.nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
-        self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default nodelist_env_cobalt
+        self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
 
         #This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode,
