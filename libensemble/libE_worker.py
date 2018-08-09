@@ -75,7 +75,6 @@ def worker_main(c, sim_specs, gen_specs):
     dtypes[EVAL_SIM_TAG] = comm.bcast(dtypes[EVAL_SIM_TAG] , root=0)
     dtypes[EVAL_GEN_TAG] = comm.bcast(dtypes[EVAL_GEN_TAG] , root=0)
 
-    #worker = Worker(workerID, sim_type, gen_type)
     worker = Worker(workerID)
     
     #Setup logging
@@ -85,8 +84,6 @@ def worker_main(c, sim_specs, gen_specs):
     CalcInfo.create_worker_statfile(worker.workerID)
    
     worker_iter = 0
-    sim_iter = 0
-    gen_iter = 0
     
     #create_exception = this_does_not_exist
     
@@ -129,11 +126,6 @@ def worker_main(c, sim_specs, gen_specs):
         libE_info = Work['libE_info']
         calc_type = Work['tag'] #If send components - send tag separately (dont use MPI.status!)
         
-        if calc_type == EVAL_GEN_TAG:
-            gen_iter += 1
-        elif calc_type == EVAL_SIM_TAG:
-            sim_iter += 1
-        
         calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_type])
         if len(calc_in) > 0: 
             calc_in = comm.recv(buf=None, source=0)
@@ -156,7 +148,6 @@ def worker_main(c, sim_specs, gen_specs):
         if worker.calc_status == MAN_SIGNAL_FINISH:
             break
             
-        
         # Determine data to be returned to manager
         worker_out = {'calc_out': worker.calc_out,
                       'persis_info': worker.persis_info,
@@ -164,16 +155,11 @@ def worker_main(c, sim_specs, gen_specs):
                       'calc_status': worker.calc_status,
                       'calc_type': worker.calc_type}
 
-        #print("worker {} worker_out: {}".format(workerID,worker_out))
         logger.debug("Worker {} sending to Manager with status {}".format(workerID, worker.calc_status))
         comm.send(obj=worker_out, dest=0) #blocking
-        #comm.isend(obj=worker, dest=0) # Non-blocking        
-        #comm.send(obj=worker_out, dest=0, tag=worker.calc_type) #blocking
     
     if sim_specs.get('clean_jobs'):
         worker.clean()
-    
-    #Destroy worker object?
 
 
 ######################################################################
@@ -196,26 +182,6 @@ class Worker():
         Worker.sim_specs = sim_specs_in
         Worker.gen_specs = gen_specs_in
         
-    #@staticmethod    
-    #def get_worker(worker_list,workerID):
-        
-        #for worker in worker_list:
-            #if worker.workerID == workerID:
-                #return worker
-        ##Does not exist
-        #return None
-    
-    #@staticmethod
-    #def get_worker_index(worker_list,workerID):
-        
-        #index=0
-        #for worker in worker_list:
-            #if worker.workerID == workerID:
-                #return index
-            #index += 1
-        ##Does not exist
-        #return None
-    
     #Worker Object methods
     def __init__(self, workerID):
 
@@ -230,18 +196,13 @@ class Worker():
         self.calc_list = []
         self.job_controller_set = False
         
-        #self.sim_specs = Worker.sim_specs
-        #self.gen_specs = Worker.gen_specs       
-
         if 'sim_dir' in Worker.sim_specs:
-            #worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(comm_color) + "_" + str(rank) 
             self.worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(self.workerID)
     
             if 'sim_dir_prefix' in Worker.sim_specs:
                 self.worker_dir =  os.path.join(os.path.expanduser(Worker.sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(self.worker_dir)))[1])
     
             assert ~os.path.isdir(self.worker_dir), "Worker directory already exists."
-            # if not os.path.exists(worker_dir):
             shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
             self.locations[EVAL_SIM_TAG] = self.worker_dir
             
@@ -249,7 +210,6 @@ class Worker():
         try:
             jobctl = JobController.controller
             jobctl.set_workerID(workerID)
-            #print('workerid',jobctl.workerID)
         except Exception as e:
             logger.info("No job_controller set on worker {}".format(workerID))
             self.job_controller_set = False
@@ -281,14 +241,8 @@ class Worker():
         self.calc_type = Work['tag']
         self.calc_stats.calc_type = Work['tag']
         self.persis_info = Work['persis_info']        
-        #logging.debug('Running thread %s on worker %d %s', t.getName(), self.workerID, self.calc_type)
         
         assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
-        
-        #data_out, tag_out = self._perform_calc(calc_in, persis_info, libE_info)
-        #data_out, tag_out = self._perform_calc(calc_in)   
-        #if self.calc_type == EVAL_SIM_TAG:
-            #import pdb; pdb.set_trace()
         
         self.calc_out, self.persis_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.persis_info, self.libE_info)
         
@@ -315,8 +269,6 @@ class Worker():
     def _perform_calc(self, calc_in, persis_info, libE_info):
         if self.calc_type in self.locations:
             saved_dir = os.getcwd()
-            #print('current dir in _perform_calc is ', saved_dir)
-            #logging.debug('current dir in _perform_calc is  %s', saved_dir)
             os.chdir(self.locations[self.calc_type])
         
         ### ============================== Run calc ====================================
@@ -362,10 +314,6 @@ class Worker():
         if self.calc_type in self.locations:
             os.chdir(saved_dir)
 
-        #data_out = {'calc_out':H, 'persis_info':persis_info, 'libE_info': libE_info}
-        
-        #print('H is:', H)
-        
         #return data_out, calc_tag
         return H, persis_info, libE_info, calc_tag
  
