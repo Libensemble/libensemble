@@ -10,5 +10,5 @@ Internal modules of libEnsemble.
 
    manager_module
    worker_module
-   
-
+   calc_info_module
+   resources_module

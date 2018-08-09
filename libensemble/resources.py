@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ResourcesException(Exception): pass
 
 class Resources:
-    
+       
     """Provide system resources to libEnsemble and job controller with knowledge of workers"""
     
     # These can be overridden by passing in (e.g. nodelist_env_slurm) on init.
@@ -27,7 +27,32 @@ class Resources:
     def __init__(self, top_level_dir=None, workerID=None, central_mode=False, 
                  nodelist_env_slurm = None,
                  nodelist_env_cobalt = None):
-        """Initialise new Resources instance"""
+        """Initialise new Resources instance
+        
+        Parameters
+        ----------
+        
+        top_level_dir: string, optional:
+            Directory libEnsemble runs in (default is current working directory)
+            
+        workerID: int, optional:
+            workerID of current process
+            
+        central_mode, optional: boolean:
+            If true, then running in central mode, else distributed.
+            Central mode means libE processes (manager and workers) are grouped together and
+            do not share nodes with applications. Distributed mode means Workers share nodes
+            with applications.
+            
+        nodelist_env_slurm: String, optional
+            The environment variable giving a node list in Slurm format (Default: Uses SLURM_NODELIST)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            
+        nodelist_env_cobalt: String, optional
+            The environment variable giving a node list in Cobalt format (Default: Uses COBALT_PARTNAME)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.        
+        
+        """
         
         if nodelist_env_slurm is None:
             nodelist_env_slurm = Resources.default_nodelist_env_slurm
@@ -70,6 +95,7 @@ class Resources:
     
     @staticmethod
     def am_I_manager():
+        """ Returns True if manager"""
         from mpi4py import MPI
         if MPI.COMM_WORLD.Get_rank() == 0:
             return True
@@ -78,6 +104,7 @@ class Resources:
 
     @staticmethod
     def get_workerID():
+        """Returns workerID"""
         from mpi4py import MPI
         if MPI.COMM_WORLD.Get_rank() == 0:
             logger.warning('get_workerID called by manager - returning 0')
@@ -85,6 +112,7 @@ class Resources:
 
     @staticmethod
     def get_num_workers():
+        """Returns total number of workers"""
         """Return the total number of workers"""
         #Will use MPI_MODE from settyings.py global - for now assume using mpi.
         #Or the function may be in some worker_concurrency module
@@ -95,6 +123,7 @@ class Resources:
     #Call from all libE tasks (pref. inc. manager)
     @staticmethod
     def get_libE_nodes():
+        """Returns a list of nodes running libE workers"""
         from mpi4py import MPI
         comm = MPI.COMM_WORLD
         #rank = MPI.COMM_WORLD.Get_rank()
@@ -107,6 +136,12 @@ class Resources:
 
     @staticmethod    
     def get_MPI_variant():
+        """Returns MPI base implementation
+        
+        Return: String:
+            MPI variant 'mpich' or 'openmpi'
+        
+        """
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
         try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT)

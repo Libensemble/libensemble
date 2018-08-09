@@ -2,6 +2,7 @@ import time
 import datetime
 import itertools
 import os
+
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
 #Maybe these should be set in here - and make manager signals diff? Would mean called by sim_func...
