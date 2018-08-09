@@ -23,6 +23,24 @@ class CalcInfo():
     worker_statfile = None
     keep_worker_stat_files = False
 
+    calc_type_strings = {
+        EVAL_SIM_TAG: 'sim',
+        EVAL_GEN_TAG: 'gen',
+        None: 'No type set'
+    }
+
+    calc_status_strings = {
+        MAN_SIGNAL_FINISH: "Manager killed on finish",
+        MAN_SIGNAL_KILL: "Manager killed job",
+        WORKER_KILL_ON_ERR: " Worker killed job on Error",
+        WORKER_KILL_ON_TIMEOUT: "Worker killed job on Timeout",
+        WORKER_KILL: "Worker killed",
+        JOB_FAILED: "Job Failed",
+        WORKER_DONE: "Completed",
+        CALC_EXCEPTION: "Exception occurred",
+        None: "Unknown Status"
+    }
+
     @staticmethod
     def set_statfile_name(name):
         CalcInfo.stat_file = name
@@ -86,41 +104,12 @@ class CalcInfo():
         fileH.write("   Calc %d: %s Time: %.2f Start: %s End: %s Status: %s\n" % (self.id, self.get_type() ,self.time, self.date_start, self.date_end, self.status))
 
     #Should use message_numbers - except i want to separate type for being just a tag.
+
     def get_type(self):
-        if self.calc_type==EVAL_SIM_TAG:
-            return 'sim'
-        elif self.calc_type==EVAL_GEN_TAG:
-            return 'gen' 
-        elif self.calc_type==None:
-            return 'No type set'
-        else:
-            return 'Unknown type'
+        return CalcInfo.calc_type_strings.get(self.calc_type, "Unknown type")
 
     def set_calc_status(self, calc_status_flag):
         """Set status description for this calc"""
         #Prob should store both flag and description (as string)
-        
-        if calc_status_flag is None:
-            self.status = "Unknown Status"
-            return
-        
-        if calc_status_flag == MAN_SIGNAL_FINISH:   #Think these should only be used for message tags?
-            self.status = "Manager killed on finish" #Currently a string/description
-        elif calc_status_flag == MAN_SIGNAL_KILL: 
-            self.status = "Manager killed job"
-        elif calc_status_flag == WORKER_KILL_ON_ERR:
-            self.status = "Worker killed job on Error"
-        elif calc_status_flag == WORKER_KILL_ON_TIMEOUT:
-            self.status = "Worker killed job on Timeout"   
-        elif calc_status_flag == WORKER_KILL:
-            self.status = "Worker killed"               
-        elif calc_status_flag == JOB_FAILED:
-            self.status = "Job Failed"
-        elif calc_status_flag == WORKER_DONE:
-            self.status = "Completed"            
-        elif calc_status_flag == CALC_EXCEPTION:
-            self.status = "Exception occurred"
-        else:
-            #For now assuming if not got an error - it was ok
-            self.status = "Completed"
-            #self.status = "Status Unknown"
+        #For now assuming if not got an error - it was ok
+        self.status = CalcInfo.calc_status_strings.get(calc_status_flag, "Completed")
