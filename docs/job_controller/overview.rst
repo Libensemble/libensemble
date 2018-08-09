@@ -1,6 +1,5 @@
-==============
-Job Controller
-==============
+Job Controller Overview
+=======================
 
 The Job Controller module can be used by the worker or user-side code to issue and manage jobs using a portable interface. Various back-end mechanisms may be used to implement this interface on the system, either specified by the user at the top-level, or auto-detected. The job_controller manages jobs using the launch, poll and kill functions. Job attributes can then be queried to determine status. Functions are also provided to access and interrogate files in the job's working directory.
 
@@ -53,3 +52,11 @@ In user sim func::
                 break
 
 See the :doc:`job_controller<job_controller>` interface for API.  
+
+For a more detailed working example see:
+
+- libensemble/tests/regression_tests/test_jobcontroller_hworld.py
+
+which uses sim function:
+
+- libensemble/sim_funcs/job_control_hworld.py
