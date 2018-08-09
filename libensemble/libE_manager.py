@@ -395,10 +395,7 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
         Active worker (initially empty)
     """
 
-    if 'sim_max' in exit_criteria:
-        L = exit_criteria['sim_max']
-    else:
-        L = 100
+    L = exit_criteria.get('sim_max', 100)
 
     from libensemble.libE_fields import libE_fields
 
