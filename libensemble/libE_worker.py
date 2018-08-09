@@ -6,9 +6,10 @@ libEnsemble worker class
 from __future__ import division
 from __future__ import absolute_import
 
-import numpy as np
 import os, shutil
 import socket
+import logging
+import numpy as np
 
 #In future these will be in CalcInfo or Comms modules
 #CalcInfo
@@ -20,10 +21,7 @@ from libensemble.message_numbers import MAN_SIGNAL_KILL, MAN_SIGNAL_FINISH
 from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
 
 from libensemble.calc_info import CalcInfo
-import threading
-import logging
 from libensemble.controller import JobController
-import sys
 from libensemble.resources import Resources
 
 # Rem: run on import - though Manager should never be printed - workerID/rank
@@ -36,12 +34,8 @@ logger = logging.getLogger(__name__ + '(' + wrkid + ')')
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
-class WorkerException(Exception): pass
-
 #logging to be added
-#logging.basicConfig(level=logging.DEBUG,
-                    #format='(%(threadName)-10s) %(message)s',
-                    #)
+#logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s')
 
 #The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
@@ -62,7 +56,6 @@ def worker_main(c, sim_specs, gen_specs):
     from mpi4py import MPI
 
     comm = c['comm']
-    comm_color = c['color']
 
     rank = comm.Get_rank()
     workerID = rank
@@ -84,15 +77,17 @@ def worker_main(c, sim_specs, gen_specs):
     CalcInfo.create_worker_statfile(worker.workerID)
 
     worker_iter = 0
+    sim_iter = 0
+    gen_iter = 0
 
     #create_exception = this_does_not_exist
 
     #Init in case of manager request before filled
-    worker_out={}
+    worker_out = {}
 
     while True:
         worker_iter += 1
-        logger.debug("Worker {}. Iteration {}".format(workerID,worker_iter))
+        logger.debug("Worker {}. Iteration {}".format(workerID, worker_iter))
 
         # General probe for manager communication
         comm.probe(source=0, tag=MPI.ANY_TAG, status=status)
@@ -111,11 +106,11 @@ def worker_main(c, sim_specs, gen_specs):
             if man_signal == MAN_SIGNAL_REQ_PICKLE_DUMP:
                 # Worker is requested to dump pickle file (either for read by manager or for debugging)
                 import pickle
-                pfilename="pickled_worker_{}_sim_{}.pkl".format(workerID, sim_iter)
+                pfilename = "pickled_worker_{}_sim_{}.pkl".format(workerID, sim_iter)
                 with open(pfilename, "wb") as f:
                     pickle.dump(worker_out, f)
                 with open(pfilename, "rb") as f:
-                    worker_post_pickle_file = pickle.load(f)  #check can read in this side
+                    pickle.load(f)  #check can read in this side
                 logger.debug("Worker {} dumping pickle and notifying manager: status {}".format(workerID, worker.calc_status))
                 comm.send(obj=pfilename, dest=0)
                 continue
@@ -126,7 +121,12 @@ def worker_main(c, sim_specs, gen_specs):
         libE_info = Work['libE_info']
         calc_type = Work['tag'] #If send components - send tag separately (dont use MPI.status!)
 
-        calc_in = np.zeros(len(libE_info['H_rows']),dtype=dtypes[calc_type])
+        if calc_type == EVAL_GEN_TAG:
+            gen_iter += 1
+        if calc_type == EVAL_SIM_TAG:
+            sim_iter += 1
+
+        calc_in = np.zeros(len(libE_info['H_rows']), dtype=dtypes[calc_type])
         if len(calc_in) > 0:
             calc_in = comm.recv(buf=None, source=0)
             logger.debug("Worker {} received calc_in of len {}".format(workerID, np.size(calc_in)))
@@ -141,7 +141,7 @@ def worker_main(c, sim_specs, gen_specs):
         if worker.libE_info.get('persistent'):
             del worker.libE_info['comm']
 
-        CalcInfo.add_calc_worker_statfile(calc = worker.calc_list[-1])
+        CalcInfo.add_calc_worker_statfile(calc=worker.calc_list[-1])
 
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first
@@ -196,11 +196,15 @@ class Worker():
         self.calc_list = []
         self.job_controller_set = False
 
+        self.persis_info = None
+        self.libE_info = None
+        self.calc_stats = None
+
         if 'sim_dir' in Worker.sim_specs:
             self.worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(self.workerID)
 
             if 'sim_dir_prefix' in Worker.sim_specs:
-                self.worker_dir =  os.path.join(os.path.expanduser(Worker.sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(self.worker_dir)))[1])
+                self.worker_dir = os.path.join(os.path.expanduser(Worker.sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(self.worker_dir)))[1])
 
             assert ~os.path.isdir(self.worker_dir), "Worker directory already exists."
             shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
@@ -210,7 +214,7 @@ class Worker():
         try:
             jobctl = JobController.controller
             jobctl.set_workerID(workerID)
-        except Exception as e:
+        except Exception:
             logger.info("No job_controller set on worker {}".format(workerID))
             self.job_controller_set = False
         else:
@@ -222,12 +226,8 @@ class Worker():
 
         #Reset run specific attributes - these should maybe be in a calc object
         self.calc_out = {}
-        self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
         self.isdone = False
-        self.persis_info = None
-        self.libE_info = None
-        self.calc_stats = None
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         self.calc_stats = CalcInfo()
@@ -253,8 +253,6 @@ class Worker():
         self.isdone = True
         self.calc_stats.stop_timer()
 
-        return # Can retrieve output from worker.data
-
 
     # Do we want to be removing these dirs by default??? Maybe an option
     # Could be option in sim_specs - "clean_jobdirs"
@@ -262,7 +260,6 @@ class Worker():
         # Clean up - may need to chdir to saved dir also (saved_dir cld be object attribute)
         for loc in self.locations.values():
             shutil.rmtree(loc)
-        return
 
 
     #Prob internal only - may make this static - no self vars
@@ -277,7 +274,7 @@ class Worker():
         # Continuation of ensemble may be added as an option.
         if self.calc_type == EVAL_SIM_TAG:
             try:
-                out = Worker.sim_specs['sim_f'](calc_in,persis_info,Worker.sim_specs,libE_info)
+                out = Worker.sim_specs['sim_f'](calc_in, persis_info, Worker.sim_specs, libE_info)
             except Exception as e:
                 # Write to workers summary file and pass exception up
                 if self.calc_type in self.locations:
@@ -285,11 +282,11 @@ class Worker():
                 self.calc_stats.stop_timer()
                 self.calc_status = CALC_EXCEPTION
                 self.calc_stats.set_calc_status(self.calc_status)
-                CalcInfo.add_calc_worker_statfile(calc = self.calc_stats)
+                CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
                 raise
         else:
             try:
-                out = Worker.gen_specs['gen_f'](calc_in,persis_info,Worker.gen_specs,libE_info)
+                out = Worker.gen_specs['gen_f'](calc_in, persis_info, Worker.gen_specs, libE_info)
             except Exception as e:
                 # Write to workers summary file and pass exception up
                 if self.calc_type in self.locations:
@@ -297,7 +294,7 @@ class Worker():
                 self.calc_stats.stop_timer()
                 self.calc_status = CALC_EXCEPTION
                 self.calc_stats.set_calc_status(self.calc_status)
-                CalcInfo.add_calc_worker_statfile(calc = self.calc_stats)
+                CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
                 raise
         ### ============================================================================
 
@@ -316,4 +313,3 @@ class Worker():
 
         #return data_out, calc_tag
         return H, persis_info, libE_info, calc_tag
-
