@@ -21,8 +21,8 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     - If multiple starting points are available, the one with smallest function
       value is chosen. 
     - If no candidate starting points exist, points from existing runs will be
-      evaluated (oldest first)
-    - If no points are left, call the gen_f
+      evaluated (oldest first).
+    - If no points are left, call the generation function.
 
     :See: 
         ``/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
