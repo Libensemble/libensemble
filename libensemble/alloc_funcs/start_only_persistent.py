@@ -8,7 +8,6 @@ from libensemble.message_numbers import EVAL_SIM_TAG
 from libensemble.message_numbers import EVAL_GEN_TAG 
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-import libensemble.gen_funcs.aposmm_logic as aposmm_logic
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     """

@@ -8,7 +8,7 @@ from libensemble.message_numbers import EVAL_SIM_TAG
 from libensemble.message_numbers import EVAL_GEN_TAG 
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
-import libensemble.gen_funcs.aposmm_logic as aposmm_logic
+from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     """ Decide what should be given to workers. Note that everything put into
@@ -62,9 +62,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']==0)]:
         # Find candidate points for starting local opt runs if a sample point has been evaluated
         if np.any(np.logical_and(~H['local_pt'],H['returned'])):
-            n, n_s, c_flag, _, rk_const, lhs_divisions, mu, nu = aposmm_logic.initialize_APOSMM(H, gen_specs)
-            aposmm_logic.update_history_dist(H, gen_specs, c_flag=False)
-            starting_inds = aposmm_logic.decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions, mu, nu)        
+            n, n_s, c_flag, _, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
+            update_history_dist(H, gen_specs, c_flag=False)
+            starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions, mu, nu)        
         else:
             starting_inds = []
 

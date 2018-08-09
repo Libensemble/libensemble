@@ -20,7 +20,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import libE_func_wrapper, EvaluateJacobian
  
 # Import gen_func 
-from libensemble.gen_funcs.aposmm_logic import aposmm_logic, queue_update_function
+from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 

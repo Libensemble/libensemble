@@ -20,7 +20,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import libE_func_wrapper
  
 # Import gen_func 
-from libensemble.gen_funcs.aposmm_logic import aposmm_logic, queue_update_function
+from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_obj_components 
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]

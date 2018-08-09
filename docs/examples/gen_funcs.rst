@@ -12,9 +12,9 @@ uniform_sampling
   :members:
   :undoc-members:
 
-aposmm_logic
+APOSMM
 ------------
-.. automodule:: aposmm_logic
+.. automodule:: aposmm
   :members:
   :undoc-members:
   
