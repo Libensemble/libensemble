@@ -17,7 +17,7 @@ import numpy as np
 from libensemble.libE import libE
 
 # Import sim_func 
-from libensemble.sim_funcs.chwirut1 import libE_func_wrapper
+from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
 # Import gen_func 
 from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
@@ -29,7 +29,7 @@ m = 214
 n = 3
 max_sim_budget = 10*m
 
-sim_specs = {'sim_f': libE_func_wrapper,
+sim_specs = {'sim_f': chwirut_eval,
              'in': ['x', 'obj_component'],
              'out': [('f_i',float),
                      ],

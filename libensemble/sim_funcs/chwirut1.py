@@ -1,4 +1,4 @@
-__all__ = ['libE_func_wrapper'] 
+__all__ = ['chwirut_eval'] 
 import numpy as np
 
 NOBSERVATIONS = 214
@@ -251,9 +251,18 @@ def EvaluateJacobian(x):
 
     return j
 
-def libE_func_wrapper(H,persis_info,sim_specs,_):
+def chwirut_eval(H,persis_info,sim_specs,_):
     """
-    libEnsemble wrapper around EvaluateFunction
+    Evaluates the chwirut objective function at a given set of points in
+    ``H['x']``. If ``'obj_component'`` is a field in ``sim_specs['out']``, only that 
+    component of the objective will be evaluated. Otherwise, all 214 components
+    are evaluated and returned in the ``'fvec'`` field.
+
+    :See: 
+        /libensemble/tests/regression_tests/test_chwirut_pounders.py for an example where the entire fvec is computed.
+
+    :See: 
+        /libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py
     """
 
     batch = len(H['x'])

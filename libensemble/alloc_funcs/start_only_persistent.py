@@ -11,22 +11,13 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     """
-    Decide what should be given to workers. Note that everything put into
-    the Work dictionary will be given, so we are careful not to put more gen or
-    sim items into Work than necessary.
+    This allocation function will give simulation work if possible, but
+    otherwise start up to 1 persistent generator.  If all points requested by
+    the persistent generator have been returned from the simulation evaluation,
+    then this information is given back to the persistent generator.
 
-    This allocation function will:
-    
-    - Start up a persistent generator that is a local opt run at the first point
-      identified by APOSMM's decide_where_to_start_localopt.
-    - It will only do this if at least one worker will be left to perform
-      simulation evaluations.
-    - If multiple starting points are available, the one with smallest function
-      value is chosen. 
-    - If no candidate starting points exist, points from existing runs will be
-      evaluated (oldest first)
-    - If no points are left, call the gen_f
-    
+    :See:
+        /libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py
     """
 
     Work = {}

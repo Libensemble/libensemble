@@ -8,36 +8,14 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """ 
-    Decide what should be given to workers. This allocation function gives any
-    available simulation work first, and only when all simulations are
-    completed or running does it start (at most gen_specs['num_inst'])
-    generator instances.
-    
-    note: everything put into the Work dictionary will be given, so be
-    careful not to put more gen or sim items into Work than necessary.
+    This allocation function gives (in order) entries in ``H`` to idle workers
+    to evaluate in the simulation function. The fields in ``sim_specs['in']``
+    are given. If all entries in `H` have been given a be evaluated, a worker
+    is told to call the generator function, provided this wouldn't result in
+    more than ``gen_specs['num_active_gen']`` active generators. 
 
-    Parameters
-    -----------
-    H: numpy structured array
-
-    H_ind: integer 
-
-    sim_specs: dictionary
-
-    gen_specs: dictionary
-
-    term_test: lambda function
-
-    persis_info: dictionary
-
-    Returns
-    -----------
-    Work: dictionary
-        Each integer key corresponds to a worker that will be given the
-        corresponding dictionary values
-    
-    persis_info: dictionary
-        Updated generation informaiton 
+    :See: 
+        /libensemble/tests/regression_tests/test_fast_alloc.py 
     """
 
     Work = {}

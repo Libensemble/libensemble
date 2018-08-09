@@ -12,36 +12,22 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
     completed or running does it start (at most ``gen_specs['num_inst']``)
-    generator instances.
+    generator instances. 
     
-    note: everything put into the Work dictionary will be given, so be
-    careful not to put more gen or sim items into Work than necessary.
-
-    Parameters
-    -----------
-    W: :obj:`numpy strucutred array`
-        :ref:`(example)<datastruct-worker-array>`
-
-    H: :obj:`numpy structured array`
-        :ref:`(example)<datastruct-history-array>`
-
-    sim_specs: :obj:`dict`
-        :ref:`(example)<datastruct-sim-specs>`
-
-    gen_specs: :obj:`dict`
-        :ref:`(example)<datastruct-gen-specs>`
-
-    persis_info: :obj:`dict`
-        :ref:`(example)<datastruct-persis-info>`
-
-    Returns
-    -----------
-    Work: :obj:`dict`
-        Dictionary with integer keys ``i`` for work to be send to worker ``i``.
-        :ref:`(example)<datastruct-work-dict>`
+    Allows for a ``'batch_mode'`` where no generation
+    work is given out unless all entries in ``H`` are either returned or
+    paused. 
     
-    persis_info: :obj:`dict`
-        :ref:`(example)<datastruct-persis-info>`
+    Allows for ``blocking`` of workers that are not active, for example, so
+    their resources can be used for a different simulation evaluation.
+    
+    Can give points in highest priority, if ``'priority'`` is a field in ``H``. 
+    
+    This is the default allocation function if one is not defined.
+
+    :See: 
+        /libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
+
     """
 
     Work = {}

@@ -45,7 +45,8 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     and optionally
 
     - ``'priority'`` [float]: Value quanitifing a point's desirability 
-    - ``'f_i'`` [floats]: Value of ith objective component 
+    - ``'f_i'`` [float]: Value of ith objective component (if calculated one at a time) 
+    - ``'fvec'`` [m floats]: All objective components (if calculated together)
     - ``'obj_component'`` [int]: Index corresponding to value in ``'f_i``' 
     - ``'pt_id'`` [int]: Identify the point 
 

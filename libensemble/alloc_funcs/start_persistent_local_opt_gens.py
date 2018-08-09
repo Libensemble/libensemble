@@ -11,10 +11,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
-    """ Decide what should be given to workers. Note that everything put into
-    the Work dictionary will be given, so we are careful not to put more gen or
-    sim items into Work than necessary.
-
+    """ 
     This allocation function will:
     
     - Start up a persistent generator that is a local opt run at the first point
@@ -26,6 +23,8 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     - If no candidate starting points exist, points from existing runs will be
       evaluated (oldest first)
     - If no points are left, call the gen_f
+
+        /libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py
     
     """
 
