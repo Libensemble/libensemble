@@ -16,8 +16,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     for a 'batch_mode'.
 
     :See: 
-        /libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py
-    
+        ``/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py``
     """
 
     Work = {}

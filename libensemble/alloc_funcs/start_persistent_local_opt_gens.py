@@ -24,8 +24,8 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
       evaluated (oldest first)
     - If no points are left, call the gen_f
 
-        /libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py
-    
+    :See: 
+        ``/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
     """
 
     Work = {}

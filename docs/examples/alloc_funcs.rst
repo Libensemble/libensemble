@@ -14,12 +14,6 @@ give_sim_work_first
   :members:
   :undoc-members:
   
-inverse_bayes_allocf
---------------------
-.. automodule:: inverse_bayes_allocf
-  :members:
-  :undoc-members:
-  
 fast_alloc
 ----------
 .. automodule:: fast_alloc

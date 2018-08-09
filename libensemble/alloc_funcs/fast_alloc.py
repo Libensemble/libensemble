@@ -15,7 +15,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     more than ``gen_specs['num_active_gen']`` active generators. 
 
     :See: 
-        /libensemble/tests/regression_tests/test_fast_alloc.py 
+        ``/libensemble/tests/regression_tests/test_fast_alloc.py``
     """
 
     Work = {}
