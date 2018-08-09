@@ -29,7 +29,7 @@ from __future__ import print_function
 
 from mpi4py import MPI
 import numpy as np
-import sys,os
+import sys
 import logging
 import traceback
 
@@ -43,7 +43,7 @@ import traceback
 logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
 
 from libensemble.libE_manager import manager_main
-from libensemble.libE_worker import Worker, worker_main
+from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
@@ -55,9 +55,9 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 def libE(sim_specs, gen_specs, exit_criteria,
-        alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]},
-        libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager': set([0]), 'workers': set(range(1,MPI.COMM_WORLD.Get_size()))},
-        H0=[], persis_info={}):
+         alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]},
+         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager': set([0]), 'workers': set(range(1, MPI.COMM_WORLD.Get_size()))},
+         H0=[], persis_info={}):
     """
     libE(sim_specs, gen_specs, exit_criteria, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager': set([0]), 'workers': set(range(1,MPI.COMM_WORLD.Get_size()))}, H0=[], persis_info={})
 
@@ -123,7 +123,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     """
 
-    H=exit_flag=[]
+    H = exit_flag = []
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
@@ -139,7 +139,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
             # libE_specs['comm'].Abort()
         else:
             logger.debug("Manager exiting")
-            print(libE_specs['comm'].Get_size(),exit_criteria)
+            print(libE_specs['comm'].Get_size(), exit_criteria)
             sys.stdout.flush()
 
     else: #libE_specs['comm'].Get_rank() in libE_specs['workers']:
@@ -176,23 +176,23 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
     if 'comm' not in libE_specs:
         libE_specs['comm'] = MPI.COMM_WORLD
         libE_specs['manager'] = set([0])
-        libE_specs['workers'] = set(range(1,MPI.COMM_WORLD.Get_size()))
+        libE_specs['workers'] = set(range(1, MPI.COMM_WORLD.Get_size()))
 
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
 
     assert libE_specs['comm'].Get_rank() in libE_specs['workers'] | libE_specs['manager'], \
             "The communicator has a rank that is not a worker and not a manager"
-    assert isinstance(sim_specs,dict), "sim_specs must be a dictionary"
-    assert isinstance(gen_specs,dict), "gen_specs must be a dictionary"
-    assert isinstance(libE_specs,dict), "libE_specs must be a dictionary"
-    assert isinstance(alloc_specs,dict), "alloc_specs must be a dictionary"
-    assert isinstance(exit_criteria,dict), "exit_criteria must be a dictionary"
-    assert isinstance(libE_specs['workers'],set), "libE_specs['workers'] must be a set"
-    assert isinstance(libE_specs['manager'],set), "libE_specs['manager'] must be a set"
+    assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
+    assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
+    assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
+    assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
+    assert isinstance(exit_criteria, dict), "exit_criteria must be a dictionary"
+    assert isinstance(libE_specs['workers'], set), "libE_specs['workers'] must be a set"
+    assert isinstance(libE_specs['manager'], set), "libE_specs['manager'] must be a set"
 
-    assert len(exit_criteria)>0, "Must have some exit criterion"
-    valid_term_fields = ['sim_max','gen_max','elapsed_wallclock_time','stop_val']
+    assert len(exit_criteria) > 0, "Must have some exit criterion"
+    valid_term_fields = ['sim_max', 'gen_max', 'elapsed_wallclock_time', 'stop_val']
     assert any([term_field in exit_criteria for term_field in valid_term_fields]), "Must have a valid termination option: " + str(valid_term_fields)
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
@@ -211,14 +211,14 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     from libensemble.libE_fields import libE_fields
 
-    if ('sim_id',int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
+    if ('sim_id', int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
         if MPI.COMM_WORLD.Get_rank() == 0:
             print('\n' + 79*'*' + '\n'
-                   "User generator script will be creating sim_id.\n"\
-                   "Take care to do this sequentially.\n"\
-                   "Also, any information given back for existing sim_id values will be overwritten!\n"\
-                   "So everything in gen_out should be in gen_in!"\
-                    '\n' + 79*'*' + '\n\n')
+                  "User generator script will be creating sim_id.\n"\
+                  "Take care to do this sequentially.\n"\
+                  "Also, any information given back for existing sim_id values will be overwritten!\n"\
+                  "So everything in gen_out should be in gen_in!"\
+                  '\n' + 79*'*' + '\n\n')
             sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
 
