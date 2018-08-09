@@ -114,9 +114,11 @@ def worker_main(c, sim_specs, gen_specs):
             if man_signal == MAN_SIGNAL_REQ_PICKLE_DUMP:
                 # Worker is requested to dump pickle file (either for read by manager or for debugging)
                 import pickle
-                pfilename="pickled_worker_" + str(workerID) + '_sim_' + str(sim_iter) + '.pkl'
-                pickle.dump(worker_out, open(pfilename, "wb"))
-                worker_post_pickle_file = pickle.load(open(pfilename, "rb"))  #check can read in this side
+                pfilename="pickled_worker_{}_sim_{}.pkl".format(workerID, sim_iter)
+                with open(pfilename, "wb") as f:
+                    pickle.dump(worker_out, f)
+                with open(pfilename, "rb") as f:
+                    worker_post_pickle_file = pickle.load(f)  #check can read in this side
                 logger.debug("Worker {} dumping pickle and notifying manager: status {}".format(workerID, worker.calc_status))
                 comm.send(obj=pfilename, dest=0)
                 continue
