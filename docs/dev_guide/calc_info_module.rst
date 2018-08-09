@@ -1,7 +1,7 @@
 Calc_info Module
 ================
 .. automodule:: calc_info
-  :members:
+..  :members: CalcInfo
 
 .. autoclass:: CalcInfo
   :member-order: bysource
