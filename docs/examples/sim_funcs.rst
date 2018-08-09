@@ -18,12 +18,6 @@ chwirut
   :members:
   :undoc-members:
   
-inverse_bayes
--------------
-.. automodule:: inverse_bayes
-  :members:
-  :undoc-members:
-  
 job_control_hworld
 ------------------
 .. automodule:: job_control_hworld

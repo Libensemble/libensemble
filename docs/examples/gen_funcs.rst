@@ -30,9 +30,3 @@ persistent_uniform_sampling
   :members:
   :undoc-members:
   
-persistent_inverse_bayes
-------------------------
-.. automodule:: persistent_inverse_bayes
-  :members:
-  :undoc-members:
-  

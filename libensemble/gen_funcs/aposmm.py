@@ -1,5 +1,5 @@
 """
-This module contains methods used in an implementation of the Asynchronously
+This module contains methods used our implementation of the Asynchronously
 Parallel Optimization Solver for finding Multiple Minima (APOSMM) method
 described in detail in the paper 
 `https://doi.org/10.1007/s12532-017-0131-4 <https://doi.org/10.1007/s12532-017-0131-4>`_
@@ -24,17 +24,34 @@ import nlopt
 
 def aposmm_logic(H,persis_info,gen_specs,_):
     """
-    For 
-    Receives the following data from H:
+    APOSMM as a libEnsemble generation function. Coordinates multiple local
+    optimization runs, starting from points which do not have a better point
+    nearby them. This generation function produces/requires the following
+    fields in ``H``:
 
-        'x_on_cube', 'fvec', 'f', 'local_pt', 
-        'dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s',
-        'ind_of_better_l', 'ind_of_better_s', 'started_run', 'num_active_runs',
-        'local_min'
+    - ``'x'`` [n floats]: Parameters being optimized over
+    - ``'x_on_cube' [n floats]:`` Parameters scaled to the unit cube 
+    - ``'f'`` [float]: Objective function being minimized
+    - ``'local_pt'`` [bool]: True if point from a local optimization run, false if it is a sample point
+    - ``'dist_to_unit_bounds' [float]``: Distance to domain boundary
+    - ``'dist_to_better_l' [float]``: Distance to closest better local optimization point 
+    - ``'dist_to_better_s' [float]``: Distance to closest better sample optimization point 
+    - ``'ind_of_better_l' [int]``: Index of point ``'dist_to_better_l``' away
+    - ``'ind_of_better_s' [int]``: Index of point ``'dist_to_better_s``' away
+    - ``'started_run' [bool]``: True if point has started a local optimization run
+    - ``'num_active_runs' [int]``: Counts number of non-terminated local runs the point is in
+    - ``'local_min' [float]``: True if point has been ruled a local minima
 
-    When using libEnsemble to do individual component evaluations, APOSMM will
-    return num_components copies of each point, but each component=0 version of
-    the point will only be considered when 
+    and optionally
+
+    - ``'priority'`` [float]: Value quanitifing a point's desirability 
+    - ``'f_i'`` [floats]: Value of ith objective component 
+    - ``'obj_component'`` [int]: Index corresponding to value in ``'f_i``' 
+    - ``'pt_id'`` [int]: Identify the point 
+
+    When using libEnsemble to do individual objective component evaluations,
+    APOSMM will return ``gen_specs['components']`` copies of each point, but
+    each component=0 version of the point will only be considered when 
 
     - deciding where to start a run, 
     - best nearby point, 
@@ -42,6 +59,17 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - storing the combined objective function value
     - etc
 
+    :Note: 
+        ``gen_specs['combine_component_func']`` must be defined when there are
+        multiple objective components.
+
+    :See: 
+        ``libensemble/tests/regression_tests/test_branin_aposmm.py``
+        for basic APOSMM usage.
+    :See: 
+        ``libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
+        for an example of APOSMM coordinating multiple local optimization runs
+        for an objective with more than one component.
     """
 
     """
@@ -216,7 +244,7 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, persis_info, local_flag=0,
 
 def update_history_dist(H, gen_specs, c_flag):
     """
-    Update distances for any new points that have been evaluated
+    Updates distances/indices after new points that have been evaluated.
     """
 
     n = len(H['x_on_cube'][0])
@@ -519,21 +547,18 @@ def set_up_and_run_tao(Run_H, gen_specs):
 
 def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0, gamma_quantile=1):
     """
-    Decide where to start a LocalOpt run
-
     Finds points in the history that satisfy the conditions (S1-S5 and L1-L8) in
-    Table 1 of the paper: "A Batch, Derivative-free Algorithm for Finding
-    Multiple Local Minima". To do this, we first identify sample points
-    satisfying S2-S5. We then identify all localopt points that satisfy L1-L7.
-    We then start from any sample point also satisfying S1. For L8 we use the
-    pairwise distances from all Local to Local points and from all Sample to
-    Local points to search through Local points to attempt to travel on an
-    rk-ascent path to some Sample point
+    Table 1 of the `APOSMM paper <https://doi.org/10.1007/s12532-017-0131-4>`_
+    This method first identifies sample points satisfying S2-S5, and then
+    identifies all localopt points that satisfy L1-L7.
+    We then start from any sample point also satisfying S1. 
+    We do not check condition L8 currently.
 
-    We don't consider points in the history without function values. Also, note
-    that mu and nu implicitly depend on the scaling that is happening with the
-    domain. That is, adjusting lb/ub can make mu/nu start (resp. not start) at a
-    point that didn't (resp. did) satisfy the mu/nu test prviously. 
+    We don't consider points in the history that have not returned from
+    computation, or that have a ``nan`` value. Also, note that ``mu`` and ``nu``
+    implicitly depend on the scaling that is happening with the domain. That
+    is, adjusting the initial domain can make a run nu start (or not start) at
+    a point that didn't (or did) previously. 
 
     Parameters
     ----------

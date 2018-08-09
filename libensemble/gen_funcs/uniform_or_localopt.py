@@ -13,12 +13,15 @@ import nlopt
 
 def uniform_or_localopt(H,persis_info,gen_specs,libE_info):
     """
-    This generator
-        - Returns "gen_batch_size" uniformly sampled points when called in
-          nonpersistent mode. 
-        - Performs a persistent nlopt local optimization run when called in
-          persistent mode.
+    This generation function returns ``gen_specs['gen_batch_size']`` uniformly
+    sampled points when called in nonpersistent mode (i.e., when
+    ``libE_info['persistent']`` isn't ``True``).  Otherwise, the generation
+    function a persistent nlopt local optimization run.
+
+    :See: 
+        ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
     """
+    
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
