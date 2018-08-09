@@ -13,7 +13,7 @@ The sim_f function will be called by libEnsemble with the following API::
 Parameters:
 ***********
 
-  **H**: :obj:`numpy strucutred array`
+  **H**: :obj:`numpy structured array`
   :doc:`(example)<data_structures/history_array>`
 
   **persis_info**: :obj:`dict`
@@ -29,7 +29,7 @@ Parameters:
 Returns:
 ********
 
-  **H**: :obj:`numpy strucutred array`
+  **H**: :obj:`numpy structured array`
   with keys/value-sizes matching those in sim_specs['out'].
   :doc:`(example)<data_structures/history_array>`
 
@@ -55,7 +55,7 @@ The gen_f calculations will be called by libEnsemble with the following API::
 Parameters:
 ***********
 
-  **H**: :obj:`numpy strucutred array`
+  **H**: :obj:`numpy structured array`
   :doc:`(example)<data_structures/history_array>`
 
   **persis_info**: :obj:`dict`
@@ -71,7 +71,7 @@ Parameters:
 Returns:
 ********
 
-  **H**: :obj:`numpy strucutred array`
+  **H**: :obj:`numpy structured array`
   with keys/value-sizes matching those in gen_specs['out'].
   :doc:`(example)<data_structures/history_array>`
 
@@ -96,10 +96,10 @@ The alloc_f calculations will be called by libEnsemble with the following API::
 Parameters:
 ***********
 
-  **W**: :obj:`numpy strucutred array`
+  **W**: :obj:`numpy structured array`
   :doc:`(example)<data_structures/worker_array>`
 
-  **H**: :obj:`numpy strucutred array`
+  **H**: :obj:`numpy structured array`
   :doc:`(example)<data_structures/history_array>`
 
   **sim_specs**: :obj:`dict`
