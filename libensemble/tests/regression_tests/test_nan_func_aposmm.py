@@ -17,7 +17,7 @@ import numpy as np
 from libensemble.libE import libE
 
 # Import gen_func 
-from libensemble.gen_funcs.aposmm_logic import aposmm_logic
+from libensemble.gen_funcs.aposmm import aposmm_logic
 from math import gamma, pi, sqrt
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 

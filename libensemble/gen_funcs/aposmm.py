@@ -1,3 +1,8 @@
+"""
+An implementation of the Asynchronously Parallel Optimization Solver for
+finding Multiple Minima (APOSMM) method described in detail in the paper
+`https://doi.org/10.1007/s12532-017-0131-4 <https://doi.org/10.1007/s12532-017-0131-4>`_
+"""
 from __future__ import division
 from __future__ import absolute_import
 
@@ -18,6 +23,7 @@ import nlopt
 
 def aposmm_logic(H,persis_info,gen_specs,_):
     """
+    For 
     Receives the following data from H:
 
         'x_on_cube', 'fvec', 'f', 'local_pt', 

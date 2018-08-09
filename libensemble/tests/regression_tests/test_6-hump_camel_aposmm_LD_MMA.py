@@ -21,7 +21,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 
 # Import gen_func 
-from libensemble.gen_funcs.aposmm_logic import aposmm_logic
+from libensemble.gen_funcs.aposmm import aposmm_logic
 
 # Import alloc_func 
 from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
