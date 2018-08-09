@@ -79,11 +79,9 @@ class Resources:
     def get_libE_nodes():
         from mpi4py import MPI
         comm = MPI.COMM_WORLD
-        #rank = MPI.COMM_WORLD.Get_rank()
 
         #This is a libE node
         local_host = socket.gethostname() #or MPI version
-        #all_hosts=[]
         all_hosts = comm.allgather(local_host)
         return all_hosts
 
@@ -158,13 +156,10 @@ class Resources:
                     a = tmp
                 b = b + 1 #need one more for inclusive
             else:
-                #a = nidgroup
-                #nnum_len = len(a)
                 a = int(nidgroup)
                 b = a + 1
             for nid in range(a, b):
                 nidlst.append(prefix + str(nid).zfill(nnum_len))
-                #nidlst.append(nid)
         nidlst = sorted(list(set(nidlst)))
         return nidlst
 
@@ -176,11 +171,6 @@ class Resources:
         """Any node containing a libensemble task is removed from the global nodelist"""
         libE_nodes_gather = Resources.get_libE_nodes()
         libE_nodes_set = set(libE_nodes_gather)
-
-        #Lose ordering this way
-        #global_nodelist_in_set = set(global_nodelist_in)
-        #global_nodelist_set = global_nodelist_in_set - libE_nodes_set
-        #global_nodelist = list(global_nodelist_set)
         global_nodelist = list(filter(lambda x: x not in libE_nodes_set, global_nodelist_in))
         return global_nodelist
 
@@ -304,36 +294,6 @@ class Resources:
         else:
             # Should always have workerID
             raise ResourcesException("Worker has no workerID - aborting")
-            #if distrib_mode:
-                #Alternative - find this host ID at head of a sub-list
-                #for loc_list in split_list:
-                    #if loc_list[0] == local_host:
-                        #local_nodelist = loc_list
-                        #break
-            #else:
-                #raise ResourcesException("Not in distrib_mode and no workerID - aborting")
-
-            ##If cannot find - resort to old way - requires even breakdown
-            #if not local_nodelist and distrib_mode:
-                #logger.debug("Could not find local node at start of a sub-list - trying to find with even split")
-                #num_nodes = len(global_nodelist)
-                #nodes_per_worker = num_nodes//num_workers
-                #node_count = 0
-                #found_start = False
-                #for node in global_nodelist:
-                    #if node_count == nodes_per_worker:
-                        #break
-                    #if found_start:
-                        #node_count += 1
-                        #local_nodelist.append(node)
-                    #elif (node == local_host):
-                        ##distrib_mode = True
-                        #found_start = True
-                        #local_nodelist.append(node)
-                        #node_count = 1
-
-            #if not local_nodelist:
-                #raise ResourcesException("Current node {} not in list - no local_nodelist".format(local_host))
 
         # If in distrib_mode local host must be in local nodelist
         if distrib_mode:
