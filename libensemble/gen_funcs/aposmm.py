@@ -153,7 +153,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             else: 
                 matching_ind = np.where(np.equal(x_new,O['x_on_cube']).all(1))[0]
                 if len(matching_ind) == 0:
-                    persis_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, persis_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
+                    persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, local_flag=1, sorted_run_inds=sorted_run_inds, run=run)
                 else:
                     assert len(matching_ind) == 1, "This point shouldn't have ended up in the O twice!"
                     persis_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
@@ -173,7 +173,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         # x_new = np.random.uniform(0,1,(samples_needed,n))
         x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
 
-        persis_info = add_points_to_O(O, x_new, len(H), gen_specs, c_flag, persis_info)
+        persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info)
 
     # O = np.append(H[[o[0] for o in gen_specs['out']]][np.array(list(updated_inds),dtype=int)],O)
 
@@ -190,7 +190,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     #     O = np.append(B,O)
     return O, persis_info
 
-def add_points_to_O(O, pts, len_H, gen_specs, c_flag, persis_info, local_flag=0, sorted_run_inds=[], run=[]):
+def add_points_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0, sorted_run_inds=[], run=[]):
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
@@ -199,6 +199,7 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, persis_info, local_flag=0,
 
     original_len_O = len(O)
 
+    len_H = len(H)
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     if c_flag:
@@ -231,7 +232,10 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, persis_info, local_flag=0,
         O['num_active_runs'][-num_pts] += 1
         # O['priority'][-num_pts:] = 1
         # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts) 
-        O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0,1,num_pts)
+        if 'high_priority_to_best_localopt_runs' in gen_specs and gen_specs['high_priority_to_best_localopt_runs']:
+            O['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]]) # Give highest priority to run with lowest function value
+        else:
+            O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0,1,num_pts)
         persis_info['run_order'][run].append(O[-num_pts]['sim_id'])
     else:
         if c_flag:
@@ -241,7 +245,10 @@ def add_points_to_O(O, pts, len_H, gen_specs, c_flag, persis_info, local_flag=0,
         else:
             # p_tmp = np.random.uniform(0,1,num_pts)
             # persis_info['rand_stream'].uniform(lb,ub,(1,n))
-            p_tmp = persis_info['rand_stream'].uniform(0,1,num_pts)
+            if 'high_priority_to_best_localopt_runs' in gen_specs and gen_specs['high_priority_to_best_localopt_runs']:
+                p_tmp = -np.inf*np.ones(num_pts)
+            else:
+                p_tmp = persis_info['rand_stream'].uniform(0,1,num_pts)
         O['priority'][-num_pts:] = p_tmp
         # O['priority'][-num_pts:] = 1
 

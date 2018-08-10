@@ -37,6 +37,8 @@ for time in np.append([0], np.logspace(-5,-1,5)):
                             ],
                      'pause_time':time,
                      }
+        if time == 0:
+            sim_specs.pop('pause_time') 
 
         # State the generating function, its arguments, output, and necessary parameters.
         num_pts = 30*(MPI.COMM_WORLD.Get_size()-1)
