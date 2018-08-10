@@ -8,6 +8,7 @@ Internal modules of libEnsemble.
    :maxdepth: 1
    :caption: Modules:
 
-   manager_modules
-   worker_modules      
-
+   manager_module
+   worker_module
+   calc_info_module
+   resources_module
