@@ -34,7 +34,7 @@ class Resources:
     :ivar string top_level_dir: Directory where searches for worker_list file.
     :ivar boolean central_mode: If true, then running in central mode, else distributed.
     :ivar string nodelist_env_slurm: Slurm environment variable giving node-list.
-    :ivar string list_env_cobalt: Cobalt environment variable giving node-list.
+    :ivar string nodelist_env_cobalt: Cobalt environment variable giving node-list.
     :ivar list global_nodelist: A list of all nodes available for running user applications
     :ivar int num_workers: Total number of workers
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node.
