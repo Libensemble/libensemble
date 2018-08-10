@@ -1,5 +1,5 @@
-sim, gen, and alloc functions
-=============================
+Sim, Gen, and Alloc functions API
+=================================
 
 .. _api_sim_f:
 

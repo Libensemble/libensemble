@@ -221,6 +221,8 @@ class BalsamJob(Job):
 class JobController:
     
     ''' The job_controller can create, poll and kill runnable jobs 
+
+    **Class Attributes:**
     
     Attributes
     ----------

@@ -34,14 +34,15 @@ logger = logging.getLogger(__name__ + '(' + wrkid + ')')
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
-#logging to be added
-#logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-10s) %(message)s')
-
 #The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
-    """
-    Evaluate calculations given to it by the manager
-
+    """ 
+    Evaluate calculations given to it by the manager.
+    
+    Creates a worker object, receives work from manager, runs worker,
+    and communicates results. This routine also creates and writes to
+    the workers summary file.
+    
     Parameters
     ----------
     c: dict containing fields 'comm' and 'color' for the communicator.
@@ -175,8 +176,9 @@ class Worker():
     gen_specs = {}
 
     #Class methods
-    @staticmethod
-    def init_workers(sim_specs_in, gen_specs_in):
+    @classmethod
+    def init_workers(Worker, sim_specs_in, gen_specs_in):
+        """Sets class attributes Worker.sim_specs and Worker.gen_specs"""
 
         #Class attributes? Maybe should be worker specific??
         Worker.sim_specs = sim_specs_in
@@ -184,6 +186,15 @@ class Worker():
 
     #Worker Object methods
     def __init__(self, workerID):
+        """Initialise new worker object.
+        
+        Parameters
+        ----------
+        
+        workerID: int:
+            The ID for this worker
+        
+        """
 
         self.locations = {}
         self.worker_dir = ""
@@ -221,8 +232,22 @@ class Worker():
             self.job_controller_set = True
 
 
-    #worker.run
     def run(self, Work, calc_in):
+        """Run a calculation on this worker object.
+        
+        This routine calls the user calculations. Exceptions are caught, dumped to
+        the summary file, and raised.
+        
+        Parameters
+        ----------
+        
+        Work: :obj:`dict`
+            :ref:`(example)<datastruct-work-dict>`
+        
+        calc_in: obj: numpy structured array
+            Rows from the :ref:`history array<datastruct-history-array>` for processing
+            
+        """
 
         #Reset run specific attributes - these should maybe be in a calc object
         self.calc_out = {}
@@ -254,15 +279,12 @@ class Worker():
         self.calc_stats.stop_timer()
 
 
-    # Do we want to be removing these dirs by default??? Maybe an option
-    # Could be option in sim_specs - "clean_jobdirs"
     def clean(self):
-        # Clean up - may need to chdir to saved dir also (saved_dir cld be object attribute)
+        """Clean up calculation directories"""
         for loc in self.locations.values():
             shutil.rmtree(loc)
 
 
-    #Prob internal only - may make this static - no self vars
     def _perform_calc(self, calc_in, persis_info, libE_info):
         if self.calc_type in self.locations:
             saved_dir = os.getcwd()
