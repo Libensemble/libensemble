@@ -1,5 +1,5 @@
-Example Modules
-===============
+Example User Funcs
+==================
 
 Example gen, sim and alloc functions for libEnsemble.
 

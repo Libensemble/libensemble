@@ -12,32 +12,19 @@ Library for managing ensemble-like collections of computations.
    :maxdepth: 2
    :caption: libEnsemble:
    
-   readme
+   Quickstart<readme>
    contributing
    release_notes
    
 .. toctree::
    :maxdepth: 2
-   :caption: libEnsemble Reference:
+   :caption: User Guide:
    
    user_guide
+   libE_module   
    data_structures/data_structures
-   libE_module
-   sim_gen_alloc_funcs
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Job Controller:  
-
-   job_controller/overview
-   job_controller/register
-   job_controller/job_controller
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Examples:  
-
-   examples/examples_index
+   user_funcs
+   job_controller/jc_index
    
 .. toctree::
    :maxdepth: 2

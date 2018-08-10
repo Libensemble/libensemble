@@ -1,5 +1,5 @@
-libEnsemble User Guide
-======================
+Introduction
+============
 
 libEnsemble overview
 --------------------
