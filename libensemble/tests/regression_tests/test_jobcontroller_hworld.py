@@ -44,8 +44,10 @@ registry.register_calc(full_path=sim_app, calc_type='sim')
 
 summary_file_name = short_name + '.libe_summary.txt'
 CalcInfo.set_statfile_name(summary_file_name) 
-#if MPI.COMM_WORLD.Get_size() == 4:
-    #CalcInfo.keep_worker_stat_files = True # Testing this functionality 
+if MPI.COMM_WORLD.Get_size() == 4:
+    CalcInfo.keep_worker_stat_files = True # Testing this functionality 
+else:
+    CalcInfo.keep_worker_stat_files = False # Testing this functionality 
     
 num_workers = Resources.get_num_workers()
 
