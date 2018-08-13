@@ -38,8 +38,8 @@ class History:
     
     """
 
-    # Not currently using libE_specs, failure_processing, persis_info - need to add parameters
-    def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info):
+    # Not currently using libE_specs, persis_info - need to add parameters
+    def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
         
         """
         Forms the numpy structured array that records everything from the

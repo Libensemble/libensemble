@@ -116,14 +116,14 @@ def libE(sim_specs, gen_specs, exit_criteria,
     # IF do here - init on all procs - though H0 may only be non-empty proc zero - others procs - empty History
     # Note:
     # May not need all args - Not currently using libE_specs, failure_processing, persis_info
-    hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
+    hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)
     
 
         # or create here
         #hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
                        
         try:
-            H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)
+            persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
             # Some abort option
             if 'abort_on_manager_exc' in libE_specs:
@@ -133,9 +133,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
                 eprint("\nManager exception raised:\n") #datetime
             eprint(traceback.format_exc()) 
             
-            eprint("\nDumping ensemble with {} sims evaluated:\n".format(H.sim_count)) #datetime  
+            eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime  
             filename = 'libE_history_at_abort_' + str(H.sim_count) + '.npy'
-            np.save(filename,hist.trim_H)
+            np.save(filename,hist.trim_H())
             
             #Could have timing in here still...
             sys.stdout.flush()
@@ -173,7 +173,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
     #return hist, persis_info, exit_flag
     
     #currently return hist.H so dont need to modify calling scripts
-    return hist.H, persis_info, exit_flag
+    return hist.trim_H(), persis_info, exit_flag
 
 
 

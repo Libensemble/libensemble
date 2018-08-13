@@ -40,7 +40,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
 
     man_start_time = time.time()
     
-    hist, term_test, W, comm = initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs)
+    term_test, W, comm = initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs)
     
     logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
     logger.info("Manager exit_criteria: {}".format(exit_criteria))
@@ -52,7 +52,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     ### Continue receiving and giving until termination test is satisfied
     while not term_test(hist):
 
-        hist, W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
 
         persistent_queue_data = update_active_and_queue(hist.trim_H(), libE_specs, gen_specs, persistent_queue_data)        
 
@@ -62,11 +62,11 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             for w in Work:
                 if term_test(hist):
                     break
-                W, hist = send_to_worker_and_update_active_and_idle(comm, hist, Work[w], w, sim_specs, gen_specs, W)
+                W = send_to_worker_and_update_active_and_idle(comm, hist, Work[w], w, sim_specs, gen_specs, W)
 
-    hist, persis_info, exit_flag = final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_specs, persis_info, man_start_time)
+    persis_info, exit_flag = final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_specs, persis_info, man_start_time)
 
-    return hist, persis_info, exit_flag
+    return persis_info, exit_flag
 
 
 
@@ -209,9 +209,8 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
 
         if not os.path.isfile(filename) and count > 0:
             np.save(filename, hist.H)
-
-    return hist, W, persis_info
-
+            
+    return W, persis_info
 
 def update_active_and_queue(H, libE_specs, gen_specs, data):
     """
@@ -287,7 +286,7 @@ def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_spec
 
     comm = libE_specs['comm']
 
-    return hist, term_test, W, comm
+    return term_test, W, comm
 
 
 def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_specs, persis_info, man_start_time):
@@ -325,4 +324,4 @@ def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_
         comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
 
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
-    return hist, persis_info, exit_flag
+    return persis_info, exit_flag
