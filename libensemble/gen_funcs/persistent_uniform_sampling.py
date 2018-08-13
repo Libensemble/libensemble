@@ -19,36 +19,28 @@ def persistent_uniform(H,persis_info,gen_specs,libE_info):
     lb = gen_specs['lb']
     n = len(lb)
     b = gen_specs['gen_batch_size']
-    comm = libE_info['comm']
 
-    # Receive information from the manager (or a STOP_TAG)
-    status = MPI.Status()
-
-    while 1:
+    def make_batch():
         O = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0,b):
             x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
             O['x'][i] = x
 
-        D = {'calc_out':O,
-             'libE_info': {'persistent':True},
-             'calc_status': UNSET_TAG,
-             'calc_type': EVAL_GEN_TAG
-            }
+        return {'calc_out':O,
+                'libE_info': {'persistent':True},
+                'calc_status': UNSET_TAG,
+                'calc_type': EVAL_GEN_TAG
+                }
 
-        comm.send(obj=D,dest=0,tag=EVAL_GEN_TAG)
-
-        #libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+    # Receive information from the manager (or a STOP_TAG)
+    comm = libE_info['comm']
+    status = MPI.Status()
+    while True:
+        comm.send(obj=make_batch(), dest=0, tag=EVAL_GEN_TAG)
         comm.probe(source=0, tag=MPI.ANY_TAG, status=status)
-        tag = status.Get_tag()
-        if tag in [STOP_TAG, PERSIS_STOP]:
+        if status.Get_tag() in [STOP_TAG, PERSIS_STOP]:
             break
-        else:
-            Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-
-        #_ = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        #calc_in = comm.recv(buf=None,source=0,tag=MPI.ANY_TAG,status=status)
-        libE_info = Work['libE_info']
-        calc_in = comm.recv(buf=None, source=0)
+        comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
+        comm.recv(buf=None, source=0)
 
     return O, persis_info, tag
