@@ -29,6 +29,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
         ``/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py``
     """
 
+    H = hist.trim_H() # This is all you need for modified interface (after arg list and docstring)
     Work = {}
     gen_count = sum(W['active'] == EVAL_GEN_TAG)
 

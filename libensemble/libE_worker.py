@@ -170,6 +170,8 @@ def worker_main(c, sim_specs, gen_specs):
 # All routines in Worker Class have no MPI and can be called regardless of worker
 # concurrency mode.
 class Worker():
+    
+    """The Worker Class provides methods for controlling sim and gen funcs"""
 
     #Class attributes
     sim_specs = {}
@@ -184,7 +186,7 @@ class Worker():
         Worker.sim_specs = sim_specs_in
         Worker.gen_specs = gen_specs_in
 
-    #Worker Object methods
+    # Worker Object methods
     def __init__(self, workerID):
         """Initialise new worker object.
         

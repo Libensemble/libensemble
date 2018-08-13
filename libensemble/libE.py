@@ -56,6 +56,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
+            
 
     gen_specs: :obj:`dict`
 
@@ -94,6 +95,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
     H: :obj:`dict`
 
         History array storing rows for each point.  :doc:`(example)<data_structures/history_array>`
+        Dictionary containing persistent info
 
     persis_info: :obj:`dict`
 
@@ -110,16 +112,37 @@ def libE(sim_specs, gen_specs, exit_criteria,
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
+    # Could add option for user to create and pass in - else create (either here or on manager only)
+    # IF do here - init on all procs - though H0 may only be non-empty proc zero - others procs - empty History
+    # Note:
+    # May not need all args - Not currently using libE_specs, failure_processing, persis_info
+    hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
+    
+
+        # or create here
+        #hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
+                       
         try:
             H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)
         except Exception as e:
-            # Manager exceptions are fatal
-            eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
+            # Some abort option
+            if 'abort_on_manager_exc' in libE_specs:
+                # Manager exceptions are fatal
+                eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
+            else:
+                eprint("\nManager exception raised:\n") #datetime
+            eprint(traceback.format_exc()) 
+            
+            eprint("\nDumping ensemble with {} sims evaluated:\n".format(H.sim_count)) #datetime  
+            filename = 'libE_history_at_abort_' + str(H.sim_count) + '.npy'
+            np.save(filename,hist.trim_H)
+            
             #Could have timing in here still...
-            eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            # libE_specs['comm'].Abort()
+            if 'abort_on_manager_exc' in libE_specs:
+                libE_specs['comm'].Abort()
+                
         else:
             logger.debug("Manager exiting")
             print(libE_specs['comm'].Get_size(), exit_criteria)
@@ -129,12 +152,16 @@ def libE(sim_specs, gen_specs, exit_criteria,
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
-            # Currently make worker exceptions fatal
-            eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
+            # Some abort option
+            if 'abort_on_worker_exc' in libE_specs:            
+                # Worker exceptions fatal
+                eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
+            else:
+                eprint("\nWorker exception raised on rank {}:\n".format(libE_specs['comm'].Get_rank()))
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            # libE_specs['comm'].Abort()
+            if 'abort_on_worker_exc' in libE_specs:     
         else:
             logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
@@ -143,7 +170,10 @@ def libE(sim_specs, gen_specs, exit_criteria,
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
         CalcInfo.merge_statfiles()
 
-    return H, persis_info, exit_flag
+    #return hist, persis_info, exit_flag
+    
+    #currently return hist.H so dont need to modify calling scripts
+    return hist.H, persis_info, exit_flag
 
 
 
