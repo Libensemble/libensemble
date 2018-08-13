@@ -14,14 +14,14 @@ def uniform_random_sample_with_different_nodes_and_ranks(H,persis_info,gen_specs
     ``gen_specs['lb']``. Also randomly requests a different ``number_of_nodes``
     and ``ranks_per_node`` to be used in the evaluation of the generated point.
 
-    :See: 
+    :See:
         ``libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
     """
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     n = len(lb)
 
-    if len(H) == 0: 
+    if len(H) == 0:
         b = gen_specs['initial_batch_size']
 
         O = np.zeros(b, dtype=gen_specs['out'])
@@ -32,11 +32,11 @@ def uniform_random_sample_with_different_nodes_and_ranks(H,persis_info,gen_specs
             O['num_nodes'][i] = 1
             O['ranks_per_node'][i] = 16
             O['priority'] = 1
-        
+
     else:
         O = np.zeros(1, dtype=gen_specs['out'])
         O['x'] = len(H)*np.ones(n)
-        O['num_nodes'] = np.random.randint(1,gen_specs['max_num_nodes']+1) 
+        O['num_nodes'] = np.random.randint(1,gen_specs['max_num_nodes']+1)
         O['ranks_per_node'] = np.random.randint(1,gen_specs['max_ranks_per_node']+1)
         O['priority'] = 10*O['num_nodes']
 
@@ -47,9 +47,9 @@ def uniform_random_sample_obj_components(H,persis_info,gen_specs,_):
     """
     Generates points uniformly over the domain defined by ``gen_specs['ub']``
     and ``gen_specs['lb']`` but requests each ``obj_component`` be evaluated
-    separately.  
+    separately.
 
-    :See: 
+    :See:
         ``libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py``
     """
     ub = gen_specs['ub']

@@ -18,10 +18,10 @@ def uniform_or_localopt(H,persis_info,gen_specs,libE_info):
     ``libE_info['persistent']`` isn't ``True``).  Otherwise, the generation
     function a persistent nlopt local optimization run.
 
-    :See: 
+    :See:
         ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
     """
-    
+
     ub = gen_specs['ub']
     lb = gen_specs['lb']
 
@@ -44,7 +44,7 @@ def uniform_or_localopt(H,persis_info,gen_specs,libE_info):
 
 
 def try_and_run_nlopt(H, gen_specs, libE_info):
-    """ 
+    """
     Set up objective and runs nlopt performing communication with the manager in
     order receive function values for points of interest.
     """
@@ -57,19 +57,19 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         # Send back x to the manager
         O = np.zeros(1, dtype=gen_specs['out'])
         O = add_to_O(O,x,0,gen_specs['ub'],gen_specs['lb'],local=True,active=True)
-                
+
         D = {'calc_out':O,
              'libE_info': {'persistent':True},
              'calc_status': UNSET_TAG,
              'calc_type': EVAL_GEN_TAG
             }
-        #----------------------------------------------------------------------------------        
+        #----------------------------------------------------------------------------------
         comm.send(obj=D,dest=0,tag=EVAL_GEN_TAG)
 
-        ## Receive information from the manager (or a STOP_TAG) 
+        ## Receive information from the manager (or a STOP_TAG)
         #status = MPI.Status()
 
-        #libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)       
+        #libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
 
         #tag = status.Get_tag()
         #if tag in [STOP_TAG, PERSIS_STOP]:
@@ -82,21 +82,21 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         #----------------------------------------------------------------------------------
 
 
-        # Receive information from the manager (or a STOP_TAG) 
-        status = MPI.Status()     
-        
-        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)          
+        # Receive information from the manager (or a STOP_TAG)
+        status = MPI.Status()
+
+        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)
         tag = status.Get_tag()
-        if tag in [STOP_TAG, PERSIS_STOP]:            
+        if tag in [STOP_TAG, PERSIS_STOP]:
             #sh - What is this doing...
             nlopt.forced_stop.message = 'tag=' + str(tag)
-            raise nlopt.forced_stop           
+            raise nlopt.forced_stop
             #man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
             #if man_signal == MAN_SIGNAL_FINISH: #shutdown the worker
                 #break
         else:
             Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        
+
         libE_info = Work['libE_info']
         calc_in = comm.recv(buf=None, source=0)
         #----------------------------------------------------------------------------------
@@ -133,13 +133,13 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
     if 'localopt_maxeval' in gen_specs:
         opt.set_maxeval(gen_specs['localopt_maxeval'])
-    else: 
+    else:
         opt.set_maxeval(100*n) # evaluate one more point
 
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, H, gen_specs, libE_info['comm']))
     opt.set_xtol_rel(gen_specs['xtol_rel'])
-    
-    # Try to peform a local optimization run. 
+
+    # Try to peform a local optimization run.
     #import pdb;pdb.set_trace()
     try:
         x_opt = opt.optimize(x0)
@@ -157,8 +157,8 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         x_opt = []
         persis_info_updates = {}
         tag_out = int(e.message.split('=')[-1])
-        
-    return x_opt, persis_info_updates, tag_out 
+
+    return x_opt, persis_info_updates, tag_out
 
 
 def add_to_O(O,x,i,ub,lb,local=False,active=False):
