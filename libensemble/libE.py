@@ -113,7 +113,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
-        hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)        
+        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)        
         try:
             persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:

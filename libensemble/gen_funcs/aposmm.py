@@ -810,7 +810,6 @@ def initialize_APOSMM(H, gen_specs):
         _, counts = np.unique(pt_ids,return_counts=True)
         n_s = np.sum(counts == gen_specs['components'])
     else:
-        import pdb; pdb.set_trace()
         n_s = np.sum(np.logical_and.reduce((~np.isnan(H['f']),~H['local_pt'], H['returned']))) # Number of returned sampled points (excluding nans)
 
     # Rather than build up a large output, we will just make changes in the 
