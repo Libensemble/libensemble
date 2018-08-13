@@ -68,3 +68,4 @@ def rmfield( a, *fieldnames_to_remove ):
 if __name__ == "__main__":
     # import ipdb; ipdb.set_trace()
     test_nonworker_and_nonmanager_rank()
+    test_exception_raising_manager()

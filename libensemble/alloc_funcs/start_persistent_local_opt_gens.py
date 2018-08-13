@@ -27,7 +27,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     :See: 
         ``/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
     """
-    H = hist.trim_H()
+
     Work = {}
     gen_count = 0
     already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.

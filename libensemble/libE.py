@@ -22,9 +22,10 @@ import traceback
 
 # Set root logger
 # (Set above libe imports so errors in import are captured)
-# LEVEL: DEBUG/INFO/WARNING
+# LEVEL: DEBUG/INFO/WARNING/ERROR
 logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
 
+from libensemble.history import History
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
@@ -112,16 +113,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
-    # Could add option for user to create and pass in - else create (either here or on manager only)
-    # IF do here - init on all procs - though H0 may only be non-empty proc zero - others procs - empty History
-    # Note:
-    # May not need all args - Not currently using libE_specs, failure_processing, persis_info
-    hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)
-    
-
-        # or create here
-        #hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, failure_processing, exit_criteria, H0, persis_info)
-                       
+        hist = History(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)        
         try:
             persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
@@ -134,7 +126,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
             eprint(traceback.format_exc()) 
             
             eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime  
-            filename = 'libE_history_at_abort_' + str(H.sim_count) + '.npy'
+            filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
             np.save(filename,hist.trim_H())
             
             #Could have timing in here still...
@@ -161,7 +153,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            if 'abort_on_worker_exc' in libE_specs:     
+            if 'abort_on_worker_exc' in libE_specs:
+                #Cant dump hist from a worker unless keep a copy updated on workers.
+                libE_specs['comm'].Abort()
         else:
             logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
@@ -169,11 +163,12 @@ def libE(sim_specs, gen_specs, exit_criteria,
     libE_specs['comm'].Barrier()
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
         CalcInfo.merge_statfiles()
+        H = hist.trim_H()
 
     #return hist, persis_info, exit_flag
-    
+    #import pdb; pdb.set_trace()
     #currently return hist.H so dont need to modify calling scripts
-    return hist.trim_H(), persis_info, exit_flag
+    return H, persis_info, exit_flag
 
 
 

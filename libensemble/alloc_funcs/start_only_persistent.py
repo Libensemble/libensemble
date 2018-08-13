@@ -19,7 +19,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     :See:
         ``/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
     """
-    H = hist.trim_H()
+
     Work = {}
     gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
     already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.

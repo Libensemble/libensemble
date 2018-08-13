@@ -212,12 +212,14 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
             
     return W, persis_info
 
+
 def update_active_and_queue(H, libE_specs, gen_specs, data):
     """
     Call a user-defined function that decides if active work should be continued
     and possibly updated the priority of points in H.
     """
     if 'queue_update_function' in libE_specs and len(H):
+        #DO NOT RETURN H
         H, data = libE_specs['queue_update_function'](H, gen_specs, data)
 
     return data
@@ -303,7 +305,7 @@ def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_
     ### Receive from all active workers
     while any(W['active']):
 
-        hist, W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
 
         if term_test(hist) == 2 and any(W['active']):
 
@@ -313,8 +315,10 @@ def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_
             sys.stdout.flush()
             sys.stderr.flush()
 
+            status = MPI.Status()
             for w in W['worker_id'][W['active'] > 0]:
-                comm.irecv(source=w, tag=MPI.ANY_TAG)
+                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
+                    D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
             exit_flag = 2
             break
 

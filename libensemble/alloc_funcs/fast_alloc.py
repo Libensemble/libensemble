@@ -17,7 +17,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     :See: 
         ``/libensemble/tests/regression_tests/test_fast_alloc.py``
     """
-    H = hist.trim_H()
+
     Work = {}
     gen_count = sum(W['active'] == EVAL_GEN_TAG)
 
