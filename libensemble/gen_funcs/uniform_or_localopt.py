@@ -11,7 +11,7 @@ from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_G
 
 import nlopt
 
-def uniform_or_localopt(H,persis_info,gen_specs,libE_info):
+def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
     This generation function returns ``gen_specs['gen_batch_size']`` uniformly
     sampled points when called in nonpersistent mode (i.e., when
@@ -22,24 +22,22 @@ def uniform_or_localopt(H,persis_info,gen_specs,libE_info):
         ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
     """
 
-    ub = gen_specs['ub']
-    lb = gen_specs['lb']
-
-    if 'persistent' in libE_info and libE_info['persistent']:
-        x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs,libE_info)
+    if libE_info.get('persistent'):
+        x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs, libE_info)
         O = []
         return O, persis_info_updates, tag_out
     else:
+        ub = gen_specs['ub']
+        lb = gen_specs['lb']
         n = len(lb)
         b = gen_specs['gen_batch_size']
 
         O = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0,b):
-            # x = np.random.uniform(lb,ub,(1,n))
             x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
             O = add_to_O(O,x,i,ub,lb)
 
-        persis_info_updates = persis_info # We want to send this back so it is over written.
+        persis_info_updates = persis_info # Send this back so it is overwritten.
         return O, persis_info_updates
 
 
@@ -48,7 +46,10 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     Set up objective and runs nlopt performing communication with the manager in
     order receive function values for points of interest.
     """
-    def nlopt_obj_fun(x, grad, H, gen_specs, comm):
+
+    comm = libE_info['comm']
+
+    def nlopt_obj_fun(x, grad):
         if np.array_equiv(x, H['x']):
             if gen_specs['localopt_method'] in ['LD_MMA']:
                 grad[:] = H['grad']
@@ -56,104 +57,61 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
         # Send back x to the manager
         O = np.zeros(1, dtype=gen_specs['out'])
-        O = add_to_O(O,x,0,gen_specs['ub'],gen_specs['lb'],local=True,active=True)
+        O = add_to_O(O, x, 0, gen_specs['ub'], gen_specs['lb'], local=True, active=True)
 
-        D = {'calc_out':O,
-             'libE_info': {'persistent':True},
+        D = {'calc_out': O,
+             'libE_info': {'persistent': True},
              'calc_status': UNSET_TAG,
              'calc_type': EVAL_GEN_TAG
             }
-        #----------------------------------------------------------------------------------
-        comm.send(obj=D,dest=0,tag=EVAL_GEN_TAG)
 
-        ## Receive information from the manager (or a STOP_TAG)
-        #status = MPI.Status()
-
-        #libE_info = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-
-        #tag = status.Get_tag()
-        #if tag in [STOP_TAG, PERSIS_STOP]:
-            #nlopt.forced_stop.message = 'tag=' + str(tag)
-            #raise nlopt.forced_stop
-
-        #_ = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-        #calc_in = comm.recv(buf=None,source=0,tag=MPI.ANY_TAG,status=status)
-
-        #----------------------------------------------------------------------------------
-
+        comm.send(obj=D, dest=0, tag=EVAL_GEN_TAG)
 
         # Receive information from the manager (or a STOP_TAG)
         status = MPI.Status()
-
         comm.probe(source=0, tag=MPI.ANY_TAG, status=status)
         tag = status.Get_tag()
         if tag in [STOP_TAG, PERSIS_STOP]:
-            #sh - What is this doing...
             nlopt.forced_stop.message = 'tag=' + str(tag)
             raise nlopt.forced_stop
-            #man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
-            #if man_signal == MAN_SIGNAL_FINISH: #shutdown the worker
-                #break
-        else:
-            Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-
+        Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
         libE_info = Work['libE_info']
         calc_in = comm.recv(buf=None, source=0)
-        #----------------------------------------------------------------------------------
 
         if gen_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = calc_in['grad']
-
-        f = float(calc_in['f'])
-
-        return f
+        return float(calc_in['f'])
 
     x0 = H['x'].flatten()
-
-    n = len(gen_specs['ub'])
-
-    opt = nlopt.opt(getattr(nlopt,gen_specs['localopt_method']), n)
-
-    # lb = np.zeros(n)
-    # ub = np.ones(n)
-
     lb = gen_specs['lb']
     ub = gen_specs['ub']
+    n = len(ub)
 
+    opt = nlopt.opt(getattr(nlopt,gen_specs['localopt_method']), n)
     opt.set_lower_bounds(lb)
     opt.set_upper_bounds(ub)
 
-    # Care must be taken with NLopt because a too-large initial step causes nlopt to move the starting point!
+    # Care must be taken with NLopt because a too-large initial step causes
+    # nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0),min(x0-lb))
+    init_step = dist_to_bound*gen_specs.get('dist_to_bound_multiple', 1)
+    opt.set_initial_step(init_step)
 
-    if 'dist_to_bound_multiple' in gen_specs:
-        opt.set_initial_step(dist_to_bound*gen_specs['dist_to_bound_multiple'])
-    else:
-        opt.set_initial_step(dist_to_bound)
-
-    if 'localopt_maxeval' in gen_specs:
-        opt.set_maxeval(gen_specs['localopt_maxeval'])
-    else:
-        opt.set_maxeval(100*n) # evaluate one more point
-
-    opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, H, gen_specs, libE_info['comm']))
+    opt.set_maxeval(gen_specs.get('localopt_maxeval', 100*n))
+    opt.set_min_objective(nlopt_obj_fun)
     opt.set_xtol_rel(gen_specs['xtol_rel'])
 
-    # Try to peform a local optimization run.
-    #import pdb;pdb.set_trace()
+    # Run local optimization.  Only send persis_info_updates back so new
+    # information added to persis_info since this persistent instance started
+    # (e.g., 'run_order'), is not overwritten
     try:
         x_opt = opt.optimize(x0)
         exit_code = opt.last_optimize_result()
-
+        persis_info_updates = {'done': True}
         if exit_code > 0 and exit_code < 5:
-            persis_info_updates = {'done': True,'x_opt':x_opt} # Only send this back so new information added to persis_info since this persistent instance started (e.g., 'run_order'), is not overwritten
-        else:
-            persis_info_updates = {'done': True} # Only send this back so new information added to persis_info since this persistent instance started (e.g., 'run_order'), is not overwritten
-
+            persis_info_updates['x_opt'] = x_opt
         tag_out = FINISHED_PERSISTENT_GEN_TAG
-    except Exception as e:
-        # This exception is raised when the manager sends a PERSIS_STOP or
-        # STOP_TAG signal
+    except Exception as e:  # Raised when manager sent PERSIS_STOP or STOP_TAG
         x_opt = []
         persis_info_updates = {}
         tag_out = int(e.message.split('=')[-1])
@@ -161,7 +119,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     return x_opt, persis_info_updates, tag_out
 
 
-def add_to_O(O,x,i,ub,lb,local=False,active=False):
+def add_to_O(O, x, i, ub, lb, local=False, active=False):
     """
     Builds or inserts points into the numpy structured array O that will be sent
     back to the manager.
