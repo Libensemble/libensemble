@@ -810,6 +810,7 @@ def initialize_APOSMM(H, gen_specs):
         _, counts = np.unique(pt_ids,return_counts=True)
         n_s = np.sum(counts == gen_specs['components'])
     else:
+        import pdb; pdb.set_trace()
         n_s = np.sum(np.logical_and.reduce((~np.isnan(H['f']),~H['local_pt'], H['returned']))) # Number of returned sampled points (excluding nans)
 
     # Rather than build up a large output, we will just make changes in the 
@@ -852,7 +853,7 @@ def queue_update_function(H, gen_specs, persistent_data):
         persistent_data['H_len'] = 0
 
     if len(H)==persistent_data['H_len']:
-        return H, persistent_data
+        return persistent_data
     else:
         persistent_data['H_len']=len(H)
 
@@ -904,7 +905,7 @@ def queue_update_function(H, gen_specs, persistent_data):
         persistent_data['already_paused'].update(pt_ids_to_pause)
         H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = True
 
-    return H, persistent_data
+    return persistent_data
 
 
 # if __name__ == "__main__":

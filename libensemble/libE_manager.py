@@ -219,8 +219,7 @@ def update_active_and_queue(H, libE_specs, gen_specs, data):
     and possibly updated the priority of points in H.
     """
     if 'queue_update_function' in libE_specs and len(H):
-        #DO NOT RETURN H
-        H, data = libE_specs['queue_update_function'](H, gen_specs, data)
+        data = libE_specs['queue_update_function'](H, gen_specs, data)
 
     return data
 
