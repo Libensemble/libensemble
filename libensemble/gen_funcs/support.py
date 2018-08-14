@@ -4,6 +4,8 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_G
 
 
 def sendrecv_mgr_worker_msg(comm, O, status=None):
+    """Send message from worker to manager and receive response.
+    """
     send_mgr_worker_msg(comm, O)
     return get_mgr_worker_msg(comm, status=status)
 
