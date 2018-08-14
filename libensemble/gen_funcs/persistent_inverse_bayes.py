@@ -9,7 +9,7 @@ import sys
 import pdb
 
 from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.gen_funcs.support import get_mgr_worker_msg
+from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
 
 
 def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
@@ -40,18 +40,8 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
                 O['prior'][row] = np.random.randn()
                 O['prop'][row] = np.random.randn()
 
-        # What is being sent to manager to pass on to workers
-        D = {'calc_out':O,
-             'libE_info': {'persistent':True},
-             'calc_status': UNSET_TAG,
-             'calc_type': EVAL_GEN_TAG
-            }
-
-        # Sending data
-        comm.send(obj=D,dest=0,tag=EVAL_GEN_TAG)
-
-        # Get next assignment
-        tag, Work, calc_in = get_mgr_worker_msg(comm, status)
+        # Send data and get next assignment
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, O, status)
         if tag in [STOP_TAG, PERSIS_STOP]:
             break
         libE_info = Work['libE_info']

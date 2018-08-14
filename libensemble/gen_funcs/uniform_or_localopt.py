@@ -8,7 +8,7 @@ from mpi4py import MPI
 import sys
 
 from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.gen_funcs.support import get_mgr_worker_msg
+from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
 
 import nlopt
 
@@ -61,16 +61,8 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         O = np.zeros(1, dtype=gen_specs['out'])
         O = add_to_O(O, x, 0, gen_specs['ub'], gen_specs['lb'], local=True, active=True)
 
-        D = {'calc_out': O,
-             'libE_info': {'persistent': True},
-             'calc_status': UNSET_TAG,
-             'calc_type': EVAL_GEN_TAG
-            }
-
-        comm.send(obj=D, dest=0, tag=EVAL_GEN_TAG)
-
-        # Receive information from the manager (or a STOP_TAG)
-        tag, Work, calc_in = get_mgr_worker_msg(comm)
+        # Send, then receive information from the manager (or a STOP_TAG)
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, O)
         if tag in [STOP_TAG, PERSIS_STOP]:
             nlopt.forced_stop.message = 'tag=' + str(tag)
             raise nlopt.forced_stop
