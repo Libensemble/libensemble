@@ -47,7 +47,7 @@ class History:
             
         """
         L = exit_criteria.get('sim_max', 100)
-
+        #import pdb; pdb.set_trace()
         H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
 
         if len(H0):
@@ -115,7 +115,11 @@ class History:
         self.H['given'][q_inds] = True
         self.H['given_time'][q_inds] = time.time()
         self.H['sim_worker'][q_inds] = sim_worker
-        self.given_count += 1
+
+        if np.isscalar(q_inds):
+            self.given_count += 1
+        else:
+            self.given_count += len(q_inds)
 
 
     def update_history_x_in(self, gen_worker, O):

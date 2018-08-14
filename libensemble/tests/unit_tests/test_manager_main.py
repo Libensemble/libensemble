@@ -63,17 +63,17 @@ def test_termination_test():
     # 
 
 
-def test_update_history_x_in():
+#def test_update_history_x_in():
 
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
-    H, H_ind,term_test,_,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[],libE_specs) 
+    #sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
+    #H, H_ind,term_test,_,_,_ = man.initialize(sim_specs, gen_specs, al, exit_criteria,[],libE_specs) 
 
-    # Don't do anything when O is empty
-    O = np.zeros(0, dtype=gen_specs['out'])
+    ## Don't do anything when O is empty
+    #O = np.zeros(0, dtype=gen_specs['out'])
 
-    H, H_ind = man.update_history_x_in(H, H_ind, 1, O)
+    #H, H_ind = man.update_history_x_in(H, H_ind, 1, O)
 
-    assert H_ind == 0
+    #assert H_ind == 0
 
 
 if __name__ == "__main__":
