@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+from libensemble.alloc_funcs.support import avail_worker_ids
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
@@ -20,25 +21,24 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     Work = {}
     gen_count = sum(W['active'] == EVAL_GEN_TAG)
 
-    for i in W['worker_id'][W['active'] == 0]:
+    for i in avail_worker_ids(W):
 
         # Find indices of H that are not yet allocated
         if persis_info['next_to_give'] < len(H):
             # Give sim work if possible
             Work[i] = {'H_fields': sim_specs['in'],
-                       'persis_info': {}, # Our sims don't need information about how points were generatored
+                       'persis_info': {},
                        'tag': EVAL_SIM_TAG,
                        'libE_info': {'H_rows': [persis_info['next_to_give']]},
                       }
             persis_info['next_to_give'] += 1
 
-        else:
-            # ...unless there are already more than num_active_gen instances
-            if 'num_active_gens' in gen_specs and gen_count >= gen_specs['num_active_gens']:
-                break
+        elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
 
-            # Don't give out any gen instances if in batch mode and any point has not been returned
-            if gen_specs.get('batch_mode') and (len(H) and not all(H['returned'][persis_info['last_size']:])):
+            # Don't give gen instances in batch mode if points are unfinished
+            last_size = persis_info.get('last_size')
+            if (gen_specs.get('batch_mode')
+                    and (len(H) and not all(H['returned'][last_size:]))):
                 break
             else:
                 persis_info['last_size'] = len(H)
