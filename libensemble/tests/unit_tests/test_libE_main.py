@@ -53,6 +53,15 @@ def test_checking_inputs():
     H0 = rmfield( H0, 'returned')
     check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
 
+    # Should fail because H0 has fields not in H 
+    H0 = np.zeros(3,dtype=sim_specs['out'] + gen_specs['out'] + [('bad_name',bool),('bad_name2',bool)])
+    try:
+        check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
+    except AssertionError:
+        assert 1
+    else:
+        assert 0
+
     # Should fail because 'workers' is given, but not a communicator
     libE_specs.pop('comm')
     try:

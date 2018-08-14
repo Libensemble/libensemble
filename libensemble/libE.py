@@ -209,7 +209,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     if len(H0):
         fields = H0.dtype.names
-        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields not in H. Exiting"
+        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names)) 
         if 'returned' in fields:
             assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
 
