@@ -37,7 +37,7 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         O = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0,b):
             x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
-            O = add_to_O(O,x,i,ub,lb)
+            O = add_to_O(O, x, i, ub, lb)
 
         persis_info_updates = persis_info # Send this back so it is overwritten.
         return O, persis_info_updates
@@ -52,25 +52,27 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     comm = libE_info['comm']
 
     def nlopt_obj_fun(x, grad):
+
+        # Check if we can do an early return
         if np.array_equiv(x, H['x']):
             if gen_specs['localopt_method'] in ['LD_MMA']:
                 grad[:] = H['grad']
             return np.float(H['f'])
 
-        # Send back x to the manager
-        O = np.zeros(1, dtype=gen_specs['out'])
-        O = add_to_O(O, x, 0, gen_specs['ub'], gen_specs['lb'], local=True, active=True)
-
-        # Send, then receive information from the manager (or a STOP_TAG)
+        # Send back x to the manager, then receive info or stop tag
+        O = add_to_O(np.zeros(1, dtype=gen_specs['out']), x, 0,
+                     gen_specs['ub'], gen_specs['lb'], local=True, active=True)
         tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, O)
         if tag in [STOP_TAG, PERSIS_STOP]:
             nlopt.forced_stop.message = 'tag=' + str(tag)
             raise nlopt.forced_stop
-        libE_info = Work['libE_info']
 
+        # Return function value (and maybe gradient)
         if gen_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = calc_in['grad']
         return float(calc_in['f'])
+
+    # ---------------------------------------------------------------------
 
     x0 = H['x'].flatten()
     lb = gen_specs['lb']

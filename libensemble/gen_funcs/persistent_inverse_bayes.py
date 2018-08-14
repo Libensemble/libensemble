@@ -8,7 +8,7 @@ from mpi4py import MPI
 import sys
 import pdb
 
-from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
 
 
@@ -35,8 +35,7 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
         for j in range(num_subbatches):
             for i in range(subbatch_size):
                 row = subbatch_size*j + i
-                x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
-                O['x'][row] = x
+                O['x'][row] = persis_info['rand_stream'].uniform(lb,ub,(1,n))
                 O['subbatch'][row] = j
                 O['batch'][row] = batch
                 O['prior'][row] = np.random.randn()
