@@ -4,9 +4,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import numpy as np
-from mpi4py import MPI
-import sys
-import pdb
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
@@ -23,8 +20,6 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
     num_subbatches = gen_specs['num_subbatches']
 
     # Receive information from the manager (or a STOP_TAG)
-    status = MPI.Status()
-
     batch = -1
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
@@ -42,7 +37,7 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
                 O['prop'][row] = np.random.randn()
 
         # Send data and get next assignment
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, O, status)
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, O)
         if calc_in is not None:
             w = O['prior'] + calc_in['like'] - O['prop']
 
