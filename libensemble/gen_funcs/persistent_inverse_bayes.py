@@ -9,6 +9,8 @@ import sys
 import pdb
 
 from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
+from libensemble.gen_funcs.support import get_mgr_worker_msg
+
 
 def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
     """
@@ -22,7 +24,7 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
     status = MPI.Status()
 
     batch = -1
-    while 1:
+    while True:
         batch += 1
         O = np.zeros(gen_specs['subbatch_size']*gen_specs['num_subbatches'], dtype=gen_specs['out'])
         if 'w' in vars():
@@ -48,17 +50,11 @@ def persistent_updater_after_likelihood(H,persis_info,gen_specs,libE_info):
         # Sending data
         comm.send(obj=D,dest=0,tag=EVAL_GEN_TAG)
 
-        # Not sure what probe is doing, possibly bothering manager to see if its quiting time
-        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)
-        tag = status.Get_tag()
+        # Get next assignment
+        tag, Work, calc_in = get_mgr_worker_msg(comm, status)
         if tag in [STOP_TAG, PERSIS_STOP]:
             break
-        else:
-            Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-
-        # Not sure why there are two comm.recv
         libE_info = Work['libE_info']
-        calc_in = comm.recv(buf=None, source=0)
         w = O['prior'] + calc_in['like'] - O['prop']
 
 

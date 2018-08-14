@@ -8,8 +8,10 @@ from mpi4py import MPI
 import sys
 
 from libensemble.message_numbers import UNSET_TAG, STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
+from libensemble.gen_funcs.support import get_mgr_worker_msg
 
 import nlopt
+
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
@@ -68,15 +70,11 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         comm.send(obj=D, dest=0, tag=EVAL_GEN_TAG)
 
         # Receive information from the manager (or a STOP_TAG)
-        status = MPI.Status()
-        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)
-        tag = status.Get_tag()
+        tag, Work, calc_in = get_mgr_worker_msg(comm)
         if tag in [STOP_TAG, PERSIS_STOP]:
             nlopt.forced_stop.message = 'tag=' + str(tag)
             raise nlopt.forced_stop
-        Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
         libE_info = Work['libE_info']
-        calc_in = comm.recv(buf=None, source=0)
 
         if gen_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = calc_in['grad']
