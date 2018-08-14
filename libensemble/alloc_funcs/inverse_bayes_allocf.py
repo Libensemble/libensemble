@@ -13,7 +13,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 
 
 
-def only_persistent_gens_for_inverse_bayse(W, H, sim_specs, gen_specs, persis_info):
+def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_info):
     """ 
     Starts up to gen_count number of persistent generators.
     These persistent generators produce points (x) in batches and subbatches. 
