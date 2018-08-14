@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import numpy as np
 
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+from libensemble.alloc_funcs.support import avail_worker_ids
+
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """
@@ -28,31 +30,29 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
 
     Work = {}
     gen_count = sum(W['active'] == EVAL_GEN_TAG)
+    blocked_set = set(W['worker_id'][W['blocked']])
 
-    for i in W['worker_id'][W['active'] == 0]:
+    for i in avail_worker_ids(W):
 
         # Only consider giving to worker i if it's resources are not blocked by some other calculation
-        blocked_set = set(W['worker_id'][W['blocked']]).union(*[j['libE_info']['blocking'] for j in Work.values() if 'blocking' in j['libE_info']])
         if i in blocked_set:
             continue
 
         # Find indices of H that are not given nor paused
-        jj = list(H['allocated'])
-        if not all(jj):
+        if not np.all(H['allocated']):
             # Give sim work if possible
 
+            # Pick all high priority, oldest high priority, or just oldest point
             if 'priority' in H.dtype.fields:
-                if 'give_all_with_same_priority' in gen_specs and gen_specs['give_all_with_same_priority']:
-                    # Give all points with highest priority
-                    q_inds = H['priority'][~H['allocated']] == np.max(H['priority'][~H['allocated']])
-                    sim_ids_to_send = np.nonzero(~H['allocated'])[0][q_inds]
+                priorities = H['priority'][~H['allocated']]
+                if gen_specs.get('give_all_with_same_priority'):
+                    q_inds = (priorities == np.max(priorities))
                 else:
-                    # Give first point with highest priority
-                    sim_ids_to_send = np.nonzero(~H['allocated'])[0][np.argmax(H['priority'][~H['allocated']])]
+                    q_inds = np.argmax(priorities)
             else:
-                # Give oldest point
-                sim_ids_to_send = np.nonzero(~H['allocated'])[0][0]
+                q_inds = 0
 
+            sim_ids_to_send = np.nonzero(~H['allocated'])[0][q_inds]
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
 
             # Only give work if enough idle workers
@@ -65,31 +65,31 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
                 block_others = False
 
             Work[i] = {'H_fields': sim_specs['in'],
-                       'persis_info': {}, # Our sims don't need information about how points were generatored
-                       'tag':EVAL_SIM_TAG,
+                       'persis_info': {},
+                       'tag': EVAL_SIM_TAG,
                        'libE_info': {'H_rows': sim_ids_to_send},
                       }
             H['allocated'][sim_ids_to_send] = True
 
             if block_others:
-                unassigned_workers = set(W['worker_id'][W['active'] == 0]) - set(Work.keys()) - blocked_set
+                unassigned_workers = set(avail_worker_ids(W)) - set(Work.keys()) - blocked_set
                 workers_to_block = list(unassigned_workers)[:np.max(H[sim_ids_to_send]['num_nodes'])-1]
+                blocked_set.update(workers_to_block)
                 Work[i]['libE_info']['blocking'] = workers_to_block
 
         else:
-            # Since there is no sim work to give, give gen work.
 
-            # Limit number of gen instances if given
-            if 'num_inst' in gen_specs and gen_count >= gen_specs['num_inst']:
+            # Allow at most num_inst active generator instances
+            if gen_count >= gen_specs.get('num_inst', gen_count+1):
                 break
 
-            # Don't give out any gen instances if in batch mode and any point has not been returned or paused
-            if gen_specs.get('batch_mode') and np.any(np.logical_and(~H['returned'], ~H['paused'])):
+            # Don't give out gen instances in batch mode if workers still working
+            still_working = np.logical_and(~H['returned'], ~H['paused'])
+            if gen_specs.get('batch_mode') and np.any(still_working):
                 break
 
             # Give gen work
             gen_count += 1
-
             Work[i] = {'persis_info': persis_info[i],
                        'H_fields': gen_specs['in'],
                        'tag': EVAL_GEN_TAG,
