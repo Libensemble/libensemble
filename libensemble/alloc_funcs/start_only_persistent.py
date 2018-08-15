@@ -2,8 +2,8 @@ from __future__ import division
 from __future__ import absolute_import
 import numpy as np
 
-from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
+from libensemble.alloc_funcs.support import \
+     avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
@@ -18,7 +18,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
+    gen_count = count_persis_gens(W)
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i

@@ -1,8 +1,8 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
+from libensemble.alloc_funcs.support import \
+     avail_worker_ids, sim_work, gen_work, count_gens
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
@@ -18,7 +18,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = sum(W['active'] == EVAL_GEN_TAG)
+    gen_count = count_gens(W)
 
     for i in avail_worker_ids(W):
         if persis_info['next_to_give'] < len(H):

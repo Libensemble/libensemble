@@ -13,6 +13,16 @@ def avail_worker_ids(W, persistent=None):
                                          W['persis_state'] == 0)]
 
 
+def count_gens(W):
+    "Return the number of generators in a set of workers."
+    return sum(W['active'] == EVAL_GEN_TAG)
+
+
+def count_persis_gens(W):
+    "Return the number of persistent generators in a set of workers."
+    return sum(W['persis_state'] == EVAL_GEN_TAG)
+
+
 def sim_work(Work, i, H_fields, H_rows, **libE_info):
     "Add sim work record to work array."
     libE_info['H_rows'] = H_rows

@@ -3,9 +3,12 @@ from __future__ import absolute_import
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
+from libensemble.alloc_funcs.support import \
+     avail_worker_ids, sim_work, gen_work, count_persis_gens
 
-from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
+from libensemble.gen_funcs.aposmm import \
+     initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
+
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     """
@@ -26,7 +29,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
+    gen_count = count_persis_gens(W)
     task_avail = np.logical_and(~H['given'], ~H['paused'])
 
     # If a persistent localopt run has just finished, use run_order to update H

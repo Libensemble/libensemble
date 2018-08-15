@@ -4,8 +4,9 @@ from __future__ import division
 from __future__ import absolute_import
 import numpy as np
 
-from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
+from libensemble.alloc_funcs.support import \
+     avail_worker_ids, sim_work, gen_work, count_persis_gens
+
 
 def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_info):
     """
@@ -19,34 +20,43 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_in
     """
 
     Work = {}
-    gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
-    already_in_Work = np.zeros(len(H), dtype=bool) # Mark points included in Work, but not 'given' in H.
+    gen_count = count_persis_gens(W)
 
     # If i is idle, but in persistent mode, and generated work has all returned
     # give output back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
-        inds_generated_by_i = (H['gen_worker'] == i) # if > 1 persistant generator, assign the correct work to it
-        if np.all(H['returned'][inds_generated_by_i]): # Has sim_f completed everything from this persistent worker?
+
+        # if > 1 persistant generator, assign the correct work to it
+        inds_generated_by_i = (H['gen_worker'] == i)
+        if np.all(H['returned'][inds_generated_by_i]):
+
+            # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch
-            last_batch_inds = (H['batch'][inds_generated_by_i] == np.max(H['batch'][inds_generated_by_i]))
-            inds_to_send_back = np.where(np.logical_and(inds_generated_by_i, last_batch_inds))[0]
+            batch_ids = H['batch'][inds_generated_by_i]
+            last_batch_inds = (batch_ids == np.max(batch_ids))
+            inds_to_send_back = np.where(np.logical_and(inds_generated_by_i,
+                                                        last_batch_inds))[0]
             if H['batch'][-1] > 0:
                 n = gen_specs['subbatch_size']*gen_specs['num_subbatches']
                 k = H['batch'][-1]
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
+
             gen_work(Work, i, ['like'], persis_info[i],
                      np.atleast_1d(inds_to_send_back), persistent=True)
 
+    task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
-        # perform sim evaluations (if any point hasn't been given).
-        q_inds_logical = np.logical_and(~H['given'], ~already_in_Work)
-        if np.any(q_inds_logical):
-            sims_subbatches = H['subbatch'][q_inds_logical]
-            sim_ids_to_send = np.nonzero(q_inds_logical)[0][sims_subbatches == np.min(sims_subbatches)]
+        if np.any(task_avail):
+
+            # perform sim evaluations (if any point hasn't been given).
+            sim_subbatches = H['subbatch'][task_avail]
+            sim_inds = (sim_subbatches == np.min(sim_subbatches))
+            sim_ids_to_send = np.nonzero(task_avail)[0][sim_inds]
             sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send))
-            already_in_Work[sim_ids_to_send] = True
+            task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
+
             # Finally, generate points since there is nothing else to do.
             gen_count += 1
             gen_work(Work, i, gen_specs['in'], persis_info[i],
