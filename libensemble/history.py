@@ -84,7 +84,7 @@ class History:
 
     def update_history_f(self, D): 
         """
-        Updates the history (in place) after a point has been evaluated
+        Updates the history (in place) after new points have been evaluated
         """
 
         new_inds = D['libE_info']['H_rows'] # The list of rows (as a numpy array)
@@ -111,7 +111,7 @@ class History:
 
     def update_history_x_out(self, q_inds, sim_worker):
         """
-        Updates the history (in place) when a new point has been given out to be evaluated
+        Updates the history (in place) when new points have been given out to be evaluated
 
         Parameters
         ----------

@@ -13,3 +13,10 @@ def make_criteria_and_specs_1(simx=10):
     exit_criteria={'sim_max':simx, 'stop_val':('g',-1), 'elapsed_wallclock_time':0.5}
 
     return sim_specs, gen_specs, exit_criteria
+
+def make_criteria_and_specs_1A(simx=10):
+    sim_specs={'sim_f': np.linalg.norm, 'in':['x'], 'out':[('g',float)], }
+    gen_specs={'gen_f': np.random.uniform, 'in':[], 'out':[('x',float),('priority',float),('sim_id',int)], }
+    exit_criteria={'sim_max':simx, 'stop_val':('g',-1), 'elapsed_wallclock_time':0.5}
+
+    return sim_specs, gen_specs, exit_criteria
