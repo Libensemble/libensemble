@@ -84,7 +84,7 @@ pointers to data instead of the data itself. In some applications, this can
 greatly the size of the history and reduce the amount of data communicated
 to/from the manager.):
 
-* sim_id' [int]: Each unit of work output from gen_f is must have an associated
+* sim_id' [int]: Each unit of work output from gen_f must have an associated
   sim_id. The generator can assign this, but users must careful to ensure
   points are added in order. For example, if alloc_f allows for two gen_f
   instances to be running simultaneously, alloc_f should ensure that both don’t
