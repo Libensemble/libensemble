@@ -31,10 +31,13 @@ class History:
         Where libEnsemble should start filling in H
     
     given_count: integer
-        Number of points given to sim fuctions    
+        Number of points given to sim fuctions (according to H)
 
-     sim_count: integer
-        Number of points evaluated    
+    sim_count: integer
+        Number of points evaluated  (according to H)
+    
+    Note that index, given_count and sim_count reflect the total number of points
+    in H, and therefore include those prepended to H in addition to the current run.
     
     """
 
@@ -70,7 +73,12 @@ class History:
         #self.offset = 0
         self.offset = len(H0)
         self.index = self.offset
+        
+        # libE.check_inputs also checks that all points in H0 are 'returned', so gen and sim have been run.
+        #assert np.all(H0['given']), "H0 contains unreturned points. Exiting"
         self.given_count = self.offset
+        
+        #assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
         self.sim_count = self.offset
 
 
@@ -98,6 +106,7 @@ class History:
                         self.H[field][ind][:H0_size] = H_0[field][j] # Slice View
 
             self.H['returned'][ind] = True
+            self.sim_count += 1
 
 
     def update_history_x_out(self, q_inds, sim_worker):
@@ -124,7 +133,7 @@ class History:
 
     def update_history_x_in(self, gen_worker, O):
         """
-        Updates the history (in place) when a new point has been returned from a gen
+        Updates the history (in place) when new points have been returned from a gen
 
         Parameters
         ----------
@@ -179,7 +188,6 @@ class History:
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
-
         self.H = np.append(self.H,H_1)
 
 

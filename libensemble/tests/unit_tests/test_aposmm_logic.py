@@ -104,8 +104,6 @@ def test_queue_update_function():
     H['returned'][1] = 1 
 
     H['f_i'][4] = np.nan
-    
-    import pdb; pdb.set_trace()
 
     _ = al.queue_update_function(H, gen_specs_0,{})
     assert np.all(H['paused'][4:6])

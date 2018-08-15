@@ -130,7 +130,7 @@ def worker_main(c, sim_specs, gen_specs):
         calc_in = np.zeros(len(libE_info['H_rows']), dtype=dtypes[calc_type])
         if len(calc_in) > 0:
             calc_in = comm.recv(buf=None, source=0)
-            logger.debug("Worker {} received calc_in of len {}".format(workerID, np.size(calc_in)))
+        logger.debug("Worker {} received calc_in of len {}".format(workerID, np.size(calc_in)))
 
         #This is current kluge for persistent worker - comm will be in the future comms module...
         if libE_info.get('persistent'):
