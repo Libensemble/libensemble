@@ -2,8 +2,8 @@ from __future__ import division
 from __future__ import absolute_import
 import numpy as np
 
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids
+from libensemble.message_numbers import EVAL_GEN_TAG
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
@@ -59,11 +59,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
                 break
 
             # Assign resources and mark tasks as allocated to workers
-            Work[i] = {'H_fields': sim_specs['in'],
-                       'persis_info': {},
-                       'tag': EVAL_SIM_TAG,
-                       'libE_info': {'H_rows': sim_ids_to_send},
-                      }
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send)
             H['allocated'][sim_ids_to_send] = True
 
             # Update resource records
@@ -86,10 +82,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
 
             # Give gen work
             gen_count += 1
-            Work[i] = {'persis_info': persis_info[i],
-                       'H_fields': gen_specs['in'],
-                       'tag': EVAL_GEN_TAG,
-                       'libE_info': {'H_rows': range(len(H))}
-                      }
+            gen_work(Work, i, gen_specs['in'], persis_info[i], range(len(H)))
 
     return Work, persis_info

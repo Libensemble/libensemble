@@ -1,8 +1,8 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids
+from libensemble.message_numbers import EVAL_GEN_TAG
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
@@ -26,11 +26,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
         # Find indices of H that are not yet allocated
         if persis_info['next_to_give'] < len(H):
             # Give sim work if possible
-            Work[i] = {'H_fields': sim_specs['in'],
-                       'persis_info': {},
-                       'tag': EVAL_SIM_TAG,
-                       'libE_info': {'H_rows': [persis_info['next_to_give']]},
-                      }
+            sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']])
             persis_info['next_to_give'] += 1
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
@@ -46,11 +42,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_count += 1
-
-            Work[i] = {'persis_info': persis_info[i],
-                       'H_fields': gen_specs['in'],
-                       'tag': EVAL_GEN_TAG,
-                       'libE_info': {'H_rows': range(len(H))}
-                      }
+            gen_work(Work, i, gen_specs['in'], persis_info[i], range(len(H)))
 
     return Work, persis_info

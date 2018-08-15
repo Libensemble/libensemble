@@ -4,8 +4,8 @@ from __future__ import division
 from __future__ import absolute_import
 import numpy as np
 
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids
+from libensemble.message_numbers import EVAL_GEN_TAG
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
 
 def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_info):
     """
@@ -34,12 +34,8 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_in
                 n = gen_specs['subbatch_size']*gen_specs['num_subbatches']
                 k = H['batch'][-1]
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
-            Work[i] = {'persis_info': persis_info[i],
-                       'H_fields': ['like'],
-                       'tag': EVAL_GEN_TAG,
-                       'libE_info': {'H_rows': np.atleast_1d(inds_to_send_back),
-                                     'persistent': True}
-                      }
+            gen_work(Work, i, ['like'], persis_info[i],
+                     np.atleast_1d(inds_to_send_back), persistent=True)
 
     for i in avail_worker_ids(W, persistent=False):
         # perform sim evaluations (if any point hasn't been given).
@@ -47,22 +43,13 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_in
         if np.any(q_inds_logical):
             sims_subbatches = H['subbatch'][q_inds_logical]
             sim_ids_to_send = np.nonzero(q_inds_logical)[0][sims_subbatches == np.min(sims_subbatches)]
-            Work[i] = {'H_fields': sim_specs['in'],
-                       'persis_info': {},
-                       'tag': EVAL_SIM_TAG,
-                       'libE_info': {'H_rows': np.atleast_1d(sim_ids_to_send)},
-                      }
-
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send))
             already_in_Work[sim_ids_to_send] = True
 
         elif gen_count == 0:
             # Finally, generate points since there is nothing else to do.
             gen_count += 1
-            Work[i] = {'persis_info': persis_info[i],
-                       'H_fields': gen_specs['in'],
-                       'tag': EVAL_GEN_TAG,
-                       'libE_info': {'H_rows': [],
-                                     'persistent': True}
-                      }
+            gen_work(Work, i, gen_specs['in'], persis_info[i],
+                     [], persistent=True)
 
     return Work, persis_info

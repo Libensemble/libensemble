@@ -2,8 +2,8 @@ from __future__ import division
 from __future__ import absolute_import
 import numpy as np
 
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids
+from libensemble.message_numbers import EVAL_GEN_TAG
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
 
 from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
@@ -47,13 +47,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
         if np.all(H['returned'][gen_inds]):
             last_time_pos = np.argmax(H['given_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
-            Work[i] = {'persis_info':persis_info[i],
-                       'H_fields': (sim_specs['in']
-                                    + [name[0] for name in sim_specs['out']]),
-                       'tag': EVAL_GEN_TAG,
-                       'libE_info': {'H_rows': np.atleast_1d(last_ind),
-                                     'persistent': True}
-                      }
+            gen_work(Work, i,
+                     sim_specs['in'] + [n[0] for n in sim_specs['out']],
+                     persis_info[i], np.atleast_1d(last_ind), persistent=True)
             persis_info[i]['run_order'].append(last_ind)
 
     for i in avail_worker_ids(W, persistent=False):
@@ -69,14 +65,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
         if starting_inds and gen_count + 1 < len(W):
             # Start at the best possible starting point
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
-
-            Work[i] = {'persis_info':persis_info[i],
-                       'H_fields': (sim_specs['in']
-                                    + [name[0] for name in sim_specs['out']]),
-                       'tag': EVAL_GEN_TAG,
-                       'libE_info': {'H_rows': np.atleast_1d(ind),
-                                     'persistent': True}
-                      }
+            gen_work(Work, i,
+                     sim_specs['in'] + [n[0] for n in sim_specs['out']],
+                     persis_info[i], np.atleast_1d(ind), persistent=True)
 
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
@@ -91,13 +82,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
             if not np.any(q_inds_logical):
                 q_inds_logical = task_avail
             sim_ids_to_send = np.nonzero(q_inds_logical)[0][0] # oldest point
-
-            Work[i] = {'H_fields': sim_specs['in'],
-                       'persis_info': {},
-                       'tag': EVAL_SIM_TAG,
-                       'libE_info': {'H_rows': np.atleast_1d(sim_ids_to_send)},
-                      }
-
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send))
             task_avail[sim_ids_to_send] = False
 
         elif (gen_count == 0
@@ -106,10 +91,6 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
 
             # Finally, generate points since there is nothing else to do
             gen_count += 1
-            Work[i] = {'persis_info': persis_info[i],
-                       'H_fields': gen_specs['in'],
-                       'tag': EVAL_GEN_TAG,
-                       'libE_info': {'H_rows': []}
-                      }
+            gen_work(Work, i, gen_specs['in'], persis_info[i], [])
 
     return Work, persis_info
