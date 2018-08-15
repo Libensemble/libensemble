@@ -5,10 +5,12 @@ from libensemble.message_numbers import WORKER_DONE
 import numpy as np
 from numpy import inf
 
-# Comparing hist produced: options
+# Consider fixtures for this - parameterization may save duplication if always use pytest.
+
+# Comparing hist produced: options (using mix of first two)
 # - hardcode array compare
-# - compare from npy file - stored
 # - compare selected values
+# - compare from npy file - stored
 
 wrs_H0 = np.array([(False, 0., 0, 0., False, 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
                    (False, 0., 0, 0., False, 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
@@ -73,15 +75,15 @@ def hist_setup1A_H0(sim_max=2):
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
 
-def hist_setup2():
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
+def hist_setup2(sim_max=10):
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1(simx=sim_max)
     alloc_specs = {'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]} #default for libE
     H0=[]
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
 
-def hist_setup2A_genout_sim_ids():
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1A()
+def hist_setup2A_genout_sim_ids(sim_max=10):
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1A(simx=sim_max)
     alloc_specs = {'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]} #default for libE
     H0=[]
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
@@ -99,6 +101,7 @@ def test_hist_init_1():
     assert hist.index == 0
     assert hist.sim_count == 0
 
+
 def test_hist_init_1A_H0():
     hist,_,_,_,_  = hist_setup1A_H0()
     
@@ -113,11 +116,32 @@ def test_hist_init_1A_H0():
     assert hist.sim_count == 3
     assert len(hist.H) == 5
     
+    
 def test_hist_init_2():
     hist,_,_,_,_  = hist_setup2()
     assert np.array_equal(hist.H, wrs2), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
+    assert hist.sim_count == 0
+
+
+def test_grow_H():
+    hist,_,_,_,_  = hist_setup1(3)
+    new_rows = 7
+    hist.grow_H(k = new_rows)
+    assert np.array_equal(hist.H, wrs), "Array does not match expected"
+    assert hist.given_count == 0
+    assert hist.index == 0
+    assert hist.sim_count == 0    
+    
+
+def test_trim_H():
+    hist,_,_,_,_  = hist_setup1(13)
+    hist.index = 10
+    H = hist.trim_H()
+    assert np.array_equal(H, wrs), "Array does not match expected"
+    assert hist.given_count == 0
+    assert hist.index == 10
     assert hist.sim_count == 0
 
 
@@ -132,10 +156,8 @@ def test_update_history_x_in_Oempty():
     assert hist.sim_count == 0
   
   
-#Update values after gen.
-#This function should be extended to include ref. to calc_status in updating.
 def test_update_history_x_in():
-    hist, _, gen_specs,_,_  = hist_setup2()
+    hist, _, gen_specs,_,_  = hist_setup2(7)
     #import pdb; pdb.set_trace()
     #calc_in = hist.H[gen_specs['in']][0]
     
@@ -156,25 +178,40 @@ def test_update_history_x_in():
     assert hist.index == 1
     assert hist.sim_count == 0    
 
-    size = 9
+    size = 6
     gen_worker = 3
     O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=9)
-    hist.update_history_x_in(gen_worker, O)    
+    O['x'] = gen_specs['gen_f'](size=size)
     
+    hist.update_history_x_in(gen_worker, O)    
     # Compare by column
-    for field in exp_x_in_setup2.dtype.names:
-        np.allclose(hist.H[field], exp_x_in_setup2[field])
+    exp_x = exp_x_in_setup2[:size+1]
+    for field in exp_x.dtype.names:
+        np.allclose(hist.H[field], exp_x[field])
+    
+    assert hist.given_count == 0
+    assert hist.index == 7
+    assert hist.sim_count == 0
+    
+    # Force H to grow when add points
+    size = 3
+    gen_worker = 3
+    O = np.zeros(size, dtype=gen_specs['out'])
+    O['x'] = gen_specs['gen_f'](size=size)    
+    
+    hist.update_history_x_in(gen_worker, O)    
+    # Compare by column
+    exp_x = exp_x_in_setup2
+    for field in exp_x.dtype.names:
+        np.allclose(hist.H[field], exp_x[field])
     
     assert hist.given_count == 0
     assert hist.index == 10
-    assert hist.sim_count == 0
+    assert hist.sim_count == 0    
 
 
-#Look at fixtures for this - parameterization may save duplication.
-# Different sim_ids supplied by gen_out
 def test_update_history_x_in_sim_ids():
-    hist, _, gen_specs,_,_  = hist_setup2A_genout_sim_ids()
+    hist, _, gen_specs,_,_  = hist_setup2A_genout_sim_ids(7)
     #import pdb; pdb.set_trace()
     #calc_in = hist.H[gen_specs['in']][0]
     
@@ -196,29 +233,41 @@ def test_update_history_x_in_sim_ids():
     assert hist.index == 1
     assert hist.sim_count == 0    
 
-    size = 9
+    size = 6
     gen_worker = 3
     O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=9)
-    O['sim_id'] = range(1, 10)
+    O['x'] = gen_specs['gen_f'](size=size)
+    O['sim_id'] = range(1, 7)
     hist.update_history_x_in(gen_worker, O)    
     
     # Compare by column
-    for field in exp_x_in_setup2.dtype.names:
-        np.allclose(hist.H[field], exp_x_in_setup2[field])
+    exp_x = exp_x_in_setup2[:size+1]
+    for field in exp_x.dtype.names:
+        np.allclose(hist.H[field], exp_x[field])
+    
+    assert hist.given_count == 0
+    assert hist.index == 7
+    assert hist.sim_count == 0
+    
+    # Force H to grow when add points
+    size = 3
+    gen_worker = 3
+    O = np.zeros(size, dtype=gen_specs['out'])
+    O['x'] = gen_specs['gen_f'](size=size)    
+    O['sim_id'] = range(7, 10) 
+    
+    hist.update_history_x_in(gen_worker, O)    
+    # Compare by column
+    exp_x = exp_x_in_setup2
+    for field in exp_x.dtype.names:
+        np.allclose(hist.H[field], exp_x[field])
     
     assert hist.given_count == 0
     assert hist.index == 10
-    assert hist.sim_count == 0
-
-
-
-def test_update_history_x_in_preset_sim_ids():
-    pass
+    assert hist.sim_count == 0      
 
 
 # Note - Ideally have more setup here (so hist.index reflects generated points)
-
 def test_update_history_x_out():
     hist,_,_,_,_  = hist_setup1()
     
@@ -360,16 +409,16 @@ def test_update_history_f_vec():
     
     a = np.array([[ 1, 3, 4],[-1, 2, 4]])
     calc_out['f'][0] = sim_specs['sim_f'](a) #np.linalg.norm
-    calc_out['fvec'][0] = sim_specs['sim_f'](a, axis=0) #np.linalg.norm
     exp_fs[1] = calc_out['f'][0]
+    calc_out['fvec'][0] = sim_specs['sim_f'](a, axis=0) #np.linalg.norm
     exp_fvecs[1] = calc_out['fvec'][0]
 
     a = np.array([[ 2, 4, 4],[-1, 3, 4]])
     calc_out['f'][1] = sim_specs['sim_f'](a) #np.linalg.norm
+    exp_fs[2] = calc_out['f'][1]   
     calc_out['fvec'][1] = sim_specs['sim_f'](a, axis=0) #np.linalg.norm
-    exp_fs[2] = calc_out['f'][1]
     exp_fvecs[2] = calc_out['fvec'][1]
-    
+
     D_recv = {'calc_out': calc_out,
               'persis_info': {},
               'libE_info': {'H_rows': sim_ids},
@@ -387,36 +436,52 @@ def test_update_history_f_vec():
     assert hist.index == 0 # In real case this would be ahead....    
 
 
-def test_grow_H():
-    hist,_,_,_,_  = hist_setup1(3)
-    new_rows = 7
-    hist.grow_H(k = new_rows)
-    assert np.array_equal(hist.H, wrs), "Array does not match expected"
-    assert hist.given_count == 0
-    assert hist.index == 0
-    assert hist.sim_count == 0    
+    # Update two further consecutive points but with sub_array fvec componenets
+    size = 2
+    sim_ids = [3,4] # First row to be filled
+    sim_ids = np.atleast_1d(sim_ids)
+    calc_out = np.zeros(size, dtype=[('f',float),('fvec',float,2)]) # Only two values
     
+    a = np.array([[ 1, 3, 4],[-1, 2, 4]])
+    calc_out['f'][0] = sim_specs['sim_f'](a) #np.linalg.norm
+    exp_fs[3] = calc_out['f'][0]
+    calc_out['fvec'][0][0], calc_out['fvec'][0][1], _ = sim_specs['sim_f'](a, axis=0) #np.linalg.norm
+    exp_fvecs[3] = [0.0, 0.0, 0.0] # Point to a new array - so can fill in elements
+    exp_fvecs[3][:2] = calc_out['fvec'][0] # Change first two values
 
-def test_trim_H():
-    hist,_,_,_,_  = hist_setup1(13)
-    hist.index = 10
-    H = hist.trim_H()
-    assert np.array_equal(H, wrs), "Array does not match expected"
-    assert hist.given_count == 0
-    assert hist.index == 10
-    assert hist.sim_count == 0
+    a = np.array([[ 2, 4, 4],[-1, 3, 4]])
+    calc_out['f'][1] = sim_specs['sim_f'](a) #np.linalg.norm
+    exp_fs[4] = calc_out['f'][1]   
+    calc_out['fvec'][1][0], calc_out['fvec'][1][1], _ = sim_specs['sim_f'](a, axis=0) #np.linalg.norm
+    exp_fvecs[4] = [0.0, 0.0, 0.0] # Point to a new array - so can fill in elements
+    exp_fvecs[4][:2] = calc_out['fvec'][1] # Change first two values
+
+    D_recv = {'calc_out': calc_out,
+              'persis_info': {},
+              'libE_info': {'H_rows': sim_ids},
+              'calc_status': WORKER_DONE,
+              'calc_type': 2}
+   
+    hist.update_history_f(D_recv)
+    
+    assert np.allclose(exp_fs, hist.H['f'])
+    assert np.allclose(exp_fvecs, hist.H['fvec'])       
+    assert np.all(hist.H['returned'][0:5])
+    assert np.all(hist.H['returned'][5:10] == False) #Check the rest
+    assert hist.sim_count == 5
+    assert hist.given_count == 0 # In real case this would be ahead.....
+    assert hist.index == 0 # In real case this would be ahead....       
 
 
 if __name__ == "__main__":
     test_hist_init_1()
     test_hist_init_1A_H0()
     test_hist_init_2()
+    test_grow_H()
+    test_trim_H()
     test_update_history_x_in_Oempty()
     test_update_history_x_in()
     test_update_history_x_in_sim_ids()
     test_update_history_x_out()
     test_update_history_f()
     test_update_history_f_vec()
-    test_grow_H()
-    test_trim_H()
-    
