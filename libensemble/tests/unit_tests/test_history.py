@@ -1,5 +1,3 @@
-from libensemble.history import History
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.message_numbers import WORKER_DONE
 import numpy as np
@@ -60,42 +58,13 @@ exp_x_in_setup2 = np.array([(0, 0, 2, False, 0., 4.17022005e-01, False, False, F
                             (0, 9, 3, False, 0., 5.38816734e-01, False, False, False, inf, 0.)],
                            dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('paused', '?'), ('priority', '<f8'), ('x', '<f8'), ('allocated', '?'), ('returned', '?'), ('given', '?'), ('given_time', '<f8'), ('g', '<f8')])
 
-# Could use fixtures here, but then cant run directly.
-def hist_setup1(sim_max=10):
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0(simx=sim_max)
-    alloc_specs = {'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]} #default for libE
-    H0=[]
-    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
-
-def hist_setup1A_H0(sim_max=2):
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0(simx=sim_max)
-    alloc_specs = {'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]} #default for libE
-    H0=wrs_H0
-    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
-
-def hist_setup2(sim_max=10):
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1(simx=sim_max)
-    alloc_specs = {'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]} #default for libE
-    H0=[]
-    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
-
-def hist_setup2A_genout_sim_ids(sim_max=10):
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1A(simx=sim_max)
-    alloc_specs = {'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]} #default for libE
-    H0=[]
-    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
-
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 # Tests ========================================================================================
 
 def test_hist_init_1():
-    hist,_,_,_,_  = hist_setup1()
+    hist,_,_,_,_  = setup.hist_setup1()
     assert np.array_equal(hist.H, wrs), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
@@ -103,7 +72,7 @@ def test_hist_init_1():
 
 
 def test_hist_init_1A_H0():
-    hist,_,_,_,_  = hist_setup1A_H0()
+    hist,_,_,_,_  = setup.hist_setup1(sim_max=2, H0_in=wrs_H0)
     
     # Compare by column
     for field in exp_H0_H.dtype.names:
@@ -118,7 +87,7 @@ def test_hist_init_1A_H0():
     
     
 def test_hist_init_2():
-    hist,_,_,_,_  = hist_setup2()
+    hist,_,_,_,_  = setup.hist_setup2()
     assert np.array_equal(hist.H, wrs2), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
@@ -126,7 +95,7 @@ def test_hist_init_2():
 
 
 def test_grow_H():
-    hist,_,_,_,_  = hist_setup1(3)
+    hist,_,_,_,_  = setup.hist_setup1(3)
     new_rows = 7
     hist.grow_H(k = new_rows)
     assert np.array_equal(hist.H, wrs), "Array does not match expected"
@@ -136,7 +105,7 @@ def test_grow_H():
     
 
 def test_trim_H():
-    hist,_,_,_,_  = hist_setup1(13)
+    hist,_,_,_,_  = setup.hist_setup1(13)
     hist.index = 10
     H = hist.trim_H()
     assert np.array_equal(H, wrs), "Array does not match expected"
@@ -146,7 +115,7 @@ def test_trim_H():
 
 
 def test_update_history_x_in_Oempty():
-    hist,sim_specs,gen_specs,_,_ = hist_setup2()
+    hist,sim_specs,gen_specs,_,_ = setup.hist_setup2()
     O = np.zeros(0, dtype=gen_specs['out'])
     gen_worker = 1
     hist.update_history_x_in(gen_worker, O)
@@ -157,7 +126,7 @@ def test_update_history_x_in_Oempty():
   
   
 def test_update_history_x_in():
-    hist, _, gen_specs,_,_  = hist_setup2(7)
+    hist, _, gen_specs,_,_  = setup.hist_setup2(7)
     #import pdb; pdb.set_trace()
     #calc_in = hist.H[gen_specs['in']][0]
     
@@ -211,7 +180,7 @@ def test_update_history_x_in():
 
 
 def test_update_history_x_in_sim_ids():
-    hist, _, gen_specs,_,_  = hist_setup2A_genout_sim_ids(7)
+    hist, _, gen_specs,_,_  = setup.hist_setup2A_genout_sim_ids(7)
     #import pdb; pdb.set_trace()
     #calc_in = hist.H[gen_specs['in']][0]
     
@@ -269,7 +238,7 @@ def test_update_history_x_in_sim_ids():
 
 # Note - Ideally have more setup here (so hist.index reflects generated points)
 def test_update_history_x_out():
-    hist,_,_,_,_  = hist_setup1()
+    hist,_,_,_,_  = setup.hist_setup1()
     
     # First update a single point
     hist.update_history_x_out(q_inds=0, sim_worker=2)
@@ -317,7 +286,7 @@ def test_update_history_x_out():
 
 
 def test_update_history_f():
-    hist, sim_specs,_,_,_  = hist_setup2()
+    hist, sim_specs,_,_,_  = setup.hist_setup2()
     exp_vals=[0.0] * 10
     
     # First update a single point
@@ -370,7 +339,7 @@ def test_update_history_f():
 
 
 def test_update_history_f_vec():
-    hist, sim_specs,_,_,_  = hist_setup1()
+    hist, sim_specs,_,_,_  = setup.hist_setup1()
     exp_fs=[0.0] * 10
     exp_fvecs=[[0.0, 0.0, 0.0]] * 10
     

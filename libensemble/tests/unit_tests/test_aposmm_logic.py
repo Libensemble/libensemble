@@ -10,7 +10,7 @@ import libensemble.libE_manager as man
 import libensemble.tests.unit_tests.setup as setup
 
 n = 2
-alloc = {'out':[]}
+#alloc = {'out':[]}
 libE_specs = {'comm':{}, 'workers':set([1,2])}
 
 gen_out = [('x',float,n),
@@ -30,14 +30,14 @@ gen_out = [('x',float,n),
       ]
 
 def test_failing_localopt_method():
-    sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
-    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[],libE_specs)[0]
-    H['returned'] = 1
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
+    
+    hist.H['returned'] = 1
 
     gen_specs_0['localopt_method'] = 'BADNAME'
     
     try: 
-        al.advance_localopt_method(H, gen_specs_0, 0, 0, {'run_order': {0:[0,1]}})
+        al.advance_localopt_method(hist.H, gen_specs_0, 0, 0, {'run_order': {0:[0,1]}})
     except: 
         assert 1, "Failed like it should have"
     else:
@@ -45,14 +45,13 @@ def test_failing_localopt_method():
 
 
 def test_exception_raising():
-    sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
-    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[],libE_specs)[0]
-    H['returned'] = 1
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
+    hist.H['returned'] = 1
 
     for method in ['LN_SBPLX','pounders']:
         gen_specs_0['localopt_method'] = method
         try: 
-            al.advance_localopt_method(H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
+            al.advance_localopt_method(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
         except: 
             assert 1, "Failed like it should have"
         else:
@@ -83,10 +82,9 @@ def test_calc_rk():
 
 
 def test_initialize_APOSMM():
-    sim_specs_0, gen_specs_0, exit_criteria_0 = setup.make_criteria_and_specs_0()
-    H = man.initialize(sim_specs_0, gen_specs_0, alloc, exit_criteria_0,[],libE_specs)[0]
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
 
-    al.initialize_APOSMM(H,gen_specs_0)
+    al.initialize_APOSMM(hist.H,gen_specs_0)
     
 
 def test_queue_update_function():
@@ -114,6 +112,16 @@ def test_queue_update_function():
     assert np.all(H['paused'][4:])
 
 
-#if __name__ == "__main__":
-#     import ipdb; ipdb.set_trace()
-#     test_failing_localopt_method()
+if __name__ == "__main__":
+    test_failing_localopt_method()
+    print('done')
+    test_exception_raising()
+    print('done')
+    test_decide_where_to_start_localopt()
+    print('done')
+    test_calc_rk()
+    print('done')
+    test_initialize_APOSMM()
+    print('done')
+    test_queue_update_function()
+    print('done')

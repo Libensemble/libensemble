@@ -20,11 +20,18 @@ def test_nonworker_and_nonmanager_rank():
     else:
         assert 0
 
+
 def test_exception_raising_manager():
     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
-    H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([0]), 'workers':set([1])})
-    assert H==[]
-
+    try: 
+        H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([0]), 'workers':set([1])})
+    #except AssertionError: 
+    except Exception: 
+        assert 1
+    else:
+        assert 0    
+    #assert H==[]
+    
 # def test_exception_raising_worker():
 #     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
 #     H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([1]), 'workers':set([0])})
@@ -34,9 +41,8 @@ def test_checking_inputs():
 
     # Don't take more points than there is space in history.
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    
-    H0 = np.zeros(3,dtype=sim_specs['out'] + gen_specs['out'] + [('returned',bool)])
 
+    H0 = np.zeros(3,dtype=sim_specs['out'] + gen_specs['out'] + [('returned',bool)])
     # Should fail because H0 has points with 'return'==False
     try:
         check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
@@ -66,6 +72,6 @@ def rmfield( a, *fieldnames_to_remove ):
         return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]
 
 if __name__ == "__main__":
-    # import ipdb; ipdb.set_trace()
     test_nonworker_and_nonmanager_rank()
     test_exception_raising_manager()
+    test_checking_inputs()

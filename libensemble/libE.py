@@ -121,9 +121,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
             if 'abort_on_manager_exc' in libE_specs:
                 # Manager exceptions are fatal
                 eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
+                eprint(traceback.format_exc())                 
             else:
                 eprint("\nManager exception raised:\n") #datetime
-            eprint(traceback.format_exc()) 
             
             eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime  
             filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
@@ -134,6 +134,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
             sys.stderr.flush()
             if 'abort_on_manager_exc' in libE_specs:
                 libE_specs['comm'].Abort()
+            raise
                 
         else:
             logger.debug("Manager exiting")
@@ -148,14 +149,15 @@ def libE(sim_specs, gen_specs, exit_criteria,
             if 'abort_on_worker_exc' in libE_specs:            
                 # Worker exceptions fatal
                 eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
+                eprint(traceback.format_exc())
             else:
                 eprint("\nWorker exception raised on rank {}:\n".format(libE_specs['comm'].Get_rank()))
-            eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
             if 'abort_on_worker_exc' in libE_specs:
                 #Cant dump hist from a worker unless keep a copy updated on workers.
                 libE_specs['comm'].Abort()
+            raise
         else:
             logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
