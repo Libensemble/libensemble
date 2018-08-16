@@ -27,7 +27,7 @@ from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
 from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
 
 # Import alloc_func 
-from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayse as alloc_f
+from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimized

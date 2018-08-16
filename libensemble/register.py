@@ -3,7 +3,6 @@
 """Module to register applications to libEnsemble"""
 
 import os
-import subprocess
 import logging
 from mpi4py import MPI
 
@@ -15,7 +14,7 @@ class RegistrationException(Exception): pass
 
 
 class Application:
-    
+
     '''An application is an executable user-program (e.g. Implementing a sim/gen function).'''
 
     def __init__(self, full_path, calc_type='sim', desc=None, default=True):
@@ -25,67 +24,67 @@ class Application:
         self.desc = desc
         self.default = default
         self.calc_dir, self.exe = os.path.split(full_path)
-        
+
         #Dont change:Why? - cos will use this name to delete jobs in database - see del_apps(), del_jobs()
         self.name = self.exe + '.' + self.calc_type + 'func'
-        
+
         if desc is None:
             self.desc = self.exe + ' ' + self.calc_type + ' function'
 
 #May merge this into job_controller
 class Register():
-    
+
     '''Registers and stores user applications
-    
+
     Attributes
     ----------
     default_registry : Obj: Register or inherited class.
-        A class attribute holding the default registry.    
-    
+        A class attribute holding the default registry.
+
     '''
-    
+
     default_registry = None
-    
+
     def __init__(self, default=True):
         '''Instantiate a new Register instance
-        
+
         Parameters
         ----------
-        
-        default: Boolean, optional  
+
+        default: Boolean, optional
             Make this the default_registry (Default is True)
-        
-        
+
+
         Note: Currently, only a default registry is supported.
-    
+
         '''
         self.sim_default_app = None
-        self.gen_default_app = None        
+        self.gen_default_app = None
         if default:
             Register.default_registry = self
 
         #logger.debug("default_registry is {}".format(Register.default_registry))
         #logger.debug("default_registry sim name is {}".format(Register.default_registry.sim_default_app))
-            
+
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
         '''Registers a user application to libEnsemble
-        
+
         Parameters
         ----------
 
         full_path: String
             The full path of the user application to be registered.
-        
+
         calc_type: String
             Calculation type: Is this application part of a 'sim' or 'gen' function.
-            
-        desc: String, optional  
+
+        desc: String, optional
             Description of this application.
-        
-        default: Boolean, optional  
+
+        default: Boolean, optional
             Register to the default_registry (Default is True).
-        
-        
+
+
         '''
         if default:
             if calc_type == 'sim':
@@ -109,23 +108,23 @@ class Register():
                 raise RegistrationException("Unrecognized calculation type", calc_type)
         else:
             pass #always default currently
-        
+
         #return id(app)
         return
- 
- 
+
+
 class BalsamRegister(Register):
-    
+
     '''Registers and stores user applications in libEnsemble and Balsam'''
-    
+
     @staticmethod
     def del_apps():
-        """ Deletes all Balsam apps whose names contains substring .simfunc or .genfunc"""         
+        """ Deletes all Balsam apps whose names contains substring .simfunc or .genfunc"""
         import balsam.launcher.dag as dag
         from balsam.service import models
-        AppDef = models.ApplicationDefinition 
+        AppDef = models.ApplicationDefinition
         #deletion_objs = AppDef.objects.all()
-        
+
         #Some error handling on deletes.... is it internal
         deletion_objs = AppDef.objects.filter(name__contains='.simfunc')
         if deletion_objs:
@@ -136,7 +135,7 @@ class BalsamRegister(Register):
         if deletion_objs:
             for del_app in deletion_objs.iterator():
                 logger.debug("Deleting app {}".format(del_app.name))
-            deletion_objs.delete()           
+            deletion_objs.delete()
 
     @staticmethod
     def del_jobs():
@@ -145,7 +144,7 @@ class BalsamRegister(Register):
         from balsam.service import models
         Job = models.BalsamJob
         #deletion_objs = Job.objects.all()
-        
+
         deletion_objs = Job.objects.filter(name__contains='.simfunc')
         if deletion_objs:
             for del_job in deletion_objs.iterator():
@@ -155,14 +154,14 @@ class BalsamRegister(Register):
         if deletion_objs:
             for del_job in deletion_objs.iterator():
                 logger.debug("Deleting job {}".format(del_job.name))
-            deletion_objs.delete()        
-        
+            deletion_objs.delete()
+
         ##May be able to use union function - to combine - see queryset help. Eg (not tested)
         #del_simfuncs = Job.objects.filter(name__contains='.simfunc')
-        #del_genfuncs = Job.objects.filter(name__contains='.genfunc')     
+        #del_genfuncs = Job.objects.filter(name__contains='.genfunc')
         #deletion_objs = deletion_objs.union()
-        
-    @staticmethod       
+
+    @staticmethod
     def add_app(name,exepath,desc):
         """ Add application to Balsam database """
         import balsam.launcher.dag as dag
@@ -176,57 +175,57 @@ class BalsamRegister(Register):
         #app.default_postprocess = '' # optional
         app.save()
         logger.debug("Added App {}".format(app.name))
-        
+
     def __init__(self, default=True):
         '''Instantiate a new BalsamRegister instance
-        
+
         Parameters
         ----------
-        
-        default: Boolean, optional  
+
+        default: Boolean, optional
             Make this the default_registry (Default is True)
-        
-        
+
+
         Note: Currently, only a default registry is supported.
-    
+
         '''
-        
+
         super().__init__(default)
         #Check for empty database if poss
         #And/or compare with whats in database and only empty if I need to
-        
+
         #Currently not deleting as will delete the top level job - ie. the one running.
-        
+
         #Will put MPI_MODE in a settings module...
         if MPI.COMM_WORLD.Get_rank() == 0:
             BalsamRegister.del_apps()
             BalsamRegister.del_jobs()
-        
-    
+
+
     def register_calc(self, full_path, calc_type='sim', desc=None, default=True):
         '''Registers a user applications to libEnsemble and Balsam
-        
+
         Parameters
         ----------
 
         full_path: String
             The full path of the user application to be registered.
-        
+
         calc_type: String
             Calculation type: Is this application part of a 'sim' or 'gen' function.
-            
-        desc: String, optional  
+
+        desc: String, optional
             Description of this application.
-        
-        default: Boolean, optional  
+
+        default: Boolean, optional
             Register to the default_registry (Default is True).
-        
-        
+
+
         '''
-        super().register_calc(full_path, calc_type, desc, default) 
+        super().register_calc(full_path, calc_type, desc, default)
         #Req python 3 to exclude args - but as Balsam requires 3.6+ I may do - or is it only __init__()
-        
-        #calc_dir, calc_name = os.path.split(full_path)    
+
+        #calc_dir, calc_name = os.path.split(full_path)
 
         #Get from one place - so always matches
         if calc_type == 'sim':
@@ -238,7 +237,7 @@ class BalsamRegister(Register):
         else:
             #Raise Exception **
             raise RegistrationException("Unrecognized calculation type", calc_type)
-        
+
         #if desc is None:
             #desc = calc_exe + ' ' + calc_type + ' function'
         if MPI.COMM_WORLD.Get_rank() == 0:

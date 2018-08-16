@@ -1,13 +1,10 @@
 from __future__ import division
 from __future__ import absolute_import
 import numpy as np
-import sys, os
 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
-from libensemble.message_numbers import EVAL_SIM_TAG 
-from libensemble.message_numbers import EVAL_GEN_TAG 
+from libensemble.alloc_funcs.support import \
+     avail_worker_ids, sim_work, gen_work, count_persis_gens
 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     """
@@ -21,54 +18,32 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
     """
 
     Work = {}
-    gen_count = sum(W['persis_state'] == EVAL_GEN_TAG)
-    already_in_Work = np.zeros(len(H),dtype=bool) # To mark points as they are included in Work, but not yet marked as 'given' in H.
+    gen_count = count_persis_gens(W)
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']!=0)]:
-        gen_inds = H['gen_worker']==i 
+    for i in avail_worker_ids(W, persistent=True):
+        gen_inds = (H['gen_worker'] == i)
         if np.all(H['returned'][gen_inds]):
-            last_ind = np.nonzero(gen_inds)[0][np.argmax(H['given_time'][gen_inds])]
-            Work[i] = {'persis_info': persis_info[i],
-                       'H_fields': sim_specs['in'] + [name[0] for name in sim_specs['out']],
-                       'tag':EVAL_GEN_TAG, 
-                       'libE_info': {'H_rows': np.atleast_1d(last_ind),
-                                     'persistent': True
-                                }
-                       }
+            last_time_pos = np.argmax(H['given_time'][gen_inds])
+            last_ind = np.nonzero(gen_inds)[0][last_time_pos]
+            gen_work(Work, i,
+                     sim_specs['in'] + [n[0] for n in sim_specs['out']],
+                     persis_info[i], np.atleast_1d(last_ind), persistent=True)
 
+    task_avail = np.logical_and(~H['given'], ~H['paused'])
+    for i in avail_worker_ids(W, persistent=False):
+        if np.any(task_avail):
 
-    for i in W['worker_id'][np.logical_and(W['active']==0,W['persis_state']==0)]:
-        # perform sim evaluations from existing runs (if they exist).
-        q_inds_logical = np.logical_and.reduce((~H['given'],~H['paused'],~already_in_Work))
+            # perform sim evaluations from existing runs (if they exist).
+            sim_ids_to_send = np.nonzero(task_avail)[0][0] # oldest point
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send))
+            task_avail[sim_ids_to_send] = False
 
-        if np.any(q_inds_logical):
-            sim_ids_to_send = np.nonzero(q_inds_logical)[0][0] # oldest point
-
-            Work[i] = {'H_fields': sim_specs['in'],
-                       'persis_info': {}, # Our sims don't need information about how points were generatored
-                       'tag':EVAL_SIM_TAG, 
-                       'libE_info': {'H_rows': np.atleast_1d(sim_ids_to_send),
-                                },
-                      }
-
-            already_in_Work[sim_ids_to_send] = True
-
-        else:
-            # Finally, generate points since there is nothing else to do. 
-            if gen_count > 0: 
-                continue
+        elif gen_count == 0:
+            # Finally, generate points since there is nothing else to do.
             gen_count += 1
-            # There are no points available, so we call our gen_func
-            Work[i] = {'persis_info':persis_info[i],
-                       'H_fields': gen_specs['in'],
-                       'tag':EVAL_GEN_TAG, 
-                       'libE_info': {'H_rows': [],
-                                     'persistent': True
-                                }
-
-                       }
+            gen_work(Work, i, gen_specs['in'], persis_info[i],
+                     [], persistent=True)
 
     return Work, persis_info
-
