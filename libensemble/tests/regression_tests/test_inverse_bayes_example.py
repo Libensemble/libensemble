@@ -48,7 +48,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': gen_specs['num_subbatches']*gen_specs['num_batches']}
+exit_criteria = {'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches']}
 
 np.random.seed(1)
 persis_info = {}
