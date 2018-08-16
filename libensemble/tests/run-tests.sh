@@ -94,7 +94,7 @@ current_time() {
   local time
   #Is bc present
   USE_BC=f
-  bc --version 2> /dev/null && USE_BC=t
+  bc --version 2&>1 /dev/null && USE_BC=t
   if [ $USE_BC = 't' ]; then
     time=$(date +%s.%N)
   else
@@ -109,7 +109,7 @@ current_time() {
 total_time() {
   #Is bc present
   USE_BC=f  
-  bc --version 2> /dev/null && USE_BC=t
+  bc --version 2&>1 /dev/null && USE_BC=t
   if [ $USE_BC = 't' ]; then
     diff=$(echo "scale=2;($2 - $1)*100/100" | bc)
   else
