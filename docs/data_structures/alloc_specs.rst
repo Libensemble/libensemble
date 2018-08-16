@@ -15,9 +15,3 @@ Allocation function specifications to be set in user calling script and passed t
             
         The 'batch_mode' and 'num_inst' are specific arguments for the allocation function give_sim_work_first
 
-:Examples:
-
-From: ::
-
-:See Also:
-

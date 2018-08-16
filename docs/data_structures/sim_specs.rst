@@ -3,7 +3,6 @@
 sim_specs
 =========
 
-
 Simulation function specifications to be set in user calling script and passed to libE.libE()::
 
 
@@ -41,8 +40,4 @@ From: libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py::
                         ],
                  'save_every_k': 400  
                  }
-
-:See Also:
-
-
 
