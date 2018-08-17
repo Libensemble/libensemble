@@ -1072,6 +1072,7 @@ class BalsamJobController(JobController):
         else:
             raise JobControllerException('Job state returned from Balsam is not in known list of Balsam states. Job state is {}'.format(job.balsam_state))
 
+        # DSB: With this commented out, number of return args is inconsistent (returns job above)
         #return job
 
     def kill(self, job):
