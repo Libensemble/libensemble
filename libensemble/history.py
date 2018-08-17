@@ -1,9 +1,9 @@
 from __future__ import division
 from __future__ import absolute_import
 
-import numpy as np
 import time
 import logging
+import numpy as np
 
 from libensemble.libE_fields import libE_fields
 
@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 class HistoryException(Exception): pass
 
 class History:
-
     """The History Class provides methods for managing the history array.
 
     Attributes
@@ -36,13 +35,12 @@ class History:
     sim_count: integer
         Number of points evaluated  (according to H)
 
-    Note that index, given_count and sim_count reflect the total number of points
-    in H, and therefore include those prepended to H in addition to the current run.
-
+    Note that index, given_count and sim_count reflect the total number
+    of points in H, and therefore include those prepended to H in
+    addition to the current run.
     """
 
     # Not currently using libE_specs, persis_info - need to add parameters
-    #def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
     def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
         """
         Forms the numpy structured array that records everything from the
@@ -50,16 +48,14 @@ class History:
 
         """
         L = exit_criteria.get('sim_max', 100)
-        #import pdb; pdb.set_trace()
-        H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
+        H = np.zeros(L + len(H0), dtype=(libE_fields +
+                                         sim_specs['out'] +
+                                         gen_specs['out'] +
+                                         alloc_specs['out']))
 
         if len(H0):
-            fields = H0.dtype.names
-
-            for field in fields:
+            for field in H0.dtype.names:
                 H[field][:len(H0)] = H0[field]
-                # for ind, val in np.ndenumerate(H0[field]): # Works if H0[field] has arbitrary dimension but is slow
-                #     H[field][ind] = val
 
         # Prepend H with H0
         H['sim_id'][:len(H0)] = np.arange(0, len(H0))
@@ -70,15 +66,12 @@ class History:
         H['given_time'][-L:] = np.inf
 
         self.H = H
-        #self.offset = 0
         self.offset = len(H0)
         self.index = self.offset
 
-        # libE.check_inputs also checks that all points in H0 are 'returned', so gen and sim have been run.
-        #assert np.all(H0['given']), "H0 contains unreturned points. Exiting"
+        # libE.check_inputs also checks that all points in H0 are 'returned',
+        # so gen and sim have been run.
         self.given_count = self.offset
-
-        #assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
         self.sim_count = self.offset
 
 
@@ -87,19 +80,22 @@ class History:
         Updates the history (in place) after new points have been evaluated
         """
 
-        new_inds = D['libE_info']['H_rows'] # The list of rows (as a numpy array)
+        new_inds = D['libE_info']['H_rows'] # Row list as numpy array
         H_0 = D['calc_out']
 
         for j, ind in enumerate(new_inds):
             for field in H_0.dtype.names:
-
                 if np.isscalar(H_0[field][j]):
                     self.H[field][ind] = H_0[field][j]
                 else:
                     #len or np.size
                     H0_size = len(H_0[field][j])
-                    assert H0_size <= len(self.H[field][ind]), "History update Error: Too many values received for " + field
-                    assert H0_size, "History update Error: No values in this field " + field
+                    assert H0_size <= len(self.H[field][ind]), \
+                      "History update " \
+                      "Error: Too many values received for " + field
+                    assert H0_size, \
+                      "History update " \
+                      "Error: No values in this field " + field
                     if H0_size == len(self.H[field][ind]):
                         self.H[field][ind] = H_0[field][j] #ref
                     else:
@@ -111,7 +107,8 @@ class History:
 
     def update_history_x_out(self, q_inds, sim_worker):
         """
-        Updates the history (in place) when new points have been given out to be evaluated
+
+        Updates the history (in place) when new points have been given out
 
         Parameters
         ----------
@@ -144,28 +141,18 @@ class History:
         """
 
         if len(O) == 0:
-            return #H, index
-
-        rows_remaining = len(self.H)-self.index
+            return
 
         if 'sim_id' not in O.dtype.names:
             # gen method must not be adjusting sim_id, just append to self.H
             num_new = len(O)
-
-            if num_new > rows_remaining:
-                #self.H = self.grow_H(num_new-rows_remaining)
-                self.grow_H(num_new-rows_remaining)
-
             update_inds = np.arange(self.index, self.index+num_new)
+            self._grow_for_new_rows(num_new)
             self.H['sim_id'][self.index:self.index+num_new] = range(self.index, self.index+num_new)
         else:
             # gen method is building sim_id.
             num_new = len(np.setdiff1d(O['sim_id'], self.H['sim_id']))
-
-            if num_new > rows_remaining:
-                #self.H = grow_H(H,num_new-rows_remaining)
-                self.grow_H(num_new-rows_remaining)
-
+            self._grow_for_new_rows(num_new)
             update_inds = O['sim_id']
 
         for field in O.dtype.names:
@@ -173,6 +160,13 @@ class History:
 
         self.H['gen_worker'][update_inds] = gen_worker
         self.index += num_new
+
+
+    def _grow_for_new_rows(self, num_new):
+        """Ensure there is space for new rows."""
+        rows_remaining = len(self.H)-self.index
+        if num_new > rows_remaining:
+            self.grow_H(num_new-rows_remaining)
 
 
     def grow_H(self, k):
