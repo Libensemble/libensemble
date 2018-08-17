@@ -125,6 +125,7 @@ cleanup() {
   cd $ROOT_DIR/$TESTING_DIR
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*    
   cd $ROOT_DIR/$UNIT_TEST_SUBDIR
+    filelist=(libE_history_at_abort_*.npy);                  [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
     filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
