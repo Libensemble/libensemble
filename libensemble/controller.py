@@ -994,48 +994,20 @@ class BalsamJobController(JobController):
         #Again considering changing launch to submit - or whatever I chose before.....
         job.launch_time = time.time() #Not good for timing job - as I dont know when it finishes - only poll/kill est.
 
+        add_job_args = {'name': job.name,
+                        'workflow': "libe_workflow", #add arg for this
+                        'application': app.name,
+                        'application_args': job.app_args,
+                        'num_nodes': job.num_nodes,
+                        'ranks_per_node': job.ranks_per_node}
+
         if stage_inout is not None:
             #For now hardcode staging - for testing
-            job.process = dag.add_job(name=job.name,
-                                      workflow="libe_workflow", #add arg for this
-                                      application=app.name,
-                                      application_args=job.app_args,
-                                      num_nodes=job.num_nodes,
-                                      ranks_per_node=job.ranks_per_node,
-                                      #input_files = app.exe,
-                                      stage_in_url="local:" + stage_inout,
-                                      stage_out_url="local:" + stage_inout,
-                                      stage_out_files="*.out")
-                                      #stage_out_files = "*") #Current fails if there are directories
+            add_job_args['stage_in_url'] = "local:" + stage_inout
+            add_job_args['stage_out_url'] = "local:" + stage_inout
+            add_job_args['stage_out_files'] = "*.out"
 
-            #job.process = dag.spawn_child(name = job.name,
-                                      #workflow = "libe_workflow", #add arg for this
-                                      #application = app.name,
-                                      #application_args = job.app_args,
-                                      #num_nodes = job.num_nodes,
-                                      #ranks_per_node = job.ranks_per_node,
-                                      ##input_files = app.exe,
-                                      #stage_in_url = "local:" + stage_inout,
-                                      #stage_out_url = "local:" + stage_inout,
-                                      #stage_out_files = "*",
-                                      #wait_for_parents=False)
-        else:
-            #No staging
-            job.process = dag.add_job(name=job.name,
-                                      workflow="libe_workflow", #add arg for this
-                                      application=app.name,
-                                      application_args=job.app_args,
-                                      num_nodes=job.num_nodes,
-                                      ranks_per_node=job.ranks_per_node)
-
-            #job.process = dag.spawn_child(name = job.name,
-                                      #workflow = "libe_workflow", #add arg for this
-                                      #application = app.name,
-                                      #application_args = job.app_args,
-                                      #num_nodes = job.num_nodes,
-                                      #ranks_per_node = job.ranks_per_node,
-                                      #input_files = app.exe,
-                                      #wait_for_parents=False)
+        job.process = dag.add_job(**add_job_args)
 
         #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)
