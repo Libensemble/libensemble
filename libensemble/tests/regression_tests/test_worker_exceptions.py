@@ -53,8 +53,11 @@ persis_info = {}
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
+
+libE_specs = {'abort_on_worker_exc': True} 
+
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 assert len(H)==0
 
 

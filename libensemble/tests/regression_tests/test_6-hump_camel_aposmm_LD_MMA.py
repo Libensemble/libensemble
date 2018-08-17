@@ -81,8 +81,6 @@ for run in range(2):
     np.random.seed(1)
 
     persis_info = {'next_to_give':0}
-    persis_info['flag'] = False
-    persis_info['old_len'] = 0
     persis_info['total_gen_calls'] = 0
 
     for i in range(MPI.COMM_WORLD.Get_size()):

@@ -36,5 +36,3 @@ From: libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py::
                  'num_inst':1,
                  'save_every_k': 300
                  }
- 
-:See Also:

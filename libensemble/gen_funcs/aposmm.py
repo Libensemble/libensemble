@@ -852,7 +852,7 @@ def queue_update_function(H, gen_specs, persistent_data):
         persistent_data['H_len'] = 0
 
     if len(H)==persistent_data['H_len']:
-        return H, persistent_data
+        return persistent_data
     else:
         persistent_data['H_len']=len(H)
 
@@ -904,7 +904,7 @@ def queue_update_function(H, gen_specs, persistent_data):
         persistent_data['already_paused'].update(pt_ids_to_pause)
         H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = True
 
-    return H, persistent_data
+    return persistent_data
 
 
 # if __name__ == "__main__":

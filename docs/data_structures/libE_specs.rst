@@ -17,9 +17,3 @@ Specifications for libEnsemble::
         'queue_update_function' [func] :
             Default: []
             
-
-:Examples:
-
-From: ::
-
-:See Also:

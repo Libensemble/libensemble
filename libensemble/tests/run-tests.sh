@@ -125,6 +125,7 @@ cleanup() {
   cd $ROOT_DIR/$TESTING_DIR
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*    
   cd $ROOT_DIR/$UNIT_TEST_SUBDIR
+    filelist=(libE_history_at_abort_*.npy);                  [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
     filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
@@ -163,13 +164,14 @@ PYTEST_SHOW_OUT_ERR=false
 
 usage() {
   echo -e "\nUsage:"
-  echo "  $0 [-hcsu] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
+  echo "  $0 [-hcsur] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
   echo "  -c              Clean up test directories and exit"  
   echo "  -s              Print stdout and stderr to screen when running pytest (unit tests)"  
-  echo "  -u              Run only the unit tests"  
+  echo "  -u              Run only the unit tests" 
+  echo "  -r              Run only the regression tests"   
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -n {name}       Supply a name to this test run"  
@@ -178,7 +180,7 @@ usage() {
   exit 1
 }
   
-while getopts ":p:n:a:hcsu" opt; do
+while getopts ":p:n:a:hcsur" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -202,9 +204,13 @@ while getopts ":p:n:a:hcsu" opt; do
       PYTEST_SHOW_OUT_ERR=true
       ;;
     u)
-      echo "Running only unit tests"
+      echo "Running only the unit tests"
       export RUN_REG_TESTS=false
       ;;
+    r)
+      echo "Running only the regression tests"
+      export RUN_UNIT_TESTS=false
+      ;;      
     h)
       usage
       ;;      
@@ -282,8 +288,8 @@ echo -e "\n************** Running: Libensemble Test-Suite **************\n"
 tput sgr 0
 echo -e "Selected:"
 [ $RUN_UNIT_TESTS = "true" ] && echo -e "Unit Tests"
-[ $RUN_COV_TESTS = "true" ]  && echo -e " - including coverage analysis"
 [ $RUN_REG_TESTS = "true" ]  && echo -e "Regression Tests"
+[ $RUN_COV_TESTS = "true" ]  && echo -e "Including coverage analysis"
 [ $RUN_PEP_TESTS = "true" ]  && echo -e "PEP Code Standard Tests (static code test)"
 
 COV_LINE_SERIAL=''
