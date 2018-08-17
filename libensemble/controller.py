@@ -90,21 +90,12 @@ class Job:
         self.stdout = stdout
         self.workerID = workerid
 
-
-        if app is not None:
-            if self.workerID is not None:
-                self.name = 'job_' + app.name + '_worker' + str(self.workerID)  + '_' +  str(self.id)
-            else:
-                self.name = 'job_' + app.name + '_' + str(self.id)
-        else:
+        if app is None:
             raise JobControllerException("Job must be created with an app - no app found for job {}".format(self.id))
 
-        if stdout is not None:
-            self.stdout = stdout
-        else:
-            self.stdout = self.name + '.out'
-
-        #self.workdir = './' #Default -  run in place - setting to be implemented
+        worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
+        self.name = "job_{}{}_{}".format(app.name, worker_name, self.id)
+        self.stdout = stdout or self.name + '.out'
         self.workdir = workdir
 
     def workdir_exists(self):
