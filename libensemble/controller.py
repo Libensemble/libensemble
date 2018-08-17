@@ -165,12 +165,10 @@ class BalsamJob(Job):
         self.workdir = None #Don't know until starts running
 
     def read_file_in_workdir(self, filename):
-        out = self.process.read_file_in_workdir(filename)
-        return out
+        return self.process.read_file_in_workdir(filename)
 
     def read_stdout(self):
-        out = self.process.read_file_in_workdir(self.stdout)
-        return out
+        return self.process.read_file_in_workdir(self.stdout)
 
     def calc_job_timing(self):
         """Calculate timing information for this job"""
@@ -218,17 +216,15 @@ class JobController:
         if num_procs is not None and num_nodes is not None and ranks_per_node is not None:
             if num_procs != num_nodes*ranks_per_node:
                 raise JobControllerException("num_procs does not equal num_nodes*ranks_per_node")
-            else:
-                return num_procs, num_nodes, ranks_per_node
+            return num_procs, num_nodes, ranks_per_node
 
         #If num_procs not set then need num_nodes and ranks_per_node and set num_procs
         if num_procs is None:
             #Note this covers case where none are set - may want to use job_controller defaults in that case - not implemented yet.
             if num_nodes is None or ranks_per_node is None:
                 raise JobControllerException("Must set either num_procs or num_nodes/ranks_per_node or machinefile")
-            else:
-                num_procs = num_nodes * ranks_per_node
-                return num_procs, num_nodes, ranks_per_node
+            num_procs = num_nodes * ranks_per_node
+            return num_procs, num_nodes, ranks_per_node
 
         #If num_procs is set - fill in any other values
         #if num_procs is not None:
@@ -422,13 +418,11 @@ class JobController:
         if calc_type == 'sim':
             if self.registry.sim_default_app is None:
                 raise JobControllerException("Default sim app is not set")
-            else:
-                app = self.registry.sim_default_app
+            app = self.registry.sim_default_app
         elif calc_type == 'gen':
             if self.registry.gen_default_app is None:
                 raise JobControllerException("Default gen app is not set")
-            else:
-                app = self.registry.gen_default_app
+            app = self.registry.gen_default_app
         else:
             raise JobControllerException("Unrecognized calculation type", calc_type)
 
@@ -466,8 +460,7 @@ class JobController:
             logger.warning('stage_inout option ignored in this job_controller - runs in-place')
 
         #Construct run line - possibly subroutine
-        runline = []
-        runline.append(self.mpi_launcher)
+        runline = [self.mpi_launcher]
 
         #env question - pass env to argument in subprocess or specify in mpirun line???
         #Currently doing both - but test
@@ -505,9 +498,7 @@ class JobController:
         runline.append(job.app.full_path)
 
         if job.app_args is not None:
-            app_args_list = job.app_args.split()
-            for iarg in app_args_list:
-                runline.append(iarg)
+            runline.extend(job.app_args.split())
 
         if test:
             logger.info('Test selected: Not launching job')
@@ -683,18 +674,13 @@ class JobController:
         logger.debug("Killing job {}".format(job.name))
 
         # Issue signal
-        if self.kill_signal == 'SIGTERM':
-            try:
-                JobController._kill_process(job.process, signal.SIGTERM)
-            except ProcessLookupError:
-                logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
-        elif self.kill_signal == 'SIGKILL':
-            try:
-                JobController._kill_process(job.process, signal.SIGKILL)
-            except ProcessLookupError:
-                logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
-        else:
+        sig = {'SIGTERM': signal.SIGTERM, 'SIGKILL': signal.SIGKILL}
+        if self.kill_signal not in sig:
             raise JobControllerException('Unknown kill signal')
+        try:
+            JobController._kill_process(job.process, sig[self.kill_signal])
+        except ProcessLookupError:
+            logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
 
         # Wait for job to be killed
         if self.wait_and_kill:
@@ -750,10 +736,9 @@ class JobController:
 
         '''
         if signal is not None:
-            if signal in SIGNALS:
-                self.kill_signal = signal
-            else:
+            if signal not in SIGNALS:
                 raise JobControllerException("Unknown signal {} supplied to set_kill_mode".format(signal))
+            self.kill_signal = signal
 
         if wait_and_kill is not None:
             self.wait_and_kill = wait_and_kill
@@ -846,9 +831,8 @@ class JobController:
             #Could just downgrade to those available with warning - for now error
             raise JobControllerException("Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs, cores_avail_per_node*local_node_count))
 
-        else:
-            if num_nodes < local_node_count:
-                logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes, local_node_count))
+        elif num_nodes < local_node_count:
+            logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes, local_node_count))
 
         return num_procs, num_nodes, ranks_per_node
 
@@ -873,14 +857,9 @@ class JobController:
 
         logger.debug("Creating machinefile with {} nodes and {} ranks per node".format(num_nodes, ranks_per_node))
 
-        node_count = 0
         with open(machinefile, 'w') as f:
-            for node in node_list:
-                node_count += 1
-                if node_count > num_nodes:
-                    break
-                for rank in range(ranks_per_node):
-                    f.write(node + '\n')
+            for node in node_list[:num_nodes]:
+                f.write((node + '\n') * ranks_per_node)
 
         #Return true if created and not empty
         built_mfile = os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0
