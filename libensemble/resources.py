@@ -199,7 +199,7 @@ class Resources:
         if not nidstr:
             return []
         for nidgroup in nidstr.split(','):
-            a, b, nnum_len = Resources._range_split(nidgroup)
+            a, b, _ = Resources._range_split(nidgroup)
             for nid in range(a, b):
                 nidlst.append(prefix + str(nid).zfill(nnum_len))
         return sorted(nidlst)
