@@ -159,6 +159,18 @@ class Resources:
     #---------------------------------------------------------------------------
 
     @staticmethod
+    def _range_split(s):
+        """Split ID range string."""
+        ab = s.split("-", 1)
+        nnum_len = len(ab[0])
+        a = int(ab[0])
+        b = int(ab[-1])
+        if a > b:
+            a, b = b, a
+        b = b + 1
+        return a, b, nnum_len
+
+    @staticmethod
     def get_slurm_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Slurm environment"""
         nidlst = []
@@ -168,25 +180,11 @@ class Resources:
         splitstr = fullstr.split('-', 1)
         prefix = splitstr[0]
         nidstr = splitstr[1].strip("[]")
-        nidgroups = nidstr.split(',')
-        for nidgroup in nidgroups:
-            if nidgroup.find("-") != -1:
-                a, b = nidgroup.split("-", 1)
-                nnum_len = len(a)
-                a = int(a)
-                b = int(b)
-                if a > b:
-                    a, b = b, a
-                b = b + 1 #need one more for inclusive
-            else:
-                a = nidgroup
-                nnum_len = len(a)
-                a = int(nidgroup)
-                b = a + 1
+        for nidgroup in nidstr.split(','):
+            a, b, nnum_len = Resources._range_split(nidgroup)
             for nid in range(a, b):
                 nidlst.append(prefix + '-' + str(nid).zfill(nnum_len))
-        nidlst = sorted(list(set(nidlst)))
-        return nidlst
+        return sorted(nidlst)
 
     @staticmethod
     def get_cobalt_nodelist(node_list_env):
@@ -200,23 +198,11 @@ class Resources:
         nidstr = os.environ[node_list_env]
         if not nidstr:
             return []
-        nidgroups = nidstr.split(',')
-        for nidgroup in nidgroups:
-            if nidgroup.find("-") != -1:
-                a, b = nidgroup.split("-", 1)
-                #nnum_len = len(a)
-                a = int(a)
-                b = int(b)
-                if a > b:
-                    a, b = b, a
-                b = b + 1 #need one more for inclusive
-            else:
-                a = int(nidgroup)
-                b = a + 1
+        for nidgroup in nidstr.split(','):
+            a, b, _ = Resources._range_split(nidgroup)
             for nid in range(a, b):
                 nidlst.append(prefix + str(nid).zfill(nnum_len))
-        nidlst = sorted(list(set(nidlst)))
-        return nidlst
+        return sorted(nidlst)
 
 
     #This is for central mode where libE nodes will not share with app nodes
@@ -320,9 +306,8 @@ class Resources:
             raise ResourcesException("Not in central mode, yet worker hostname is not in node list - aborting")
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
-        sub_node_workers = False
-        if num_workers >= num_nodes:
-            sub_node_workers = True
+        sub_node_workers = (num_workers >= num_nodes)
+        if sub_node_workers:
             workers_per_node = num_workers//num_nodes
             global_nodelist = list(itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist))
 
@@ -341,17 +326,14 @@ class Resources:
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers))
         #logger.debug("split_list is {}".format(split_list))
-        local_nodelist = []
-        if workerID is not None:
-            local_nodelist = split_list[workerID - 1]
-        else:
-            # Should always have workerID
+
+        if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")
+        local_nodelist = split_list[workerID - 1]
 
         # If in distrib_mode local host must be in local nodelist
-        if distrib_mode:
-            if local_host not in local_nodelist:
-                raise ResourcesException("In distributed mode, but local host is not in local nodelist - aborting")
+        if distrib_mode and local_host not in local_nodelist:
+            raise ResourcesException("In distributed mode, but local host is not in local nodelist - aborting")
 
         logger.debug("local_nodelist is {}".format(local_nodelist))
         return local_nodelist
