@@ -300,11 +300,7 @@ class JobController:
 
         '''
 
-        if registry is None:
-            self.registry = Register.default_registry #Error handling req.
-        else:
-            self.registry = registry
-
+        self.registry = registry or Register.default_registry
         if self.registry is None:
             raise JobControllerException("Cannot find default registry")
 
@@ -932,11 +928,8 @@ class BalsamJobController(JobController):
         '''
 
         #Will use super - atleast if use baseclass - but for now dont want to set self.mpi_launcher etc...
-        if registry is None:
-            self.registry = Register.default_registry #Error handling req.
-        else:
-            self.registry = registry
 
+        self.registry = registry or Register.default_registry
         if self.registry is None:
             raise JobControllerException("Cannot find default registry")
 
