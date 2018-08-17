@@ -30,48 +30,43 @@ from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker t
 from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
 
 logger = logging.getLogger(__name__)
-formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
-
 #For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
 
-def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
+def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
 
     man_start_time = time.time()
-
-    H, H_ind, term_test, W, comm, given_count = initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
-
+    
+    term_test, W, comm = initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs)
+    
     logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
     logger.info("Manager exit_criteria: {}".format(exit_criteria))
 
     persistent_queue_data = {}
 
-    send_initial_info_to_workers(comm, H, sim_specs, gen_specs)
+    send_initial_info_to_workers(comm, hist, sim_specs, gen_specs)
 
     ### Continue receiving and giving until termination test is satisfied
-    while not term_test(H, H_ind, given_count):
+    while not term_test(hist):
 
-        H, H_ind, W, persis_info = receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_info)
+        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
 
-        persistent_queue_data = update_active_and_queue(H[:H_ind], libE_specs, gen_specs, persistent_queue_data)
+        persistent_queue_data = update_active_and_queue(hist.trim_H(), libE_specs, gen_specs, persistent_queue_data)        
 
         if any(W['active'] == 0):
-            Work, persis_info = alloc_specs['alloc_f'](W, H[:H_ind], sim_specs, gen_specs, persis_info)
+            Work, persis_info = alloc_specs['alloc_f'](W, hist.trim_H(), sim_specs, gen_specs, persis_info)
 
             for w in Work:
-                if term_test(H, H_ind, given_count):
+                if term_test(hist):
                     break
-                W, given_count = send_to_worker_and_update_active_and_idle(comm, H, Work[w], w, sim_specs, gen_specs, W, given_count)
+                W = send_to_worker_and_update_active_and_idle(comm, hist, Work[w], w, sim_specs, gen_specs, W)
 
-    H, persis_info, exit_flag = final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, persis_info, given_count, man_start_time)
+    persis_info, exit_flag = final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_specs, persis_info, man_start_time)
 
-    return H, persis_info, exit_flag
+    return persis_info, exit_flag
 
 
 
@@ -80,12 +75,13 @@ def manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 # Manager subroutines
 ######################################################################
 
-def send_initial_info_to_workers(comm, H, sim_specs, gen_specs):
-    comm.bcast(obj=H[sim_specs['in']].dtype)
-    comm.bcast(obj=H[gen_specs['in']].dtype)
+
+def send_initial_info_to_workers(comm, hist, sim_specs, gen_specs):
+    comm.bcast(obj=hist.H[sim_specs['in']].dtype)
+    comm.bcast(obj=hist.H[gen_specs['in']].dtype)
 
 
-def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_specs, W, given_count):
+def send_to_worker_and_update_active_and_idle(comm, hist, Work, w, sim_specs, gen_specs, W):
     """
     Sends calculation information to the workers and updates the sets of
     active/idle workers
@@ -100,8 +96,8 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
     comm.send(obj=Work, dest=w, tag=Work['tag'])
     work_rows = Work['libE_info']['H_rows']
     if len(work_rows):
-        assert set(Work['H_fields']).issubset(H.dtype.names), "Allocation function requested the field(s): " + str(list(set(Work['H_fields']).difference(H.dtype.names))) + " be sent to worker=" + str(w) + ", but this field is not in history"
-        comm.send(obj=H[Work['H_fields']][work_rows], dest=w)
+        assert set(Work['H_fields']).issubset(hist.H.dtype.names), "Allocation function requested the field(s): " + str(list(set(Work['H_fields']).difference(hist.H.dtype.names))) + " be sent to worker=" + str(w) + ", but this field is not in history"
+        comm.send(obj=hist.H[Work['H_fields']][work_rows], dest=w)
 
     W[w-1]['active'] = Work['tag']
 
@@ -115,13 +111,13 @@ def send_to_worker_and_update_active_and_idle(comm, H, Work, w, sim_specs, gen_s
             W[w_i-1]['active'] = 1
 
     if Work['tag'] == EVAL_SIM_TAG:
-        update_history_x_out(H, work_rows, w)
-        given_count += 1
+        hist.update_history_x_out(work_rows, w)
 
-    return W, given_count
+    return W
 
 
-def receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_info):
+def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
+
     """
     Receive calculation output from workers. Loops over all active workers and
     probes to see if worker is ready to communticate. If any output is
@@ -177,10 +173,10 @@ def receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_inf
                 else:
 
                     if calc_type in [EVAL_SIM_TAG]:
-                        update_history_f(H, D_recv)
+                        hist.update_history_f(D_recv)
 
                     if calc_type in [EVAL_GEN_TAG]:
-                        H, H_ind = update_history_x_in(H, H_ind, w, D_recv['calc_out'])
+                        hist.update_history_x_in(w, D_recv['calc_out'])
 
                     if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                         # Now a waiting, persistent worker
@@ -199,21 +195,22 @@ def receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_inf
 
     if 'save_every_k' in sim_specs:
         k = sim_specs['save_every_k']
-        count = k*(sum(H['returned'])//k)
+        #count = k*(sum(hist.H['returned'])//k)
+        count = k*(hist.sim_count//k)        
         filename = 'libE_history_after_sim_' + str(count) + '.npy'
 
         if not os.path.isfile(filename) and count > 0:
-            np.save(filename, H)
+            np.save(filename, hist.H)
 
     if 'save_every_k' in gen_specs:
         k = gen_specs['save_every_k']
-        count = k*(H_ind//k)
+        count = k*(hist.index//k)
         filename = 'libE_history_after_gen_' + str(count) + '.npy'
 
         if not os.path.isfile(filename) and count > 0:
-            np.save(filename, H)
-
-    return H, H_ind, W, persis_info
+            np.save(filename, hist.H)
+            
+    return W, persis_info
 
 
 def update_active_and_queue(H, libE_specs, gen_specs, data):
@@ -222,111 +219,12 @@ def update_active_and_queue(H, libE_specs, gen_specs, data):
     and possibly updated the priority of points in H.
     """
     if 'queue_update_function' in libE_specs and len(H):
-        H, data = libE_specs['queue_update_function'](H, gen_specs, data)
+        data = libE_specs['queue_update_function'](H, gen_specs, data)
 
     return data
 
 
-def update_history_f(H, D):
-    """
-    Updates the history (in place) after a point has been evaluated
-    """
-
-    new_inds = D['libE_info']['H_rows'] # The list of rows (as a numpy array)
-    H_0 = D['calc_out']
-
-    for j, ind in enumerate(new_inds):
-        for field in H_0.dtype.names:
-
-            if np.isscalar(H_0[field][j]):
-                H[field][ind] = H_0[field][j]
-            else:
-                #len or np.size
-                H0_size = len(H_0[field][j])
-                assert H0_size <= len(H[field][ind]), "Manager Error: Too many values received for " + field
-                assert H0_size, "Manager Error: No values in this field " + field
-                if H0_size == len(H[field][ind]):
-                    H[field][ind] = H_0[field][j] #ref
-                else:
-                    H[field][ind][:H0_size] = H_0[field][j] #Slice copy
-
-        H['returned'][ind] = True
-
-
-def update_history_x_out(H, q_inds, sim_worker):
-    """
-    Updates the history (in place) when a new point has been given out to be evaluated
-
-    """
-
-    H['given'][q_inds] = True
-    H['given_time'][q_inds] = time.time()
-    H['sim_worker'][q_inds] = sim_worker
-
-def update_history_x_in(H, H_ind, gen_worker, O):
-    """
-    Updates the history (in place) when a new point has been returned from a gen
-
-    Parameters
-    ----------
-    H: numpy structured array
-        History array storing rows for each point.
-    H_ind: integer
-        The new point
-    gen_worker: integer
-        The worker who generated these points
-    O: numpy array
-        Output from gen_func
-    """
-
-    if len(O) == 0:
-        return H, H_ind
-
-    rows_remaining = len(H)-H_ind
-
-    if 'sim_id' not in O.dtype.names:
-        # gen method must not be adjusting sim_id, just append to H
-        num_new = len(O)
-
-        if num_new > rows_remaining:
-            H = grow_H(H, num_new-rows_remaining)
-
-        update_inds = np.arange(H_ind, H_ind+num_new)
-        H['sim_id'][H_ind:H_ind+num_new] = range(H_ind, H_ind+num_new)
-    else:
-        # gen method is building sim_id.
-        num_new = len(np.setdiff1d(O['sim_id'], H['sim_id']))
-
-        if num_new > rows_remaining:
-            H = grow_H(H, num_new-rows_remaining)
-
-        update_inds = O['sim_id']
-
-    for field in O.dtype.names:
-        H[field][update_inds] = O[field]
-
-    H['gen_worker'][update_inds] = gen_worker
-
-    H_ind += num_new
-
-    return H, H_ind
-
-
-def grow_H(H, k):
-    """
-    libEnsemble is requesting k rows be added to H because the gen_func produced
-    more points than rows in H.
-    """
-    H_1 = np.zeros(k, dtype=H.dtype)
-    H_1['sim_id'] = -1
-    H_1['given_time'] = np.inf
-
-    H = np.append(H, H_1)
-
-    return H
-
-
-def termination_test(H, H_ind, given_count, exit_criteria, start_time, lenH0):
+def termination_test(hist, exit_criteria, start_time):
     """
     Return nonzero if the libEnsemble run should stop
     """
@@ -338,76 +236,50 @@ def termination_test(H, H_ind, given_count, exit_criteria, start_time, lenH0):
             return 2
 
     if 'sim_max' in exit_criteria:
-        if given_count >= exit_criteria['sim_max'] + lenH0:
+        if hist.given_count >= exit_criteria['sim_max'] + hist.offset:
             logger.debug("Term test tripped: sim_max")
             return 1
 
     if 'gen_max' in exit_criteria:
-        if H_ind >= exit_criteria['gen_max'] + lenH0:
+        if hist.index >= exit_criteria['gen_max'] + hist.offset:
             logger.debug("Term test tripped: gen_max")
             return 1
 
     if 'stop_val' in exit_criteria:
         key = exit_criteria['stop_val'][0]
         val = exit_criteria['stop_val'][1]
-        if np.any(H[key][:H_ind][~np.isnan(H[key][:H_ind])] <= val):
+        if np.any(hist.H[key][:hist.index][~np.isnan(hist.H[key][:hist.index])] <= val):
             logger.debug("Term test tripped: stop_val")
             return 1
 
     return False
 
 
-def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs):
+# Can remove more args if dont add hist setup option in here: Not using: sim_specs, gen_specs, alloc_specs
+def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs):
     """
     Forms the numpy structured array that records everything from the
     libEnsemble run
 
     Returns
     ----------
-    H: numpy structured array
-        History array storing rows for each point. Field names are in
-        libensemble/libE_fields.py
-
-    H_ind: integer
-        Where libEnsemble should start filling in H
-
+    hist: History object
+        LibEnsembles History data structure
+        
     term_test: lambda funciton
         Simplified termination test (doesn't require passing fixed quantities).
         This is nice when calling term_test in multiple places.
 
-    idle_w: python set
-        Idle worker (initially all workers)
-
-    active_w: python set
-        Active worker (initially empty)
+    worker_sets: python set
+        Data structure containing lists of active and idle workers
+        Initially all workers are idle
+    
+    comm: MPI communicator
+        The communicator for libEnsemble manager and workers
     """
 
-    L = exit_criteria.get('sim_max', 100)
-
-    from libensemble.libE_fields import libE_fields
-
-    H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
-
-    if len(H0):
-        fields = H0.dtype.names
-
-        for field in fields:
-            H[field][:len(H0)] = H0[field]
-            # for ind, val in np.ndenumerate(H0[field]): # Works if H0[field] has arbitrary dimension but is slow
-            #     H[field][ind] = val
-
-    # Prepend H with H0
-    H['sim_id'][:len(H0)] = np.arange(0, len(H0))
-    H['given'][:len(H0)] = 1
-    H['returned'][:len(H0)] = 1
-
-    H['sim_id'][-L:] = -1
-    H['given_time'][-L:] = np.inf
-
-    H_ind = len(H0)
-    given_count = len(H0)
     start_time = time.time()
-    term_test = lambda H, H_ind, given_count: termination_test(H, H_ind, given_count, exit_criteria, start_time, len(H0))
+    term_test = lambda hist: termination_test(hist, exit_criteria, start_time)
 
     W = np.zeros(len(libE_specs['workers']),
                  dtype=[('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)])
@@ -415,10 +287,10 @@ def initialize(sim_specs, gen_specs, alloc_specs, exit_criteria, H0, libE_specs)
 
     comm = libE_specs['comm']
 
-    return H, H_ind, term_test, W, comm, given_count
+    return term_test, W, comm
 
 
-def final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, libE_specs, persis_info, given_count, man_start_time):
+def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_specs, persis_info, man_start_time):
     """
     Tries to receive from any active workers.
 
@@ -432,9 +304,9 @@ def final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, l
     ### Receive from all active workers
     while any(W['active']):
 
-        H, H_ind, W, persis_info = receive_from_sim_and_gen(comm, W, H, H_ind, sim_specs, gen_specs, persis_info)
+        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
 
-        if term_test(H, H_ind, given_count) == 2 and any(W['active']):
+        if term_test(hist) == 2 and any(W['active']):
 
             print("Termination due to elapsed_wallclock_time has occurred.\n"\
               "A last attempt has been made to receive any completed work.\n"\
@@ -442,8 +314,10 @@ def final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, l
             sys.stdout.flush()
             sys.stderr.flush()
 
+            status = MPI.Status()
             for w in W['worker_id'][W['active'] > 0]:
-                comm.irecv(source=w, tag=MPI.ANY_TAG)
+                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
+                    D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
             exit_flag = 2
             break
 
@@ -453,4 +327,4 @@ def final_receive_and_kill(comm, W, H, H_ind, sim_specs, gen_specs, term_test, l
         comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
 
     print("\nlibEnsemble manager total time:", time.time() - man_start_time)
-    return H[:H_ind], persis_info, exit_flag
+    return persis_info, exit_flag

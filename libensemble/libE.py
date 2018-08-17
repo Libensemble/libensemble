@@ -22,9 +22,10 @@ import traceback
 
 # Set root logger
 # (Set above libe imports so errors in import are captured)
-# LEVEL: DEBUG/INFO/WARNING
+# LEVEL: DEBUG/INFO/WARNING/ERROR
 logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
 
+from libensemble.history import History
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
@@ -56,6 +57,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
+            
 
     gen_specs: :obj:`dict`
 
@@ -94,6 +96,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
     H: :obj:`dict`
 
         History array storing rows for each point.  :doc:`(example)<data_structures/history_array>`
+        Dictionary containing persistent info
 
     persis_info: :obj:`dict`
 
@@ -110,16 +113,29 @@ def libE(sim_specs, gen_specs, exit_criteria,
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
+        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)        
         try:
-            H, persis_info, exit_flag = manager_main(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info)
+            persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
-            # Manager exceptions are fatal
-            eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
+            # Some abort option
+            if 'abort_on_manager_exc' in libE_specs:
+                # Manager exceptions are fatal
+                eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
+                eprint(traceback.format_exc())                 
+            else:
+                eprint("\nManager exception raised:\n") #datetime
+            
+            eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime  
+            filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
+            np.save(filename,hist.trim_H())
+            
             #Could have timing in here still...
-            eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            # libE_specs['comm'].Abort()
+            if 'abort_on_manager_exc' in libE_specs:
+                libE_specs['comm'].Abort()
+            raise
+                
         else:
             logger.debug("Manager exiting")
             print(libE_specs['comm'].Get_size(), exit_criteria)
@@ -129,12 +145,19 @@ def libE(sim_specs, gen_specs, exit_criteria,
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
-            # Currently make worker exceptions fatal
-            eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
-            eprint(traceback.format_exc())
+            # Some abort option
+            if 'abort_on_worker_exc' in libE_specs:            
+                # Worker exceptions fatal
+                eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
+                eprint(traceback.format_exc())
+            else:
+                eprint("\nWorker exception raised on rank {}:\n".format(libE_specs['comm'].Get_rank()))
             sys.stdout.flush()
             sys.stderr.flush()
-            # libE_specs['comm'].Abort()
+            if 'abort_on_worker_exc' in libE_specs:
+                #Cant dump hist from a worker unless keep a copy updated on workers.
+                libE_specs['comm'].Abort()
+            raise
         else:
             logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
@@ -142,7 +165,11 @@ def libE(sim_specs, gen_specs, exit_criteria,
     libE_specs['comm'].Barrier()
     if libE_specs['comm'].Get_rank() in libE_specs['manager']:
         CalcInfo.merge_statfiles()
+        H = hist.trim_H()
 
+    #return hist, persis_info, exit_flag
+    #import pdb; pdb.set_trace()
+    #currently return hist.H so dont need to modify calling scripts
     return H, persis_info, exit_flag
 
 
