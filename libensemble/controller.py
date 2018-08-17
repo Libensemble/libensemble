@@ -137,10 +137,7 @@ class Job:
 
         #For direct launched jobs - these should be the same.
         if self.total_time is None:
-            if self.runtime is not None:
-                self.total_time = self.runtime
-            else:
-                self.total_time = time.time() - self.launch_time
+            self.total_time = self.runtime
 
 
 class BalsamJob(Job):
