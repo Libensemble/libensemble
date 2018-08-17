@@ -109,48 +109,27 @@ class Job:
 
     def workdir_exists(self):
         ''' Returns True if the job's workdir exists, else False '''
-        if self.workdir is None:
-            return False
-        if os.path.exists(self.workdir):
-            return True
-        else:
-            return False
+        return self.workdir and os.path.exists(self.workdir)
 
     def file_exists_in_workdir(self, filename):
         ''' Returns True if the named file exists in the job's workdir, else False '''
-        if self.workdir is None:
-            return False
-        path = os.path.join(self.workdir, filename)
-        if os.path.exists(path):
-            return True
-        else:
-            return False
+        return self.workdir and os.path.exists(os.path.join(self.workdir, filename))
 
     def read_file_in_workdir(self, filename):
         ''' Open and reads the named file in the job's workdir '''
         path = os.path.join(self.workdir, filename)
         if not os.path.exists(path):
-            raise ValueError("%s not found in working directory".format(filename))
-        else:
-            return open(path).read()
+            raise ValueError("{} not found in working directory".format(filename))
+        with open(path) as f:
+            return f.read()
 
     def stdout_exists(self):
         ''' Returns True if the job's stdout file exists in the workdir, else False '''
-        if self.workdir is None:
-            return False
-        path = os.path.join(self.workdir, self.stdout)
-        if os.path.exists(path):
-            return True
-        else:
-            return False
+        return self.file_exists_in_workdir(self.stdout)
 
     def read_stdout(self):
         ''' Open and reads the job's stdout file in the job's workdir '''
-        path = os.path.join(self.workdir, self.stdout)
-        if not os.path.exists(path):
-            raise ValueError("%s not found in working directory".format(self.stdout))
-        else:
-            return open(path).read()
+        return self.read_file_in_workdir(self.stdout)
 
 
     #Note - this is currently only final job-time. May make running job time.
@@ -189,6 +168,7 @@ class BalsamJob(Job):
         A new BalsamJob object is created with an id, status and configuration attributes
         This will normally be created by the job_controller on a launch
         '''
+        # DSB: env is not defined!
         super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, env, machinefile, hostlist, workdir, stdout, workerid)
 
         self.balsam_state = None
@@ -562,7 +542,7 @@ class JobController:
             #env question - pass to subprocess or specify in mpirun line???
             #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
 
-            job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
+            job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout, 'w'), shell=False, preexec_fn=os.setsid)
 
             #job.process = subprocess.Popen(runline, cwd='./', env=job.env, stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
 
@@ -806,9 +786,9 @@ class JobController:
             for job in self.list_of_jobs:
                 if job.id == jobid:
                     return job
-            logger.warning("Job %s not found in joblist".format(jobid))
+            logger.warning("Job {} not found in joblist".format(jobid))
             return None
-        logger.warning("Job %s not found in joblist. Joblist is empty".format(jobid))
+        logger.warning("Job {} not found in joblist. Joblist is empty".format(jobid))
         return None
 
 
@@ -919,10 +899,7 @@ class JobController:
                     f.write(node + '\n')
 
         #Return true if created and not empty
-        if os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0:
-            built_mfile = True
-        else:
-            built_mfile = False
+        built_mfile = os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0
 
         #Return new values for num_procs,num_nodes,ranks_per_node - in case want to use
         return built_mfile, num_procs, num_nodes, ranks_per_node
@@ -1032,7 +1009,7 @@ class BalsamJobController(JobController):
         #With resource detection (may do only if under-specified?? though that will not tell if larger than possible
         #for static allocation - but Balsam does allow dynamic allocation if too large!!
         #For now allow user to specify - but default is True....
-        if auto_resources:
+        if self.auto_resources:
             num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
         else:
             #Without resource detection
@@ -1059,16 +1036,16 @@ class BalsamJobController(JobController):
 
         if stage_inout is not None:
             #For now hardcode staging - for testing
-            job.process = dag.add_job(name = job.name,
-                                      workflow = "libe_workflow", #add arg for this
-                                      application = app.name,
-                                      application_args = job.app_args,
-                                      num_nodes = job.num_nodes,
-                                      ranks_per_node = job.ranks_per_node,
+            job.process = dag.add_job(name=job.name,
+                                      workflow="libe_workflow", #add arg for this
+                                      application=app.name,
+                                      application_args=job.app_args,
+                                      num_nodes=job.num_nodes,
+                                      ranks_per_node=job.ranks_per_node,
                                       #input_files = app.exe,
-                                      stage_in_url = "local:" + stage_inout,
-                                      stage_out_url = "local:" + stage_inout,
-                                      stage_out_files = "*.out")
+                                      stage_in_url="local:" + stage_inout,
+                                      stage_out_url="local:" + stage_inout,
+                                      stage_out_files="*.out")
                                       #stage_out_files = "*") #Current fails if there are directories
 
             #job.process = dag.spawn_child(name = job.name,
@@ -1084,12 +1061,12 @@ class BalsamJobController(JobController):
                                       #wait_for_parents=False)
         else:
             #No staging
-            job.process = dag.add_job(name = job.name,
-                                      workflow = "libe_workflow", #add arg for this
-                                      application = app.name,
-                                      application_args = job.app_args,
-                                      num_nodes = job.num_nodes,
-                                      ranks_per_node = job.ranks_per_node)
+            job.process = dag.add_job(name=job.name,
+                                      workflow="libe_workflow", #add arg for this
+                                      application=app.name,
+                                      application_args=job.app_args,
+                                      num_nodes=job.num_nodes,
+                                      ranks_per_node=job.ranks_per_node)
 
             #job.process = dag.spawn_child(name = job.name,
                                       #workflow = "libe_workflow", #add arg for this
@@ -1136,7 +1113,7 @@ class BalsamJobController(JobController):
 
             job.calc_job_timing()
 
-            if job.workdir == None:
+            if job.workdir is None:
                 job.workdir = job.process.working_directory
             if job.balsam_state == 'JOB_FINISHED':
                 job.success = True
