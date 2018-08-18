@@ -17,7 +17,7 @@ fname_abort = 'libE_history_at_abort_0.npy'
 def test_manager_exception():
     try:
         os.remove(fname_abort)
-    except FileNotFoundError as e:
+    except OSError as e:
         pass
     with mock.patch('libensemble.libE.manager_main') as managerMock:
         managerMock.side_effect = Exception
