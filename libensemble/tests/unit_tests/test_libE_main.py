@@ -1,5 +1,7 @@
 import sys, time, os
 import numpy as np
+import pytest
+import mock
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 
@@ -9,6 +11,37 @@ from mpi4py import MPI
 
 al = {}
 libE_specs = {'comm':MPI.COMM_WORLD, 'manager':set([0]), 'workers':set([1,2])}
+fname_abort = 'libE_history_at_abort_0.npy'
+
+
+def test_manager_exception():
+    try:
+        os.remove(fname_abort)
+    except FileNotFoundError as e:
+        pass
+    with mock.patch('libensemble.libE.manager_main') as managerMock:
+        managerMock.side_effect = Exception
+        with pytest.raises(Exception, message='Expected exception'):
+            libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([0]), 'workers':set([1])}) 
+        # Check npy file dumped
+        assert os.path.isfile(fname_abort), "History file not dumped"
+        os.remove(fname_abort)
+
+
+def test_worker_exception():
+    with mock.patch('libensemble.libE.worker_main') as workerMock:
+        workerMock.side_effect = Exception
+        with pytest.raises(Exception, message='Expected exception'):
+            libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([1]), 'workers':set([0])}) 
+
+
+#def test_worker_exception_mpi_abort():
+    #with mock.patch('libensemble.libE.worker_main') as workerMock:
+        #with mock.patch('libensemble.libE.MPI.COMM_WORLD.Abort', return_value=True) as abortMock:
+            #workerMock.side_effect = Exception
+            #with pytest.raises(Exception, message='Expected exception'):
+                #libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([1]), 'workers':set([0]), 'abort_on_worker_exc': True}) 
+
 
 def test_nonworker_and_nonmanager_rank():
 
@@ -81,6 +114,8 @@ def rmfield( a, *fieldnames_to_remove ):
         return a[ [ name for name in a.dtype.names if name not in fieldnames_to_remove ] ]
 
 if __name__ == "__main__":
+    test_manager_exception()
+    test_worker_exception()
     test_nonworker_and_nonmanager_rank()
     test_exception_raising_manager()
     test_checking_inputs()
