@@ -202,7 +202,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
             on_cube = True
 
-        persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=False)
+        persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
 
     O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
 
