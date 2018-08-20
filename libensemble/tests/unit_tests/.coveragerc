@@ -20,6 +20,9 @@ omit =
     */unit_tests/*
     */regression_tests/*
 
+exclude_lines =    
+    if __name__ == .__main__.:
+    comm.Abort()
 
 [html]    
 directory = cov_unit
