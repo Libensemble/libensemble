@@ -68,7 +68,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - ``'localopt_method' [str]``: Name of an NLopt or PETSc/TAO method 
 
     Optional ``gen_specs`` entries are: 
-    - ``'sample_points' [int]``: The points to be sampled 
+    - ``'sample_points' [int]``: The points to be sampled (in the original domain)
     - ``'combine_component_func' [func]``: Function to combine objective components 
     - ``'components' [int]``: Number of objective components 
     - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the distance to the nearest boundary should the initial step size be in localopt runs 
@@ -197,7 +197,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         if 'sample_points' in gen_specs:
             v = sum(H['local_pt'])
             x_new = gen_specs['sample_points'][v:v+samples_needed]
-            on_cube = False
+            on_cube = False # We assume the points are on the original domain, not unit cube
         else:
             x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
             on_cube = True
