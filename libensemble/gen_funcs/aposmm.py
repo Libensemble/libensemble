@@ -60,14 +60,15 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - storing the combined objective function value
     - etc
     
-    Necessary quantities in ``gen_specs`` are below
+    Necessary quantities in ``gen_specs`` are:
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
     - ``'initial_sample_size' [int]``: Number of uniformly sampled points that must be returned (with a non-nan value) before a local optimization run is started. 
     - ``'localopt_method' [str]``: Name of an NLopt or PETSc/TAO method 
 
-    Optional ``gen_specs`` entries are: 
+    Optional ``gen_specs`` entries are:
+
     - ``'sample_points' [int]``: The points to be sampled (in the original domain)
     - ``'combine_component_func' [func]``: Function to combine objective components 
     - ``'components' [int]``: Number of objective components 
@@ -80,7 +81,8 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - ``'single_component_at_a_time' [bool]``: True if single objective components will be evaluated at a time 
     - ``'rk_const' [float]``:  
     
-    And ``gen_specs`` convergence tolerances for NLopt and PETSc/TAO
+    And ``gen_specs`` convergence tolerances for NLopt and PETSc/TAO:
+
     - ``'fatol' [float]``: 
     - ``'ftol_abs' [float]``: 
     - ``'ftol_rel' [float]``: 
