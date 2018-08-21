@@ -36,13 +36,13 @@ logger = logging.getLogger(__name__ + '(' + wrkid + ')')
 
 #The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
-    """ 
+    """
     Evaluate calculations given to it by the manager.
-    
+
     Creates a worker object, receives work from manager, runs worker,
     and communicates results. This routine also creates and writes to
     the workers summary file.
-    
+
     Parameters
     ----------
     c: dict containing fields 'comm' and 'color' for the communicator.
@@ -170,7 +170,7 @@ def worker_main(c, sim_specs, gen_specs):
 # All routines in Worker Class have no MPI and can be called regardless of worker
 # concurrency mode.
 class Worker():
-    
+
     """The Worker Class provides methods for controlling sim and gen funcs"""
 
     #Class attributes
@@ -189,13 +189,13 @@ class Worker():
     # Worker Object methods
     def __init__(self, workerID):
         """Initialise new worker object.
-        
+
         Parameters
         ----------
-        
+
         workerID: int:
             The ID for this worker
-        
+
         """
 
         self.locations = {}
@@ -236,19 +236,19 @@ class Worker():
 
     def run(self, Work, calc_in):
         """Run a calculation on this worker object.
-        
+
         This routine calls the user calculations. Exceptions are caught, dumped to
         the summary file, and raised.
-        
+
         Parameters
         ----------
-        
+
         Work: :obj:`dict`
             :ref:`(example)<datastruct-work-dict>`
-        
+
         calc_in: obj: numpy structured array
             Rows from the :ref:`history array<datastruct-history-array>` for processing
-            
+
         """
 
         #Reset run specific attributes - these should maybe be in a calc object
