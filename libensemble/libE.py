@@ -37,7 +37,14 @@ logger = logging.getLogger(__name__)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
-
+   
+def comms_abort(comm):
+    '''Abort all MPI ranks'''
+    #This will be in comms module
+    #comm arg will then be replaced with self.comm
+    comm.Abort()
+    
+    
 def libE(sim_specs, gen_specs, exit_criteria,
          alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]},
          libE_specs={'comm': MPI.COMM_WORLD, 'color': 0, 'manager': set([0]), 'workers': set(range(1, MPI.COMM_WORLD.Get_size()))},
@@ -133,7 +140,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
             sys.stdout.flush()
             sys.stderr.flush()
             if 'abort_on_manager_exc' in libE_specs:
-                libE_specs['comm'].Abort()
+                comms_abort.Abort(libE_specs['comm'])
             raise
                 
         else:
@@ -156,7 +163,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
             sys.stderr.flush()
             if 'abort_on_worker_exc' in libE_specs:
                 #Cant dump hist from a worker unless keep a copy updated on workers.
-                libE_specs['comm'].Abort()
+                comms_abort.Abort(libE_specs['comm'])
             raise
         else:
             logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
