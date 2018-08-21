@@ -296,30 +296,20 @@ class Worker():
         # This is in a try/except block to allow handling if exception is raised in user code
         # Currently report exception to summary file and pass exception up (where libE will mpi_abort)
         # Continuation of ensemble may be added as an option.
-        if self.calc_type == EVAL_SIM_TAG:
-            try:
+        try:
+            if self.calc_type == EVAL_SIM_TAG:
                 out = Worker.sim_specs['sim_f'](calc_in, persis_info, Worker.sim_specs, libE_info)
-            except Exception as e:
-                # Write to workers summary file and pass exception up
-                if self.calc_type in self.locations:
-                    os.chdir(saved_dir)
-                self.calc_stats.stop_timer()
-                self.calc_status = CALC_EXCEPTION
-                self.calc_stats.set_calc_status(self.calc_status)
-                CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
-                raise
-        else:
-            try:
+            else:
                 out = Worker.gen_specs['gen_f'](calc_in, persis_info, Worker.gen_specs, libE_info)
-            except Exception as e:
-                # Write to workers summary file and pass exception up
-                if self.calc_type in self.locations:
-                    os.chdir(saved_dir)
-                self.calc_stats.stop_timer()
-                self.calc_status = CALC_EXCEPTION
-                self.calc_stats.set_calc_status(self.calc_status)
-                CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
-                raise
+        except Exception as e:
+            # Write to workers summary file and pass exception up
+            if self.calc_type in self.locations:
+                os.chdir(saved_dir)
+            self.calc_stats.stop_timer()
+            self.calc_status = CALC_EXCEPTION
+            self.calc_stats.set_calc_status(self.calc_status)
+            CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
+            raise
         ### ============================================================================
 
         assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
