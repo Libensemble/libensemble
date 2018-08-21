@@ -43,6 +43,7 @@ gen_out = [('x',float,n),
       ('sim_id',int),
       ('priority',float),
       ('local_pt',bool),
+      ('paused',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
       ('dist_to_better_l',float),

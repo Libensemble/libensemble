@@ -22,6 +22,9 @@ from libensemble.sim_funcs.chwirut1 import chwirut_eval
 # Import gen_func 
 from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
 
+# Import alloc_func 
+from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
+
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 ### Declare the run parameters/functions
@@ -40,6 +43,7 @@ gen_out = [('x',float,n),
       ('sim_id',int),
       ('priority',float),
       ('local_pt',bool),
+      ('paused',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
       ('dist_to_better_l',float),
@@ -80,14 +84,16 @@ gen_specs['sample_points'] = np.random.uniform(0,1,(max_sim_budget,n))*(gen_spec
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
                   }
+alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
 
 libE_specs = {'queue_update_function': queue_update_function}
 np.random.seed(1)
-persis_info = {}
+persis_info = {'next_to_give':0}
+persis_info['total_gen_calls'] = 0
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, alloc_specs=alloc_specs, persis_info=persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert len(H) >= max_sim_budget

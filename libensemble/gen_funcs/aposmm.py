@@ -871,6 +871,7 @@ def queue_update_function(H, gen_specs, persistent_data):
 
     gen_specs['stop_on_NaNs']
     gen_specs['stop_partial_fvec_eval']
+    H['paused']
     """
 
     if len(persistent_data) == 0:

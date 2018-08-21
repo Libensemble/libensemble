@@ -30,7 +30,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
 
     Work = {}
     gen_count = count_persis_gens(W)
-    task_avail = np.logical_and(~H['given'], ~H['paused'])
+    task_avail = ~H['given']
 
     # If a persistent localopt run has just finished, use run_order to update H
     # and then remove other information from persis_info

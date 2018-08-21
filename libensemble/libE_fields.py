@@ -7,5 +7,4 @@ libE_fields = [('sim_id',int),        # The number of the entry in H that was ge
                ('sim_worker',int),    # Worker that did (or is doing) the sim eval
                ('gen_worker',int),    # Worker that generated the entry 
                ('returned',bool),     # True if the entry has been returned from the sim eval 
-               ('paused',bool),       # True if the entry's evaluation was paused
                ]

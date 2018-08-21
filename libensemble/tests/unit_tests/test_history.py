@@ -10,53 +10,53 @@ from numpy import inf
 # - compare selected values
 # - compare from npy file - stored
 
-wrs_H0 = np.array([(False, 0., 0, 0., False, 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
-                   (False, 0., 0, 0., False, 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
-                   (False, 0., 0, 0., False, 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3)],
-      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('paused', '?'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+wrs_H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
+                   (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
+                   (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3)],
+      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
 
-exp_H0_H = np.array([(False, 0., 0, 0., False, 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
-                     (False, 0., 0, 0., False, 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
-                     (False, 0., 0, 0., False, 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3),
-                     (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                     (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
-      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('paused', '?'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
+                     (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
+                     (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3),
+                     (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                     (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
+      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
 
-wrs = np.array([(False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., False, -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
-      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('paused', '?'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+wrs = np.array([(False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
+      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
 
-wrs2 = np.array([(0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False),
-                 (0, False, 0., 0, False, 0., False, -1, inf, 0., False)],
-      dtype=[('gen_worker', '<i8'), ('returned', '?'), ('x', '<f8'), ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('given', '?'), ('sim_id', '<i8'), ('given_time', '<f8'), ('priority', '<f8'), ('paused', '?')])
+wrs2 = np.array([(0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.),
+                 (0, False, 0., 0, False, 0., False, -1, inf, 0.)],
+      dtype=[('gen_worker', '<i8'), ('returned', '?'), ('x', '<f8'), ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('given', '?'), ('sim_id', '<i8'), ('given_time', '<f8'), ('priority', '<f8')])
 
-exp_x_in_setup2 = np.array([(0, 0, 2, False, 0., 4.17022005e-01, False, False, False, inf, 0.),
-                            (0, 1, 3, False, 0., 7.20324493e-01, False, False, False, inf, 0.),
-                            (0, 2, 3, False, 0., 1.14374817e-04, False, False, False, inf, 0.),
-                            (0, 3, 3, False, 0., 3.02332573e-01, False, False, False, inf, 0.),
-                            (0, 4, 3, False, 0., 1.46755891e-01, False, False, False, inf, 0.),
-                            (0, 5, 3, False, 0., 9.23385948e-02, False, False, False, inf, 0.),
-                            (0, 6, 3, False, 0., 1.86260211e-01, False, False, False, inf, 0.),
-                            (0, 7, 3, False, 0., 3.45560727e-01, False, False, False, inf, 0.),
-                            (0, 8, 3, False, 0., 3.96767474e-01, False, False, False, inf, 0.),
-                            (0, 9, 3, False, 0., 5.38816734e-01, False, False, False, inf, 0.)],
-                           dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('paused', '?'), ('priority', '<f8'), ('x', '<f8'), ('allocated', '?'), ('returned', '?'), ('given', '?'), ('given_time', '<f8'), ('g', '<f8')])
+exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, False, inf, 0.),
+                            (0, 1, 3, 0., 7.20324493e-01, False, False, False, inf, 0.),
+                            (0, 2, 3, 0., 1.14374817e-04, False, False, False, inf, 0.),
+                            (0, 3, 3, 0., 3.02332573e-01, False, False, False, inf, 0.),
+                            (0, 4, 3, 0., 1.46755891e-01, False, False, False, inf, 0.),
+                            (0, 5, 3, 0., 9.23385948e-02, False, False, False, inf, 0.),
+                            (0, 6, 3, 0., 1.86260211e-01, False, False, False, inf, 0.),
+                            (0, 7, 3, 0., 3.45560727e-01, False, False, False, inf, 0.),
+                            (0, 8, 3, 0., 3.96767474e-01, False, False, False, inf, 0.),
+                            (0, 9, 3, 0., 5.38816734e-01, False, False, False, inf, 0.)],
+                           dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('priority', '<f8'), ('x', '<f8'), ('allocated', '?'), ('returned', '?'), ('given', '?'), ('given_time', '<f8'), ('g', '<f8')])
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
