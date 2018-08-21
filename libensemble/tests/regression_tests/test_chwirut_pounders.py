@@ -58,9 +58,9 @@ gen_specs = {'gen_f': aposmm_logic,
              'out': gen_out,
              'lb': -2*np.ones(3),
              'ub':  2*np.ones(3),
-             'initial_sample': 5, # All 214 residuals must be done
+             'initial_sample_size': 5, # All 214 residuals must be done
              'localopt_method': 'pounders',
-             'delta_0_mult': 0.5,
+             'dist_to_bound_multiple': 0.5,
              'grtol': 1e-4,
              'gatol': 1e-4,
              'frtol': 1e-15,

@@ -44,7 +44,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     and optionally
 
-    - ``'priority' [float]``: Value quanitifing a point's desirability
+    - ``'priority' [float]``: Value quantifying a point's desirability
     - ``'f_i' [float]``: Value of ith objective component (if calculated one at a time)
     - ``'fvec' [m floats]``: All objective components (if calculated together)
     - ``'obj_component' [int]``: Index corresponding to value in ``'f_i``'
@@ -59,6 +59,37 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - storing the order of the points is the run
     - storing the combined objective function value
     - etc
+    
+    Necessary quantities in ``gen_specs`` are:
+
+    - ``'lb' [n floats]``: Lower bound on search domain
+    - ``'ub' [n floats]``: Upper bound on search domain
+    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that must be returned (with a non-nan value) before a local optimization run is started. 
+    - ``'localopt_method' [str]``: Name of an NLopt or PETSc/TAO method 
+
+    Optional ``gen_specs`` entries are:
+
+    - ``'sample_points' [int]``: The points to be sampled (in the original domain)
+    - ``'combine_component_func' [func]``: Function to combine objective components 
+    - ``'components' [int]``: Number of objective components 
+    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the distance to the nearest boundary should the initial step size be in localopt runs 
+    - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs with smallest observed function value are given priority 
+    - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions (0 or 1 results in uniform sampling) 
+    - ``'min_batch_size' [int]``: Lower bound on the number of points given every time APOSMM is called 
+    - ``'mu' [float]``: Distance from the boundary that all localopt starting points must satisfy 
+    - ``'nu' [float]``: Distance from identified minima that all starting points must satisfy 
+    - ``'single_component_at_a_time' [bool]``: True if single objective components will be evaluated at a time 
+    - ``'rk_const' [float]``:  
+    
+    And ``gen_specs`` convergence tolerances for NLopt and PETSc/TAO:
+
+    - ``'fatol' [float]``: 
+    - ``'ftol_abs' [float]``: 
+    - ``'ftol_rel' [float]``: 
+    - ``'gatol' [float]``: 
+    - ``'grtol' [float]``: 
+    - ``'xtol_abs' [float]``: 
+    - ``'xtol_rel' [float]``: 
 
     :Note:
         ``gen_specs['combine_component_func']`` must be defined when there are
@@ -104,7 +135,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
-    if n_s < gen_specs['initial_sample']:
+    if n_s < gen_specs['initial_sample_size']:
         updated_inds = set()
 
     else:
@@ -131,14 +162,9 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             persis_info['active_runs'].update([new_run_num])
             persis_info['total_runs'] +=1
 
-        # Find the next point for any uncompleted runs. I currently save this
-        # information to file and re-load. (Given a history of points, I don't
-        # know how to tell if the run is finished. Just looking for a point
-        # with a declared local_min is not always going to work, when a point
-        # is in a minimum in one run, but an evaluated point in another run)
-
         inactive_runs = set()
 
+        # Find next point in any uncompleted runs using information stored in persis_info
         for run in persis_info['active_runs']:
 
             x_opt, exit_code, persis_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
@@ -163,34 +189,28 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             persis_info['run_order'].pop(i) # Deletes any information about this run
 
     if len(H) == 0:
-        samples_needed = gen_specs['initial_sample']
+        samples_needed = gen_specs['initial_sample_size']
     elif 'min_batch_size' in gen_specs:
         samples_needed = gen_specs['min_batch_size'] - len(O)
     else:
         samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
 
     if samples_needed > 0:
-        # x_new = np.random.uniform(0,1,(samples_needed,n))
-        x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
+        if 'sample_points' in gen_specs:
+            v = sum(H['local_pt'])
+            x_new = gen_specs['sample_points'][v:v+samples_needed]
+            on_cube = False # We assume the points are on the original domain, not unit cube
+        else:
+            x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
+            on_cube = True
 
-        persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info)
-
-    # O = np.append(H[[o[0] for o in gen_specs['out']]][np.array(list(updated_inds),dtype=int)],O)
+        persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
 
     O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
 
-    # if len(updated_inds) == 0 :
-    #     return O
-    # elif len(O) == 0:
-    #     return H(updated_inds)
-    # else:
-    #     vec = np.array(list(updated_inds),dtype=int)
-    #     B = H[vec][[o[0] for o in gen_specs['out']]]
-    #     # B = H[[o[0] for o in gen_specs['out']]][vec]
-    #     O = np.append(B,O)
     return O, persis_info
 
-def add_points_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0, sorted_run_inds=[], run=[]):
+def add_points_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
@@ -213,8 +233,13 @@ def add_points_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0, sor
 
     O.resize(len(O)+num_pts,refcheck=False) # Adds (num_pts) rows of zeros to O
 
-    O['x_on_cube'][-num_pts:] = pts
-    O['x'][-num_pts:] = pts*(ub-lb)+lb
+    if on_cube:
+        O['x_on_cube'][-num_pts:] = pts
+        O['x'][-num_pts:] = pts*(ub-lb)+lb
+    else:
+        O['x_on_cube'][-num_pts:] = (pts-lb)/(ub-lb)
+        O['x'][-num_pts:] = pts
+
     O['sim_id'][-num_pts:] = np.arange(len_H+original_len_O,len_H+original_len_O+num_pts)
     O['local_pt'][-num_pts:] = local_flag
 
@@ -519,7 +544,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
     f.setSizes(m)
     f.setFromOptions()
 
-    delta_0 = gen_specs['delta_0_mult']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+    delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
 
     PETSc.Options().setValue('-tao_pounders_delta',str(delta_0))
     # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
@@ -843,6 +868,9 @@ def queue_update_function(H, gen_specs, persistent_data):
     """
     A specific queue update function that stops evaluations under a variety of
     conditions
+
+    gen_specs['stop_on_NaNs']
+    gen_specs['stop_partial_fvec_eval']
     """
 
     if len(persistent_data) == 0:
