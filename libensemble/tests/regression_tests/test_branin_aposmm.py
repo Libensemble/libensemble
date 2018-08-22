@@ -90,7 +90,7 @@ for i in range(MPI.COMM_WORLD.Get_size()):
 # Perform the run
 
 if __name__ == "__main__":
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
     if MPI.COMM_WORLD.Get_rank() == 0:    
         short_name = script_name.split("test_", 1).pop()

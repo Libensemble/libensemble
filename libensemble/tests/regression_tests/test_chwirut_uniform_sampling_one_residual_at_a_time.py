@@ -74,7 +74,7 @@ persis_info['total_gen_calls'] = 0
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, alloc_specs=alloc_specs, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0

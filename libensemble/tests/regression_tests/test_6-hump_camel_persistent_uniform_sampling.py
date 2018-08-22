@@ -58,7 +58,7 @@ if MPI.COMM_WORLD.Get_size()==2:
     quit() 
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0

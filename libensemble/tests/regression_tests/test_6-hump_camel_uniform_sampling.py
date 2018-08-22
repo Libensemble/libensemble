@@ -56,7 +56,7 @@ for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     short_name = script_name.split("test_", 1).pop()

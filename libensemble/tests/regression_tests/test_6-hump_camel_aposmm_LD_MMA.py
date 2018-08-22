@@ -99,7 +99,7 @@ for run in range(2):
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, alloc_specs=alloc_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
         short_name = script_name.split("test_", 1).pop()

@@ -79,7 +79,7 @@ persis_info = {}
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert len(H) >= max_sim_budget
