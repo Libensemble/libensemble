@@ -67,7 +67,7 @@ for time in np.append([0], np.logspace(-5,-1,5)):
         alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
         # Perform the run
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
         if MPI.COMM_WORLD.Get_rank() == 0:
             assert len(H) == num_pts

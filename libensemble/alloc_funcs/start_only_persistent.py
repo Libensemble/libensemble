@@ -31,7 +31,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
                      persis_info[i], np.atleast_1d(last_ind), persistent=True)
 
-    task_avail = np.logical_and(~H['given'], ~H['paused'])
+    task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):
 

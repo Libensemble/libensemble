@@ -43,6 +43,7 @@ gen_out = [('x',float,n),
       ('sim_id',int),
       ('priority',float),
       ('local_pt',bool),
+      ('paused',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
       ('dist_to_unit_bounds',float),
       ('dist_to_better_l',float),
@@ -98,7 +99,7 @@ for run in range(2):
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, alloc_specs=alloc_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
         short_name = script_name.split("test_", 1).pop()

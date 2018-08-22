@@ -11,7 +11,7 @@ import libensemble.tests.unit_tests.setup as setup
 
 n = 2
 #alloc = {'out':[]}
-libE_specs = {'comm':{}, 'workers':set([1,2])}
+libE_specs = {'comm':{}}
 
 gen_out = [('x',float,n),
       ('x_on_cube',float,n),

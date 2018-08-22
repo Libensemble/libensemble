@@ -10,7 +10,7 @@ import libensemble.tests.unit_tests.setup as setup
 from mpi4py import MPI
 
 al = {}
-libE_specs = {'comm':MPI.COMM_WORLD, 'manager':set([0]), 'workers':set([1,2])}
+libE_specs = {'comm':MPI.COMM_WORLD}
 fname_abort = 'libE_history_at_abort_0.npy'
 
 
@@ -22,17 +22,17 @@ def test_manager_exception():
     with mock.patch('libensemble.libE.manager_main') as managerMock:
         managerMock.side_effect = Exception
         with pytest.raises(Exception, message='Expected exception'):
-            libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([0]), 'workers':set([1])}) 
+            libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD}) 
         # Check npy file dumped
         assert os.path.isfile(fname_abort), "History file not dumped"
         os.remove(fname_abort)
 
 
-def test_worker_exception():
-    with mock.patch('libensemble.libE.worker_main') as workerMock:
-        workerMock.side_effect = Exception
-        with pytest.raises(Exception, message='Expected exception'):
-            libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([1]), 'workers':set([0])}) 
+# def test_worker_exception():
+#     with mock.patch('libensemble.libE.worker_main') as workerMock:
+#         workerMock.side_effect = Exception
+#         with pytest.raises(Exception, message='Expected exception'):
+#             libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD}) 
 
 
 def test_manager_exception_mpi_abort():
@@ -45,33 +45,22 @@ def test_manager_exception_mpi_abort():
             managerMock.side_effect = Exception
             #Will hit the raise after comms_abort
             with pytest.raises(Exception, message='Expected exception'):
-                libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([0]), 'workers':set([1]), 'abort_on_manager_exc': True}) 
+                libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD, 'abort_on_manager_exc': True}) 
 
 
-def test_worker_exception_mpi_abort():
-    with mock.patch('libensemble.libE.worker_main') as workerMock:
-        with mock.patch('libensemble.libE.comms_abort') as abortMock:
-            workerMock.side_effect = Exception
-            #Will hit the raise after comms_abort
-            with pytest.raises(Exception, message='Expected exception'):
-                libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([1]), 'workers':set([0]), 'abort_on_worker_exc': True}) 
-
-
-def test_nonworker_and_nonmanager_rank():
-
-    # Intentionally making worker 0 not be a manager or worker rank (Fails)
-    try: 
-        libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([1]), 'workers':set([1])})
-    except AssertionError: 
-        assert 1
-    else:
-        assert 0
+# def test_worker_exception_mpi_abort():
+#     with mock.patch('libensemble.libE.worker_main') as workerMock:
+#         with mock.patch('libensemble.libE.comms_abort') as abortMock:
+#             workerMock.side_effect = Exception
+#             #Will hit the raise after comms_abort
+#             with pytest.raises(Exception, message='Expected exception'):
+#                 libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD, 'abort_on_worker_exc': True}) 
 
 
 def test_exception_raising_manager():
     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
     try: 
-        H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([0]), 'workers':set([1])})
+        H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
     #except AssertionError: 
     except Exception: 
         assert 1
@@ -81,7 +70,7 @@ def test_exception_raising_manager():
     
 # def test_exception_raising_worker():
 #     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
-#     H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD,'manager':set([1]), 'workers':set([0])})
+#     H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
 #     assert H==[]
 
 def test_checking_inputs():
@@ -111,15 +100,6 @@ def test_checking_inputs():
     try:
         check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
     except AssertionError:
-        assert 1
-    else:
-        assert 0
-
-    # Should fail because 'workers' is given, but not a communicator
-    libE_specs.pop('comm')
-    try:
-        check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0) 
-    except SystemExit:
         assert 1
     else:
         assert 0

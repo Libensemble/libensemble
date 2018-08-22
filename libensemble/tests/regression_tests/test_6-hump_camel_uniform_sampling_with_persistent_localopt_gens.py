@@ -86,7 +86,7 @@ alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens}
 if MPI.COMM_WORLD.Get_size() == 2:
     quit()
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     short_name = script_name.split("test_", 1).pop()
