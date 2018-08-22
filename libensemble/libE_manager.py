@@ -64,7 +64,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
                     break
                 W = send_to_worker_and_update_active_and_idle(comm, hist, Work[w], w, sim_specs, gen_specs, W)
 
-    persis_info, exit_flag = final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_specs, persis_info, man_start_time)
+    persis_info, exit_flag = final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, persis_info, man_start_time)
 
     return persis_info, exit_flag
 
@@ -281,16 +281,19 @@ def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_spec
     start_time = time.time()
     term_test = lambda hist: termination_test(hist, exit_criteria, start_time)
 
-    W = np.zeros(len(libE_specs['workers']),
+    num_workers = libE_specs['comm'].Get_size()-1
+
+    W = np.zeros(num_workers,
                  dtype=[('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)])
-    W['worker_id'] = sorted(libE_specs['workers'])
+
+    W['worker_id'] = np.arange(num_workers) + 1
 
     comm = libE_specs['comm']
 
     return term_test, W, comm
 
 
-def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_specs, persis_info, man_start_time):
+def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, persis_info, man_start_time):
     """
     Tries to receive from any active workers.
 
@@ -322,7 +325,7 @@ def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, libE_
             break
 
     ### Kill the workers
-    for w in libE_specs['workers']:
+    for w in W['worker_id']:
         stop_signal = MAN_SIGNAL_FINISH
         comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
 

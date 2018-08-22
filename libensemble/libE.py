@@ -45,7 +45,7 @@ def comms_abort(comm):
     comm.Abort()
     
     
-def libE(sim_specs, gen_specs, exit_criteria, persis_info={}
+def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]},
          libE_specs={'comm': MPI.COMM_WORLD, 'color': 0}, H0=[]):
     """

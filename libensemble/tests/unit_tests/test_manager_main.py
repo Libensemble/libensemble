@@ -1,13 +1,14 @@
 import sys, time, os
 import numpy as np
 import numpy.lib.recfunctions
+from mpi4py import MPI
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 import libensemble.libE_manager as man
 import libensemble.tests.unit_tests.setup as setup
 
 #al = {'out':[]}
-libE_specs ={'comm':{},'workers':set([1,2])}
+libE_specs ={'comm':MPI.COMM_WORLD}
 
 
 def test_term_test_1():

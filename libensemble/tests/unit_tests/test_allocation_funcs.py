@@ -1,6 +1,7 @@
 import sys, time, os
 import numpy as np
 import numpy.lib.recfunctions
+from mpi4py import MPI
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
@@ -11,7 +12,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.history import History
 
 al = {'alloc_f': give_sim_work_first,'out':[]}
-libE_specs = {'comm': {}, 'workers':set([1,2])}
+libE_specs = {'comm': MPI.COMM_WORLD}
 H0=[]
 
 def test_decide_work_and_resources():
