@@ -7,7 +7,7 @@ Test: sleep_and_print
 
 The default test (sleep_and_print), should automatically test if all processes of an MPI job are correctly killed and also that a second job can be launched and killed.
 
-Launching MPI jobs which write form each MPI task, at regular intervals, to an output file (see sleep_and_print.c).
+Launching MPI jobs which write from each MPI task, at regular intervals, to an output file (see sleep_and_print.c).
 
 This test launches a job, then kills after a few seconds, and then monitors output file to see if output continues. If the first job is succesfully killed, a second is launched and the test repeated.
 

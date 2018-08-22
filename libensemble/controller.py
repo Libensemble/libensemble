@@ -665,7 +665,7 @@ class JobController:
             return
 
         if job.process is None:
-            time.sleep(1)
+            time.sleep(0.2)
             if job.process is None:
                 #logger.warning('Polled job has no process ID - returning stored state')
                 #Prob should be recoverable and return state - but currently fatal
