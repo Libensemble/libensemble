@@ -1028,7 +1028,7 @@ class BalsamJobController(JobController):
         # Do not poll if job already finished
         if job.finished:
             logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
-            return job
+            return
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
 
