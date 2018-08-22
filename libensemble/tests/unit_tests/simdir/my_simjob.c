@@ -6,14 +6,15 @@
 
 int main(int argc, char **argv) 
 {
-    int ierr, num_procs, rank, delay, error;
+    int ierr, num_procs, rank, usec_delay, error;
+    double fdelay;
         
-    delay=3;
+    fdelay=3.0;
     error=0;
     
     if (argc >=3) {
         if (strcmp( argv[1],"sleep") == 0 ) {
-            delay = atoi(argv[2]);
+            fdelay = atof(argv[2]);
         }
     }
     if (argc >=4) {
@@ -30,15 +31,16 @@ int main(int argc, char **argv)
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     
-    printf("Hello world sleeping for %d seconds on rank %d of %d\n",delay, rank,num_procs);
-
-    sleep(delay);
+    printf("Hello world sleeping for %f seconds on rank %d of %d\n",fdelay, rank,num_procs);
+    
+    usec_delay = (int)(fdelay*1e6);
+    usleep(usec_delay);
     //printf("Woken up on rank %d of %d\n",rank,num_procs);  
     
     if (rank==0) {
         if (error==1) {
             printf("Oh Dear! An non-fatal Error seems to have occured on rank %d\n",rank);
-            sleep(delay);
+            usleep(usec_delay);
         }
     }
     

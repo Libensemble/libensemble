@@ -665,7 +665,7 @@ class JobController:
             return
 
         if job.process is None:
-            time.sleep(1)
+            time.sleep(0.2)
             if job.process is None:
                 #logger.warning('Polled job has no process ID - returning stored state')
                 #Prob should be recoverable and return state - but currently fatal
@@ -1028,7 +1028,7 @@ class BalsamJobController(JobController):
         # Do not poll if job already finished
         if job.finished:
             logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
-            return job
+            return
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
 
