@@ -228,7 +228,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     from libensemble.libE_fields import libE_fields
 
-    if ('sim_id', int) in gen_specs['out'] and 'sim_id' in gen_specs['in']:
+    if ('sim_id', int) in gen_specs['out']:
         if MPI.COMM_WORLD.Get_rank() == 0:
             print('\n' + 79*'*' + '\n'
                   "User generator script will be creating sim_id.\n"\
