@@ -36,13 +36,13 @@ logger = logging.getLogger(__name__ + '(' + wrkid + ')')
 
 #The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
-    """ 
+    """
     Evaluate calculations given to it by the manager.
-    
+
     Creates a worker object, receives work from manager, runs worker,
     and communicates results. This routine also creates and writes to
     the workers summary file.
-    
+
     Parameters
     ----------
     c: dict containing fields 'comm' and 'color' for the communicator.
@@ -170,7 +170,7 @@ def worker_main(c, sim_specs, gen_specs):
 # All routines in Worker Class have no MPI and can be called regardless of worker
 # concurrency mode.
 class Worker():
-    
+
     """The Worker Class provides methods for controlling sim and gen funcs"""
 
     #Class attributes
@@ -189,13 +189,13 @@ class Worker():
     # Worker Object methods
     def __init__(self, workerID):
         """Initialise new worker object.
-        
+
         Parameters
         ----------
-        
+
         workerID: int:
             The ID for this worker
-        
+
         """
 
         self.locations = {}
@@ -236,19 +236,19 @@ class Worker():
 
     def run(self, Work, calc_in):
         """Run a calculation on this worker object.
-        
+
         This routine calls the user calculations. Exceptions are caught, dumped to
         the summary file, and raised.
-        
+
         Parameters
         ----------
-        
+
         Work: :obj:`dict`
             :ref:`(example)<datastruct-work-dict>`
-        
+
         calc_in: obj: numpy structured array
             Rows from the :ref:`history array<datastruct-history-array>` for processing
-            
+
         """
 
         #Reset run specific attributes - these should maybe be in a calc object
@@ -296,30 +296,20 @@ class Worker():
         # This is in a try/except block to allow handling if exception is raised in user code
         # Currently report exception to summary file and pass exception up (where libE will mpi_abort)
         # Continuation of ensemble may be added as an option.
-        if self.calc_type == EVAL_SIM_TAG:
-            try:
+        try:
+            if self.calc_type == EVAL_SIM_TAG:
                 out = Worker.sim_specs['sim_f'](calc_in, persis_info, Worker.sim_specs, libE_info)
-            except Exception as e:
-                # Write to workers summary file and pass exception up
-                if self.calc_type in self.locations:
-                    os.chdir(saved_dir)
-                self.calc_stats.stop_timer()
-                self.calc_status = CALC_EXCEPTION
-                self.calc_stats.set_calc_status(self.calc_status)
-                CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
-                raise
-        else:
-            try:
+            else:
                 out = Worker.gen_specs['gen_f'](calc_in, persis_info, Worker.gen_specs, libE_info)
-            except Exception as e:
-                # Write to workers summary file and pass exception up
-                if self.calc_type in self.locations:
-                    os.chdir(saved_dir)
-                self.calc_stats.stop_timer()
-                self.calc_status = CALC_EXCEPTION
-                self.calc_stats.set_calc_status(self.calc_status)
-                CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
-                raise
+        except Exception as e:
+            # Write to workers summary file and pass exception up
+            if self.calc_type in self.locations:
+                os.chdir(saved_dir)
+            self.calc_stats.stop_timer()
+            self.calc_status = CALC_EXCEPTION
+            self.calc_stats.set_calc_status(self.calc_status)
+            CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
+            raise
         ### ============================================================================
 
         assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
