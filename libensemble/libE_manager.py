@@ -116,6 +116,27 @@ def send_to_worker_and_update_active_and_idle(comm, hist, Work, w, sim_specs, ge
     return W
 
 
+def _man_request_resend_on_error(comm, w, status=None):
+    """Request the worker resend data on error.
+    """
+    #Ideally use status.Get_source() for MPI rank - this relies on rank being workerID
+    status = status or MPI.Status()
+    comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
+    return comm.recv(source=worker, tag=MPI.ANY_TAG, status=status)
+
+
+def _man_request_pkl_dump_on_error(comm, w, status=None):
+    """Request the worker dump a pickle on error.
+    """
+    # Req worker to dump pickle file and manager reads
+    status = status or MPI.Status()
+    comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+    pkl_recv = comm.recv(source=worker, tag=MPI.ANY_TAG, status=status)
+    D_recv = pickle.load(open(pkl_recv, "rb"))
+    os.remove(pkl_recv) #If want to delete file
+    return D_recv
+
+
 def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
 
     """
@@ -144,21 +165,9 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
                     # Need to clear message faulty message - somehow
                     status.Set_cancelled(True) #Make sure cancelled before re-send
 
-                    # Check on working with peristent data - curently set only one to True
-                    man_request_resend_on_error = False
-                    man_request_pkl_dump_on_error = True
-
-                    if man_request_resend_on_error:
-                        #Ideally use status.Get_source() for MPI rank - this relies on rank being workerID
-                        comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
-                        D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-
-                    if man_request_pkl_dump_on_error:
-                        # Req worker to dump pickle file and manager reads
-                        comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
-                        pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-                        D_recv = pickle.load(open(pkl_recv, "rb"))
-                        os.remove(pkl_recv) #If want to delete file
+                    # Check on working with peristent data - curently only use one
+                    #D_recv = _man_request_resend_on_error(comm, w, status)
+                    D_recv = _man_request_pkl_dump_on_error(comm, w, status)
 
                 calc_type = D_recv['calc_type']
                 calc_status = D_recv['calc_status']
@@ -172,10 +181,10 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
                     W[w-1]['persis_state'] = 0
                 else:
 
-                    if calc_type in [EVAL_SIM_TAG]:
+                    if calc_type == EVAL_SIM_TAG:
                         hist.update_history_f(D_recv)
 
-                    if calc_type in [EVAL_GEN_TAG]:
+                    if calc_type == EVAL_GEN_TAG:
                         hist.update_history_x_in(w, D_recv['calc_out'])
 
                     if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
@@ -277,19 +286,13 @@ def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_spec
     comm: MPI communicator
         The communicator for libEnsemble manager and workers
     """
-
+    worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
     start_time = time.time()
     term_test = lambda hist: termination_test(hist, exit_criteria, start_time)
-
     num_workers = libE_specs['comm'].Get_size()-1
-
-    W = np.zeros(num_workers,
-                 dtype=[('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)])
-
+    W = np.zeros(num_workers, dtype=worker_dtype)
     W['worker_id'] = np.arange(num_workers) + 1
-
     comm = libE_specs['comm']
-
     return term_test, W, comm
 
 
