@@ -1,7 +1,7 @@
 # """
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html 
-# 
+#    https://www.sfu.ca/~ssurjano/camel6.html
+#
 # Execute via the following command:
 #    mpiexec -np 4 python3 {FILENAME}.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -18,13 +18,13 @@ import numpy as np
 from libensemble.libE import libE
 
 
-# Import sim_func 
+# Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 
-# Import alloc_func 
+# Import alloc_func
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
@@ -55,7 +55,7 @@ alloc_specs = {'out':[], 'alloc_f':alloc_f}
 
 if MPI.COMM_WORLD.Get_size()==2:
     # Can't do a "persistent worker run" if only one worker
-    quit() 
+    quit()
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)

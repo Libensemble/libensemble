@@ -12,10 +12,10 @@ from __future__ import division
 from __future__ import absolute_import
 
 from mpi4py import MPI
-import sys, os        
+import sys, os
 import numpy as np
 
-# Prob wrap this in the future libe comms module - and that will have init_comms... 
+# Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking
 # Using dill seems more reliable on Bebop - less unpickle errors
 USE_DILL = False # True/False (req: pip install dill)
@@ -51,7 +51,7 @@ sim_specs = {'sim_f': float_x1000, # This is the function whose output is being 
              'in': ['x'],           # These keys will be given to the above function
              'out': [
                      ('arr_vals',float,array_size),
-                     ('scal_val',float), 
+                     ('scal_val',float),
                     ],
              }
 

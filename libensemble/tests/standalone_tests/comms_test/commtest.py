@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from mpi4py import MPI
-import sys, os        
+import sys, os
 import numpy as np
 import time
 
@@ -41,7 +41,7 @@ if rank == 0:
                 mess_count += 1
                 #print('Message count', mess_count)
                 #print('Message size (bytes): ', status.Get_count())
-                
+
                 #To test values
                 x = w * 1000.0
                 assert np.all(D_recv['arr_vals'] == x), "Array values do not all match"
@@ -49,9 +49,9 @@ if rank == 0:
         if mess_count >= total_num_mess:
             alldone = True
 
-    print('Manager received and checked {} messages'.format(mess_count))        
+    print('Manager received and checked {} messages'.format(mess_count))
     print('Manager finished in time', time.time() - start_time)
-        
+
 else:
     #print("Hello from worker", rank)
     output = np.zeros(1,dtype=sim_specs['out'])

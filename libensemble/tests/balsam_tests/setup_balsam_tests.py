@@ -19,7 +19,7 @@ def add_app(name,exepath,desc):
     """ Add application to database """
     app = AppDef()
     app.name = name
-    app.executable = exepath    # “/full/path/to/python/interpreter /full/path/to/script.py" 
+    app.executable = exepath    # “/full/path/to/python/interpreter /full/path/to/script.py"
     app.description = desc
     #app.default_preprocess = '' # optional
     #app.default_postprocess = '' # optional

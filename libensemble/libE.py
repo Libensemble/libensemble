@@ -37,14 +37,14 @@ logger = logging.getLogger(__name__)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
-   
+
 def comms_abort(comm):
     '''Abort all MPI ranks'''
     #This will be in comms module
     #comm arg will then be replaced with self.comm
     comm.Abort()
-    
-    
+
+
 def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]},
          libE_specs={'comm': MPI.COMM_WORLD, 'color': 0}, H0=[]):
@@ -62,7 +62,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
-            
+
 
     gen_specs: :obj:`dict`
 
@@ -118,7 +118,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     if libE_specs['comm'].Get_rank() == 0:
-        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)        
+        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
         try:
             persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
@@ -126,32 +126,32 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
             if 'abort_on_manager_exc' in libE_specs:
                 # Manager exceptions are fatal
                 eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
-                eprint(traceback.format_exc())                 
+                eprint(traceback.format_exc())
             else:
                 eprint("\nManager exception raised:\n") #datetime
-            
-            eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime  
+
+            eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime
             filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
             np.save(filename,hist.trim_H())
-            
+
             #Could have timing in here still...
             sys.stdout.flush()
             sys.stderr.flush()
             if 'abort_on_manager_exc' in libE_specs:
                 comms_abort.Abort(libE_specs['comm'])
             raise
-                
+
         else:
             logger.debug("Manager exiting")
             print(libE_specs['comm'].Get_size(), exit_criteria)
             sys.stdout.flush()
 
-    else: 
+    else:
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
             # Some abort option
-            if 'abort_on_worker_exc' in libE_specs:            
+            if 'abort_on_worker_exc' in libE_specs:
                 # Worker exceptions fatal
                 eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
                 eprint(traceback.format_exc())
@@ -230,7 +230,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     if len(H0):
         fields = H0.dtype.names
-        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names)) 
+        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names))
         if 'returned' in fields:
             assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
 

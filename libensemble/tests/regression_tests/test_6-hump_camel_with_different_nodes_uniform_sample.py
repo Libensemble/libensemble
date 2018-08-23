@@ -1,7 +1,7 @@
 # """
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html 
-# 
+#    https://www.sfu.ca/~ssurjano/camel6.html
+#
 # Execute via the following command:
 #    mpiexec -np 4 python3 test_6-hump_camel_with_different_nodes_uniform_sample.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -17,10 +17,10 @@ import numpy as np
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import sim_func 
+# Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_ranks_and_nodes
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -35,7 +35,7 @@ args = parser.parse_args()
 try:
     libE_machinefile = open(args.machinefile).read().splitlines()
 except:
-    if MPI.COMM_WORLD.Get_rank() == 0:        
+    if MPI.COMM_WORLD.Get_rank() == 0:
         print("WARNING: No machine file provided - defaulting to local node")
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 

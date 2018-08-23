@@ -14,7 +14,7 @@ import os
 
 def build_simfunc():
     import subprocess
-    
+
     #Build simfunc
     #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
     buildstring='mpicc -o my_simjob.x simdir/my_simjob.c'
@@ -41,11 +41,11 @@ USE_BALSAM = False #Take as arg
 #Create and add exes to registry
 if USE_BALSAM:
     registry = BalsamRegister()
-    jobctrl = BalsamJobController(registry = registry)    
+    jobctrl = BalsamJobController(registry = registry)
 else:
     registry = Register()
     jobctrl = JobController(registry = registry)
-    
+
 registry.register_calc(full_path=sim_app, calc_type='sim')
 
 #Alternative to IF could be using eg. fstring to specify: e.g:
@@ -59,33 +59,33 @@ registry.register_calc(full_path=sim_app, calc_type='sim')
 def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
     import time
     start = time.time()
-    
+
     while time.time() - start < timeout_sec:
-        
+
         jobctl.manager_poll(job)
-        
+
         if job.manager_signal == 'kill':
             print('Manager has sent kill signal - killing job')
             jobctl.kill(job)
-        
+
         # In future might support other manager signals eg:
         elif job.manager_signal == 'pause':
             #checkpoint_job()
             pass
-        
+
         time.sleep(delay)
         print('Polling at time', time.time() - start)
-        jobctl.poll(job)        
+        jobctl.poll(job)
         if job.finished: break
-        elif job.state == 'WAITING': print('Job waiting to launch')    
-        elif job.state == 'RUNNING': print('Job still running ....') 
+        elif job.state == 'WAITING': print('Job waiting to launch')
+        elif job.state == 'RUNNING': print('Job still running ....')
 
-    
+
     if job.finished:
         if job.state == 'FINISHED':
             print('Job finished succesfully. Status:',job.state)
         elif job.state == 'FAILED':
-            print('Job failed. Status:',job.state)  
+            print('Job failed. Status:',job.state)
         elif job.state == 'USER_KILLED':
             print('Job has been killed. Status:',job.state)
         else:
@@ -93,13 +93,13 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
     else:
         print("Job timed out")
         jobctl.kill(job)
-        if job.finished: 
+        if job.finished:
             print('Now killed')
             #double check
             jobctl.poll(job)
             print('Job state is', job.state)
-    
-    
+
+
 # Tests
 # ********************* NOT YET IMPLEMENTED ***********************
 

@@ -1,6 +1,6 @@
 # """
-# Runs libEnsemble on a function that returns only nan; tests APOSMM functionality 
-# 
+# Runs libEnsemble on a function that returns only nan; tests APOSMM functionality
+#
 # Execute via the following command:
 #    mpiexec -np 4 python3 test_nan_func_aposmm.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -16,7 +16,7 @@ import numpy as np
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.aposmm import aposmm_logic
 from math import gamma, pi, sqrt
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -91,7 +91,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 
-    assert np.all(~H['local_pt']) 
+    assert np.all(~H['local_pt'])
 
 
 

@@ -1,6 +1,6 @@
 # """
 # Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. # Execute via the following command: 
+# problem. # Execute via the following command:
 
 # mpiexec -np 4 python3 test_chwirut_pounders.py
 
@@ -16,10 +16,10 @@ import numpy as np
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import sim_func 
+# Import sim_func
 from libensemble.sim_funcs.chwirut1 import chwirut_eval, EvaluateJacobian
- 
-# Import gen_func 
+
+# Import gen_func
 from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]

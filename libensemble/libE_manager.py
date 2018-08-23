@@ -39,9 +39,9 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     """
 
     man_start_time = time.time()
-    
+
     term_test, W, comm = initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs)
-    
+
     logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
     logger.info("Manager exit_criteria: {}".format(exit_criteria))
 
@@ -54,7 +54,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
 
         W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
 
-        persistent_queue_data = update_active_and_queue(hist.trim_H(), libE_specs, gen_specs, persistent_queue_data)        
+        persistent_queue_data = update_active_and_queue(hist.trim_H(), libE_specs, gen_specs, persistent_queue_data)
 
         if any(W['active'] == 0):
             Work, persis_info = alloc_specs['alloc_f'](W, hist.trim_H(), sim_specs, gen_specs, persis_info)
@@ -196,7 +196,7 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
     if 'save_every_k' in sim_specs:
         k = sim_specs['save_every_k']
         #count = k*(sum(hist.H['returned'])//k)
-        count = k*(hist.sim_count//k)        
+        count = k*(hist.sim_count//k)
         filename = 'libE_history_after_sim_' + str(count) + '.npy'
 
         if not os.path.isfile(filename) and count > 0:
@@ -209,7 +209,7 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
 
         if not os.path.isfile(filename) and count > 0:
             np.save(filename, hist.H)
-            
+
     return W, persis_info
 
 
@@ -265,7 +265,7 @@ def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_spec
     ----------
     hist: History object
         LibEnsembles History data structure
-        
+
     term_test: lambda funciton
         Simplified termination test (doesn't require passing fixed quantities).
         This is nice when calling term_test in multiple places.
@@ -273,7 +273,7 @@ def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_spec
     worker_sets: python set
         Data structure containing lists of active and idle workers
         Initially all workers are idle
-    
+
     comm: MPI communicator
         The communicator for libEnsemble manager and workers
     """

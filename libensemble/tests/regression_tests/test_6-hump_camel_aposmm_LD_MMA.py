@@ -1,7 +1,7 @@
 # """
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html 
-# 
+#    https://www.sfu.ca/~ssurjano/camel6.html
+#
 # Execute via the following command:
 #    mpiexec -np 4 python3 test_6-hump_camel_aposmm_LD_MMA.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -17,13 +17,13 @@ import numpy as np
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import sim_func 
+# Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.aposmm import aposmm_logic
 
-# Import alloc_func 
+# Import alloc_func
 from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
 
 from math import gamma, pi, sqrt
@@ -114,7 +114,7 @@ for run in range(2):
                                [  1.70361, -0.796084],
                                [ -1.6071,   -0.568651],
                                [  1.6071,    0.568651]])
-        else: 
+        else:
             minima = np.array([[-2.9, -1.9]])
 
         tol = 1e-4

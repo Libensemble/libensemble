@@ -1,10 +1,10 @@
 import sys, time, os
 import numpy as np
 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs')) 
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 import libensemble.gen_funcs.aposmm as al
 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src')) 
+#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 import libensemble.libE_manager as man
 
 import libensemble.tests.unit_tests.setup as setup
@@ -31,14 +31,14 @@ gen_out = [('x',float,n),
 
 def test_failing_localopt_method():
     hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
-    
+
     hist.H['returned'] = 1
 
     gen_specs_0['localopt_method'] = 'BADNAME'
-    
-    try: 
+
+    try:
         al.advance_localopt_method(hist.H, gen_specs_0, 0, 0, {'run_order': {0:[0,1]}})
-    except: 
+    except:
         assert 1, "Failed like it should have"
     else:
         assert 0, "Didn't fail like it should have"
@@ -50,9 +50,9 @@ def test_exception_raising():
 
     for method in ['LN_SBPLX','pounders']:
         gen_specs_0['localopt_method'] = method
-        try: 
+        try:
             al.advance_localopt_method(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
-        except: 
+        except:
             assert 1, "Failed like it should have"
         else:
             assert 0, "Failed like it should have"
@@ -61,7 +61,7 @@ def test_exception_raising():
 def test_decide_where_to_start_localopt():
     #sys.path.append(os.path.join(os.path.dirname(__file__), '../regression_tests'))
 
-    #from libensemble.regression_tests.test_branin_aposmm import gen_out 
+    #from libensemble.regression_tests.test_branin_aposmm import gen_out
     H = np.zeros(10,dtype=gen_out + [('f',float),('returned',bool)])
     H['x'] = np.random.uniform(0,1,(10,2))
     H['f'] = np.random.uniform(0,1,10)
@@ -85,7 +85,7 @@ def test_initialize_APOSMM():
     hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
 
     al.initialize_APOSMM(hist.H,gen_specs_0)
-    
+
 
 def test_queue_update_function():
 
@@ -99,7 +99,7 @@ def test_queue_update_function():
     H['pt_id'] = np.sort(np.concatenate([np.arange(0,5),np.arange(0,5)]))
 
     H['returned'][0:10:2] = 1 # All of the first components have been evaluated
-    H['returned'][1] = 1 
+    H['returned'][1] = 1
 
     H['f_i'][4] = np.nan
 

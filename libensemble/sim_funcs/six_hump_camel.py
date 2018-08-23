@@ -4,7 +4,7 @@ This module contains various versions that evaluate the six hump camel function.
 from __future__ import division
 from __future__ import absolute_import
 
-__all__ = ['six_hump_camel_with_different_ranks_and_nodes','six_hump_camel','six_hump_camel_simple'] 
+__all__ = ['six_hump_camel_with_different_ranks_and_nodes','six_hump_camel','six_hump_camel_simple']
 from mpi4py import MPI # for libE communicator
 import subprocess, os
 import numpy as np
@@ -17,7 +17,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
     performs a system call with a given number of nodes and ranks per node
     using a machinefile (to show one way of evaluating a compiled simulation).
 
-    :See: 
+    :See:
         ``/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
     """
 
@@ -29,7 +29,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         if 'blocking' in libE_info:
             ranks_involved = [MPI.COMM_WORLD.Get_rank()] +  list(libE_info['blocking'])
         else:
-            ranks_involved = [MPI.COMM_WORLD.Get_rank()] 
+            ranks_involved = [MPI.COMM_WORLD.Get_rank()]
 
         machinefilename = 'machinefile_for_sim_id=' + str(libE_info['H_rows'][i] )+ '_ranks='+'_'.join([str(r) for r in ranks_involved])
 
@@ -50,7 +50,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         # v = np.random.uniform(0,10)
         # print('About to sleep for :' + str(v))
         # time.sleep(v)
-    
+
     return O, persis_info
 
 
@@ -61,7 +61,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     ``sim_specs['out']`` and pauses for ``sim_specs['pause_time']]`` if
     defined.
 
-    :See: 
+    :See:
         ``/libensemble/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py``
     """
 
@@ -83,7 +83,7 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a single point ``x``.
 
-    :See: 
+    :See:
         ``/libensemble/libensemble/tests/regression_tests/test_fast_alloc.py``
     """
 

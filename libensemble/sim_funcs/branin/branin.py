@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-A small example of reading/writing from/to files for libEnsemble evaluation 
+A small example of reading/writing from/to files for libEnsemble evaluation
 """
 
 import numpy as np

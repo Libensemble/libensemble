@@ -10,27 +10,27 @@ sim_count = 0
 def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
     import time
     start = time.time()
-    
+
     calc_status = UNSET_TAG # Sim func determines status of libensemble calc - returned to worker
-    
+
     while time.time() - start < timeout_sec:
         time.sleep(delay)
-        
-        #print('Probing manager at time: ', time.time() - start)        
+
+        #print('Probing manager at time: ', time.time() - start)
         jobctl.manager_poll(job)
         if job.manager_signal == 'finish':
             jobctl.kill(job)
             calc_status = MAN_SIGNAL_FINISH # Worker will pick this up and close down
-            print('Job {} killed by manager on worker {}'.format(job.id,jobctl.workerID)) 
-            break         
-        
+            print('Job {} killed by manager on worker {}'.format(job.id,jobctl.workerID))
+            break
+
         #print('Polling job at time', time.time() - start)
-        jobctl.poll(job)        
-        if job.finished: 
-            break  
+        jobctl.poll(job)
+        if job.finished:
+            break
         elif job.state == 'RUNNING':
             print('Job {} still running on worker {} ....'.format(job.id,jobctl.workerID))
-        
+
         #Check output file for error
         #print('Checking output file for error at time:', time.time() - start)
         if job.stdout_exists():
@@ -39,7 +39,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
                 jobctl.kill(job)
                 calc_status = WORKER_KILL_ON_ERR
                 break
-    
+
     # After exiting loop
     if job.finished:
         print('Job {} done on worker {}'.format(job.id,jobctl.workerID))
@@ -49,7 +49,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
                 calc_status = WORKER_DONE
             elif job.state == 'FAILED':
                 calc_status = JOB_FAILED
-            #elif job.state == 'USER_KILLED': 
+            #elif job.state == 'USER_KILLED':
                 #calc_status = WORKER_KILL
     else:
         #assert job.state == 'RUNNING', "job.state expected to be RUNNING. Returned: " + str(job.state)
@@ -58,7 +58,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
         if job.finished:
             print('Job {} done on worker {}'.format(job.id,jobctl.workerID))
         calc_status = WORKER_KILL_ON_TIMEOUT
-    
+
     return job, calc_status
 
 
@@ -66,7 +66,7 @@ def job_control_hworld(H, persis_info, sim_specs, _):
     """ Test of launching and polling job and exiting on job finish"""
     jobctl = JobController.controller
     cores = sim_specs['cores']
-    
+
     args_for_sim = 'sleep 3'
     #pref send this in X as a sim_in from calling script
     global sim_count
@@ -80,30 +80,30 @@ def job_control_hworld(H, persis_info, sim_specs, _):
         args_for_sim = 'sleep 5' # Worker kill on timeout
         timeout = 3.0
     elif sim_count==4:
-        args_for_sim = 'sleep 1 Fail' # Manager kill - if signal received else completes      
+        args_for_sim = 'sleep 1 Fail' # Manager kill - if signal received else completes
     elif sim_count==5:
         args_for_sim = 'sleep 18' # Manager kill - if signal received else completes
-        timeout = 20.0        
-        
+        timeout = 20.0
+
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
     job, calc_status = polling_loop(jobctl, job, timeout)
-    
+
     #assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     #assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
-    
+
     #This is temp - return something - so doing six_hump_camel_func again...
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
     for i,x in enumerate(H['x']):
         O['f'][i] = six_hump_camel_func(x)
-    
+
     #This is just for testing at calling script level - status of each job
     O['cstat'] = calc_status
-    
+
     # v = np.random.uniform(0,10)
     # print('About to sleep for :' + str(v))
     # time.sleep(v)
-    
+
     return O, persis_info, calc_status
 
 
