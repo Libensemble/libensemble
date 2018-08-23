@@ -16,10 +16,6 @@ import sys
 import logging
 import traceback
 
-# from IPython.core import ultratb
-# sys.excepthook = ultratb.FormattedTB(mode='Verbose',
-#      color_scheme='Linux', call_pdb=1)
-
 # Set root logger
 # (Set above libe imports so errors in import are captured)
 # LEVEL: DEBUG/INFO/WARNING/ERROR
@@ -122,9 +118,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         try:
             persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
-            # Some abort option
             if 'abort_on_manager_exc' in libE_specs:
-                # Manager exceptions are fatal
                 eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
                 eprint(traceback.format_exc())
             else:
@@ -150,9 +144,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
-            # Some abort option
             if 'abort_on_worker_exc' in libE_specs:
-                # Worker exceptions fatal
                 eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
                 eprint(traceback.format_exc())
             else:
@@ -172,9 +164,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         CalcInfo.merge_statfiles()
         H = hist.trim_H()
 
-    #return hist, persis_info, exit_flag
-    #import pdb; pdb.set_trace()
-    #currently return hist.H so dont need to modify calling scripts
     return H, persis_info, exit_flag
 
 

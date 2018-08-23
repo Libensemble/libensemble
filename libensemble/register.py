@@ -80,26 +80,19 @@ class Register():
 
 
         '''
-        if default:
-            if calc_type == 'sim':
-                if self.sim_default_app is not None:
-                    #logger - either error or overwrite - error
-                    raise RegistrationException("Default sim app already set")
-                app = Application(full_path, calc_type, desc, default)
-                self.sim_default_app = app
-            elif calc_type == 'gen':
-                if self.gen_default_app is not None:
-                    #logger - either error or overwrite - error
-                    raise RegistrationException("Default gen app already set")
-                app = Application(full_path, calc_type, desc, default)
-                self.gen_default_app = app
-            else:
-                #Raise Exception **
-                raise RegistrationException("Unrecognized calculation type", calc_type)
-        else:
-            pass #always default currently
+        if not default:
+            return # Always default currently
 
-        return
+        if calc_type == 'sim':
+            if self.sim_default_app is not None:
+                raise RegistrationException("Default sim app already set")
+            self.sim_default_app = Application(full_path, calc_type, desc, default)
+        elif calc_type == 'gen':
+            if self.gen_default_app is not None:
+                raise RegistrationException("Default gen app already set")
+            self.gen_default_app = Application(full_path, calc_type, desc, default)
+        else:
+            raise RegistrationException("Unrecognized calculation type", calc_type)
 
 
 class BalsamRegister(Register):
@@ -111,7 +104,6 @@ class BalsamRegister(Register):
         """ Deletes all Balsam apps whose names contains substring .simfunc or .genfunc"""
         from balsam.service import models
         AppDef = models.ApplicationDefinition
-        #deletion_objs = AppDef.objects.all()
 
         #Some error handling on deletes.... is it internal
         for app_type in ['.simfunc', '.genfunc']:
@@ -126,7 +118,6 @@ class BalsamRegister(Register):
         """ Deletes all Balsam jobs whose names contains substring .simfunc or .genfunc"""
         from balsam.service import models
         Job = models.BalsamJob
-        #deletion_objs = Job.objects.all()
 
         for app_type in ['.simfunc', '.genfunc']:
             deletion_objs = Job.objects.filter(name__contains=app_type)
