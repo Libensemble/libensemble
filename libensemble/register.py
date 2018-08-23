@@ -42,6 +42,16 @@ class Register():
 
     default_registry = None
 
+    @property
+    def sim_default_app(self):
+        """Return the default simulation app."""
+        return self._default_apps['sim']
+
+    @property
+    def gen_default_app(self):
+        """Return the default generator app."""
+        return self._default_apps['gen']
+
     def __init__(self, default=True):
         '''Instantiate a new Register instance
 
@@ -55,8 +65,7 @@ class Register():
         Note: Currently, only a default registry is supported.
 
         '''
-        self.sim_default_app = None
-        self.gen_default_app = None
+        self._default_apps = {'sim' : None, 'gen': None}
         if default:
             Register.default_registry = self
 
@@ -82,17 +91,11 @@ class Register():
         '''
         if not default:
             return # Always default currently
-
-        if calc_type == 'sim':
-            if self.sim_default_app is not None:
-                raise RegistrationException("Default sim app already set")
-            self.sim_default_app = Application(full_path, calc_type, desc, default)
-        elif calc_type == 'gen':
-            if self.gen_default_app is not None:
-                raise RegistrationException("Default gen app already set")
-            self.gen_default_app = Application(full_path, calc_type, desc, default)
-        else:
+        if calc_type not in self._default_apps:
             raise RegistrationException("Unrecognized calculation type", calc_type)
+        if self._default_apps[calc_type] is not None:
+            raise RegistrationException("Default {} app already set".format(calc_type))
+        self._default_apps[calc_type] = Application(full_path, calc_type, desc, default)
 
 
 class BalsamRegister(Register):
@@ -195,12 +198,9 @@ class BalsamRegister(Register):
         #Req python 3 to exclude args - but as Balsam requires 3.6+ I may do - or is it only __init__()
 
         #Get from one place - so always matches
-        if calc_type == 'sim':
-            calc_name = self.sim_default_app.name
-            desc = self.sim_default_app.desc
-        elif calc_type == 'gen':
-            calc_name = self.gen_default_app.name
-            desc = self.gen_default_app.desc
+        if calc_type in self._default_apps:
+            calc_name = self._default_apps[calc_type].name
+            desc = self._default_apps[calc_type].desc
         else:
             raise RegistrationException("Unrecognized calculation type", calc_type)
 
