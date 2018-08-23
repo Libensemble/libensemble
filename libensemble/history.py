@@ -90,7 +90,7 @@ class History:
         new_inds = D['libE_info']['H_rows'] # The list of rows (as a numpy array)
         H_0 = D['calc_out']
 
-        for j,ind in enumerate(new_inds):
+        for j, ind in enumerate(new_inds):
             for field in H_0.dtype.names:
 
                 if np.isscalar(H_0[field][j]):
@@ -156,11 +156,11 @@ class History:
                 #self.H = self.grow_H(num_new-rows_remaining)
                 self.grow_H(num_new-rows_remaining)
 
-            update_inds = np.arange(self.index,self.index+num_new)
-            self.H['sim_id'][self.index:self.index+num_new] = range(self.index,self.index+num_new)
+            update_inds = np.arange(self.index, self.index+num_new)
+            self.H['sim_id'][self.index:self.index+num_new] = range(self.index, self.index+num_new)
         else:
             # gen method is building sim_id.
-            num_new = len(np.setdiff1d(O['sim_id'],self.H['sim_id']))
+            num_new = len(np.setdiff1d(O['sim_id'], self.H['sim_id']))
 
             if num_new > rows_remaining:
                 #self.H = grow_H(H,num_new-rows_remaining)
@@ -188,7 +188,7 @@ class History:
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
-        self.H = np.append(self.H,H_1)
+        self.H = np.append(self.H, H_1)
 
 
     # Could be arguments here to return different truncations eg. all done, given etc...
