@@ -132,7 +132,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
             eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime
             filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
-            np.save(filename,hist.trim_H())
+            np.save(filename, hist.trim_H())
 
             #Could have timing in here still...
             sys.stdout.flush()

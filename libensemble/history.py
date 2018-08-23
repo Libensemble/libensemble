@@ -144,7 +144,7 @@ class History:
         """
 
         if len(O) == 0:
-            return #H, index
+            return
 
         rows_remaining = len(self.H)-self.index
 
@@ -153,7 +153,6 @@ class History:
             num_new = len(O)
 
             if num_new > rows_remaining:
-                #self.H = self.grow_H(num_new-rows_remaining)
                 self.grow_H(num_new-rows_remaining)
 
             update_inds = np.arange(self.index, self.index+num_new)
@@ -163,7 +162,6 @@ class History:
             num_new = len(np.setdiff1d(O['sim_id'], self.H['sim_id']))
 
             if num_new > rows_remaining:
-                #self.H = grow_H(H,num_new-rows_remaining)
                 self.grow_H(num_new-rows_remaining)
 
             update_inds = O['sim_id']
