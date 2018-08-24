@@ -176,6 +176,91 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             save_every_k('libE_history_after_gen_{}.npy', hist, hist.index, gen_specs['save_every_k'])
         return persis_info
 
+    def save_every_k(fname, hist, count, k):
+        "Save history every kth step."
+        count = k*(count//k)
+        filename = fname.format(count)
+        if not os.path.isfile(filename) and count > 0:
+            np.save(filename, hist.H)
+
+    def _man_request_resend_on_error(comm, w, status=None):
+        "Request the worker resend data on error."
+        status = status or MPI.Status()
+        comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
+        return comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+
+    def _man_request_pkl_dump_on_error(comm, w, status=None):
+        "Request the worker dump a pickle on error."
+        status = status or MPI.Status()
+        comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+        pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+        D_recv = pickle.load(open(pkl_recv, "rb"))
+        os.remove(pkl_recv) #If want to delete file
+        return D_recv
+
+    def check_received_calc(D_recv):
+        "Check the type and status fields on a receive calculation."
+        calc_type = D_recv['calc_type']
+        calc_status = D_recv['calc_status']
+        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
+          'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
+        assert calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, \
+                               UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
+                               WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, WORKER_KILL, \
+                               JOB_FAILED, WORKER_DONE], \
+          'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
+
+    def update_state_on_worker_msg(hist, persis_info, D_recv, w, W):
+        """Update history and worker info on worker message.
+        """
+        calc_type = D_recv['calc_type']
+        calc_status = D_recv['calc_status']
+        check_received_calc(D_recv)
+
+        W[w-1]['active'] = 0
+        if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
+            W[w-1]['persis_state'] = 0
+        else:
+            if calc_type == EVAL_SIM_TAG:
+                hist.update_history_f(D_recv)
+            if calc_type == EVAL_GEN_TAG:
+                hist.update_history_x_in(w, D_recv['calc_out'])
+            if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
+                # Now a waiting, persistent worker
+                W[w-1]['persis_state'] = calc_type
+
+        if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
+            # Now done blocking these workers
+            for w_i in D_recv['libE_info']['blocking']:
+                W[w_i-1]['blocked'] = 0
+                W[w_i-1]['active'] = 0
+
+        if 'persis_info' in D_recv:
+            for key in D_recv['persis_info'].keys():
+                persis_info[w][key] = D_recv['persis_info'][key]
+
+    def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
+        """Handle a message from worker w.
+        """
+        logger.debug("Manager receiving from Worker: {}".format(w))
+        try:
+            D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+            logger.debug("Message size {}".format(status.Get_count()))
+        except Exception as e:
+            logger.error("Exception caught on Manager receive: {}".format(e))
+            logger.error("From worker: {}".format(w))
+            logger.error("Message size of errored message {}".format(status.Get_count()))
+            logger.error("Message status error code {}".format(status.Get_error()))
+
+            # Need to clear message faulty message - somehow
+            status.Set_cancelled(True) #Make sure cancelled before re-send
+
+            # Check on working with peristent data - curently only use one
+            #D_recv = _man_request_resend_on_error(comm, w, status)
+            D_recv = _man_request_pkl_dump_on_error(comm, w, status)
+
+        update_state_on_worker_msg(hist, persis_info, D_recv, w, W)
+
     def final_receive_and_kill(persis_info):
         """
         Tries to receive from any active workers.
@@ -228,95 +313,6 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
 ######################################################################
 
 
-def save_every_k(fname, hist, count, k):
-    "Save history every kth step."
-    count = k*(count//k)
-    filename = fname.format(count)
-    if not os.path.isfile(filename) and count > 0:
-        np.save(filename, hist.H)
-
-
-def _man_request_resend_on_error(comm, w, status=None):
-    "Request the worker resend data on error."
-    status = status or MPI.Status()
-    comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
-    return comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-
-
-def _man_request_pkl_dump_on_error(comm, w, status=None):
-    "Request the worker dump a pickle on error."
-    status = status or MPI.Status()
-    comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
-    pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-    D_recv = pickle.load(open(pkl_recv, "rb"))
-    os.remove(pkl_recv) #If want to delete file
-    return D_recv
-
-
-def check_received_calc(D_recv):
-    "Check the type and status fields on a receive calculation."
-    calc_type = D_recv['calc_type']
-    calc_status = D_recv['calc_status']
-    assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-      'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
-    assert calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, \
-                           UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
-                           WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, WORKER_KILL, \
-                           JOB_FAILED, WORKER_DONE], \
-      'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
-
-
-def update_state_on_worker_msg(hist, persis_info, D_recv, w, W):
-    """Update history and worker info on worker message.
-    """
-    calc_type = D_recv['calc_type']
-    calc_status = D_recv['calc_status']
-    check_received_calc(D_recv)
-
-    W[w-1]['active'] = 0
-    if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
-        W[w-1]['persis_state'] = 0
-    else:
-        if calc_type == EVAL_SIM_TAG:
-            hist.update_history_f(D_recv)
-        if calc_type == EVAL_GEN_TAG:
-            hist.update_history_x_in(w, D_recv['calc_out'])
-        if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
-            # Now a waiting, persistent worker
-            W[w-1]['persis_state'] = calc_type
-
-    if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
-        # Now done blocking these workers
-        for w_i in D_recv['libE_info']['blocking']:
-            W[w_i-1]['blocked'] = 0
-            W[w_i-1]['active'] = 0
-
-    if 'persis_info' in D_recv:
-        for key in D_recv['persis_info'].keys():
-            persis_info[w][key] = D_recv['persis_info'][key]
-
-
-def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
-    """Handle a message from worker w.
-    """
-    logger.debug("Manager receiving from Worker: {}".format(w))
-    try:
-        D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-        logger.debug("Message size {}".format(status.Get_count()))
-    except Exception as e:
-        logger.error("Exception caught on Manager receive: {}".format(e))
-        logger.error("From worker: {}".format(w))
-        logger.error("Message size of errored message {}".format(status.Get_count()))
-        logger.error("Message status error code {}".format(status.Get_error()))
-
-        # Need to clear message faulty message - somehow
-        status.Set_cancelled(True) #Make sure cancelled before re-send
-
-        # Check on working with peristent data - curently only use one
-        #D_recv = _man_request_resend_on_error(comm, w, status)
-        D_recv = _man_request_pkl_dump_on_error(comm, w, status)
-
-    update_state_on_worker_msg(hist, persis_info, D_recv, w, W)
 
 
 # DSB -- done
