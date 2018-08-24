@@ -137,7 +137,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         if len(work_rows):
             comm.send(obj=hist.H[Work['H_fields']][work_rows], dest=w)
 
-    def update_active_and_idle(Work, w):
+    def update_state_on_alloc(Work, w):
         """Update the active/idle status of workers following an allocation order."""
 
         W[w-1]['active'] = Work['tag']
@@ -154,6 +154,28 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             work_rows = Work['libE_info']['H_rows']
             hist.update_history_x_out(work_rows, w)
 
+    def receive_from_workers(persis_info):
+        """
+        Receive calculation output from workers. Loops over all active workers and
+        probes to see if worker is ready to communticate. If any output is
+        received, all other workers are looped back over.
+        """
+        status = MPI.Status()
+
+        new_stuff = True
+        while new_stuff and any(W['active']):
+            new_stuff = False
+            for w in W['worker_id'][W['active'] > 0]:
+                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
+                    new_stuff = True
+                    _handle_msg_from_worker(comm, hist, persis_info, w, W, status)
+
+        if 'save_every_k' in sim_specs:
+            save_every_k('libE_history_after_sim_{}.npy', hist, hist.sim_count, sim_specs['save_every_k'])
+        if 'save_every_k' in gen_specs:
+            save_every_k('libE_history_after_gen_{}.npy', hist, hist.index, gen_specs['save_every_k'])
+        return persis_info
+
     def final_receive_and_kill(persis_info):
         """
         Tries to receive from any active workers.
@@ -164,7 +186,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         """
         exit_flag = 0
         while any(W['active']) and exit_flag == 0:
-            persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+            persis_info = receive_from_workers(persis_info)
             if term_test() == 2 and any(W['active']):
                 print_wallclock_term()
                 read_final_messages()
@@ -184,7 +206,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test():
-        persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+        persis_info = receive_from_workers(persis_info)
         trimmed_H = hist.trim_H()
         if 'queue_update_function' in libE_specs and len(trimmed_H):
             persistent_queue_data = libE_specs['queue_update_function'](trimmed_H, gen_specs, persistent_queue_data)
@@ -195,7 +217,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
                     break
                 check_work_order(Work[w], w)
                 send_work_order(Work[w], w)
-                update_active_and_idle(Work[w], w)
+                update_state_on_alloc(Work[w], w)
 
     # Return persis_info, exit_flag
     return final_receive_and_kill(persis_info)
@@ -216,7 +238,6 @@ def save_every_k(fname, hist, count, k):
 
 def _man_request_resend_on_error(comm, w, status=None):
     "Request the worker resend data on error."
-    #Ideally use status.Get_source() for MPI rank - this relies on rank being workerID
     status = status or MPI.Status()
     comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
     return comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
@@ -224,7 +245,6 @@ def _man_request_resend_on_error(comm, w, status=None):
 
 def _man_request_pkl_dump_on_error(comm, w, status=None):
     "Request the worker dump a pickle on error."
-    # Req worker to dump pickle file and manager reads
     status = status or MPI.Status()
     comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
     pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
@@ -246,26 +266,9 @@ def check_received_calc(D_recv):
       'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
 
 
-def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
-    """Handle a message from worker w.
+def update_state_on_worker_msg(hist, persis_info, D_recv, w, W):
+    """Update history and worker info on worker message.
     """
-    logger.debug("Manager receiving from Worker: {}".format(w))
-    try:
-        D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-        logger.debug("Message size {}".format(status.Get_count()))
-    except Exception as e:
-        logger.error("Exception caught on Manager receive: {}".format(e))
-        logger.error("From worker: {}".format(w))
-        logger.error("Message size of errored message {}".format(status.Get_count()))
-        logger.error("Message status error code {}".format(status.Get_error()))
-
-        # Need to clear message faulty message - somehow
-        status.Set_cancelled(True) #Make sure cancelled before re-send
-
-        # Check on working with peristent data - curently only use one
-        #D_recv = _man_request_resend_on_error(comm, w, status)
-        D_recv = _man_request_pkl_dump_on_error(comm, w, status)
-
     calc_type = D_recv['calc_type']
     calc_status = D_recv['calc_status']
     check_received_calc(D_recv)
@@ -293,28 +296,27 @@ def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
             persis_info[w][key] = D_recv['persis_info'][key]
 
 
-def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
+def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
+    """Handle a message from worker w.
     """
-    Receive calculation output from workers. Loops over all active workers and
-    probes to see if worker is ready to communticate. If any output is
-    received, all other workers are looped back over.
-    """
-    status = MPI.Status()
+    logger.debug("Manager receiving from Worker: {}".format(w))
+    try:
+        D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+        logger.debug("Message size {}".format(status.Get_count()))
+    except Exception as e:
+        logger.error("Exception caught on Manager receive: {}".format(e))
+        logger.error("From worker: {}".format(w))
+        logger.error("Message size of errored message {}".format(status.Get_count()))
+        logger.error("Message status error code {}".format(status.Get_error()))
 
-    new_stuff = True
-    while new_stuff and any(W['active']):
-        new_stuff = False
-        for w in W['worker_id'][W['active'] > 0]:
-            if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-                new_stuff = True
-                _handle_msg_from_worker(comm, hist, persis_info, w, W, status)
+        # Need to clear message faulty message - somehow
+        status.Set_cancelled(True) #Make sure cancelled before re-send
 
-    if 'save_every_k' in sim_specs:
-        save_every_k('libE_history_after_sim_{}.npy', hist, hist.sim_count, sim_specs['save_every_k'])
-    if 'save_every_k' in gen_specs:
-        save_every_k('libE_history_after_gen_{}.npy', hist, hist.index, gen_specs['save_every_k'])
+        # Check on working with peristent data - curently only use one
+        #D_recv = _man_request_resend_on_error(comm, w, status)
+        D_recv = _man_request_pkl_dump_on_error(comm, w, status)
 
-    return persis_info
+    update_state_on_worker_msg(hist, persis_info, D_recv, w, W)
 
 
 # DSB -- done
