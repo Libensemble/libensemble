@@ -1,10 +1,10 @@
-__all__ = ['chwirut_eval'] 
+__all__ = ['chwirut_eval']
 import numpy as np
 
 NOBSERVATIONS = 214
 
 y = np.zeros(214)
-t = np.zeros(214)   
+t = np.zeros(214)
 
 y[0] =    92.9000;    t[0] =   0.5000;
 y[1] =    78.7000;    t[1] =   0.6250;
@@ -223,7 +223,7 @@ y[213] =    28.9500;  t[213] =   1.7500;
 
 def EvaluateFunction(x,component=np.nan):
     """
-    Evaluates the chwirut function 
+    Evaluates the chwirut function
     """
     if np.isnan(component):
         f = np.zeros(NOBSERVATIONS)
@@ -238,7 +238,7 @@ def EvaluateFunction(x,component=np.nan):
 
 def EvaluateJacobian(x):
     """
-    Evaluates the chwirut Jacobian 
+    Evaluates the chwirut Jacobian
     """
     j = np.zeros((NOBSERVATIONS,3))
 
@@ -254,14 +254,14 @@ def EvaluateJacobian(x):
 def chwirut_eval(H,persis_info,sim_specs,_):
     """
     Evaluates the chwirut objective function at a given set of points in
-    ``H['x']``. If ``'obj_component'`` is a field in ``sim_specs['out']``, only that 
+    ``H['x']``. If ``'obj_component'`` is a field in ``sim_specs['out']``, only that
     component of the objective will be evaluated. Otherwise, all 214 components
     are evaluated and returned in the ``'fvec'`` field.
 
-    :See: 
+    :See:
         ``/libensemble/tests/regression_tests/test_chwirut_pounders.py`` for an example where the entire fvec is computed.
 
-    :See: 
+    :See:
         ``/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
     """
 
@@ -280,7 +280,7 @@ def chwirut_eval(H,persis_info,sim_specs,_):
             O['f'][i] = sim_specs['combine_component_func'](O['fvec'][i])
 
     return O, persis_info
-        
+
 # if __name__ == '__main__':
 #     x = np.zeros(3)
 #     x[0] = 0.15;

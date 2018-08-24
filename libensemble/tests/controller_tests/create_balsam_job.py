@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" 
+"""
 Script to clean database and create top level app/job for Balsam tests
 
 This creates only the parent job, not the sim/gen (they are created
@@ -44,7 +44,7 @@ def add_app(name,exepath,desc):
     #app.default_preprocess = '' # optional
     #app.default_postprocess = '' # optional
     app.save()
-    
+
 #import balsam.launcher.dag as dag
 stage_in = os.getcwd()
 
@@ -76,9 +76,9 @@ del_jobs()
 job = dag.add_job(name = 'job_' + script_basename,
                   workflow = "libe_workflow", #add arg for this
                   application = app_name,
-                  #application_args = job.app_args,           
+                  #application_args = job.app_args,
                   num_nodes = 1,
                   ranks_per_node = 1,
                   stage_in_url="local:/" + stage_in,
                   stage_out_url = "local:/" + stage_in, #same as in
-                  stage_out_files = "*.out")   
+                  stage_out_files = "*.out")

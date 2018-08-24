@@ -13,7 +13,7 @@ def poll_until_state(job, state, timeout_sec=120.0, delay=2.0):
     if job.state == state:
       return True
     elif job.state == 'USER_KILLED':
-      return False 
+      return False
   raise RuntimeError("Job %s failed to reach state %s in %.1f seconds" % (job.cute_id,state,timeout_sec))
 
 myrank=MPI.COMM_WORLD.Get_rank()
@@ -41,16 +41,16 @@ print ("Host job rank is %d Output dir is %s" % (myrank,sim_dir))
 start = time.time()
 for sim_id in range(steps):
   jobname = 'outfile_t2_' + 'for_sim_id_' + str(sim_id)  + '_ranks_' + str(myrank) + '.txt'
- 
+
   current_job = dag.add_job(name = jobname,
                             workflow = "libe_workflow",
                             application = "helloworld",
-                            application_args = str(sleep_time),                            
+                            application_args = str(sleep_time),
                             num_nodes = 1,
                             ranks_per_node = 8,
                             stage_out_url = "local:" + sim_path,
                             stage_out_files = jobname + ".out")
-  
+
   if sim_id == 1:
     dag.kill(current_job)
 

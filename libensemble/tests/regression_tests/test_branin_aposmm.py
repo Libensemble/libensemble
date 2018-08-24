@@ -6,17 +6,17 @@ from __future__ import absolute_import
 
 from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
-import os    
+import os
 import numpy as np
 
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import sim_func and declare directory to be copied by each worker to do its evaluations in 
+# Import sim_func and declare directory to be copied by each worker to do its evaluations in
 import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')
 from libensemble.sim_funcs.branin.branin_obj import call_branin as obj_func
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.aposmm import aposmm_logic
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -36,13 +36,13 @@ sim_specs = {'sim_f': obj_func, # This is the function whose output is being min
              }
 
 # As an example, have the workers put their directories in a different
-# location. (Useful if a /scratch/ directory is faster than the filesystem.) 
-# (Otherwise, will just copy in same directory as sim_dir) 
+# location. (Useful if a /scratch/ directory is faster than the filesystem.)
+# (Otherwise, will just copy in same directory as sim_dir)
 if w == 1:
-    sim_specs['sim_dir_prefix'] = '~' 
+    sim_specs['sim_dir_prefix'] = '~'
 
 
-if w == 3: 
+if w == 3:
     sim_specs['uniform_random_pause_ub'] = 0.05
 
 gen_out = [('x',float,n),
@@ -78,9 +78,9 @@ gen_specs = {'gen_f': aposmm_logic,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': max_sim_budget, 
+exit_criteria = {'sim_max': max_sim_budget,
                  'elapsed_wallclock_time': 100,
-                 'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out'] 
+                 'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out']
                 }
 
 np.random.seed(1)
@@ -92,13 +92,13 @@ for i in range(MPI.COMM_WORLD.Get_size()):
 if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
-    if MPI.COMM_WORLD.Get_rank() == 0:    
+    if MPI.COMM_WORLD.Get_rank() == 0:
         short_name = script_name.split("test_", 1).pop()
         filename = short_name + '_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
         np.save(filename, H)
 
-        import pkg_resources; minima_and_func_val_file = pkg_resources.resource_filename('libensemble.sim_funcs.branin', 'known_minima_and_func_values') 
+        import pkg_resources; minima_and_func_val_file = pkg_resources.resource_filename('libensemble.sim_funcs.branin', 'known_minima_and_func_values')
 
         if os.path.isfile(minima_and_func_val_file):
             M = np.loadtxt(minima_and_func_val_file)

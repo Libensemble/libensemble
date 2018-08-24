@@ -59,37 +59,37 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - storing the order of the points is the run
     - storing the combined objective function value
     - etc
-    
+
     Necessary quantities in ``gen_specs`` are:
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
-    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that must be returned (with a non-nan value) before a local optimization run is started. 
-    - ``'localopt_method' [str]``: Name of an NLopt or PETSc/TAO method 
+    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that must be returned (with a non-nan value) before a local optimization run is started.
+    - ``'localopt_method' [str]``: Name of an NLopt or PETSc/TAO method
 
     Optional ``gen_specs`` entries are:
 
     - ``'sample_points' [int]``: The points to be sampled (in the original domain)
-    - ``'combine_component_func' [func]``: Function to combine objective components 
-    - ``'components' [int]``: Number of objective components 
-    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the distance to the nearest boundary should the initial step size be in localopt runs 
-    - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs with smallest observed function value are given priority 
-    - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions (0 or 1 results in uniform sampling) 
-    - ``'min_batch_size' [int]``: Lower bound on the number of points given every time APOSMM is called 
-    - ``'mu' [float]``: Distance from the boundary that all localopt starting points must satisfy 
-    - ``'nu' [float]``: Distance from identified minima that all starting points must satisfy 
-    - ``'single_component_at_a_time' [bool]``: True if single objective components will be evaluated at a time 
-    - ``'rk_const' [float]``:  
-    
+    - ``'combine_component_func' [func]``: Function to combine objective components
+    - ``'components' [int]``: Number of objective components
+    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the distance to the nearest boundary should the initial step size be in localopt runs
+    - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs with smallest observed function value are given priority
+    - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions (0 or 1 results in uniform sampling)
+    - ``'min_batch_size' [int]``: Lower bound on the number of points given every time APOSMM is called
+    - ``'mu' [float]``: Distance from the boundary that all localopt starting points must satisfy
+    - ``'nu' [float]``: Distance from identified minima that all starting points must satisfy
+    - ``'single_component_at_a_time' [bool]``: True if single objective components will be evaluated at a time
+    - ``'rk_const' [float]``:
+
     And ``gen_specs`` convergence tolerances for NLopt and PETSc/TAO:
 
-    - ``'fatol' [float]``: 
-    - ``'ftol_abs' [float]``: 
-    - ``'ftol_rel' [float]``: 
-    - ``'gatol' [float]``: 
-    - ``'grtol' [float]``: 
-    - ``'xtol_abs' [float]``: 
-    - ``'xtol_rel' [float]``: 
+    - ``'fatol' [float]``:
+    - ``'ftol_abs' [float]``:
+    - ``'ftol_rel' [float]``:
+    - ``'gatol' [float]``:
+    - ``'grtol' [float]``:
+    - ``'xtol_abs' [float]``:
+    - ``'xtol_rel' [float]``:
 
     :Note:
         ``gen_specs['combine_component_func']`` must be defined when there are
