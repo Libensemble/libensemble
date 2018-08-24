@@ -57,47 +57,36 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     W = np.zeros(num_workers, dtype=worker_dtype)
     W['worker_id'] = np.arange(num_workers) + 1
 
-    def term_test_wallclock():
+    def term_test_wallclock(max_elapsed):
         """Check against wallclock timeout"""
-        if ('elapsed_wallclock_time' in exit_criteria
-                and elapsed() >= exit_criteria['elapsed_wallclock_time']):
-            logger.debug("Term test tripped: elapsed_wallclock_time")
-            return 2
-        return 0
+        return elapsed() >= max_elapsed
 
-    def term_test_sim_max():
+    def term_test_sim_max(sim_max):
         """Check against max simulations"""
-        if ('sim_max' in exit_criteria
-                and hist.given_count >= exit_criteria['sim_max'] + hist.offset):
-            logger.debug("Term test tripped: sim_max")
-            return 1
-        return 0
+        return hist.given_count >= sim_max + hist.offset
 
-    def term_test_gen_max():
+    def term_test_gen_max(gen_max):
         """Check against max generator calls."""
-        if ('gen_max' in exit_criteria
-                and hist.index >= exit_criteria['gen_max'] + hist.offset):
-            logger.debug("Term test tripped: gen_max")
-            return 1
-        return 0
+        return hist.index >= gen_max + hist.offset
 
-    def term_test_stop_val():
+    def term_test_stop_val(stop_val):
         """Check against stop value criterion."""
-        if 'stop_val' in exit_criteria:
-            key = exit_criteria['stop_val'][0]
-            val = exit_criteria['stop_val'][1]
-            if np.any(hist.H[key][:hist.index][~np.isnan(hist.H[key][:hist.index])] <= val):
-                logger.debug("Term test tripped: stop_val")
-                return 1
-        return 0
+        key, val = stop_val
+        return np.any(hist.H[key][:hist.index][~np.isnan(hist.H[key][:hist.index])] <= val)
+
+    term_tests = [(2, 'elapsed_wallclock_time', term_test_wallclock),
+                  (1, 'sim_max', term_test_sim_max),
+                  (1, 'gen_max', term_test_gen_max),
+                  (1, 'stop_val', term_test_stop_val)]
 
     def term_test():
         """Check termination criteria"""
-        # Time should be checked first to ensure proper timeout
-        return (term_test_wallclock()
-                or term_test_sim_max()
-                or term_test_gen_max()
-                or term_test_stop_val())
+        for retval, key, testf in term_tests:
+            if key in exit_criteria:
+                if testf(exit_criteria[key]):
+                    logger.debug("Term test tripped: {}".format(key))
+                    return retval
+        return 0
 
     def kill_workers():
         """Kill the workers"""
