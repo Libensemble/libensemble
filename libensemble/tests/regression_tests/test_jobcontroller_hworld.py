@@ -19,7 +19,7 @@ USE_BALSAM = False
 
 def build_simfunc():
     import subprocess
-    
+
     #Build simfunc
     #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
     buildstring='mpicc -o my_simjob.x ../unit_tests/simdir/my_simjob.c'
@@ -36,19 +36,19 @@ if not os.path.isfile(sim_app):
 
 if USE_BALSAM:
     registry = BalsamRegister()
-    jobctrl = BalsamJobController(registry = registry, auto_resources = True)  
+    jobctrl = BalsamJobController(registry = registry, auto_resources = True)
 else:
     registry = Register()
     jobctrl = JobController(registry = registry, auto_resources = True)
 registry.register_calc(full_path=sim_app, calc_type='sim')
 
 summary_file_name = short_name + '.libe_summary.txt'
-CalcInfo.set_statfile_name(summary_file_name) 
+CalcInfo.set_statfile_name(summary_file_name)
 if MPI.COMM_WORLD.Get_size() == 4:
-    CalcInfo.keep_worker_stat_files = True # Testing this functionality 
+    CalcInfo.keep_worker_stat_files = True # Testing this functionality
 else:
-    CalcInfo.keep_worker_stat_files = False # Testing this functionality 
-    
+    CalcInfo.keep_worker_stat_files = False # Testing this functionality
+
 num_workers = Resources.get_num_workers()
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
@@ -73,7 +73,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              'num_inst':1,
              'save_every_k': 20
              }
-             
+
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 15}
 
@@ -92,13 +92,13 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     #Repeat expected lists num_workers times and compare with list of status's received from workers
     calc_status_list_in = np.asarray([WORKER_DONE,WORKER_KILL_ON_ERR,WORKER_KILL_ON_TIMEOUT, JOB_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in,num_workers)
-    
-    #For debug 
+
+    #For debug
     print("Expecting: {}".format(calc_status_list))
     print("Received:  {}\n".format(H['cstat']))
-    
+
     assert np.array_equal(H['cstat'], calc_status_list), "Error - unexpected calc status. Received: " + str(H['cstat'])
-             
+
     #Check summary file:
     print('Checking expected job status against job summary file ...\n')
 
@@ -107,7 +107,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     calc_desc_list = ['Completed'] + calc_desc_list_in * num_workers
     with open(summary_file_name,'r') as f:
         i=0
-        for line in f:        
+        for line in f:
             if "Status:" in line:
                 _, file_status = line.partition("Status:")[::2]
                 print("Expected: {}   Filestatus: {}".format(calc_desc_list[i], file_status.strip()))

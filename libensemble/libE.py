@@ -16,10 +16,6 @@ import sys
 import logging
 import traceback
 
-# from IPython.core import ultratb
-# sys.excepthook = ultratb.FormattedTB(mode='Verbose',
-#      color_scheme='Linux', call_pdb=1)
-
 # Set root logger
 # (Set above libe imports so errors in import are captured)
 # LEVEL: DEBUG/INFO/WARNING/ERROR
@@ -45,9 +41,9 @@ def comms_abort(comm):
     #This will be in comms module
     #comm arg will then be replaced with self.comm
     #Exit code 1 to represent an abort
-    comm.Abort(1)    
+    comm.Abort(1)
 
-  
+
 def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]},
          libE_specs={'comm': MPI.COMM_WORLD, 'color': 0}, H0=[]):
@@ -65,7 +61,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
-            
+
 
     gen_specs: :obj:`dict`
 
@@ -122,39 +118,41 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     #create_exception = this_does_not_exist
 
     if libE_specs['comm'].Get_rank() == 0:   
-        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)        
+        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
         try:
             persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
-            
+            # Some abort option
             # Put this in a manager_abort() routine. Then if worker exc - will signal mananger and if man receives abort tag (on iprobe)
             #- will
             # call abort routine also - worker can wait to give manager time - and then if nothing - mpi_abort itself.
             
-            # Manager exceptions are fatal
+                # Manager exceptions are fatal
             eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
-            eprint(traceback.format_exc())                            
-            eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime  
-            filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
-            np.save(filename,hist.trim_H())
+                eprint(traceback.format_exc())                 
             
+            eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime
+            filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
+            np.save(filename, hist.trim_H())
+
             #Could have timing in here still...
             sys.stdout.flush()
             sys.stderr.flush()
             #sys.excepthook = comms_abort(libE_specs['comm'])
             comms_abort(libE_specs['comm'])
             #raise
-                
+
         else:
             logger.debug("Manager exiting")
             print(libE_specs['comm'].Get_size(), exit_criteria)
             sys.stdout.flush()
 
-    else: 
+    else:
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
-            # Worker exceptions fatal
+            if 'abort_on_worker_exc' in libE_specs:            
+                # Worker exceptions fatal
             eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
             eprint(traceback.format_exc())
             sys.stdout.flush()
@@ -172,9 +170,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         CalcInfo.merge_statfiles()
         H = hist.trim_H()
 
-    #return hist, persis_info, exit_flag
-    #import pdb; pdb.set_trace()
-    #currently return hist.H so dont need to modify calling scripts
     return H, persis_info, exit_flag
 
 
@@ -225,12 +220,14 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
                   '\n' + 79*'*' + '\n\n')
             sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
-
-    H = np.zeros(1 + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out'])
-
+    if 'out' in alloc_specs:
+        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
+    else:
+        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'])))
+    
     if len(H0):
         fields = H0.dtype.names
-        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names)) 
+        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names))
         if 'returned' in fields:
             assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
 

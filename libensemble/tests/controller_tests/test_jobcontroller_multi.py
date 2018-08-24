@@ -8,7 +8,7 @@ import os
 
 def build_simfunc():
     import subprocess
-    
+
     #Build simfunc
     #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
     buildstring='mpicc -o my_simjob.x simdir/my_simjob.c'
@@ -35,11 +35,11 @@ USE_BALSAM = False #Take as arg
 #Create and add exes to registry
 if USE_BALSAM:
     registry = BalsamRegister()
-    jobctrl = BalsamJobController(registry = registry)    
+    jobctrl = BalsamJobController(registry = registry)
 else:
     registry = Register()
     jobctrl = JobController(registry = registry)
-    
+
 registry.register_calc(full_path=sim_app, calc_type='sim')
 
 #Alternative to IF could be using eg. fstring to specify: e.g:
@@ -56,12 +56,12 @@ def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
     start = time.time()
 
     while time.time() - start < timeout_sec:
-        
+
         #Test all done - (return list of not-finished jobs and test if empty)
         active_list = [job for job in job_list if not job.finished]
         if not active_list:
             break
-                
+
         for job in job_list:
             if not job.finished:
                 time.sleep(delay)
@@ -69,8 +69,8 @@ def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
                 #job.poll()
                 jobctl.poll(job)
                 if job.finished: continue
-                elif job.state == 'WAITING': print('Job %d waiting to launch' % (job.id))   
-                elif job.state == 'RUNNING': print('Job %d still running ....' % (job.id)) 
+                elif job.state == 'WAITING': print('Job %d waiting to launch' % (job.id))
+                elif job.state == 'RUNNING': print('Job %d still running ....' % (job.id))
 
                 #Check output file for error
                 if job.stdout_exists():
@@ -79,21 +79,21 @@ def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
                         jobctl.kill(job)
                         time.sleep(delay) #Give time for kill
                         continue
-                                    
+
                 #But if I want to do something different - I want to make a file - no function for THAT!
                 #But you can get all the job attributes!
                 #Uncomment to test
                 #path = os.path.join(job.workdir,'newfile'+str(time.time()))
                 #open(path, 'a')
-           
+
     print('Loop time', time.time() - start)
-    
+
     for job in job_list:
         if job.finished:
             if job.state == 'FINISHED':
                 print('Job %d finished succesfully. Status: %s' % (job.id, job.state))
             elif job.state == 'FAILED':
-                print('Job %d failed. Status: %s' % (job.id, job.state))  
+                print('Job %d failed. Status: %s' % (job.id, job.state))
             elif job.state == 'USER_KILLED':
                 print('Job %d has been killed. Status: %s' % (job.id, job.state))
             else:
@@ -101,14 +101,14 @@ def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
         else:
             print('Job %d timed out. Status: %s' % (job.id, job.state))
             jobctl.kill(job)
-            if job.finished: 
+            if job.finished:
                 print('Job %d Now killed. Status: %s' % (job.id, job.state))
                 #double check
                 #job.poll()
                 jobctl.poll(job)
                 print('Job %d state is %s' % (job.id, job.state))
-    
-    
+
+
 # Tests
 
 #From worker call JobController by different name to ensure getting registered app from JobController
@@ -127,8 +127,8 @@ for j in range(3):
     rundir = 'run_' + str(sleeptime)
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     job_list.append(job)
-            
-          
+
+
 polling_loop(jobctl, job_list)
 
 

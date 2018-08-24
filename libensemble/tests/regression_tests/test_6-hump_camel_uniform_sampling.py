@@ -1,7 +1,7 @@
 # """
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html 
-# 
+#    https://www.sfu.ca/~ssurjano/camel6.html
+#
 # Execute via the following command:
 #    mpiexec -np 4 python3 test_6-hump_camel_uniform_sampling.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -17,10 +17,10 @@ import numpy as np
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import sim_func 
+# Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]

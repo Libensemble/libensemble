@@ -1,6 +1,6 @@
 # """
 # Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. # Execute via the following command: 
+# problem. # Execute via the following command:
 
 # mpiexec -np 4 python3 call_chwirut_aposmm_one_residual_at_a_time.py
 
@@ -16,13 +16,13 @@ import numpy as np
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import sim_func 
+# Import sim_func
 from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
 
-# Import alloc_func 
+# Import alloc_func
 from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -75,7 +75,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'combine_component_func': lambda x: np.sum(np.power(x,2)),
              'num_inst': 1,
              'batch_mode': True,
-             'stop_on_NaNs': True, 
+             'stop_on_NaNs': True,
              'stop_partial_fvec_eval': True,
              }
 

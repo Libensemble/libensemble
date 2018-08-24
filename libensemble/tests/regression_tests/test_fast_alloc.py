@@ -1,7 +1,7 @@
 # """
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html 
-# 
+#    https://www.sfu.ca/~ssurjano/camel6.html
+#
 # Execute via the following command:
 #    mpiexec -np 4 python3 call_6-hump_camel.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -17,19 +17,19 @@ import numpy as np
 # Import libEnsemble main
 from libensemble.libE import libE
 
-# Import sim_func 
+# Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple
 
-# Import gen_func 
+# Import gen_func
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 
-# Import alloc_func 
+# Import alloc_func
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 for time in np.append([0], np.logspace(-5,-1,5)):
-    for rep in range(1): 
+    for rep in range(1):
         #State the objective function, its arguments, output, and necessary parameters (and their sizes)
         sim_specs = {'sim_f': six_hump_camel_simple, # This is the function whose output is being minimized
                      'in': ['x'], # These keys will be given to the above function
@@ -38,7 +38,7 @@ for time in np.append([0], np.logspace(-5,-1,5)):
                      'pause_time':time,
                      }
         if time == 0:
-            sim_specs.pop('pause_time') 
+            sim_specs.pop('pause_time')
 
         # State the generating function, its arguments, output, and necessary parameters.
         num_pts = 30*(MPI.COMM_WORLD.Get_size()-1)

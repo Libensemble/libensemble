@@ -14,7 +14,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     generator instances.
 
     Allows for a ``'batch_mode'`` where no generation
-    work is given out unless all entries in ``H`` are returned. 
+    work is given out unless all entries in ``H`` are returned.
 
     Allows for ``blocking`` of workers that are not active, for example, so
     their resources can be used for a different simulation evaluation.

@@ -38,11 +38,11 @@ print ("Host job rank is %d Output dir is %s" % (myrank,sim_dir))
 start = time.time()
 for sim_id in range(steps):
   jobname = 'outfile_t1_' + 'for_sim_id_' + str(sim_id)  + '_ranks_' + str(myrank) + '.txt'
-  
+
   current_job = dag.add_job(name = jobname,
                             workflow = "libe_workflow",
                             application = "helloworld",
-                            application_args = str(sleep_time),                            
+                            application_args = str(sleep_time),
                             num_nodes = 1,
                             ranks_per_node = 8,
                             stage_out_url = "local:" + sim_path,
