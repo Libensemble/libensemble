@@ -81,8 +81,6 @@ def worker_main(c, sim_specs, gen_specs):
     sim_iter = 0
     gen_iter = 0
 
-    #create_exception = this_does_not_exist
-
     #Init in case of manager request before filled
     worker_out = {}
 
