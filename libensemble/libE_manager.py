@@ -35,22 +35,27 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+def get_stopwatch():
+    "Return an elapsed time function, starting now"
+    start_time = time.time()
+    def elapsed():
+        "Return time elapsed since start."
+        return time.time()-start_time
+    return elapsed
+
+
 def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
 
-    man_start_time = time.time()
+    elapsed = get_stopwatch()
     comm = libE_specs['comm']
 
     worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
     num_workers = comm.Get_size()-1
     W = np.zeros(num_workers, dtype=worker_dtype)
     W['worker_id'] = np.arange(num_workers) + 1
-
-    def elapsed():
-        """Return time since manager start"""
-        return time.time()-man_start_time
 
     def term_test_wallclock():
         """Check against wallclock timeout"""
@@ -175,7 +180,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             for w in W['worker_id'][W['active'] > 0]:
                 if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                     new_stuff = True
-                    _handle_msg_from_worker(comm, hist, persis_info, w, W, status)
+                    _handle_msg_from_worker(comm, persis_info, w, status)
 
         if 'save_every_k' in sim_specs:
             save_every_k('libE_history_after_sim_{}.npy', hist.sim_count, sim_specs['save_every_k'])
@@ -239,7 +244,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             for key in D_recv['persis_info'].keys():
                 persis_info[w][key] = D_recv['persis_info'][key]
 
-    def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
+    def _handle_msg_from_worker(comm, persis_info, w, status):
         """Handle a message from worker w.
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
@@ -278,7 +283,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
                 exit_flag = 2
 
         kill_workers()
-        print("\nlibEnsemble manager total time:", time.time() - man_start_time)
+        print("\nlibEnsemble manager total time:", elapsed())
         return persis_info, exit_flag
 
     logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
