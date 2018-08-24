@@ -68,7 +68,8 @@ class Manager:
                            (1, 'gen_max', self.term_test_gen_max),
                            (1, 'stop_val', self.term_test_stop_val)]
 
-    def _make_worker_pool(self, comm):
+    @staticmethod
+    def _make_worker_pool(comm):
         """Set up an array of worker states."""
         num_workers = comm.Get_size()-1
         W = np.zeros(num_workers, dtype=Manager.worker_dtype)
@@ -342,75 +343,3 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
 
     mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria)
     return mgr.run(persis_info)
-
-
-######################################################################
-# Manager subroutines
-######################################################################
-
-
-
-
-# DSB -- done
-def termination_test(hist, exit_criteria, start_time):
-    """
-    Return nonzero if the libEnsemble run should stop
-    """
-
-    # Time should be checked first to ensure proper timeout
-    if ('elapsed_wallclock_time' in exit_criteria
-            and time.time() - start_time >= exit_criteria['elapsed_wallclock_time']):
-        logger.debug("Term test tripped: elapsed_wallclock_time")
-        return 2
-
-    if ('sim_max' in exit_criteria
-            and hist.given_count >= exit_criteria['sim_max'] + hist.offset):
-        logger.debug("Term test tripped: sim_max")
-        return 1
-
-    if ('gen_max' in exit_criteria
-            and hist.index >= exit_criteria['gen_max'] + hist.offset):
-        logger.debug("Term test tripped: gen_max")
-        return 1
-
-    if 'stop_val' in exit_criteria:
-        key = exit_criteria['stop_val'][0]
-        val = exit_criteria['stop_val'][1]
-        if np.any(hist.H[key][:hist.index][~np.isnan(hist.H[key][:hist.index])] <= val):
-            logger.debug("Term test tripped: stop_val")
-            return 1
-
-    return False
-
-
-# DSB -- done
-# Can remove more args if dont add hist setup option in here: Not using: sim_specs, gen_specs, alloc_specs
-def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs):
-    """
-    Forms the numpy structured array that records everything from the
-    libEnsemble run
-
-    Returns
-    ----------
-    hist: History object
-        LibEnsembles History data structure
-
-    term_test: lambda funciton
-        Simplified termination test (doesn't require passing fixed quantities).
-        This is nice when calling term_test in multiple places.
-
-    worker_sets: python set
-        Data structure containing lists of active and idle workers
-        Initially all workers are idle
-
-    comm: MPI communicator
-        The communicator for libEnsemble manager and workers
-    """
-    worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
-    start_time = time.time()
-    term_test = lambda hist: termination_test(hist, exit_criteria, start_time)
-    num_workers = libE_specs['comm'].Get_size()-1
-    W = np.zeros(num_workers, dtype=worker_dtype)
-    W['worker_id'] = np.arange(num_workers) + 1
-    comm = libE_specs['comm']
-    return term_test, W, comm
