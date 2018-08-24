@@ -26,6 +26,7 @@ from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.message_numbers import ABORT_ENSEMBLE
 
 logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
@@ -42,6 +43,12 @@ def comms_abort(comm):
     #comm arg will then be replaced with self.comm
     #Exit code 1 to represent an abort
     comm.Abort(1)
+
+
+def comms_signal_abort_to_man(comm):
+    '''Worker signal manager to abort'''
+    #This will be in comms module
+    comm.send(obj=None, dest=0, tag=ABORT_ENSEMBLE)
 
 
 def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
@@ -115,27 +122,20 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     #sys.excepthook = comms_abort(libE_specs['comm'])
     H = exit_flag = []
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    #create_exception = this_does_not_exist
 
     if libE_specs['comm'].Get_rank() == 0:   
         hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
         try:
             persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
-            # Some abort option
-            # Put this in a manager_abort() routine. Then if worker exc - will signal mananger and if man receives abort tag (on iprobe)
-            #- will
-            # call abort routine also - worker can wait to give manager time - and then if nothing - mpi_abort itself.
-            
-                # Manager exceptions are fatal
+
+            # Manager exceptions are fatal
+            eprint(traceback.format_exc())              
             eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
-                eprint(traceback.format_exc())                 
-            
-            eprint("\nDumping ensemble with {} sims evaluated:\n".format(hist.sim_count)) #datetime
+
+            eprint("\nDumping ensemble history with {} sims evaluated:\n".format(hist.sim_count)) #datetime
             filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
             np.save(filename, hist.trim_H())
-
-            #Could have timing in here still...
             sys.stdout.flush()
             sys.stderr.flush()
             #sys.excepthook = comms_abort(libE_specs['comm'])
@@ -151,16 +151,14 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         try:
             worker_main(libE_specs, sim_specs, gen_specs)
         except Exception as e:
-            if 'abort_on_worker_exc' in libE_specs:            
-                # Worker exceptions fatal
             eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            #Cant dump hist from a worker unless keep a copy updated on workers (or do mpi_comm with manager here)
-            #sys.excepthook = comms_abort(libE_specs['comm'])
-            comms_abort(libE_specs['comm'])
-            #raise
+            
+            #First try to signal manager to dump history
+            comms_signal_abort_to_man(libE_specs['comm'])
+            #comms_abort(libE_specs['comm'])
         else:
             logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 

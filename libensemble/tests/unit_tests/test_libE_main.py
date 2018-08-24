@@ -21,52 +21,22 @@ def test_manager_exception():
         pass
     with mock.patch('libensemble.libE.manager_main') as managerMock:
         managerMock.side_effect = Exception
-        with pytest.raises(Exception, message='Expected exception'):
-            libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
-        # Check npy file dumped
-        assert os.path.isfile(fname_abort), "History file not dumped"
-        os.remove(fname_abort)
-
-
-# def test_worker_exception():
-#     with mock.patch('libensemble.libE.worker_main') as workerMock:
-#         workerMock.side_effect = Exception
-#         with pytest.raises(Exception, message='Expected exception'):
-#             libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
-
-
-def test_manager_exception_mpi_abort():
-    try:
-        os.remove(fname_abort)
-    except OSError as e:
-        pass
-    with mock.patch('libensemble.libE.manager_main') as managerMock:
         with mock.patch('libensemble.libE.comms_abort') as abortMock:
-            managerMock.side_effect = Exception
-            #Will hit the raise after comms_abort
+            abortMock.side_effect = Exception
             with pytest.raises(Exception, message='Expected exception'):
-                libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD, 'abort_on_manager_exc': True})
-
-
-# def test_worker_exception_mpi_abort():
-#     with mock.patch('libensemble.libE.worker_main') as workerMock:
-#         with mock.patch('libensemble.libE.comms_abort') as abortMock:
-#             workerMock.side_effect = Exception
-#             #Will hit the raise after comms_abort
-#             with pytest.raises(Exception, message='Expected exception'):
-#                 libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD, 'abort_on_worker_exc': True})
+                libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
+            # Check npy file dumped
+            assert os.path.isfile(fname_abort), "History file not dumped"
+            os.remove(fname_abort)
 
 
 def test_exception_raising_manager():
     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
-    try:
-        H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
-    #except AssertionError:
-    except Exception:
-        assert 1
-    else:
-        assert 0
-    #assert H==[]
+    with mock.patch('libensemble.libE.comms_abort') as abortMock:
+        abortMock.side_effect = Exception
+        with pytest.raises(Exception, message='Expected exception'):
+            H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
+
 
 # def test_exception_raising_worker():
 #     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
@@ -109,9 +79,5 @@ def rmfield( a, *fieldnames_to_remove ):
 
 if __name__ == "__main__":
     test_manager_exception()
-    #test_worker_exception()
-    test_manager_exception_mpi_abort()
-    #test_worker_exception_mpi_abort()
-    #test_nonworker_and_nonmanager_rank()
     test_exception_raising_manager()
     test_checking_inputs()
