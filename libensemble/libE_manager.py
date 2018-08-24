@@ -16,29 +16,26 @@ import pickle
 from mpi4py import MPI
 import numpy as np
 
-# from message_numbers import EVAL_TAG # manager tells worker to evaluate the point
-from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
-from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.message_numbers import STOP_TAG # tag for manager interupt messages to workers (sh: maybe change name)
-from libensemble.message_numbers import UNSET_TAG
-from libensemble.message_numbers import WORKER_KILL
-from libensemble.message_numbers import WORKER_KILL_ON_ERR
-from libensemble.message_numbers import WORKER_KILL_ON_TIMEOUT
-from libensemble.message_numbers import JOB_FAILED
-from libensemble.message_numbers import WORKER_DONE
-from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
-from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
-from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+from libensemble.message_numbers import \
+     EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
+     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
+     STOP_TAG, UNSET_TAG, \
+     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
+     JOB_FAILED, WORKER_DONE, \
+     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
+     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
 
 logger = logging.getLogger(__name__)
 #For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
 
 
-def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
+def manager_main(hist, libE_specs, alloc_specs,
+                 sim_specs, gen_specs, exit_criteria, persis_info):
     """Manager routine to coordinate the generation and simulation evaluations
     """
-    mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria)
+    mgr = Manager(hist, libE_specs, alloc_specs,
+                  sim_specs, gen_specs, exit_criteria)
     return mgr.run(persis_info)
 
 
@@ -59,7 +56,8 @@ class Manager:
                     ('persis_state', int),
                     ('blocked', bool)]
 
-    def __init__(self, hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria):
+    def __init__(self, hist, libE_specs, alloc_specs,
+                 sim_specs, gen_specs, exit_criteria):
         """Initialize the manager."""
         self.hist = hist
         self.libE_specs = libE_specs
@@ -70,10 +68,11 @@ class Manager:
         self.elapsed = get_stopwatch()
         self.comm = libE_specs['comm']
         self.W = self._make_worker_pool(self.comm)
-        self.term_tests = [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
-                           (1, 'sim_max', self.term_test_sim_max),
-                           (1, 'gen_max', self.term_test_gen_max),
-                           (1, 'stop_val', self.term_test_stop_val)]
+        self.term_tests = \
+          [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
+           (1, 'sim_max', self.term_test_sim_max),
+           (1, 'gen_max', self.term_test_gen_max),
+           (1, 'stop_val', self.term_test_stop_val)]
 
     @staticmethod
     def _make_worker_pool(comm):
@@ -143,14 +142,16 @@ class Manager:
         """Check validity of an allocation function order.
         """
         assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
-        assert self.W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
+        assert self.W[w-1]['active'] == 0, \
+          "Allocation function requested work to an already active worker. Aborting"
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
             hist_fields = self.hist.H.dtype.names
             diff_fields = list(work_fields.difference(hist_fields))
             assert not diff_fields, \
-              "Allocation function requested invalid fields {} be sent to worker={}.".format(diff_fields, w)
+              "Allocation function requested invalid fields {}" \
+              "be sent to worker={}.".format(diff_fields, w)
 
     def send_work_order(self, Work, w):
         """Send an allocation function order to a worker.
@@ -162,7 +163,7 @@ class Manager:
             self.comm.send(obj=self.hist.H[Work['H_fields']][work_rows], dest=w)
 
     def update_state_on_alloc(self, Work, w):
-        """Update the active/idle status of workers following an allocation order."""
+        """Update worker active/idle status following an allocation order."""
 
         self.W[w-1]['active'] = Work['tag']
         if 'libE_info' in Work and 'persistent' in Work['libE_info']:
@@ -170,7 +171,8 @@ class Manager:
 
         if 'blocking' in Work['libE_info']:
             for w_i in Work['libE_info']['blocking']:
-                assert self.W[w_i-1]['active'] == 0, "Active worker being blocked; aborting"
+                assert self.W[w_i-1]['active'] == 0, \
+                  "Active worker being blocked; aborting"
                 self.W[w_i-1]['blocked'] = 1
                 self.W[w_i-1]['active'] = 1
 
@@ -186,10 +188,10 @@ class Manager:
             np.save(filename, self.hist.H)
 
     def receive_from_workers(self, persis_info):
-        """
-        Receive calculation output from workers. Loops over all active workers and
-        probes to see if worker is ready to communticate. If any output is
-        received, all other workers are looped back over.
+        """Receive calculation output from workers. Loops over all
+        active workers and probes to see if worker is ready to
+        communticate. If any output is received, all other workers are
+        looped back over.
         """
         status = MPI.Status()
 
@@ -202,9 +204,13 @@ class Manager:
                     self._handle_msg_from_worker(persis_info, w, status)
 
         if 'save_every_k' in self.sim_specs:
-            self.save_every_k('libE_history_after_sim_{}.npy', self.hist.sim_count, self.sim_specs['save_every_k'])
+            self.save_every_k('libE_history_after_sim_{}.npy',
+                              self.hist.sim_count,
+                              self.sim_specs['save_every_k'])
         if 'save_every_k' in self.gen_specs:
-            self.save_every_k('libE_history_after_gen_{}.npy', self.hist.index, self.gen_specs['save_every_k'])
+            self.save_every_k('libE_history_after_gen_{}.npy',
+                              self.hist.index,
+                              self.gen_specs['save_every_k'])
         return persis_info
 
     def _man_request_resend_on_error(self, w, status=None):
@@ -230,7 +236,8 @@ class Manager:
         Manager.check_received_calc(D_recv)
 
         self.W[w-1]['active'] = 0
-        if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
+        if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
+                           FINISHED_PERSISTENT_GEN_TAG]:
             self.W[w-1]['persis_state'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
@@ -309,10 +316,16 @@ class Manager:
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
           'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
-        assert calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, \
-                               UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
-                               WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, WORKER_KILL, \
-                               JOB_FAILED, WORKER_DONE], \
+        assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
+                               FINISHED_PERSISTENT_GEN_TAG,
+                               UNSET_TAG,
+                               MAN_SIGNAL_FINISH,
+                               MAN_SIGNAL_KILL,
+                               WORKER_KILL_ON_ERR,
+                               WORKER_KILL_ON_TIMEOUT,
+                               WORKER_KILL,
+                               JOB_FAILED,
+                               WORKER_DONE], \
           'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
 
     def run(self, persis_info):
