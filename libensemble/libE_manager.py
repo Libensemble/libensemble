@@ -44,62 +44,83 @@ def get_stopwatch():
     return elapsed
 
 
+class Manager:
+
+    worker_dtype = [('worker_id', int),
+                    ('active', int),
+                    ('persis_state', int),
+                    ('blocked', bool)]
+
+    def __init__(self, hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
+
+        self.hist = hist
+        self.libE_specs = libE_specs
+        self.alloc_specs = alloc_specs
+        self.sim_specs = sim_specs
+        self.gen_specs = gen_specs
+        self.exit_criteria = exit_criteria
+        self.persis_info = persis_info
+
+        self.elapsed = get_stopwatch()
+        self.term_tests = [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
+                           (1, 'sim_max', self.term_test_sim_max),
+                           (1, 'gen_max', self.term_test_gen_max),
+                           (1, 'stop_val', self.term_test_stop_val)]
+
+        self.comm = libE_specs['comm']
+        num_workers = self.comm.Get_size()-1
+        self.W = np.zeros(num_workers, dtype=Manager.worker_dtype)
+        self.W['worker_id'] = np.arange(num_workers) + 1
+
+    def term_test_wallclock(self, max_elapsed):
+        """Check against wallclock timeout"""
+        return self.elapsed() >= max_elapsed
+
+    def term_test_sim_max(self, sim_max):
+        """Check against max simulations"""
+        return self.hist.given_count >= sim_max + self.hist.offset
+
+    def term_test_gen_max(self, gen_max):
+        """Check against max generator calls."""
+        return self.hist.index >= gen_max + self.hist.offset
+
+    def term_test_stop_val(self, stop_val):
+        """Check against stop value criterion."""
+        key, val = stop_val
+        H = self.hist.H
+        idx = self.hist.index
+        return np.any(H[key][:idx][~np.isnan(H[key][:idx])] <= val)
+
+    def term_test(self):
+        """Check termination criteria"""
+        for retval, key, testf in self.term_tests:
+            if key in self.exit_criteria:
+                if testf(self.exit_criteria[key]):
+                    logger.debug("Term test tripped: {}".format(key))
+                    return retval
+        return 0
+
+    def kill_workers(self):
+        """Kill the workers"""
+        for w in self.W['worker_id']:
+            stop_signal = MAN_SIGNAL_FINISH
+            self.comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
+
+    def read_final_messages(self):
+        """Read final messages from any active workers"""
+        status = MPI.Status()
+        for w in self.W['worker_id'][self.W['active'] > 0]:
+            if self.comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
+                self.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+
+
+
 def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
 
-    elapsed = get_stopwatch()
-    comm = libE_specs['comm']
-
-    worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
-    num_workers = comm.Get_size()-1
-    W = np.zeros(num_workers, dtype=worker_dtype)
-    W['worker_id'] = np.arange(num_workers) + 1
-
-    def term_test_wallclock(max_elapsed):
-        """Check against wallclock timeout"""
-        return elapsed() >= max_elapsed
-
-    def term_test_sim_max(sim_max):
-        """Check against max simulations"""
-        return hist.given_count >= sim_max + hist.offset
-
-    def term_test_gen_max(gen_max):
-        """Check against max generator calls."""
-        return hist.index >= gen_max + hist.offset
-
-    def term_test_stop_val(stop_val):
-        """Check against stop value criterion."""
-        key, val = stop_val
-        return np.any(hist.H[key][:hist.index][~np.isnan(hist.H[key][:hist.index])] <= val)
-
-    term_tests = [(2, 'elapsed_wallclock_time', term_test_wallclock),
-                  (1, 'sim_max', term_test_sim_max),
-                  (1, 'gen_max', term_test_gen_max),
-                  (1, 'stop_val', term_test_stop_val)]
-
-    def term_test():
-        """Check termination criteria"""
-        for retval, key, testf in term_tests:
-            if key in exit_criteria:
-                if testf(exit_criteria[key]):
-                    logger.debug("Term test tripped: {}".format(key))
-                    return retval
-        return 0
-
-    def kill_workers():
-        """Kill the workers"""
-        for w in W['worker_id']:
-            stop_signal = MAN_SIGNAL_FINISH
-            comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
-
-    def read_final_messages():
-        """Read final messages from any active workers"""
-        status = MPI.Status()
-        for w in W['worker_id'][W['active'] > 0]:
-            if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-                comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+    mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
 
     def print_wallclock_term():
         """Print termination message for wall clock elapsed."""
@@ -113,7 +134,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         """Check validity of an allocation function order.
         """
         assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
-        assert W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
+        assert mgr.W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
@@ -126,23 +147,23 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         """Send an allocation function order to a worker.
         """
         logger.debug("Manager sending work unit to worker {}".format(w)) #rank
-        comm.send(obj=Work, dest=w, tag=Work['tag'])
+        mgr.comm.send(obj=Work, dest=w, tag=Work['tag'])
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            comm.send(obj=hist.H[Work['H_fields']][work_rows], dest=w)
+            mgr.comm.send(obj=hist.H[Work['H_fields']][work_rows], dest=w)
 
     def update_state_on_alloc(Work, w):
         """Update the active/idle status of workers following an allocation order."""
 
-        W[w-1]['active'] = Work['tag']
+        mgr.W[w-1]['active'] = Work['tag']
         if 'libE_info' in Work and 'persistent' in Work['libE_info']:
-            W[w-1]['persis_state'] = Work['tag']
+            mgr.W[w-1]['persis_state'] = Work['tag']
 
         if 'blocking' in Work['libE_info']:
             for w_i in Work['libE_info']['blocking']:
-                assert W[w_i-1]['active'] == 0, "Active worker being blocked; aborting"
-                W[w_i-1]['blocked'] = 1
-                W[w_i-1]['active'] = 1
+                assert mgr.W[w_i-1]['active'] == 0, "Active worker being blocked; aborting"
+                mgr.W[w_i-1]['blocked'] = 1
+                mgr.W[w_i-1]['active'] = 1
 
         if Work['tag'] == EVAL_SIM_TAG:
             work_rows = Work['libE_info']['H_rows']
@@ -164,12 +185,12 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         status = MPI.Status()
 
         new_stuff = True
-        while new_stuff and any(W['active']):
+        while new_stuff and any(mgr.W['active']):
             new_stuff = False
-            for w in W['worker_id'][W['active'] > 0]:
-                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
+            for w in mgr.W['worker_id'][mgr.W['active'] > 0]:
+                if mgr.comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
                     new_stuff = True
-                    _handle_msg_from_worker(comm, persis_info, w, status)
+                    _handle_msg_from_worker(persis_info, w, status)
 
         if 'save_every_k' in sim_specs:
             save_every_k('libE_history_after_sim_{}.npy', hist.sim_count, sim_specs['save_every_k'])
@@ -180,14 +201,14 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     def _man_request_resend_on_error(w, status=None):
         "Request the worker resend data on error."
         status = status or MPI.Status()
-        comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
-        return comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+        mgr.comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
+        return mgr.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
 
     def _man_request_pkl_dump_on_error(w, status=None):
         "Request the worker dump a pickle on error."
         status = status or MPI.Status()
-        comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
-        pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+        mgr.comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+        pkl_recv = mgr.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
         D_recv = pickle.load(open(pkl_recv, "rb"))
         os.remove(pkl_recv) #If want to delete file
         return D_recv
@@ -211,9 +232,9 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         calc_status = D_recv['calc_status']
         check_received_calc(D_recv)
 
-        W[w-1]['active'] = 0
+        mgr.W[w-1]['active'] = 0
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
-            W[w-1]['persis_state'] = 0
+            mgr.W[w-1]['persis_state'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
                 hist.update_history_f(D_recv)
@@ -221,24 +242,24 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
                 hist.update_history_x_in(w, D_recv['calc_out'])
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                 # Now a waiting, persistent worker
-                W[w-1]['persis_state'] = calc_type
+                mgr.W[w-1]['persis_state'] = calc_type
 
         if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
             # Now done blocking these workers
             for w_i in D_recv['libE_info']['blocking']:
-                W[w_i-1]['blocked'] = 0
-                W[w_i-1]['active'] = 0
+                mgr.W[w_i-1]['blocked'] = 0
+                mgr.W[w_i-1]['active'] = 0
 
         if 'persis_info' in D_recv:
             for key in D_recv['persis_info'].keys():
                 persis_info[w][key] = D_recv['persis_info'][key]
 
-    def _handle_msg_from_worker(comm, persis_info, w, status):
+    def _handle_msg_from_worker(persis_info, w, status):
         """Handle a message from worker w.
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
         try:
-            D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+            D_recv = mgr.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
             logger.debug("Message size {}".format(status.Get_count()))
         except Exception as e:
             logger.error("Exception caught on Manager receive: {}".format(e))
@@ -264,35 +285,35 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         data) and a kill signal is sent.
         """
         exit_flag = 0
-        while any(W['active']) and exit_flag == 0:
+        while any(mgr.W['active']) and exit_flag == 0:
             persis_info = receive_from_workers(persis_info)
-            if term_test() == 2 and any(W['active']):
+            if mgr.term_test() == 2 and any(mgr.W['active']):
                 print_wallclock_term()
-                read_final_messages()
+                mgr.read_final_messages()
                 exit_flag = 2
 
-        kill_workers()
-        print("\nlibEnsemble manager total time:", elapsed())
+        mgr.kill_workers()
+        print("\nlibEnsemble manager total time:", mgr.elapsed())
         return persis_info, exit_flag
 
-    logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
+    logger.info("Manager initiated on MPI rank {} on node {}".format(mgr.comm.Get_rank(), socket.gethostname()))
     logger.info("Manager exit_criteria: {}".format(exit_criteria))
     persistent_queue_data = {}
 
     # Send initial info to workers
-    comm.bcast(obj=hist.H[sim_specs['in']].dtype)
-    comm.bcast(obj=hist.H[gen_specs['in']].dtype)
+    mgr.comm.bcast(obj=hist.H[sim_specs['in']].dtype)
+    mgr.comm.bcast(obj=hist.H[gen_specs['in']].dtype)
 
     ### Continue receiving and giving until termination test is satisfied
-    while not term_test():
+    while not mgr.term_test():
         persis_info = receive_from_workers(persis_info)
         trimmed_H = hist.trim_H()
         if 'queue_update_function' in libE_specs and len(trimmed_H):
             persistent_queue_data = libE_specs['queue_update_function'](trimmed_H, gen_specs, persistent_queue_data)
-        if any(W['active'] == 0):
-            Work, persis_info = alloc_specs['alloc_f'](W, hist.trim_H(), sim_specs, gen_specs, persis_info)
+        if any(mgr.W['active'] == 0):
+            Work, persis_info = alloc_specs['alloc_f'](mgr.W, hist.trim_H(), sim_specs, gen_specs, persis_info)
             for w in Work:
-                if term_test():
+                if mgr.term_test():
                     break
                 check_work_order(Work[w], w)
                 send_work_order(Work[w], w)
