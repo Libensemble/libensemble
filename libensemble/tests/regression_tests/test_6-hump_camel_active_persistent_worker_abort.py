@@ -36,34 +36,8 @@ sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is bei
                     ],
              }
 
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_or_localopt,
-             'in': [],
-             'localopt_method':'LN_BOBYQA',
-             'xtol_rel':1e-4,
-             'out': [('x_on_cube',float,2),
-                     ('x',float,2),
-                     ('dist_to_unit_bounds',float),
-                     ('dist_to_better_l',float),
-                     ('dist_to_better_s',float),
-                     ('ind_of_better_l',int),
-                     ('ind_of_better_s',int),
-                     ('local_pt',bool),
-                     ('num_active_runs',int),
-                     ('local_min',bool),
-                    ],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'gen_batch_size': 2,
-             'batch_mode': True,
-             'dist_to_bound_multiple': 0.5,
-             'localopt_maxeval': 4,
-             'num_inst':1,
-             }
-
 gen_out = [('x',float,2),
       ('x_on_cube',float,2),
-      #('sim_id',int),
       ('priority',float),
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
@@ -73,7 +47,25 @@ gen_out = [('x',float,2),
       ('ind_of_better_l',int),
       ('ind_of_better_s',int),
       ('started_run',bool),
+      ('num_active_runs',int),
+      ('local_min',bool),
       ]
+
+# State the generating function, its arguments, output, and necessary parameters.
+gen_specs = {'gen_f': uniform_or_localopt,
+             'in': [],
+             'localopt_method':'LN_BOBYQA',
+             'xtol_rel':1e-4,
+             'out': gen_out,
+             'lb': np.array([-3,-2]),
+             'ub': np.array([ 3, 2]),
+             'gen_batch_size': 2,
+             'batch_mode': True,
+             'dist_to_bound_multiple': 0.5,
+             'localopt_maxeval': 4,
+             'num_inst':1,
+             }
+
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 10} # Intentially set low so as to test that a worker in persistent mode can be terminated correctly
