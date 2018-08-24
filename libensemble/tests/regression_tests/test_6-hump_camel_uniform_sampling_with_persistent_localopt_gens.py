@@ -61,7 +61,7 @@ gen_specs = {'gen_f': uniform_or_localopt,
 
 gen_out = [('x',float,2),
       ('x_on_cube',float,2),
-      ('sim_id',int),
+      #('sim_id',int),
       ('priority',float),
       ('local_pt',bool),
       ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.

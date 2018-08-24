@@ -214,9 +214,11 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
                   '\n' + 79*'*' + '\n\n')
             sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
-
-    H = np.zeros(1 + len(H0), dtype=libE_fields + sim_specs['out'] + gen_specs['out'])
-
+    if 'out' in alloc_specs:
+        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
+    else:
+        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'])))
+    
     if len(H0):
         fields = H0.dtype.names
         assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names))
