@@ -35,6 +35,13 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
+    """Manager routine to coordinate the generation and simulation evaluations
+    """
+    mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria)
+    return mgr.run(persis_info)
+
+
 def get_stopwatch():
     "Return an elapsed time function, starting now"
     start_time = time.time()
@@ -334,12 +341,3 @@ class Manager:
 
         # Return persis_info, exit_flag
         return self.final_receive_and_kill(persis_info)
-
-
-def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
-    """
-    Manager routine to coordinate the generation and simulation evaluations
-    """
-
-    mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria)
-    return mgr.run(persis_info)
