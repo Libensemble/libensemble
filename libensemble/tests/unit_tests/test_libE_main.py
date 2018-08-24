@@ -109,9 +109,9 @@ def rmfield( a, *fieldnames_to_remove ):
 
 if __name__ == "__main__":
     test_manager_exception()
-    test_worker_exception()
+    #test_worker_exception()
     test_manager_exception_mpi_abort()
-    test_worker_exception_mpi_abort()
-    test_nonworker_and_nonmanager_rank()
+    #test_worker_exception_mpi_abort()
+    #test_nonworker_and_nonmanager_rank()
     test_exception_raising_manager()
     test_checking_inputs()
