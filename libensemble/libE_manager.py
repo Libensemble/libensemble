@@ -17,7 +17,6 @@ import numpy as np
 # from message_numbers import EVAL_TAG # manager tells worker to evaluate the point
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
-#from libensemble.message_numbers import PERSIS_STOP
 from libensemble.message_numbers import STOP_TAG # tag for manager interupt messages to workers (sh: maybe change name)
 from libensemble.message_numbers import UNSET_TAG
 from libensemble.message_numbers import WORKER_KILL
@@ -33,7 +32,7 @@ logger = logging.getLogger(__name__)
 #For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
 
-def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
+def manager_main_old(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
     """
     Manager routine to coordinate the generation and simulation evaluations
     """
@@ -60,17 +59,143 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     return final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, persis_info, man_start_time)
 
 
+######################################################################
+# Manager main (revised)
+######################################################################
+
+
+def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
+    """
+    Manager routine to coordinate the generation and simulation evaluations
+    """
+
+    man_start_time = time.time()
+
+    def elapsed():
+        """Return time since manager start"""
+        return time.time()-man_start_time
+
+    def term_test_wallclock():
+        """Check against wallclock timeout"""
+        if ('elapsed_wallclock_time' in exit_criteria
+                and elapsed() >= exit_criteria['elapsed_wallclock_time']):
+            logger.debug("Term test tripped: elapsed_wallclock_time")
+            return 2
+        return 0
+
+    def term_test_sim_max():
+        """Check against max simulations"""
+        if ('sim_max' in exit_criteria
+                and hist.given_count >= exit_criteria['sim_max'] + hist.offset):
+            logger.debug("Term test tripped: sim_max")
+            return 1
+        return 0
+
+    def term_test_gen_max():
+        """Check against max generator calls."""
+        if ('gen_max' in exit_criteria
+                and hist.index >= exit_criteria['gen_max'] + hist.offset):
+            logger.debug("Term test tripped: gen_max")
+            return 1
+        return 0
+
+    def term_test_stop_val():
+        """Check against stop value criterion."""
+        if 'stop_val' in exit_criteria:
+            key = exit_criteria['stop_val'][0]
+            val = exit_criteria['stop_val'][1]
+            if np.any(hist.H[key][:hist.index][~np.isnan(hist.H[key][:hist.index])] <= val):
+                logger.debug("Term test tripped: stop_val")
+                return 1
+        return 0
+
+    def term_test():
+        """Check termination criteria"""
+        # Time should be checked first to ensure proper timeout
+        return (term_test_wallclock()
+                    or term_test_sim_max()
+                    or term_test_gen_max()
+                    or term_test_stop_val())
+
+    def make_workers(comm):
+        """Produce workers"""
+        worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
+        num_workers = comm.Get_size()-1
+        W = np.zeros(num_workers, dtype=worker_dtype)
+        W['worker_id'] = np.arange(num_workers) + 1
+        return W
+
+    def kill_workers(comm, W):
+        """Kill the workers"""
+        for w in W['worker_id']:
+            stop_signal = MAN_SIGNAL_FINISH
+            comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
+
+    def read_final_messages(comm, W):
+        """Read final messages from any active workers"""
+        status = MPI.Status()
+        for w in W['worker_id'][W['active'] > 0]:
+            if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
+                comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+
+    def print_wallclock_term():
+        """Print termination message for wall clock elapsed."""
+        print("Termination due to elapsed_wallclock_time has occurred.\n"\
+              "A last attempt has been made to receive any completed work.\n"\
+              "Posting nonblocking receives and kill messages for all active workers\n")
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+    def final_receive_and_kill(comm, W, persis_info):
+        """
+        Tries to receive from any active workers.
+
+        If time expires before all active workers have been received from, a
+        nonblocking receive is posted (though the manager will not receive this
+        data) and a kill signal is sent.
+        """
+        exit_flag = 0
+        while any(W['active']) and exit_flag == 0:
+            W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+            if term_test() == 2 and any(W['active']):
+                print_wallclock_term()
+                read_final_messages(comm, W)
+                exit_flag = 2
+
+        kill_workers(comm, W)
+        print("\nlibEnsemble manager total time:", time.time() - man_start_time)
+        return persis_info, exit_flag
+
+    comm = libE_specs['comm']
+    W = make_workers(comm)
+    logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
+    logger.info("Manager exit_criteria: {}".format(exit_criteria))
+    persistent_queue_data = {}
+
+    # Send initial info to workers
+    comm.bcast(obj=hist.H[sim_specs['in']].dtype)
+    comm.bcast(obj=hist.H[gen_specs['in']].dtype)
+
+    ### Continue receiving and giving until termination test is satisfied
+    while not term_test():
+        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+        trimmed_H = hist.trim_H()
+        if 'queue_update_function' in libE_specs and len(trimmed_H):
+            persistent_queue_data = libE_specs['queue_update_function'](trimmed_H, gen_specs, persistent_queue_data)
+        if any(W['active'] == 0):
+            Work, persis_info = alloc_specs['alloc_f'](W, hist.trim_H(), sim_specs, gen_specs, persis_info)
+            for w in Work:
+                if term_test():
+                    break
+                W = send_to_worker_and_update_active_and_idle(comm, hist, Work[w], w, W)
+
+    # Return persis_info, exit_flag
+    return final_receive_and_kill(comm, W, persis_info)
 
 
 ######################################################################
 # Manager subroutines
 ######################################################################
-
-
-def send_initial_info_to_workers(comm, hist, sim_specs, gen_specs):
-    "Broadcast sim_specs/gen_specs dtypes to the workers."
-    comm.bcast(obj=hist.H[sim_specs['in']].dtype)
-    comm.bcast(obj=hist.H[gen_specs['in']].dtype)
 
 
 def send_to_worker_and_update_active_and_idle(comm, hist, Work, w, W):
@@ -219,17 +344,7 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
     return W, persis_info
 
 
-def update_active_and_queue(H, libE_specs, gen_specs, data):
-    """
-    Call a user-defined function that decides if active work should be continued
-    and possibly updated the priority of points in H.
-    """
-    if 'queue_update_function' in libE_specs and len(H):
-        data = libE_specs['queue_update_function'](H, gen_specs, data)
-
-    return data
-
-
+# DSB -- done
 def termination_test(hist, exit_criteria, start_time):
     """
     Return nonzero if the libEnsemble run should stop
@@ -261,6 +376,7 @@ def termination_test(hist, exit_criteria, start_time):
     return False
 
 
+# DSB -- done
 # Can remove more args if dont add hist setup option in here: Not using: sim_specs, gen_specs, alloc_specs
 def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs):
     """
@@ -291,43 +407,3 @@ def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_spec
     W['worker_id'] = np.arange(num_workers) + 1
     comm = libE_specs['comm']
     return term_test, W, comm
-
-
-def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, persis_info, man_start_time):
-    """
-    Tries to receive from any active workers.
-
-    If time expires before all active workers have been received from, a
-    nonblocking receive is posted (though the manager will not receive this
-    data) and a kill signal is sent.
-    """
-
-    exit_flag = 0
-
-    ### Receive from all active workers
-    while any(W['active']):
-
-        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
-
-        if term_test(hist) == 2 and any(W['active']):
-
-            print("Termination due to elapsed_wallclock_time has occurred.\n"\
-              "A last attempt has been made to receive any completed work.\n"\
-              "Posting nonblocking receives and kill messages for all active workers\n")
-            sys.stdout.flush()
-            sys.stderr.flush()
-
-            status = MPI.Status()
-            for w in W['worker_id'][W['active'] > 0]:
-                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-                    D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-            exit_flag = 2
-            break
-
-    ### Kill the workers
-    for w in W['worker_id']:
-        stop_signal = MAN_SIGNAL_FINISH
-        comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
-
-    print("\nlibEnsemble manager total time:", time.time() - man_start_time)
-    return persis_info, exit_flag
