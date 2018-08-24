@@ -154,6 +154,13 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             work_rows = Work['libE_info']['H_rows']
             hist.update_history_x_out(work_rows, w)
 
+    def save_every_k(fname, count, k):
+        "Save history every kth step."
+        count = k*(count//k)
+        filename = fname.format(count)
+        if not os.path.isfile(filename) and count > 0:
+            np.save(filename, hist.H)
+
     def receive_from_workers(persis_info):
         """
         Receive calculation output from workers. Loops over all active workers and
@@ -171,25 +178,18 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
                     _handle_msg_from_worker(comm, hist, persis_info, w, W, status)
 
         if 'save_every_k' in sim_specs:
-            save_every_k('libE_history_after_sim_{}.npy', hist, hist.sim_count, sim_specs['save_every_k'])
+            save_every_k('libE_history_after_sim_{}.npy', hist.sim_count, sim_specs['save_every_k'])
         if 'save_every_k' in gen_specs:
-            save_every_k('libE_history_after_gen_{}.npy', hist, hist.index, gen_specs['save_every_k'])
+            save_every_k('libE_history_after_gen_{}.npy', hist.index, gen_specs['save_every_k'])
         return persis_info
 
-    def save_every_k(fname, hist, count, k):
-        "Save history every kth step."
-        count = k*(count//k)
-        filename = fname.format(count)
-        if not os.path.isfile(filename) and count > 0:
-            np.save(filename, hist.H)
-
-    def _man_request_resend_on_error(comm, w, status=None):
+    def _man_request_resend_on_error(w, status=None):
         "Request the worker resend data on error."
         status = status or MPI.Status()
         comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
         return comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
 
-    def _man_request_pkl_dump_on_error(comm, w, status=None):
+    def _man_request_pkl_dump_on_error(w, status=None):
         "Request the worker dump a pickle on error."
         status = status or MPI.Status()
         comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
@@ -210,7 +210,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
                                JOB_FAILED, WORKER_DONE], \
           'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
 
-    def update_state_on_worker_msg(hist, persis_info, D_recv, w, W):
+    def update_state_on_worker_msg(persis_info, D_recv, w):
         """Update history and worker info on worker message.
         """
         calc_type = D_recv['calc_type']
@@ -256,10 +256,10 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             status.Set_cancelled(True) #Make sure cancelled before re-send
 
             # Check on working with peristent data - curently only use one
-            #D_recv = _man_request_resend_on_error(comm, w, status)
-            D_recv = _man_request_pkl_dump_on_error(comm, w, status)
+            #D_recv = _man_request_resend_on_error(w, status)
+            D_recv = _man_request_pkl_dump_on_error(w, status)
 
-        update_state_on_worker_msg(hist, persis_info, D_recv, w, W)
+        update_state_on_worker_msg(persis_info, D_recv, w)
 
     def final_receive_and_kill(persis_info):
         """
