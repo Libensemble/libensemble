@@ -41,6 +41,12 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     """
 
     man_start_time = time.time()
+    comm = libE_specs['comm']
+
+    worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
+    num_workers = comm.Get_size()-1
+    W = np.zeros(num_workers, dtype=worker_dtype)
+    W['worker_id'] = np.arange(num_workers) + 1
 
     def elapsed():
         """Return time since manager start"""
@@ -88,21 +94,13 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
                 or term_test_gen_max()
                 or term_test_stop_val())
 
-    def make_workers(comm):
-        """Produce workers"""
-        worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
-        num_workers = comm.Get_size()-1
-        W = np.zeros(num_workers, dtype=worker_dtype)
-        W['worker_id'] = np.arange(num_workers) + 1
-        return W
-
-    def kill_workers(comm, W):
+    def kill_workers():
         """Kill the workers"""
         for w in W['worker_id']:
             stop_signal = MAN_SIGNAL_FINISH
             comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
 
-    def read_final_messages(comm, W):
+    def read_final_messages():
         """Read final messages from any active workers"""
         status = MPI.Status()
         for w in W['worker_id'][W['active'] > 0]:
@@ -117,7 +115,46 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         sys.stdout.flush()
         sys.stderr.flush()
 
-    def final_receive_and_kill(comm, W, persis_info):
+    def check_work_order(Work, w):
+        """Check validity of an allocation function order.
+        """
+        assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
+        assert W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
+        work_rows = Work['libE_info']['H_rows']
+        if len(work_rows):
+            work_fields = set(Work['H_fields'])
+            hist_fields = hist.H.dtype.names
+            diff_fields = list(work_fields.difference(hist_fields))
+            assert not diff_fields, \
+              "Allocation function requested invalid fields {} be sent to worker={}.".format(diff_fields, w)
+
+    def send_work_order(Work, w):
+        """Send an allocation function order to a worker.
+        """
+        logger.debug("Manager sending work unit to worker {}".format(w)) #rank
+        comm.send(obj=Work, dest=w, tag=Work['tag'])
+        work_rows = Work['libE_info']['H_rows']
+        if len(work_rows):
+            comm.send(obj=hist.H[Work['H_fields']][work_rows], dest=w)
+
+    def update_active_and_idle(Work, w):
+        """Update the active/idle status of workers following an allocation order."""
+
+        W[w-1]['active'] = Work['tag']
+        if 'libE_info' in Work and 'persistent' in Work['libE_info']:
+            W[w-1]['persis_state'] = Work['tag']
+
+        if 'blocking' in Work['libE_info']:
+            for w_i in Work['libE_info']['blocking']:
+                assert W[w_i-1]['active'] == 0, "Active worker being blocked; aborting"
+                W[w_i-1]['blocked'] = 1
+                W[w_i-1]['active'] = 1
+
+        if Work['tag'] == EVAL_SIM_TAG:
+            work_rows = Work['libE_info']['H_rows']
+            hist.update_history_x_out(work_rows, w)
+
+    def final_receive_and_kill(persis_info):
         """
         Tries to receive from any active workers.
 
@@ -127,18 +164,16 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
         """
         exit_flag = 0
         while any(W['active']) and exit_flag == 0:
-            W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+            persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
             if term_test() == 2 and any(W['active']):
                 print_wallclock_term()
-                read_final_messages(comm, W)
+                read_final_messages()
                 exit_flag = 2
 
-        kill_workers(comm, W)
+        kill_workers()
         print("\nlibEnsemble manager total time:", time.time() - man_start_time)
         return persis_info, exit_flag
 
-    comm = libE_specs['comm']
-    W = make_workers(comm)
     logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
     logger.info("Manager exit_criteria: {}".format(exit_criteria))
     persistent_queue_data = {}
@@ -149,7 +184,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
 
     ### Continue receiving and giving until termination test is satisfied
     while not term_test():
-        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+        persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
         trimmed_H = hist.trim_H()
         if 'queue_update_function' in libE_specs and len(trimmed_H):
             persistent_queue_data = libE_specs['queue_update_function'](trimmed_H, gen_specs, persistent_queue_data)
@@ -158,59 +193,17 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             for w in Work:
                 if term_test():
                     break
-                check_work_order(hist, Work[w], w, W)
-                send_work_order(comm, hist, Work[w], w)
-                update_active_and_idle(hist, Work[w], w, W)
+                check_work_order(Work[w], w)
+                send_work_order(Work[w], w)
+                update_active_and_idle(Work[w], w)
 
     # Return persis_info, exit_flag
-    return final_receive_and_kill(comm, W, persis_info)
+    return final_receive_and_kill(persis_info)
 
 
 ######################################################################
 # Manager subroutines
 ######################################################################
-
-
-def check_work_order(hist, Work, w, W):
-    """Check validity of an allocation function order.
-    """
-    assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
-    assert W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
-    work_rows = Work['libE_info']['H_rows']
-    if len(work_rows):
-        work_fields = set(Work['H_fields'])
-        hist_fields = hist.H.dtype.names
-        diff_fields = list(work_fields.difference(hist_fields))
-        assert not diff_fields, \
-          "Allocation function requested invalid fields {} be sent to worker={}.".format(diff_fields, w)
-
-
-def send_work_order(comm, hist, Work, w):
-    """Send an allocation function order to a worker.
-    """
-    logger.debug("Manager sending work unit to worker {}".format(w)) #rank
-    comm.send(obj=Work, dest=w, tag=Work['tag'])
-    work_rows = Work['libE_info']['H_rows']
-    if len(work_rows):
-        comm.send(obj=hist.H[Work['H_fields']][work_rows], dest=w)
-
-
-def update_active_and_idle(hist, Work, w, W):
-    """Update the active/idle status of workers following an allocation order."""
-
-    W[w-1]['active'] = Work['tag']
-    if 'libE_info' in Work and 'persistent' in Work['libE_info']:
-        W[w-1]['persis_state'] = Work['tag']
-
-    if 'blocking' in Work['libE_info']:
-        for w_i in Work['libE_info']['blocking']:
-            assert W[w_i-1]['active'] == 0, "Active worker being blocked; aborting"
-            W[w_i-1]['blocked'] = 1
-            W[w_i-1]['active'] = 1
-
-    if Work['tag'] == EVAL_SIM_TAG:
-        work_rows = Work['libE_info']['H_rows']
-        hist.update_history_x_out(work_rows, w)
 
 
 def save_every_k(fname, hist, count, k):
@@ -321,7 +314,7 @@ def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
     if 'save_every_k' in gen_specs:
         save_every_k('libE_history_after_gen_{}.npy', hist, hist.index, gen_specs['save_every_k'])
 
-    return W, persis_info
+    return persis_info
 
 
 # DSB -- done
