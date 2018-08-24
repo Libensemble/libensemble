@@ -31,8 +31,11 @@ logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
+
 def eprint(*args, **kwargs):
+    """Print to stderr."""
     print(*args, file=sys.stderr, **kwargs)
+
 
 def comms_abort(comm):
     '''Abort all MPI ranks'''
@@ -165,7 +168,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         H = hist.trim_H()
 
     return H, persis_info, exit_flag
-
 
 
 def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
