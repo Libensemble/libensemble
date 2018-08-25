@@ -864,7 +864,7 @@ def initialize_APOSMM(H, gen_specs):
     return n, n_s, c_flag, O, rk_c, ld, mu, nu
 
 
-def queue_update_function(H, gen_specs, persistent_data):
+def queue_update_function(H, gen_specs, persis_info):
     """
     A specific queue update function that stops evaluations under a variety of
     conditions
@@ -874,16 +874,15 @@ def queue_update_function(H, gen_specs, persistent_data):
     H['paused']
     """
 
-    if len(persistent_data) == 0:
-        persistent_data['complete'] = set()
-        persistent_data['has_nan'] = set()
-        persistent_data['already_paused'] = set()
-        persistent_data['H_len'] = 0
+    persis_info['complete'] = set()
+    persis_info['has_nan'] = set()
+    persis_info['already_paused'] = set()
+    persis_info['H_len'] = 0
 
-    if len(H)==persistent_data['H_len']:
-        return persistent_data
+    if len(H)==persis_info['H_len']:
+        return persis_info
     else:
-        persistent_data['H_len']=len(H)
+        persis_info['H_len']=len(H)
 
     pt_ids_to_pause = set()
 
@@ -900,17 +899,17 @@ def queue_update_function(H, gen_specs, persistent_data):
 
         complete_fvals_flag = np.zeros(len(pt_ids),dtype=bool)
         for i,pt_id in enumerate(pt_ids):
-            if pt_id in persistent_data['has_nan']:
+            if pt_id in persis_info['has_nan']:
                 continue
 
             a1 = H['pt_id']==pt_id
             if np.any(np.isnan(H['f_i'][a1])):
-                persistent_data['has_nan'].add(pt_id)
+                persis_info['has_nan'].add(pt_id)
                 continue
 
             if np.all(H['returned'][a1]):
                 complete_fvals_flag[i] = True
-                persistent_data['complete'].add(pt_id)
+                persis_info['complete'].add(pt_id)
 
         # complete_fvals_flag = np.array([np.all(H['returned'][H['pt_id']==i]) for i in pt_ids],dtype=bool)
 
@@ -929,11 +928,11 @@ def queue_update_function(H, gen_specs, persistent_data):
             # Pause incompete evaluations with worse_flag==True
             pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
 
-    if not pt_ids_to_pause.issubset(persistent_data['already_paused']):
-        persistent_data['already_paused'].update(pt_ids_to_pause)
+    if not pt_ids_to_pause.issubset(persis_info['already_paused']):
+        persis_info['already_paused'].update(pt_ids_to_pause)
         H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = True
 
-    return persistent_data
+    return persis_info
 
 
 # if __name__ == "__main__":
