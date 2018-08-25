@@ -360,7 +360,6 @@ class Manager:
         "Run the manager."
         logger.info("Manager initiated on MPI rank {} on node {}".format(self.comm.Get_rank(), socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
-        persistent_queue_data = {}
 
         # Send initial info to workers
         self._send_dtypes_to_workers()
@@ -370,7 +369,7 @@ class Manager:
             persis_info = self._receive_from_workers(persis_info)
             trimmed_H = self.hist.trim_H()
             if 'queue_update_function' in self.libE_specs and len(trimmed_H):
-                persistent_queue_data = self.libE_specs['queue_update_function'](trimmed_H, self.gen_specs, persistent_queue_data)
+                persis_info = self.libE_specs['queue_update_function'](trimmed_H, self.gen_specs, persis_info)
             if any(self.W['active'] == 0):
                 Work, persis_info = self.alloc_specs['alloc_f'](self.W, self.hist.trim_H(), self.sim_specs, self.gen_specs, persis_info)
                 for w in Work:
