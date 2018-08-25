@@ -28,10 +28,13 @@ from libensemble.message_numbers import WORKER_DONE
 from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
 from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
 from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+from libensemble.message_numbers import ABORT_ENSEMBLE
 
 logger = logging.getLogger(__name__)
 #For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
+
+class ManagerException(Exception): pass
 
 def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
     """
@@ -167,6 +170,11 @@ def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
         # Check on working with peristent data - curently only use one
         #D_recv = _man_request_resend_on_error(comm, w, status)
         D_recv = _man_request_pkl_dump_on_error(comm, w, status)
+    
+    mtag = status.Get_tag()
+    if mtag == ABORT_ENSEMBLE:
+        # Abort
+        raise ManagerException('Received abort signal from worker')
 
     calc_type = D_recv['calc_type']
     calc_status = D_recv['calc_status']

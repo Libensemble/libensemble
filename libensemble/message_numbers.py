@@ -6,6 +6,7 @@ PERSIS_STOP = 4                     # manager tells a persistent worker to stop 
 
 FINISHED_PERSISTENT_SIM_TAG = 11    # tells manager sim_f is done with persistent mode
 FINISHED_PERSISTENT_GEN_TAG = 12    # tells manager gen_f is done with persistent mode
+ABORT_ENSEMBLE = 13 # Worker sends to manager to tell to abort (and dump history)
 
 # CALC STATUS/SIGNAL FLAGS: In future these will be in a data structure
 MAN_SIGNAL_FINISH = 20 # Kill jobs and shutdown worker
