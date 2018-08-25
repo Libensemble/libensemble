@@ -124,14 +124,14 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     H = exit_flag = []
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    if libE_specs['comm'].Get_rank() == 0:   
+    if libE_specs['comm'].Get_rank() == 0:
         hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
         try:
             persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
         except Exception as e:
 
             # Manager exceptions are fatal
-            eprint(traceback.format_exc())              
+            eprint(traceback.format_exc())
             eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
 
             eprint("\nDumping ensemble history with {} sims evaluated:\n".format(hist.sim_count)) #datetime
@@ -156,7 +156,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
             eprint(traceback.format_exc())
             sys.stdout.flush()
             sys.stderr.flush()
-            
+
             #First try to signal manager to dump history
             comms_signal_abort_to_man(libE_specs['comm'])
             #comms_abort(libE_specs['comm'])
@@ -222,7 +222,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
         H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
     else:
         H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'])))
-    
+
     if len(H0):
         fields = H0.dtype.names
         assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names))

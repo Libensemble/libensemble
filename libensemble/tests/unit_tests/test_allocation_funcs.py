@@ -20,7 +20,8 @@ def test_decide_work_and_resources():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
     hist = History(al, sim_specs, gen_specs, exit_criteria, H0)
 
-    _, W, _ = man.initialize(hist, sim_specs, gen_specs, al, exit_criteria, libE_specs)
+    mgr = man.Manager(hist, libE_specs, al, sim_specs, gen_specs, exit_criteria)
+    W = mgr.W
 
     # Don't give out work when all workers are active
     W['active'] = 1
