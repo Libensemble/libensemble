@@ -23,11 +23,14 @@ from libensemble.message_numbers import \
      WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
      JOB_FAILED, WORKER_DONE, \
      MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
-     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP, \
+     ABORT_ENSEMBLE
 
 logger = logging.getLogger(__name__)
 #For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
+
+class ManagerException(Exception): pass
 
 
 def manager_main(hist, libE_specs, alloc_specs,
@@ -277,6 +280,9 @@ class Manager:
             # Check on working with peristent data - curently only use one
             #D_recv = _man_request_resend_on_error(w, status)
             D_recv = self._man_request_pkl_dump_on_error(w, status)
+
+        if status.Get_tag() == ABORT_ENSEMBLE:
+            raise ManagerException('Received abort signal from worker')
 
         self.update_state_on_worker_msg(persis_info, D_recv, w)
 
