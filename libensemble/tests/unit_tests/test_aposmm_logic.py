@@ -5,7 +5,6 @@ import numpy as np
 import libensemble.gen_funcs.aposmm as al
 
 #sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
-import libensemble.libE_manager as man
 
 import libensemble.tests.unit_tests.setup as setup
 

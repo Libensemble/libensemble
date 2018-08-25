@@ -6,7 +6,9 @@ libEnsemble manager routines
 from __future__ import division
 from __future__ import absolute_import
 
-import time, sys, os
+import time
+import sys
+import os
 import logging
 import socket
 import pickle
@@ -14,21 +16,15 @@ import pickle
 from mpi4py import MPI
 import numpy as np
 
-# from message_numbers import EVAL_TAG # manager tells worker to evaluate the point
-from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
-from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG
-#from libensemble.message_numbers import PERSIS_STOP
-from libensemble.message_numbers import STOP_TAG # tag for manager interupt messages to workers (sh: maybe change name)
-from libensemble.message_numbers import UNSET_TAG
-from libensemble.message_numbers import WORKER_KILL
-from libensemble.message_numbers import WORKER_KILL_ON_ERR
-from libensemble.message_numbers import WORKER_KILL_ON_TIMEOUT
-from libensemble.message_numbers import JOB_FAILED
-from libensemble.message_numbers import WORKER_DONE
-from libensemble.message_numbers import MAN_SIGNAL_FINISH # manager tells worker run is over
-from libensemble.message_numbers import MAN_SIGNAL_KILL # manager tells worker to kill running job/jobs
-from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
-from libensemble.message_numbers import ABORT_ENSEMBLE
+from libensemble.message_numbers import \
+     EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
+     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
+     STOP_TAG, UNSET_TAG, \
+     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
+     JOB_FAILED, WORKER_DONE, \
+     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
+     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP, \
+     ABORT_ENSEMBLE
 
 logger = logging.getLogger(__name__)
 #For debug messages - uncomment
@@ -36,306 +32,353 @@ logger = logging.getLogger(__name__)
 
 class ManagerException(Exception): pass
 
-def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info):
+
+def manager_main(hist, libE_specs, alloc_specs,
+                 sim_specs, gen_specs, exit_criteria, persis_info):
+    """Manager routine to coordinate the generation and simulation evaluations
     """
-    Manager routine to coordinate the generation and simulation evaluations
-    """
-
-    man_start_time = time.time()
-    term_test, W, comm = initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs)
-    logger.info("Manager initiated on MPI rank {} on node {}".format(comm.Get_rank(), socket.gethostname()))
-    logger.info("Manager exit_criteria: {}".format(exit_criteria))
-    persistent_queue_data = {}
-    send_initial_info_to_workers(comm, hist, sim_specs, gen_specs)
-
-    ### Continue receiving and giving until termination test is satisfied
-    while not term_test(hist):
-        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
-        persistent_queue_data = update_active_and_queue(hist.trim_H(), libE_specs, gen_specs, persistent_queue_data)
-        if any(W['active'] == 0):
-            Work, persis_info = alloc_specs['alloc_f'](W, hist.trim_H(), sim_specs, gen_specs, persis_info)
-            for w in Work:
-                if term_test(hist):
-                    break
-                W = send_to_worker_and_update_active_and_idle(comm, hist, Work[w], w, W)
-
-    # Return persis_info, exit_flag
-    return final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, persis_info, man_start_time)
+    mgr = Manager(hist, libE_specs, alloc_specs,
+                  sim_specs, gen_specs, exit_criteria)
+    return mgr.run(persis_info)
 
 
-
-
-######################################################################
-# Manager subroutines
-######################################################################
-
-
-def send_initial_info_to_workers(comm, hist, sim_specs, gen_specs):
-    "Broadcast sim_specs/gen_specs dtypes to the workers."
-    comm.bcast(obj=hist.H[sim_specs['in']].dtype)
-    comm.bcast(obj=hist.H[gen_specs['in']].dtype)
-
-
-def send_to_worker_and_update_active_and_idle(comm, hist, Work, w, W):
-    """
-    Sends calculation information to the workers and updates the sets of
-    active/idle workers
-
-    Note that W is indexed from 0, but the worker_ids are indexed from 1, hence the
-    use of the w-1 when refering to rows in W.
-    """
-    assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
-    assert W[w-1]['active'] == 0, "Allocation function requested work to an already active worker. Aborting"
-
-    logger.debug("Manager sending work unit to worker {}".format(w)) #rank
-    comm.send(obj=Work, dest=w, tag=Work['tag'])
-    work_rows = Work['libE_info']['H_rows']
-    if len(work_rows):
-        assert set(Work['H_fields']).issubset(hist.H.dtype.names), "Allocation function requested the field(s): " + str(list(set(Work['H_fields']).difference(hist.H.dtype.names))) + " be sent to worker=" + str(w) + ", but this field is not in history"
-        comm.send(obj=hist.H[Work['H_fields']][work_rows], dest=w)
-
-    W[w-1]['active'] = Work['tag']
-
-    if 'libE_info' in Work and 'persistent' in Work['libE_info']:
-        W[w-1]['persis_state'] = Work['tag']
-
-    if 'blocking' in Work['libE_info']:
-        for w_i in Work['libE_info']['blocking']:
-            assert W[w_i-1]['active'] == 0, "Active worker being blocked; aborting"
-            W[w_i-1]['blocked'] = 1
-            W[w_i-1]['active'] = 1
-
-    if Work['tag'] == EVAL_SIM_TAG:
-        hist.update_history_x_out(work_rows, w)
-
-    return W
-
-
-def save_every_k(fname, hist, count, k):
-    "Save history every kth step."
-    count = k*(count//k)
-    filename = fname.format(count)
-    if not os.path.isfile(filename) and count > 0:
-        np.save(filename, hist.H)
-
-
-def _man_request_resend_on_error(comm, w, status=None):
-    "Request the worker resend data on error."
-    #Ideally use status.Get_source() for MPI rank - this relies on rank being workerID
-    status = status or MPI.Status()
-    comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
-    return comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-
-
-def _man_request_pkl_dump_on_error(comm, w, status=None):
-    "Request the worker dump a pickle on error."
-    # Req worker to dump pickle file and manager reads
-    status = status or MPI.Status()
-    comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
-    pkl_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-    D_recv = pickle.load(open(pkl_recv, "rb"))
-    os.remove(pkl_recv) #If want to delete file
-    return D_recv
-
-
-def check_received_calc(D_recv):
-    "Check the type and status fields on a receive calculation."
-    calc_type = D_recv['calc_type']
-    calc_status = D_recv['calc_status']
-    assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-      'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
-    assert calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG, \
-                           UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
-                           WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, WORKER_KILL, \
-                           JOB_FAILED, WORKER_DONE], \
-      'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
-
-
-def _handle_msg_from_worker(comm, hist, persis_info, w, W, status):
-    """Handle a message from worker w.
-    """
-    logger.debug("Manager receiving from Worker: {}".format(w))
-    try:
-        D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-        logger.debug("Message size {}".format(status.Get_count()))
-    except Exception as e:
-        logger.error("Exception caught on Manager receive: {}".format(e))
-        logger.error("From worker: {}".format(w))
-        logger.error("Message size of errored message {}".format(status.Get_count()))
-        logger.error("Message status error code {}".format(status.Get_error()))
-
-        # Need to clear message faulty message - somehow
-        status.Set_cancelled(True) #Make sure cancelled before re-send
-
-        # Check on working with peristent data - curently only use one
-        #D_recv = _man_request_resend_on_error(comm, w, status)
-        D_recv = _man_request_pkl_dump_on_error(comm, w, status)
-    
-    mtag = status.Get_tag()
-    if mtag == ABORT_ENSEMBLE:
-        # Abort
-        raise ManagerException('Received abort signal from worker')
-
-    calc_type = D_recv['calc_type']
-    calc_status = D_recv['calc_status']
-    check_received_calc(D_recv)
-
-    W[w-1]['active'] = 0
-    if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
-        W[w-1]['persis_state'] = 0
-    else:
-        if calc_type == EVAL_SIM_TAG:
-            hist.update_history_f(D_recv)
-        if calc_type == EVAL_GEN_TAG:
-            hist.update_history_x_in(w, D_recv['calc_out'])
-        if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
-            # Now a waiting, persistent worker
-            W[w-1]['persis_state'] = calc_type
-
-    if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
-        # Now done blocking these workers
-        for w_i in D_recv['libE_info']['blocking']:
-            W[w_i-1]['blocked'] = 0
-            W[w_i-1]['active'] = 0
-
-    if 'persis_info' in D_recv:
-        for key in D_recv['persis_info'].keys():
-            persis_info[w][key] = D_recv['persis_info'][key]
-
-
-def receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info):
-    """
-    Receive calculation output from workers. Loops over all active workers and
-    probes to see if worker is ready to communticate. If any output is
-    received, all other workers are looped back over.
-    """
-    status = MPI.Status()
-
-    new_stuff = True
-    while new_stuff and any(W['active']):
-        new_stuff = False
-        for w in W['worker_id'][W['active'] > 0]:
-            if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-                new_stuff = True
-                _handle_msg_from_worker(comm, hist, persis_info, w, W, status)
-
-    if 'save_every_k' in sim_specs:
-        save_every_k('libE_history_after_sim_{}.npy', hist, hist.sim_count, sim_specs['save_every_k'])
-    if 'save_every_k' in gen_specs:
-        save_every_k('libE_history_after_gen_{}.npy', hist, hist.index, gen_specs['save_every_k'])
-
-    return W, persis_info
-
-
-def update_active_and_queue(H, libE_specs, gen_specs, data):
-    """
-    Call a user-defined function that decides if active work should be continued
-    and possibly updated the priority of points in H.
-    """
-    if 'queue_update_function' in libE_specs and len(H):
-        data = libE_specs['queue_update_function'](H, gen_specs, data)
-
-    return data
-
-
-def termination_test(hist, exit_criteria, start_time):
-    """
-    Return nonzero if the libEnsemble run should stop
-    """
-
-    # Time should be checked first to ensure proper timeout
-    if ('elapsed_wallclock_time' in exit_criteria
-            and time.time() - start_time >= exit_criteria['elapsed_wallclock_time']):
-        logger.debug("Term test tripped: elapsed_wallclock_time")
-        return 2
-
-    if ('sim_max' in exit_criteria
-            and hist.given_count >= exit_criteria['sim_max'] + hist.offset):
-        logger.debug("Term test tripped: sim_max")
-        return 1
-
-    if ('gen_max' in exit_criteria
-            and hist.index >= exit_criteria['gen_max'] + hist.offset):
-        logger.debug("Term test tripped: gen_max")
-        return 1
-
-    if 'stop_val' in exit_criteria:
-        key = exit_criteria['stop_val'][0]
-        val = exit_criteria['stop_val'][1]
-        if np.any(hist.H[key][:hist.index][~np.isnan(hist.H[key][:hist.index])] <= val):
-            logger.debug("Term test tripped: stop_val")
-            return 1
-
-    return False
-
-
-# Can remove more args if dont add hist setup option in here: Not using: sim_specs, gen_specs, alloc_specs
-def initialize(hist, sim_specs, gen_specs, alloc_specs, exit_criteria, libE_specs):
-    """
-    Forms the numpy structured array that records everything from the
-    libEnsemble run
-
-    Returns
-    ----------
-    hist: History object
-        LibEnsembles History data structure
-
-    term_test: lambda funciton
-        Simplified termination test (doesn't require passing fixed quantities).
-        This is nice when calling term_test in multiple places.
-
-    worker_sets: python set
-        Data structure containing lists of active and idle workers
-        Initially all workers are idle
-
-    comm: MPI communicator
-        The communicator for libEnsemble manager and workers
-    """
-    worker_dtype = [('worker_id', int), ('active', int), ('persis_state', int), ('blocked', bool)]
+def get_stopwatch():
+    "Return an elapsed time function, starting now"
     start_time = time.time()
-    term_test = lambda hist: termination_test(hist, exit_criteria, start_time)
-    num_workers = libE_specs['comm'].Get_size()-1
-    W = np.zeros(num_workers, dtype=worker_dtype)
-    W['worker_id'] = np.arange(num_workers) + 1
-    comm = libE_specs['comm']
-    return term_test, W, comm
+    def elapsed():
+        "Return time elapsed since start."
+        return time.time()-start_time
+    return elapsed
 
 
-def final_receive_and_kill(comm, W, hist, sim_specs, gen_specs, term_test, persis_info, man_start_time):
-    """
-    Tries to receive from any active workers.
+class Manager:
+    """Manager class for libensemble."""
 
-    If time expires before all active workers have been received from, a
-    nonblocking receive is posted (though the manager will not receive this
-    data) and a kill signal is sent.
-    """
+    worker_dtype = [('worker_id', int),
+                    ('active', int),
+                    ('persis_state', int),
+                    ('blocked', bool)]
 
-    exit_flag = 0
+    def __init__(self, hist, libE_specs, alloc_specs,
+                 sim_specs, gen_specs, exit_criteria):
+        """Initialize the manager."""
+        self.hist = hist
+        self.libE_specs = libE_specs
+        self.alloc_specs = alloc_specs
+        self.sim_specs = sim_specs
+        self.gen_specs = gen_specs
+        self.exit_criteria = exit_criteria
+        self.elapsed = get_stopwatch()
+        self.comm = libE_specs['comm']
+        self.W = self._make_worker_pool(self.comm)
+        self.term_tests = \
+          [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
+           (1, 'sim_max', self.term_test_sim_max),
+           (1, 'gen_max', self.term_test_gen_max),
+           (1, 'stop_val', self.term_test_stop_val)]
 
-    ### Receive from all active workers
-    while any(W['active']):
+    @staticmethod
+    def _make_worker_pool(comm):
+        """Set up an array of worker states."""
+        num_workers = comm.Get_size()-1
+        W = np.zeros(num_workers, dtype=Manager.worker_dtype)
+        W['worker_id'] = np.arange(num_workers) + 1
+        return W
 
-        W, persis_info = receive_from_sim_and_gen(comm, W, hist, sim_specs, gen_specs, persis_info)
+    # --- Termination logic routines
 
-        if term_test(hist) == 2 and any(W['active']):
+    def term_test_wallclock(self, max_elapsed):
+        """Check against wallclock timeout"""
+        return self.elapsed() >= max_elapsed
 
-            print("Termination due to elapsed_wallclock_time has occurred.\n"\
+    def term_test_sim_max(self, sim_max):
+        """Check against max simulations"""
+        return self.hist.given_count >= sim_max + self.hist.offset
+
+    def term_test_gen_max(self, gen_max):
+        """Check against max generator calls."""
+        return self.hist.index >= gen_max + self.hist.offset
+
+    def term_test_stop_val(self, stop_val):
+        """Check against stop value criterion."""
+        key, val = stop_val
+        H = self.hist.H
+        idx = self.hist.index
+        return np.any(H[key][:idx][~np.isnan(H[key][:idx])] <= val)
+
+    def term_test(self):
+        """Check termination criteria"""
+        for retval, key, testf in self.term_tests:
+            if key in self.exit_criteria:
+                if testf(self.exit_criteria[key]):
+                    logger.debug("Term test tripped: {}".format(key))
+                    return retval
+        return 0
+
+    # --- Low-level communication routines (use MPI directly)
+
+    def Iprobe(self, w, status=None):
+        "Check whether there is a message from a worker."
+        status = status or MPI.Status()
+        return self.comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status)
+
+    def recv(self, w, status=None):
+        "Receive from a worker."
+        status = status or MPI.Status()
+        return self.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+
+    def _send_dtypes_to_workers(self):
+        "Broadcast sim_spec/gen_spec input dtypes to workers."
+        self.comm.bcast(obj=self.hist.H[self.sim_specs['in']].dtype)
+        self.comm.bcast(obj=self.hist.H[self.gen_specs['in']].dtype)
+
+    def _kill_workers(self):
+        """Kill the workers"""
+        for w in self.W['worker_id']:
+            stop_signal = MAN_SIGNAL_FINISH
+            self.comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
+
+    def _man_request_resend_on_error(self, w, status=None):
+        "Request the worker resend data on error."
+        status = status or MPI.Status()
+        self.comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
+        return self.recv(w)
+
+    def _man_request_pkl_dump_on_error(self, w, status=None):
+        "Request the worker dump a pickle on error."
+        status = status or MPI.Status()
+        self.comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+        pkl_recv = self.recv(w)
+        D_recv = pickle.load(open(pkl_recv, "rb"))
+        os.remove(pkl_recv) #If want to delete file
+        return D_recv
+
+    # --- Checkpointing logic
+
+    def _save_every_k(self, fname, count, k):
+        "Save history every kth step."
+        count = k*(count//k)
+        filename = fname.format(count)
+        if not os.path.isfile(filename) and count > 0:
+            np.save(filename, self.hist.H)
+
+    def _save_every_k_sims(self):
+        "Save history every kth sim step."
+        self._save_every_k('libE_history_after_sim_{}.npy',
+                           self.hist.sim_count,
+                           self.sim_specs['save_every_k'])
+
+    def _save_every_k_gens(self):
+        "Save history every kth gen step."
+        self._save_every_k('libE_history_after_gen_{}.npy',
+                           self.hist.index,
+                           self.gen_specs['save_every_k'])
+
+    # --- Handle outgoing messages to workers (work orders from alloc)
+
+    def _check_work_order(self, Work, w):
+        """Check validity of an allocation function order.
+        """
+        assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
+        assert self.W[w-1]['active'] == 0, \
+          "Allocation function requested work to an already active worker. Aborting"
+        work_rows = Work['libE_info']['H_rows']
+        if len(work_rows):
+            work_fields = set(Work['H_fields'])
+            hist_fields = self.hist.H.dtype.names
+            diff_fields = list(work_fields.difference(hist_fields))
+            assert not diff_fields, \
+              "Allocation function requested invalid fields {}" \
+              "be sent to worker={}.".format(diff_fields, w)
+
+    def _send_work_order(self, Work, w):
+        """Send an allocation function order to a worker.
+        """
+        logger.debug("Manager sending work unit to worker {}".format(w))
+        self.comm.send(obj=Work, dest=w, tag=Work['tag'])
+        work_rows = Work['libE_info']['H_rows']
+        if len(work_rows):
+            self.comm.send(obj=self.hist.H[Work['H_fields']][work_rows], dest=w)
+
+    def _update_state_on_alloc(self, Work, w):
+        """Update worker active/idle status following an allocation order."""
+
+        self.W[w-1]['active'] = Work['tag']
+        if 'libE_info' in Work and 'persistent' in Work['libE_info']:
+            self.W[w-1]['persis_state'] = Work['tag']
+
+        if 'blocking' in Work['libE_info']:
+            for w_i in Work['libE_info']['blocking']:
+                assert self.W[w_i-1]['active'] == 0, \
+                  "Active worker being blocked; aborting"
+                self.W[w_i-1]['blocked'] = 1
+                self.W[w_i-1]['active'] = 1
+
+        if Work['tag'] == EVAL_SIM_TAG:
+            work_rows = Work['libE_info']['H_rows']
+            self.hist.update_history_x_out(work_rows, w)
+
+    # --- Handle incoming messages from workers
+
+    @staticmethod
+    def _check_received_calc(D_recv):
+        "Check the type and status fields on a receive calculation."
+        calc_type = D_recv['calc_type']
+        calc_status = D_recv['calc_status']
+        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
+          'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
+        assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
+                               FINISHED_PERSISTENT_GEN_TAG,
+                               UNSET_TAG,
+                               MAN_SIGNAL_FINISH,
+                               MAN_SIGNAL_KILL,
+                               WORKER_KILL_ON_ERR,
+                               WORKER_KILL_ON_TIMEOUT,
+                               WORKER_KILL,
+                               JOB_FAILED,
+                               WORKER_DONE], \
+          'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
+
+    def _receive_from_workers(self, persis_info):
+        """Receive calculation output from workers. Loops over all
+        active workers and probes to see if worker is ready to
+        communticate. If any output is received, all other workers are
+        looped back over.
+        """
+        status = MPI.Status()
+
+        new_stuff = True
+        while new_stuff and any(self.W['active']):
+            new_stuff = False
+            for w in self.W['worker_id'][self.W['active'] > 0]:
+                if self.Iprobe(w, status):
+                    new_stuff = True
+                    self._handle_msg_from_worker(persis_info, w, status)
+
+        if 'save_every_k' in self.sim_specs:
+            self._save_every_k_sims()
+        if 'save_every_k' in self.gen_specs:
+            self._save_every_k_gens()
+        return persis_info
+
+    def _update_state_on_worker_msg(self, persis_info, D_recv, w):
+        """Update history and worker info on worker message.
+        """
+        calc_type = D_recv['calc_type']
+        calc_status = D_recv['calc_status']
+        Manager._check_received_calc(D_recv)
+
+        self.W[w-1]['active'] = 0
+        if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
+                           FINISHED_PERSISTENT_GEN_TAG]:
+            self.W[w-1]['persis_state'] = 0
+        else:
+            if calc_type == EVAL_SIM_TAG:
+                self.hist.update_history_f(D_recv)
+            if calc_type == EVAL_GEN_TAG:
+                self.hist.update_history_x_in(w, D_recv['calc_out'])
+            if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
+                # Now a waiting, persistent worker
+                self.W[w-1]['persis_state'] = calc_type
+
+        if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
+            # Now done blocking these workers
+            for w_i in D_recv['libE_info']['blocking']:
+                self.W[w_i-1]['blocked'] = 0
+                self.W[w_i-1]['active'] = 0
+
+        if 'persis_info' in D_recv:
+            for key in D_recv['persis_info'].keys():
+                persis_info[w][key] = D_recv['persis_info'][key]
+
+    def _handle_msg_from_worker(self, persis_info, w, status):
+        """Handle a message from worker w.
+        """
+        logger.debug("Manager receiving from Worker: {}".format(w))
+        try:
+            D_recv = self.recv(w)
+            logger.debug("Message size {}".format(status.Get_count()))
+        except Exception as e:
+            logger.error("Exception caught on Manager receive: {}".format(e))
+            logger.error("From worker: {}".format(w))
+            logger.error("Message size of errored message {}".format(status.Get_count()))
+            logger.error("Message status error code {}".format(status.Get_error()))
+
+            # Need to clear message faulty message - somehow
+            status.Set_cancelled(True) #Make sure cancelled before re-send
+
+            # Check on working with peristent data - curently only use one
+            #D_recv = _man_request_resend_on_error(w, status)
+            D_recv = self._man_request_pkl_dump_on_error(w, status)
+
+        if status.Get_tag() == ABORT_ENSEMBLE:
+            raise ManagerException('Received abort signal from worker')
+
+        self._update_state_on_worker_msg(persis_info, D_recv, w)
+
+    # --- Handle termination
+
+    def _read_final_messages(self):
+        """Read final messages from any active workers"""
+        status = MPI.Status()
+        for w in self.W['worker_id'][self.W['active'] > 0]:
+            if self.Iprobe(w, status):
+                self.recv(w, status)
+
+    def _final_receive_and_kill(self, persis_info):
+        """
+        Tries to receive from any active workers.
+
+        If time expires before all active workers have been received from, a
+        nonblocking receive is posted (though the manager will not receive this
+        data) and a kill signal is sent.
+        """
+        exit_flag = 0
+        while any(self.W['active']) and exit_flag == 0:
+            persis_info = self._receive_from_workers(persis_info)
+            if self.term_test() == 2 and any(self.W['active']):
+                self._print_wallclock_term()
+                self._read_final_messages()
+                exit_flag = 2
+
+        self._kill_workers()
+        print("\nlibEnsemble manager total time:", self.elapsed())
+        return persis_info, exit_flag
+
+    @staticmethod
+    def _print_wallclock_term():
+        """Print termination message for wall clock elapsed."""
+        print("Termination due to elapsed_wallclock_time has occurred.\n"\
               "A last attempt has been made to receive any completed work.\n"\
               "Posting nonblocking receives and kill messages for all active workers\n")
-            sys.stdout.flush()
-            sys.stderr.flush()
+        sys.stdout.flush()
+        sys.stderr.flush()
 
-            status = MPI.Status()
-            for w in W['worker_id'][W['active'] > 0]:
-                if comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status):
-                    D_recv = comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-            exit_flag = 2
-            break
+    # --- Main loop
 
-    ### Kill the workers
-    for w in W['worker_id']:
-        stop_signal = MAN_SIGNAL_FINISH
-        comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
+    def run(self, persis_info):
+        "Run the manager."
+        logger.info("Manager initiated on MPI rank {} on node {}".format(self.comm.Get_rank(), socket.gethostname()))
+        logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
+        persistent_queue_data = {}
 
-    print("\nlibEnsemble manager total time:", time.time() - man_start_time)
-    return persis_info, exit_flag
+        # Send initial info to workers
+        self._send_dtypes_to_workers()
+
+        ### Continue receiving and giving until termination test is satisfied
+        while not self.term_test():
+            persis_info = self._receive_from_workers(persis_info)
+            trimmed_H = self.hist.trim_H()
+            if 'queue_update_function' in self.libE_specs and len(trimmed_H):
+                persistent_queue_data = self.libE_specs['queue_update_function'](trimmed_H, self.gen_specs, persistent_queue_data)
+            if any(self.W['active'] == 0):
+                Work, persis_info = self.alloc_specs['alloc_f'](self.W, self.hist.trim_H(), self.sim_specs, self.gen_specs, persis_info)
+                for w in Work:
+                    if self.term_test():
+                        break
+                    self._check_work_order(Work[w], w)
+                    self._send_work_order(Work[w], w)
+                    self._update_state_on_alloc(Work[w], w)
+
+        # Return persis_info, exit_flag
+        return self._final_receive_and_kill(persis_info)
