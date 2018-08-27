@@ -99,7 +99,7 @@ libensemble/tests/cov_merge/index.html. The Travis CI coverage results are
 given online at
 `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_. 
 
-Note for v0.2.0: The job_controller tests can be run using the direct-launch or
+Note: The job_controller tests can be run using the direct-launch or
 Balsam job controllers. However, currently only the direct-launch versions can
 be run on Travis CI, which reduces the test coverage results.
 
@@ -109,7 +109,7 @@ Basic Usage
 
 The examples directory contains example libEnsemble calling scripts, sim functions, gen functions, alloc functions and job submission scripts.
 
-See the `user-guide <http://libensemble.readthedocs.org>`_ for more information.
+See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
 
 
 Documentation

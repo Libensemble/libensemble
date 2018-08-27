@@ -8,9 +8,9 @@ Stores the history of the output from gen_f, sim_f, and alloc_f::
     H: numpy structured array
         History array storing rows for each point. 
 
-Fields in ``H`` are those in specified ``sim_specs['out']``,
-``gen_specs['out']``, and ``alloc_specs['out']``. All values are intitialed to
-0 for integers, 0.0 for floats, and False for booleans. 
+Fields in ``H`` include those specified in ``sim_specs['out']``,
+``gen_specs['out']``, and ``alloc_specs['out']``. All values are initiated to
+0 for integers, 0.0 for floats, and False for booleans.
 
 
 

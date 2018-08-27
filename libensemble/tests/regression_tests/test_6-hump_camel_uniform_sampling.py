@@ -36,13 +36,10 @@ sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is bei
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
-             'out': [('x',float,2),
-                    ],
+             'out': [('x',float,2)],
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
              'gen_batch_size': 500,
-             'batch_mode': True,
-             'num_inst':1,
              'save_every_k': 300
              }
 
