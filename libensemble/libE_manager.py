@@ -51,6 +51,11 @@ def get_stopwatch():
     return elapsed
 
 
+def filter_nans(array):
+    "Filter out NaNs from a numpy array."
+    return array[~np.isnan(array)]
+
+
 class Manager:
     """Manager class for libensemble."""
 
@@ -104,7 +109,7 @@ class Manager:
         key, val = stop_val
         H = self.hist.H
         idx = self.hist.index
-        return np.any(H[key][:idx][~np.isnan(H[key][:idx])] <= val)
+        return np.any(filter_nans(H[key][:idx]) <= val)
 
     def term_test(self):
         """Check termination criteria"""
@@ -119,13 +124,15 @@ class Manager:
 
     def Iprobe(self, w, status=None):
         "Check whether there is a message from a worker."
-        status = status or MPI.Status()
         return self.comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status)
 
     def recv(self, w, status=None):
         "Receive from a worker."
-        status = status or MPI.Status()
         return self.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+
+    def send(self, obj, w, tag=0):
+        "Send to a worker."
+        return self.comm.send(obj=obj, dest=w, tag=tag)
 
     def _send_dtypes_to_workers(self):
         "Broadcast sim_spec/gen_spec input dtypes to workers."
@@ -135,17 +142,16 @@ class Manager:
     def _kill_workers(self):
         """Kill the workers"""
         for w in self.W['worker_id']:
-            stop_signal = MAN_SIGNAL_FINISH
-            self.comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
+            self.send(MAN_SIGNAL_FINISH, w, tag=STOP_TAG)
 
     def _man_request_resend_on_error(self, w):
         "Request the worker resend data on error."
-        self.comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
+        self.send(MAN_SIGNAL_REQ_RESEND, w, tag=STOP_TAG)
         return self.recv(w)
 
     def _man_request_pkl_dump_on_error(self, w):
         "Request the worker dump a pickle on error."
-        self.comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+        self.send(MAN_SIGNAL_REQ_PICKLE_DUMP, w, tag=STOP_TAG)
         pkl_recv = self.recv(w)
         D_recv = pickle.load(open(pkl_recv, "rb"))
         os.remove(pkl_recv) #If want to delete file
@@ -193,10 +199,10 @@ class Manager:
         """Send an allocation function order to a worker.
         """
         logger.debug("Manager sending work unit to worker {}".format(w))
-        self.comm.send(obj=Work, dest=w, tag=Work['tag'])
+        self.send(Work, w, tag=Work['tag'])
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            self.comm.send(obj=self.hist.H[Work['H_fields']][work_rows], dest=w)
+            self.send(self.hist.H[Work['H_fields']][work_rows], w)
 
     def _update_state_on_alloc(self, Work, w):
         """Update worker active/idle status following an allocation order."""
@@ -316,10 +322,9 @@ class Manager:
 
     def _read_final_messages(self):
         """Read final messages from any active workers"""
-        status = MPI.Status()
         for w in self.W['worker_id'][self.W['active'] > 0]:
-            if self.Iprobe(w, status):
-                self.recv(w, status)
+            if self.Iprobe(w):
+                self.recv(w)
 
     def _final_receive_and_kill(self, persis_info):
         """
