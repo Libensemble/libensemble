@@ -286,8 +286,7 @@ class Manager:
                 self.W[w_i-1]['active'] = 0
 
         if 'persis_info' in D_recv:
-            for key in D_recv['persis_info'].keys():
-                persis_info[w][key] = D_recv['persis_info'][key]
+            persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w, status):
         """Handle a message from worker w.
