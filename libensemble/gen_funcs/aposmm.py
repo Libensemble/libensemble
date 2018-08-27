@@ -874,11 +874,6 @@ def queue_update_function(H, gen_specs, persis_info):
     H['paused']
     """
 
-    persis_info['complete'] = set()
-    persis_info['has_nan'] = set()
-    persis_info['already_paused'] = set()
-    persis_info['H_len'] = 0
-
     if len(H)==persis_info['H_len']:
         return persis_info
     else:
