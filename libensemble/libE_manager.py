@@ -304,9 +304,6 @@ class Manager:
             logger.error("Message status error code {}". \
                          format(status.Get_error()))
 
-            # Need to clear message faulty message - somehow
-            status.Set_cancelled(True) #Make sure cancelled before re-send
-
             # Check on working with peristent data - curently only use one
             #D_recv = _man_request_resend_on_error(w)
             D_recv = self._man_request_pkl_dump_on_error(w)
