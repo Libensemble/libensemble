@@ -138,15 +138,13 @@ class Manager:
             stop_signal = MAN_SIGNAL_FINISH
             self.comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
 
-    def _man_request_resend_on_error(self, w, status=None):
+    def _man_request_resend_on_error(self, w):
         "Request the worker resend data on error."
-        status = status or MPI.Status()
         self.comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
         return self.recv(w)
 
-    def _man_request_pkl_dump_on_error(self, w, status=None):
+    def _man_request_pkl_dump_on_error(self, w):
         "Request the worker dump a pickle on error."
-        status = status or MPI.Status()
         self.comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
         pkl_recv = self.recv(w)
         D_recv = pickle.load(open(pkl_recv, "rb"))
@@ -301,15 +299,17 @@ class Manager:
         except Exception as e:
             logger.error("Exception caught on Manager receive: {}".format(e))
             logger.error("From worker: {}".format(w))
-            logger.error("Message size of errored message {}".format(status.Get_count()))
-            logger.error("Message status error code {}".format(status.Get_error()))
+            logger.error("Message size of errored message {}". \
+                         format(status.Get_count()))
+            logger.error("Message status error code {}". \
+                         format(status.Get_error()))
 
             # Need to clear message faulty message - somehow
             status.Set_cancelled(True) #Make sure cancelled before re-send
 
             # Check on working with peristent data - curently only use one
-            #D_recv = _man_request_resend_on_error(w, status)
-            D_recv = self._man_request_pkl_dump_on_error(w, status)
+            #D_recv = _man_request_resend_on_error(w)
+            D_recv = self._man_request_pkl_dump_on_error(w)
 
         if status.Get_tag() == ABORT_ENSEMBLE:
             raise ManagerException('Received abort signal from worker')
