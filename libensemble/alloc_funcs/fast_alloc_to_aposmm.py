@@ -1,11 +1,15 @@
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
 import numpy as np
 
 from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_gens
 
+logger = logging.getLogger(__name__)
+#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+logger.setLevel(logging.DEBUG)
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """
@@ -42,6 +46,11 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
                 break
             else:
                 persis_info['last_size'] = len(H)
+
+            # DEBUG info
+            logger.debug("Give gen work to {}".format(i))
+            logger.debug("Batch mode is {}".format(gen_specs.get('batch_mode')))
+            logger.debug("Assign batch {} -- {}".format(last_size, len(H)))
 
             # Give gen work
             persis_info['total_gen_calls'] += 1
