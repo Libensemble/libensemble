@@ -10,7 +10,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
-    completed or running does it start (at most ``gen_specs['num_inst']``)
+    completed or running does it start (at most ``gen_specs['num_active_gens']``)
     generator instances.
 
     Allows for a ``'batch_mode'`` where no generation
@@ -70,8 +70,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
 
         else:
 
-            # Allow at most num_inst active generator instances
-            if gen_count >= gen_specs.get('num_inst', gen_count+1):
+            # Allow at most num_active_gens active generator instances
+            if gen_count >= gen_specs.get('num_active_gens', gen_count+1):
                 break
 
             # No gen instances in batch mode if workers still working

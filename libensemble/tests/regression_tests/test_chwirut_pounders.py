@@ -66,7 +66,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'frtol': 1e-15,
              'fatol': 1e-15,
              'components': m,
-             'num_inst': 1,
+             'num_active_gens': 1,
              'batch_mode': True,
              }
 

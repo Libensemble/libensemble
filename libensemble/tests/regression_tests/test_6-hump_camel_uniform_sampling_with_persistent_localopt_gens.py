@@ -61,7 +61,7 @@ gen_specs = {'gen_f': uniform_or_localopt,
              'ub': np.array([ 3, 2]),
              'gen_batch_size': 2,
              'batch_mode': True,
-             'num_inst':1,
+             'num_active_gens':1,
              }
 
 gen_out = [('x',float,2),

@@ -67,7 +67,6 @@ gen_specs = {'gen_f': aposmm_logic,
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-2,
              'batch_mode': True,
-             'num_inst':1,
              'num_active_gens':1,
              }
 
