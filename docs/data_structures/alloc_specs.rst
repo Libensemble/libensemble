@@ -4,14 +4,22 @@ alloc_specs
 Allocation function specifications to be set in user calling script and passed to libE.libE()::
 
     alloc_specs: [dict, optional] :
+
+        Required keys :  
+        
         'alloc_f' [func] :
             Default: give_sim_work_first
+            
+        Optional keys :
+        
         'out' [list of tuples] :
             Default: [('allocated',bool)]
-        'batch_mode' [bool] :
-            Default: []
-        'num_inst' [int] :
-            Default: []
-            
-        The 'batch_mode' and 'num_inst' are specific arguments for the allocation function give_sim_work_first
 
+
+:Notes:
+
+* The alloc_specs has the default keys as given above, but may be overidden by the user.
+* The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
+
+
+:Examples:
