@@ -76,6 +76,10 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
 libE_specs = {'queue_update_function': queue_update_function}
 np.random.seed(1)
 persis_info = {}
+persis_info['complete'] = set()
+persis_info['has_nan'] = set()
+persis_info['already_paused'] = set()
+persis_info['H_len'] = 0
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
