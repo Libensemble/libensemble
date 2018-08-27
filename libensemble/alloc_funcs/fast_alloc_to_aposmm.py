@@ -1,6 +1,8 @@
 from __future__ import division
 from __future__ import absolute_import
 
+import numpy as np
+
 from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_gens
 
