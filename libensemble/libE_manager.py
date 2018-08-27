@@ -353,9 +353,22 @@ class Manager:
 
     # --- Main loop
 
+    def _queue_update(self, H, persis_info):
+        "Call queue update function from libE_specs (if defined)"
+        if 'queue_update_function' not in self.libE_specs or not len(H):
+            return persis_info
+        qfun = self.libE_specs['queue_update_function']
+        return qfun(H, self.gen_specs, persis_info)
+
+    def _alloc_work(self, H, persis_info):
+        "Call work allocation function from alloc_specs"
+        alloc_f = self.alloc_specs['alloc_f']
+        return alloc_f(self.W, H, self.sim_specs, self.gen_specs, persis_info)
+
     def run(self, persis_info):
         "Run the manager."
-        logger.info("Manager initiated on MPI rank {} on node {}".format(self.comm.Get_rank(), socket.gethostname()))
+        logger.info("Manager initiated on MPI rank {} on node {}". \
+                    format(self.comm.Get_rank(), socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
         # Send initial info to workers
@@ -364,11 +377,10 @@ class Manager:
         ### Continue receiving and giving until termination test is satisfied
         while not self.term_test():
             persis_info = self._receive_from_workers(persis_info)
-            trimmed_H = self.hist.trim_H()
-            if 'queue_update_function' in self.libE_specs and len(trimmed_H):
-                persis_info = self.libE_specs['queue_update_function'](trimmed_H, self.gen_specs, persis_info)
+            persis_info = self._queue_update(self.hist.trim_H(), persis_info)
             if any(self.W['active'] == 0):
-                Work, persis_info = self.alloc_specs['alloc_f'](self.W, self.hist.trim_H(), self.sim_specs, self.gen_specs, persis_info)
+                Work, persis_info = self._alloc_work(self.hist.trim_H(),
+                                                     persis_info)
                 for w in Work:
                     if self.term_test():
                         break
