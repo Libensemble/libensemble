@@ -68,3 +68,22 @@ class LocationStack:
         dirname = self.stack.pop()
         if dirname is not None:
             os.chdir(dirname)
+
+    class Saved:
+        """Context object for use with a with statement"""
+        def __init__(self, ls, dirname):
+            self.ls = ls
+            self.dirname = dirname
+        def __enter__(self):
+            self.ls.push(dirname)
+            return self.ls
+        def __exit__(self, type, vaulue, traceback)
+            self.ls.pop()
+
+    def loc(self, key):
+        """Return a with context for pushing a location key"""
+        return LocationStack.Saved(self, self.dirs.get(key))
+
+    def dir(self, dirname):
+        """Return a with context for pushing a """
+        return LocationStack.Saved(self, dirname)

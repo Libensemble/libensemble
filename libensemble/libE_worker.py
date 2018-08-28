@@ -127,8 +127,6 @@ def worker_main(c, sim_specs, gen_specs):
         if worker.libE_info.get('persistent'):
             del worker.libE_info['comm']
 
-        CalcInfo.add_calc_worker_statfile(calc=worker.calc_list[-1])
-
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first
         if worker.calc_status == MAN_SIGNAL_FINISH:
@@ -152,8 +150,6 @@ def worker_main(c, sim_specs, gen_specs):
 # Worker Class
 ######################################################################
 
-# All routines in Worker Class have no MPI and can be called regardless of worker
-# concurrency mode.
 class Worker():
 
     """The Worker Class provides methods for controlling sim and gen funcs"""
@@ -242,8 +238,6 @@ class Worker():
 
         """
 
-
-
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         self.calc_stats = CalcInfo()
         self.calc_list.append(self.calc_stats)
@@ -263,28 +257,21 @@ class Worker():
         self.loc_stack.push_loc(self.calc_type)
         try:
             out = self._run_calc[self.calc_type](calc_in, self.persis_info, self.libE_info)
+            assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
+            assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
         except Exception as e:
             self.calc_out = {}
-            self.calc_stats.stop_timer()
             self.calc_status = CALC_EXCEPTION
+            raise
+        else:
+            self.calc_out = out[0]
+            self.persis_info = out[1]
+            self.calc_status = out[2] if len(out) >= 3 else UNSET_TAG
+        finally:
+            self.calc_stats.stop_timer()
             self.calc_stats.set_calc_status(self.calc_status)
             CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
-            raise
-        finally:
             self.loc_stack.pop()
-
-        assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
-        assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
-
-        self.calc_out = out[0]
-        self.persis_info = out[1]
-        self.calc_status = out[2] if len(out) >= 3 else UNSET_TAG
-
-        #This is a libe feature that is to be reviewed for best solution
-        #Should atleast put in calc_stats.
-        self.calc_stats.set_calc_status(self.calc_status)
-
-        self.calc_stats.stop_timer()
 
 
     def clean(self):
