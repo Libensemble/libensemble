@@ -10,23 +10,16 @@ import socket
 import logging
 import numpy as np
 
-#Idea is dont have to have it unless using MPI option.
 from mpi4py import MPI
 
-from libensemble.loc_stack import LocationStack
-
-#In future these will be in CalcInfo or Comms modules
-#CalcInfo
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, EVAL_GEN_TAG, \
      UNSET_TAG, STOP_TAG, CALC_EXCEPTION
-
-#Comms
 from libensemble.message_numbers import \
      MAN_SIGNAL_FINISH, \
      MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
-     # MAN_SIGNAL_KILL
 
+from libensemble.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 from libensemble.resources import Resources
@@ -178,8 +171,6 @@ class Worker():
         """
 
         self.workerID = workerID
-        self.sim_specs = sim_specs
-        self.gen_specs = gen_specs
 
         self.calc_out = {}
         self.calc_type = None
@@ -192,23 +183,48 @@ class Worker():
         self.libE_info = None
         self.calc_stats = None
 
-        self.loc_stack = LocationStack()
-        if 'sim_dir' in self.sim_specs:
-            sim_dir = self.sim_specs['sim_dir']
-            prefix = self.sim_specs.get('sim_dir_prefix')
-            worker_dir = "{}_{}".format(sim_dir, self.workerID)
-            self.loc_stack.register_loc(EVAL_SIM_TAG, worker_dir,
-                                        prefix=prefix, srcdir=sim_dir)
+        self._run_calc = Worker._make_runners(sim_specs, gen_specs)
+        self.loc_stack = self._make_sim_worker_dir(sim_specs)
+        self.job_controller_set = self._set_job_controller()
 
-        #Optional - set workerID in job_controller - so will be added to jobnames and accesible to calcs
+
+    def _make_sim_worker_dir(self, sim_specs, locs=None):
+        "Create a dir for sim workers if 'sim_dir' is in sim_specs"
+        locs = locs or LocationStack()
+        if 'sim_dir' in sim_specs:
+            sim_dir = sim_specs['sim_dir']
+            prefix = sim_specs.get('sim_dir_prefix')
+            worker_dir = "{}_{}".format(sim_dir, self.workerID)
+            locs.register_loc(EVAL_SIM_TAG, worker_dir,
+                              prefix=prefix, srcdir=sim_dir)
+        return locs
+
+
+    @staticmethod
+    def _make_runners(sim_specs, gen_specs):
+        "Create functions to run a sim or gen"
+
+        def run_sim(calc_in, persis_info, libE_info):
+            "Run a sim calculation"
+            return sim_specs['sim_f'](calc_in, persis_info, sim_specs, libE_info)
+
+        def run_gen(calc_in, persis_info, libE_info):
+            "Run a gen calculation"
+            return gen_specs['gen_f'](calc_in, persis_info, gen_specs, libE_info)
+
+        return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
+
+
+    def _set_job_controller(self):
+        "Optional -- set worker ID in the job controller, return if set"
         try:
             jobctl = JobController.controller
-            jobctl.set_workerID(workerID)
+            jobctl.set_workerID(self.workerID)
         except Exception:
-            logger.info("No job_controller set on worker {}".format(workerID))
-            self.job_controller_set = False
+            logger.info("No job_controller set on worker {}".format(self.workerID))
+            return False
         else:
-            self.job_controller_set = True
+            return True
 
 
     def run(self, Work, calc_in):
@@ -264,27 +280,17 @@ class Worker():
 
 
     def _perform_calc(self, calc_in, persis_info, libE_info):
-        ### ============================== Run calc ====================================
-        # This is in a try/except block to allow handling if exception is raised in user code
-        # Currently report exception to summary file and pass exception up (where libE will mpi_abort)
-        # Continuation of ensemble may be added as an option.
         self.loc_stack.push_loc(self.calc_type)
         try:
-            if self.calc_type == EVAL_SIM_TAG:
-                out = self.sim_specs['sim_f'](calc_in, persis_info, self.sim_specs, libE_info)
-            else:
-                out = self.gen_specs['gen_f'](calc_in, persis_info, self.gen_specs, libE_info)
+            out = self._run_calc[self.calc_type](calc_in, persis_info, libE_info)
         except Exception as e:
-            # Write to workers summary file and pass exception up
             self.calc_stats.stop_timer()
             self.calc_status = CALC_EXCEPTION
             self.calc_stats.set_calc_status(self.calc_status)
             CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
             raise
         finally:
-            # Pop the directory with or without an exception
             self.loc_stack.pop()
-        ### ============================================================================
 
         assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
         assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
