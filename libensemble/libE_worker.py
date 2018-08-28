@@ -237,6 +237,8 @@ class Worker():
             Rows from the :ref:`history array<datastruct-history-array>` for processing
 
         """
+        assert Work['tag'] in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
+          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         self.calc_stats = CalcInfo()
@@ -251,22 +253,18 @@ class Worker():
         self.calc_stats.calc_type = Work['tag']
         self.persis_info = Work['persis_info']
 
-        assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
-
         try:
-            with self.loc_stack.loc(self.calc_type)
+            with self.loc_stack.loc(self.calc_type):
                 out = self._run_calc[self.calc_type](calc_in, self.persis_info, self.libE_info)
             assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
             assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
+            self.calc_out = out[0]
+            self.persis_info = out[1]
+            self.calc_status = out[2] if len(out) >= 3 else UNSET_TAG
         except Exception as e:
             self.calc_out = {}
             self.calc_status = CALC_EXCEPTION
             raise
-        else:
-            self.calc_out = out[0]
-            self.persis_info = out[1]
-            self.calc_status = out[2] if len(out) >= 3 else UNSET_TAG
         finally:
             self.calc_stats.stop_timer()
             self.calc_stats.set_calc_status(self.calc_status)
