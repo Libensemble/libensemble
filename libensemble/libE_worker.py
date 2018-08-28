@@ -8,8 +8,9 @@ from __future__ import absolute_import
 
 import socket
 import logging
-import numpy as np
+from itertools import count
 
+import numpy as np
 from mpi4py import MPI
 
 from libensemble.message_numbers import \
@@ -40,6 +41,24 @@ def recv_dtypes(comm):
     return dtypes
 
 
+def recv_from_manager(comm):
+    """Receive a tagged message from the manager."""
+    status = MPI.Status()
+    msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+    mtag = status.Get_tag()
+    return mtag, msg
+
+
+def dump_pickle(pfilename, worker_out):
+    """Write a pickle of the message."""
+    import pickle
+    with open(pfilename, "wb") as f:
+        pickle.dump(worker_out, f)
+    with open(pfilename, "rb") as f:
+        pickle.load(f)  #check can read in this side
+    return pfilename
+
+
 #The routine worker_main currently uses MPI.
 #Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
@@ -61,96 +80,70 @@ def worker_main(c, sim_specs, gen_specs):
     """
 
     comm = c['comm']
-
-    rank = comm.Get_rank()
-    workerID = rank
-
-    status = MPI.Status()
     dtypes = recv_dtypes(comm)
-
-    worker = Worker(workerID, sim_specs, gen_specs)
+    worker = Worker(comm.Get_rank(), sim_specs, gen_specs)
 
     #Setup logging
-    logger.info("Worker {} initiated on MPI rank {} on node {}". \
-                format(workerID, rank, socket.gethostname()))
+    logger.info("Worker initiated on MPI rank {} on node {}". \
+                format(comm.Get_rank(), socket.gethostname()))
 
     # Print calc_list on-the-fly
     CalcInfo.create_worker_statfile(worker.workerID)
 
-    worker_iter = 0
-    calc_iter = {EVAL_GEN_TAG : 0, EVAL_SIM_TAG : 0}
-
     #Init in case of manager request before filled
-    worker_out = {}
+    worker_out = {'calc_status': UNSET_TAG}
+    calc_iter = {EVAL_SIM_TAG : 0, EVAL_GEN_TAG : 0}
 
-    while True:
-        worker_iter += 1
-        logger.debug("Worker {}. Iteration {}".format(workerID, worker_iter))
+    for worker_iter in count(start=1):
+        logger.debug("Iteration {}".format(worker_iter))
 
-        # Receive message from worker
-        msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-        mtag = status.Get_tag()
-        if mtag == STOP_TAG: # Change this to MANAGER_SIGNAL_TAG or something
-            if msg == MAN_SIGNAL_FINISH: #shutdown the worker
+        mtag, Work = recv_from_manager(comm)
+        if mtag == STOP_TAG:
+
+            if Work == MAN_SIGNAL_FINISH: #shutdown the worker
                 break
             #Need to handle manager job kill here - as well as finish
-            if msg == MAN_SIGNAL_REQ_RESEND:
-                logger.debug("Worker {} re-sending to Manager with status {}".\
-                             format(workerID, worker.calc_status))
+            if Work == MAN_SIGNAL_REQ_RESEND:
+                logger.debug("Re-sending to Manager with status {}".\
+                             format(worker_out['calc_status']))
                 comm.send(obj=worker_out, dest=0)
                 continue
 
-            if msg == MAN_SIGNAL_REQ_PICKLE_DUMP:
-                # Worker is requested to dump pickle file
-                # (either for read by manager or for debugging)
-                import pickle
+            if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
                 pfilename = "pickled_worker_{}_sim_{}.pkl".\
-                  format(workerID, calc_iter[EVAL_SIM_TAG])
-                with open(pfilename, "wb") as f:
-                    pickle.dump(worker_out, f)
-                with open(pfilename, "rb") as f:
-                    pickle.load(f)  #check can read in this side
-                logger.debug("Worker {} dumping pickle and notifying manager: "
-                             "status {}".format(workerID, worker.calc_status))
-                comm.send(obj=pfilename, dest=0)
+                  format(worker.workerID, calc_iter[EVAL_SIM_TAG])
+                logger.debug("Make pickle for manager: status {}".\
+                             format(worker_out['calc_status']))
+                comm.send(obj=dump_pickle(pfilename, worker_out), dest=0)
                 continue
 
-        Work = msg
         libE_info = Work['libE_info']
-        calc_type = Work['tag'] # Wend tag separately (dont use MPI.status!)
+        calc_type = Work['tag'] # Send tag separately (dont use MPI.status!)
         calc_iter[calc_type] += 1
 
         calc_in = (comm.recv(source=0) if len(libE_info['H_rows']) > 0
                    else np.zeros(0, dtype=dtypes[calc_type]))
-        logger.debug("Worker {} received calc_in of len {}". \
-                     format(workerID, np.size(calc_in)))
+        logger.debug("Received calc_in of len {}".format(np.size(calc_in)))
 
-        #This is current kludge for persistent worker -
         #comm will be in the future comms module...
         if libE_info.get('persistent'):
             libE_info['comm'] = comm
-            Work['libE_info'] = libE_info
+        calc_out, persis_info, calc_status = worker.run(Work, calc_in)
+        libE_info.pop('comm', None)
 
-        worker.run(Work, calc_in)
-
-        if libE_info.get('persistent'):
-            del libE_info['comm']
+        worker_out = {'calc_out': calc_out,
+                      'persis_info': persis_info,
+                      'libE_info': libE_info,
+                      'calc_status': calc_status,
+                      'calc_type': calc_type}
 
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first
-        if worker.calc_status == MAN_SIGNAL_FINISH:
+        if calc_status == MAN_SIGNAL_FINISH:
             break
 
-        # Determine data to be returned to manager
-        worker_out = {'calc_out': worker.calc_out,
-                      'persis_info': worker.persis_info,
-                      'libE_info': libE_info,
-                      'calc_status': worker.calc_status,
-                      'calc_type': calc_type}
-
-        logger.debug("Worker {} sending to Manager with status {}". \
-                     format(workerID, worker.calc_status))
-        comm.send(obj=worker_out, dest=0) #blocking
+        logger.debug("Sending to Manager with status {}".format(calc_status))
+        comm.send(obj=worker_out, dest=0)
 
     if sim_specs.get('clean_jobs'):
         worker.clean()
@@ -177,13 +170,6 @@ class Worker():
         """
 
         self.workerID = workerID
-
-        self.calc_out = {}
-        self.calc_status = UNSET_TAG #From message_numbers
-        self.calc_list = []
-
-        self.persis_info = None
-
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
         Worker._set_job_controller(workerID)
@@ -206,15 +192,14 @@ class Worker():
     def _make_runners(sim_specs, gen_specs):
         "Create functions to run a sim or gen"
 
+        sim_f = sim_specs['sim_f']
+        gen_f = sim_specs['gen_f']
+
         def run_sim(calc_in, persis_info, libE_info):
-            "Run a sim calculation"
-            return sim_specs['sim_f'](calc_in, persis_info,
-                                      sim_specs, libE_info)
+            return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         def run_gen(calc_in, persis_info, libE_info):
-            "Run a gen calculation"
-            return gen_specs['gen_f'](calc_in, persis_info,
-                                      gen_specs, libE_info)
+            return gen_f(calc_in, persis_info, gen_specs, libE_info)
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
@@ -254,37 +239,32 @@ class Worker():
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         calc_stats = CalcInfo()
-        self.calc_list.append(calc_stats)
 
         #Timing will include setup/teardown
         calc_stats.start_timer()
 
         #Could keep all this inside the Work dictionary if sending all Work ...
-        self.persis_info = Work['persis_info']
-        libE_info = Work['libE_info']
         calc_type = Work['tag']
         calc_stats.calc_type = calc_type
 
         try:
             calc = self._run_calc[calc_type]
             with self.loc_stack.loc(calc_type):
-                out = calc(calc_in, self.persis_info, libE_info)
+                out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
             assert isinstance(out, tuple), \
               "Calculation output must be a tuple."
             assert len(out) >= 2, \
               "Calculation output must be at least two elements."
 
-            self.calc_out = out[0]
-            self.persis_info = out[1]
-            self.calc_status = out[2] if len(out) >= 3 else UNSET_TAG
-        except Exception as e:
-            self.calc_out = {}
-            self.calc_status = CALC_EXCEPTION
+            calc_status = out[2] if len(out) >= 3 else UNSET_TAG
+            return out[0], out[1], calc_status
+        except Exception:
+            calc_status = CALC_EXCEPTION
             raise
         finally:
             calc_stats.stop_timer()
-            calc_stats.set_calc_status(self.calc_status)
+            calc_stats.set_calc_status(calc_status)
             CalcInfo.add_calc_worker_statfile(calc=calc_stats)
 
 
