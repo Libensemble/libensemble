@@ -175,7 +175,6 @@ class Worker():
 
         self.persis_info = None
         self.libE_info = None
-        self.calc_stats = None
 
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self.loc_stack = self._make_sim_worker_dir(sim_specs)
@@ -241,17 +240,17 @@ class Worker():
           "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
-        self.calc_stats = CalcInfo()
-        self.calc_list.append(self.calc_stats)
+        calc_stats = CalcInfo()
+        self.calc_list.append(calc_stats)
 
         #Timing will include setup/teardown
-        self.calc_stats.start_timer()
+        calc_stats.start_timer()
 
         #Could keep all this inside the Work dictionary if sending all Work ...
         self.libE_info = Work['libE_info']
         self.calc_type = Work['tag']
-        self.calc_stats.calc_type = Work['tag']
         self.persis_info = Work['persis_info']
+        calc_stats.calc_type = self.calc_type
 
         try:
             with self.loc_stack.loc(self.calc_type):
@@ -266,9 +265,9 @@ class Worker():
             self.calc_status = CALC_EXCEPTION
             raise
         finally:
-            self.calc_stats.stop_timer()
-            self.calc_stats.set_calc_status(self.calc_status)
-            CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
+            calc_stats.stop_timer()
+            calc_stats.set_calc_status(self.calc_status)
+            CalcInfo.add_calc_worker_statfile(calc=calc_stats)
 
 
     def clean(self):
