@@ -63,7 +63,7 @@ gen_specs = {'gen_f': uniform_or_localopt,
              'batch_mode': True,
              'dist_to_bound_multiple': 0.5,
              'localopt_maxeval': 4,
-             'num_inst':1,
+             'num_active_gens':1,
              }
 
 

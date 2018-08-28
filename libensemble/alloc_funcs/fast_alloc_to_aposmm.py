@@ -1,9 +1,10 @@
 from __future__ import division
 from __future__ import absolute_import
 
+import numpy as np
+
 from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_gens
-
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
     """
@@ -35,8 +36,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
             last_size = persis_info.get('last_size')
             if (gen_specs.get('batch_mode')
                     and len(H)
-                    and not all(H['returned'][last_size:])
-                    and not all(H['paused'][last_size:])):
+                    and not all(np.logical_or(H['returned'][last_size:],
+                                              H['paused'][last_size:]))):
                 break
             else:
                 persis_info['last_size'] = len(H)

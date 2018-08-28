@@ -51,6 +51,11 @@ def get_stopwatch():
     return elapsed
 
 
+def filter_nans(array):
+    "Filter out NaNs from a numpy array."
+    return array[~np.isnan(array)]
+
+
 class Manager:
     """Manager class for libensemble."""
 
@@ -104,7 +109,7 @@ class Manager:
         key, val = stop_val
         H = self.hist.H
         idx = self.hist.index
-        return np.any(H[key][:idx][~np.isnan(H[key][:idx])] <= val)
+        return np.any(filter_nans(H[key][:idx]) <= val)
 
     def term_test(self):
         """Check termination criteria"""
@@ -119,13 +124,15 @@ class Manager:
 
     def Iprobe(self, w, status=None):
         "Check whether there is a message from a worker."
-        status = status or MPI.Status()
         return self.comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status)
 
     def recv(self, w, status=None):
         "Receive from a worker."
-        status = status or MPI.Status()
         return self.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
+
+    def send(self, obj, w, tag=0):
+        "Send to a worker."
+        return self.comm.send(obj=obj, dest=w, tag=tag)
 
     def _send_dtypes_to_workers(self):
         "Broadcast sim_spec/gen_spec input dtypes to workers."
@@ -135,19 +142,16 @@ class Manager:
     def _kill_workers(self):
         """Kill the workers"""
         for w in self.W['worker_id']:
-            stop_signal = MAN_SIGNAL_FINISH
-            self.comm.send(obj=stop_signal, dest=w, tag=STOP_TAG)
+            self.send(MAN_SIGNAL_FINISH, w, tag=STOP_TAG)
 
-    def _man_request_resend_on_error(self, w, status=None):
+    def _man_request_resend_on_error(self, w):
         "Request the worker resend data on error."
-        status = status or MPI.Status()
-        self.comm.send(obj=MAN_SIGNAL_REQ_RESEND, dest=w, tag=STOP_TAG)
+        self.send(MAN_SIGNAL_REQ_RESEND, w, tag=STOP_TAG)
         return self.recv(w)
 
-    def _man_request_pkl_dump_on_error(self, w, status=None):
+    def _man_request_pkl_dump_on_error(self, w):
         "Request the worker dump a pickle on error."
-        status = status or MPI.Status()
-        self.comm.send(obj=MAN_SIGNAL_REQ_PICKLE_DUMP, dest=w, tag=STOP_TAG)
+        self.send(MAN_SIGNAL_REQ_PICKLE_DUMP, w, tag=STOP_TAG)
         pkl_recv = self.recv(w)
         D_recv = pickle.load(open(pkl_recv, "rb"))
         os.remove(pkl_recv) #If want to delete file
@@ -195,10 +199,10 @@ class Manager:
         """Send an allocation function order to a worker.
         """
         logger.debug("Manager sending work unit to worker {}".format(w))
-        self.comm.send(obj=Work, dest=w, tag=Work['tag'])
+        self.send(Work, w, tag=Work['tag'])
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            self.comm.send(obj=self.hist.H[Work['H_fields']][work_rows], dest=w)
+            self.send(self.hist.H[Work['H_fields']][work_rows], w)
 
     def _update_state_on_alloc(self, Work, w):
         """Update worker active/idle status following an allocation order."""
@@ -288,8 +292,7 @@ class Manager:
                 self.W[w_i-1]['active'] = 0
 
         if 'persis_info' in D_recv:
-            for key in D_recv['persis_info'].keys():
-                persis_info[w][key] = D_recv['persis_info'][key]
+            persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w, status):
         """Handle a message from worker w.
@@ -301,15 +304,14 @@ class Manager:
         except Exception as e:
             logger.error("Exception caught on Manager receive: {}".format(e))
             logger.error("From worker: {}".format(w))
-            logger.error("Message size of errored message {}".format(status.Get_count()))
-            logger.error("Message status error code {}".format(status.Get_error()))
-
-            # Need to clear message faulty message - somehow
-            status.Set_cancelled(True) #Make sure cancelled before re-send
+            logger.error("Message size of errored message {}". \
+                         format(status.Get_count()))
+            logger.error("Message status error code {}". \
+                         format(status.Get_error()))
 
             # Check on working with peristent data - curently only use one
-            #D_recv = _man_request_resend_on_error(w, status)
-            D_recv = self._man_request_pkl_dump_on_error(w, status)
+            #D_recv = _man_request_resend_on_error(w)
+            D_recv = self._man_request_pkl_dump_on_error(w)
 
         if status.Get_tag() == ABORT_ENSEMBLE:
             raise ManagerException('Received abort signal from worker')
@@ -320,10 +322,9 @@ class Manager:
 
     def _read_final_messages(self):
         """Read final messages from any active workers"""
-        status = MPI.Status()
         for w in self.W['worker_id'][self.W['active'] > 0]:
-            if self.Iprobe(w, status):
-                self.recv(w, status)
+            if self.Iprobe(w):
+                self.recv(w)
 
     def _final_receive_and_kill(self, persis_info):
         """
@@ -356,9 +357,22 @@ class Manager:
 
     # --- Main loop
 
+    def _queue_update(self, H, persis_info):
+        "Call queue update function from libE_specs (if defined)"
+        if 'queue_update_function' not in self.libE_specs or not len(H):
+            return persis_info
+        qfun = self.libE_specs['queue_update_function']
+        return qfun(H, self.gen_specs, persis_info)
+
+    def _alloc_work(self, H, persis_info):
+        "Call work allocation function from alloc_specs"
+        alloc_f = self.alloc_specs['alloc_f']
+        return alloc_f(self.W, H, self.sim_specs, self.gen_specs, persis_info)
+
     def run(self, persis_info):
         "Run the manager."
-        logger.info("Manager initiated on MPI rank {} on node {}".format(self.comm.Get_rank(), socket.gethostname()))
+        logger.info("Manager initiated on MPI rank {} on node {}". \
+                    format(self.comm.Get_rank(), socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
         # Send initial info to workers
@@ -367,11 +381,10 @@ class Manager:
         ### Continue receiving and giving until termination test is satisfied
         while not self.term_test():
             persis_info = self._receive_from_workers(persis_info)
-            trimmed_H = self.hist.trim_H()
-            if 'queue_update_function' in self.libE_specs and len(trimmed_H):
-                persis_info = self.libE_specs['queue_update_function'](trimmed_H, self.gen_specs, persis_info)
+            persis_info = self._queue_update(self.hist.trim_H(), persis_info)
             if any(self.W['active'] == 0):
-                Work, persis_info = self.alloc_specs['alloc_f'](self.W, self.hist.trim_H(), self.sim_specs, self.gen_specs, persis_info)
+                Work, persis_info = self._alloc_work(self.hist.trim_H(),
+                                                     persis_info)
                 for w in Work:
                     if self.term_test():
                         break

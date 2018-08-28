@@ -70,7 +70,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              'ub': np.array([ 3, 2]),
              'gen_batch_size': 5*num_workers,
              'batch_mode': True,
-             'num_inst':1,
+             'num_active_gens':1,
              'save_every_k': 20
              }
 

@@ -66,7 +66,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'xtol_rel': 1e-2,
              'lhs_divisions':2,
              'batch_mode': True,
-             'num_inst':1,
+             'num_active_gens':1,
              }
 
 w = MPI.COMM_WORLD.Get_size()-1

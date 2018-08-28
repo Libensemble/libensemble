@@ -61,7 +61,7 @@ gen_specs = {'gen_f': uniform_random_sample_with_different_nodes_and_ranks,
              'initial_batch_size': 5,
              'max_ranks_per_node': 8,
              'max_num_nodes': MPI.COMM_WORLD.Get_size()-1,
-             'num_inst': 1,
+             'num_active_gens': 1,
              'batch_mode': False,
              'give_all_with_same_priority': True,
              # 'save_every_k': 10

@@ -42,7 +42,7 @@ gen_specs = {'gen_f': gen_f,
              'ub': np.array([ 3, 2]),
              'initial_sample': 100,
              'batch_mode': True,
-             'num_inst':1,
+             'num_active_gens':1,
              }
 
 # Tell libEnsemble when to stop

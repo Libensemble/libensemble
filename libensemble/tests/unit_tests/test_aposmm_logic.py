@@ -89,7 +89,6 @@ def test_initialize_APOSMM():
 def test_queue_update_function():
 
     gen_specs_0 = {}
-    gen_specs_0 = {}
     gen_specs_0['stop_on_NaNs'] = True
     gen_specs_0['combine_component_func'] = np.linalg.norm
     H = np.zeros(10, dtype=[('f_i',float),('returned',bool),('pt_id',int),('sim_id',int),('paused',bool)])
@@ -102,12 +101,20 @@ def test_queue_update_function():
 
     H['f_i'][4] = np.nan
 
-    _ = al.queue_update_function(H, gen_specs_0,{})
+    persis_info = {}
+    persis_info['total_gen_calls'] = 0
+    persis_info['complete'] = set()
+    persis_info['has_nan'] = set()
+    persis_info['already_paused'] = set()
+    persis_info['H_len'] = 0
+
+    _ = al.queue_update_function(H, gen_specs_0,persis_info)
     assert np.all(H['paused'][4:6])
 
+    persis_info['H_len'] = 6
     gen_specs_0['stop_partial_fvec_eval'] = True
     H['f_i'][6:10:2] = 0.5
-    _ = al.queue_update_function(H, gen_specs_0,{})
+    _ = al.queue_update_function(H, gen_specs_0,persis_info)
     assert np.all(H['paused'][4:])
 
 
