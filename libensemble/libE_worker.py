@@ -110,7 +110,8 @@ def worker_main(c, sim_specs, gen_specs):
                     pickle.dump(worker_out, f)
                 with open(pfilename, "rb") as f:
                     pickle.load(f)  #check can read in this side
-                logger.debug("Worker {} dumping pickle and notifying manager: status {}".format(workerID, worker.calc_status))
+                logger.debug("Worker {} dumping pickle and notifying manager: "
+                             "status {}".format(workerID, worker.calc_status))
                 comm.send(obj=pfilename, dest=0)
                 continue
 
@@ -132,8 +133,8 @@ def worker_main(c, sim_specs, gen_specs):
 
         worker.run(Work, calc_in)
 
-        if worker.libE_info.get('persistent'):
-            del worker.libE_info['comm']
+        if libE_info.get('persistent'):
+            del libE_info['comm']
 
         #Check if sim/gen func recieved a finish signal...
         #Currently this means do not send data back first
@@ -143,9 +144,9 @@ def worker_main(c, sim_specs, gen_specs):
         # Determine data to be returned to manager
         worker_out = {'calc_out': worker.calc_out,
                       'persis_info': worker.persis_info,
-                      'libE_info': worker.libE_info,
+                      'libE_info': libE_info,
                       'calc_status': worker.calc_status,
-                      'calc_type': worker.calc_type}
+                      'calc_type': calc_type}
 
         logger.debug("Worker {} sending to Manager with status {}". \
                      format(workerID, worker.calc_status))
@@ -178,25 +179,24 @@ class Worker():
         self.workerID = workerID
 
         self.calc_out = {}
-        self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
         self.calc_list = []
 
         self.persis_info = None
-        self.libE_info = None
 
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
-        self.loc_stack = self._make_sim_worker_dir(sim_specs)
-        self._set_job_controller()
+        self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
+        Worker._set_job_controller(workerID)
 
 
-    def _make_sim_worker_dir(self, sim_specs, locs=None):
+    @staticmethod
+    def _make_sim_worker_dir(sim_specs, workerID, locs=None):
         "Create a dir for sim workers if 'sim_dir' is in sim_specs"
         locs = locs or LocationStack()
         if 'sim_dir' in sim_specs:
             sim_dir = sim_specs['sim_dir']
             prefix = sim_specs.get('sim_dir_prefix')
-            worker_dir = "{}_{}".format(sim_dir, self.workerID)
+            worker_dir = "{}_{}".format(sim_dir, workerID)
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
                               prefix=prefix, srcdir=sim_dir)
         return locs
@@ -219,14 +219,15 @@ class Worker():
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
 
-    def _set_job_controller(self):
+    @staticmethod
+    def _set_job_controller(workerID):
         "Optional -- set worker ID in the job controller, return if set"
         try:
             jobctl = JobController.controller
-            jobctl.set_workerID(self.workerID)
+            jobctl.set_workerID(workerID)
         except Exception:
             logger.info("No job_controller set on worker {}".\
-                        format(self.workerID))
+                        format(workerID))
             return False
         else:
             return True
@@ -259,15 +260,15 @@ class Worker():
         calc_stats.start_timer()
 
         #Could keep all this inside the Work dictionary if sending all Work ...
-        self.libE_info = Work['libE_info']
-        self.calc_type = Work['tag']
         self.persis_info = Work['persis_info']
-        calc_stats.calc_type = self.calc_type
+        libE_info = Work['libE_info']
+        calc_type = Work['tag']
+        calc_stats.calc_type = calc_type
 
         try:
-            calc = self._run_calc[self.calc_type]
-            with self.loc_stack.loc(self.calc_type):
-                out = calc(calc_in, self.persis_info, self.libE_info)
+            calc = self._run_calc[calc_type]
+            with self.loc_stack.loc(calc_type):
+                out = calc(calc_in, self.persis_info, libE_info)
 
             assert isinstance(out, tuple), \
               "Calculation output must be a tuple."
