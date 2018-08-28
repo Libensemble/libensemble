@@ -20,12 +20,7 @@ import time
 from libensemble.register import Register
 from libensemble.resources import Resources
 
-if Resources.am_I_manager():
-    wrkid = 'Manager'
-else:
-    wrkid = 'w' + str(Resources.get_workerID())
-
-logger = logging.getLogger(__name__ + '(' + wrkid + ')')
+logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 

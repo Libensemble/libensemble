@@ -6,33 +6,45 @@ libEnsemble worker class
 from __future__ import division
 from __future__ import absolute_import
 
-import os, shutil
 import socket
 import logging
 import numpy as np
 
+#Idea is dont have to have it unless using MPI option.
+from mpi4py import MPI
+
+from libensemble.loc_stack import LocationStack
+
 #In future these will be in CalcInfo or Comms modules
 #CalcInfo
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.message_numbers import UNSET_TAG, STOP_TAG, CALC_EXCEPTION
+from libensemble.message_numbers import \
+     EVAL_SIM_TAG, EVAL_GEN_TAG, \
+     UNSET_TAG, STOP_TAG, CALC_EXCEPTION
 
 #Comms
-from libensemble.message_numbers import MAN_SIGNAL_KILL, MAN_SIGNAL_FINISH
-from libensemble.message_numbers import MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+from libensemble.message_numbers import \
+     MAN_SIGNAL_FINISH, \
+     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+     # MAN_SIGNAL_KILL
 
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 from libensemble.resources import Resources
 
-# Rem: run on import - though Manager should never be printed - workerID/rank
-if Resources.am_I_manager():
-    wrkid = 'Manager'
-else:
-    wrkid = 'w' + str(Resources.get_workerID())
-
-logger = logging.getLogger(__name__ + '(' + wrkid + ')')
+logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
+
+
+def recv_dtypes(comm):
+    """Receive dtypes array broadcast from manager."""
+    dtypes = {}
+    dtypes[EVAL_SIM_TAG] = None
+    dtypes[EVAL_GEN_TAG] = None
+    dtypes[EVAL_SIM_TAG] = comm.bcast(dtypes[EVAL_SIM_TAG], root=0)
+    dtypes[EVAL_GEN_TAG] = comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
+    return dtypes
+
 
 #The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
@@ -53,23 +65,15 @@ def worker_main(c, sim_specs, gen_specs):
 
     """
 
-    #Idea is dont have to have it unless using MPI option.
-    from mpi4py import MPI
-
     comm = c['comm']
 
     rank = comm.Get_rank()
     workerID = rank
 
     status = MPI.Status()
-    Worker.init_workers(sim_specs, gen_specs) # Store in Worker Class
-    dtypes = {}
-    dtypes[EVAL_SIM_TAG] = None
-    dtypes[EVAL_GEN_TAG] = None
-    dtypes[EVAL_SIM_TAG] = comm.bcast(dtypes[EVAL_SIM_TAG], root=0)
-    dtypes[EVAL_GEN_TAG] = comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
+    dtypes = recv_dtypes(comm)
 
-    worker = Worker(workerID)
+    worker = Worker(workerID, sim_specs, gen_specs)
 
     #Setup logging
     logger.info("Worker {} initiated on MPI rank {} on node {}".format(workerID, rank, socket.gethostname()))
@@ -78,8 +82,7 @@ def worker_main(c, sim_specs, gen_specs):
     CalcInfo.create_worker_statfile(worker.workerID)
 
     worker_iter = 0
-    sim_iter = 0
-    gen_iter = 0
+    calc_iter = {EVAL_GEN_TAG : 0, EVAL_SIM_TAG : 0}
 
     #Init in case of manager request before filled
     worker_out = {}
@@ -88,24 +91,22 @@ def worker_main(c, sim_specs, gen_specs):
         worker_iter += 1
         logger.debug("Worker {}. Iteration {}".format(workerID, worker_iter))
 
-        # General probe for manager communication
-        comm.probe(source=0, tag=MPI.ANY_TAG, status=status)
+        # Receive message from worker
+        msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
         mtag = status.Get_tag()
         if mtag == STOP_TAG: #If multiple choices prob change this to MANAGER_SIGNAL_TAG or something
-            man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
-            if man_signal == MAN_SIGNAL_FINISH: #shutdown the worker
+            if msg == MAN_SIGNAL_FINISH: #shutdown the worker
                 break
             #Need to handle manager job kill here - as well as finish
-            if man_signal == MAN_SIGNAL_REQ_RESEND:
-                #And resend
+            if msg == MAN_SIGNAL_REQ_RESEND:
                 logger.debug("Worker {} re-sending to Manager with status {}".format(workerID, worker.calc_status))
                 comm.send(obj=worker_out, dest=0)
                 continue
 
-            if man_signal == MAN_SIGNAL_REQ_PICKLE_DUMP:
+            if msg == MAN_SIGNAL_REQ_PICKLE_DUMP:
                 # Worker is requested to dump pickle file (either for read by manager or for debugging)
                 import pickle
-                pfilename = "pickled_worker_{}_sim_{}.pkl".format(workerID, sim_iter)
+                pfilename = "pickled_worker_{}_sim_{}.pkl".format(workerID, calc_iter[EVAL_SIM_TAG])
                 with open(pfilename, "wb") as f:
                     pickle.dump(worker_out, f)
                 with open(pfilename, "rb") as f:
@@ -114,20 +115,13 @@ def worker_main(c, sim_specs, gen_specs):
                 comm.send(obj=pfilename, dest=0)
                 continue
 
-        else:
-            Work = comm.recv(buf=None, source=0, tag=MPI.ANY_TAG, status=status)
-
+        Work = msg
         libE_info = Work['libE_info']
         calc_type = Work['tag'] #If send components - send tag separately (dont use MPI.status!)
+        calc_iter[calc_type] += 1
 
-        if calc_type == EVAL_GEN_TAG:
-            gen_iter += 1
-        if calc_type == EVAL_SIM_TAG:
-            sim_iter += 1
-
-        calc_in = np.zeros(len(libE_info['H_rows']), dtype=dtypes[calc_type])
-        if len(calc_in) > 0:
-            calc_in = comm.recv(buf=None, source=0)
+        calc_in = (comm.recv(source=0) if len(libE_info['H_rows']) > 0
+                   else np.zeros(0, dtype=dtypes[calc_type]))
         logger.debug("Worker {} received calc_in of len {}".format(workerID, np.size(calc_in)))
 
         #This is current kluge for persistent worker - comm will be in the future comms module...
@@ -171,21 +165,8 @@ class Worker():
 
     """The Worker Class provides methods for controlling sim and gen funcs"""
 
-    #Class attributes
-    sim_specs = {}
-    gen_specs = {}
-
-    #Class methods
-    @classmethod
-    def init_workers(Worker, sim_specs_in, gen_specs_in):
-        """Sets class attributes Worker.sim_specs and Worker.gen_specs"""
-
-        #Class attributes? Maybe should be worker specific??
-        Worker.sim_specs = sim_specs_in
-        Worker.gen_specs = gen_specs_in
-
     # Worker Object methods
-    def __init__(self, workerID):
+    def __init__(self, workerID, sim_specs, gen_specs):
         """Initialise new worker object.
 
         Parameters
@@ -195,6 +176,9 @@ class Worker():
             The ID for this worker
 
         """
+
+        self.sim_specs = sim_specs
+        self.gen_specs = gen_specs
 
         self.locations = {}
         self.worker_dir = ""
@@ -211,15 +195,13 @@ class Worker():
         self.libE_info = None
         self.calc_stats = None
 
-        if 'sim_dir' in Worker.sim_specs:
-            self.worker_dir = Worker.sim_specs['sim_dir'] + '_' + str(self.workerID)
-
-            if 'sim_dir_prefix' in Worker.sim_specs:
-                self.worker_dir = os.path.join(os.path.expanduser(Worker.sim_specs['sim_dir_prefix']), os.path.split(os.path.abspath(os.path.expanduser(self.worker_dir)))[1])
-
-            assert ~os.path.isdir(self.worker_dir), "Worker directory already exists."
-            shutil.copytree(Worker.sim_specs['sim_dir'], self.worker_dir)
-            self.locations[EVAL_SIM_TAG] = self.worker_dir
+        self.loc_stack = LocationStack()
+        if 'sim_dir' in self.sim_specs:
+            sim_dir = self.sim_specs['sim_dir']
+            prefix = self.sim_specs.get('sim_dir_prefix')
+            worker_dir = "{}_{}".format(sim_dir, self.workerID)
+            self.worker_dir = self.loc_stack.register_loc(EVAL_SIM_TAG, worker_dir,
+                                                          prefix=prefix, srcdir=sim_dir)
 
         #Optional - set workerID in job_controller - so will be added to jobnames and accesible to calcs
         try:
@@ -281,33 +263,30 @@ class Worker():
 
     def clean(self):
         """Clean up calculation directories"""
-        for loc in self.locations.values():
-            shutil.rmtree(loc)
+        self.loc_stack.clean_locs()
 
 
     def _perform_calc(self, calc_in, persis_info, libE_info):
-        if self.calc_type in self.locations:
-            saved_dir = os.getcwd()
-            os.chdir(self.locations[self.calc_type])
-
         ### ============================== Run calc ====================================
         # This is in a try/except block to allow handling if exception is raised in user code
         # Currently report exception to summary file and pass exception up (where libE will mpi_abort)
         # Continuation of ensemble may be added as an option.
+        self.loc_stack.push_loc(self.calc_type)
         try:
             if self.calc_type == EVAL_SIM_TAG:
-                out = Worker.sim_specs['sim_f'](calc_in, persis_info, Worker.sim_specs, libE_info)
+                out = self.sim_specs['sim_f'](calc_in, persis_info, self.sim_specs, libE_info)
             else:
-                out = Worker.gen_specs['gen_f'](calc_in, persis_info, Worker.gen_specs, libE_info)
+                out = self.gen_specs['gen_f'](calc_in, persis_info, self.gen_specs, libE_info)
         except Exception as e:
             # Write to workers summary file and pass exception up
-            if self.calc_type in self.locations:
-                os.chdir(saved_dir)
             self.calc_stats.stop_timer()
             self.calc_status = CALC_EXCEPTION
             self.calc_stats.set_calc_status(self.calc_status)
             CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
             raise
+        finally:
+            # Pop the directory with or without an exception
+            self.loc_stack.pop()
         ### ============================================================================
 
         assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
@@ -315,13 +294,5 @@ class Worker():
 
         H = out[0]
         persis_info = out[1]
-
-        calc_tag = UNSET_TAG #None
-        if len(out) >= 3:
-            calc_tag = out[2]
-
-        if self.calc_type in self.locations:
-            os.chdir(saved_dir)
-
-        #return data_out, calc_tag
+        calc_tag = out[2] if len(out) >= 3 else UNSET_TAG
         return H, persis_info, libE_info, calc_tag
