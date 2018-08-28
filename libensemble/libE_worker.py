@@ -177,12 +177,9 @@ class Worker():
 
         """
 
+        self.workerID = workerID
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
-
-        self.locations = {}
-        self.worker_dir = ""
-        self.workerID = workerID
 
         self.calc_out = {}
         self.calc_type = None
@@ -200,8 +197,8 @@ class Worker():
             sim_dir = self.sim_specs['sim_dir']
             prefix = self.sim_specs.get('sim_dir_prefix')
             worker_dir = "{}_{}".format(sim_dir, self.workerID)
-            self.worker_dir = self.loc_stack.register_loc(EVAL_SIM_TAG, worker_dir,
-                                                          prefix=prefix, srcdir=sim_dir)
+            self.loc_stack.register_loc(EVAL_SIM_TAG, worker_dir,
+                                        prefix=prefix, srcdir=sim_dir)
 
         #Optional - set workerID in job_controller - so will be added to jobnames and accesible to calcs
         try:
