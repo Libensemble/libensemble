@@ -75,9 +75,9 @@ class LocationStack:
             self.ls = ls
             self.dirname = dirname
         def __enter__(self):
-            self.ls.push(dirname)
+            self.ls.push(self.dirname)
             return self.ls
-        def __exit__(self, type, vaulue, traceback)
+        def __exit__(self, etype, value, traceback):
             self.ls.pop()
 
     def loc(self, key):
@@ -85,5 +85,5 @@ class LocationStack:
         return LocationStack.Saved(self, self.dirs.get(key))
 
     def dir(self, dirname):
-        """Return a with context for pushing a """
+        """Return a with context for pushing a directory"""
         return LocationStack.Saved(self, dirname)

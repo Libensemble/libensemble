@@ -76,6 +76,29 @@ def test_location_stack():
           "Directory stack push_loc failed to stay put with input None." \
           "Wanted {}, at {}".format(start_dir, os.getcwd())
 
+        # Context for moving again
+        with s.loc(0):
+            assert s.stack == [None, start_dir], \
+              "Directory stack is incorrect." \
+              "Wanted [None, {}], got {}.".format(start_dir, s.stack)
+            assert os.path.samefile(os.getcwd(), tname), \
+              "Directory stack push_loc failed to end up at desired dir." \
+              "Wanted {}, at {}".format(tname, os.getcwd())
+
+        # Check directory after context
+        assert s.stack == [None], \
+          "Directory stack is incorrect after ctx." \
+          "Wanted [None], got {}.".format(s.stack)
+        assert os.path.samefile(os.getcwd(), start_dir), \
+          "Directory looks wrong after ctx." \
+          "Wanted {}, at {}".format(start_dir, os.getcwd())
+
+        with s.dir(None):
+            assert s.stack == [None,None], \
+              "Directory stack is incorrect in ctx."
+        assert s.stack == [None], \
+          "Directory stack is incorrect after ctx."
+
         # Pop the unregistered location
         s.pop()
         assert not s.stack, \

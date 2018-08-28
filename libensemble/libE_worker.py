@@ -254,9 +254,9 @@ class Worker():
         assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
           "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
-        self.loc_stack.push_loc(self.calc_type)
         try:
-            out = self._run_calc[self.calc_type](calc_in, self.persis_info, self.libE_info)
+            with self.loc_stack.loc(self.calc_type)
+                out = self._run_calc[self.calc_type](calc_in, self.persis_info, self.libE_info)
             assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
             assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
         except Exception as e:
@@ -271,7 +271,6 @@ class Worker():
             self.calc_stats.stop_timer()
             self.calc_stats.set_calc_status(self.calc_status)
             CalcInfo.add_calc_worker_statfile(calc=self.calc_stats)
-            self.loc_stack.pop()
 
 
     def clean(self):
