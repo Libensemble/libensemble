@@ -59,6 +59,29 @@ def dump_pickle(pfilename, worker_out):
     return pfilename
 
 
+def receive_and_run(comm, dtypes, worker, Work):
+    """Receive data associated with a work order and run calc."""
+
+    libE_info = Work['libE_info']
+    calc_type = Work['tag']
+
+    calc_in = (comm.recv(source=0) if len(libE_info['H_rows']) > 0
+               else np.zeros(0, dtype=dtypes[calc_type]))
+    logger.debug("Received calc_in of len {}".format(np.size(calc_in)))
+
+    #comm will be in the future comms module...
+    if libE_info.get('persistent'):
+        libE_info['comm'] = comm
+    calc_out, persis_info, calc_status = worker.run(Work, calc_in)
+    libE_info.pop('comm', None)
+
+    return {'calc_out': calc_out,
+            'persis_info': persis_info,
+            'libE_info': libE_info,
+            'calc_status': calc_status,
+            'calc_type': calc_type}
+
+
 #The routine worker_main currently uses MPI.
 #Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
@@ -92,7 +115,6 @@ def worker_main(c, sim_specs, gen_specs):
 
     #Init in case of manager request before filled
     worker_out = {'calc_status': UNSET_TAG}
-    calc_iter = {EVAL_SIM_TAG : 0, EVAL_GEN_TAG : 0}
 
     for worker_iter in count(start=1):
         logger.debug("Iteration {}".format(worker_iter))
@@ -111,38 +133,20 @@ def worker_main(c, sim_specs, gen_specs):
 
             if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
                 pfilename = "pickled_worker_{}_sim_{}.pkl".\
-                  format(worker.workerID, calc_iter[EVAL_SIM_TAG])
+                  format(worker.workerID, worker.calc_iter[EVAL_SIM_TAG])
                 logger.debug("Make pickle for manager: status {}".\
                              format(worker_out['calc_status']))
                 comm.send(obj=dump_pickle(pfilename, worker_out), dest=0)
                 continue
 
-        libE_info = Work['libE_info']
-        calc_type = Work['tag'] # Send tag separately (dont use MPI.status!)
-        calc_iter[calc_type] += 1
+        worker_out = receive_and_run(comm, dtypes, worker, Work)
 
-        calc_in = (comm.recv(source=0) if len(libE_info['H_rows']) > 0
-                   else np.zeros(0, dtype=dtypes[calc_type]))
-        logger.debug("Received calc_in of len {}".format(np.size(calc_in)))
-
-        #comm will be in the future comms module...
-        if libE_info.get('persistent'):
-            libE_info['comm'] = comm
-        calc_out, persis_info, calc_status = worker.run(Work, calc_in)
-        libE_info.pop('comm', None)
-
-        worker_out = {'calc_out': calc_out,
-                      'persis_info': persis_info,
-                      'libE_info': libE_info,
-                      'calc_status': calc_status,
-                      'calc_type': calc_type}
-
-        #Check if sim/gen func recieved a finish signal...
-        #Currently this means do not send data back first
-        if calc_status == MAN_SIGNAL_FINISH:
+        # Check whether worker exited because it polled a manager signal
+        if worker_out['calc_status'] == MAN_SIGNAL_FINISH:
             break
 
-        logger.debug("Sending to Manager with status {}".format(calc_status))
+        logger.debug("Sending to Manager with status {}".\
+                     format(worker_out['calc_status']))
         comm.send(obj=worker_out, dest=0)
 
     if sim_specs.get('clean_jobs'):
@@ -168,10 +172,10 @@ class Worker():
             The ID for this worker
 
         """
-
         self.workerID = workerID
-        self._run_calc = Worker._make_runners(sim_specs, gen_specs)
+        self.calc_iter = {EVAL_SIM_TAG : 0, EVAL_GEN_TAG : 0}
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
+        self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         Worker._set_job_controller(workerID)
 
 
@@ -193,12 +197,14 @@ class Worker():
         "Create functions to run a sim or gen"
 
         sim_f = sim_specs['sim_f']
-        gen_f = sim_specs['gen_f']
+        gen_f = gen_specs['gen_f']
 
         def run_sim(calc_in, persis_info, libE_info):
+            "Call the sim func."
             return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         def run_gen(calc_in, persis_info, libE_info):
+            "Call the gen func."
             return gen_f(calc_in, persis_info, gen_specs, libE_info)
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
@@ -234,17 +240,14 @@ class Worker():
             Rows from the :ref:`history array<datastruct-history-array>`
             for processing
         """
-        assert Work['tag'] in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
+        calc_type = Work['tag']
+        self.calc_iter[calc_type] += 1
+        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
           "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         calc_stats = CalcInfo()
-
-        #Timing will include setup/teardown
         calc_stats.start_timer()
-
-        #Could keep all this inside the Work dictionary if sending all Work ...
-        calc_type = Work['tag']
         calc_stats.calc_type = calc_type
 
         try:
