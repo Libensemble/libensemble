@@ -25,7 +25,8 @@ from libensemble.controller import JobController
 from libensemble.resources import Resources
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#For debug messages in this module  - uncomment
+#  (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
 
@@ -39,7 +40,8 @@ def recv_dtypes(comm):
     return dtypes
 
 
-#The routine worker_main currently uses MPI. Comms will be implemented using comms module in future
+#The routine worker_main currently uses MPI.
+#Comms will be implemented using comms module in future
 def worker_main(c, sim_specs, gen_specs):
     """
     Evaluate calculations given to it by the manager.
@@ -69,7 +71,8 @@ def worker_main(c, sim_specs, gen_specs):
     worker = Worker(workerID, sim_specs, gen_specs)
 
     #Setup logging
-    logger.info("Worker {} initiated on MPI rank {} on node {}".format(workerID, rank, socket.gethostname()))
+    logger.info("Worker {} initiated on MPI rank {} on node {}". \
+                format(workerID, rank, socket.gethostname()))
 
     # Print calc_list on-the-fly
     CalcInfo.create_worker_statfile(worker.workerID)
@@ -87,19 +90,22 @@ def worker_main(c, sim_specs, gen_specs):
         # Receive message from worker
         msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
         mtag = status.Get_tag()
-        if mtag == STOP_TAG: #If multiple choices prob change this to MANAGER_SIGNAL_TAG or something
+        if mtag == STOP_TAG: # Change this to MANAGER_SIGNAL_TAG or something
             if msg == MAN_SIGNAL_FINISH: #shutdown the worker
                 break
             #Need to handle manager job kill here - as well as finish
             if msg == MAN_SIGNAL_REQ_RESEND:
-                logger.debug("Worker {} re-sending to Manager with status {}".format(workerID, worker.calc_status))
+                logger.debug("Worker {} re-sending to Manager with status {}".\
+                             format(workerID, worker.calc_status))
                 comm.send(obj=worker_out, dest=0)
                 continue
 
             if msg == MAN_SIGNAL_REQ_PICKLE_DUMP:
-                # Worker is requested to dump pickle file (either for read by manager or for debugging)
+                # Worker is requested to dump pickle file
+                # (either for read by manager or for debugging)
                 import pickle
-                pfilename = "pickled_worker_{}_sim_{}.pkl".format(workerID, calc_iter[EVAL_SIM_TAG])
+                pfilename = "pickled_worker_{}_sim_{}.pkl".\
+                  format(workerID, calc_iter[EVAL_SIM_TAG])
                 with open(pfilename, "wb") as f:
                     pickle.dump(worker_out, f)
                 with open(pfilename, "rb") as f:
@@ -110,14 +116,16 @@ def worker_main(c, sim_specs, gen_specs):
 
         Work = msg
         libE_info = Work['libE_info']
-        calc_type = Work['tag'] #If send components - send tag separately (dont use MPI.status!)
+        calc_type = Work['tag'] # Wend tag separately (dont use MPI.status!)
         calc_iter[calc_type] += 1
 
         calc_in = (comm.recv(source=0) if len(libE_info['H_rows']) > 0
                    else np.zeros(0, dtype=dtypes[calc_type]))
-        logger.debug("Worker {} received calc_in of len {}".format(workerID, np.size(calc_in)))
+        logger.debug("Worker {} received calc_in of len {}". \
+                     format(workerID, np.size(calc_in)))
 
-        #This is current kluge for persistent worker - comm will be in the future comms module...
+        #This is current kludge for persistent worker -
+        #comm will be in the future comms module...
         if libE_info.get('persistent'):
             libE_info['comm'] = comm
             Work['libE_info'] = libE_info
@@ -139,7 +147,8 @@ def worker_main(c, sim_specs, gen_specs):
                       'calc_status': worker.calc_status,
                       'calc_type': worker.calc_type}
 
-        logger.debug("Worker {} sending to Manager with status {}".format(workerID, worker.calc_status))
+        logger.debug("Worker {} sending to Manager with status {}". \
+                     format(workerID, worker.calc_status))
         comm.send(obj=worker_out, dest=0) #blocking
 
     if sim_specs.get('clean_jobs'):
@@ -199,11 +208,13 @@ class Worker():
 
         def run_sim(calc_in, persis_info, libE_info):
             "Run a sim calculation"
-            return sim_specs['sim_f'](calc_in, persis_info, sim_specs, libE_info)
+            return sim_specs['sim_f'](calc_in, persis_info,
+                                      sim_specs, libE_info)
 
         def run_gen(calc_in, persis_info, libE_info):
             "Run a gen calculation"
-            return gen_specs['gen_f'](calc_in, persis_info, gen_specs, libE_info)
+            return gen_specs['gen_f'](calc_in, persis_info,
+                                      gen_specs, libE_info)
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
@@ -214,7 +225,8 @@ class Worker():
             jobctl = JobController.controller
             jobctl.set_workerID(self.workerID)
         except Exception:
-            logger.info("No job_controller set on worker {}".format(self.workerID))
+            logger.info("No job_controller set on worker {}".\
+                        format(self.workerID))
             return False
         else:
             return True
@@ -223,8 +235,8 @@ class Worker():
     def run(self, Work, calc_in):
         """Run a calculation on this worker object.
 
-        This routine calls the user calculations. Exceptions are caught, dumped to
-        the summary file, and raised.
+        This routine calls the user calculations. Exceptions are caught,
+        dumped to the summary file, and raised.
 
         Parameters
         ----------
@@ -233,8 +245,8 @@ class Worker():
             :ref:`(example)<datastruct-work-dict>`
 
         calc_in: obj: numpy structured array
-            Rows from the :ref:`history array<datastruct-history-array>` for processing
-
+            Rows from the :ref:`history array<datastruct-history-array>`
+            for processing
         """
         assert Work['tag'] in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
           "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
@@ -253,10 +265,15 @@ class Worker():
         calc_stats.calc_type = self.calc_type
 
         try:
+            calc = self._run_calc[self.calc_type]
             with self.loc_stack.loc(self.calc_type):
-                out = self._run_calc[self.calc_type](calc_in, self.persis_info, self.libE_info)
-            assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
-            assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
+                out = calc(calc_in, self.persis_info, self.libE_info)
+
+            assert isinstance(out, tuple), \
+              "Calculation output must be a tuple."
+            assert len(out) >= 2, \
+              "Calculation output must be at least two elements."
+
             self.calc_out = out[0]
             self.persis_info = out[1]
             self.calc_status = out[2] if len(out) >= 3 else UNSET_TAG
