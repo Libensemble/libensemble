@@ -175,9 +175,7 @@ class Worker():
         self.calc_out = {}
         self.calc_type = None
         self.calc_status = UNSET_TAG #From message_numbers
-        self.isdone = False
         self.calc_list = []
-        self.job_controller_set = False
 
         self.persis_info = None
         self.libE_info = None
@@ -185,7 +183,7 @@ class Worker():
 
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self.loc_stack = self._make_sim_worker_dir(sim_specs)
-        self.job_controller_set = self._set_job_controller()
+        self._set_job_controller()
 
 
     def _make_sim_worker_dir(self, sim_specs, locs=None):
@@ -244,10 +242,7 @@ class Worker():
 
         """
 
-        #Reset run specific attributes - these should maybe be in a calc object
-        self.calc_out = {}
-        self.calc_status = UNSET_TAG #From message_numbers
-        self.isdone = False
+
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         self.calc_stats = CalcInfo()
@@ -262,28 +257,14 @@ class Worker():
         self.calc_stats.calc_type = Work['tag']
         self.persis_info = Work['persis_info']
 
-        assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
+        assert self.calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
+          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
-        self.calc_out, self.persis_info, self.libE_info, self.calc_status = self._perform_calc(calc_in, self.persis_info, self.libE_info)
-
-        #This is a libe feature that is to be reviewed for best solution
-        #Should atleast put in calc_stats.
-        self.calc_stats.set_calc_status(self.calc_status)
-
-        self.isdone = True
-        self.calc_stats.stop_timer()
-
-
-    def clean(self):
-        """Clean up calculation directories"""
-        self.loc_stack.clean_locs()
-
-
-    def _perform_calc(self, calc_in, persis_info, libE_info):
         self.loc_stack.push_loc(self.calc_type)
         try:
-            out = self._run_calc[self.calc_type](calc_in, persis_info, libE_info)
+            out = self._run_calc[self.calc_type](calc_in, self.persis_info, self.libE_info)
         except Exception as e:
+            self.calc_out = {}
             self.calc_stats.stop_timer()
             self.calc_status = CALC_EXCEPTION
             self.calc_stats.set_calc_status(self.calc_status)
@@ -295,7 +276,17 @@ class Worker():
         assert isinstance(out, tuple), "Calculation output must be a tuple. Worker exiting"
         assert len(out) >= 2, "Calculation output must be at least two elements when a tuple"
 
-        H = out[0]
-        persis_info = out[1]
-        calc_tag = out[2] if len(out) >= 3 else UNSET_TAG
-        return H, persis_info, libE_info, calc_tag
+        self.calc_out = out[0]
+        self.persis_info = out[1]
+        self.calc_status = out[2] if len(out) >= 3 else UNSET_TAG
+
+        #This is a libe feature that is to be reviewed for best solution
+        #Should atleast put in calc_stats.
+        self.calc_stats.set_calc_status(self.calc_status)
+
+        self.calc_stats.stop_timer()
+
+
+    def clean(self):
+        """Clean up calculation directories"""
+        self.loc_stack.clean_locs()
