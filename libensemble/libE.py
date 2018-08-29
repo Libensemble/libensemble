@@ -60,7 +60,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     This is the outer libEnsemble routine. If the rank in libE_specs['comm'] is
     0, manager_main is run. Otherwise, worker_main is run.
-    (Some libEnsemble subroutines assume that the manager is always (only) rank 0.)
+    
+    If an exception is encountered by the manager or workers,  the history array
+    is dumped to file and mpi abort is called. 
 
     Parameters
     ----------
