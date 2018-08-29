@@ -4,11 +4,10 @@ Module for storing and managing statistics for each calculation.
 This includes creating the statistics (or calc summary) file.
 
 """
-import time
-import datetime
 import itertools
 import os
 
+from libensemble.timer import Timer
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
 class CalcInfo():
@@ -104,27 +103,10 @@ class CalcInfo():
 
         A new CalcInfo object is created for each calculation.
         """
-        self.time = 0.0
-        self.start = 0.0
-        self.end = 0.0
-        self.date_start = None
-        self.date_end = None
+        self.timer = Timer()
         self.calc_type = None
         self.id = next(CalcInfo.newid)
         self.status = "Not complete"
-
-    def start_timer(self):
-        """Start the timer and record datestamp (normally for a calculation)"""
-        self.start = time.time()
-        self.date_start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-
-    def stop_timer(self):
-        """Stop the timer and record datestamp (normally for a
-        calculation) and set total run time"""
-        self.end = time.time()
-        self.date_end = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        #increment so can start and stop repeatedly
-        self.time += self.end - self.start
 
     def print_calc(self, fileH):
         """Print a calculation summary.
@@ -138,10 +120,8 @@ class CalcInfo():
             File to print calc statistics to.
 
         """
-        fileH.write("   Calc %d: %s Time: %.2f Start: %s End: %s Status: %s\n" %
-                    (self.id, self.get_type(), self.time,
-                     self.date_start, self.date_end, self.status))
-
+        fileH.write("   Calc {}: {} {} Status: {}\n".
+                    format(self.id, self.get_type(), self.timer, self.status))
 
     def get_type(self):
         """Returns the calculation type as a string.

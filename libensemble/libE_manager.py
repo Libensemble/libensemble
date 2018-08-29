@@ -6,7 +6,6 @@ libEnsemble manager routines
 from __future__ import division
 from __future__ import absolute_import
 
-import time
 import sys
 import os
 import logging
@@ -16,6 +15,7 @@ import pickle
 from mpi4py import MPI
 import numpy as np
 
+from libensemble.timer import Timer
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
      EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
@@ -42,15 +42,6 @@ def manager_main(hist, libE_specs, alloc_specs,
     return mgr.run(persis_info)
 
 
-def get_stopwatch():
-    "Return an elapsed time function, starting now"
-    start_time = time.time()
-    def elapsed():
-        "Return time elapsed since start."
-        return time.time()-start_time
-    return elapsed
-
-
 def filter_nans(array):
     "Filter out NaNs from a numpy array."
     return array[~np.isnan(array)]
@@ -67,13 +58,15 @@ class Manager:
     def __init__(self, hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria):
         """Initialize the manager."""
+        timer = Timer()
+        timer.start()
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self.elapsed = get_stopwatch()
+        self.elapsed = lambda: timer.elapsed
         self.comm = libE_specs['comm']
         self.W = self._make_worker_pool(self.comm)
         self.term_tests = \

@@ -247,13 +247,13 @@ class Worker():
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         calc_stats = CalcInfo()
-        calc_stats.start_timer()
         calc_stats.calc_type = calc_type
 
         try:
             calc = self._run_calc[calc_type]
-            with self.loc_stack.loc(calc_type):
-                out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+            with calc_stats.timer:
+                with self.loc_stack.loc(calc_type):
+                    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
             assert isinstance(out, tuple), \
               "Calculation output must be a tuple."
@@ -266,7 +266,6 @@ class Worker():
             calc_status = CALC_EXCEPTION
             raise
         finally:
-            calc_stats.stop_timer()
             calc_stats.set_calc_status(calc_status)
             CalcInfo.add_calc_worker_statfile(calc=calc_stats)
 
