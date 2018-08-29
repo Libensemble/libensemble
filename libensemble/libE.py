@@ -70,7 +70,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
 
-
     gen_specs: :obj:`dict`
 
         Specifications for the generator function
