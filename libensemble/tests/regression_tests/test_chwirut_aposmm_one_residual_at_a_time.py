@@ -73,7 +73,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'single_component_at_a_time': True,
              'components': m,
              'combine_component_func': lambda x: np.sum(np.power(x,2)),
-             'num_inst': 1,
+             'num_active_gens': 1,
              'batch_mode': True,
              'stop_on_NaNs': True,
              'stop_partial_fvec_eval': True,
@@ -90,6 +90,11 @@ libE_specs = {'queue_update_function': queue_update_function}
 np.random.seed(1)
 persis_info = {'next_to_give':0}
 persis_info['total_gen_calls'] = 0
+persis_info['complete'] = set()
+persis_info['has_nan'] = set()
+persis_info['already_paused'] = set()
+persis_info['H_len'] = 0
+
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run

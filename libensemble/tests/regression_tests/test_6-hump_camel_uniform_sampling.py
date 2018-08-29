@@ -43,7 +43,6 @@ gen_specs = {'gen_f': uniform_random_sample,
              'save_every_k': 300
              }
 
-
 # Tell libEnsemble when to stop
 exit_criteria = {'gen_max': 501}
 

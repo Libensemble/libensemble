@@ -72,7 +72,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'dist_to_bound_multiple': 0.99,
              'xtol_rel': 1e-3,
              'min_batch_size': w,
-             'num_inst': 1,
+             'num_active_gens': 1,
              'batch_mode': True,
              'high_priority_to_best_localopt_runs': True,
              }

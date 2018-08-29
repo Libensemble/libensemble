@@ -201,10 +201,6 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
                "Can't stop on " + exit_criteria['stop_val'][0] + " if it's not \
                returned from sim_specs['out'] or gen_specs['out']"
 
-    if 'num_inst' in gen_specs and 'batch_mode' in gen_specs:
-        assert gen_specs['num_inst'] <= 1 or not gen_specs['batch_mode'],\
-               "Can't have more than one 'num_inst' for 'batch_mode' generator"
-
     from libensemble.libE_fields import libE_fields
 
     if ('sim_id', int) in gen_specs['out']:
