@@ -79,13 +79,10 @@ corresponding sim_f output. Similarly, gen_f and sim_f are expected to return
 output in numpy structured arrays. The names of the fields to be given as input
 to gen_f and sim_f must be an output from gen_f or sim_f. In addition to the
 fields output from sim_f and gen_f, the final history returned from libEnsemble
-will include the fields. (Note that the libEnsemble history can contain
-pointers to data instead of the data itself. In some applications, this can
-greatly the size of the history and reduce the amount of data communicated
-to/from the manager.):
+will include the following fields:
 
 * sim_id' [int]: Each unit of work output from gen_f must have an associated
-  sim_id. The generator can assign this, but users must careful to ensure
+  sim_id. The generator can assign this, but users must be careful to ensure
   points are added in order. For example, if alloc_f allows for two gen_f
   instances to be running simultaneously, alloc_f should ensure that both don’t
   generate points with the same sim_id.
@@ -102,5 +99,3 @@ to/from the manager.):
 
 * returned' [bool]: Has this worker completed the evaluation of this unit of
   work?
-
-* paused' [bool]: Has this evaluation been paused?
