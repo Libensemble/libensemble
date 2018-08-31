@@ -990,7 +990,7 @@ class BalsamJobController(JobController):
 
         if stage_inout is not None:
             #For now hardcode staging - for testing
-            add_job_args['stage_in_url'] = "local:" + stage_inout
+            add_job_args['stage_in_url'] = "local:" + stage_inout + "/*"
             add_job_args['stage_out_url'] = "local:" + stage_inout
             add_job_args['stage_out_files'] = "*.out"
 
