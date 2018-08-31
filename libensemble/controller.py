@@ -59,7 +59,7 @@ class Job:
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None,
-                 env=None, machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
+                 machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
         '''Instantiate a new Job instance.
 
         A new job object is created with an id, status and configuration attributes
@@ -84,7 +84,6 @@ class Job:
         self.num_procs = num_procs
         self.num_nodes = num_nodes
         self.ranks_per_node = ranks_per_node
-        self.env = env
         self.machinefile = machinefile
         self.hostlist = hostlist
         self.stdout = stdout
@@ -156,8 +155,8 @@ class BalsamJob(Job):
         A new BalsamJob object is created with an id, status and configuration attributes
         This will normally be created by the job_controller on a launch
         '''
-        # DSB: env is not defined!
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, env, machinefile, hostlist, workdir, stdout, workerid)
+
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
 
         self.balsam_state = None
 
@@ -311,7 +310,6 @@ class JobController:
             self.nnodes = ''
             self.ppn = '--ppn'
             self.hostlist = '-hosts'
-            self.cmd_env = '--env'
         elif mpi_variant == 'openmpi':
             self.mpi_launcher = 'mpirun'
             self.mfile = '-machinefile'
@@ -319,7 +317,6 @@ class JobController:
             self.nnodes = ''
             self.ppn = '-npernode'
             self.hostlist = '-host'
-            self.cmd_env = '-x'
         #self.mpi_launcher = 'srun'
         #self.mfile = '-m arbitrary'
         #self.nprocs = '--ntasks'
@@ -360,7 +357,7 @@ class JobController:
         #setattr(job, k, v)
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
-               env=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
+               machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
@@ -379,10 +376,7 @@ class JobController:
 
         ranks_per_node: int, optional
             The ranks per node for this job.
-
-        env: string, optional
-            String of environment variables to pass to job
-
+            
         machinefile: string, optional
             Name of a machinefile for this job to use.
 
@@ -462,12 +456,6 @@ class JobController:
         #Construct run line - possibly subroutine
         runline = [self.mpi_launcher]
 
-        #env question - pass env to argument in subprocess or specify in mpirun line???
-        #Currently doing both - but test
-        if job.env is not None:
-            runline.append(self.cmd_env)
-            runline.append(job.env)
-
         if job.machinefile is not None:
             #os.environ['SLURM_HOSTFILE'] = job.machinefile
             runline.append(self.mfile)
@@ -514,12 +502,10 @@ class JobController:
             #use for timeout. For now using for timing with approx end....
             job.launch_time = time.time()
 
-            #env question - pass to subprocess or specify in mpirun line???
             #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
 
             job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout, 'w'), shell=False, preexec_fn=os.setsid)
 
-            #job.process = subprocess.Popen(runline, cwd='./', env=job.env, stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
 
             #To test when have workdir
             #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
@@ -928,7 +914,8 @@ class BalsamJobController(JobController):
 
 
 
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, 
+               machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
@@ -997,7 +984,7 @@ class BalsamJobController(JobController):
         add_job_args = {'name': job.name,
                         'workflow': "libe_workflow", #add arg for this
                         'application': app.name,
-                        'application_args': job.app_args,
+                        'args': job.app_args,
                         'num_nodes': job.num_nodes,
                         'ranks_per_node': job.ranks_per_node}
 
