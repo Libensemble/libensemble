@@ -52,6 +52,11 @@ class Register():
         """Return the default generator app."""
         return self._default_apps['gen']
 
+    @property
+    def default_app(self, calc_type):
+        """Return the default calc_type app."""
+        return self._default_apps.get(calc_type)
+
     def __init__(self, default=True):
         '''Instantiate a new Register instance
 
