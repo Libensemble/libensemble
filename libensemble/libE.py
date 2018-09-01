@@ -40,15 +40,11 @@ def eprint(*args, **kwargs):
 
 def comms_abort(comm):
     '''Abort all MPI ranks'''
-    #This will be in comms module
-    #comm arg will then be replaced with self.comm
-    #Exit code 1 to represent an abort
-    comm.Abort(1)
+    comm.Abort(1) # Exit code 1 to represent an abort
 
 
 def comms_signal_abort_to_man(comm):
     '''Worker signal manager to abort'''
-    #This will be in comms module
     comm.send(obj=None, dest=0, tag=ABORT_ENSEMBLE)
 
 
@@ -60,7 +56,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     This is the outer libEnsemble routine. If the rank in libE_specs['comm'] is
     0, manager_main is run. Otherwise, worker_main is run.
-    (Some libEnsemble subroutines assume that the manager is always (only) rank 0.)
+
+    If an exception is encountered by the manager or workers,  the history array
+    is dumped to file and MPI abort is called.
 
     Parameters
     ----------
@@ -116,7 +114,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     exit_flag: :obj:`int`
 
-        Flag containing job status: 0 = No errors, 2 = Manager timed out and ended simulation
+        Flag containing job status: 0 = No errors,
+        1 = Exception occured and MPI aborted,
+        2 = Manager timed out and ended simulation
 
     """
     #sys.excepthook = comms_abort(libE_specs['comm'])
