@@ -14,9 +14,9 @@ three routines:
 * alloc_f: Decides whether sim_f or gen_f should be called (and with what input/resources) as workers become available.
 
 Example sim_f, gen_f, and alloc_f routines can be found in the
-examples/sim_funcs, examples/gen_funcs, and examples/alloc_funcs directories,
-respectively. Examples of scripts used for calling libEnsemble can be found at
-examples/calling_scripts/. To enable portability, a job_controller interface is
+``examples/sim_funcs/``, ``examples/gen_funcs/``, and ``examples/alloc_funcs/`` directories,
+respectively. Examples of scripts used for calling libEnsemble can be found in
+``examples/calling_scripts/``. To enable portability, a job_controller interface is
 supplied for users to launch and monitor jobs in their user-provided sim_f and
 gen_f routines.
 
@@ -53,7 +53,7 @@ to support) and plan to have examples of:
   intermediate quantities in order to stop related calculations and preempt
   future calculations associated with poor parameter values.
 
-* A user has a simulation sim_f with multiple fidelities, with the
+* A user has a sim_f with multiple fidelities, with the
   higher-fidelity evaluations requiring more computational resources, and a
   gen_f/alloc_f that decides which parameters should be evaluated and at what
   fidelity level. libEnsemble can coordinate these evaluations without
