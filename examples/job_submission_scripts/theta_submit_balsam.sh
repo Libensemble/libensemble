@@ -81,7 +81,6 @@ balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
 # Running libE on one node - one manager and upto 63 workers
 balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.dat" --url-in="local:/$THIS_DIR/*" --yes
 
-
 # Hyper-thread libE (note this will not affect HT status of user calcs - only libE itself)
 # Running 255 workers and one manager on one libE node.
 # balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK  --num-nodes 1 --ranks-per-node 256 --threads-per-core 4 --url-out="local:/$THIS_DIR/*" --stage-out-files="*.out *.dat" --url-in="local:/$THIS_DIR" --yes
@@ -93,4 +92,4 @@ balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $
 #Run job
 balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
 
-source balsamdeactivate
+. balsamdeactivate

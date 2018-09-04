@@ -447,7 +447,7 @@ class JobController:
 
 
         default_workdir = os.getcwd() #Will be possible to override with arg when implemented
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, env, machinefile, hostlist, default_workdir, stdout, self.workerID)
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
 
         #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_inout is not None:
