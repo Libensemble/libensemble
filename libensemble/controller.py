@@ -975,7 +975,7 @@ class BalsamJobController(JobController):
         #logger.debug("Launching job: {}".format(" ".join(runline)))
         #logger.debug("Added job to Balsam database: {}".format(job.id))
 
-        logger.debug("Added job to Balsam database: Worker {} JobID {} nodes {} ppn {}".format(self.workerID, job.id, job.num_nodes, job.ranks_per_node))
+        logger.debug("Added job to Balsam database {}: Worker {} nodes {} ppn {}".format(job.name, self.workerID, job.num_nodes, job.ranks_per_node))
 
         #This is not used with Balsam for run-time as this would include wait time
         #Again considering changing launch to submit - or whatever I chose before.....
