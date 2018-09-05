@@ -109,12 +109,12 @@ class CalcInfo():
         import glob
         worker_stat_files = CalcInfo.stat_file + '.w'
         stat_files = CalcInfo.smart_sort(glob.glob(worker_stat_files + '*'))
-        with open(CalcInfo.stat_file, 'w') as outfile:
+        with open(CalcInfo.stat_file, 'w+') as outfile:
             for fname in stat_files:
-                with open(fname) as infile:
+                with open(fname, 'r') as infile:
                     outfile.write(infile.read())
-        for file in stat_files:
-            if not CalcInfo.keep_worker_stat_files:
+        if not CalcInfo.keep_worker_stat_files:           
+            for file in stat_files:
                 os.remove(file)
 
     def __init__(self):
