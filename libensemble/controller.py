@@ -674,7 +674,7 @@ class JobController:
             raise JobControllerException('Unknown kill signal')
         try:
             JobController._kill_process(job.process, sig[self.kill_signal])
-        except ProcessLookupError:
+        except OSError: # In Python 3, ProcessLookupError
             logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
 
         # Wait for job to be killed
