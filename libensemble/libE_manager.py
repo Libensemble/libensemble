@@ -111,12 +111,13 @@ class Manager:
         idx = self.hist.index
         return np.any(filter_nans(H[key][:idx]) <= val)
 
-    def term_test(self):
+    def term_test(self, logged=True):
         """Check termination criteria"""
         for retval, key, testf in self.term_tests:
             if key in self.exit_criteria:
                 if testf(self.exit_criteria[key]):
-                    logger.debug("Term test tripped: {}".format(key))
+                    if logged:
+                        logger.debug("Term test tripped: {}".format(key))
                     return retval
         return 0
 
@@ -337,7 +338,7 @@ class Manager:
         exit_flag = 0
         while any(self.W['active']) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
-            if self.term_test() == 2 and any(self.W['active']):
+            if self.term_test(logged=False) == 2 and any(self.W['active']):
                 self._print_wallclock_term()
                 self._read_final_messages()
                 exit_flag = 2
