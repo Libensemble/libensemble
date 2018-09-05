@@ -161,7 +161,9 @@ class BalsamJob(Job):
         self.balsam_state = None
 
         #prob want to override workdir attribute with Balsam value - though does it exist yet?
-        self.workdir = None #Don't know until starts running
+        #self.workdir = None #Don't know until starts running
+        self.workdir = workdir #Default for libe now is to run in place.
+
 
     def read_file_in_workdir(self, filename):
         return self.process.read_file_in_workdir(filename)
@@ -967,15 +969,11 @@ class BalsamJobController(JobController):
             logger.warning("Balsam does not currently accept a stdout name - ignoring")
             stdout = None
 
-        default_workdir = None #Will be possible to override with arg when implemented (else wait for Balsam to assign)
+        #Will be possible to override with arg when implemented (or can have option to let Balsam assign)
+        default_workdir = os.getcwd()
+        
         hostlist = None
         job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
-
-        #Re-do debug launch line for balsam job
-        #logger.debug("Launching job: {}".format(" ".join(runline)))
-        #logger.debug("Added job to Balsam database: {}".format(job.id))
-
-        logger.debug("Added job to Balsam database {}: Worker {} nodes {} ppn {}".format(job.name, self.workerID, job.num_nodes, job.ranks_per_node))
 
         #This is not used with Balsam for run-time as this would include wait time
         #Again considering changing launch to submit - or whatever I chose before.....
@@ -983,6 +981,7 @@ class BalsamJobController(JobController):
 
         add_job_args = {'name': job.name,
                         'workflow': "libe_workflow", #add arg for this
+                        'user_workdir': default_workdir, #add arg for this
                         'application': app.name,
                         'args': job.app_args,
                         'num_nodes': job.num_nodes,
@@ -995,6 +994,8 @@ class BalsamJobController(JobController):
             add_job_args['stage_out_files'] = "*.out"
 
         job.process = dag.add_job(**add_job_args)
+
+        logger.debug("Added job to Balsam database {}: Worker {} nodes {} ppn {}".format(job.name, self.workerID, job.num_nodes, job.ranks_per_node))
 
         #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)
