@@ -131,7 +131,8 @@ cleanup() {
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
     filelist=(job_my_simjob.x*.out);   [ -e ${filelist[0]} ] && rm job_my_simjob.x*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*    
-    filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile    
+    filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile  
+    filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
@@ -143,6 +144,7 @@ cleanup() {
     filelist=(job_my_simjob.x.*.out);  [ -e ${filelist[0]} ] && rm job_my_simjob.x.*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
+    filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
   cd $THISDIR
 }
 
