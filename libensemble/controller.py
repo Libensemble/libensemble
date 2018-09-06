@@ -24,18 +24,18 @@ logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
-STATES = '''
+STATES = """
 UNKNOWN
 CREATED
 WAITING
 RUNNING
 FINISHED
 USER_KILLED
-FAILED'''.split()
+FAILED""".split()
 
-SIGNALS = '''
+SIGNALS = """
 SIGTERM
-SIGKILL'''.split()
+SIGKILL""".split()
 
 
 #I may want to use a top-level abstract/base class for maximum re-use
@@ -43,23 +43,26 @@ SIGKILL'''.split()
 
 class JobControllerException(Exception): pass
 
+def jassert(test, *args):
+    if not test:
+        raise JobControllerException(*args)
+
 
 class Job:
-
-    '''
+    """
     Manage the creation, configuration and status of a launchable job.
 
-    '''
+    """
 
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None,
                  machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
-        '''Instantiate a new Job instance.
+        """Instantiate a new Job instance.
 
         A new job object is created with an id, status and configuration attributes
         This will normally be created by the job_controller on a launch
-        '''
+        """
         self.id = next(Job.newid)
 
         #Status attributes
@@ -84,8 +87,9 @@ class Job:
         self.stdout = stdout
         self.workerID = workerid
 
-        if app is None:
-            raise JobControllerException("Job must be created with an app - no app found for job {}".format(self.id))
+        jassert(app is not None,
+                "Job must be created with an app - no app found for job {}".
+                    format(self.id))
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
         self.name = "job_{}{}_{}".format(app.name, worker_name, self.id)
@@ -93,15 +97,15 @@ class Job:
         self.workdir = workdir
 
     def workdir_exists(self):
-        ''' Returns True if the job's workdir exists, else False '''
+        """ Returns True if the job's workdir exists, else False """
         return self.workdir and os.path.exists(self.workdir)
 
     def file_exists_in_workdir(self, filename):
-        ''' Returns True if the named file exists in the job's workdir, else False '''
+        """ Returns True if the named file exists in the job's workdir, else False """
         return self.workdir and os.path.exists(os.path.join(self.workdir, filename))
 
     def read_file_in_workdir(self, filename):
-        ''' Open and reads the named file in the job's workdir '''
+        """ Open and reads the named file in the job's workdir """
         path = os.path.join(self.workdir, filename)
         if not os.path.exists(path):
             raise ValueError("{} not found in working directory".format(filename))
@@ -109,11 +113,11 @@ class Job:
             return f.read()
 
     def stdout_exists(self):
-        ''' Returns True if the job's stdout file exists in the workdir, else False '''
+        """ Returns True if the job's stdout file exists in the workdir, else False """
         return self.file_exists_in_workdir(self.stdout)
 
     def read_stdout(self):
-        ''' Open and reads the job's stdout file in the job's workdir '''
+        """ Open and reads the job's stdout file in the job's workdir """
         return self.read_file_in_workdir(self.stdout)
 
 
@@ -136,20 +140,20 @@ class Job:
 
 class BalsamJob(Job):
 
-    '''Wraps a Balsam Job from the Balsam service.
+    """Wraps a Balsam Job from the Balsam service.
 
     The same attributes and query routines are implemented.
 
-    '''
+    """
 
     #newid = itertools.count() #hopefully can use the one in Job
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
-        '''Instantiate a new BalsamJob instance.
+        """Instantiate a new BalsamJob instance.
 
         A new BalsamJob object is created with an id, status and configuration attributes
         This will normally be created by the job_controller on a launch
-        '''
+        """
 
         super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
 
@@ -182,7 +186,7 @@ class BalsamJob(Job):
 
 class JobController:
 
-    ''' The job_controller can create, poll and kill runnable jobs
+    """ The job_controller can create, poll and kill runnable jobs
 
     **Class Attributes:**
 
@@ -191,7 +195,7 @@ class JobController:
     controller : Obj: JobController or inherited class.
         A class attribute holding the default job_controller.
 
-    '''
+    """
 
     controller = None
 
@@ -210,15 +214,15 @@ class JobController:
 
         #If all set then check num_procs equals num_nodes*ranks_per_node and set values as given
         if num_procs is not None and num_nodes is not None and ranks_per_node is not None:
-            if num_procs != num_nodes*ranks_per_node:
-                raise JobControllerException("num_procs does not equal num_nodes*ranks_per_node")
+            jassert(num_procs == num_nodes*ranks_per_node,
+                    "num_procs does not equal num_nodes*ranks_per_node")
             return num_procs, num_nodes, ranks_per_node
 
         #If num_procs not set then need num_nodes and ranks_per_node and set num_procs
         if num_procs is None:
             #Note this covers case where none are set - may want to use job_controller defaults in that case - not implemented yet.
-            if num_nodes is None or ranks_per_node is None:
-                raise JobControllerException("Must set either num_procs or num_nodes/ranks_per_node or machinefile")
+            jassert(num_nodes is not None and ranks_per_node is not None,
+                    "Must set either num_procs or num_nodes/ranks_per_node or machinefile")
             num_procs = num_nodes * ranks_per_node
             return num_procs, num_nodes, ranks_per_node
 
@@ -255,7 +259,7 @@ class JobController:
                 #job.total_time = time.time() - job.launch_time
 
     def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm=None, nodelist_env_cobalt=None):
-        '''Instantiate a new JobController instance.
+        """Instantiate a new JobController instance.
 
         A new JobController object is created with an application registry and configuration attributes. A
         registry object must have been created.
@@ -278,11 +282,10 @@ class JobController:
             The environment variable giving a node list in Cobalt format (Default: Uses COBALT_PARTNAME)
             Note: This is only queried if a worker_list file is not provided and auto_resources=True.
 
-        '''
+        """
 
         self.registry = registry or Register.default_registry
-        if self.registry is None:
-            raise JobControllerException("Cannot find default registry")
+        jassert(self.registry is not None, "Cannot find default registry")
 
         self.top_level_dir = os.getcwd()
         self.auto_resources = auto_resources
@@ -355,7 +358,7 @@ class JobController:
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
                machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
-        ''' Creates a new job, and either launches or schedules to launch in the job controller
+        """ Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
 
@@ -402,17 +405,17 @@ class JobController:
 
         Note that if some combination of num_procs, num_nodes and ranks_per_node are provided, these will be honored if possible. If resource detection is on and these are omitted, then the available resources will be divided amongst workers.
 
-        '''
+        """
 
         # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
         # Could take optional app arg - if they want to supply here - instead of taking from registry
         if calc_type == 'sim':
-            if self.registry.sim_default_app is None:
-                raise JobControllerException("Default sim app is not set")
+            jassert(self.registry.sim_default_app is not None,
+                    "Default sim app is not set")
             app = self.registry.sim_default_app
         elif calc_type == 'gen':
-            if self.registry.gen_default_app is None:
-                raise JobControllerException("Default gen app is not set")
+            jassert(self.registry.gen_default_app is not None,
+                    "Default gen app is not set")
             app = self.registry.gen_default_app
         else:
             raise JobControllerException("Unrecognized calculation type", calc_type)
@@ -436,8 +439,7 @@ class JobController:
                 else:
                     machinefile = 'machinefile_autogen'
                 mfile_created, num_procs, num_nodes, ranks_per_node = self.create_machinefile(machinefile, num_procs, num_nodes, ranks_per_node, hyperthreads)
-                if not mfile_created:
-                    raise JobControllerException("Auto-creation of machinefile failed")
+                jassert(mfile_created, "Auto-creation of machinefile failed")
 
         else:
             num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
@@ -514,7 +516,7 @@ class JobController:
 
 
     def poll(self, job):
-        ''' Polls and updates the status attributes of the supplied job
+        """ Polls and updates the status attributes of the supplied job
 
         Parameters
         -----------
@@ -522,17 +524,15 @@ class JobController:
         job: obj: Job
             The job object.to be polled.
 
-        '''
+        """
 
-        if not isinstance(job, Job):
-            raise JobControllerException('Invalid job has been provided')
+        jassert(isinstance(job, Job), "Invalid job has been provided")
 
         # Check the jobs been launched (i.e. it has a process ID)
-        if job.process is None:
-            #logger.warning('Polled job has no process ID - returning stored state')
-            #Prob should be recoverable and return state - but currently fatal
-            raise JobControllerException('Polled job {} has no process ID - check jobs been launched'.format(job.name))
-
+        #Prob should be recoverable and return state - but currently fatal
+        jassert(job.process is not None,
+                "Polled job {} has no process ID - check jobs been launched".
+                    format(job.name))
         # Do not poll if job already finished
         # Maybe should re-poll job to check (in case self.finished set in error!)???
         if job.finished:
@@ -570,7 +570,7 @@ class JobController:
         #return job
 
     def manager_poll(self, job):
-        ''' Polls for a manager signal
+        """ Polls for a manager signal
 
         Parameters
         -----------
@@ -581,7 +581,7 @@ class JobController:
 
         The job status attribute job.manager_signal will be updated.
 
-        '''
+        """
 
         #Will use MPI_MODE from settings.py but for now assume MPI
         from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
@@ -624,7 +624,7 @@ class JobController:
 
 
     def kill(self, job):
-        ''' Kills or cancels the supplied job
+        """ Kills or cancels the supplied job
 
         Parameters
         -----------
@@ -638,10 +638,9 @@ class JobController:
         a SIGKILL will be sent if the job has not finished after <wait_time> seconds. The kill can be
         configured using the set_kill_mode function.
 
-        '''
+        """
 
-        if not isinstance(job, Job):
-            raise JobControllerException('Invalid job has been provided')
+        jassert(isinstance(job, Job), "Invalid job has been provided")
 
         if job.finished:
             logger.warning('Trying to kill job that is no longer running. Job {}: Status is {}'.format(job.name, job.state))
@@ -649,17 +648,14 @@ class JobController:
 
         if job.process is None:
             time.sleep(0.2)
-            if job.process is None:
-                #logger.warning('Polled job has no process ID - returning stored state')
-                #Prob should be recoverable and return state - but currently fatal
-                raise JobControllerException('Attempting to kill job {} that has no process ID - check jobs been launched'.format(job.name))
+            jassert(job.process is not None,
+                    "Attempting to kill job {} that has no process ID - check jobs been launched".format(job.name))
 
         logger.debug("Killing job {}".format(job.name))
 
         # Issue signal
         sig = {'SIGTERM': signal.SIGTERM, 'SIGKILL': signal.SIGKILL}
-        if self.kill_signal not in sig:
-            raise JobControllerException('Unknown kill signal')
+        jassert(self.kill_signal in sig, "Unknown kill signal")
         try:
             JobController._kill_process(job.process, sig[self.kill_signal])
         except OSError: # In Python 3, ProcessLookupError
@@ -701,7 +697,7 @@ class JobController:
 
 
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        ''' Configures the kill mode for the job_controller
+        """ Configures the kill mode for the job_controller
 
         Parameters
         ----------
@@ -717,10 +713,9 @@ class JobController:
             (Default is 60).
 
 
-        '''
+        """
         if signal is not None:
-            if signal not in SIGNALS:
-                raise JobControllerException("Unknown signal {} supplied to set_kill_mode".format(signal))
+            jassert(signal in SIGNALS, "Unknown signal {} supplied to set_kill_mode".format(signal))
             self.kill_signal = signal
 
         if wait_and_kill is not None:
@@ -733,7 +728,7 @@ class JobController:
 
 
     def get_job(self, jobid):
-        ''' Returns the job object for the supplied job ID '''
+        """ Returns the job object for the supplied job ID """
         if self.list_of_jobs:
             for job in self.list_of_jobs:
                 if job.id == jobid:
@@ -776,8 +771,7 @@ class JobController:
         else:
             cores_avail_per_node_per_worker = cores_avail_per_node
 
-        if not node_list:
-            raise JobControllerException("Node list is empty - aborting")
+        jassert(node_list, "Node list is empty - aborting")
 
         #If no decomposition supplied - use all available cores/nodes
         if num_procs is None and num_nodes is None and ranks_per_node is None:
@@ -798,23 +792,20 @@ class JobController:
         #checks config is consistent and sufficient to express - does not check actual resources
         num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)
 
-        if num_nodes > local_node_count:
-            #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, local_node_count))
+        #Could just downgrade to those available with warning - for now error
+        jassert(num_nodes <= local_node_count,
+                "Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, local_node_count))
 
-        elif ranks_per_node > cores_avail_per_node:
-            #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough processors on a node to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node))
+        jassert(ranks_per_node <= cores_avail_per_node,
+                "Not enough processors on a node to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node))
 
-        elif ranks_per_node > cores_avail_per_node_per_worker:
-            #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough processors per worker to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node_per_worker))
+        jassert(ranks_per_node <= cores_avail_per_node_per_worker,
+            "Not enough processors per worker to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node_per_worker))
 
-        elif num_procs > (cores_avail_per_node * local_node_count):
-            #Could just downgrade to those available with warning - for now error
-            raise JobControllerException("Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs, cores_avail_per_node*local_node_count))
+        jassert(num_procs <= (cores_avail_per_node * local_node_count),
+                "Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs, cores_avail_per_node*local_node_count))
 
-        elif num_nodes < local_node_count:
+        if num_nodes < local_node_count:
             logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes, local_node_count))
 
         return num_procs, num_nodes, ranks_per_node
@@ -861,27 +852,26 @@ class JobController:
 
 class BalsamJobController(JobController):
 
-    '''Inherits from JobController and wraps the Balsam job management service
+    """Inherits from JobController and wraps the Balsam job management service
 
     .. note::  Job kills are currently not configurable in the Balsam job_controller.
 
     The set_kill_mode function will do nothing but print a warning.
 
-    '''
+    """
 
     #controller = None
 
     def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm=None, nodelist_env_cobalt=None):
-        '''Instantiate a new BalsamJobController instance.
+        """Instantiate a new BalsamJobController instance.
 
         A new BalsamJobController object is created with an application registry and configuration attributes
-        '''
+        """
 
         #Will use super - atleast if use baseclass - but for now dont want to set self.mpi_launcher etc...
 
         self.registry = registry or Register.default_registry
-        if self.registry is None:
-            raise JobControllerException("Cannot find default registry")
+        jassert(self.registry, "Cannot find default registry")
 
         self.top_level_dir = os.getcwd()
         self.auto_resources = auto_resources
@@ -913,24 +903,20 @@ class BalsamJobController(JobController):
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
                machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
-        ''' Creates a new job, and either launches or schedules to launch in the job controller
+        """ Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
-        '''
+        """
         import balsam.launcher.dag as dag
 
         # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
         # Could take optional app arg - if they want to supply here - instead of taking from registry
         if calc_type == 'sim':
-            if self.registry.sim_default_app is None:
-                raise JobControllerException("Default sim app is not set")
-            else:
-                app = self.registry.sim_default_app
+            jassert(self.registry.sim_default_app, "Default sim app is not set")
+            app = self.registry.sim_default_app
         elif calc_type == 'gen':
-            if self.registry.gen_default_app is not None:
-                raise JobControllerException("Default gen app is not set")
-            else:
-                app = self.registry.gen_default_app
+            jassert(self.registry.gen_default_app, "Default gen app is not set")
+            app = self.registry.gen_default_app
         else:
             raise JobControllerException("Unrecognized calculation type", calc_type)
 
@@ -941,8 +927,8 @@ class BalsamJobController(JobController):
         #Specific to this class
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
-            if num_procs is None and num_nodes is None and ranks_per_node is None:
-                raise JobControllerException("No procs/nodes provided - aborting")
+            jassert(num_procs or num_nodes or ranks_per_node,
+                    "No procs/nodes provided - aborting")
 
 
         #Set num_procs, num_nodes and ranks_per_node for this job
@@ -998,15 +984,12 @@ class BalsamJobController(JobController):
 
 
     def poll(self, job):
-        ''' Polls and updates the status attributes of the supplied job '''
-        if not isinstance(job, BalsamJob):
-            raise JobControllerException('Invalid job has been provided')
+        """ Polls and updates the status attributes of the supplied job """
+        jassert(isinstance(job, BalsamJob), "Invalid job has been provided")
 
         # Check the jobs been launched (i.e. it has a process ID)
-        if job.process is None:
-            #logger.warning('Polled job has no process ID - returning stored state')
-            #Prob should be recoverable and return state - but currently fatal
-            raise JobControllerException('Polled job has no process ID - check jobs been launched')
+        #Prob should be recoverable and return state - but currently fatal
+        jassert(job.process, "Polled job has no process ID - check jobs been launched")
 
         # Do not poll if job already finished
         if job.finished:
@@ -1059,10 +1042,9 @@ class BalsamJobController(JobController):
         #return job
 
     def kill(self, job):
-        ''' Kills or cancels the supplied job '''
+        """ Kills or cancels the supplied job """
 
-        if not isinstance(job, BalsamJob):
-            raise JobControllerException('Invalid job has been provided')
+        jassert(isinstance(job, BalsamJob), "Invalid job has been provided")
 
         import balsam.launcher.dag as dag
         dag.kill(job.process)
@@ -1076,8 +1058,8 @@ class BalsamJobController(JobController):
         #Check if can wait for kill to complete - affect signal used etc....
 
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        ''' Not currently implemented for BalsamJobController.
+        """ Not currently implemented for BalsamJobController.
 
         No action is taken
-        '''
+        """
         logger.warning("set_kill_mode currently has no action with Balsam controller")
