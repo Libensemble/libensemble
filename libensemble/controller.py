@@ -12,7 +12,6 @@ and interrogate files in the job's working directory.
 """
 
 import os
-import subprocess
 import logging
 import signal
 import itertools
@@ -92,7 +91,7 @@ class Job:
 
         jassert(app is not None,
                 "Job must be created with an app - no app found for job {}".
-                    format(self.id))
+                format(self.id))
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
         self.name = "job_{}{}_{}".format(app.name, worker_name, self.id)
@@ -105,13 +104,15 @@ class Job:
 
     def file_exists_in_workdir(self, filename):
         """Returns True if the named file exists in the job's workdir"""
-        return self.workdir and os.path.exists(os.path.join(self.workdir, filename))
+        return (self.workdir
+                and os.path.exists(os.path.join(self.workdir, filename)))
 
     def read_file_in_workdir(self, filename):
         """Open and reads the named file in the job's workdir """
         path = os.path.join(self.workdir, filename)
         if not os.path.exists(path):
-            raise ValueError("{} not found in working directory".format(filename))
+            raise ValueError("{} not found in working directory".
+                             format(filename))
         with open(path) as f:
             return f.read()
 
@@ -217,7 +218,7 @@ class JobController:
 
         if not num_procs:
             jassert(num_nodes and ranks_per_node,
-                    "Must set either num_procs or num_nodes/ranks_per_node or machinefile")
+                    "Need num_procs, num_nodes/ranks_per_node, or machinefile")
             num_procs = num_nodes * ranks_per_node
 
         elif not num_nodes:
@@ -398,9 +399,13 @@ class JobController:
         hostlist = None
         if machinefile is None and self.auto_resources:
 
-            #klugging this for now - not nec machinefile if more than one node - try a hostlist
+            #kludging this for now - not nec machinefile if more than one node
+            #- try a hostlist
 
-            num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
+            num_procs, num_nodes, ranks_per_node = \
+              self.get_resources(num_procs=num_procs, num_nodes=num_nodes,
+                                 ranks_per_node=ranks_per_node,
+                                 hyperthreads=hyperthreads)
 
             if num_nodes > 1:
                 #hostlist
@@ -424,7 +429,8 @@ class JobController:
         job = Job(app, app_args, num_procs, num_nodes, ranks_per_node,
                   machinefile, hostlist, default_workdir, stdout, self.workerID)
 
-        #Temporary perhaps - though when create workdirs - will probably keep output in place
+        #Temporary perhaps - though when create workdirs - will probably keep
+        #output in place
         if stage_inout is not None:
             logger.warning('stage_inout option ignored in this job_controller - runs in-place')
 
@@ -436,28 +442,20 @@ class JobController:
         if test:
             logger.info('Test selected: Not launching job')
             logger.info('runline args are {}'.format(runline))
-            #print('runline args are', runline)
-            #print('stdout to', stdout)
-            #logger.info(runline)
         else:
-            logger.debug("Launching job {}: {}".format(job.name, " ".join(runline))) #One line
-            #logger.debug("Launching job {}:\n{}{}".format(job.name, " "*32, " ".join(runline))) #With newline
+            logger.debug("Launching job {}: {}".
+                         format(job.name, " ".join(runline))) #One line
 
-            #not good for timing job itself as dont know when finishes - if use this prob. change to date time or
-            #use for timeout. For now using for timing with approx end....
+            #not good for timing job itself as dont know when finishes - if use
+            #this prob. change to date time or use for timeout. For now using
+            #for timing with approx end....
             job.launch_time = time.time()
 
-            #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
-
-            job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout, 'w'), shell=False, preexec_fn=os.setsid)
-
-
-            #To test when have workdir
-            #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
-
+            job.process = launcher.launch(runline, cwd='./',
+                                          stdout=open(job.stdout, 'w'),
+                                          start_new_session=True)
             self.list_of_jobs.append(job)
 
-        #return job.id
         return job
 
 
@@ -478,11 +476,13 @@ class JobController:
         #Prob should be recoverable and return state - but currently fatal
         jassert(job.process is not None,
                 "Polled job {} has no process ID - check jobs been launched".
-                    format(job.name))
+                format(job.name))
         # Do not poll if job already finished
         # Maybe should re-poll job to check (in case self.finished set in error!)???
         if job.finished:
-            logger.warning('Polled job {} has already finished. Not re-polling. Status is {}'.format(job.name, job.state))
+            logger.warning("Polled job {} has already finished. "
+                           "Not re-polling. Status is {}".
+                           format(job.name, job.state))
             return
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
@@ -715,7 +715,7 @@ class JobController:
             logger.debug("No decomposition supplied - "
                          "using all available resource. "
                          "Nodes: {}  ranks_per_node {}".
-                          format(num_nodes, ranks_per_node))
+                         format(num_nodes, ranks_per_node))
         elif not num_nodes and not ranks_per_node:
             num_nodes = local_node_count
             #Here is where really want a compact/scatter option - go for
@@ -841,6 +841,7 @@ class BalsamJobController(JobController):
         #BalsamJobController.controller = self
 
 
+    # DSB: swaps test and hyperthreads vs base JobController
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stage_inout=None, test=False, hyperthreads=False):
