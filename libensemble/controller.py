@@ -865,16 +865,6 @@ class BalsamJobController(JobController):
         JobController.controller = self
         #BalsamJobController.controller = self
 
-    #def _calc_job_timing(job):
-        ##Get runtime from Balsam
-        #if job.launch_time is None:
-            #logger.warning("Cannot calc job total_time - launch time not set")
-            #return
-
-        #if job.total_time is None:
-            #job.total_time = time.time() - job.launch_time
-
-
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
                machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
