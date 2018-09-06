@@ -13,7 +13,6 @@ and interrogate files in the job's working directory.
 
 import os
 import logging
-import signal
 import itertools
 import time
 
@@ -548,27 +547,6 @@ class JobController:
                 logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
 
 
-    @staticmethod
-    def _kill_process(process, signal):
-        """Launch the process kill for this system"""
-        time.sleep(0.1) # Without a small wait - kill signal can not work
-        os.killpg(os.getpgid(process.pid), signal) # Kill using process group (see launch with preexec_fn=os.setsid)
-
-        #process.send_signal(signal) # Kill by sending direct signal
-
-    # Just for you, python2
-    @staticmethod
-    def _time_out(process, timeout):
-        """Loop to wait for process to finish after a kill"""
-        start_wait_time = time.time()
-        while time.time() - start_wait_time < timeout:
-            time.sleep(0.01)
-            poll = process.poll()
-            if poll is not None:
-                return False # process has finished - no timeout
-        return True # process has not finished - timeout
-
-
     def kill(self, job):
         """Kills or cancels the supplied job
 
@@ -599,25 +577,16 @@ class JobController:
 
         logger.debug("Killing job {}".format(job.name))
 
-        # Issue signal
-        sig = {'SIGTERM': signal.SIGTERM, 'SIGKILL': signal.SIGKILL}
-        jassert(self.kill_signal in sig, "Unknown kill signal")
-        try:
-            JobController._kill_process(job.process, sig[self.kill_signal])
-        except OSError: # In Python 3, ProcessLookupError
-            logger.warning("Tried to kill job {}. Process {} not found. May have finished".format(job.name, job.process.pid))
+        jassert(self.kill_signal in ['SIGTERM', 'SIGKILL'],
+                "Unknown kill signal")
 
-        # Wait for job to be killed
-        if self.wait_and_kill:
+        timeout = 0                       # Default is to just kill and wait
+        if self.kill_signal == 'SIGTERM': # For a graceful kill
+            timeout = None                # Terminate and just wait
+            if self.wait_and_kill:        # Or if we want to wait and kill...
+                timeout = self.wait_time  # Set a timeout
 
-            # My python2 method works ok for py2 and py3
-            if JobController._time_out(job.process, self.wait_time):
-                logger.warning("Kill signal {} timed out for job {}: Issuing SIGKILL".format(self.kill_signal, job.name))
-                JobController._kill_process(job.process, signal.SIGKILL)
-                job.process.wait()
-
-        else:
-            job.process.wait()
+        launcher.cancel(job.process, timeout)
 
         job.state = 'USER_KILLED'
         job.finished = True
