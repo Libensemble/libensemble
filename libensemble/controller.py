@@ -204,42 +204,27 @@ class JobController:
         """ Takes provided nprocs/nodes/ranks and outputs working configuration of procs/nodes/ranks or error """
 
         #If machinefile is provided - ignore everything else
-        if machinefile is not None:
-            if num_procs is not None or num_nodes is not None or ranks_per_node is not None:
+        if machinefile:
+            if num_procs or num_nodes or ranks_per_node:
                 logger.warning('Machinefile provided - overriding procs/nodes/ranks_per_node')
-            num_procs = None
-            num_nodes = None
-            ranks_per_node = None
-            return num_procs, num_nodes, ranks_per_node
+            return None, None, None
 
-        #If all set then check num_procs equals num_nodes*ranks_per_node and set values as given
-        if num_procs is not None and num_nodes is not None and ranks_per_node is not None:
-            jassert(num_procs == num_nodes*ranks_per_node,
-                    "num_procs does not equal num_nodes*ranks_per_node")
-            return num_procs, num_nodes, ranks_per_node
-
-        #If num_procs not set then need num_nodes and ranks_per_node and set num_procs
-        if num_procs is None:
-            #Note this covers case where none are set - may want to use job_controller defaults in that case - not implemented yet.
-            jassert(num_nodes is not None and ranks_per_node is not None,
+        if not num_procs:
+            jassert(num_nodes and ranks_per_node,
                     "Must set either num_procs or num_nodes/ranks_per_node or machinefile")
             num_procs = num_nodes * ranks_per_node
-            return num_procs, num_nodes, ranks_per_node
 
-        #If num_procs is set - fill in any other values
-        #if num_procs is not None:
-        else:
-            if num_nodes is None:
-                if ranks_per_node is None:
-                    #Currently not auto-detecting so if only num_procs - you are on 1 node
-                    num_nodes = 1
-                    ranks_per_node = num_procs
-                else:
-                    num_nodes = num_procs//ranks_per_node
-            else:
-                ranks_per_node = num_procs//num_nodes
+        elif not num_nodes:
+            ranks_per_node = ranks_per_node or num_procs
+            num_nodes = num_procs//ranks_per_node
 
+        elif not ranks_per_node:
+            ranks_per_node = num_procs//num_nodes
+
+        jassert(num_procs == num_nodes*ranks_per_node,
+                "num_procs does not equal num_nodes*ranks_per_node")
         return num_procs, num_nodes, ranks_per_node
+
 
     #def _calc_job_timing(job):
 
