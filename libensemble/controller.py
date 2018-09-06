@@ -97,15 +97,15 @@ class Job:
         self.workdir = workdir
 
     def workdir_exists(self):
-        """ Returns True if the job's workdir exists, else False """
+        """Returns True if the job's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
 
     def file_exists_in_workdir(self, filename):
-        """ Returns True if the named file exists in the job's workdir, else False """
+        """Returns True if the named file exists in the job's workdir"""
         return self.workdir and os.path.exists(os.path.join(self.workdir, filename))
 
     def read_file_in_workdir(self, filename):
-        """ Open and reads the named file in the job's workdir """
+        """Open and reads the named file in the job's workdir """
         path = os.path.join(self.workdir, filename)
         if not os.path.exists(path):
             raise ValueError("{} not found in working directory".format(filename))
@@ -113,11 +113,11 @@ class Job:
             return f.read()
 
     def stdout_exists(self):
-        """ Returns True if the job's stdout file exists in the workdir, else False """
+        """Returns True if the job's stdout file exists in the workdir"""
         return self.file_exists_in_workdir(self.stdout)
 
     def read_stdout(self):
-        """ Open and reads the job's stdout file in the job's workdir """
+        """Open and reads the job's stdout file in the job's workdir"""
         return self.read_file_in_workdir(self.stdout)
 
 
@@ -139,7 +139,6 @@ class Job:
 
 
 class BalsamJob(Job):
-
     """Wraps a Balsam Job from the Balsam service.
 
     The same attributes and query routines are implemented.
@@ -151,8 +150,9 @@ class BalsamJob(Job):
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
         """Instantiate a new BalsamJob instance.
 
-        A new BalsamJob object is created with an id, status and configuration attributes
-        This will normally be created by the job_controller on a launch
+        A new BalsamJob object is created with an id, status and
+        configuration attributes.  This will normally be created by the
+        job_controller on a launch.
         """
 
         super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
@@ -226,47 +226,37 @@ class JobController:
         return num_procs, num_nodes, ranks_per_node
 
 
-    #def _calc_job_timing(job):
-
-        #if job.launch_time is None:
-            #logger.warning("Cannot calc job timing - launch time not set")
-            #return
-
-        ##In case already been killed and set then
-        #if job.runtime is None:
-            #job.runtime = time.time() - job.launch_time
-
-        ##For direct launched jobs - these should be the same.
-        #if job.total_time is None:
-            #if job.runtime is not None:
-                #job.total_time = job.runtime
-            #else:
-                #job.total_time = time.time() - job.launch_time
-
     def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new JobController instance.
 
-        A new JobController object is created with an application registry and configuration attributes. A
-        registry object must have been created.
+        A new JobController object is created with an application
+        registry and configuration attributes. A registry object must
+        have been created.
 
-        This is typically created in the user calling script. If auto_resources is True, an evaluation of system resources is performance during this call.
+        This is typically created in the user calling script. If
+        auto_resources is True, an evaluation of system resources is
+        performance during this call.
 
         Parameters
         ----------
         registry: obj: Registry, optional
-            A registry containing the applications to use in this job_controller (Default: Use Register.default_registry).
+            A registry containing the applications to use in this
+            job_controller (Default: Use Register.default_registry).
 
         auto_resources: Boolean, optional
-            Auto-detect available processor resources and assign to jobs if not explicitly provided on launch.
+            Auto-detect available processor resources and assign to jobs
+            if not explicitly provided on launch.
 
         nodelist_env_slurm: String, optional
-            The environment variable giving a node list in Slurm format (Default: Uses SLURM_NODELIST)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in Slurm format
+            (Default: Uses SLURM_NODELIST).  Note: This is only queried if
+            a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_cobalt: String, optional
-            The environment variable giving a node list in Cobalt format (Default: Uses COBALT_PARTNAME)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
-
+            The environment variable giving a node list in Cobalt format
+            (Default: Uses COBALT_PARTNAME) Note: This is only queried
+            if a worker_list file is not provided and
+            auto_resources=True.
         """
 
         self.registry = registry or Register.default_registry
@@ -343,7 +333,7 @@ class JobController:
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
                machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
-        """ Creates a new job, and either launches or schedules to launch in the job controller
+        """Creates a new job, and either launches or schedules launch.
 
         The created job object is returned.
 
@@ -366,19 +356,22 @@ class JobController:
             Name of a machinefile for this job to use.
 
         app_args: string, optional
-            A string of the application arguments to be added to job launch command line.
+            A string of the application arguments to be added to job
+            launch command line.
 
         stdout: string, optional
             A standard output filename.
 
         stage_inout: string, optional
-            A directory to copy files from. Default will take from current directory.
+            A directory to copy files from. Default will take from
+            current directory.
 
         hyperthreads: boolean, optional
             Whether to launch MPI tasks to hyperthreads
 
         test: boolean, optional
-            Whether this is a test - No job will be launched. Instead runline is printed to logger (At INFO level).
+            Whether this is a test - No job will be launched. Instead
+            runline is printed to logger (At INFO level).
 
 
         Returns
@@ -388,9 +381,11 @@ class JobController:
             The lauched job object.
 
 
-        Note that if some combination of num_procs, num_nodes and ranks_per_node are provided, these will be honored if possible. If resource detection is on and these are omitted, then the available resources will be divided amongst workers.
-
-        """
+        Note that if some combination of num_procs, num_nodes and
+        ranks_per_node are provided, these will be honored if
+        possible. If resource detection is on and these are omitted,
+        then the available resources will be divided amongst workers.
+"""
 
         # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
         # Could take optional app arg - if they want to supply here - instead of taking from registry
@@ -609,7 +604,7 @@ class JobController:
 
 
     def kill(self, job):
-        """ Kills or cancels the supplied job
+        """Kills or cancels the supplied job
 
         Parameters
         -----------
@@ -617,12 +612,12 @@ class JobController:
         job: obj: Job
             The job object.to be polled.
 
-
-        The signal used is determined by the job_controller attirbute <kill_signal> will be send to the job,
-        followed by a wait for the process to terminate. If the <wait_and_kill> attribute is True, then
-        a SIGKILL will be sent if the job has not finished after <wait_time> seconds. The kill can be
-        configured using the set_kill_mode function.
-
+        The signal used is determined by the job_controller attribute
+        <kill_signal> will be send to the job, followed by a wait for
+        the process to terminate. If the <wait_and_kill> attribute is
+        True, then a SIGKILL will be sent if the job has not finished
+        after <wait_time> seconds. The kill can be configured using the
+        set_kill_mode function.
         """
 
         jassert(isinstance(job, Job), "Invalid job has been provided")
@@ -682,7 +677,7 @@ class JobController:
 
 
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        """ Configures the kill mode for the job_controller
+        """Configures the kill mode for the job_controller
 
         Parameters
         ----------
@@ -691,13 +686,12 @@ class JobController:
             The signal type to be sent to kill job: 'SIGTERM' or 'SIGKILL'
 
         wait_and_kill: boolean, optional
-            If True, a SIGKILL will be sent after <wait_time> seconds if the process has not terminated.
+            If True, a SIGKILL will be sent after <wait_time> seconds if
+            the process has not terminated.
 
         wait_time: int, optional
-            The number of seconds to wait for the job to finish before sending a SIGKILL when wait_and_kill is set.
-            (Default is 60).
-
-
+            The number of seconds to wait for the job to finish before
+            sending a SIGKILL when wait_and_kill is set.  (Default is 60).
         """
         if signal is not None:
             jassert(signal in SIGNALS, "Unknown signal {} supplied to set_kill_mode".format(signal))
@@ -731,13 +725,15 @@ class JobController:
 
     #Reformat create_machinefile to use this and also use this for non-machinefile cases when auto-detecting
     def get_resources(self, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
-        """
-        Reconciles user supplied options with available Worker resources to produce run configuration.
+        """Reconciles user supplied options with available Worker
+        resources to produce run configuration.
 
-        Detects resources available to worker, checks if an existing user supplied config is valid,
-        and fills in any missing config information (ie. num_procs/num_nodes/ranks_per_node)
+        Detects resources available to worker, checks if an existing
+        user supplied config is valid, and fills in any missing config
+        information (ie. num_procs/num_nodes/ranks_per_node)
 
-        User supplied config options are honoured, and an exception is raised if these are infeasible.
+        User supplied config options are honoured, and an exception is
+        raised if these are infeasible.
         """
 
         node_list = self.resources.local_nodelist
@@ -798,7 +794,8 @@ class JobController:
 
 
     def create_machinefile(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
-        """Create a machinefile based on user supplied config options, completed by detected machine resources"""
+        """Create a machinefile based on user supplied config options,
+        completed by detected machine resources"""
 
         #Maybe hyperthreads should be mpi_hyperthreads
 
@@ -829,14 +826,14 @@ class JobController:
     #will prob want to adjust based on input
     #def get_hostlist(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
     def get_hostlist(self):
-        """Create a hostlist based on user supplied config options, completed by detected machine resources"""
+        """Create a hostlist based on user supplied config options,
+        completed by detected machine resources"""
         node_list = self.resources.local_nodelist
         hostlist_str = ",".join([str(x) for x in node_list])
         return hostlist_str
 
 
 class BalsamJobController(JobController):
-
     """Inherits from JobController and wraps the Balsam job management service
 
     .. note::  Job kills are currently not configurable in the Balsam job_controller.
@@ -850,7 +847,8 @@ class BalsamJobController(JobController):
     def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new BalsamJobController instance.
 
-        A new BalsamJobController object is created with an application registry and configuration attributes
+        A new BalsamJobController object is created with an application
+        registry and configuration attributes
         """
 
         #Will use super - atleast if use baseclass - but for now dont want to set self.mpi_launcher etc...
@@ -888,7 +886,8 @@ class BalsamJobController(JobController):
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
                machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
-        """ Creates a new job, and either launches or schedules to launch in the job controller
+        """Creates a new job, and either launches or schedules to launch
+        in the job controller
 
         The created job object is returned.
         """
@@ -969,7 +968,7 @@ class BalsamJobController(JobController):
 
 
     def poll(self, job):
-        """ Polls and updates the status attributes of the supplied job """
+        """Polls and updates the status attributes of the supplied job"""
         jassert(isinstance(job, BalsamJob), "Invalid job has been provided")
 
         # Check the jobs been launched (i.e. it has a process ID)
@@ -1043,7 +1042,7 @@ class BalsamJobController(JobController):
         #Check if can wait for kill to complete - affect signal used etc....
 
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        """ Not currently implemented for BalsamJobController.
+        """Not currently implemented for BalsamJobController.
 
         No action is taken
         """
