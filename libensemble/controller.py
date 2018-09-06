@@ -616,20 +616,6 @@ class JobController:
                 JobController._kill_process(job.process, signal.SIGKILL)
                 job.process.wait()
 
-            #Using subprocess timeout attribute where available (py3)
-            #try:
-                #job.process.wait(timeout=self.wait_time)
-                ##stdout,stderr = self.process.communicate(timeout=self.wait_time) #Wait for process to finish
-            #except TypeError: #eg. Python2
-                ##logger.warning("TimeoutExpired not supported in this version of Python. Issuing SIGKILL to job {}".format(job.name))
-                #if JobController._time_out(job.process, self.wait_time):
-                    #logger.warning("Kill signal {} timed out for job {}: Issuing SIGKILL".format(self.kill_signal, job.name))
-                    #JobController._kill_process(job.process, signal.SIGKILL)
-                    #job.process.wait()
-            #except subprocess.TimeoutExpired:
-                #logger.warning("Kill signal {} timed out for job {}: Issuing SIGKILL".format(self.kill_signal, job.name))
-                #JobController._kill_process(job.process, signal.SIGKILL)
-                #job.process.wait()
         else:
             job.process.wait()
 
