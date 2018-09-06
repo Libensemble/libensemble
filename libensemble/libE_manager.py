@@ -117,7 +117,7 @@ class Manager:
             if key in self.exit_criteria:
                 if testf(self.exit_criteria[key]):
                     if logged:
-                        logger.debug("Term test tripped: {}".format(key))
+                        logger.info("Term test tripped: {}".format(key))
                     return retval
         return 0
 
