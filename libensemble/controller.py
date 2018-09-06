@@ -387,18 +387,10 @@ class JobController:
         then the available resources will be divided amongst workers.
 """
 
-        # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
-        # Could take optional app arg - if they want to supply here - instead of taking from registry
-        if calc_type == 'sim':
-            jassert(self.registry.sim_default_app is not None,
-                    "Default sim app is not set")
-            app = self.registry.sim_default_app
-        elif calc_type == 'gen':
-            jassert(self.registry.gen_default_app is not None,
-                    "Default gen app is not set")
-            app = self.registry.gen_default_app
-        else:
-            raise JobControllerException("Unrecognized calculation type", calc_type)
+        app = self.registry.default_app(calc_type)
+        jassert(calc_type in ['sim', 'gen'],
+                "Unrecognized calculation type", calc_type)
+        jassert(app, "Default {} app is not set".format(calc_type))
 
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
@@ -893,16 +885,10 @@ class BalsamJobController(JobController):
         """
         import balsam.launcher.dag as dag
 
-        # Find the default sim or gen app from registry.sim_default_app OR registry.gen_default_app
-        # Could take optional app arg - if they want to supply here - instead of taking from registry
-        if calc_type == 'sim':
-            jassert(self.registry.sim_default_app, "Default sim app is not set")
-            app = self.registry.sim_default_app
-        elif calc_type == 'gen':
-            jassert(self.registry.gen_default_app, "Default gen app is not set")
-            app = self.registry.gen_default_app
-        else:
-            raise JobControllerException("Unrecognized calculation type", calc_type)
+        app = self.registry.default_app(calc_type)
+        jassert(calc_type in ['sim', 'gen'],
+                "Unrecognized calculation type", calc_type)
+        jassert(app, "Default {} app is not set".format(calc_type))
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
 
