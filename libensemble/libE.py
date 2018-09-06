@@ -19,7 +19,8 @@ import traceback
 # Set root logger
 # (Set above libe imports so errors in import are captured)
 # LEVEL: DEBUG/INFO/WARNING/ERROR
-logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
+#logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
+logging.basicConfig(filename='ensemble.log', level=logging.DEBUG, format='%(name)s (%(levelname)s): %(message)s')
 
 from libensemble.history import History
 from libensemble.libE_manager import manager_main
@@ -122,6 +123,10 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     #sys.excepthook = comms_abort(libE_specs['comm'])
     H = exit_flag = []
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    if libE_specs['comm'].Get_rank() == 0:
+        CalcInfo.make_statdir()
+    libE_specs['comm'].Barrier()
 
     if libE_specs['comm'].Get_rank() == 0:
         hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)

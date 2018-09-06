@@ -110,6 +110,7 @@ class BalsamRegister(Register):
     @staticmethod
     def del_apps():
         """ Deletes all Balsam apps whose names contains substring .simfunc or .genfunc"""
+        import balsam.launcher.dag
         from balsam.service import models
         AppDef = models.ApplicationDefinition
 
@@ -124,6 +125,7 @@ class BalsamRegister(Register):
     @staticmethod
     def del_jobs():
         """ Deletes all Balsam jobs whose names contains substring .simfunc or .genfunc"""
+        import balsam.launcher.dag
         from balsam.service import models
         Job = models.BalsamJob
 
@@ -142,6 +144,7 @@ class BalsamRegister(Register):
     @staticmethod
     def add_app(name, exepath, desc):
         """ Add application to Balsam database """
+        import balsam.launcher.dag
         from balsam.service import models
         AppDef = models.ApplicationDefinition
         app = AppDef()
