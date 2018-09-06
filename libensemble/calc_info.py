@@ -8,6 +8,7 @@ import time
 import datetime
 import itertools
 import os
+import shutil
 
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
@@ -32,8 +33,11 @@ class CalcInfo():
     :cvar string stat_file:
         A class attribute holding the name of the global summary file (default: 'libe_summary.txt')
 
+    :cvar string statfile_dir:
+        A class attribute holding the directory name for the worker summary files (default: 'libe_stat_files')
+    
     :cvar string worker_statfile:
-        A class attribute holding the name of the current workers summary file
+        A class attribute holding the pathname of the current workers summary file
         (default: Initially None, but is set to <stat_file>.w<workerID> when the file is created)
 
     :cvar boolean keep_worker_stat_files:
@@ -53,6 +57,7 @@ class CalcInfo():
     """
     newid = itertools.count()
     stat_file = 'libe_summary.txt'
+    statfile_dir = 'libe_stat_files'
     worker_statfile = None
     keep_worker_stat_files = False
 
@@ -91,9 +96,17 @@ class CalcInfo():
         return sorted(l, key=alphanum_key)
 
     @staticmethod
+    def make_statdir():
+        statdir = CalcInfo.statfile_dir
+        if os.path.exists(statdir):
+            shutil.rmtree(statdir)
+        os.mkdir(statdir)
+    
+    @staticmethod
     def create_worker_statfile(workerID):
         """Create the statistics file"""
-        CalcInfo.worker_statfile = CalcInfo.stat_file + '.w' + str(workerID)
+        statfile_name = CalcInfo.stat_file + '.w' + str(workerID)
+        CalcInfo.worker_statfile = os.path.join(CalcInfo.statfile_dir, statfile_name)
         with open(CalcInfo.worker_statfile, 'w') as f:
             f.write("Worker %d:\n" % (workerID))
 
@@ -107,15 +120,16 @@ class CalcInfo():
     def merge_statfiles():
         """Merge the stat files of each worker into one master file"""
         import glob
-        worker_stat_files = CalcInfo.stat_file + '.w'
+        worker_stat_files = os.path.join(CalcInfo.statfile_dir, CalcInfo.stat_file + '.w')
         stat_files = CalcInfo.smart_sort(glob.glob(worker_stat_files + '*'))
-        with open(CalcInfo.stat_file, 'w') as outfile:
+        with open(CalcInfo.stat_file, 'w+') as outfile:
             for fname in stat_files:
-                with open(fname) as infile:
+                with open(fname, 'r') as infile:
                     outfile.write(infile.read())
-        for file in stat_files:
-            if not CalcInfo.keep_worker_stat_files:
-                os.remove(file)
+        if not CalcInfo.keep_worker_stat_files:
+            shutil.rmtree(CalcInfo.statfile_dir)
+            #for file in stat_files:
+                #os.remove(file)
 
     def __init__(self):
         """Create a new CalcInfo object

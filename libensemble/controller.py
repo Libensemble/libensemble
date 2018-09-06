@@ -59,7 +59,7 @@ class Job:
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None,
-                 env=None, machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
+                 machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
         '''Instantiate a new Job instance.
 
         A new job object is created with an id, status and configuration attributes
@@ -84,7 +84,6 @@ class Job:
         self.num_procs = num_procs
         self.num_nodes = num_nodes
         self.ranks_per_node = ranks_per_node
-        self.env = env
         self.machinefile = machinefile
         self.hostlist = hostlist
         self.stdout = stdout
@@ -156,13 +155,15 @@ class BalsamJob(Job):
         A new BalsamJob object is created with an id, status and configuration attributes
         This will normally be created by the job_controller on a launch
         '''
-        # DSB: env is not defined!
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, env, machinefile, hostlist, workdir, stdout, workerid)
+
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
 
         self.balsam_state = None
 
         #prob want to override workdir attribute with Balsam value - though does it exist yet?
-        self.workdir = None #Don't know until starts running
+        #self.workdir = None #Don't know until starts running
+        self.workdir = workdir #Default for libe now is to run in place.
+
 
     def read_file_in_workdir(self, filename):
         return self.process.read_file_in_workdir(filename)
@@ -311,7 +312,6 @@ class JobController:
             self.nnodes = ''
             self.ppn = '--ppn'
             self.hostlist = '-hosts'
-            self.cmd_env = '--env'
         elif mpi_variant == 'openmpi':
             self.mpi_launcher = 'mpirun'
             self.mfile = '-machinefile'
@@ -319,7 +319,6 @@ class JobController:
             self.nnodes = ''
             self.ppn = '-npernode'
             self.hostlist = '-host'
-            self.cmd_env = '-x'
         #self.mpi_launcher = 'srun'
         #self.mfile = '-m arbitrary'
         #self.nprocs = '--ntasks'
@@ -360,7 +359,7 @@ class JobController:
         #setattr(job, k, v)
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
-               env=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
+               machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
@@ -379,10 +378,7 @@ class JobController:
 
         ranks_per_node: int, optional
             The ranks per node for this job.
-
-        env: string, optional
-            String of environment variables to pass to job
-
+            
         machinefile: string, optional
             Name of a machinefile for this job to use.
 
@@ -453,7 +449,7 @@ class JobController:
 
 
         default_workdir = os.getcwd() #Will be possible to override with arg when implemented
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, env, machinefile, hostlist, default_workdir, stdout, self.workerID)
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
 
         #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_inout is not None:
@@ -461,12 +457,6 @@ class JobController:
 
         #Construct run line - possibly subroutine
         runline = [self.mpi_launcher]
-
-        #env question - pass env to argument in subprocess or specify in mpirun line???
-        #Currently doing both - but test
-        if job.env is not None:
-            runline.append(self.cmd_env)
-            runline.append(job.env)
 
         if job.machinefile is not None:
             #os.environ['SLURM_HOSTFILE'] = job.machinefile
@@ -514,12 +504,10 @@ class JobController:
             #use for timeout. For now using for timing with approx end....
             job.launch_time = time.time()
 
-            #env question - pass to subprocess or specify in mpirun line???
             #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
 
             job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout, 'w'), shell=False, preexec_fn=os.setsid)
 
-            #job.process = subprocess.Popen(runline, cwd='./', env=job.env, stdout = open(job.stdout,'w'), shell=False, preexec_fn=os.setsid)
 
             #To test when have workdir
             #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
@@ -928,7 +916,8 @@ class BalsamJobController(JobController):
 
 
 
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, 
+               machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
@@ -980,15 +969,11 @@ class BalsamJobController(JobController):
             logger.warning("Balsam does not currently accept a stdout name - ignoring")
             stdout = None
 
-        default_workdir = None #Will be possible to override with arg when implemented (else wait for Balsam to assign)
+        #Will be possible to override with arg when implemented (or can have option to let Balsam assign)
+        default_workdir = os.getcwd()
+        
         hostlist = None
         job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
-
-        #Re-do debug launch line for balsam job
-        #logger.debug("Launching job: {}".format(" ".join(runline)))
-        #logger.debug("Added job to Balsam database: {}".format(job.id))
-
-        logger.debug("Added job to Balsam database: Worker {} JobID {} nodes {} ppn {}".format(self.workerID, job.id, job.num_nodes, job.ranks_per_node))
 
         #This is not used with Balsam for run-time as this would include wait time
         #Again considering changing launch to submit - or whatever I chose before.....
@@ -996,18 +981,21 @@ class BalsamJobController(JobController):
 
         add_job_args = {'name': job.name,
                         'workflow': "libe_workflow", #add arg for this
+                        'user_workdir': default_workdir, #add arg for this
                         'application': app.name,
-                        'application_args': job.app_args,
+                        'args': job.app_args,
                         'num_nodes': job.num_nodes,
                         'ranks_per_node': job.ranks_per_node}
 
         if stage_inout is not None:
             #For now hardcode staging - for testing
-            add_job_args['stage_in_url'] = "local:" + stage_inout
+            add_job_args['stage_in_url'] = "local:" + stage_inout + "/*"
             add_job_args['stage_out_url'] = "local:" + stage_inout
             add_job_args['stage_out_files'] = "*.out"
 
         job.process = dag.add_job(**add_job_args)
+
+        logger.debug("Added job to Balsam database {}: Worker {} nodes {} ppn {}".format(job.name, self.workerID, job.num_nodes, job.ranks_per_node))
 
         #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)
