@@ -17,6 +17,8 @@ import logging
 import signal
 import itertools
 import time
+
+import libensemble.launcher as launcher
 from libensemble.register import Register
 from libensemble.resources import Resources
 
@@ -275,28 +277,21 @@ class JobController:
                                        nodelist_env_slurm=nodelist_env_slurm,
                                        nodelist_env_cobalt=nodelist_env_cobalt)
 
-        #logger.debug("top_level_dir is {}".format(self.top_level_dir))
-
         #todo Configure by autodetection
-        #In fact it will be a sub-object - most likely with inhertience - based on detection or specification
-        #Also the construction of the run-line itself will prob. be a function of that object
-        #For now though - do like this:
+        #In fact it will be a sub-object - most likely with inheritance - based
+        #on detection or specification.  Also the construction of the run-line
+        #itself will prob. be a function of that object.  For now though - do
+        #like this:
+        mpi_commands = {
+            'mpich':   ['mpirun', '--env {env}', '-machinefile {machinefile}',
+                        '-hosts {hostlist}', '-np {num_procs}',
+                        '--ppn {ranks_per_node}'],
+            'openmpi': ['mpirun', '-x {env}', '-machinefile {machinefile}',
+                        '-host {hostlist}', '-np {num_procs}',
+                        '-npernode {ranks_per_node}'],
+        }
+        self.mpi_command = mpi_commands[Resources.get_MPI_variant()]
 
-        mpi_variant = Resources.get_MPI_variant()
-        if mpi_variant == 'mpich':
-            self.mpi_launcher = 'mpirun'
-            self.mfile = '-machinefile'
-            self.nprocs = '-np'
-            self.nnodes = ''
-            self.ppn = '--ppn'
-            self.hostlist = '-hosts'
-        elif mpi_variant == 'openmpi':
-            self.mpi_launcher = 'mpirun'
-            self.mfile = '-machinefile'
-            self.nprocs = '-np'
-            self.nnodes = ''
-            self.ppn = '-npernode'
-            self.hostlist = '-host'
         #self.mpi_launcher = 'srun'
         #self.mfile = '-m arbitrary'
         #self.nprocs = '--ntasks'
@@ -433,38 +428,8 @@ class JobController:
         if stage_inout is not None:
             logger.warning('stage_inout option ignored in this job_controller - runs in-place')
 
-        #Construct run line - possibly subroutine
-        runline = [self.mpi_launcher]
-
-        if job.machinefile is not None:
-            #os.environ['SLURM_HOSTFILE'] = job.machinefile
-            runline.append(self.mfile)
-            runline.append(job.machinefile)
-
-        #Should be else - if machine file - dont need any other config
-
-        if job.hostlist is not None:
-            #os.environ['SLURM_HOSTFILE'] = job.machinefile
-            runline.append(self.hostlist)
-            runline.append(job.hostlist)
-
-        if job.num_procs is not None:
-            runline.append(self.nprocs)
-            runline.append(str(job.num_procs))
-
-        #Not currently setting nodes
-        #- as not always supported - but should always have the other two after calling _job_partition
-        #if job.num_nodes is not None:
-            #runline.append(self.nnodes)
-            #runline.append(str(job.num_nodes))
-
-        #Currently issues - command depends on mpich/openmpi etc...
-        if job.ranks_per_node is not None:
-            runline.append(self.ppn)
-            runline.append(str(job.ranks_per_node))
-
+        runline = launcher.form_command(self.mpi_command, vars(job))
         runline.append(job.app.full_path)
-
         if job.app_args is not None:
             runline.extend(job.app_args.split())
 
