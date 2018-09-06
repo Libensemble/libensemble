@@ -56,8 +56,9 @@ class Job:
 
     newid = itertools.count()
 
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None,
-                 machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
+                 ranks_per_node=None, machinefile=None, hostlist=None,
+                 workdir=None, stdout=None, workerid=None):
         """Instantiate a new Job instance.
 
         A new job object is created with an id, status and configuration attributes
@@ -147,7 +148,9 @@ class BalsamJob(Job):
 
     #newid = itertools.count() #hopefully can use the one in Job
 
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
+                 ranks_per_node=None, machinefile=None, hostlist=None,
+                 workdir=None, stdout=None, workerid=None):
         """Instantiate a new BalsamJob instance.
 
         A new BalsamJob object is created with an id, status and
@@ -155,11 +158,13 @@ class BalsamJob(Job):
         job_controller on a launch.
         """
 
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, workdir, stdout, workerid)
+        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node,
+                         machinefile, hostlist, workdir, stdout, workerid)
 
         self.balsam_state = None
 
-        #prob want to override workdir attribute with Balsam value - though does it exist yet?
+        #prob want to override workdir attribute with Balsam value -
+        #though does it exist yet?
         #self.workdir = None #Don't know until starts running
         self.workdir = workdir #Default for libe now is to run in place.
 
@@ -185,8 +190,7 @@ class BalsamJob(Job):
 
 
 class JobController:
-
-    """ The job_controller can create, poll and kill runnable jobs
+    """The job_controller can create, poll and kill runnable jobs
 
     **Class Attributes:**
 
@@ -226,7 +230,8 @@ class JobController:
         return num_procs, num_nodes, ranks_per_node
 
 
-    def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm=None, nodelist_env_cobalt=None):
+    def __init__(self, registry=None, auto_resources=True,
+                 nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new JobController instance.
 
         A new JobController object is created with an application
@@ -331,8 +336,9 @@ class JobController:
     #else:
         #setattr(job, k, v)
 
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
-               machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None,
+               ranks_per_node=None, machinefile=None, app_args=None,
+               stdout=None, stage_inout=None, hyperthreads=False, test=False):
         """Creates a new job, and either launches or schedules launch.
 
         The created job object is returned.
@@ -406,19 +412,22 @@ class JobController:
                 hostlist = self.get_hostlist()
             else:
                 #machinefile
+                machinefile = "machinefile_autogen"
                 if self.workerID is not None:
-                    machinefile = 'machinefile_autogen_for_worker_' + str(self.workerID)
-                else:
-                    machinefile = 'machinefile_autogen'
-                mfile_created, num_procs, num_nodes, ranks_per_node = self.create_machinefile(machinefile, num_procs, num_nodes, ranks_per_node, hyperthreads)
+                    machinefile += "_for_worker_{}".format(self.workerID)
+                mfile_created, num_procs, num_nodes, ranks_per_node = \
+                  self.create_machinefile(machinefile, num_procs, num_nodes,
+                                          ranks_per_node, hyperthreads)
                 jassert(mfile_created, "Auto-creation of machinefile failed")
 
         else:
-            num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node, machinefile)
+            num_procs, num_nodes, ranks_per_node = \
+              JobController.job_partition(num_procs, num_nodes,
+                                          ranks_per_node, machinefile)
 
-
-        default_workdir = os.getcwd() #Will be possible to override with arg when implemented
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
+        default_workdir = os.getcwd() # May override with arg when implemented
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node,
+                  machinefile, hostlist, default_workdir, stdout, self.workerID)
 
         #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_inout is not None:
@@ -715,8 +724,10 @@ class JobController:
         self.workerID = workerid
 
 
-    #Reformat create_machinefile to use this and also use this for non-machinefile cases when auto-detecting
-    def get_resources(self, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+    #Reformat create_machinefile to use this and also use this for
+    #non-machinefile cases when auto-detecting
+    def get_resources(self, num_procs=None, num_nodes=None,
+                      ranks_per_node=None, hyperthreads=False):
         """Reconciles user supplied options with available Worker
         resources to produce run configuration.
 
@@ -747,36 +758,49 @@ class JobController:
         jassert(node_list, "Node list is empty - aborting")
 
         #If no decomposition supplied - use all available cores/nodes
-        if num_procs is None and num_nodes is None and ranks_per_node is None:
+        if not num_procs and not num_nodes and not ranks_per_node:
             num_nodes = local_node_count
             ranks_per_node = cores_avail_per_node_per_worker
-            #logger
-            logger.debug("No decomposition supplied - using all available resource. Nodes: {}  ranks_per_node {}".format(num_nodes, ranks_per_node))
-        elif num_nodes is None and ranks_per_node is None:
-            #Got just num_procs
+            logger.debug("No decomposition supplied - "
+                         "using all available resource. "
+                         "Nodes: {}  ranks_per_node {}".
+                          format(num_nodes, ranks_per_node))
+        elif not num_nodes and not ranks_per_node:
             num_nodes = local_node_count
-            #Here is where really want a compact/scatter option - go for scatter (could get cores and say if less than one node - but then hyperthreads complication if no psutil installed)
-        elif num_procs is None and ranks_per_node is None:
+            #Here is where really want a compact/scatter option - go for
+            #scatter (could get cores and say if less than one node - but then
+            #hyperthreads complication if no psutil installed)
+        elif not num_procs and not ranks_per_node:
             #Who would just put num_nodes???
             ranks_per_node = cores_avail_per_node_per_worker
-        elif num_procs is None and num_nodes is None:
+        elif not num_procs and not num_nodes:
             num_nodes = local_node_count
 
-        #checks config is consistent and sufficient to express - does not check actual resources
-        num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)
+        #checks config is consistent and sufficient to express -
+        #does not check actual resources
+        num_procs, num_nodes, ranks_per_node = \
+          JobController.job_partition(num_procs, num_nodes, ranks_per_node)
 
         #Could just downgrade to those available with warning - for now error
         jassert(num_nodes <= local_node_count,
-                "Not enough nodes to honour arguments. Requested {}. Only {} available".format(num_nodes, local_node_count))
+                "Not enough nodes to honour arguments. "
+                "Requested {}. Only {} available".
+                format(num_nodes, local_node_count))
 
         jassert(ranks_per_node <= cores_avail_per_node,
-                "Not enough processors on a node to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node))
+                "Not enough processors on a node to honour arguments. "
+                "Requested {}. Only {} available".
+                format(ranks_per_node, cores_avail_per_node))
 
         jassert(ranks_per_node <= cores_avail_per_node_per_worker,
-            "Not enough processors per worker to honour arguments. Requested {}. Only {} available".format(ranks_per_node, cores_avail_per_node_per_worker))
+                "Not enough processors per worker to honour arguments. "
+                "Requested {}. Only {} available".
+                format(ranks_per_node, cores_avail_per_node_per_worker))
 
         jassert(num_procs <= (cores_avail_per_node * local_node_count),
-                "Not enough procs to honour arguments. Requested {}. Only {} available".format(num_procs, cores_avail_per_node*local_node_count))
+                "Not enough procs to honour arguments. "
+                "Requested {}. Only {} available".
+                format(num_procs, cores_avail_per_node*local_node_count))
 
         if num_nodes < local_node_count:
             logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes, local_node_count))
@@ -785,34 +809,33 @@ class JobController:
 
 
 
-    def create_machinefile(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+    def create_machinefile(self, machinefile=None, num_procs=None,
+                           num_nodes=None, ranks_per_node=None,
+                           hyperthreads=False):
         """Create a machinefile based on user supplied config options,
         completed by detected machine resources"""
 
         #Maybe hyperthreads should be mpi_hyperthreads
 
-        if machinefile is None:
-            machinefile = 'machinefile'
-
+        machinefile = machinefile or 'machinefile'
         if os.path.isfile(machinefile):
             try:
                 os.remove(machinefile)
             except:
                 pass
 
-        #num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
         node_list = self.resources.local_nodelist
 
-        logger.debug("Creating machinefile with {} nodes and {} ranks per node".format(num_nodes, ranks_per_node))
+        logger.debug("Creating machinefile with {} nodes and {} ranks per node".
+                     format(num_nodes, ranks_per_node))
 
         with open(machinefile, 'w') as f:
             for node in node_list[:num_nodes]:
                 f.write((node + '\n') * ranks_per_node)
 
         #Return true if created and not empty
-        built_mfile = os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0
-
-        #Return new values for num_procs,num_nodes,ranks_per_node - in case want to use
+        built_mfile = (os.path.isfile(machinefile)
+                       and os.path.getsize(machinefile) > 0)
         return built_mfile, num_procs, num_nodes, ranks_per_node
 
     #will prob want to adjust based on input
@@ -836,7 +859,8 @@ class BalsamJobController(JobController):
 
     #controller = None
 
-    def __init__(self, registry=None, auto_resources=True, nodelist_env_slurm=None, nodelist_env_cobalt=None):
+    def __init__(self, registry=None, auto_resources=True,
+                 nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new BalsamJobController instance.
 
         A new BalsamJobController object is created with an application
@@ -866,8 +890,9 @@ class BalsamJobController(JobController):
         #BalsamJobController.controller = self
 
 
-    def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
-               machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
+    def launch(self, calc_type, num_procs=None, num_nodes=None,
+               ranks_per_node=None, machinefile=None, app_args=None,
+               stdout=None, stage_inout=None, test=False, hyperthreads=False):
         """Creates a new job, and either launches or schedules to launch
         in the job controller
 
