@@ -59,7 +59,7 @@ class Job:
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None,
-                 machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
+                 machinefile=None, hostlist=None, workdir=None, stdout=None, stderr=None, workerid=None):
         '''Instantiate a new Job instance.
 
         A new job object is created with an id, status and configuration attributes
@@ -76,7 +76,7 @@ class Job:
         self.launch_time = None
         self.runtime = None
         self.total_time = None
-        self.manager_signal = 'none'
+        #self.manager_signal = 'none'
 
         #Run attributes
         self.app = app
@@ -86,7 +86,8 @@ class Job:
         self.ranks_per_node = ranks_per_node
         self.machinefile = machinefile
         self.hostlist = hostlist
-        self.stdout = stdout
+        #self.stdout = stdout
+        #self.stderr = stderr
         self.workerID = workerid
 
         if app is None:
@@ -95,6 +96,7 @@ class Job:
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
         self.name = "job_{}{}_{}".format(app.name, worker_name, self.id)
         self.stdout = stdout or self.name + '.out'
+        self.stderr = stderr or self.name + '.err'        
         self.workdir = workdir
 
     def workdir_exists(self):
@@ -121,6 +123,13 @@ class Job:
         ''' Open and reads the job's stdout file in the job's workdir '''
         return self.read_file_in_workdir(self.stdout)
 
+    def stderr_exists(self):
+        ''' Returns True if the job's stderr file exists in the workdir, else False '''
+        return self.file_exists_in_workdir(self.stderr)
+
+    def read_stderr(self):
+        ''' Open and reads the job's stderr file in the job's workdir '''
+        return self.read_file_in_workdir(self.stderr)
 
     #Note - this is currently only final job-time. May make running job time.
     #And prob want to use for polling in sim func - esp in balsam - where want acutal runtime not time since launch
@@ -149,7 +158,7 @@ class BalsamJob(Job):
 
     #newid = itertools.count() #hopefully can use the one in Job
 
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir=None, stdout=None, workerid=None):
+    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None, ranks_per_node=None, machinefile=None, hostlist=None, workdir=None, stdout=None, stderr=None, workerid=None):
         '''Instantiate a new BalsamJob instance.
 
         A new BalsamJob object is created with an id, status and configuration attributes
@@ -171,6 +180,9 @@ class BalsamJob(Job):
     def read_stdout(self):
         return self.process.read_file_in_workdir(self.stdout)
 
+    def read_stderr(self):
+        return self.process.read_file_in_workdir(self.stderr)
+    
     def calc_job_timing(self):
         """Calculate timing information for this job"""
 
@@ -291,6 +303,7 @@ class JobController:
 
         self.top_level_dir = os.getcwd()
         self.auto_resources = auto_resources
+        self.manager_signal = 'none'
 
         if self.auto_resources:
             self.resources = Resources(top_level_dir=self.top_level_dir,
@@ -359,7 +372,7 @@ class JobController:
         #setattr(job, k, v)
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None,
-               machinefile=None, app_args=None, stdout=None, stage_inout=None, hyperthreads=False, test=False):
+               machinefile=None, app_args=None, stdout=None, stderr=None, stage_inout=None, hyperthreads=False, test=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
@@ -387,6 +400,9 @@ class JobController:
 
         stdout: string, optional
             A standard output filename.
+
+        stderr: string, optional
+            A standard error filename.
 
         stage_inout: string, optional
             A directory to copy files from. Default will take from current directory.
@@ -449,7 +465,7 @@ class JobController:
 
 
         default_workdir = os.getcwd() #Will be possible to override with arg when implemented
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
+        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, stderr, self.workerID)
 
         #Temporary perhaps - though when create workdirs - will probably keep output in place
         if stage_inout is not None:
@@ -493,9 +509,6 @@ class JobController:
         if test:
             logger.info('Test selected: Not launching job')
             logger.info('runline args are {}'.format(runline))
-            #print('runline args are', runline)
-            #print('stdout to', stdout)
-            #logger.info(runline)
         else:
             logger.debug("Launching job {}: {}".format(job.name, " ".join(runline))) #One line
             #logger.debug("Launching job {}:\n{}{}".format(job.name, " "*32, " ".join(runline))) #With newline
@@ -504,13 +517,11 @@ class JobController:
             #use for timeout. For now using for timing with approx end....
             job.launch_time = time.time()
 
-            #job.process = subprocess.Popen(runline, cwd='./', stdout = open(job.stdout,'w'), shell=False)
-
-            job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout, 'w'), shell=False, preexec_fn=os.setsid)
-
+            #job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout, 'w'), stderr=open(job.stderr, 'w'), shell=False)
+            job.process = subprocess.Popen(runline, cwd='./', stdout=open(job.stdout, 'w'), stderr=open(job.stderr, 'w'), shell=False, preexec_fn=os.setsid)
 
             #To test when have workdir
-            #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout = open(job.stdout,'w'), shell=False)
+            #job.process = subprocess.Popen(runline, cwd=job.workdir, stdout=open(job.stdout, 'w'), stderr=open(job.stderr, 'w'), shell=False, preexec_fn=os.setsid)
 
             self.list_of_jobs.append(job)
 
@@ -574,21 +585,12 @@ class JobController:
         #Just updates job as provided
         #return job
 
-    def manager_poll(self, job):
+    def manager_poll(self):
         ''' Polls for a manager signal
 
-        Parameters
-        -----------
-
-        job: obj: Job
-            The job object.to be polled.
-
-
-        The job status attribute job.manager_signal will be updated.
+        The job controller manager_signal attribute will be updated.
 
         '''
-
-        #Will use MPI_MODE from settings.py but for now assume MPI
         from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
         from mpi4py import MPI
 
@@ -597,12 +599,12 @@ class JobController:
         comm = MPI.COMM_WORLD
         status = MPI.Status()
         if comm.Iprobe(source=0, tag=STOP_TAG, status=status):
-            logger.info('Manager probe hit true during job {}'.format(job.name))
+            logger.info('Manager probe hit true')
             man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
             if man_signal == MAN_SIGNAL_FINISH:
-                job.manager_signal = 'finish'
+                self.manager_signal = 'finish'
             elif man_signal == MAN_SIGNAL_KILL:
-                job.manager_signal = 'kill'
+                self.manager_signal = 'kill'
             else:
                 logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
 
@@ -890,7 +892,8 @@ class BalsamJobController(JobController):
 
         self.top_level_dir = os.getcwd()
         self.auto_resources = auto_resources
-
+        self.manager_signal = 'none'
+        
         if self.auto_resources:
             self.resources = Resources(top_level_dir=self.top_level_dir, central_mode=True,
                                        nodelist_env_slurm=nodelist_env_slurm,
@@ -917,7 +920,7 @@ class BalsamJobController(JobController):
 
 
     def launch(self, calc_type, num_procs=None, num_nodes=None, ranks_per_node=None, 
-               machinefile=None, app_args=None, stdout=None, stage_inout=None, test=False, hyperthreads=False):
+               machinefile=None, app_args=None, stdout=None, stderr=None, stage_inout=None, test=False, hyperthreads=False):
         ''' Creates a new job, and either launches or schedules to launch in the job controller
 
         The created job object is returned.
@@ -965,15 +968,16 @@ class BalsamJobController(JobController):
             num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
 
         #temp - while balsam does not accept a standard out name
-        if stdout is not None:
-            logger.warning("Balsam does not currently accept a stdout name - ignoring")
+        if stdout is not None or stderr is not None:
+            logger.warning("Balsam does not currently accept a stdout or stderr name - ignoring")
             stdout = None
+            stderr = None
 
         #Will be possible to override with arg when implemented (or can have option to let Balsam assign)
         default_workdir = os.getcwd()
         
         hostlist = None
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
+        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, stderr, self.workerID)
 
         #This is not used with Balsam for run-time as this would include wait time
         #Again considering changing launch to submit - or whatever I chose before.....
