@@ -463,15 +463,10 @@ class JobController:
 
     def get_job(self, jobid):
         """ Returns the job object for the supplied job ID """
-        if self.list_of_jobs:
-            for job in self.list_of_jobs:
-                if job.id == jobid:
-                    return job
+        job = next((j for j in self.list_of_jobs if j.id == jobid), None)
+        if job is None:
             logger.warning("Job {} not found in joblist".format(jobid))
-            return None
-        logger.warning("Job {} not found in joblist. Joblist is empty".
-                       format(jobid))
-        return None
+        return job
 
 
     def set_workerID(self, workerid):
