@@ -61,8 +61,9 @@ class Job:
                  workdir=None, stdout=None, workerid=None):
         """Instantiate a new Job instance.
 
-        A new job object is created with an id, status and configuration attributes
-        This will normally be created by the job_controller on a launch
+        A new job object is created with an id, status and configuration
+        attributes.  This will normally be created by the job_controller
+        on a launch
         """
         self.id = next(Job.newid)
 
@@ -70,7 +71,7 @@ class Job:
         self.state = 'CREATED' #: test1 docstring
         self.process = None
         self.errcode = None
-        self.finished = False  # True means job has run - not whether was successful
+        self.finished = False  # True means job ran, not that it succeeded
         self.success = False
         self.launch_time = None
         self.runtime = None
@@ -123,9 +124,9 @@ class Job:
         """Open and reads the job's stdout file in the job's workdir"""
         return self.read_file_in_workdir(self.stdout)
 
-
     #Note - this is currently only final job-time. May make running job time.
-    #And prob want to use for polling in sim func - esp in balsam - where want acutal runtime not time since launch
+    #And prob want to use for polling in sim func - esp in balsam -
+    #where want acutal runtime not time since launch
     def calc_job_timing(self):
         """Calculate timing information for this job"""
         if self.launch_time is None:
@@ -147,8 +148,6 @@ class BalsamJob(Job):
     The same attributes and query routines are implemented.
 
     """
-
-    #newid = itertools.count() #hopefully can use the one in Job
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
                  ranks_per_node=None, machinefile=None, hostlist=None,
@@ -207,12 +206,14 @@ class JobController:
 
     @staticmethod
     def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
-        """ Takes provided nprocs/nodes/ranks and outputs working configuration of procs/nodes/ranks or error """
+        """Takes provided nprocs/nodes/ranks and outputs working
+        configuration of procs/nodes/ranks or error"""
 
         #If machinefile is provided - ignore everything else
         if machinefile:
             if num_procs or num_nodes or ranks_per_node:
-                logger.warning('Machinefile provided - overriding procs/nodes/ranks_per_node')
+                logger.warning("Machinefile provided - overriding "
+                               "procs/nodes/ranks_per_node")
             return None, None, None
 
         if not num_procs:
@@ -292,20 +293,14 @@ class JobController:
         }
         self.mpi_command = mpi_commands[Resources.get_MPI_variant()]
 
-        #self.mpi_launcher = 'srun'
-        #self.mfile = '-m arbitrary'
-        #self.nprocs = '--ntasks'
-        #self.nnodes = '--nodes'
-        #self.ppn = '--ntasks-per-node'
-        #self.hostlist = '-w'
-
         #Job controller settings - can be set in user function.
         self.kill_signal = 'SIGTERM'
-        self.wait_and_kill = True #If true - wait for wait_time after signal and then kill with SIGKILL
+        self.wait_and_kill = True
         self.wait_time = 60
 
         #list_of_jobs: Need to decide on reset... - reset for each calc?
-        #and how link to libe job (or calc) class - if reset for each calc - could store this in job
+        #and how link to libe job (or calc) class - if reset for each calc -
+        #could store this in job
         self.list_of_jobs = []
         self.workerID = None
 
@@ -315,7 +310,8 @@ class JobController:
 
         #self.resources = Resources(top_level_dir = self.top_level_dir)
 
-        #If this could share multiple launches could set default job parameters here (nodes/ranks etc...)
+        #If this could share multiple launches could set default job parameters
+        #here (nodes/ranks etc...)
 
 
     # May change job_controller launch functions to use **kwargs and then init job empty - and use setattr
@@ -386,7 +382,7 @@ class JobController:
         ranks_per_node are provided, these will be honored if
         possible. If resource detection is on and these are omitted,
         then the available resources will be divided amongst workers.
-"""
+        """
 
         app = self.registry.default_app(calc_type)
         jassert(calc_type in ['sim', 'gen'],
@@ -431,7 +427,8 @@ class JobController:
         #Temporary perhaps - though when create workdirs - will probably keep
         #output in place
         if stage_inout is not None:
-            logger.warning('stage_inout option ignored in this job_controller - runs in-place')
+            logger.warning("stage_inout option ignored in this "
+                           "job_controller - runs in-place")
 
         runline = launcher.form_command(self.mpi_command, vars(job))
         runline.append(job.app.full_path)
@@ -477,7 +474,7 @@ class JobController:
                 "Polled job {} has no process ID - check jobs been launched".
                 format(job.name))
         # Do not poll if job already finished
-        # Maybe should re-poll job to check (in case self.finished set in error!)???
+        # Maybe should re-poll to check (in case self.finished set in error!)???
         if job.finished:
             logger.warning("Polled job {} has already finished. "
                            "Not re-polling. Status is {}".
@@ -490,29 +487,18 @@ class JobController:
         poll = job.process.poll()
         if poll is None:
             job.state = 'RUNNING'
-        else:
-            job.finished = True
-            #logger.debug("Process {} Completed".format(job.process))
+            return
 
-            job.calc_job_timing()
+        job.finished = True
+        job.calc_job_timing()
 
-            if job.process.returncode == 0:
-                job.success = True
-                job.errcode = 0
-                #logger.debug("Process {} completed successfully".format(job.process))
-                logger.debug("Job {} completed successfully".format(job.name))
-                job.state = 'FINISHED'
-            else:
-                #Need to differentiate failure from if job was user-killed !!!! What if remotely???
-                #If this process killed the job it will already be set and if not re-polling will not get here.
-                #But could query existing state here as backup?? - Also may add a REMOTE_KILL state???
-                #Not yet remote killing so assume failed....
-                job.errcode = job.process.returncode
-                logger.debug("Job {} failed".format(job.name))
-                job.state = 'FAILED'
+        # Want to be more fine-grained about non-success (fail vs user kill?)
+        job.errcode = job.process.returncode
+        job.success = (job.errcode == 0)
+        job.state = 'FINISHED' if job.success else 'FAILED'
+        logger.debug("Job {} completed with errcode {} ({})".
+                     format(job.name, job.errcode, job.state))
 
-        #Just updates job as provided
-        #return job
 
     def manager_poll(self, job):
         """ Polls for a manager signal
@@ -529,7 +515,8 @@ class JobController:
         """
 
         #Will use MPI_MODE from settings.py but for now assume MPI
-        from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+        from libensemble.message_numbers import \
+            STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
         from mpi4py import MPI
 
         # Manager Signals
@@ -544,7 +531,8 @@ class JobController:
             elif man_signal == MAN_SIGNAL_KILL:
                 job.manager_signal = 'kill'
             else:
-                logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
+                logger.warning("Received unrecognized manager signal {} - "
+                               "ignoring".format(man_signal))
 
 
     def kill(self, job):
@@ -567,13 +555,15 @@ class JobController:
         jassert(isinstance(job, Job), "Invalid job has been provided")
 
         if job.finished:
-            logger.warning('Trying to kill job that is no longer running. Job {}: Status is {}'.format(job.name, job.state))
+            logger.warning("Trying to kill job that is no longer running. "
+                           "Job {}: Status is {}".format(job.name, job.state))
             return
 
         if job.process is None:
             time.sleep(0.2)
             jassert(job.process is not None,
-                    "Attempting to kill job {} that has no process ID - check jobs been launched".format(job.name))
+                    "Attempting to kill job {} that has no process ID - "
+                    "check jobs been launched".format(job.name))
 
         logger.debug("Killing job {}".format(job.name))
 
@@ -615,7 +605,9 @@ class JobController:
             sending a SIGKILL when wait_and_kill is set.  (Default is 60).
         """
         if signal is not None:
-            jassert(signal in SIGNALS, "Unknown signal {} supplied to set_kill_mode".format(signal))
+            jassert(signal in SIGNALS,
+                    "Unknown signal {} supplied to set_kill_mode".
+                    format(signal))
             self.kill_signal = signal
 
         if wait_and_kill is not None:
@@ -624,7 +616,7 @@ class JobController:
         if wait_time is not None:
             self.wait_time = wait_time
             if not wait_and_kill:
-                logger.warning('wait_time set but will have no effect while wait_and_kill is False')
+                logger.warning('wait_time does nothing if wait_and_kill=False')
 
 
     def get_job(self, jobid):
@@ -635,7 +627,8 @@ class JobController:
                     return job
             logger.warning("Job {} not found in joblist".format(jobid))
             return None
-        logger.warning("Job {} not found in joblist. Joblist is empty".format(jobid))
+        logger.warning("Job {} not found in joblist. Joblist is empty".
+                       format(jobid))
         return None
 
 
@@ -723,7 +716,9 @@ class JobController:
                 format(num_procs, cores_avail_per_node*local_node_count))
 
         if num_nodes < local_node_count:
-            logger.warning("User constraints mean fewer nodes being used than available. {} nodes used. {} nodes available".format(num_nodes, local_node_count))
+            logger.warning("User constraints mean fewer nodes being used "
+                           "than available. {} nodes used. {} nodes available".
+                           format(num_nodes, local_node_count))
 
         return num_procs, num_nodes, ranks_per_node
 
@@ -899,7 +894,8 @@ class BalsamJobController(JobController):
 
         # Do not poll if job already finished
         if job.finished:
-            logger.warning('Polled job has already finished. Not re-polling. Status is {}'.format(job.state))
+            logger.warning("Polled job has already finished. Not re-polling. "
+                           "Status is {}".format(job.state))
             return
 
         #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
