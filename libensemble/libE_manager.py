@@ -47,6 +47,13 @@ def filter_nans(array):
     return array[~np.isnan(array)]
 
 
+_WALLCLOCK_MSG = """
+Termination due to elapsed_wallclock_time has occurred.
+A last attempt has been made to receive any completed work.
+Posting nonblocking receives and kill messages for all active workers.
+"""
+
+
 class Manager:
     """Manager class for libensemble."""
 
@@ -177,9 +184,9 @@ class Manager:
     def _check_work_order(self, Work, w):
         """Check validity of an allocation function order.
         """
-        assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
+        assert w != 0, "Can't send to worker 0; this is the manager."
         assert self.W[w-1]['active'] == 0, \
-          "Allocation function requested work to an already active worker. Aborting"
+          "Allocation function requested work to an already active worker."
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
@@ -224,7 +231,8 @@ class Manager:
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
+          "Aborting, Unknown calculation type received. " \
+          "Received type: {}".format(calc_type)
         assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                                FINISHED_PERSISTENT_GEN_TAG,
                                UNSET_TAG,
@@ -235,7 +243,8 @@ class Manager:
                                WORKER_KILL,
                                JOB_FAILED,
                                WORKER_DONE], \
-          'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
+          "Aborting: Unknown calculation status received. " \
+          "Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
         """Receive calculation output from workers. Loops over all
@@ -333,21 +342,15 @@ class Manager:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
                 self._print_wallclock_term()
+                print(_WALLCLOCK_MSG)
+                sys.stdout.flush()
+                sys.stderr.flush()
                 self._read_final_messages()
                 exit_flag = 2
 
         self._kill_workers()
         print("\nlibEnsemble manager total time:", self.elapsed())
         return persis_info, exit_flag
-
-    @staticmethod
-    def _print_wallclock_term():
-        """Print termination message for wall clock elapsed."""
-        print("Termination due to elapsed_wallclock_time has occurred.\n"\
-              "A last attempt has been made to receive any completed work.\n"\
-              "Posting nonblocking receives and kill messages for all active workers\n")
-        sys.stdout.flush()
-        sys.stderr.flush()
 
     # --- Main loop
 
