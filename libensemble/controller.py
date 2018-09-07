@@ -76,7 +76,7 @@ class Job:
         self.launch_time = None
         self.runtime = None
         self.total_time = None
-        self.manager_signal = 'none'
+        #self.manager_signal = 'none'
 
         #Run attributes
         self.app = app
@@ -303,6 +303,7 @@ class JobController:
 
         self.top_level_dir = os.getcwd()
         self.auto_resources = auto_resources
+        self.manager_signal = 'none'
 
         if self.auto_resources:
             self.resources = Resources(top_level_dir=self.top_level_dir,
@@ -584,21 +585,12 @@ class JobController:
         #Just updates job as provided
         #return job
 
-    def manager_poll(self, job):
+    def manager_poll(self):
         ''' Polls for a manager signal
 
-        Parameters
-        -----------
-
-        job: obj: Job
-            The job object.to be polled.
-
-
-        The job status attribute job.manager_signal will be updated.
+        The job controller manager_signal attribute will be updated.
 
         '''
-
-        #Will use MPI_MODE from settings.py but for now assume MPI
         from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
         from mpi4py import MPI
 
@@ -607,12 +599,12 @@ class JobController:
         comm = MPI.COMM_WORLD
         status = MPI.Status()
         if comm.Iprobe(source=0, tag=STOP_TAG, status=status):
-            logger.info('Manager probe hit true during job {}'.format(job.name))
+            logger.info('Manager probe hit true')
             man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
             if man_signal == MAN_SIGNAL_FINISH:
-                job.manager_signal = 'finish'
+                self.manager_signal = 'finish'
             elif man_signal == MAN_SIGNAL_KILL:
-                job.manager_signal = 'kill'
+                self.manager_signal = 'kill'
             else:
                 logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
 

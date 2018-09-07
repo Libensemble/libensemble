@@ -17,8 +17,8 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
         time.sleep(delay)
 
         #print('Probing manager at time: ', time.time() - start)
-        jobctl.manager_poll(job)
-        if job.manager_signal == 'finish':
+        jobctl.manager_poll()
+        if jobctl.manager_signal == 'finish':
             jobctl.kill(job)
             calc_status = MAN_SIGNAL_FINISH # Worker will pick this up and close down
             print('Job {} killed by manager on worker {}'.format(job.id,jobctl.workerID))
