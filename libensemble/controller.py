@@ -892,7 +892,8 @@ class BalsamJobController(JobController):
 
         self.top_level_dir = os.getcwd()
         self.auto_resources = auto_resources
-
+        self.manager_signal = 'none'
+        
         if self.auto_resources:
             self.resources = Resources(top_level_dir=self.top_level_dir, central_mode=True,
                                        nodelist_env_slurm=nodelist_env_slurm,
