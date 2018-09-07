@@ -21,7 +21,8 @@ from libensemble.register import Register
 from libensemble.resources import Resources
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#For debug messages in this module  - uncomment
+#(see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
 STATES = """
@@ -142,54 +143,6 @@ class Job:
             self.total_time = self.runtime
 
 
-class BalsamJob(Job):
-    """Wraps a Balsam Job from the Balsam service.
-
-    The same attributes and query routines are implemented.
-
-    """
-
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
-                 ranks_per_node=None, machinefile=None, hostlist=None,
-                 workdir=None, stdout=None, workerid=None):
-        """Instantiate a new BalsamJob instance.
-
-        A new BalsamJob object is created with an id, status and
-        configuration attributes.  This will normally be created by the
-        job_controller on a launch.
-        """
-
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node,
-                         machinefile, hostlist, workdir, stdout, workerid)
-
-        self.balsam_state = None
-
-        #prob want to override workdir attribute with Balsam value -
-        #though does it exist yet?
-        #self.workdir = None #Don't know until starts running
-        self.workdir = workdir #Default for libe now is to run in place.
-
-
-    def read_file_in_workdir(self, filename):
-        return self.process.read_file_in_workdir(filename)
-
-    def read_stdout(self):
-        return self.process.read_file_in_workdir(self.stdout)
-
-    def calc_job_timing(self):
-        """Calculate timing information for this job"""
-
-        #Get runtime from Balsam
-        self.runtime = self.process.runtime_seconds
-
-        if self.launch_time is None:
-            logger.warning("Cannot calc job total_time - launch time not set")
-            return
-
-        if self.total_time is None:
-            self.total_time = time.time() - self.launch_time
-
-
 class JobController:
     """The job_controller can create, poll and kill runnable jobs
 
@@ -278,11 +231,6 @@ class JobController:
                                        nodelist_env_slurm=nodelist_env_slurm,
                                        nodelist_env_cobalt=nodelist_env_cobalt)
 
-        #todo Configure by autodetection
-        #In fact it will be a sub-object - most likely with inheritance - based
-        #on detection or specification.  Also the construction of the run-line
-        #itself will prob. be a function of that object.  For now though - do
-        #like this:
         mpi_commands = {
             'mpich':   ['mpirun', '--env {env}', '-machinefile {machinefile}',
                         '-hosts {hostlist}', '-np {num_procs}',
@@ -292,40 +240,13 @@ class JobController:
                         '-npernode {ranks_per_node}'],
         }
         self.mpi_command = mpi_commands[Resources.get_MPI_variant()]
-
-        #Job controller settings - can be set in user function.
         self.kill_signal = 'SIGTERM'
         self.wait_and_kill = True
         self.wait_time = 60
-
-        #list_of_jobs: Need to decide on reset... - reset for each calc?
-        #and how link to libe job (or calc) class - if reset for each calc -
-        #could store this in job
         self.list_of_jobs = []
         self.workerID = None
-
-        #self.auto_machinefile = True #Create a machinefile automatically
-
         JobController.controller = self
 
-        #self.resources = Resources(top_level_dir = self.top_level_dir)
-
-        #If this could share multiple launches could set default job parameters
-        #here (nodes/ranks etc...)
-
-
-    # May change job_controller launch functions to use **kwargs and then init job empty - and use setattr
-    #eg. To pass through args:
-    #def launch(**kwargs):
-    #...
-    #job = Job()
-    #for k,v in kwargs.items():
-    #try:
-        #getattr(job, k)
-    #except AttributeError:
-        #raise ValueError(f"Invalid field {}".format(k)) #Unless not passing through all
-    #else:
-        #setattr(job, k, v)
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
@@ -390,13 +311,12 @@ class JobController:
         jassert(app, "Default {} app is not set".format(calc_type))
 
 
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
+        #-------- Up to here should be common - can go in a baseclass ------#
         hostlist = None
         if machinefile is None and self.auto_resources:
 
             #kludging this for now - not nec machinefile if more than one node
             #- try a hostlist
-
             num_procs, num_nodes, ranks_per_node = \
               self.get_resources(num_procs=num_procs, num_nodes=num_nodes,
                                  ranks_per_node=ranks_per_node,
@@ -420,12 +340,10 @@ class JobController:
               JobController.job_partition(num_procs, num_nodes,
                                           ranks_per_node, machinefile)
 
-        default_workdir = os.getcwd() # May override with arg when implemented
+        default_workdir = os.getcwd()
         job = Job(app, app_args, num_procs, num_nodes, ranks_per_node,
                   machinefile, hostlist, default_workdir, stdout, self.workerID)
 
-        #Temporary perhaps - though when create workdirs - will probably keep
-        #output in place
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this "
                            "job_controller - runs in-place")
@@ -441,12 +359,7 @@ class JobController:
         else:
             logger.debug("Launching job {}: {}".
                          format(job.name, " ".join(runline))) #One line
-
-            #not good for timing job itself as dont know when finishes - if use
-            #this prob. change to date time or use for timeout. For now using
-            #for timing with approx end....
             job.launch_time = time.time()
-
             job.process = launcher.launch(runline, cwd='./',
                                           stdout=open(job.stdout, 'w'),
                                           start_new_session=True)
@@ -467,21 +380,16 @@ class JobController:
         """
 
         jassert(isinstance(job, Job), "Invalid job has been provided")
-
-        # Check the jobs been launched (i.e. it has a process ID)
-        #Prob should be recoverable and return state - but currently fatal
         jassert(job.process is not None,
                 "Polled job {} has no process ID - check jobs been launched".
                 format(job.name))
-        # Do not poll if job already finished
-        # Maybe should re-poll to check (in case self.finished set in error!)???
         if job.finished:
             logger.warning("Polled job {} has already finished. "
                            "Not re-polling. Status is {}".
                            format(job.name, job.state))
             return
 
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
+        #-------- Up to here should be common - can go in a baseclass ------#
 
         # Poll the job
         poll = job.process.poll()
@@ -582,10 +490,6 @@ class JobController:
         job.finished = True
         job.calc_job_timing()
 
-        #Need to test out what to do with
-        #job.errcode #Can it be discovered after killing?
-        #job.success #Could set to false but should be already - only set to true on success
-
 
     def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
         """Configures the kill mode for the job_controller
@@ -664,7 +568,8 @@ class JobController:
 
         if num_workers > local_node_count:
             workers_per_node = self.resources.workers_per_node
-            cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
+            cores_avail_per_node_per_worker = \
+              cores_avail_per_node//workers_per_node
         else:
             cores_avail_per_node_per_worker = cores_avail_per_node
 
@@ -723,14 +628,11 @@ class JobController:
         return num_procs, num_nodes, ranks_per_node
 
 
-
     def create_machinefile(self, machinefile=None, num_procs=None,
                            num_nodes=None, ranks_per_node=None,
                            hyperthreads=False):
         """Create a machinefile based on user supplied config options,
         completed by detected machine resources"""
-
-        #Maybe hyperthreads should be mpi_hyperthreads
 
         machinefile = machinefile or 'machinefile'
         if os.path.isfile(machinefile):
@@ -740,7 +642,6 @@ class JobController:
                 pass
 
         node_list = self.resources.local_nodelist
-
         logger.debug("Creating machinefile with {} nodes and {} ranks per node".
                      format(num_nodes, ranks_per_node))
 
@@ -748,219 +649,14 @@ class JobController:
             for node in node_list[:num_nodes]:
                 f.write((node + '\n') * ranks_per_node)
 
-        #Return true if created and not empty
         built_mfile = (os.path.isfile(machinefile)
                        and os.path.getsize(machinefile) > 0)
         return built_mfile, num_procs, num_nodes, ranks_per_node
 
-    #will prob want to adjust based on input
-    #def get_hostlist(self, machinefile=None, num_procs=None, num_nodes=None, ranks_per_node=None, hyperthreads=False):
+
     def get_hostlist(self):
         """Create a hostlist based on user supplied config options,
         completed by detected machine resources"""
         node_list = self.resources.local_nodelist
         hostlist_str = ",".join([str(x) for x in node_list])
         return hostlist_str
-
-
-class BalsamJobController(JobController):
-    """Inherits from JobController and wraps the Balsam job management service
-
-    .. note::  Job kills are currently not configurable in the Balsam job_controller.
-
-    The set_kill_mode function will do nothing but print a warning.
-
-    """
-
-    #controller = None
-
-    def __init__(self, registry=None, auto_resources=True,
-                 nodelist_env_slurm=None, nodelist_env_cobalt=None):
-        """Instantiate a new BalsamJobController instance.
-
-        A new BalsamJobController object is created with an application
-        registry and configuration attributes
-        """
-
-        #Will use super - atleast if use baseclass - but for now dont want to set self.mpi_launcher etc...
-
-        self.registry = registry or Register.default_registry
-        jassert(self.registry, "Cannot find default registry")
-
-        self.top_level_dir = os.getcwd()
-        self.auto_resources = auto_resources
-
-        if self.auto_resources:
-            self.resources = Resources(top_level_dir=self.top_level_dir, central_mode=True,
-                                       nodelist_env_slurm=nodelist_env_slurm,
-                                       nodelist_env_cobalt=nodelist_env_cobalt)
-
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-
-        self.list_of_jobs = [] #Why did I put here? Will inherit
-
-        #self.auto_machinefile = False #May in future use the auto_detect part though - to fill in procs/nodes/ranks_per_node
-
-        JobController.controller = self
-        #BalsamJobController.controller = self
-
-
-    def launch(self, calc_type, num_procs=None, num_nodes=None,
-               ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stage_inout=None, hyperthreads=False, test=False):
-        """Creates a new job, and either launches or schedules to launch
-        in the job controller
-
-        The created job object is returned.
-        """
-        import balsam.launcher.dag as dag
-
-        app = self.registry.default_app(calc_type)
-        jassert(calc_type in ['sim', 'gen'],
-                "Unrecognized calculation type", calc_type)
-        jassert(app, "Default {} app is not set".format(calc_type))
-
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-
-        #Need test somewhere for if no breakdown supplied.... or only machinefile
-
-        #Specific to this class
-        if machinefile is not None:
-            logger.warning("machinefile arg ignored - not supported in Balsam")
-            jassert(num_procs or num_nodes or ranks_per_node,
-                    "No procs/nodes provided - aborting")
-
-
-        #Set num_procs, num_nodes and ranks_per_node for this job
-
-        #Without resource detection
-        #num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
-
-        #With resource detection (may do only if under-specified?? though that will not tell if larger than possible
-        #for static allocation - but Balsam does allow dynamic allocation if too large!!
-        #For now allow user to specify - but default is True....
-        if self.auto_resources:
-            num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
-        else:
-            #Without resource detection
-            num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
-
-        #temp - while balsam does not accept a standard out name
-        if stdout is not None:
-            logger.warning("Balsam does not currently accept a stdout name - ignoring")
-            stdout = None
-
-        #Will be possible to override with arg when implemented (or can have option to let Balsam assign)
-        default_workdir = os.getcwd()
-
-        hostlist = None
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
-
-        #This is not used with Balsam for run-time as this would include wait time
-        #Again considering changing launch to submit - or whatever I chose before.....
-        job.launch_time = time.time() #Not good for timing job - as I dont know when it finishes - only poll/kill est.
-
-        add_job_args = {'name': job.name,
-                        'workflow': "libe_workflow", #add arg for this
-                        'user_workdir': default_workdir, #add arg for this
-                        'application': app.name,
-                        'args': job.app_args,
-                        'num_nodes': job.num_nodes,
-                        'ranks_per_node': job.ranks_per_node}
-
-        if stage_inout is not None:
-            #For now hardcode staging - for testing
-            add_job_args['stage_in_url'] = "local:" + stage_inout + "/*"
-            add_job_args['stage_out_url'] = "local:" + stage_inout
-            add_job_args['stage_out_files'] = "*.out"
-
-        job.process = dag.add_job(**add_job_args)
-
-        logger.debug("Added job to Balsam database {}: Worker {} nodes {} ppn {}".format(job.name, self.workerID, job.num_nodes, job.ranks_per_node))
-
-        #job.workdir = job.process.working_directory #Might not be set yet!!!!
-        self.list_of_jobs.append(job)
-        return job
-
-
-    def poll(self, job):
-        """Polls and updates the status attributes of the supplied job"""
-        jassert(isinstance(job, BalsamJob), "Invalid job has been provided")
-
-        # Check the jobs been launched (i.e. it has a process ID)
-        #Prob should be recoverable and return state - but currently fatal
-        jassert(job.process, "Polled job has no process ID - check jobs been launched")
-
-        # Do not poll if job already finished
-        if job.finished:
-            logger.warning("Polled job has already finished. Not re-polling. "
-                           "Status is {}".format(job.state))
-            return
-
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-
-        # Get current state of jobs from Balsam database
-        job.process.refresh_from_db()
-        job.balsam_state = job.process.state #Not really nec to copy have balsam_state - already job.process.state...
-        #logger.debug('balsam_state for job {} is {}'.format(job.id, job.balsam_state))
-
-        import balsam.launcher.dag as dag #Might need this before get models - test
-        from balsam.service import models
-
-        if job.balsam_state in models.END_STATES:
-            job.finished = True
-
-            job.calc_job_timing()
-
-            if job.workdir is None:
-                job.workdir = job.process.working_directory
-            if job.balsam_state == 'JOB_FINISHED':
-                job.success = True
-                job.state = 'FINISHED'
-            elif job.balsam_state == 'PARENT_KILLED': #I'm not using this currently
-                job.state = 'USER_KILLED'
-                #job.success = False #Shld already be false - init to false
-                #job.errcode = #Not currently returned by Balsam API - requested - else will remain as None
-            elif job.balsam_state in STATES: #In my states
-                job.state = job.balsam_state
-                #job.success = False #All other end states are failrues currently - bit risky
-                #job.errcode = #Not currently returned by Balsam API - requested - else will remain as None
-            else:
-                logger.warning("Job finished, but in unrecognized Balsam state {}".format(job.balsam_state))
-                job.state = 'UNKNOWN'
-
-        elif job.balsam_state in models.ACTIVE_STATES:
-            job.state = 'RUNNING'
-            if job.workdir is None:
-                job.workdir = job.process.working_directory
-
-        elif job.balsam_state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
-            job.state = 'WAITING'
-        else:
-            raise JobControllerException('Job state returned from Balsam is not in known list of Balsam states. Job state is {}'.format(job.balsam_state))
-
-        # DSB: With this commented out, number of return args is inconsistent (returns job above)
-        #return job
-
-    def kill(self, job):
-        """ Kills or cancels the supplied job """
-
-        jassert(isinstance(job, BalsamJob), "Invalid job has been provided")
-
-        import balsam.launcher.dag as dag
-        dag.kill(job.process)
-
-        #Could have Wait here and check with Balsam its killed - but not implemented yet.
-
-        job.state = 'USER_KILLED'
-        job.finished = True
-        job.calc_job_timing()
-
-        #Check if can wait for kill to complete - affect signal used etc....
-
-    def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        """Not currently implemented for BalsamJobController.
-
-        No action is taken
-        """
-        logger.warning("set_kill_mode currently has no action with Balsam controller")

@@ -16,6 +16,7 @@ def build_simfunc():
 
 from libensemble.register import *
 from libensemble.controller import *
+from libensemble.balsam_controller import *
 
 #sim_app = 'simdir/my_simjob.x'
 #gen_app = 'gendir/my_genjob.x'

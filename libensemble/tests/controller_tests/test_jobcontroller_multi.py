@@ -18,7 +18,8 @@ def build_simfunc():
 #--------------- Calling script ---------------------------------------------------------------
 
 from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController, BalsamJobController
+from libensemble.controller import JobController
+from libensemble.baslam_controller import BalsamJobController
 
 #sim_app = 'simdir/my_simjob.x'
 #gen_app = 'gendir/my_genjob.x'

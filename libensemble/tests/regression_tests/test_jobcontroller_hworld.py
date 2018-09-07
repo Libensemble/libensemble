@@ -10,7 +10,8 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController, BalsamJobController
+from libensemble.controller import JobController
+from libensemble.balsam_controller import BalsamJobController
 from libensemble.calc_info import CalcInfo
 from libensemble.resources import Resources
 from libensemble.message_numbers import *
