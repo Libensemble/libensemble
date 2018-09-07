@@ -5,7 +5,7 @@ The Job Controller module can be used by the worker or user-side code to issue a
 
 At the top-level calling script, a registry and job_controller are created and the executable gen or sim applications are registered to these (these are applications that will be runnable parallel jobs). If an alternative job_controller, such as Balsam, is to be used, then these can be created as in the example. Once in the user-side worker code (sim/gen func), the job_controller can be retrieved without any need to specify the type.
 
-**Example usage (code runnable with or without Balsam backend):**
+**Example usage (code runnable with or without a Balsam backend):**
 
 In calling function::
 
