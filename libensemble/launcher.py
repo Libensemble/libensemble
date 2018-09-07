@@ -51,8 +51,6 @@ def launch(cmd_template, specs=None, **kwargs):
 def killpg(process):
     "Kill the process (and group if it is group leader)."
     try:
-        if process.poll() is not None:
-            return False
         pid = process.pid
         pgid = os.getpgid(pid) if hasattr(os, 'killpg') else -1
         if pgid == pid:
@@ -67,8 +65,6 @@ def killpg(process):
 def terminatepg(process):
     "Send termination signal to the process (and group if it is group leader)"
     try:
-        if process.poll() is not None:
-            return False
         pid = process.pid
         pgid = os.getpgid(pid) if hasattr(os, 'killpg') else -1
         if pgid == pid:
