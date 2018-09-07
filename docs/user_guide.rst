@@ -16,8 +16,8 @@ three routines:
 Example sim_f, gen_f, and alloc_f routines can be found in the
 ``examples/sim_funcs/``, ``examples/gen_funcs/``, and ``examples/alloc_funcs/`` directories,
 respectively. Examples of scripts used for calling libEnsemble can be found in
-``examples/calling_scripts/``. To enable portability, a job_controller interface is
-supplied for users to launch and monitor jobs in their user-provided sim_f and
+``examples/calling_scripts/``. To enable portability, a :doc:`job_controller<job_controller/overview>` 
+interface is supplied for users to launch and monitor jobs in their user-provided sim_f and
 gen_f routines.
 
 The default alloc_f tells each available worker to call sim_f with the highest
