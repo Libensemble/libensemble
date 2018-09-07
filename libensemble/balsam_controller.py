@@ -20,7 +20,7 @@ import libensemble.launcher as launcher
 from libensemble.register import Register
 from libensemble.resources import Resources
 from libensemble.controller import \
-     Job, JobController, JobControllerException, jassert, STATES, SIGNALS
+     Job, JobController, JobControllerException, jassert, STATES
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)

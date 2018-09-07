@@ -332,7 +332,7 @@ def test_doublekill():
     args_for_sim = 'sleep 2.0'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     jobctl.poll(job)
-    jobctl.set_kill_mode(wait_and_kill=True, wait_time=5)
+    jobctl.wait_time = 5
 
     jobctl.kill(job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
@@ -377,7 +377,7 @@ def test_launch_and_kill():
     cores = NCORES
     args_for_sim = 'sleep 2.0'
     job_list = []
-    jobctl.set_kill_mode(wait_and_kill=True, timeout=1)
+    jobctl.wait_time = 1
     for jobid in range(5):
         job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
         jobctl.kill(job)
@@ -512,46 +512,6 @@ def test_poll_job_with_no_launch():
         assert 0
 
 
-def test_set_kill_mode():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
-    setup_job_controller()
-    jobctl = JobController.controller
-    cores = NCORES
-
-    signal_b4 = jobctl.kill_signal
-    wait_and_kill_b4 = jobctl.wait_and_kill
-    wait_time_b4 = jobctl.wait_time
-
-    # Change nothing.
-    jobctl.set_kill_mode()
-    assert jobctl.kill_signal == signal_b4
-    assert jobctl.wait_and_kill == wait_and_kill_b4
-    assert jobctl.wait_time == wait_time_b4
-
-    # While these options are set - wait_time will not be used. Result is warning.
-    jobctl.set_kill_mode(signal='SIGKILL', wait_and_kill=False, wait_time=10)
-    assert jobctl.kill_signal == 'SIGKILL'
-    assert not jobctl.wait_and_kill
-    assert jobctl.wait_time == 10
-
-    # Now correct
-    jobctl.set_kill_mode(signal='SIGTERM', wait_and_kill=True, wait_time=20)
-    assert jobctl.kill_signal == 'SIGTERM'
-    assert jobctl.wait_and_kill
-    assert jobctl.wait_time == 20
-
-    #Todo:
-    #Testing wait_and_kill is harder - need to create a process that does not respond to sigterm in time.
-
-    # Try set to unknown signal
-    try:
-        jobctl.set_kill_mode(signal='SIGDIE')
-    except:
-        assert 1
-    else:
-        assert 0
-
-
 def test_job_failure():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
@@ -582,7 +542,6 @@ if __name__ == "__main__":
     test_launch_no_app()
     test_kill_job_with_no_launch()
     test_poll_job_with_no_launch()
-    test_set_kill_mode()
     test_job_failure()
     #teardown_module(__file__)
 

@@ -34,13 +34,6 @@ FINISHED
 USER_KILLED
 FAILED""".split()
 
-SIGNALS = """
-SIGTERM
-SIGKILL""".split()
-
-
-#I may want to use a top-level abstract/base class for maximum re-use
-# - else inherited controller will be reimplementing common code
 
 class JobControllerException(Exception): pass
 
@@ -240,8 +233,6 @@ class JobController:
                         '-npernode {ranks_per_node}'],
         }
         self.mpi_command = mpi_commands[Resources.get_MPI_variant()]
-        self.kill_signal = 'SIGTERM'
-        self.wait_and_kill = True
         self.wait_time = 60
         self.list_of_jobs = []
         self.workerID = None
@@ -452,12 +443,10 @@ class JobController:
         job: obj: Job
             The job object.to be polled.
 
-        The signal used is determined by the job_controller attribute
-        <kill_signal> will be send to the job, followed by a wait for
-        the process to terminate. If the <wait_and_kill> attribute is
-        True, then a SIGKILL will be sent if the job has not finished
-        after <wait_time> seconds. The kill can be configured using the
-        set_kill_mode function.
+        Sends SIGTERM, waits for a period of <wait_time> for graceful
+        termination, then sends a hard kill with SIGKILL.  If <wait_time>
+        is 0, we go immediately to SIGKILL; if <wait_time> is None, we
+        never do a SIGKILL.
         """
 
         jassert(isinstance(job, Job), "Invalid job has been provided")
@@ -474,53 +463,10 @@ class JobController:
                     "check jobs been launched".format(job.name))
 
         logger.debug("Killing job {}".format(job.name))
-
-        jassert(self.kill_signal in ['SIGTERM', 'SIGKILL'],
-                "Unknown kill signal")
-
-        timeout = 0                       # Default is to just kill and wait
-        if self.kill_signal == 'SIGTERM': # For a graceful kill
-            timeout = None                # Terminate and just wait
-            if self.wait_and_kill:        # Or if we want to wait and kill...
-                timeout = self.wait_time  # Set a timeout
-
-        launcher.cancel(job.process, timeout)
-
+        launcher.cancel(job.process, self.wait_time)
         job.state = 'USER_KILLED'
         job.finished = True
         job.calc_job_timing()
-
-
-    def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        """Configures the kill mode for the job_controller
-
-        Parameters
-        ----------
-
-        signal: String, optional
-            The signal type to be sent to kill job: 'SIGTERM' or 'SIGKILL'
-
-        wait_and_kill: boolean, optional
-            If True, a SIGKILL will be sent after <wait_time> seconds if
-            the process has not terminated.
-
-        wait_time: int, optional
-            The number of seconds to wait for the job to finish before
-            sending a SIGKILL when wait_and_kill is set.  (Default is 60).
-        """
-        if signal is not None:
-            jassert(signal in SIGNALS,
-                    "Unknown signal {} supplied to set_kill_mode".
-                    format(signal))
-            self.kill_signal = signal
-
-        if wait_and_kill is not None:
-            self.wait_and_kill = wait_and_kill
-
-        if wait_time is not None:
-            self.wait_time = wait_time
-            if not wait_and_kill:
-                logger.warning('wait_time does nothing if wait_and_kill=False')
 
 
     def get_job(self, jobid):
