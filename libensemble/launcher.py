@@ -70,6 +70,7 @@ def terminatepg(process):
         if pgid == pid:
             # Claim in original controller was that we need a wait --
             # have not seen this anywhere else in my searching...
+            time.sleep(0.1)
             os.killpg(pgid, signal.SIGTERM)
         elif hasattr(signal, 'CTRL_BREAK_EVENT'):
             # Supposedly does a group terminate for Windows...
