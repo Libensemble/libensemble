@@ -66,6 +66,8 @@ class Job:
         self.errcode = None
         self.finished = False  # True means job ran, not that it succeeded
         self.success = False
+
+        # Note: runtime, total_time, and time since launch may differ!
         self.launch_time = None
         self.runtime = None
         self.total_time = None
@@ -119,9 +121,6 @@ class Job:
         """Open and reads the job's stderr file in the job's workdir"""
         return self.read_file_in_workdir(self.stderr)
 
-    #Note - this is currently only final job-time. May make running job time.
-    #And prob want to use for polling in sim func - esp in balsam -
-    #where want acutal runtime not time since launch
     def calc_job_timing(self):
         """Calculate timing information for this job"""
         if self.launch_time is None:
@@ -485,22 +484,17 @@ class JobController:
         raised if these are infeasible.
         """
 
-        node_list = self.resources.local_nodelist
+        resources = self.resources
+        node_list = resources.local_nodelist
+        num_workers = resources.num_workers
+        local_node_count = resources.local_node_count
 
-        if hyperthreads:
-            cores_avail_per_node = self.resources.logical_cores_avail_per_node
-        else:
-            cores_avail_per_node = self.resources.physical_cores_avail_per_node
-
-        num_workers = self.resources.num_workers
-        local_node_count = self.resources.local_node_count
-
-        if num_workers > local_node_count:
-            workers_per_node = self.resources.workers_per_node
-            cores_avail_per_node_per_worker = \
-              cores_avail_per_node//workers_per_node
-        else:
-            cores_avail_per_node_per_worker = cores_avail_per_node
+        cores_avail_per_node = \
+          (resources.logical_cores_avail_per_node if hyperthreads else
+           resources.physical_cores_avail_per_node)
+        workers_per_node = \
+          (resources.workers_per_node if num_workers > local_node_count else 1)
+        cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
 
         jassert(node_list, "Node list is empty - aborting")
 
@@ -514,11 +508,7 @@ class JobController:
                          format(num_nodes, ranks_per_node))
         elif not num_nodes and not ranks_per_node:
             num_nodes = local_node_count
-            #Here is where really want a compact/scatter option - go for
-            #scatter (could get cores and say if less than one node - but then
-            #hyperthreads complication if no psutil installed)
         elif not num_procs and not ranks_per_node:
-            #Who would just put num_nodes???
             ranks_per_node = cores_avail_per_node_per_worker
         elif not num_procs and not num_nodes:
             num_nodes = local_node_count
