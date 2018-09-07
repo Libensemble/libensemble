@@ -143,21 +143,73 @@ class Job:
         if self.total_time is None:
             self.total_time = self.runtime
 
+    def poll(self):
+        """Polls and updates the status attributes of the job"""
+
+        jassert(self.process is not None,
+                "Polled job {} has no process ID - check jobs been launched".
+                format(self.name))
+        if self.finished:
+            logger.warning("Polled job {} has already finished. "
+                           "Not re-polling. Status is {}".
+                           format(self.name, self.state))
+            return
+
+        #-------- Up to here should be common - can go in a baseclass ------#
+
+        # Poll the job
+        poll = self.process.poll()
+        if poll is None:
+            self.state = 'RUNNING'
+            return
+
+        self.finished = True
+        self.calc_job_timing()
+
+        # Want to be more fine-grained about non-success (fail vs user kill?)
+        self.errcode = self.process.returncode
+        self.success = (self.errcode == 0)
+        self.state = 'FINISHED' if self.success else 'FAILED'
+        logger.debug("Job {} completed with errcode {} ({})".
+                     format(self.name, self.errcode, self.state))
+
+    def kill(self, wait_time=60):
+        """Kills or cancels the supplied job
+
+        Sends SIGTERM, waits for a period of <wait_time> for graceful
+        termination, then sends a hard kill with SIGKILL.  If <wait_time>
+        is 0, we go immediately to SIGKILL; if <wait_time> is None, we
+        never do a SIGKILL.
+        """
+        if self.finished:
+            logger.warning("Trying to kill job that is no longer running. "
+                           "Job {}: Status is {}".format(self.name, self.state))
+            return
+
+        if self.process is None:
+            time.sleep(0.2)
+            jassert(self.process is not None,
+                    "Attempting to kill job {} that has no process ID - "
+                    "check jobs been launched".format(self.name))
+
+        logger.debug("Killing job {}".format(self.name))
+        launcher.cancel(self.process, wait_time)
+        self.state = 'USER_KILLED'
+        self.finished = True
+        self.calc_job_timing()
+
 
 class JobController:
     """The job_controller can create, poll and kill runnable jobs
 
     **Class Attributes:**
 
-    :cvar JobController: controller: A class attribute holding the default job_controller.
+    :cvar JobController: controller: The default job_controller.
 
     **Object Attributes:**
 
     :ivar Register registry: The registry associated with this job_controller
-    :ivar String manager_signal: Contains any signals received by manager ('none'|'finish'|'kill')
-    :ivar String kill_signal: The kill signal to be sent to jobs
-    :ivar boolean wait_and_kill: Whether running in wait_and_kill mode (If True a hard kill will be sent after a timeout period)
-    :ivar int wait_time: Timeout period for hard kill, when wait_and_kill is set.
+    :ivar int wait_time: Timeout period for hard kill
     :ivar list list_of_jobs: A list of jobs created in this job controller
     :ivar int workerID: The workerID associated with this job controller
 
@@ -381,46 +433,6 @@ class JobController:
         return job
 
 
-    def poll(self, job):
-        """ Polls and updates the status attributes of the supplied job
-
-        Parameters
-        -----------
-
-        job: obj: Job
-            The job object.to be polled.
-
-        """
-
-        jassert(isinstance(job, Job), "Invalid job has been provided")
-        jassert(job.process is not None,
-                "Polled job {} has no process ID - check jobs been launched".
-                format(job.name))
-        if job.finished:
-            logger.warning("Polled job {} has already finished. "
-                           "Not re-polling. Status is {}".
-                           format(job.name, job.state))
-            return
-
-        #-------- Up to here should be common - can go in a baseclass ------#
-
-        # Poll the job
-        poll = job.process.poll()
-        if poll is None:
-            job.state = 'RUNNING'
-            return
-
-        job.finished = True
-        job.calc_job_timing()
-
-        # Want to be more fine-grained about non-success (fail vs user kill?)
-        job.errcode = job.process.returncode
-        job.success = (job.errcode == 0)
-        job.state = 'FINISHED' if job.success else 'FAILED'
-        logger.debug("Job {} completed with errcode {} ({})".
-                     format(job.name, job.errcode, job.state))
-
-
     def manager_poll(self):
         """ Polls for a manager signal
 
@@ -447,41 +459,6 @@ class JobController:
             else:
                 logger.warning("Received unrecognized manager signal {} - "
                                "ignoring".format(man_signal))
-
-
-    def kill(self, job):
-        """Kills or cancels the supplied job
-
-        Parameters
-        -----------
-
-        job: obj: Job
-            The job object.to be polled.
-
-        Sends SIGTERM, waits for a period of <wait_time> for graceful
-        termination, then sends a hard kill with SIGKILL.  If <wait_time>
-        is 0, we go immediately to SIGKILL; if <wait_time> is None, we
-        never do a SIGKILL.
-        """
-
-        jassert(isinstance(job, Job), "Invalid job has been provided")
-
-        if job.finished:
-            logger.warning("Trying to kill job that is no longer running. "
-                           "Job {}: Status is {}".format(job.name, job.state))
-            return
-
-        if job.process is None:
-            time.sleep(0.2)
-            jassert(job.process is not None,
-                    "Attempting to kill job {} that has no process ID - "
-                    "check jobs been launched".format(job.name))
-
-        logger.debug("Killing job {}".format(job.name))
-        launcher.cancel(job.process, self.wait_time)
-        job.state = 'USER_KILLED'
-        job.finished = True
-        job.calc_job_timing()
 
 
     def get_job(self, jobid):
@@ -621,3 +598,8 @@ class JobController:
         node_list = self.resources.local_nodelist
         hostlist_str = ",".join([str(x) for x in node_list])
         return hostlist_str
+
+    def kill(self, job):
+        "Kill a job"
+        jassert(isinstance(job, Job), "Invalid job has been provided")
+        job.kill(self.wait_time)

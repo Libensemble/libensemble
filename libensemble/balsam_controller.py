@@ -76,18 +76,85 @@ class BalsamJob(Job):
         if self.total_time is None:
             self.total_time = time.time() - self.launch_time
 
+    def poll(self):
+        """Polls and updates the status attributes of the supplied job"""
+        jassert(isinstance(self, BalsamJob), "Invalid job has been provided")
+
+        # Check the jobs been launched (i.e. it has a process ID)
+        #Prob should be recoverable and return state - but currently fatal
+        jassert(self.process, "Polled job has no process ID - check jobs been launched")
+
+        # Do not poll if job already finished
+        if self.finished:
+            logger.warning("Polled job has already finished. Not re-polling. "
+                           "Status is {}".format(self.state))
+            return
+
+        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
+
+        # Get current state of jobs from Balsam database
+        self.process.refresh_from_db()
+        self.balsam_state = self.process.state #Not really nec to copy have balsam_state - already job.process.state...
+        #logger.debug('balsam_state for job {} is {}'.format(self.id, self.balsam_state))
+
+        import balsam.launcher.dag as dag #Might need this before get models - test
+        from balsam.service import models
+
+        if self.balsam_state in models.END_STATES:
+            self.finished = True
+
+            self.calc_job_timing()
+
+            if self.workdir is None:
+                self.workdir = self.process.working_directory
+            if self.balsam_state == 'JOB_FINISHED':
+                self.success = True
+                self.state = 'FINISHED'
+            elif self.balsam_state == 'PARENT_KILLED': #I'm not using this currently
+                self.state = 'USER_KILLED'
+                #self.success = False #Shld already be false - init to false
+                #self.errcode = #Not currently returned by Balsam API - requested - else will remain as None
+            elif self.balsam_state in STATES: #In my states
+                self.state = self.balsam_state
+                #self.success = False #All other end states are failrues currently - bit risky
+                #self.errcode = #Not currently returned by Balsam API - requested - else will remain as None
+            else:
+                logger.warning("Job finished, but in unrecognized "
+                               "Balsam state {}".format(self.balsam_state))
+                self.state = 'UNKNOWN'
+
+        elif self.balsam_state in models.ACTIVE_STATES:
+            self.state = 'RUNNING'
+            if self.workdir is None:
+                self.workdir = self.process.working_directory
+
+        elif self.balsam_state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
+            self.state = 'WAITING'
+        else:
+            raise JobControllerException(
+                "Job state returned from Balsam is not in known list of "
+                "Balsam states. Job state is {}".format(self.balsam_state))
+
+
+    def kill(self, wait_time=None):
+        """ Kills or cancels the supplied job """
+
+        import balsam.launcher.dag as dag
+        dag.kill(self.process)
+
+        #Could have Wait here and check with Balsam its killed - but not implemented yet.
+
+        self.state = 'USER_KILLED'
+        self.finished = True
+        self.calc_job_timing()
+
 
 class BalsamJobController(JobController):
     """Inherits from JobController and wraps the Balsam job management service
 
-    .. note::  Job kills are currently not configurable in the Balsam job_controller.
-
-    The set_kill_mode function will do nothing but print a warning.
+    .. note::  Job kills are not configurable in the Balsam job_controller.
 
     """
-
-    #controller = None
-
     def __init__(self, registry=None, auto_resources=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new BalsamJobController instance.
@@ -95,28 +162,9 @@ class BalsamJobController(JobController):
         A new BalsamJobController object is created with an application
         registry and configuration attributes
         """
-
-        #Will use super - atleast if use baseclass - but for now dont want to set self.mpi_launcher etc...
-
-        self.registry = registry or Register.default_registry
-        jassert(self.registry, "Cannot find default registry")
-
-        self.top_level_dir = os.getcwd()
-        self.auto_resources = auto_resources
-
-        if self.auto_resources:
-            self.resources = Resources(top_level_dir=self.top_level_dir, central_mode=True,
-                                       nodelist_env_slurm=nodelist_env_slurm,
-                                       nodelist_env_cobalt=nodelist_env_cobalt)
-
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-
-        self.list_of_jobs = [] #Why did I put here? Will inherit
-
-        #self.auto_machinefile = False #May in future use the auto_detect part though - to fill in procs/nodes/ranks_per_node
-
-        JobController.controller = self
-        #BalsamJobController.controller = self
+        super().__init__(registry, auto_resources,
+                         nodelist_env_slurm, nodelist_env_cobalt)
+        self.mpi_launcher = None
 
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
@@ -198,78 +246,3 @@ class BalsamJobController(JobController):
         #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)
         return job
-
-
-    def poll(self, job):
-        """Polls and updates the status attributes of the supplied job"""
-        jassert(isinstance(job, BalsamJob), "Invalid job has been provided")
-
-        # Check the jobs been launched (i.e. it has a process ID)
-        #Prob should be recoverable and return state - but currently fatal
-        jassert(job.process, "Polled job has no process ID - check jobs been launched")
-
-        # Do not poll if job already finished
-        if job.finished:
-            logger.warning("Polled job has already finished. Not re-polling. "
-                           "Status is {}".format(job.state))
-            return
-
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
-
-        # Get current state of jobs from Balsam database
-        job.process.refresh_from_db()
-        job.balsam_state = job.process.state #Not really nec to copy have balsam_state - already job.process.state...
-        #logger.debug('balsam_state for job {} is {}'.format(job.id, job.balsam_state))
-
-        import balsam.launcher.dag as dag #Might need this before get models - test
-        from balsam.service import models
-
-        if job.balsam_state in models.END_STATES:
-            job.finished = True
-
-            job.calc_job_timing()
-
-            if job.workdir is None:
-                job.workdir = job.process.working_directory
-            if job.balsam_state == 'JOB_FINISHED':
-                job.success = True
-                job.state = 'FINISHED'
-            elif job.balsam_state == 'PARENT_KILLED': #I'm not using this currently
-                job.state = 'USER_KILLED'
-                #job.success = False #Shld already be false - init to false
-                #job.errcode = #Not currently returned by Balsam API - requested - else will remain as None
-            elif job.balsam_state in STATES: #In my states
-                job.state = job.balsam_state
-                #job.success = False #All other end states are failrues currently - bit risky
-                #job.errcode = #Not currently returned by Balsam API - requested - else will remain as None
-            else:
-                logger.warning("Job finished, but in unrecognized Balsam state {}".format(job.balsam_state))
-                job.state = 'UNKNOWN'
-
-        elif job.balsam_state in models.ACTIVE_STATES:
-            job.state = 'RUNNING'
-            if job.workdir is None:
-                job.workdir = job.process.working_directory
-
-        elif job.balsam_state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
-            job.state = 'WAITING'
-        else:
-            raise JobControllerException('Job state returned from Balsam is not in known list of Balsam states. Job state is {}'.format(job.balsam_state))
-
-        # DSB: With this commented out, number of return args is inconsistent (returns job above)
-        #return job
-
-    def kill(self, job):
-        """ Kills or cancels the supplied job """
-
-        jassert(isinstance(job, BalsamJob), "Invalid job has been provided")
-
-        import balsam.launcher.dag as dag
-        dag.kill(job.process)
-
-        #Could have Wait here and check with Balsam its killed - but not implemented yet.
-
-        job.state = 'USER_KILLED'
-        job.finished = True
-        job.calc_job_timing()
-

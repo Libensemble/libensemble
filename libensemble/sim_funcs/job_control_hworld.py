@@ -25,7 +25,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
             break
 
         #print('Polling job at time', time.time() - start)
-        jobctl.poll(job)
+        job.poll()
         if job.finished:
             break
         elif job.state == 'RUNNING':

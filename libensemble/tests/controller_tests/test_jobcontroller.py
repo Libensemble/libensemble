@@ -55,7 +55,7 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
     while time.time() - start < timeout_sec:
         time.sleep(delay)
         print('Polling at time', time.time() - start)
-        jobctl.poll(job)
+        job.poll()
         if job.finished: break
         elif job.state == 'WAITING': print('Job waiting to launch')
         elif job.state == 'RUNNING': print('Job still running ....')
@@ -83,7 +83,7 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
         if job.finished:
             print('Now killed')
             #double check
-            jobctl.poll(job)
+            job.poll()
             print('Job state is', job.state)
 
 

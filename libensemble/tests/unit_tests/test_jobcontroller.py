@@ -115,7 +115,7 @@ def polling_loop(jobctl, job, timeout_sec=0.5, delay=0.05):
     while time.time() - start < timeout_sec:
         time.sleep(delay)
         print('Polling at time', time.time() - start)
-        jobctl.poll(job)
+        job.poll()
         if job.finished: break
         elif job.state == 'WAITING': print('Job waiting to launch')
         elif job.state == 'RUNNING': print('Job still running ....')
@@ -150,8 +150,7 @@ def polling_loop_multijob(jobctl, job_list, timeout_sec=4.0, delay=0.05):
             if not job.finished:
                 time.sleep(delay)
                 print('Polling job %d at time %f' % (job.id, time.time() - start))
-                #job.poll()
-                jobctl.poll(job)
+                job.poll()
                 if job.finished: continue
                 elif job.state == 'WAITING': print('Job %d waiting to launch' % (job.id))
                 elif job.state == 'RUNNING': print('Job %d still running ....' % (job.id))
@@ -331,7 +330,7 @@ def test_doublekill():
     cores = NCORES
     args_for_sim = 'sleep 2.0'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    jobctl.poll(job)
+    job.poll()
     jobctl.wait_time = 5
 
     jobctl.kill(job)
@@ -356,14 +355,14 @@ def test_finish_and_kill():
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     while not job.finished:
         time.sleep(0.1)
-        jobctl.poll(job)
+        job.poll()
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
     jobctl.kill(job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
     #Try polling after finish - should return with no effect
-    jobctl.poll(job)
+    job.poll()
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
@@ -492,20 +491,12 @@ def test_poll_job_with_no_launch():
     jobctl = JobController.controller
     cores = NCORES
 
-    #Try poll invalid job
-    try:
-        jobctl.poll('myjob')
-    except:
-        assert 1
-    else:
-        assert 0
-
     # Create a job directly with no launch (Not supported for users)
     registry = Register.default_registry
     myapp = registry.sim_default_app
     job1 = Job(app = myapp, stdout = 'stdout.txt')
     try:
-        jobctl.poll(job1)
+        job1.poll()
     except:
         assert 1
     else:
