@@ -21,7 +21,7 @@ Release 0.3.0
 
 :Known issues:
 
-* OpenMPI does not support direct launches (and has not been tested with Balsam)
+* OpenMPI is not supported with direct MPI launches as nested MPI launches are not supported.
 
 
 Release 0.2.0
