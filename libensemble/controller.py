@@ -70,7 +70,6 @@ class Job:
         self.launch_time = None
         self.runtime = None
         self.total_time = None
-        self.manager_signal = 'none'
 
         #Run attributes
         self.app = app
