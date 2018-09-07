@@ -35,8 +35,8 @@ In user sim func::
         time.sleep(delay)
         
         # Has manager sent a finish signal
-        jobctl.manager_poll(job)
-        if job.manager_signal == 'finish':
+        jobctl.manager_poll()
+        if jobctl.manager_signal == 'finish':
             jobctl.kill(job)        
         
         # Poll job to see if completed

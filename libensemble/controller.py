@@ -149,10 +149,17 @@ class JobController:
 
     **Class Attributes:**
 
-    Attributes
-    ----------
-    controller : Obj: JobController or inherited class.
-        A class attribute holding the default job_controller.
+    :cvar JobController: controller: A class attribute holding the default job_controller.
+
+    **Object Attributes:**
+
+    :ivar Register registry: The registry associated with this job_controller
+    :ivar String manager_signal: Contains any signals received by manager ('none'|'finish'|'kill')
+    :ivar String kill_signal: The kill signal to be sent to jobs
+    :ivar boolean wait_and_kill: Whether running in wait_and_kill mode (If True a hard kill will be sent after a timeout period)
+    :ivar int wait_time: Timeout period for hard kill, when wait_and_kill is set.
+    :ivar list list_of_jobs: A list of jobs created in this job controller
+    :ivar int workerID: The workerID associated with this job controller
 
     """
 

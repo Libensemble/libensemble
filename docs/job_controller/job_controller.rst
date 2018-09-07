@@ -36,7 +36,7 @@ job controller functions).
 
 .. autoclass:: Job
   :member-order: bysource
-  :members: workdir_exists, file_exists_in_workdir, read_file_in_workdir, stdout_exists, read_stdout
+  :members: workdir_exists, file_exists_in_workdir, read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr
   
 .. autoclass:: BalsamJob
   :show-inheritance:
@@ -60,7 +60,6 @@ Job Status attributes include:
 :job.errcode: (int) The errorcode/return code used by the underlying process manager
 :job.finished: (Boolean) True means job has finished running - not whether was successful
 :job.success: (Boolean) Did job complete succesfully (e.g. returncode is zero)
-:job.manager_signal: (String) Contains any signals received by manager. ('none'|'finish'|'kill')
 
 Run configuration attributes - Some will be auto-generated:
 
