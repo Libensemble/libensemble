@@ -25,10 +25,10 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.2.0',    
+    version='0.3.0',    
     description='Library for managing ensemble-like collections of computations',
     url='https://github.com/Libensemble/libensemble',
-    author='Jeffrey Larson and Stephen Hudson',
+    author='Jeffrey Larson and Stephen Hudson and David Bindel',
     author_email='libensemble@lists.mcs.anl.gov',
     license='BSD 2-clause',
 
