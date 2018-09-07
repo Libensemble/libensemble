@@ -331,7 +331,7 @@ def test_doublekill():
     args_for_sim = 'sleep 2.0'
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     jobctl.poll(job)
-    #jobctl.set_kill_mode(wait_and_kill=True, wait_time=5)
+    jobctl.set_kill_mode(wait_and_kill=True, wait_time=5)
 
     jobctl.kill(job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
