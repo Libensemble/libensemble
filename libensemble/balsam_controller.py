@@ -15,7 +15,6 @@ import os
 import logging
 import time
 
-from libensemble.register import Register
 from libensemble.resources import Resources
 from libensemble.controller import \
      Job, JobController, JobControllerException, jassert, STATES
@@ -33,27 +32,16 @@ class BalsamJob(Job):
 
     """
 
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
-                 ranks_per_node=None, machinefile=None, hostlist=None,
-                 workdir=None, stdout=None, stderr=None, workerid=None):
+    def __init__(self, app=None, app_args=None, workdir=None,
+                 stdout=None, stderr=None, workerid=None):
         """Instantiate a new BalsamJob instance.
 
         A new BalsamJob object is created with an id, status and
         configuration attributes.  This will normally be created by the
         job_controller on a launch.
         """
-
-        super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node,
-                         machinefile, hostlist, workdir, stdout, stderr,
-                         workerid)
-
-        self.balsam_state = None
-
-        #prob want to override workdir attribute with Balsam value -
-        #though does it exist yet?
-        #self.workdir = None #Don't know until starts running
-        self.workdir = workdir #Default for libe now is to run in place.
-
+        # May want to override workdir with Balsam value when it exists
+        Job.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
     def read_file_in_workdir(self, filename):
         return self.process.read_file_in_workdir(filename)
@@ -83,7 +71,8 @@ class BalsamJob(Job):
 
         # Check the jobs been launched (i.e. it has a process ID)
         #Prob should be recoverable and return state - but currently fatal
-        jassert(self.process, "Polled job has no process ID - check jobs been launched")
+        jassert(self.process,
+                "Polled job has no process ID - check jobs been launched")
 
         # Do not poll if job already finished
         if self.finished:
@@ -95,45 +84,42 @@ class BalsamJob(Job):
 
         # Get current state of jobs from Balsam database
         self.process.refresh_from_db()
-        self.balsam_state = self.process.state
-        #Not really nec to copy have balsam_state - already job.process.state...
+        balsam_state = self.process.state
 
         #Might need this before get models - test
         import balsam.launcher.dag as dag
         from balsam.service import models
 
-        if self.balsam_state in models.END_STATES:
+        if balsam_state in models.END_STATES:
             self.finished = True
-
             self.calc_job_timing()
-
             self.workdir = self.workdir or self.process.working_directory
-            if self.balsam_state == 'JOB_FINISHED':
-                self.success = True
+            self.success = (balsam_state == 'JOB_FINISHED')
+            # self.errcode - requested feature from Balsam devs
+
+            if balsam_state == 'JOB_FINISHED':
                 self.state = 'FINISHED'
-            elif self.balsam_state == 'PARENT_KILLED': # Not currently used
+            elif balsam_state == 'PARENT_KILLED': # Not currently used
                 self.state = 'USER_KILLED'
-                #self.success = False #Shld already be false - init to false
-                #self.errcode = #Not currently returned by Balsam (requested)
-            elif self.balsam_state in STATES: #In my states
-                self.state = self.balsam_state
-                #self.success = False #All other end states are failures currently - bit risky
-                #self.errcode = #Not currently returned by Balsam (requested)
+            elif balsam_state in STATES: #In my states
+                self.state = balsam_state
             else:
                 logger.warning("Job finished, but in unrecognized "
-                               "Balsam state {}".format(self.balsam_state))
+                               "Balsam state {}".format(balsam_state))
                 self.state = 'UNKNOWN'
 
-        elif self.balsam_state in models.ACTIVE_STATES:
+        elif balsam_state in models.ACTIVE_STATES:
             self.state = 'RUNNING'
             self.workdir = self.workdir or self.process.working_directory
 
-        elif self.balsam_state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
+        elif (balsam_state in models.PROCESSABLE_STATES or
+              balsam_state in models.RUNNABLE_STATES):
             self.state = 'WAITING'
+
         else:
             raise JobControllerException(
                 "Job state returned from Balsam is not in known list of "
-                "Balsam states. Job state is {}".format(self.balsam_state))
+                "Balsam states. Job state is {}".format(balsam_state))
 
 
     def kill(self, wait_time=None):
@@ -207,8 +193,9 @@ class BalsamJobController(JobController):
         if self.auto_resources:
             num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
         else:
-            #Without resource detection
-            num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
+            #Without resource detection (note: not included machinefile option)
+            num_procs, num_nodes, ranks_per_node = \
+              JobController.job_partition(num_procs, num_nodes, ranks_per_node)
 
         #temp - while balsam does not accept a standard out name
         if stdout is not None or stderr is not None:
@@ -217,11 +204,11 @@ class BalsamJobController(JobController):
             stdout = None
             stderr = None
 
-        #Will be possible to override with arg when implemented (or can have option to let Balsam assign)
+        #Will be possible to override with arg when implemented
+        #(or can have option to let Balsam assign)
         default_workdir = os.getcwd()
-
-        hostlist = None
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, stderr, self.workerID)
+        job = BalsamJob(app, app_args, default_workdir,
+                        stdout, stderr, self.workerID)
 
         #This is not used with Balsam for run-time as this would include wait time
         #Again considering changing launch to submit - or whatever I chose before.....
@@ -232,8 +219,8 @@ class BalsamJobController(JobController):
                         'user_workdir': default_workdir, #add arg for this
                         'application': app.name,
                         'args': job.app_args,
-                        'num_nodes': job.num_nodes,
-                        'ranks_per_node': job.ranks_per_node}
+                        'num_nodes': num_nodes,
+                        'ranks_per_node': ranks_per_node}
 
         if stage_inout is not None:
             #For now hardcode staging - for testing
@@ -243,7 +230,9 @@ class BalsamJobController(JobController):
 
         job.process = dag.add_job(**add_job_args)
 
-        logger.debug("Added job to Balsam database {}: Worker {} nodes {} ppn {}".format(job.name, self.workerID, job.num_nodes, job.ranks_per_node))
+        logger.debug("Added job to Balsam database {}: "
+                     "Worker {} nodes {} ppn {}".
+                     format(job.name, self.workerID, num_nodes, ranks_per_node))
 
         #job.workdir = job.process.working_directory #Might not be set yet!!!!
         self.list_of_jobs.append(job)

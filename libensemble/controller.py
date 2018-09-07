@@ -50,9 +50,8 @@ class Job:
 
     newid = itertools.count()
 
-    def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
-                 ranks_per_node=None, machinefile=None, hostlist=None,
-                 workdir=None, stdout=None, stderr=None, workerid=None):
+    def __init__(self, app=None, app_args=None, workdir=None,
+                 stdout=None, stderr=None, workerid=None):
         """Instantiate a new Job instance.
 
         A new job object is created with an id, status and configuration
@@ -74,11 +73,6 @@ class Job:
         #Run attributes
         self.app = app
         self.app_args = app_args
-        self.num_procs = num_procs
-        self.num_nodes = num_nodes
-        self.ranks_per_node = ranks_per_node
-        self.machinefile = machinefile
-        self.hostlist = hostlist
         self.workerID = workerid
 
         jassert(app is not None,
@@ -403,15 +397,18 @@ class JobController:
                                           ranks_per_node, machinefile)
 
         default_workdir = os.getcwd()
-        job = Job(app, app_args, num_procs, num_nodes, ranks_per_node,
-                  machinefile, hostlist, default_workdir, stdout, stderr,
-                  self.workerID)
+        job = Job(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this "
                            "job_controller - runs in-place")
 
-        runline = launcher.form_command(self.mpi_command, vars(job))
+        mpi_specs = {'num_procs': num_procs,
+                     'num_nodes': num_nodes,
+                     'ranks_per_node': ranks_per_node,
+                     'machinefile': machinefile,
+                     'hostlist': hostlist}
+        runline = launcher.form_command(self.mpi_command, mpi_specs)
         runline.append(job.app.full_path)
         if job.app_args is not None:
             runline.extend(job.app_args.split())
