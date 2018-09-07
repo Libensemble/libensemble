@@ -805,10 +805,9 @@ class BalsamJobController(JobController):
         #BalsamJobController.controller = self
 
 
-    # DSB: swaps test and hyperthreads vs base JobController
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stage_inout=None, test=False, hyperthreads=False):
+               stdout=None, stage_inout=None, hyperthreads=False, test=False):
         """Creates a new job, and either launches or schedules to launch
         in the job controller
 
