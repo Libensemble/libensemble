@@ -80,8 +80,6 @@ class Job:
         self.ranks_per_node = ranks_per_node
         self.machinefile = machinefile
         self.hostlist = hostlist
-        #self.stdout = stdout
-        #self.stderr = stderr
         self.workerID = workerid
 
         jassert(app is not None,
