@@ -11,10 +11,11 @@ Release 0.3.0
 * Issues with killing jobs have been fixed (#21)
 * Fix to job_controller manager_poll to work with multiple jobs (#62)
 * API change: persis_info now included as an argument to libE and is returned from libE instead of gen_info
-* Gen funcs: aposmm_logic module changed to aposmm.
+* Gen funcs: aposmm_logic module renamed to aposmm.
 * New example gen and allocation functions.
 * Updated Balsam launch script (with new Balsam workflow)
 * History is dumped to file on manager or worker exception and MPI aborted (with exit code 1) (#46)
+* Default logging level changed to DEBUG and redirected to file ensemble.log
 * Added directory of standalone tests (comms, job kills, and nested MPI launches)
 * Improved and speeded up unit tests (#68)
 * Considerable documentation enhancements
