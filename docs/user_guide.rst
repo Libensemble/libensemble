@@ -64,7 +64,7 @@ to support) and plan to have examples of:
   use the points from the APOSMM gen_f to identify optima; and after a point is
   ruled to be an optimum, a different gen_f can produce a collection of
   parameters necessary for sensitivity analysis of sim_f.
-  
+
 
 Naturally, combinations of these use cases are supported as well. An example of
 such a combination is using libEnsemble to solve an optimization problem that
@@ -99,3 +99,20 @@ will include the following fields:
 
 * returned' [bool]: Has this worker completed the evaluation of this unit of
   work?
+
+
+LibEnsemble Output
+------------------
+
+The history array is returned to the user by libEnsemble. In the case that libEnsemble
+aborts on an exception, the existing history array is dumped to a file libE_history_at_abort_<sim_count>.npy, where sim_count is the number of points evaluated.
+
+Other libEnsemble files produced by default are:
+
+**libe_summary.txt**: This contains a one-line summary of all user calculations. During run-time
+a summary file is produced for each worker in directory named *libe_stat_files*. At then end of 
+the run these are concatenated into *libe_summary.txt*. If a run aborts, the *libe_stat_files* directory
+will remain.
+
+**ensemble.log**: This is the logging output from libEnsemble. The default logging is DEBUG level, as
+this can provide useful diagnostics. If this file is not removed, multiple runs will append output.
