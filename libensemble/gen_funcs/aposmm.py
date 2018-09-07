@@ -493,11 +493,11 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     if 'xtol_rel' in gen_specs:
         opt.set_xtol_rel(gen_specs['xtol_rel'])
     if 'ftol_rel' in gen_specs:
-        opt.set_xtol_rel(gen_specs['ftol_rel'])
+        opt.set_ftol_rel(gen_specs['ftol_rel'])
     if 'xtol_abs' in gen_specs:
-        opt.set_xtol_rel(gen_specs['xtol_abs'])
+        opt.set_xtol_abs(gen_specs['xtol_abs'])
     if 'ftol_abs' in gen_specs:
-        opt.set_xtol_rel(gen_specs['ftol_abs'])
+        opt.set_ftol_abs(gen_specs['ftol_abs'])
 
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()

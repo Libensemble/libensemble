@@ -13,10 +13,8 @@ and interrogate files in the job's working directory.
 
 import os
 import logging
-import itertools
 import time
 
-import libensemble.launcher as launcher
 from libensemble.register import Register
 from libensemble.resources import Resources
 from libensemble.controller import \
@@ -36,7 +34,7 @@ class BalsamJob(Job):
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
                  ranks_per_node=None, machinefile=None, hostlist=None,
-                 workdir=None, stdout=None, workerid=None):
+                 workdir=None, stdout=None, stderr=None, workerid=None):
         """Instantiate a new BalsamJob instance.
 
         A new BalsamJob object is created with an id, status and
@@ -45,7 +43,8 @@ class BalsamJob(Job):
         """
 
         super().__init__(app, app_args, num_procs, num_nodes, ranks_per_node,
-                         machinefile, hostlist, workdir, stdout, workerid)
+                         machinefile, hostlist, workdir, stdout, stderr,
+                         workerid)
 
         self.balsam_state = None
 
@@ -60,6 +59,9 @@ class BalsamJob(Job):
 
     def read_stdout(self):
         return self.process.read_file_in_workdir(self.stdout)
+
+    def read_stderr(self):
+        return self.process.read_file_in_workdir(self.stderr)
 
     def calc_job_timing(self):
         """Calculate timing information for this job"""
@@ -119,7 +121,8 @@ class BalsamJobController(JobController):
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stage_inout=None, hyperthreads=False, test=False):
+               stdout=None, stderr=None, stage_inout=None,
+               hyperthreads=False, test=False):
         """Creates a new job, and either launches or schedules to launch
         in the job controller
 
@@ -158,15 +161,17 @@ class BalsamJobController(JobController):
             num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node) #Note: not included machinefile option
 
         #temp - while balsam does not accept a standard out name
-        if stdout is not None:
-            logger.warning("Balsam does not currently accept a stdout name - ignoring")
+        if stdout is not None or stderr is not None:
+            logger.warning("Balsam does not currently accept a stdout "
+                           "or stderr name - ignoring")
             stdout = None
+            stderr = None
 
         #Will be possible to override with arg when implemented (or can have option to let Balsam assign)
         default_workdir = os.getcwd()
 
         hostlist = None
-        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, self.workerID)
+        job = BalsamJob(app, app_args, num_procs, num_nodes, ranks_per_node, machinefile, hostlist, default_workdir, stdout, stderr, self.workerID)
 
         #This is not used with Balsam for run-time as this would include wait time
         #Again considering changing launch to submit - or whatever I chose before.....
@@ -268,11 +273,3 @@ class BalsamJobController(JobController):
         job.finished = True
         job.calc_job_timing()
 
-        #Check if can wait for kill to complete - affect signal used etc....
-
-    def set_kill_mode(self, signal=None, wait_and_kill=None, wait_time=None):
-        """Not currently implemented for BalsamJobController.
-
-        No action is taken
-        """
-        logger.warning("set_kill_mode currently has no action with Balsam controller")

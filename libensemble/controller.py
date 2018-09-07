@@ -52,7 +52,7 @@ class Job:
 
     def __init__(self, app=None, app_args=None, num_procs=None, num_nodes=None,
                  ranks_per_node=None, machinefile=None, hostlist=None,
-                 workdir=None, stdout=None, workerid=None):
+                 workdir=None, stdout=None, stderr=None, workerid=None):
         """Instantiate a new Job instance.
 
         A new job object is created with an id, status and configuration
@@ -80,7 +80,8 @@ class Job:
         self.ranks_per_node = ranks_per_node
         self.machinefile = machinefile
         self.hostlist = hostlist
-        self.stdout = stdout
+        #self.stdout = stdout
+        #self.stderr = stderr
         self.workerID = workerid
 
         jassert(app is not None,
@@ -90,6 +91,7 @@ class Job:
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
         self.name = "job_{}{}_{}".format(app.name, worker_name, self.id)
         self.stdout = stdout or self.name + '.out'
+        self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
 
     def workdir_exists(self):
@@ -117,6 +119,14 @@ class Job:
     def read_stdout(self):
         """Open and reads the job's stdout file in the job's workdir"""
         return self.read_file_in_workdir(self.stdout)
+
+    def stderr_exists(self):
+        """Returns True if the job's stderr file exists in the workdir"""
+        return self.file_exists_in_workdir(self.stderr)
+
+    def read_stderr(self):
+        """Open and reads the job's stderr file in the job's workdir"""
+        return self.read_file_in_workdir(self.stderr)
 
     #Note - this is currently only final job-time. May make running job time.
     #And prob want to use for polling in sim func - esp in balsam -
@@ -218,6 +228,7 @@ class JobController:
 
         self.top_level_dir = os.getcwd()
         self.auto_resources = auto_resources
+        self.manager_signal = 'none'
 
         if self.auto_resources:
             self.resources = Resources(top_level_dir=self.top_level_dir,
@@ -241,7 +252,8 @@ class JobController:
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stage_inout=None, hyperthreads=False, test=False):
+               stdout=None, stderr=None, stage_inout=None,
+               hyperthreads=False, test=False):
         """Creates a new job, and either launches or schedules launch.
 
         The created job object is returned.
@@ -270,6 +282,9 @@ class JobController:
 
         stdout: string, optional
             A standard output filename.
+
+        stderr: string, optional
+            A standard error filename.
 
         stage_inout: string, optional
             A directory to copy files from. Default will take from
@@ -333,7 +348,8 @@ class JobController:
 
         default_workdir = os.getcwd()
         job = Job(app, app_args, num_procs, num_nodes, ranks_per_node,
-                  machinefile, hostlist, default_workdir, stdout, self.workerID)
+                  machinefile, hostlist, default_workdir, stdout, stderr,
+                  self.workerID)
 
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this "
@@ -353,6 +369,7 @@ class JobController:
             job.launch_time = time.time()
             job.process = launcher.launch(runline, cwd='./',
                                           stdout=open(job.stdout, 'w'),
+                                          stderr=open(job.stderr, 'w'),
                                           start_new_session=True)
             self.list_of_jobs.append(job)
 
@@ -399,17 +416,10 @@ class JobController:
                      format(job.name, job.errcode, job.state))
 
 
-    def manager_poll(self, job):
+    def manager_poll(self):
         """ Polls for a manager signal
 
-        Parameters
-        -----------
-
-        job: obj: Job
-            The job object.to be polled.
-
-
-        The job status attribute job.manager_signal will be updated.
+        The job controller manager_signal attribute will be updated.
 
         """
 
@@ -423,12 +433,12 @@ class JobController:
         comm = MPI.COMM_WORLD
         status = MPI.Status()
         if comm.Iprobe(source=0, tag=STOP_TAG, status=status):
-            logger.info('Manager probe hit true during job {}'.format(job.name))
+            logger.info('Manager probe hit true')
             man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
             if man_signal == MAN_SIGNAL_FINISH:
-                job.manager_signal = 'finish'
+                self.manager_signal = 'finish'
             elif man_signal == MAN_SIGNAL_KILL:
-                job.manager_signal = 'kill'
+                self.manager_signal = 'kill'
             else:
                 logger.warning("Received unrecognized manager signal {} - "
                                "ignoring".format(man_signal))
