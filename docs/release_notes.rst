@@ -18,6 +18,7 @@ Release 0.3.0
 * Considerable documentation enhancements
 
 :Known issues:
+
 * OpenMPI does not support direct launches (and has not been tested with Balsam)
 
 
