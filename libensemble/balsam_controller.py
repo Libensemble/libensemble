@@ -21,7 +21,8 @@ from libensemble.controller import \
      Job, JobController, JobControllerException, jassert, STATES
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#For debug messages in this module  - uncomment
+#(see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
 
@@ -90,14 +91,15 @@ class BalsamJob(Job):
                            "Status is {}".format(self.state))
             return
 
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
+        #-------- Up to here should be common - can go in a baseclass ------#
 
         # Get current state of jobs from Balsam database
         self.process.refresh_from_db()
-        self.balsam_state = self.process.state #Not really nec to copy have balsam_state - already job.process.state...
-        #logger.debug('balsam_state for job {} is {}'.format(self.id, self.balsam_state))
+        self.balsam_state = self.process.state
+        #Not really nec to copy have balsam_state - already job.process.state...
 
-        import balsam.launcher.dag as dag #Might need this before get models - test
+        #Might need this before get models - test
+        import balsam.launcher.dag as dag
         from balsam.service import models
 
         if self.balsam_state in models.END_STATES:
@@ -105,19 +107,18 @@ class BalsamJob(Job):
 
             self.calc_job_timing()
 
-            if self.workdir is None:
-                self.workdir = self.process.working_directory
+            self.workdir = self.workdir or self.process.working_directory
             if self.balsam_state == 'JOB_FINISHED':
                 self.success = True
                 self.state = 'FINISHED'
-            elif self.balsam_state == 'PARENT_KILLED': #I'm not using this currently
+            elif self.balsam_state == 'PARENT_KILLED': # Not currently used
                 self.state = 'USER_KILLED'
                 #self.success = False #Shld already be false - init to false
-                #self.errcode = #Not currently returned by Balsam API - requested - else will remain as None
+                #self.errcode = #Not currently returned by Balsam (requested)
             elif self.balsam_state in STATES: #In my states
                 self.state = self.balsam_state
-                #self.success = False #All other end states are failrues currently - bit risky
-                #self.errcode = #Not currently returned by Balsam API - requested - else will remain as None
+                #self.success = False #All other end states are failures currently - bit risky
+                #self.errcode = #Not currently returned by Balsam (requested)
             else:
                 logger.warning("Job finished, but in unrecognized "
                                "Balsam state {}".format(self.balsam_state))
@@ -125,8 +126,7 @@ class BalsamJob(Job):
 
         elif self.balsam_state in models.ACTIVE_STATES:
             self.state = 'RUNNING'
-            if self.workdir is None:
-                self.workdir = self.process.working_directory
+            self.workdir = self.workdir or self.process.working_directory
 
         elif self.balsam_state in models.PROCESSABLE_STATES + models.RUNNABLE_STATES: #Does this work - concatenate lists
             self.state = 'WAITING'
@@ -142,7 +142,8 @@ class BalsamJob(Job):
         import balsam.launcher.dag as dag
         dag.kill(self.process)
 
-        #Could have Wait here and check with Balsam its killed - but not implemented yet.
+        #Could have Wait here and check with Balsam its killed -
+        #but not implemented yet.
 
         self.state = 'USER_KILLED'
         self.finished = True
@@ -183,9 +184,10 @@ class BalsamJobController(JobController):
                 "Unrecognized calculation type", calc_type)
         jassert(app, "Default {} app is not set".format(calc_type))
 
-        #-------- Up to here should be common - can go in a baseclass and make all concrete classes inherit ------#
+        #-------- Up to here should be common - can go in a baseclass ------#
 
-        #Need test somewhere for if no breakdown supplied.... or only machinefile
+        #Need test somewhere for if no breakdown supplied....
+        #or only machinefile
 
         #Specific to this class
         if machinefile is not None:
