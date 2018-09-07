@@ -377,6 +377,7 @@ def test_launch_and_kill():
     cores = NCORES
     args_for_sim = 'sleep 2.0'
     job_list = []
+    jobctl.set_kill_mode(wait_and_kill=True, timeout=1)
     for jobid in range(5):
         job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
         jobctl.kill(job)
