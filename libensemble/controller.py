@@ -207,6 +207,83 @@ class JobController:
 
     controller = None
 
+    def __init__(self, registry=None):
+        """Instantiate a new JobController instance.
+
+        A new JobController object is created with an application
+        registry and configuration attributes. A registry object must
+        have been created.
+
+        This is typically created in the user calling script. If
+        auto_resources is True, an evaluation of system resources is
+        performance during this call.
+
+        Parameters
+        ----------
+        registry: obj: Registry, optional
+            A registry containing the applications to use in this
+            job_controller (Default: Use Register.default_registry).
+        """
+
+        self.registry = registry or Register.default_registry
+        jassert(self.registry is not None, "Cannot find default registry")
+
+        self.top_level_dir = os.getcwd()
+        self.manager_signal = 'none'
+
+        self.wait_time = 60
+        self.list_of_jobs = []
+        self.workerID = None
+        JobController.controller = self
+
+    def manager_poll(self):
+        """ Polls for a manager signal
+
+        The job controller manager_signal attribute will be updated.
+
+        """
+
+        #Will use MPI_MODE from settings.py but for now assume MPI
+        from libensemble.message_numbers import \
+            STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+        from mpi4py import MPI
+
+        # Manager Signals
+        # Stop tag may be manager interupt as diff kill/stop/pause....
+        comm = MPI.COMM_WORLD
+        status = MPI.Status()
+        if comm.Iprobe(source=0, tag=STOP_TAG, status=status):
+            logger.info('Manager probe hit true')
+            man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
+            if man_signal == MAN_SIGNAL_FINISH:
+                self.manager_signal = 'finish'
+            elif man_signal == MAN_SIGNAL_KILL:
+                self.manager_signal = 'kill'
+            else:
+                logger.warning("Received unrecognized manager signal {} - "
+                               "ignoring".format(man_signal))
+
+    def get_job(self, jobid):
+        """ Returns the job object for the supplied job ID """
+        job = next((j for j in self.list_of_jobs if j.id == jobid), None)
+        if job is None:
+            logger.warning("Job {} not found in joblist".format(jobid))
+        return job
+
+    def set_workerID(self, workerid):
+        """Sets the worker ID for this job_controller"""
+        self.workerID = workerid
+
+    def kill(self, job):
+        "Kill a job"
+        jassert(isinstance(job, Job), "Invalid job has been provided")
+        job.kill(self.wait_time)
+
+
+class MPIJobController(JobController):
+    """The MPI job_controller can create, poll and kill runnable MPI jobs
+    """
+
     def __init__(self, registry=None, auto_resources=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new JobController instance.
@@ -241,13 +318,8 @@ class JobController:
             auto_resources=True.
         """
 
-        self.registry = registry or Register.default_registry
-        jassert(self.registry is not None, "Cannot find default registry")
-
-        self.top_level_dir = os.getcwd()
+        JobController.__init__(self, registry)
         self.auto_resources = auto_resources
-        self.manager_signal = 'none'
-
         if self.auto_resources:
             self.resources = \
               MPIResources(top_level_dir=self.top_level_dir,
@@ -263,10 +335,6 @@ class JobController:
                         '-npernode {ranks_per_node}'],
         }
         self.mpi_command = mpi_commands[MPIResources.get_MPI_variant()]
-        self.wait_time = 60
-        self.list_of_jobs = []
-        self.workerID = None
-        JobController.controller = self
 
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
@@ -398,47 +466,3 @@ class JobController:
             self.list_of_jobs.append(job)
 
         return job
-
-
-    def manager_poll(self):
-        """ Polls for a manager signal
-
-        The job controller manager_signal attribute will be updated.
-
-        """
-
-        #Will use MPI_MODE from settings.py but for now assume MPI
-        from libensemble.message_numbers import \
-            STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
-        from mpi4py import MPI
-
-        # Manager Signals
-        # Stop tag may be manager interupt as diff kill/stop/pause....
-        comm = MPI.COMM_WORLD
-        status = MPI.Status()
-        if comm.Iprobe(source=0, tag=STOP_TAG, status=status):
-            logger.info('Manager probe hit true')
-            man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
-            if man_signal == MAN_SIGNAL_FINISH:
-                self.manager_signal = 'finish'
-            elif man_signal == MAN_SIGNAL_KILL:
-                self.manager_signal = 'kill'
-            else:
-                logger.warning("Received unrecognized manager signal {} - "
-                               "ignoring".format(man_signal))
-
-    def get_job(self, jobid):
-        """ Returns the job object for the supplied job ID """
-        job = next((j for j in self.list_of_jobs if j.id == jobid), None)
-        if job is None:
-            logger.warning("Job {} not found in joblist".format(jobid))
-        return job
-
-    def set_workerID(self, workerid):
-        """Sets the worker ID for this job_controller"""
-        self.workerID = workerid
-
-    def kill(self, job):
-        "Kill a job"
-        jassert(isinstance(job, Job), "Invalid job has been provided")
-        job.kill(self.wait_time)

@@ -2,7 +2,7 @@ import os
 import shutil
 
 from libensemble.register import Register
-from libensemble.controller import Job, JobController, JobControllerException
+from libensemble.controller import Job, JobController, MPIJobController, JobControllerException
 
 def setup_module(module):
     print ("setup_module      module:%s" % module.__name__)
@@ -41,7 +41,7 @@ def teardown_module(module):
 def test_job_funcs():
     dummyappname = os.getcwd() + '/myapp.x'
     registry = Register()
-    jobctrl = JobController(registry = registry, auto_resources = False)
+    jobctrl = MPIJobController(registry = registry, auto_resources = False)
     registry.register_calc(full_path=dummyappname, calc_type='gen', desc='A dummy calc')
     registry.register_calc(full_path=dummyappname, calc_type='sim', desc='A dummy calc')
 

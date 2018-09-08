@@ -10,7 +10,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController
+from libensemble.controller import JobController, MPIJobController
 from libensemble.balsam_controller import BalsamJobController
 from libensemble.calc_info import CalcInfo
 from libensemble.resources import Resources
@@ -40,7 +40,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController(registry = registry, auto_resources = True)
 else:
     registry = Register()
-    jobctrl = JobController(registry = registry, auto_resources = True)
+    jobctrl = MPIJobController(registry = registry, auto_resources = True)
 registry.register_calc(full_path=sim_app, calc_type='sim')
 
 summary_file_name = short_name + '.libe_summary.txt'

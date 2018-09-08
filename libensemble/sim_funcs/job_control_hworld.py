@@ -1,4 +1,4 @@
-from libensemble.controller import JobController
+from libensemble.controller import MPIJobController
 from libensemble.message_numbers import *
 import numpy as np
 
@@ -64,7 +64,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
 
 def job_control_hworld(H, persis_info, sim_specs, _):
     """ Test of launching and polling job and exiting on job finish"""
-    jobctl = JobController.controller
+    jobctl = MPIJobController.controller
     cores = sim_specs['cores']
 
     args_for_sim = 'sleep 3'

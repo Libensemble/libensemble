@@ -7,7 +7,7 @@ import time
 import pytest
 import socket
 from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController
+from libensemble.controller import JobController, MPIJobController
 from libensemble.balsam_controller import BalsamJobController
 
 USE_BALSAM = False
@@ -76,7 +76,7 @@ def setup_job_controller():
         jobctrl = BalsamJobController(registry = registry, auto_resources = False)
     else:
         registry = Register()
-        jobctrl = JobController(registry = registry, auto_resources = False)
+        jobctrl = MPIJobController(registry = registry, auto_resources = False)
 
     registry.register_calc(full_path=sim_app, calc_type='sim')
 
@@ -90,7 +90,7 @@ def setup_job_controller_noreg():
         jobctrl = BalsamJobController(auto_resources = False)
     else:
         registry = Register()
-        jobctrl = JobController(auto_resources = False)
+        jobctrl = MPIJobController(auto_resources = False)
 
     registry.register_calc(full_path=sim_app, calc_type='sim')
 
@@ -104,7 +104,7 @@ def setup_job_controller_noapp():
         jobctrl = BalsamJobController(registry = registry, auto_resources = False)
     else:
         registry = Register()
-        jobctrl = JobController(registry = registry, auto_resources = False)
+        jobctrl = MPIJobController(registry = registry, auto_resources = False)
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
@@ -436,7 +436,7 @@ def test_create_jobcontroller_no_registry():
     args_for_sim = 'sleep 0.1'
     #import pdb;pdb.set_trace()
     try:
-        jobctrl = JobController(auto_resources = False)
+        jobctrl = MPIJobController(auto_resources = False)
     except:
         assert 1
     else:

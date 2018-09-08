@@ -17,7 +17,7 @@ import time
 
 from libensemble.mpi_resources import MPIResources
 from libensemble.controller import \
-     Job, JobController, JobControllerException, jassert, STATES
+     Job, MPIJobController, JobControllerException, jassert, STATES
 
 logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
@@ -136,7 +136,7 @@ class BalsamJob(Job):
         self.calc_job_timing()
 
 
-class BalsamJobController(JobController):
+class BalsamJobController(MPIJobController):
     """Inherits from JobController and wraps the Balsam job management service
 
     .. note::  Job kills are not configurable in the Balsam job_controller.
@@ -199,7 +199,7 @@ class BalsamJobController(JobController):
         else:
             #Without resource detection (note: not included machinefile option)
             num_procs, num_nodes, ranks_per_node = \
-              JobController.job_partition(num_procs, num_nodes, ranks_per_node)
+              MPIResources.job_partition(num_procs, num_nodes, ranks_per_node)
 
         #temp - while balsam does not accept a standard out name
         if stdout is not None or stderr is not None:

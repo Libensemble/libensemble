@@ -36,7 +36,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController(registry = registry)
 else:
     registry = Register()
-    jobctrl = JobController(registry = registry)
+    jobctrl = MPIJobController(registry = registry)
 
 registry.register_calc(full_path=sim_app, calc_type='sim')
 

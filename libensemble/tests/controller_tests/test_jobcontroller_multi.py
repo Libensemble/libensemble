@@ -18,7 +18,7 @@ def build_simfunc():
 #--------------- Calling script ---------------------------------------------------------------
 
 from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController
+from libensemble.controller import JobController, MPIJobController
 from libensemble.baslam_controller import BalsamJobController
 
 #sim_app = 'simdir/my_simjob.x'
@@ -39,7 +39,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController(registry = registry)
 else:
     registry = Register()
-    jobctrl = JobController(registry = registry)
+    jobctrl = MPIJobController(registry = registry)
 
 registry.register_calc(full_path=sim_app, calc_type='sim')
 
