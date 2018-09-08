@@ -15,11 +15,11 @@ import os
 import logging
 import time
 
-from libensemble.resources import Resources
+from libensemble.mpi_resources import MPIResources
 from libensemble.controller import \
      Job, JobController, JobControllerException, jassert, STATES
 
-logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
+logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
 #(see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
@@ -191,7 +191,11 @@ class BalsamJobController(JobController):
         #for static allocation - but Balsam does allow dynamic allocation if too large!!
         #For now allow user to specify - but default is True....
         if self.auto_resources:
-            num_procs, num_nodes, ranks_per_node = self.get_resources(num_procs=num_procs, num_nodes=num_nodes, ranks_per_node=ranks_per_node, hyperthreads=hyperthreads)
+            num_procs, num_nodes, ranks_per_node = \
+              self.resources.get_resources(
+                  num_procs=num_procs,
+                  num_nodes=num_nodes, ranks_per_node=ranks_per_node,
+                  hyperthreads=hyperthreads)
         else:
             #Without resource detection (note: not included machinefile option)
             num_procs, num_nodes, ranks_per_node = \

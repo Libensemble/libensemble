@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Module to launch and control running jobs.
 
@@ -18,9 +16,9 @@ import time
 
 import libensemble.launcher as launcher
 from libensemble.register import Register
-from libensemble.resources import Resources
+from libensemble.mpi_resources import MPIResources
 
-logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
+logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
 #(see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
@@ -209,35 +207,6 @@ class JobController:
 
     controller = None
 
-    @staticmethod
-    def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
-        """Takes provided nprocs/nodes/ranks and outputs working
-        configuration of procs/nodes/ranks or error"""
-
-        #If machinefile is provided - ignore everything else
-        if machinefile:
-            if num_procs or num_nodes or ranks_per_node:
-                logger.warning("Machinefile provided - overriding "
-                               "procs/nodes/ranks_per_node")
-            return None, None, None
-
-        if not num_procs:
-            jassert(num_nodes and ranks_per_node,
-                    "Need num_procs, num_nodes/ranks_per_node, or machinefile")
-            num_procs = num_nodes * ranks_per_node
-
-        elif not num_nodes:
-            ranks_per_node = ranks_per_node or num_procs
-            num_nodes = num_procs//ranks_per_node
-
-        elif not ranks_per_node:
-            ranks_per_node = num_procs//num_nodes
-
-        jassert(num_procs == num_nodes*ranks_per_node,
-                "num_procs does not equal num_nodes*ranks_per_node")
-        return num_procs, num_nodes, ranks_per_node
-
-
     def __init__(self, registry=None, auto_resources=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new JobController instance.
@@ -280,9 +249,10 @@ class JobController:
         self.manager_signal = 'none'
 
         if self.auto_resources:
-            self.resources = Resources(top_level_dir=self.top_level_dir,
-                                       nodelist_env_slurm=nodelist_env_slurm,
-                                       nodelist_env_cobalt=nodelist_env_cobalt)
+            self.resources = \
+              MPIResources(top_level_dir=self.top_level_dir,
+                           nodelist_env_slurm=nodelist_env_slurm,
+                           nodelist_env_cobalt=nodelist_env_cobalt)
 
         mpi_commands = {
             'mpich':   ['mpirun', '--env {env}', '-machinefile {machinefile}',
@@ -292,7 +262,7 @@ class JobController:
                         '-host {hostlist}', '-np {num_procs}',
                         '-npernode {ranks_per_node}'],
         }
-        self.mpi_command = mpi_commands[Resources.get_MPI_variant()]
+        self.mpi_command = mpi_commands[MPIResources.get_MPI_variant()]
         self.wait_time = 60
         self.list_of_jobs = []
         self.workerID = None
@@ -373,27 +343,29 @@ class JobController:
             #kludging this for now - not nec machinefile if more than one node
             #- try a hostlist
             num_procs, num_nodes, ranks_per_node = \
-              self.get_resources(num_procs=num_procs, num_nodes=num_nodes,
-                                 ranks_per_node=ranks_per_node,
-                                 hyperthreads=hyperthreads)
+              self.resources.get_resources(
+                  num_procs=num_procs,
+                  num_nodes=num_nodes, ranks_per_node=ranks_per_node,
+                  hyperthreads=hyperthreads)
 
             if num_nodes > 1:
                 #hostlist
-                hostlist = self.get_hostlist()
+                hostlist = self.resources.get_hostlist()
             else:
                 #machinefile
                 machinefile = "machinefile_autogen"
                 if self.workerID is not None:
                     machinefile += "_for_worker_{}".format(self.workerID)
                 mfile_created, num_procs, num_nodes, ranks_per_node = \
-                  self.create_machinefile(machinefile, num_procs, num_nodes,
-                                          ranks_per_node, hyperthreads)
+                  self.resources.create_machinefile(
+                      machinefile, num_procs, num_nodes,
+                      ranks_per_node, hyperthreads)
                 jassert(mfile_created, "Auto-creation of machinefile failed")
 
         else:
             num_procs, num_nodes, ranks_per_node = \
-              JobController.job_partition(num_procs, num_nodes,
-                                          ranks_per_node, machinefile)
+              MPIResources.job_partition(num_procs, num_nodes,
+                                         ranks_per_node, machinefile)
 
         default_workdir = os.getcwd()
         job = Job(app, app_args, default_workdir, stdout, stderr, self.workerID)
@@ -455,7 +427,6 @@ class JobController:
                 logger.warning("Received unrecognized manager signal {} - "
                                "ignoring".format(man_signal))
 
-
     def get_job(self, jobid):
         """ Returns the job object for the supplied job ID """
         job = next((j for j in self.list_of_jobs if j.id == jobid), None)
@@ -463,122 +434,9 @@ class JobController:
             logger.warning("Job {} not found in joblist".format(jobid))
         return job
 
-
     def set_workerID(self, workerid):
         """Sets the worker ID for this job_controller"""
         self.workerID = workerid
-
-
-    #Reformat create_machinefile to use this and also use this for
-    #non-machinefile cases when auto-detecting
-    def get_resources(self, num_procs=None, num_nodes=None,
-                      ranks_per_node=None, hyperthreads=False):
-        """Reconciles user supplied options with available Worker
-        resources to produce run configuration.
-
-        Detects resources available to worker, checks if an existing
-        user supplied config is valid, and fills in any missing config
-        information (ie. num_procs/num_nodes/ranks_per_node)
-
-        User supplied config options are honoured, and an exception is
-        raised if these are infeasible.
-        """
-
-        resources = self.resources
-        node_list = resources.local_nodelist
-        num_workers = resources.num_workers
-        local_node_count = resources.local_node_count
-
-        cores_avail_per_node = \
-          (resources.logical_cores_avail_per_node if hyperthreads else
-           resources.physical_cores_avail_per_node)
-        workers_per_node = \
-          (resources.workers_per_node if num_workers > local_node_count else 1)
-        cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
-
-        jassert(node_list, "Node list is empty - aborting")
-
-        #If no decomposition supplied - use all available cores/nodes
-        if not num_procs and not num_nodes and not ranks_per_node:
-            num_nodes = local_node_count
-            ranks_per_node = cores_avail_per_node_per_worker
-            logger.debug("No decomposition supplied - "
-                         "using all available resource. "
-                         "Nodes: {}  ranks_per_node {}".
-                         format(num_nodes, ranks_per_node))
-        elif not num_nodes and not ranks_per_node:
-            num_nodes = local_node_count
-        elif not num_procs and not ranks_per_node:
-            ranks_per_node = cores_avail_per_node_per_worker
-        elif not num_procs and not num_nodes:
-            num_nodes = local_node_count
-
-        #checks config is consistent and sufficient to express -
-        #does not check actual resources
-        num_procs, num_nodes, ranks_per_node = \
-          JobController.job_partition(num_procs, num_nodes, ranks_per_node)
-
-        #Could just downgrade to those available with warning - for now error
-        jassert(num_nodes <= local_node_count,
-                "Not enough nodes to honour arguments. "
-                "Requested {}. Only {} available".
-                format(num_nodes, local_node_count))
-
-        jassert(ranks_per_node <= cores_avail_per_node,
-                "Not enough processors on a node to honour arguments. "
-                "Requested {}. Only {} available".
-                format(ranks_per_node, cores_avail_per_node))
-
-        jassert(ranks_per_node <= cores_avail_per_node_per_worker,
-                "Not enough processors per worker to honour arguments. "
-                "Requested {}. Only {} available".
-                format(ranks_per_node, cores_avail_per_node_per_worker))
-
-        jassert(num_procs <= (cores_avail_per_node * local_node_count),
-                "Not enough procs to honour arguments. "
-                "Requested {}. Only {} available".
-                format(num_procs, cores_avail_per_node*local_node_count))
-
-        if num_nodes < local_node_count:
-            logger.warning("User constraints mean fewer nodes being used "
-                           "than available. {} nodes used. {} nodes available".
-                           format(num_nodes, local_node_count))
-
-        return num_procs, num_nodes, ranks_per_node
-
-
-    def create_machinefile(self, machinefile=None, num_procs=None,
-                           num_nodes=None, ranks_per_node=None,
-                           hyperthreads=False):
-        """Create a machinefile based on user supplied config options,
-        completed by detected machine resources"""
-
-        machinefile = machinefile or 'machinefile'
-        if os.path.isfile(machinefile):
-            try:
-                os.remove(machinefile)
-            except:
-                pass
-
-        node_list = self.resources.local_nodelist
-        logger.debug("Creating machinefile with {} nodes and {} ranks per node".
-                     format(num_nodes, ranks_per_node))
-
-        with open(machinefile, 'w') as f:
-            for node in node_list[:num_nodes]:
-                f.write((node + '\n') * ranks_per_node)
-
-        built_mfile = (os.path.isfile(machinefile)
-                       and os.path.getsize(machinefile) > 0)
-        return built_mfile, num_procs, num_nodes, ranks_per_node
-
-
-    def get_hostlist(self):
-        """Create a hostlist based on user supplied config options,
-        completed by detected machine resources"""
-        node_list = self.resources.local_nodelist
-        hostlist_str = ",".join([str(x) for x in node_list])
-        return hostlist_str
 
     def kill(self, job):
         "Kill a job"
