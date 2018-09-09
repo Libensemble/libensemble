@@ -165,12 +165,7 @@ class BalsamJobController(MPIJobController):
         """
         import balsam.launcher.dag as dag
 
-        app = self.registry.default_app(calc_type)
-        jassert(calc_type in ['sim', 'gen'],
-                "Unrecognized calculation type", calc_type)
-        jassert(app, "Default {} app is not set".format(calc_type))
-
-        #-------- Up to here should be common - can go in a baseclass ------#
+        app = self.default_app(calc_type)
 
         #Need test somewhere for if no breakdown supplied....
         #or only machinefile

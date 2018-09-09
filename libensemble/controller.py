@@ -33,9 +33,12 @@ USER_KILLED
 FAILED""".split()
 
 
-class JobControllerException(Exception): pass
+class JobControllerException(Exception):
+    "Raised for any exception in the JobController"
+    pass
 
 def jassert(test, *args):
+    "Version of assert that raises a JobControllerException"
     if not test:
         raise JobControllerException(*args)
 
@@ -236,6 +239,14 @@ class JobController:
         self.workerID = None
         JobController.controller = self
 
+    def default_app(self, calc_type):
+        "Get the default app for a given calc type."
+        app = self.registry.default_app(calc_type)
+        jassert(calc_type in ['sim', 'gen'],
+                "Unrecognized calculation type", calc_type)
+        jassert(app, "Default {} app is not set".format(calc_type))
+        return app
+
     def manager_poll(self):
         """ Polls for a manager signal
 
@@ -337,6 +348,46 @@ class MPIJobController(JobController):
         self.mpi_command = mpi_commands[MPIResources.get_MPI_variant()]
 
 
+    def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
+                       machinefile, hyperthreads):
+        "Form the mpi_specs dictionary."
+        hostlist = None
+        if machinefile is None and self.auto_resources:
+
+            #kludging this for now - not nec machinefile if more than one node
+            #- try a hostlist
+            num_procs, num_nodes, ranks_per_node = \
+              self.resources.get_resources(
+                  num_procs=num_procs,
+                  num_nodes=num_nodes, ranks_per_node=ranks_per_node,
+                  hyperthreads=hyperthreads)
+
+            if num_nodes > 1:
+                #hostlist
+                hostlist = self.resources.get_hostlist()
+            else:
+                #machinefile
+                machinefile = "machinefile_autogen"
+                if self.workerID is not None:
+                    machinefile += "_for_worker_{}".format(self.workerID)
+                mfile_created, num_procs, num_nodes, ranks_per_node = \
+                  self.resources.create_machinefile(
+                      machinefile, num_procs, num_nodes,
+                      ranks_per_node, hyperthreads)
+                jassert(mfile_created, "Auto-creation of machinefile failed")
+
+        else:
+            num_procs, num_nodes, ranks_per_node = \
+              MPIResources.job_partition(num_procs, num_nodes,
+                                         ranks_per_node, machinefile)
+
+        return {'num_procs': num_procs,
+                'num_nodes': num_nodes,
+                'ranks_per_node': ranks_per_node,
+                'machinefile': machinefile,
+                'hostlist': hostlist}
+
+
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
@@ -398,43 +449,7 @@ class MPIJobController(JobController):
         then the available resources will be divided amongst workers.
         """
 
-        app = self.registry.default_app(calc_type)
-        jassert(calc_type in ['sim', 'gen'],
-                "Unrecognized calculation type", calc_type)
-        jassert(app, "Default {} app is not set".format(calc_type))
-
-
-        #-------- Up to here should be common - can go in a baseclass ------#
-        hostlist = None
-        if machinefile is None and self.auto_resources:
-
-            #kludging this for now - not nec machinefile if more than one node
-            #- try a hostlist
-            num_procs, num_nodes, ranks_per_node = \
-              self.resources.get_resources(
-                  num_procs=num_procs,
-                  num_nodes=num_nodes, ranks_per_node=ranks_per_node,
-                  hyperthreads=hyperthreads)
-
-            if num_nodes > 1:
-                #hostlist
-                hostlist = self.resources.get_hostlist()
-            else:
-                #machinefile
-                machinefile = "machinefile_autogen"
-                if self.workerID is not None:
-                    machinefile += "_for_worker_{}".format(self.workerID)
-                mfile_created, num_procs, num_nodes, ranks_per_node = \
-                  self.resources.create_machinefile(
-                      machinefile, num_procs, num_nodes,
-                      ranks_per_node, hyperthreads)
-                jassert(mfile_created, "Auto-creation of machinefile failed")
-
-        else:
-            num_procs, num_nodes, ranks_per_node = \
-              MPIResources.job_partition(num_procs, num_nodes,
-                                         ranks_per_node, machinefile)
-
+        app = self.default_app(calc_type)
         default_workdir = os.getcwd()
         job = Job(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
@@ -442,11 +457,8 @@ class MPIJobController(JobController):
             logger.warning("stage_inout option ignored in this "
                            "job_controller - runs in-place")
 
-        mpi_specs = {'num_procs': num_procs,
-                     'num_nodes': num_nodes,
-                     'ranks_per_node': ranks_per_node,
-                     'machinefile': machinefile,
-                     'hostlist': hostlist}
+        mpi_specs = self._get_mpi_specs(num_procs, num_nodes, ranks_per_node,
+                                        machinefile, hyperthreads)
         runline = launcher.form_command(self.mpi_command, mpi_specs)
         runline.append(job.app.full_path)
         if job.app_args is not None:
