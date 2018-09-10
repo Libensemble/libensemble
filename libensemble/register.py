@@ -154,7 +154,6 @@ class BalsamRegister(Register):
             BalsamRegister.del_apps()
             BalsamRegister.del_jobs()
 
-
     def register_calc(self, full_path, calc_type='sim', desc=None):
         """Registers a user applications to libEnsemble and Balsam
 
@@ -174,9 +173,6 @@ class BalsamRegister(Register):
         """
         # OK to use Python 3 syntax (Balsam requires 3.6+)
         super().register_calc(full_path, calc_type, desc)
-
-        rassert(calc_type in self._default_apps,
-                "Unrecognized calculation type", calc_type)
 
         #Get from one place - so always matches
         calc_name = self._default_apps[calc_type].name
