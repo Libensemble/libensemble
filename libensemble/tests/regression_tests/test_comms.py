@@ -34,7 +34,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 from libensemble.register import Register #Only being used to pass workerID
-from libensemble.controller import JobController, MPIJobController #Only being used to pass workerID
+from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID
 from libensemble.resources import Resources #Only to get number of workers
 
 registry = Register()

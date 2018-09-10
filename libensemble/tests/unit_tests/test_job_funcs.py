@@ -2,7 +2,8 @@ import os
 import shutil
 
 from libensemble.register import Register
-from libensemble.controller import Job, JobController, MPIJobController, JobControllerException
+from libensemble.controller import Job, JobController, JobControllerException
+from libensemble.mpi_controller import MPIJobController
 
 def setup_module(module):
     print ("setup_module      module:%s" % module.__name__)

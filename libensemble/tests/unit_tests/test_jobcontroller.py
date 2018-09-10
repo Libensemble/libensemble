@@ -7,7 +7,8 @@ import time
 import pytest
 import socket
 from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController, MPIJobController
+from libensemble.controller import JobController
+from libensemble.mpi_controller import MPIJobController
 from libensemble.balsam_controller import BalsamJobController
 
 USE_BALSAM = False

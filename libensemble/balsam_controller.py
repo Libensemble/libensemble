@@ -1,13 +1,5 @@
-#!/usr/bin/env python
-
 """
-Module to launch and control running jobs.
-
-Contains job_controller, job, and inherited classes. A job_controller can
-create and manage multiple jobs. The worker or user-side code can issue
-and manage jobs using the launch, poll and kill functions. Job attributes
-are queried to determine status. Functions are also provided to access
-and interrogate files in the job's working directory.
+Module to launch and control running jobs with Balsam.
 
 """
 
@@ -17,7 +9,8 @@ import time
 
 from libensemble.mpi_resources import MPIResources
 from libensemble.controller import \
-     Job, MPIJobController, JobControllerException, jassert, STATES
+     Job, JobControllerException, jassert, STATES
+from libensemble.mpi_controller import MPIJobController
 
 logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
 #For debug messages in this module  - uncomment

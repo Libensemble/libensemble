@@ -1,4 +1,4 @@
-from libensemble.controller import MPIJobController
+from libensemble.mpi_controller import MPIJobController
 from libensemble.message_numbers import *
 import numpy as np
 
