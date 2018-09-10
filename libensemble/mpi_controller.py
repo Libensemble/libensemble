@@ -21,7 +21,7 @@ class MPIJobController(JobController):
     """The MPI job_controller can create, poll and kill runnable MPI jobs
     """
 
-    def __init__(self, registry=None, auto_resources=True,
+    def __init__(self, auto_resources=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new JobController instance.
 
@@ -35,10 +35,6 @@ class MPIJobController(JobController):
 
         Parameters
         ----------
-        registry: obj: Registry, optional
-            A registry containing the applications to use in this
-            job_controller (Default: Use Register.default_registry).
-
         auto_resources: Boolean, optional
             Auto-detect available processor resources and assign to jobs
             if not explicitly provided on launch.
@@ -55,7 +51,7 @@ class MPIJobController(JobController):
             auto_resources=True.
         """
 
-        JobController.__init__(self, registry)
+        JobController.__init__(self)
         self.auto_resources = auto_resources
         if self.auto_resources:
             self.resources = \

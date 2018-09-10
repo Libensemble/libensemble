@@ -6,11 +6,15 @@ Module to launch and control running jobs with Balsam.
 import os
 import logging
 import time
+from mpi4py import MPI
 
 from libensemble.mpi_resources import MPIResources
 from libensemble.controller import \
      Job, JobControllerException, jassert, STATES
 from libensemble.mpi_controller import MPIJobController
+
+import balsam.launcher.dag as dag
+from balsam.service import models
 
 logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
@@ -67,10 +71,6 @@ class BalsamJob(Job):
         self.process.refresh_from_db()
         balsam_state = self.process.state
 
-        #Might need this before get models - test
-        import balsam.launcher.dag as dag
-        from balsam.service import models
-
         if balsam_state in models.END_STATES:
             self.finished = True
             self.calc_job_timing()
@@ -106,7 +106,6 @@ class BalsamJob(Job):
     def kill(self, wait_time=None):
         """ Kills or cancels the supplied job """
 
-        import balsam.launcher.dag as dag
         dag.kill(self.process)
 
         #Could have Wait here and check with Balsam its killed -
@@ -123,17 +122,89 @@ class BalsamJobController(MPIJobController):
     .. note::  Job kills are not configurable in the Balsam job_controller.
 
     """
-    def __init__(self, registry=None, auto_resources=True,
+    def __init__(self, auto_resources=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new BalsamJobController instance.
 
         A new BalsamJobController object is created with an application
         registry and configuration attributes
         """
-        super().__init__(registry, auto_resources,
+        super().__init__(auto_resources,
                          nodelist_env_slurm, nodelist_env_cobalt)
         self.mpi_launcher = None
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            BalsamJobController.del_apps()
+            BalsamJobController.del_jobs()
 
+    @staticmethod
+    def del_apps():
+        """Deletes all Balsam apps whose names contains .simfunc or .genfunc"""
+        AppDef = models.ApplicationDefinition
+
+        #Some error handling on deletes.... is it internal
+        for app_type in ['.simfunc', '.genfunc']:
+            deletion_objs = AppDef.objects.filter(name__contains=app_type)
+            if deletion_objs:
+                for del_app in deletion_objs.iterator():
+                    logger.debug("Deleting app {}".format(del_app.name))
+                deletion_objs.delete()
+
+    @staticmethod
+    def del_jobs():
+        """Deletes all Balsam jobs whose names contains .simfunc or .genfunc"""
+        for app_type in ['.simfunc', '.genfunc']:
+            deletion_objs = models.BalsamJob.objects.filter(
+                name__contains=app_type)
+            if deletion_objs:
+                for del_job in deletion_objs.iterator():
+                    logger.debug("Deleting job {}".format(del_job.name))
+                deletion_objs.delete()
+
+        ##May be able to use union function - to combine - see queryset help.
+        ##Eg (not tested)
+        #del_simfuncs = Job.objects.filter(name__contains='.simfunc')
+        #del_genfuncs = Job.objects.filter(name__contains='.genfunc')
+        #deletion_objs = deletion_objs.union()
+
+    @staticmethod
+    def add_app(name, exepath, desc):
+        """ Add application to Balsam database """
+        AppDef = models.ApplicationDefinition
+        app = AppDef()
+        app.name = name
+        app.executable = exepath
+        app.description = desc
+        #app.default_preprocess = '' # optional
+        #app.default_postprocess = '' # optional
+        app.save()
+        logger.debug("Added App {}".format(app.name))
+
+    def register_calc(self, full_path, calc_type='sim', desc=None):
+        """Registers a user applications to libEnsemble and Balsam
+
+        Parameters
+        ----------
+
+        full_path: String
+            The full path of the user application to be registered.
+
+        calc_type: String
+            Calculation type: Is this application part of a 'sim'
+            or 'gen' function.
+
+        desc: String, optional
+            Description of this application.
+
+        """
+        # OK to use Python 3 syntax (Balsam requires 3.6+)
+        super().register_calc(full_path, calc_type, desc)
+
+        #Get from one place - so always matches
+        calc_name = self.default_apps[calc_type].name
+        desc = self.default_apps[calc_type].desc
+
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            self.add_app(calc_name, full_path, desc)
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
@@ -144,8 +215,6 @@ class BalsamJobController(MPIJobController):
 
         The created job object is returned.
         """
-        import balsam.launcher.dag as dag
-
         app = self.default_app(calc_type)
 
         #Need test somewhere for if no breakdown supplied....

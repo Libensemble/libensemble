@@ -15,7 +15,6 @@ import itertools
 import time
 
 import libensemble.launcher as launcher
-from libensemble.register import Register
 from libensemble.resources import Resources
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
@@ -41,6 +40,21 @@ def jassert(test, *args):
     "Version of assert that raises a JobControllerException"
     if not test:
         raise JobControllerException(*args)
+
+
+class Application:
+    """An application is an executable user-program
+    (e.g. Implementing a sim/gen function)."""
+
+    def __init__(self, full_path, calc_type='sim', desc=None):
+        """Instantiate a new Application instance."""
+        self.full_path = full_path
+        self.calc_type = calc_type
+        self.calc_dir, self.exe = os.path.split(full_path)
+
+        # Use this name to delete jobs in database - see del_apps(), del_jobs()
+        self.name = self.exe + '.' + self.calc_type + 'func'
+        self.desc = desc or (self.exe + ' ' + self.calc_type + ' function')
 
 
 class Job:
@@ -205,7 +219,6 @@ class JobController:
 
     **Object Attributes:**
 
-    :ivar Register registry: The registry associated with this job_controller
     :ivar int wait_time: Timeout period for hard kill
     :ivar list list_of_jobs: A list of jobs created in this job controller
     :ivar int workerID: The workerID associated with this job controller
@@ -214,42 +227,65 @@ class JobController:
 
     controller = None
 
-    def __init__(self, registry=None):
+    def __init__(self):
         """Instantiate a new JobController instance.
 
         A new JobController object is created with an application
-        registry and configuration attributes. A registry object must
-        have been created.
+        registry and configuration attributes.
 
         This is typically created in the user calling script. If
         auto_resources is True, an evaluation of system resources is
         performance during this call.
-
-        Parameters
-        ----------
-        registry: obj: Registry, optional
-            A registry containing the applications to use in this
-            job_controller (Default: Use Register.default_registry).
         """
-
-        self.registry = registry or Register.default_registry
-        jassert(self.registry is not None, "Cannot find default registry")
-
         self.top_level_dir = os.getcwd()
         self.manager_signal = 'none'
+        self.default_apps = {'sim' : None, 'gen': None}
 
         self.wait_time = 60
         self.list_of_jobs = []
         self.workerID = None
         JobController.controller = self
 
+    @property
+    def sim_default_app(self):
+        """Return the default simulation app."""
+        return self.default_apps['sim']
+
+    @property
+    def gen_default_app(self):
+        """Return the default generator app."""
+        return self.default_apps['gen']
+
     def default_app(self, calc_type):
         "Get the default app for a given calc type."
-        app = self.registry.default_app(calc_type)
+        app = self.default_apps.get(calc_type)
         jassert(calc_type in ['sim', 'gen'],
                 "Unrecognized calculation type", calc_type)
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
+
+    def register_calc(self, full_path, calc_type='sim', desc=None):
+        """Registers a user application to libEnsemble
+
+        Parameters
+        ----------
+
+        full_path: String
+            The full path of the user application to be registered.
+
+        calc_type: String
+            Calculation type: Is this application part of a 'sim'
+            or 'gen' function.
+
+        desc: String, optional
+            Description of this application.
+
+        """
+        jassert(calc_type in self.default_apps,
+                "Unrecognized calculation type", calc_type)
+        jassert(self.default_apps[calc_type] is None,
+                "Default {} app already set".format(calc_type))
+        self.default_apps[calc_type] = Application(full_path, calc_type, desc)
 
     def manager_poll(self):
         """ Polls for a manager signal

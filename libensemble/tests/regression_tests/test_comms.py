@@ -33,13 +33,11 @@ if USE_DILL:
 from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
-from libensemble.register import Register #Only being used to pass workerID
 from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID
 from libensemble.resources import Resources #Only to get number of workers
 
-registry = Register()
-jobctrl = MPIJobController(registry = registry, auto_resources = False)
-#registry.register_calc(full_path=sim_app, calc_type='sim') #Test with no app registered.
+jobctrl = MPIJobController(auto_resources = False)
+#jobctrl.register_calc(full_path=sim_app, calc_type='sim') #Test with no app registered.
 num_workers = Resources.get_num_workers()
 
 array_size = int(1e6)   # Size of large array in sim_specs

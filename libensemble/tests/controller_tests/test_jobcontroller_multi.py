@@ -17,10 +17,7 @@ def build_simfunc():
 
 #--------------- Calling script ---------------------------------------------------------------
 
-from libensemble.register import Register, BalsamRegister
 from libensemble.controller import JobController
-from libensemble.mpi_controller import MPIJobController
-from libensemble.baslam_controller import BalsamJobController
 
 #sim_app = 'simdir/my_simjob.x'
 #gen_app = 'gendir/my_genjob.x'
@@ -36,13 +33,13 @@ USE_BALSAM = False #Take as arg
 
 #Create and add exes to registry
 if USE_BALSAM:
-    registry = BalsamRegister()
-    jobctrl = BalsamJobController(registry = registry)
+    from libensemble.baslam_controller import BalsamJobController
+    jobctrl = BalsamJobController()
 else:
-    registry = Register()
-    jobctrl = MPIJobController(registry = registry)
+    from libensemble.mpi_controller import MPIJobController
+    jobctrl = MPIJobController()
 
-registry.register_calc(full_path=sim_app, calc_type='sim')
+jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 #Alternative to IF could be using eg. fstring to specify: e.g:
 #JOB_CONTROLLER = 'Balsam'

@@ -6,10 +6,7 @@ import sys
 import time
 import pytest
 import socket
-from libensemble.register import Register, BalsamRegister
 from libensemble.controller import JobController
-from libensemble.mpi_controller import MPIJobController
-from libensemble.balsam_controller import BalsamJobController
 
 USE_BALSAM = False
 
@@ -23,10 +20,6 @@ def setup_module(module):
         ctrl = JobController.controller
         del ctrl
         JobController.controller = None
-    if Register.default_registry:
-        defreg = Register.default_registry
-        del defreg
-        Register.default_registry = None
 
 def setup_function(function):
     print ("setup_function    function:%s" % function.__name__)
@@ -34,10 +27,6 @@ def setup_function(function):
         ctrl = JobController.controller
         del ctrl
         JobController.controller = None
-    if Register.default_registry:
-        defreg = Register.default_registry
-        del defreg
-        Register.default_registry = None
 
 def teardown_module(module):
     print ("teardown_module   module:%s" % module.__name__)
@@ -45,10 +34,6 @@ def teardown_module(module):
         ctrl = JobController.controller
         del ctrl
         JobController.controller = None
-    if Register.default_registry:
-        defreg = Register.default_registry
-        del defreg
-        Register.default_registry = None
 
 
 #def setup_module(module):
@@ -73,13 +58,13 @@ def setup_job_controller():
         build_simfunc()
 
     if USE_BALSAM:
-        registry = BalsamRegister()
-        jobctrl = BalsamJobController(registry = registry, auto_resources = False)
+        from libensemble.balsam_controller import BalsamJobController
+        jobctrl = BalsamJobController(auto_resources = False)
     else:
-        registry = Register()
-        jobctrl = MPIJobController(registry = registry, auto_resources = False)
+        from libensemble.mpi_controller import MPIJobController
+        jobctrl = MPIJobController(auto_resources = False)
 
-    registry.register_calc(full_path=sim_app, calc_type='sim')
+    jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 def setup_job_controller_noreg():
     #sim_app = './my_simjob.x'
@@ -87,13 +72,13 @@ def setup_job_controller_noreg():
         build_simfunc()
 
     if USE_BALSAM:
-        registry = BalsamRegister()
+        from libensemble.balsam_controller import BalsamJobController
         jobctrl = BalsamJobController(auto_resources = False)
     else:
-        registry = Register()
+        from libensemble.mpi_controller import MPIJobController
         jobctrl = MPIJobController(auto_resources = False)
 
-    registry.register_calc(full_path=sim_app, calc_type='sim')
+    jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 def setup_job_controller_noapp():
     #sim_app = './my_simjob.x'
@@ -101,11 +86,11 @@ def setup_job_controller_noapp():
         build_simfunc()
 
     if USE_BALSAM:
-        registry = BalsamRegister()
-        jobctrl = BalsamJobController(registry = registry, auto_resources = False)
+        from libensemble.balsam_controller import BalsamJobController
+        jobctrl = BalsamJobController(auto_resources = False)
     else:
-        registry = Register()
-        jobctrl = MPIJobController(registry = registry, auto_resources = False)
+        from libensemble.mpi_controller import MPIJobController
+        jobctrl = MPIJobController(auto_resources = False)
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
@@ -403,8 +388,7 @@ def test_launch_as_gen():
     else:
         assert 0
 
-    registry = Register.default_registry
-    registry.register_calc(full_path=sim_app, calc_type='gen')
+    jobctl.register_calc(full_path=sim_app, calc_type='gen')
     job = jobctl.launch(calc_type='gen', num_procs=cores, app_args=args_for_sim)
     job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
@@ -429,19 +413,6 @@ def test_launch_default_reg():
     job = polling_loop(jobctl, job)
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
-
-
-def test_create_jobcontroller_no_registry():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
-    cores = NCORES
-    args_for_sim = 'sleep 0.1'
-    #import pdb;pdb.set_trace()
-    try:
-        jobctrl = MPIJobController(auto_resources = False)
-    except:
-        assert 1
-    else:
-        assert 0
 
 
 def test_launch_no_app():
@@ -474,8 +445,7 @@ def test_kill_job_with_no_launch():
         assert 0
 
     # Create a job directly with no launch (Not supported for users)
-    registry = Register.default_registry
-    myapp = registry.sim_default_app
+    myapp = jobctl.sim_default_app
     job1 = Job(app = myapp, stdout = 'stdout.txt')
     try:
         jobctl.kill(job1)
@@ -493,8 +463,7 @@ def test_poll_job_with_no_launch():
     cores = NCORES
 
     # Create a job directly with no launch (Not supported for users)
-    registry = Register.default_registry
-    myapp = registry.sim_default_app
+    myapp = jobctl.sim_default_app
     job1 = Job(app = myapp, stdout = 'stdout.txt')
     try:
         job1.poll()
@@ -529,8 +498,6 @@ if __name__ == "__main__":
     test_launch_and_kill()
     test_launch_as_gen()
     test_launch_default_reg()
-    setup_function(test_create_jobcontroller_no_registry)
-    test_create_jobcontroller_no_registry()
     test_launch_no_app()
     test_kill_job_with_no_launch()
     test_poll_job_with_no_launch()
