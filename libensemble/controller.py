@@ -16,9 +16,9 @@ import time
 
 import libensemble.launcher as launcher
 from libensemble.register import Register
-from libensemble.mpi_resources import MPIResources
+from libensemble.resources import Resources
 
-logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
+logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
 #(see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
