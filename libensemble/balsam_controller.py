@@ -67,20 +67,8 @@ class BalsamJob(Job):
 
     def poll(self):
         """Polls and updates the status attributes of the supplied job"""
-        jassert(isinstance(self, BalsamJob), "Invalid job has been provided")
-
-        # Check the jobs been launched (i.e. it has a process ID)
-        #Prob should be recoverable and return state - but currently fatal
-        jassert(self.process,
-                "Polled job has no process ID - check jobs been launched")
-
-        # Do not poll if job already finished
-        if self.finished:
-            logger.warning("Polled job has already finished. Not re-polling. "
-                           "Status is {}".format(self.state))
+        if not self.check_poll():
             return
-
-        #-------- Up to here should be common - can go in a baseclass ------#
 
         # Get current state of jobs from Balsam database
         self.process.refresh_from_db()

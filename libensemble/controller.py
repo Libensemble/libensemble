@@ -136,9 +136,8 @@ class Job:
         if self.total_time is None:
             self.total_time = self.runtime
 
-    def poll(self):
-        """Polls and updates the status attributes of the job"""
-
+    def check_poll(self):
+        """Check whether polling this job makes sense."""
         jassert(self.process is not None,
                 "Polled job {} has no process ID - check jobs been launched".
                 format(self.name))
@@ -146,9 +145,14 @@ class Job:
             logger.warning("Polled job {} has already finished. "
                            "Not re-polling. Status is {}".
                            format(self.name, self.state))
-            return
+            return False
+        return True
 
-        #-------- Up to here should be common - can go in a baseclass ------#
+
+    def poll(self):
+        """Polls and updates the status attributes of the job"""
+        if not self.check_poll():
+            return
 
         # Poll the job
         poll = self.process.poll()
