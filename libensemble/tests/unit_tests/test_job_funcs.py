@@ -41,14 +41,14 @@ def test_job_funcs():
     #First try no app - check exception raised?
     jc_triggered = False
     try:
-        job = Job(workdir = myworkdir, stdout = 'stdout.txt')
+        job = Job(workdir=myworkdir, stdout='stdout.txt', stderr='stderr.txt')
     except JobControllerException:
         jc_triggered = True
     assert jc_triggered, "Failed to raise exception if create job with no app"
 
     #Now with no workdir specified
     dummyapp = jobctrl.gen_default_app
-    job1 = Job(app = dummyapp, stdout = 'stdout.txt')
+    job1 = Job(app=dummyapp, stdout='stdout.txt', stderr='stderr.txt')
     wd_exist = job1.workdir_exists()
     assert not wd_exist #, "No workdir specified, yet workdir_exists does not return False"
     stdout_exist = job1.stdout_exists()
@@ -57,7 +57,7 @@ def test_job_funcs():
     assert not f_exist
 
     #Create job properly specified
-    job2 = Job(app = dummyapp, workdir = myworkdir ,stdout = 'stdout.txt')
+    job2 = Job(app=dummyapp, workdir=myworkdir, stdout='stdout.txt', stderr='stderr.txt')
 
     #Workdir does exist
     wd_exist = job2.workdir_exists()
@@ -66,6 +66,8 @@ def test_job_funcs():
     #Files do not exist
     stdout_exist = job2.stdout_exists()
     assert not stdout_exist
+    stderr_exist = job2.stderr_exists()
+    assert not stderr_exist
     f_exist = job2.file_exists_in_workdir('running_output.txt')
     assert not f_exist
 
@@ -86,6 +88,8 @@ def test_job_funcs():
     #Now create files and check positive results
     with open("stdout.txt","w") as f:
         f.write('This is stdout')
+    with open("stderr.txt","w") as f:
+        f.write('This is stderr')
     with open("running_output.txt","w") as f:
         f.write('This is running output')
 
@@ -94,9 +98,12 @@ def test_job_funcs():
     #assert wd_exist
     stdout_exist = job2.stdout_exists()
     assert stdout_exist
+    stderr_exist = job2.stderr_exists()
+    assert stderr_exist
     f_exist = job2.file_exists_in_workdir('running_output.txt')
     assert f_exist
     assert 'This is stdout' in job2.read_stdout()
+    assert 'This is stderr' in job2.read_stderr()
     assert 'This is running output' in job2.read_file_in_workdir('running_output.txt')
 
     #Check if workdir does not exist
