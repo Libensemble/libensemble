@@ -119,6 +119,10 @@ def test_job_funcs():
     job2.launch_time = time.time()
     job2.calc_job_timing()
     assert job2.runtime is not None and job2.runtime == job2.total_time
+    save_runtime, save_total_time = job2.runtime, job2.total_time
+    job2.calc_job_timing()
+    assert save_runtime == job2.runtime
+    assert save_total_time == job2.total_time
 
     # Clean up
     os.chdir('../')
