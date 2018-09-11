@@ -8,7 +8,7 @@ def build_simfunc():
 
     #Build simfunc
     #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
-    buildstring='mpicc -o my_simjob.x simdir/my_simjob.c'
+    buildstring = 'mpicc -o my_simjob.x simdir/my_simjob.c'
     #subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
 
@@ -36,7 +36,7 @@ else:
     from libensemble.mpi_controller import *
     jobctrl = MPIJobController()
 
-jobctl.register_calc(full_path=sim_app, calc_type='sim')
+jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 #Alternative to IF could be using eg. fstring to specify: e.g:
 #JOB_CONTROLLER = 'Balsam'
@@ -68,11 +68,11 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
 
     if job.finished:
         if job.state == 'FINISHED':
-            print('Job finished succesfully. Status:',job.state)
+            print('Job finished succesfully. Status:', job.state)
         elif job.state == 'FAILED':
-            print('Job failed. Status:',job.state)
+            print('Job failed. Status:', job.state)
         elif job.state == 'USER_KILLED':
-            print('Job has been killed. Status:',job.state)
+            print('Job has been killed. Status:', job.state)
         else:
             print('Job status:', job.state)
     else:
@@ -87,7 +87,8 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
 
 # Tests
 
-#From worker call JobController by different name to ensure getting registered app from JobController
+#From worker call JobController by different name to ensure
+#getting registered app from JobController
 jobctl = JobController.controller
 
 print('\nTest 1 - should complete succesfully with status FINISHED :\n')
@@ -103,4 +104,3 @@ args_for_sim = 'sleep 5 Error'
 
 job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
 polling_loop(jobctl, job)
-
