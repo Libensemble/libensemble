@@ -1,5 +1,6 @@
 import os
 import shutil
+import time
 
 from libensemble.controller import Job, JobController, JobControllerException
 from libensemble.mpi_controller import MPIJobController
@@ -111,6 +112,15 @@ def test_job_funcs():
     wd_exist = job2.workdir_exists()
     assert not wd_exist
 
+    # Check timing
+    assert not job2.launch_time and not job2.runtime and not job2.total_time
+    job2.calc_job_timing()
+    assert not job2.launch_time and not job2.runtime and not job2.total_time
+    job2.launch_time = time.time()
+    job2.calc_job_timing()
+    assert job2.runtime is not None and job2.runtime == job2.total_time
+
+    # Clean up
     os.chdir('../')
     shutil.rmtree(dirname)
 
