@@ -6,7 +6,6 @@ libEnsemble manager routines
 from __future__ import division
 from __future__ import absolute_import
 
-import time
 import sys
 import os
 import logging
@@ -16,6 +15,7 @@ import pickle
 from mpi4py import MPI
 import numpy as np
 
+from libensemble.timer import Timer
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
      EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
@@ -42,18 +42,16 @@ def manager_main(hist, libE_specs, alloc_specs,
     return mgr.run(persis_info)
 
 
-def get_stopwatch():
-    "Return an elapsed time function, starting now"
-    start_time = time.time()
-    def elapsed():
-        "Return time elapsed since start."
-        return time.time()-start_time
-    return elapsed
-
-
 def filter_nans(array):
     "Filter out NaNs from a numpy array."
     return array[~np.isnan(array)]
+
+
+_WALLCLOCK_MSG = """
+Termination due to elapsed_wallclock_time has occurred.
+A last attempt has been made to receive any completed work.
+Posting nonblocking receives and kill messages for all active workers.
+"""
 
 
 class Manager:
@@ -67,13 +65,15 @@ class Manager:
     def __init__(self, hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria):
         """Initialize the manager."""
+        timer = Timer()
+        timer.start()
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self.elapsed = get_stopwatch()
+        self.elapsed = lambda: timer.elapsed
         self.comm = libE_specs['comm']
         self.W = self._make_worker_pool(self.comm)
         self.term_tests = \
@@ -184,9 +184,9 @@ class Manager:
     def _check_work_order(self, Work, w):
         """Check validity of an allocation function order.
         """
-        assert w != 0, "Can't send to worker 0; this is the manager. Aborting"
+        assert w != 0, "Can't send to worker 0; this is the manager."
         assert self.W[w-1]['active'] == 0, \
-          "Allocation function requested work to an already active worker. Aborting"
+          "Allocation function requested work to an already active worker."
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
@@ -231,7 +231,8 @@ class Manager:
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          'Aborting, Unknown calculation type received. Received type: ' + str(calc_type)
+          "Aborting, Unknown calculation type received. " \
+          "Received type: {}".format(calc_type)
         assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                                FINISHED_PERSISTENT_GEN_TAG,
                                UNSET_TAG,
@@ -242,7 +243,8 @@ class Manager:
                                WORKER_KILL,
                                JOB_FAILED,
                                WORKER_DONE], \
-          'Aborting: Unknown calculation status received. Received status: ' + str(calc_status)
+          "Aborting: Unknown calculation status received. " \
+          "Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
         """Receive calculation output from workers. Loops over all
@@ -339,22 +341,15 @@ class Manager:
         while any(self.W['active']) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
-                self._print_wallclock_term()
+                print(_WALLCLOCK_MSG)
+                sys.stdout.flush()
+                sys.stderr.flush()
                 self._read_final_messages()
                 exit_flag = 2
 
         self._kill_workers()
         print("\nlibEnsemble manager total time:", self.elapsed())
         return persis_info, exit_flag
-
-    @staticmethod
-    def _print_wallclock_term():
-        """Print termination message for wall clock elapsed."""
-        print("Termination due to elapsed_wallclock_time has occurred.\n"\
-              "A last attempt has been made to receive any completed work.\n"\
-              "Posting nonblocking receives and kill messages for all active workers\n")
-        sys.stdout.flush()
-        sys.stderr.flush()
 
     # --- Main loop
 

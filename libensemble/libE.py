@@ -123,7 +123,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     #sys.excepthook = comms_abort(libE_specs['comm'])
     H = exit_flag = []
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    
+
     if libE_specs['comm'].Get_rank() == 0:
         CalcInfo.make_statdir()
     libE_specs['comm'].Barrier()

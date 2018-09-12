@@ -126,6 +126,13 @@ class Resources:
         num_workers = MPI.COMM_WORLD.Get_size() - 1
         return num_workers
 
+    @staticmethod
+    def get_my_name():
+        """Return name string"""
+        if Resources.am_I_manager():
+            return 'Manager'
+        return 'w{}'.format(Resources.get_workerID())
+
     #Call from all libE tasks (pref. inc. manager)
     @staticmethod
     def get_libE_nodes():

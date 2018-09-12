@@ -9,8 +9,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
-from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController, BalsamJobController
+from libensemble.controller import JobController
 from libensemble.calc_info import CalcInfo
 from libensemble.resources import Resources
 from libensemble.message_numbers import *
@@ -35,12 +34,12 @@ if not os.path.isfile(sim_app):
     build_simfunc()
 
 if USE_BALSAM:
-    registry = BalsamRegister()
-    jobctrl = BalsamJobController(registry = registry, auto_resources = True)
+    from libensemble.balsam_controller import BalsamJobController
+    jobctrl = BalsamJobController(auto_resources = True)
 else:
-    registry = Register()
-    jobctrl = JobController(registry = registry, auto_resources = True)
-registry.register_calc(full_path=sim_app, calc_type='sim')
+    from libensemble.mpi_controller import MPIJobController
+    jobctrl = MPIJobController(auto_resources = True)
+jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 summary_file_name = short_name + '.libe_summary.txt'
 CalcInfo.set_statfile_name(summary_file_name)

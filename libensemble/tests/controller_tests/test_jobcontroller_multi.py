@@ -1,7 +1,8 @@
-#Test of job controller running multiple jobs for libensemble
-#Could support hybrid mode - including, eg. running multi jobs per node (launched locally), or
-#simply sharing burden on central system/consecutive pipes to balsam database - could enable
-#use of threads if supply run-directories rather than assuming in-place runs etc....
+#Test of job controller running multiple jobs for libensemble. Could support
+#hybrid mode - including, eg. running multi jobs per node (launched locally),
+#or simply sharing burden on central system/consecutive pipes to balsam
+#database - could enable use of threads if supply run-directories rather than
+#assuming in-place runs etc....
 
 #Test does not require running full libensemble
 import os
@@ -11,14 +12,13 @@ def build_simfunc():
 
     #Build simfunc
     #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
-    buildstring='mpicc -o my_simjob.x simdir/my_simjob.c'
+    buildstring = 'mpicc -o my_simjob.x simdir/my_simjob.c'
     #subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
 
 #--------------- Calling script ---------------------------------------------------------------
 
-from libensemble.register import Register, BalsamRegister
-from libensemble.controller import JobController, BalsamJobController
+from libensemble.controller import JobController
 
 #sim_app = 'simdir/my_simjob.x'
 #gen_app = 'gendir/my_genjob.x'
@@ -34,13 +34,13 @@ USE_BALSAM = False #Take as arg
 
 #Create and add exes to registry
 if USE_BALSAM:
-    registry = BalsamRegister()
-    jobctrl = BalsamJobController(registry = registry)
+    from libensemble.baslam_controller import BalsamJobController
+    jobctrl = BalsamJobController()
 else:
-    registry = Register()
-    jobctrl = JobController(registry = registry)
+    from libensemble.mpi_controller import MPIJobController
+    jobctrl = MPIJobController()
 
-registry.register_calc(full_path=sim_app, calc_type='sim')
+jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 #Alternative to IF could be using eg. fstring to specify: e.g:
 #JOB_CONTROLLER = 'Balsam'
@@ -65,22 +65,26 @@ def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
         for job in job_list:
             if not job.finished:
                 time.sleep(delay)
-                print('Polling job %d at time %f' % (job.id, time.time() - start))
-                #job.poll()
-                jobctl.poll(job)
+                print('Polling job {0} at time {1}'.
+                      format(job.id, time.time() - start))
+                job.poll()
                 if job.finished: continue
-                elif job.state == 'WAITING': print('Job %d waiting to launch' % (job.id))
-                elif job.state == 'RUNNING': print('Job %d still running ....' % (job.id))
+                elif job.state == 'WAITING':
+                    print('Job {0} waiting to launch'.format(job.id))
+                elif job.state == 'RUNNING':
+                    print('Job {0} still running ....'.format(job.id))
 
                 #Check output file for error
                 if job.stdout_exists():
                     if 'Error' in job.read_stdout():
-                        print("Found (deliberate) Error in ouput file - cancelling job %d" % (job.id))
+                        print("Found (deliberate) Error in ouput file - "
+                              "cancelling job {}".format(job.id))
                         jobctl.kill(job)
                         time.sleep(delay) #Give time for kill
                         continue
 
-                #But if I want to do something different - I want to make a file - no function for THAT!
+                #But if I want to do something different -
+                #  I want to make a file - no function for THAT!
                 #But you can get all the job attributes!
                 #Uncomment to test
                 #path = os.path.join(job.workdir,'newfile'+str(time.time()))
@@ -91,27 +95,31 @@ def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
     for job in job_list:
         if job.finished:
             if job.state == 'FINISHED':
-                print('Job %d finished succesfully. Status: %s' % (job.id, job.state))
+                print('Job {0} finished succesfully. Status: {1}'.
+                      format(job.id, job.state))
             elif job.state == 'FAILED':
-                print('Job %d failed. Status: %s' % (job.id, job.state))
+                print('Job {0} failed. Status: {1}'.
+                      format(job.id, job.state))
             elif job.state == 'USER_KILLED':
-                print('Job %d has been killed. Status: %s' % (job.id, job.state))
+                print('Job {0} has been killed. Status: {1}'.
+                      format(job.id, job.state))
             else:
-                print('Job %d status: %s' % (job.id, job.state))
+                print('Job {0} status: {1}'.format(job.id, job.state))
         else:
-            print('Job %d timed out. Status: %s' % (job.id, job.state))
+            print('Job {0} timed out. Status: {1}'.format(job.id, job.state))
             jobctl.kill(job)
             if job.finished:
-                print('Job %d Now killed. Status: %s' % (job.id, job.state))
+                print('Job {0} Now killed. Status: {1}'.
+                      format(job.id, job.state))
                 #double check
-                #job.poll()
-                jobctl.poll(job)
-                print('Job %d state is %s' % (job.id, job.state))
+                job.poll()
+                print('Job {0} state is {1}'.format(job.id, job.state))
 
 
 # Tests
 
-#From worker call JobController by different name to ensure getting registered app from JobController
+#From worker call JobController by different name to ensure getting registered
+#app from JobController
 jobctl = JobController.controller
 
 
@@ -121,7 +129,8 @@ job_list = []
 cores = 4
 
 for j in range(3):
-    #outfilename = 'out_' + str(j) + '.txt' #Could allow launch to generate outfile names based on job.id
+    ##Could allow launch to generate outfile names based on job.id
+    #outfilename = 'out_' + str(j) + '.txt'
     sleeptime = 6 + j*3 #Change args
     args_for_sim = 'sleep' + ' ' + str(sleeptime)
     rundir = 'run_' + str(sleeptime)
@@ -130,5 +139,3 @@ for j in range(3):
 
 
 polling_loop(jobctl, job_list)
-
-
