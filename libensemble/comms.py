@@ -5,11 +5,22 @@ libEnsemble communication interface
 
 from abc import ABC, abstractmethod
 import time
-import queue
+try:
+    import queue
+except ImportError:
+    # Maybe we can get rid of this if we are dropping 2.7 support
+    import Queue as queue
+
 import numpy as np
+
 
 class Timeout(Exception):
     "Communication timeout exception."
+    pass
+
+
+class ManagerStop(Exception):
+    "Exception raised by default when manager sends a stop message."
     pass
 
 
@@ -19,12 +30,13 @@ class Comm(ABC):
     A comm provides a message passing abstraction for communication
     between a worker user function and the manager.  Basic messages are:
 
+      stop() - manager tells persistent gen/sim to stop
       worker(nworker) - manager tells gen that workers are available
-      request(local_id, histrecs) - worker requests simulations
-      queued(local_id, lo, hi) - manager assigns simulation IDs to request
+      request(recs) - worker requests simulations
+      queued(id) - manager assigns simulation IDs to request
       kill(id) - gen requests manager kill a simulation
-      update(id, histrec) - manager informs gen of partial sim information
-      result(id, histrec) - manager informs gen a sim completed
+      update(id, rec) - manager informs gen of partial sim information
+      result(id, rec) - manager informs gen a sim completed
       killed(id) - manager informs gen a sim was killed
 
     To facilitate information sharing, we also have messages for history
@@ -61,7 +73,7 @@ class QComm(Comm):
 
     def send(self, msg_type, *args):
         "Place a message on the outbox queue."
-        self._outbox.put((msg_type, *args))
+        self._outbox.put((msg_type,) + tuple(args))
 
     def recv(self, timeout=None):
         "Return a message from the inbox queue or raise TimeoutError."
@@ -94,14 +106,14 @@ class CommHandler(ABC):
         msg_type, *args = msg
         try:
             method = 'on_{}'.format(msg_type)
-            handler = type(self).__dict__[method].__get__(self, type(self))
-        except KeyError:
+            handler = getattr(self, method)
+        except AttributeError:
             return self.on_unhandled_message(msg)
         return handler(*args)
 
     def on_unhandled_message(self, msg):
         "Handle any messages for which there are no named handlers."
-        raise ValueError("No handler available for message {0}({1})".
+        raise ValueError("No handler available for message {0}{1}".
                          format(msg[0], msg[1:]))
 
 
@@ -123,6 +135,10 @@ class GenCommHandler(CommHandler):
     def send_subscribe(self):
         "Request subscription to updates on sims not launched by this gen."
         self.send('subscribe')
+
+    def on_stop(self):
+        "Handle stop message."
+        raise ManagerStop()
 
     @abstractmethod
     def on_worker(self, nworker):
@@ -169,6 +185,10 @@ class SimCommHandler(CommHandler):
     def send_killed(self, sim_id):
         "Send notification that a simulation was killed"
         self.send('killed', sim_id)
+
+    def on_stop(self):
+        "Handle stop message."
+        raise ManagerStop()
 
     @abstractmethod
     def on_request(self, sim_id, histrecs):

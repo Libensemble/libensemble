@@ -142,6 +142,15 @@ def test_gen_comm_handler():
         pass
     assert flag, "Check timeout on process_message"
 
+    flag = True
+    try:
+        inq.put(('stop',))
+        gcomm.process_message(0.1)
+        flag = False
+    except comms.ManagerStop:
+        pass
+    assert flag, "Check exception raised on manager requested stop"
+
 
 def test_sim_comm_handler():
     "Test SimCommHandler interface"
@@ -190,6 +199,15 @@ def test_sim_comm_handler():
     except comms.Timeout:
         pass
     assert flag, "Check timeout on process_message"
+
+    flag = True
+    try:
+        inq.put(('stop',))
+        scomm.process_message(0.1)
+        flag = False
+    except comms.ManagerStop:
+        pass
+    assert flag, "Check exception raised on manager requested stop"
 
 
 def test_comm_eval():
