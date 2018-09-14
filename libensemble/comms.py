@@ -61,7 +61,7 @@ class QComm(Comm):
 
     def send(self, msg_type, *args):
         "Place a message on the outbox queue."
-        self._outbox.queue((msg_type, *args))
+        self._outbox.put((msg_type, *args))
 
     def recv(self, timeout=None):
         "Return a message from the inbox queue or raise TimeoutError."
@@ -158,20 +158,20 @@ class GenCommHandler(CommHandler):
 class SimCommHandler(CommHandler):
     "Wrapper for handling messages at sim."
 
-    def send_result(self, histrecs):
+    def send_result(self, sim_id, histrecs):
         "Send a simulation result"
-        self.send('result', histrecs)
+        self.send('result', sim_id, histrecs)
 
-    def send_update(self, histrecs):
+    def send_update(self, sim_id, histrecs):
         "Send a simulation update"
-        self.send('update', histrecs)
+        self.send('update', sim_id, histrecs)
 
     def send_killed(self, sim_id):
         "Send notification that a simulation was killed"
         self.send('killed', sim_id)
 
     @abstractmethod
-    def on_request(self, histrecs):
+    def on_request(self, sim_id, histrecs):
         "Handle a request for a simulation"
         pass
 
@@ -197,8 +197,8 @@ class CommEval(GenCommHandler):
 
     def request(self, hist):
         "Request simulations, return promises"
-        self.sim_started += 1
-        self.sim_pending += 1
+        self.sim_started += len(hist)
+        self.sim_pending += len(hist)
         self.send_request(hist)
         self.waiting_for_queued = len(hist)
         while self.waiting_for_queued > 0:
@@ -215,7 +215,7 @@ class CommEval(GenCommHandler):
           "Must specify simulation arguments."
         O = np.zeros(1, dtype=self.gen_specs['out'])
         if args:
-            assert len(args) != len(self.gen_specs['out']), \
+            assert len(args) == len(self.gen_specs['out']), \
               "Wrong number of positional arguments in sim call."
             for k, spec in enumerate(self.gen_specs['out']):
                 name = spec[0]
@@ -223,7 +223,7 @@ class CommEval(GenCommHandler):
         else:
             for name, value in kwargs.items():
                 O[name] = value
-        self.request(O)
+        return self.request(O)[0]
 
     def on_worker(self, nworker):
         "Update worker count"
@@ -235,7 +235,11 @@ class CommEval(GenCommHandler):
         lo = sim_id
         hi = sim_id + self.waiting_for_queued
         self.waiting_for_queued = 0
-        self.returning_promises = [Future(self, s) for s in range(lo, hi)]
+        self.returning_promises = []
+        for s in range(lo, hi):
+            promise = Future(self, s)
+            self.promises[s] = promise
+            self.returning_promises.append(promise)
         return -1
 
     def on_result(self, sim_id, hist):
@@ -284,6 +288,7 @@ class Future:
         self._comm = ceval.comm
         self._result = None
         self._killed = False
+        self._success = False
 
     def cancelled(self):
         "Return True if the simulation was killed."
@@ -291,13 +296,13 @@ class Future:
 
     def done(self):
         "Return True if the simulation completed successfully or was killed."
-        return self._result is None and not self._killed
+        return self._success or self._killed
 
     def cancel(self):
         "Cancel the simulation."
-        self._ceval.send_killed(self._id)
+        self._ceval.send_kill(self._id)
 
-    def result(self, timeout=Timeout):
+    def result(self, timeout=None):
         "Get the result of the simulation or throw a timeout."
         while not self.done():
             if timeout is not None and timeout < 0:
@@ -313,6 +318,11 @@ class Future:
 
     def on_result(self, result):
         "Handle an incoming result."
+        self._result = result
+        self._success = True
+
+    def on_update(self, result):
+        "Handle an incoming update."
         self._result = result
 
     def on_killed(self):
