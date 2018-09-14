@@ -54,14 +54,14 @@ def test_missing_handler():
 
             # Missing on_result
 
-            def on_update(self, sim_id, hist):
-                return "on_update", sim_id, hist
+            def on_update(self, sim_id, recs):
+                return "on_update", sim_id, recs
 
             def on_killed(self, sim_id):
                 return "on_killed", sim_id
 
-            def on_history(self, hist):
-                return "on_history", hist
+            def on_history(self, recs):
+                return "on_history", recs
 
         TestHandler(None)
         flag = False
@@ -84,17 +84,17 @@ def test_gen_comm_handler():
         def on_queued(self, sim_id):
             return "on_queued", sim_id
 
-        def on_result(self, sim_id, hist):
-            return "on_result", sim_id, hist
+        def on_result(self, sim_id, recs):
+            return "on_result", sim_id, recs
 
-        def on_update(self, sim_id, hist):
-            return "on_update", sim_id, hist
+        def on_update(self, sim_id, recs):
+            return "on_update", sim_id, recs
 
         def on_killed(self, sim_id):
             return "on_killed", sim_id
 
-        def on_history(self, hist):
-            return "on_history", hist
+        def on_history(self, recs):
+            return "on_history", recs
 
     inq = queue.Queue()
     outq = queue.Queue()
@@ -158,8 +158,8 @@ def test_sim_comm_handler():
     class TestSimComm(comms.SimCommHandler):
         "Dummy SimCommHandler"
 
-        def on_request(self, sim_id, histrecs):
-            return "on_request", sim_id, histrecs
+        def on_request(self, sim_id, recs):
+            return "on_request", sim_id, recs
 
         def on_kill(self, sim_id):
             return "on_kill", sim_id
@@ -258,20 +258,23 @@ def test_comm_eval():
     assert gcomm.sim_started == 3
     assert gcomm.sim_pending == 2
 
-    inq.put(('result', 1, 20))
+    results = np.zeros(3, dtype=[('f', float)])
+    results['f'] = [20, 10, 15]
+
+    inq.put(('result', 1, results[0]))
     gcomm.process_message(timeout=0.1)
     assert not promises[0].cancelled() and promises[0].done()
     assert promises[0].result() == 20
     assert gcomm.sim_started == 3
     assert gcomm.sim_pending == 1
 
-    inq.put(('update', 2, 10))
+    inq.put(('update', 2, results[1]))
     gcomm.process_message(timeout=0.1)
     assert not promises[1].cancelled() and not promises[1].done()
     assert gcomm.sim_started == 3
     assert gcomm.sim_pending == 1
 
-    inq.put(('result', 2, 15))
+    inq.put(('result', 2, results[2]))
     gcomm.process_message(timeout=0.1)
     assert not promises[1].cancelled() and promises[1].done()
     assert gcomm.sim_started == 3
@@ -291,6 +294,7 @@ def test_comm_eval():
 
 
 def test_thread_comm_eval():
+    "Test CommEval between two threads (allows timeout checks)"
 
     gen_specs = {'out': [('x', float), ('flag', bool)]}
     inq = queue.Queue()
@@ -301,18 +305,20 @@ def test_thread_comm_eval():
 
     def manager_main():
         "Manager logic for testing CommEval timeouts and waits"
+        results = np.zeros(3, dtype=[('f', float)])
+        results['f'] = [5, 10, 30]
         assert mgr_comm.recv()[0] == 'request'
         mgr_comm.send('queued', 0)
         assert mgr_comm.recv()[0] == 'request'
         mgr_comm.send('queued', 1)
         time.sleep(0.2)
-        mgr_comm.send('result', 0, 5)
+        mgr_comm.send('result', 0, results[0])
         time.sleep(0.5)
-        mgr_comm.send('result', 1, 10)
+        mgr_comm.send('result', 1, results[1])
         mgr_comm.send('queued', 2)
         mgr_comm.send('queued', 3)
         time.sleep(0.5)
-        mgr_comm.send('result', 2, 30)
+        mgr_comm.send('result', 2, results[2])
 
     mgr_thread = threading.Thread(target=manager_main)
     mgr_thread.start()

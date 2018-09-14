@@ -43,7 +43,7 @@ class Comm(ABC):
     access and monitoring (for persistent gens):
 
       get_history(lo, hi) - gen requests history
-      history(histrecs) - manager sends history
+      history(recs) - manager sends history
       subscribe() - gen subscribes to all history updates
     """
 
@@ -120,9 +120,9 @@ class CommHandler(ABC):
 class GenCommHandler(CommHandler):
     "Wrapper for handling messages at a persistent gen."
 
-    def send_request(self, histrecs):
+    def send_request(self, recs):
         "Request new evaluations."
-        self.send('request', histrecs)
+        self.send('request', recs)
 
     def send_kill(self, sim_id):
         "Kill an evaluation."
@@ -151,12 +151,12 @@ class GenCommHandler(CommHandler):
         pass
 
     @abstractmethod
-    def on_result(self, sim_id, hist):
+    def on_result(self, sim_id, recs):
         "Handle a simulation result"
         pass
 
     @abstractmethod
-    def on_update(self, sim_id, hist):
+    def on_update(self, sim_id, recs):
         "Handle a simulation update"
         pass
 
@@ -166,7 +166,7 @@ class GenCommHandler(CommHandler):
         pass
 
     @abstractmethod
-    def on_history(self, hist):
+    def on_history(self, recs):
         "Handle a response to a history request"
         pass
 
@@ -174,13 +174,13 @@ class GenCommHandler(CommHandler):
 class SimCommHandler(CommHandler):
     "Wrapper for handling messages at sim."
 
-    def send_result(self, sim_id, histrecs):
+    def send_result(self, sim_id, recs):
         "Send a simulation result"
-        self.send('result', sim_id, histrecs)
+        self.send('result', sim_id, recs)
 
-    def send_update(self, sim_id, histrecs):
+    def send_update(self, sim_id, recs):
         "Send a simulation update"
-        self.send('update', sim_id, histrecs)
+        self.send('update', sim_id, recs)
 
     def send_killed(self, sim_id):
         "Send notification that a simulation was killed"
@@ -191,7 +191,7 @@ class SimCommHandler(CommHandler):
         raise ManagerStop()
 
     @abstractmethod
-    def on_request(self, sim_id, histrecs):
+    def on_request(self, sim_id, recs):
         "Handle a request for a simulation"
         pass
 
@@ -215,12 +215,12 @@ class CommEval(GenCommHandler):
         self.returning_promises = None
         self.waiting_for_queued = 0
 
-    def request(self, hist):
+    def request(self, recs):
         "Request simulations, return promises"
-        self.sim_started += len(hist)
-        self.sim_pending += len(hist)
-        self.send_request(hist)
-        self.waiting_for_queued = len(hist)
+        self.sim_started += len(recs)
+        self.sim_pending += len(recs)
+        self.send_request(recs)
+        self.waiting_for_queued = len(recs)
         while self.waiting_for_queued > 0:
             self.process_message()
         returning_promises = self.returning_promises
@@ -233,23 +233,23 @@ class CommEval(GenCommHandler):
           "Must specify simulation args by position or keyword, but not both"
         assert args or kwargs, \
           "Must specify simulation arguments."
-        O = np.zeros(1, dtype=self.gen_specs['out'])
+        rec = np.zeros(1, dtype=self.gen_specs['out'])
         if args:
             assert len(args) == len(self.gen_specs['out']), \
               "Wrong number of positional arguments in sim call."
             for k, spec in enumerate(self.gen_specs['out']):
                 name = spec[0]
-                O[name] = args[k]
+                rec[name] = args[k]
         else:
             for name, value in kwargs.items():
-                O[name] = value
-        return self.request(O)[0]
+                rec[name] = value
+        return self.request(rec)[0]
 
     def wait_any(self):
         "Wait for any pending simulation to be done"
-        sim_id = -1
-        while sim_id < 0 or not self.promises[sim_id].done():
-            sim_id = self.process_message()
+        sim_pending = self.sim_pending
+        while sim_pending == self.sim_pending:
+            self.process_message()
 
     def wait_all(self):
         "Wait for all pending simulations to be done"
@@ -275,15 +275,17 @@ class CommEval(GenCommHandler):
             self.returning_promises.append(promise)
         return -1
 
-    def on_result(self, sim_id, hist):
+    def on_result(self, sim_id, recs):
         "Handle completed simulation"
-        self.sim_pending -= 1
-        self.promises[sim_id].on_result(hist)
+        for k, rec in enumerate(recs):
+            self.sim_pending -= 1
+            self.promises[sim_id+k].on_result(rec)
         return sim_id
 
-    def on_update(self, sim_id, hist):
+    def on_update(self, sim_id, recs):
         "Handle updated simulation"
-        self.promises[sim_id].on_update(hist)
+        for k, rec in enumerate(recs):
+            self.promises[sim_id+k].on_update(rec)
         return sim_id
 
     def on_killed(self, sim_id):
@@ -292,7 +294,7 @@ class CommEval(GenCommHandler):
         self.promises[sim_id].on_killed()
         return sim_id
 
-    def on_history(self, hist):
+    def on_history(self, recs):
         "Handle history message (ignored)"
         return -1
 
