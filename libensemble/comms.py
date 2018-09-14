@@ -225,6 +225,19 @@ class CommEval(GenCommHandler):
                 O[name] = value
         return self.request(O)[0]
 
+    def wait_any(self):
+        "Wait for any pending simulation to be done"
+        sim_id = -1
+        while sim_id < 0 or not self.promises[sim_id].done():
+            sim_id = self.process_message()
+
+    def wait_all(self):
+        "Wait for all pending simulations to be done"
+        while self.sim_pending > 0:
+            self.process_message()
+
+    # --- Message handlers
+
     def on_worker(self, nworker):
         "Update worker count"
         self.workers = nworker
@@ -262,17 +275,6 @@ class CommEval(GenCommHandler):
     def on_history(self, hist):
         "Handle history message (ignored)"
         return -1
-
-    def wait_any(self):
-        "Wait for any pending simulation to be done"
-        sim_id = -1
-        while sim_id < 0 or not self.promises[sim_id].done():
-            sim_id = self.process_message()
-
-    def wait_all(self):
-        "Wait for all pending simulations to be done"
-        while self.sim_pending > 0:
-            self.process_message()
 
 
 class Future:
@@ -315,6 +317,8 @@ class Future:
             if timeout is not None:
                 timeout -= (time.time() - tstart)
         return self._result
+
+    # --- Message handlers
 
     def on_result(self, result):
         "Handle an incoming result."
