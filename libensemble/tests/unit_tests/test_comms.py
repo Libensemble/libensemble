@@ -5,8 +5,13 @@ Unit test of comms for libensemble.
 """
 
 import time
-import queue
 import threading
+
+try:
+    import queue
+except ImportError:
+    # We can get rid of this if we are dropping 2.7 support
+    import Queue as queue
 
 import numpy as np
 import libensemble.comms as comms
