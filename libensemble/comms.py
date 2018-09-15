@@ -3,7 +3,9 @@ libEnsemble communication interface
 ====================================================
 """
 
-from abc import ABC, abstractmethod
+# If Python 3, just import ABC directly
+from abc import ABCMeta, abstractmethod
+
 import time
 try:
     import queue
@@ -12,6 +14,8 @@ except ImportError:
     import Queue as queue
 
 import numpy as np
+
+ABC = ABCMeta('ABC', (object,), {}) # compatible with Python 2 *and* 3
 
 
 class Timeout(Exception):
