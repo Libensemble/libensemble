@@ -211,7 +211,7 @@ class CommEval(GenCommHandler):
     """
 
     def __init__(self, comm, workers=0, gen_specs=None):
-        super().__init__(comm)
+        GenCommHandler.__init__(self, comm)
         self.sim_started = 0
         self.sim_pending = 0
         self.workers = workers
