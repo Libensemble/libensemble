@@ -103,7 +103,8 @@ class CommHandler(ABC):
     def process_message(self, timeout=None):
         "Receive and process a message via the comm."
         msg = self.comm.recv(timeout)
-        msg_type, *args = msg
+        msg_type = msg[0]
+        args = msg[1:]
         try:
             method = 'on_{}'.format(msg_type)
             handler = getattr(self, method)
