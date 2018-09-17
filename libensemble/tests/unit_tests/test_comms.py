@@ -51,8 +51,8 @@ def test_missing_handler():
         class TestHandler(comms.GenCommHandler):
             "Dummy GenCommHandler"
 
-            def on_worker(self, nworker):
-                return "on_worker", nworker
+            def on_worker_avail(self, nworker):
+                return "on_worker_avail", nworker
 
             def on_queued(self, sim_id):
                 return "on_queued", sim_id
@@ -80,8 +80,8 @@ def test_gen_comm_handler():
     class TestGenComm(comms.GenCommHandler):
         "Dummy GenComm handler"
 
-        def on_worker(self, nworker):
-            return "on_worker", nworker
+        def on_worker_avail(self, nworker):
+            return "on_worker_avail", nworker
 
         def on_queued(self, sim_id):
             return "on_queued", sim_id
@@ -111,14 +111,14 @@ def test_gen_comm_handler():
     assert outq.get() == ('subscribe',)
     assert outq.empty()
 
-    inq.put(('worker', 3))
+    inq.put(('worker_avail', 3))
     inq.put(('queued', 1))
     inq.put(('result', 1, 100))
     inq.put(('update', 1, 50))
     inq.put(('killed', 1))
     inq.put(('qwerty',))
 
-    assert gcomm.process_message() == ('on_worker', 3)
+    assert gcomm.process_message() == ('on_worker_avail', 3)
     assert gcomm.process_message() == ('on_queued', 1)
     assert gcomm.process_message() == ('on_result', 1, 100)
     assert gcomm.process_message() == ('on_update', 1, 50)
@@ -217,7 +217,7 @@ def test_comm_eval():
     comm = comms.QComm(inq, outq)
     gcomm = comms.CommEval(comm, gen_specs=gen_specs)
 
-    inq.put(('worker', 3))
+    inq.put(('worker_avail', 3))
     inq.put(('queued', 1))
     O = np.zeros(2, dtype=gen_specs['out'])
     promises = gcomm.request(O)

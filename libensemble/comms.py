@@ -35,7 +35,7 @@ class Comm(ABC):
     between a worker user function and the manager.  Basic messages are:
 
       stop() - manager tells persistent gen/sim to stop
-      worker(nworker) - manager tells gen that workers are available
+      worker_avail(nworker) - manager tells gen that workers are available
       request(recs) - worker requests simulations
       queued(id) - manager assigns simulation IDs to request
       kill(id) - gen requests manager kill a simulation
@@ -145,7 +145,7 @@ class GenCommHandler(CommHandler):
         raise ManagerStop()
 
     @abstractmethod
-    def on_worker(self, nworker):
+    def on_worker_avail(self, nworker):
         "Handle updated number of workers available to perform sims."
         pass
 
@@ -257,7 +257,7 @@ class CommEval(GenCommHandler):
 
     # --- Message handlers
 
-    def on_worker(self, nworker):
+    def on_worker_avail(self, nworker):
         "Update worker count"
         self.workers = nworker
         return -1
