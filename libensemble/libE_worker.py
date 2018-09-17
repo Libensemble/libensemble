@@ -69,7 +69,7 @@ def receive_and_run(comm, dtypes, worker, Work):
                else np.zeros(0, dtype=dtypes[calc_type]))
     logger.debug("Received calc_in of len {}".format(np.size(calc_in)))
 
-    #comm will be in the future comms module...
+    # comm will be in the future comms module...
     if libE_info.get('persistent'):
         libE_info['comm'] = comm
     calc_out, persis_info, calc_status = worker.run(Work, calc_in)

@@ -111,6 +111,10 @@ class QCommThread:
             raise self._exception
         return self._result
 
+    @property
+    def running(self):
+        return self.is_alive()
+
     def _qcomm_main(self, *args, **kwargs):
         "Main routine -- handles return values and exceptions."
         try:
@@ -245,7 +249,7 @@ class CommEval(GenCommHandler):
     """
 
     def __init__(self, comm, workers=0, gen_specs=None):
-        super().__init__(self, comm)
+        super().__init__(comm)
         self.sim_started = 0
         self.sim_pending = 0
         self.workers = workers
