@@ -257,6 +257,15 @@ def test_comm_eval():
     results = np.zeros(3, dtype=[('f', float)])
     results['f'] = [20, 10, 15]
 
+    results[0] = 15
+    inq.put(('update', 1, results[0]))
+    gcomm.process_message(timeout=0.1)
+    assert not promises[0].cancelled() and not promises[0].done()
+    assert promises[0].current_result == 15
+    assert gcomm.sim_started == 3
+    assert gcomm.sim_pending == 2
+
+    results[0] = 20
     inq.put(('result', 1, results[0]))
     gcomm.process_message(timeout=0.1)
     assert not promises[0].cancelled() and promises[0].done()

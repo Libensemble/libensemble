@@ -309,6 +309,11 @@ class Future:
         self._killed = False
         self._success = False
 
+    @property
+    def current_result(self):
+        "Return the current (possibly incomplete) result immediately."
+        return self._result
+
     def cancelled(self):
         "Return True if the simulation was killed."
         return self._killed
