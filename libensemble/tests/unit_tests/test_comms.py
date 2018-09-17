@@ -10,7 +10,7 @@ import threading
 try:
     import queue
 except ImportError:
-    # We can get rid of this if we are dropping 2.7 support
+    # Maybe we can get rid of this if we are dropping 2.7 support
     import Queue as queue
 
 import numpy as np
@@ -65,9 +65,6 @@ def test_missing_handler():
             def on_killed(self, sim_id):
                 return "on_killed", sim_id
 
-            def on_history(self, recs):
-                return "on_history", recs
-
         TestHandler(None)
         flag = False
 
@@ -98,9 +95,6 @@ def test_gen_comm_handler():
         def on_killed(self, sim_id):
             return "on_killed", sim_id
 
-        def on_history(self, recs):
-            return "on_history", recs
-
     inq = queue.Queue()
     outq = queue.Queue()
     comm = comms.QComm(inq, outq)
@@ -122,7 +116,6 @@ def test_gen_comm_handler():
     inq.put(('result', 1, 100))
     inq.put(('update', 1, 50))
     inq.put(('killed', 1))
-    inq.put(('history', 100))
     inq.put(('qwerty',))
 
     assert gcomm.process_message() == ('on_worker', 3)
@@ -130,7 +123,6 @@ def test_gen_comm_handler():
     assert gcomm.process_message() == ('on_result', 1, 100)
     assert gcomm.process_message() == ('on_update', 1, 50)
     assert gcomm.process_message() == ('on_killed', 1)
-    assert gcomm.process_message() == ('on_history', 100)
 
     flag = True
     try:
@@ -225,7 +217,6 @@ def test_comm_eval():
     comm = comms.QComm(inq, outq)
     gcomm = comms.CommEval(comm, gen_specs=gen_specs)
 
-    inq.put(('history', None))
     inq.put(('worker', 3))
     inq.put(('queued', 1))
     O = np.zeros(2, dtype=gen_specs['out'])

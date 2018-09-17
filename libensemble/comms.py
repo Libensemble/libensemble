@@ -47,7 +47,6 @@ class Comm(ABC):
     access and monitoring (for persistent gens):
 
       get_history(lo, hi) - gen requests history
-      history(recs) - manager sends history
       subscribe() - gen subscribes to all history updates
     """
 
@@ -157,22 +156,17 @@ class GenCommHandler(CommHandler):
 
     @abstractmethod
     def on_result(self, sim_id, recs):
-        "Handle a simulation result"
+        "Handle simulation results"
         pass
 
     @abstractmethod
     def on_update(self, sim_id, recs):
-        "Handle a simulation update"
+        "Handle simulation updates"
         pass
 
     @abstractmethod
     def on_killed(self, sim_id):
         "Handle a simulation kill"
-        pass
-
-    @abstractmethod
-    def on_history(self, recs):
-        "Handle a response to a history request"
         pass
 
 
@@ -298,10 +292,6 @@ class CommEval(GenCommHandler):
         self.sim_pending -= 1
         self.promises[sim_id].on_killed()
         return sim_id
-
-    def on_history(self, recs):
-        "Handle history message (ignored)"
-        return -1
 
 
 class Future:
