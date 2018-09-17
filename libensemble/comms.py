@@ -3,19 +3,12 @@ libEnsemble communication interface
 ====================================================
 """
 
-# If Python 3, just import ABC directly
-from abc import ABCMeta, abstractmethod
-
+from abc import ABC, abstractmethod
 import time
-try:
-    import queue
-except ImportError:
-    # Maybe we can get rid of this if we are dropping 2.7 support
-    import Queue as queue
+import threading
+import queue
 
 import numpy as np
-
-ABC = ABCMeta('ABC', (object,), {}) # compatible with Python 2 *and* 3
 
 
 class Timeout(Exception):
@@ -84,6 +77,53 @@ class QComm(Comm):
             return self._inbox.get(timeout=timeout)
         except queue.Empty:
             raise Timeout()
+
+
+class QCommThread:
+    """Launch a user function in a thread with an attached QComm.
+    """
+
+    def __init__(self, main, *args, **kwargs):
+        self.inbox = queue.Queue()
+        self.outbox = queue.Queue()
+        self.main = main
+        self._result = None
+        self._exception = None
+        kwargs['comm'] = QComm(self.inbox, self.outbox)
+        self.thread = threading.Thread(target=self._qcomm_main,
+                                       args=args, kwargs=kwargs)
+
+    def send(self, msg_type, *args):
+        "Send a message to the thread (called from creator)"
+        self.inbox.put((msg_type,) + tuple(args))
+
+    def recv(self, timeout=None):
+        "Return a message from the thread or raise TimeoutError."
+        try:
+            return self.outbox.get(timeout=timeout)
+        except queue.Empty:
+            raise Timeout()
+
+    def result(self):
+        "Join and return the thread main result (or re-raise an exception)."
+        self.thread.join()
+        if self._exception is not None:
+            raise self._exception
+        return self._result
+
+    def _qcomm_main(self, *args, **kwargs):
+        "Main routine -- handles return values and exceptions."
+        try:
+            self._result = self.main(*args, **kwargs)
+        except Exception as e:
+            self._exception = e
+
+    def __enter__(self):
+        self.thread.start()
+        return self
+
+    def __exit__(self, etype, value, traceback):
+        self.thread.join()
 
 
 class CommHandler(ABC):
@@ -205,7 +245,7 @@ class CommEval(GenCommHandler):
     """
 
     def __init__(self, comm, workers=0, gen_specs=None):
-        GenCommHandler.__init__(self, comm)
+        super().__init__(self, comm)
         self.sim_started = 0
         self.sim_pending = 0
         self.workers = workers

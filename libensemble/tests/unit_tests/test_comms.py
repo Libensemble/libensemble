@@ -6,12 +6,7 @@ Unit test of comms for libensemble.
 
 import time
 import threading
-
-try:
-    import queue
-except ImportError:
-    # Maybe we can get rid of this if we are dropping 2.7 support
-    import Queue as queue
+import queue
 
 import numpy as np
 import libensemble.comms as comms
@@ -298,37 +293,14 @@ def test_comm_eval():
     assert gcomm.sim_started == 4 and gcomm.sim_pending == 0
 
 
-def test_thread_comm_eval():
+def test_qcomm_thread():
     "Test CommEval between two threads (allows timeout checks)"
 
-    gen_specs = {'out': [('x', float), ('flag', bool)]}
-    inq = queue.Queue()
-    outq = queue.Queue()
-    comm = comms.QComm(inq, outq)
-    gcomm = comms.CommEval(comm, gen_specs=gen_specs)
-    mgr_comm = comms.QComm(outq, inq)
+    class BadWorkerException(Exception):
+        pass
 
-    def manager_main():
-        "Manager logic for testing CommEval timeouts and waits"
-        results = np.zeros(3, dtype=[('f', float)])
-        results['f'] = [5, 10, 30]
-        assert mgr_comm.recv()[0] == 'request'
-        mgr_comm.send('queued', 0)
-        assert mgr_comm.recv()[0] == 'request'
-        mgr_comm.send('queued', 1)
-        time.sleep(0.2)
-        mgr_comm.send('result', 0, results[0])
-        time.sleep(0.5)
-        mgr_comm.send('result', 1, results[1])
-        mgr_comm.send('queued', 2)
-        mgr_comm.send('queued', 3)
-        time.sleep(0.5)
-        mgr_comm.send('result', 2, results[2])
-
-    mgr_thread = threading.Thread(target=manager_main)
-    mgr_thread.start()
-
-    try:
+    def worker_thread(comm, gen_specs):
+        gcomm = comms.CommEval(comm, gen_specs=gen_specs)
         p1 = gcomm(x=0.5)
         p2 = gcomm(x=1.0)
         x1 = p1.result()
@@ -343,5 +315,44 @@ def test_thread_comm_eval():
         assert not p4.done()
         gcomm.wait_any()
         assert p3.done()
-    finally:
-        mgr_thread.join()
+        return 128
+
+    def bad_worker_thread(comm):
+        raise BadWorkerException("Bad worker")
+
+    gen_specs = {'out': [('x', float), ('flag', bool)]}
+    results = np.zeros(3, dtype=[('f', float)])
+    results['f'] = [5, 10, 30]
+    with comms.QCommThread(worker_thread, gen_specs=gen_specs) as mgr_comm:
+        assert mgr_comm.recv()[0] == 'request'
+        mgr_comm.send('queued', 0)
+        assert mgr_comm.recv()[0] == 'request'
+        mgr_comm.send('queued', 1)
+        time.sleep(0.2)
+        mgr_comm.send('result', 0, results[0])
+        time.sleep(0.5)
+        mgr_comm.send('result', 1, results[1])
+        mgr_comm.send('queued', 2)
+        mgr_comm.send('queued', 3)
+        time.sleep(0.5)
+        mgr_comm.send('result', 2, results[2])
+        assert mgr_comm.result() == 128
+
+    try:
+        bad_worker_okay = True
+        with comms.QCommThread(bad_worker_thread) as comm:
+
+            flag = True
+            try:
+                comm.recv(0.1)
+                flag = False
+            except comms.Timeout:
+                pass
+            assert flag, "Test receive timeout from worker"
+
+            result = comm.result()
+            bad_worker_okay = False
+    except BadWorkerException:
+        pass
+
+    assert bad_worker_okay, "Checking bad worker flag"
