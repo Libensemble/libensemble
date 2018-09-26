@@ -1,6 +1,25 @@
 """
 libEnsemble communication interface
 ====================================================
+
+A comm provides a message passing abstraction for communication
+between a worker user function and the manager.  Basic messages are:
+
+  stop() - manager tells persistent gen/sim to stop
+  worker_avail(nworker) - manager tells gen that workers are available
+  request(recs) - worker requests simulations
+  queued(id) - manager assigns simulation IDs to request
+  kill(id) - gen requests manager kill a simulation
+  update(id, rec) - manager informs gen of partial sim information
+  result(id, rec) - manager informs gen a sim completed
+  killed(id) - manager informs gen a sim was killed
+
+To facilitate information sharing, we also have messages for history
+access and monitoring (for persistent gens):
+
+  get_history(lo, hi) - gen requests history
+  subscribe() - gen subscribes to all history updates
+
 """
 
 from abc import ABC, abstractmethod
@@ -23,24 +42,6 @@ class ManagerStop(Exception):
 
 class Comm(ABC):
     """Bidirectional communication between a user func and a worker
-
-    A comm provides a message passing abstraction for communication
-    between a worker user function and the manager.  Basic messages are:
-
-      stop() - manager tells persistent gen/sim to stop
-      worker_avail(nworker) - manager tells gen that workers are available
-      request(recs) - worker requests simulations
-      queued(id) - manager assigns simulation IDs to request
-      kill(id) - gen requests manager kill a simulation
-      update(id, rec) - manager informs gen of partial sim information
-      result(id, rec) - manager informs gen a sim completed
-      killed(id) - manager informs gen a sim was killed
-
-    To facilitate information sharing, we also have messages for history
-    access and monitoring (for persistent gens):
-
-      get_history(lo, hi) - gen requests history
-      subscribe() - gen subscribes to all history updates
     """
 
     @abstractmethod

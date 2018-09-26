@@ -157,7 +157,7 @@ def worker_main(c, sim_specs, gen_specs):
 # Worker Class
 ######################################################################
 
-class Worker():
+class Worker:
 
     """The Worker Class provides methods for controlling sim and gen funcs"""
 
