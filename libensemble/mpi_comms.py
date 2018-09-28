@@ -37,6 +37,10 @@ class MPIComm(Comm):
         for req in self._outbox:
             req.Wait()
 
+    def mail_flag(self):
+        return (self._pushed is not None
+                or self.mpi_comm.Iprobe(source=self.remote_rank))
+
     def kill_pending(self):
         "Make sure pending requests are cancelled if the comm is killed."
         for req in self._outbox:
@@ -67,7 +71,7 @@ class MPIComm(Comm):
             return result
         if timeout is not None:
             tfinal = time.time() + timeout
-            while not self.mpi_comm.Iprobe(source=self.remote_rank):
+            while not self.mail_flag():
                 if time.time() > tfinal:
                     raise Timeout()
         result = self.mpi_comm.recv(source=self.remote_rank, status=self.status)

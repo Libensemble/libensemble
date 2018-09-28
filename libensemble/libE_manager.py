@@ -323,12 +323,6 @@ class Manager:
 
     # --- Handle termination
 
-    def _read_final_messages(self):
-        """Read final messages from any active workers"""
-        for w in self.W['worker_id'][self.W['active'] > 0]:
-            if self.Iprobe(w):
-                self.recv(w)
-
     def _final_receive_and_kill(self, persis_info):
         """
         Tries to receive from any active workers.
@@ -344,7 +338,6 @@ class Manager:
                 print(_WALLCLOCK_MSG)
                 sys.stdout.flush()
                 sys.stderr.flush()
-                self._read_final_messages()
                 exit_flag = 2
 
         self._kill_workers()
@@ -367,8 +360,7 @@ class Manager:
 
     def run(self, persis_info):
         "Run the manager."
-        logger.info("Manager initiated on MPI rank {} on node {}". \
-                    format(self.comm.Get_rank(), socket.gethostname()))
+        logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
         # Send initial info to workers

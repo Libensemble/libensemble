@@ -54,6 +54,10 @@ class Comm(ABC):
         "Receive a message or raise TimeoutError."
         pass
 
+    def mail_flag(self):
+        "Check whether we know a message is ready for receipt."
+        return False
+
     def kill_pending(self):
         "Cancel any pending sends (don't worry about those in the system)."
         pass
@@ -83,6 +87,9 @@ class QComm(Comm):
         except queue.Empty:
             raise Timeout()
 
+    def mail_flag(self):
+        "Check whether we know a message is ready for receipt."
+        return not self._inbox.empty()
 
 class QCommThread:
     """Launch a user function in a thread with an attached QComm.
