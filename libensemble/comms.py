@@ -41,22 +41,22 @@ class ManagerStop(Exception):
 
 
 class Comm(ABC):
-    """Bidirectional communication between a user func and a worker
+    """Bidirectional communication
     """
 
     @abstractmethod
-    def send(self, msg_type, *args):
-        "Send a message to the manager."
+    def send(self, *args):
+        "Send a message."
         pass
 
     @abstractmethod
     def recv(self, timeout=None):
-        "Receive a message from the manager.  On timeout, return None."
+        "Receive a message or raise TimeoutError."
         pass
 
 
 class QComm(Comm):
-    """Queue-based bidirectional communicator between worker and user func
+    """Queue-based bidirectional communicator
 
     A QComm provides a message passing abstraction based on a pair of message
     queues: an inbox for incoming messages and an outbox for outgoing messages.
@@ -68,9 +68,9 @@ class QComm(Comm):
         self._inbox = inbox
         self._outbox = outbox
 
-    def send(self, msg_type, *args):
+    def send(self, *args):
         "Place a message on the outbox queue."
-        self._outbox.put((msg_type,) + tuple(args))
+        self._outbox.put(args)
 
     def recv(self, timeout=None):
         "Return a message from the inbox queue or raise TimeoutError."
@@ -94,9 +94,9 @@ class QCommThread:
         self.thread = threading.Thread(target=self._qcomm_main,
                                        args=args, kwargs=kwargs)
 
-    def send(self, msg_type, *args):
+    def send(self, *args):
         "Send a message to the thread (called from creator)"
-        self.inbox.put((msg_type,) + tuple(args))
+        self.inbox.put(args)
 
     def recv(self, timeout=None):
         "Return a message from the thread or raise TimeoutError."
@@ -144,9 +144,9 @@ class CommHandler(ABC):
         "Set the comm to be wrapped."
         self.comm = comm
 
-    def send(self, msg_type, *args):
+    def send(self, *args):
         "Send via the comm."
-        self.comm.send(msg_type, *args)
+        self.comm.send(*args)
 
     def process_message(self, timeout=None):
         "Receive and process a message via the comm."
