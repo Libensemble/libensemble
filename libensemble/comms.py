@@ -54,6 +54,10 @@ class Comm(ABC):
         "Receive a message or raise TimeoutError."
         pass
 
+    def kill_pending(self):
+        "Cancel any pending sends (don't worry about those in the system)."
+        pass
+
 
 class QComm(Comm):
     """Queue-based bidirectional communicator
