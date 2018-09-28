@@ -11,7 +11,6 @@ import logging
 from itertools import count
 
 import numpy as np
-from mpi4py import MPI
 
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, EVAL_GEN_TAG, \
@@ -49,14 +48,6 @@ def recv_dtypes(comm):
     dtypes[EVAL_SIM_TAG] = comm.bcast(dtypes[EVAL_SIM_TAG], root=0)
     dtypes[EVAL_GEN_TAG] = comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
     return dtypes
-
-
-# def recv_from_manager(comm):
-#     """Receive a tagged message from the manager."""
-#     status = MPI.Status()
-#     msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-#     mtag = status.Get_tag()
-#     return mtag, msg
 
 
 def dump_pickle(pfilename, worker_out):
@@ -162,6 +153,7 @@ def worker_main(c, sim_specs, gen_specs):
                      format(worker_out['calc_status']))
         comm.send(0, worker_out)
 
+    comm.kill_pending()
     if sim_specs.get('clean_jobs'):
         worker.clean()
 

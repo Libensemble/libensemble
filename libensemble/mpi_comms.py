@@ -40,7 +40,7 @@ class MPIComm(Comm):
     def kill_pending(self):
         "Make sure pending requests are cancelled if the comm is killed."
         for req in self._outbox:
-            if req.Test():
+            if not req.Test():
                 req.Cancel()
         self._outbox = []
 
