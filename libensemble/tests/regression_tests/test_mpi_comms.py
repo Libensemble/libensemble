@@ -1,15 +1,22 @@
 import time
 from mpi4py import MPI
-from libensemble.mpi_comms import MPIComm
+from libensemble.mpi_comms import MPIComm, Timeout
+
+
+def check_recv(comm, expected_msg):
+    msg = comm.recv()[0]
+    assert msg == expected_msg, \
+      "Expected {}, received {}".format(expected_msg, msg)
 
 
 def worker_main():
     "Worker main routine"
     comm = MPIComm()
-    assert comm.recv() == "Hello"
-    assert comm.recv() == "World"
-    assert comm.recv() == comm.rank
+    check_recv(comm, "Hello")
+    check_recv(comm, "World")
+    check_recv(comm, comm.rank)
     comm.send(comm.rank)
+    check_recv(comm, "Goodbye")
 
 
 def manager_main():
@@ -21,7 +28,7 @@ def manager_main():
             okay_flag = True
             comm.recv(0)
             okay_flag = False
-        except TimeoutError:
+        except Timeout:
             pass
         assert okay_flag, "Worker comm behaved as expected."
     for comm in worker_comms:
@@ -29,7 +36,8 @@ def manager_main():
         comm.send("World")
         comm.send(comm.remote_rank)
     for comm in worker_comms:
-        assert comm.recv(0) == comm.remote_rank
+        assert comm.recv()[0] == comm.remote_rank
+        comm.send("Goodbye")
 
 
 if MPI.COMM_WORLD.Get_rank() == 0:

@@ -24,11 +24,21 @@ from libensemble.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 from libensemble.resources import Resources
+from libensemble.mpi_comms import MPIComm
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
 #  (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
+
+
+class WorkerMPIComm(MPIComm):
+
+    def process_incoming(self, msg, status):
+        return status.Get_tag(), msg
+
+    def process_outgoing(self, msg):
+        return msg[1], msg[0]
 
 
 def recv_dtypes(comm):
@@ -41,12 +51,12 @@ def recv_dtypes(comm):
     return dtypes
 
 
-def recv_from_manager(comm):
-    """Receive a tagged message from the manager."""
-    status = MPI.Status()
-    msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-    mtag = status.Get_tag()
-    return mtag, msg
+# def recv_from_manager(comm):
+#     """Receive a tagged message from the manager."""
+#     status = MPI.Status()
+#     msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+#     mtag = status.Get_tag()
+#     return mtag, msg
 
 
 def dump_pickle(pfilename, worker_out):
@@ -65,8 +75,10 @@ def receive_and_run(comm, dtypes, worker, Work):
     libE_info = Work['libE_info']
     calc_type = Work['tag']
 
-    calc_in = (comm.recv(source=0) if len(libE_info['H_rows']) > 0
-               else np.zeros(0, dtype=dtypes[calc_type]))
+    if len(libE_info['H_rows']) > 0:
+        _, calc_in = comm.recv()
+    else:
+        calc_in = np.zeros(0, dtype=dtypes[calc_type])
     logger.debug("Received calc_in of len {}".format(np.size(calc_in)))
 
     # comm will be in the future comms module...
@@ -102,13 +114,14 @@ def worker_main(c, sim_specs, gen_specs):
 
     """
 
-    comm = c['comm']
-    dtypes = recv_dtypes(comm)
-    worker = Worker(comm.Get_rank(), sim_specs, gen_specs)
+    mpi_comm = c['comm']
+    dtypes = recv_dtypes(mpi_comm)
+    comm = WorkerMPIComm(mpi_comm)
+    worker = Worker(comm.rank, sim_specs, gen_specs)
 
     #Setup logging
     logger.info("Worker initiated on MPI rank {} on node {}". \
-                format(comm.Get_rank(), socket.gethostname()))
+                format(comm.rank, socket.gethostname()))
 
     # Print calc_list on-the-fly
     CalcInfo.create_worker_statfile(worker.workerID)
@@ -119,7 +132,7 @@ def worker_main(c, sim_specs, gen_specs):
     for worker_iter in count(start=1):
         logger.debug("Iteration {}".format(worker_iter))
 
-        mtag, Work = recv_from_manager(comm)
+        mtag, Work = comm.recv()
         if mtag == STOP_TAG:
 
             if Work == MAN_SIGNAL_FINISH: #shutdown the worker
@@ -128,7 +141,7 @@ def worker_main(c, sim_specs, gen_specs):
             if Work == MAN_SIGNAL_REQ_RESEND:
                 logger.debug("Re-sending to Manager with status {}".\
                              format(worker_out['calc_status']))
-                comm.send(obj=worker_out, dest=0)
+                comm.send(0, worker_out)
                 continue
 
             if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
@@ -136,7 +149,7 @@ def worker_main(c, sim_specs, gen_specs):
                   format(worker.workerID, worker.calc_iter[EVAL_SIM_TAG])
                 logger.debug("Make pickle for manager: status {}".\
                              format(worker_out['calc_status']))
-                comm.send(obj=dump_pickle(pfilename, worker_out), dest=0)
+                comm.send(0, dump_pickle(pfilename, worker_out))
                 continue
 
         worker_out = receive_and_run(comm, dtypes, worker, Work)
@@ -147,7 +160,7 @@ def worker_main(c, sim_specs, gen_specs):
 
         logger.debug("Sending to Manager with status {}".\
                      format(worker_out['calc_status']))
-        comm.send(obj=worker_out, dest=0)
+        comm.send(0, worker_out)
 
     if sim_specs.get('clean_jobs'):
         worker.clean()
