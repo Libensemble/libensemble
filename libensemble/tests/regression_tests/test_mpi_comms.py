@@ -4,7 +4,7 @@ from libensemble.mpi_comms import MPIComm, Timeout
 
 
 def check_recv(comm, expected_msg):
-    msg = comm.recv()[0]
+    msg = comm.recv()
     assert msg == expected_msg, \
       "Expected {}, received {}".format(expected_msg, msg)
 
@@ -36,7 +36,7 @@ def manager_main():
         comm.send("World")
         comm.send(comm.remote_rank)
     for comm in worker_comms:
-        assert comm.recv()[0] == comm.remote_rank
+        check_recv(comm, comm.remote_rank)
         comm.send("Goodbye")
 
 

@@ -79,7 +79,7 @@ class MPIComm(Comm):
 
     def process_incoming(self, msg, status):
         "Convert an MPI message and tag to a local communicator format message."
-        return msg
+        return msg[0]
 
     def push_back(self, *args):
         assert self._pushed is None, "Cannot push back multiple messages"
