@@ -15,7 +15,6 @@ import numpy as np
 import sys
 import logging
 import traceback
-from libensemble.resources import Resources
 
 # Set root logger
 # (Set above libe imports so errors in import are captured)
@@ -23,7 +22,7 @@ from libensemble.resources import Resources
 #logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
 logging.basicConfig(filename='ensemble.log', level=logging.DEBUG,
                     format=('[{}] %(name)s (%(levelname)s): %(message)s'.
-                            format(Resources.get_my_name())))
+                            format(MPI.COMM_WORLD.Get_rank())))
 
 from libensemble.history import History
 from libensemble.mpi_comms import MainMPIComm
