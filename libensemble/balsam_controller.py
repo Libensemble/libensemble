@@ -16,7 +16,7 @@ from libensemble.mpi_controller import MPIJobController
 import balsam.launcher.dag as dag
 from balsam.service import models
 
-logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
+logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment
 #(see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)

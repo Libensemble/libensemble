@@ -22,9 +22,8 @@ from libensemble.message_numbers import \
 from libensemble.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
-from libensemble.resources import Resources
 
-logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
+logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment
 #  (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
