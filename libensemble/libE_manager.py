@@ -11,11 +11,10 @@ import os
 import logging
 import socket
 import pickle
-
-from mpi4py import MPI
 import numpy as np
 
 from libensemble.timer import Timer
+from libensemble.mpi_comms import MainMPIComm
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
      EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
@@ -53,7 +52,6 @@ A last attempt has been made to receive any completed work.
 Posting nonblocking receives and kill messages for all active workers.
 """
 
-
 class Manager:
     """Manager class for libensemble."""
 
@@ -75,7 +73,7 @@ class Manager:
         self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
         self.comm = libE_specs['comm']
-        self.W = self._make_worker_pool(self.comm)
+        self.W, self.wcomms = self._make_worker_pool(self.comm)
         self.term_tests = \
           [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
            (1, 'sim_max', self.term_test_sim_max),
@@ -88,7 +86,8 @@ class Manager:
         num_workers = comm.Get_size()-1
         W = np.zeros(num_workers, dtype=Manager.worker_dtype)
         W['worker_id'] = np.arange(num_workers) + 1
-        return W
+        wcomms = [MainMPIComm(comm, w) for w in range(1, num_workers+1)]
+        return W, wcomms
 
     # --- Termination logic routines
 
@@ -123,18 +122,6 @@ class Manager:
 
     # --- Low-level communication routines (use MPI directly)
 
-    def Iprobe(self, w, status=None):
-        "Check whether there is a message from a worker."
-        return self.comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status)
-
-    def recv(self, w, status=None):
-        "Receive from a worker."
-        return self.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-
-    def send(self, obj, w, tag=0):
-        "Send to a worker."
-        return self.comm.send(obj=obj, dest=w, tag=tag)
-
     def _send_dtypes_to_workers(self):
         "Broadcast sim_spec/gen_spec input dtypes to workers."
         self.comm.bcast(obj=self.hist.H[self.sim_specs['in']].dtype)
@@ -143,17 +130,18 @@ class Manager:
     def _kill_workers(self):
         """Kill the workers"""
         for w in self.W['worker_id']:
-            self.send(MAN_SIGNAL_FINISH, w, tag=STOP_TAG)
+            self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_FINISH)
 
     def _man_request_resend_on_error(self, w):
         "Request the worker resend data on error."
-        self.send(MAN_SIGNAL_REQ_RESEND, w, tag=STOP_TAG)
-        return self.recv(w)
+        self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_REQ_RESEND)
+        _, data = self.wcomms[w-1].recv()
+        return data
 
     def _man_request_pkl_dump_on_error(self, w):
         "Request the worker dump a pickle on error."
-        self.send(MAN_SIGNAL_REQ_PICKLE_DUMP, w, tag=STOP_TAG)
-        pkl_recv = self.recv(w)
+        self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_REQ_PICKLE_DUMP)
+        _, pkl_recv = self.wcomms[w-1].recv()
         D_recv = pickle.load(open(pkl_recv, "rb"))
         os.remove(pkl_recv) #If want to delete file
         return D_recv
@@ -200,10 +188,10 @@ class Manager:
         """Send an allocation function order to a worker.
         """
         logger.debug("Manager sending work unit to worker {}".format(w))
-        self.send(Work, w, tag=Work['tag'])
+        self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            self.send(self.hist.H[Work['H_fields']][work_rows], w)
+            self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
     def _update_state_on_alloc(self, Work, w):
         """Update worker active/idle status following an allocation order."""
@@ -252,15 +240,13 @@ class Manager:
         communticate. If any output is received, all other workers are
         looped back over.
         """
-        status = MPI.Status()
-
         new_stuff = True
         while new_stuff and any(self.W['active']):
             new_stuff = False
             for w in self.W['worker_id'][self.W['active'] > 0]:
-                if self.Iprobe(w, status):
+                if self.wcomms[w-1].mail_flag():
                     new_stuff = True
-                    self._handle_msg_from_worker(persis_info, w, status)
+                    self._handle_msg_from_worker(persis_info, w)
 
         if 'save_every_k' in self.sim_specs:
             self._save_every_k_sims()
@@ -297,26 +283,22 @@ class Manager:
         if 'persis_info' in D_recv:
             persis_info[w].update(D_recv['persis_info'])
 
-    def _handle_msg_from_worker(self, persis_info, w, status):
+    def _handle_msg_from_worker(self, persis_info, w):
         """Handle a message from worker w.
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
         try:
-            D_recv = self.recv(w)
-            logger.debug("Message size {}".format(status.Get_count()))
+            tag, D_recv = self.wcomms[w-1].recv()
         except Exception as e:
             logger.error("Exception caught on Manager receive: {}".format(e))
             logger.error("From worker: {}".format(w))
-            logger.error("Message size of errored message {}". \
-                         format(status.Get_count()))
-            logger.error("Message status error code {}". \
-                         format(status.Get_error()))
 
             # Check on working with peristent data - curently only use one
             #D_recv = _man_request_resend_on_error(w)
             D_recv = self._man_request_pkl_dump_on_error(w)
+            tag = None
 
-        if status.Get_tag() == ABORT_ENSEMBLE:
+        if tag == ABORT_ENSEMBLE:
             raise ManagerException('Received abort signal from worker')
 
         self._update_state_on_worker_msg(persis_info, D_recv, w)

@@ -88,3 +88,13 @@ class MPIComm(Comm):
     def push_back(self, *args):
         assert self._pushed is None, "Cannot push back multiple messages"
         self._pushed = args
+
+
+class MainMPIComm(MPIComm):
+    """MPI communicator used by the workers and managers for the moment."""
+
+    def process_incoming(self, msg, status):
+        return status.Get_tag(), msg
+
+    def process_outgoing(self, msg):
+        return msg[1], msg[0]

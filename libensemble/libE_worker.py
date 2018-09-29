@@ -23,21 +23,12 @@ from libensemble.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 from libensemble.resources import Resources
-from libensemble.mpi_comms import MPIComm
+from libensemble.mpi_comms import MainMPIComm
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
 #  (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
-
-
-class WorkerMPIComm(MPIComm):
-
-    def process_incoming(self, msg, status):
-        return status.Get_tag(), msg
-
-    def process_outgoing(self, msg):
-        return msg[1], msg[0]
 
 
 def recv_dtypes(comm):
@@ -107,7 +98,7 @@ def worker_main(c, sim_specs, gen_specs):
 
     mpi_comm = c['comm']
     dtypes = recv_dtypes(mpi_comm)
-    comm = WorkerMPIComm(mpi_comm)
+    comm = MainMPIComm(mpi_comm)
     worker = Worker(comm.rank, sim_specs, gen_specs)
 
     #Setup logging
