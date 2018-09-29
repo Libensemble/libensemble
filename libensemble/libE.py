@@ -23,11 +23,12 @@ import traceback
 logging.basicConfig(filename='ensemble.log', level=logging.DEBUG, format='%(name)s (%(levelname)s): %(message)s')
 
 from libensemble.history import History
+from libensemble.mpi_comms import MainMPIComm
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.message_numbers import ABORT_ENSEMBLE
+from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, ABORT_ENSEMBLE
 
 logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
@@ -120,63 +121,88 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         2 = Manager timed out and ended simulation
 
     """
-    #sys.excepthook = comms_abort(libE_specs['comm'])
-    H = exit_flag = []
-    libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
+    libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs,
+                              exit_criteria, H0)
     if libE_specs['comm'].Get_rank() == 0:
-        CalcInfo.make_statdir()
-    libE_specs['comm'].Barrier()
+        return libE_mpi_manager(sim_specs, gen_specs, exit_criteria,
+                                persis_info, alloc_specs, libE_specs, H0)
+    return libE_mpi_worker(sim_specs, gen_specs, exit_criteria,
+                           persis_info, alloc_specs, libE_specs, H0)
 
-    if libE_specs['comm'].Get_rank() == 0:
-        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-        try:
-            persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
-        except Exception as e:
 
-            # Manager exceptions are fatal
-            eprint(traceback.format_exc())
-            eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
 
-            eprint("\nDumping ensemble history with {} sims evaluated:\n".format(hist.sim_count)) #datetime
-            filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
-            np.save(filename, hist.trim_H())
-            sys.stdout.flush()
-            sys.stderr.flush()
-            #sys.excepthook = comms_abort(libE_specs['comm'])
-            comms_abort(libE_specs['comm'])
-            #raise
+def libE_mpi_manager(sim_specs, gen_specs, exit_criteria, persis_info,
+                     alloc_specs, libE_specs, H0):
 
-        else:
-            logger.debug("Manager exiting")
-            print(libE_specs['comm'].Get_size(), exit_criteria)
-            sys.stdout.flush()
+    CalcInfo.make_statdir()
+    mpi_comm = libE_specs['comm']
+    mpi_comm.Barrier()
 
+    exit_flag = []
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    try:
+
+        # Exchange dtypes
+        mpi_comm.bcast(obj=hist.H[sim_specs['in']].dtype)
+        mpi_comm.bcast(obj=hist.H[gen_specs['in']].dtype)
+        wcomms = [MainMPIComm(mpi_comm, w) for w in
+                  range(1, mpi_comm.Get_size())]
+        persis_info, exit_flag = \
+          manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
+                       exit_criteria, persis_info, wcomms)
+
+    except Exception as e:
+        eprint(traceback.format_exc())
+        eprint("\nManager exception raised .. aborting ensemble:\n")
+        eprint("\nDumping ensemble history with {} sims evaluated:\n".
+               format(hist.sim_count))
+        filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
+        np.save(filename, hist.trim_H())
+        sys.stdout.flush()
+        sys.stderr.flush()
+        comms_abort(mpi_comm)
     else:
-        try:
-            worker_main(libE_specs, sim_specs, gen_specs)
-        except Exception as e:
-            eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
-            eprint(traceback.format_exc())
-            sys.stdout.flush()
-            sys.stderr.flush()
-
-            #First try to signal manager to dump history
-            comms_signal_abort_to_man(libE_specs['comm'])
-            #comms_abort(libE_specs['comm'])
-        else:
-            logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+        logger.debug("Manager exiting")
+        print(mpi_comm.Get_size(), exit_criteria)
+        sys.stdout.flush()
 
     # Create calc summary file
-    libE_specs['comm'].Barrier()
-    if libE_specs['comm'].Get_rank() == 0:
-        CalcInfo.merge_statfiles()
-        H = hist.trim_H()
+    mpi_comm.Barrier()
+    CalcInfo.merge_statfiles()
 
+    H = hist.trim_H()
     return H, persis_info, exit_flag
 
 
-def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
+def libE_mpi_worker(sim_specs, gen_specs, exit_criteria, persis_info,
+                    alloc_specs, libE_specs, H0):
+
+    mpi_comm = libE_specs['comm']
+    mpi_comm.Barrier()
+    try:
+        # Exchange dtypes and set up comm
+        dtypes = {EVAL_SIM_TAG: None, EVAL_GEN_TAG: None}
+        dtypes[EVAL_SIM_TAG] = mpi_comm.bcast(dtypes[EVAL_SIM_TAG], root=0)
+        dtypes[EVAL_GEN_TAG] = mpi_comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
+        comm = MainMPIComm(mpi_comm)
+        worker_main(comm, dtypes, sim_specs, gen_specs)
+    except Exception as e:
+        eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".
+               format(mpi_comm.Get_rank()))
+        eprint(traceback.format_exc())
+        sys.stdout.flush()
+        sys.stderr.flush()
+        comms_signal_abort_to_man(mpi_comm)
+    else:
+        logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+    mpi_comm.Barrier()
+
+    H = exit_flag = []
+    return H, persis_info, exit_flag
+
+
+def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs,
+                 exit_criteria, H0):
     """
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run.

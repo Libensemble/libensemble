@@ -23,22 +23,11 @@ from libensemble.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 from libensemble.resources import Resources
-from libensemble.mpi_comms import MainMPIComm
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
 #  (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
-
-
-def recv_dtypes(comm):
-    """Receive dtypes array broadcast from manager."""
-    dtypes = {}
-    dtypes[EVAL_SIM_TAG] = None
-    dtypes[EVAL_GEN_TAG] = None
-    dtypes[EVAL_SIM_TAG] = comm.bcast(dtypes[EVAL_SIM_TAG], root=0)
-    dtypes[EVAL_GEN_TAG] = comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
-    return dtypes
 
 
 def dump_pickle(pfilename, worker_out):
@@ -78,7 +67,7 @@ def receive_and_run(comm, dtypes, worker, Work):
 
 #The routine worker_main currently uses MPI.
 #Comms will be implemented using comms module in future
-def worker_main(c, sim_specs, gen_specs):
+def worker_main(comm, dtypes, sim_specs, gen_specs):
     """
     Evaluate calculations given to it by the manager.
 
@@ -88,7 +77,9 @@ def worker_main(c, sim_specs, gen_specs):
 
     Parameters
     ----------
-    c: dict containing fields 'comm' and 'color' for the communicator.
+    comm: comm object for manager communications
+
+    dtypes: data types for sim/gen calculations
 
     sim_specs: dict with parameters/information for simulation calculations
 
@@ -96,9 +87,6 @@ def worker_main(c, sim_specs, gen_specs):
 
     """
 
-    mpi_comm = c['comm']
-    dtypes = recv_dtypes(mpi_comm)
-    comm = MainMPIComm(mpi_comm)
     worker = Worker(comm.rank, sim_specs, gen_specs)
 
     #Setup logging

@@ -14,7 +14,6 @@ import pickle
 import numpy as np
 
 from libensemble.timer import Timer
-from libensemble.mpi_comms import MainMPIComm
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
      EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
@@ -33,11 +32,11 @@ class ManagerException(Exception): pass
 
 
 def manager_main(hist, libE_specs, alloc_specs,
-                 sim_specs, gen_specs, exit_criteria, persis_info):
+                 sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
     """Manager routine to coordinate the generation and simulation evaluations
     """
     mgr = Manager(hist, libE_specs, alloc_specs,
-                  sim_specs, gen_specs, exit_criteria)
+                  sim_specs, gen_specs, exit_criteria, wcomms)
     return mgr.run(persis_info)
 
 
@@ -61,7 +60,8 @@ class Manager:
                     ('blocked', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
-                 sim_specs, gen_specs, exit_criteria):
+                 sim_specs, gen_specs, exit_criteria,
+                 wcomms=[]):
         """Initialize the manager."""
         timer = Timer()
         timer.start()
@@ -72,22 +72,14 @@ class Manager:
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
-        self.comm = libE_specs['comm']
-        self.W, self.wcomms = self._make_worker_pool(self.comm)
+        self.wcomms = wcomms
+        self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
+        self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
           [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
            (1, 'sim_max', self.term_test_sim_max),
            (1, 'gen_max', self.term_test_gen_max),
            (1, 'stop_val', self.term_test_stop_val)]
-
-    @staticmethod
-    def _make_worker_pool(comm):
-        """Set up an array of worker states."""
-        num_workers = comm.Get_size()-1
-        W = np.zeros(num_workers, dtype=Manager.worker_dtype)
-        W['worker_id'] = np.arange(num_workers) + 1
-        wcomms = [MainMPIComm(comm, w) for w in range(1, num_workers+1)]
-        return W, wcomms
 
     # --- Termination logic routines
 
@@ -121,11 +113,6 @@ class Manager:
         return 0
 
     # --- Low-level communication routines (use MPI directly)
-
-    def _send_dtypes_to_workers(self):
-        "Broadcast sim_spec/gen_spec input dtypes to workers."
-        self.comm.bcast(obj=self.hist.H[self.sim_specs['in']].dtype)
-        self.comm.bcast(obj=self.hist.H[self.gen_specs['in']].dtype)
 
     def _kill_workers(self):
         """Kill the workers"""
@@ -344,9 +331,6 @@ class Manager:
         "Run the manager."
         logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
-
-        # Send initial info to workers
-        self._send_dtypes_to_workers()
 
         ### Continue receiving and giving until termination test is satisfied
         while not self.term_test():
