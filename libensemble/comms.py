@@ -26,6 +26,7 @@ from abc import ABC, abstractmethod
 import time
 import threading
 import queue
+import copy
 
 import numpy as np
 
@@ -71,13 +72,16 @@ class QComm(Comm):
     These can be used with threads or multiprocessing.
     """
 
-    def __init__(self, inbox, outbox):
+    def __init__(self, inbox, outbox, copy_msg=False):
         "Set the inbox and outbox queues."
         self._inbox = inbox
         self._outbox = outbox
+        self._copy = copy_msg
 
     def send(self, *args):
         "Place a message on the outbox queue."
+        if self._copy:
+            args = copy.deepcopy(args)
         self._outbox.put(args)
 
     def recv(self, timeout=None):
@@ -91,7 +95,7 @@ class QComm(Comm):
         "Check whether we know a message is ready for receipt."
         return not self._inbox.empty()
 
-class QCommThread:
+class QCommThread(Comm):
     """Launch a user function in a thread with an attached QComm.
     """
 
@@ -101,13 +105,13 @@ class QCommThread:
         self.main = main
         self._result = None
         self._exception = None
-        kwargs['comm'] = QComm(self.inbox, self.outbox)
+        kwargs['comm'] = QComm(self.inbox, self.outbox, True)
         self.thread = threading.Thread(target=self._qcomm_main,
                                        args=args, kwargs=kwargs)
 
     def send(self, *args):
         "Send a message to the thread (called from creator)"
-        self.inbox.put(args)
+        self.inbox.put(copy.deepcopy(args))
 
     def recv(self, timeout=None):
         "Return a message from the thread or raise TimeoutError."
@@ -115,6 +119,10 @@ class QCommThread:
             return self.outbox.get(timeout=timeout)
         except queue.Empty:
             raise Timeout()
+
+    def mail_flag(self):
+        "Check whether we know a message is ready for receipt."
+        return not self.outbox.empty()
 
     def result(self):
         "Join and return the thread main result (or re-raise an exception)."
