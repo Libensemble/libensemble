@@ -127,7 +127,8 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     try:
         wcomms = [QCommThread(worker_main, dtypes=dtypes,
                               sim_specs=sim_specs,
-                              gen_specs=gen_specs)
+                              gen_specs=gen_specs,
+                              workerID=w+1)
                   for w in range(libE_specs['nworkers'])]
         print("Starting worker threads")
         for wcomm in wcomms:

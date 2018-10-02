@@ -66,7 +66,7 @@ def receive_and_run(comm, dtypes, worker, Work):
 
 #The routine worker_main currently uses MPI.
 #Comms will be implemented using comms module in future
-def worker_main(comm, dtypes, sim_specs, gen_specs):
+def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None):
     """
     Evaluate calculations given to it by the manager.
 
@@ -84,13 +84,15 @@ def worker_main(comm, dtypes, sim_specs, gen_specs):
 
     gen_specs: dict with parameters/information for generation calculations
 
+    workerID: manager assigned worker ID (if None, default is comm.rank)
     """
 
-    worker = Worker(comm.rank, sim_specs, gen_specs)
+    workerID = workerID or comm.rank
+    worker = Worker(workerID, sim_specs, gen_specs)
 
     #Setup logging
-    logger.info("Worker initiated on MPI rank {} on node {}". \
-                format(comm.rank, socket.gethostname()))
+    logger.info("Worker {} initiated on node {}". \
+                format(workerID, socket.gethostname()))
 
     # Print calc_list on-the-fly
     CalcInfo.create_worker_statfile(worker.workerID)
