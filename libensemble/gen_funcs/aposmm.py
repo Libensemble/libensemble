@@ -415,15 +415,7 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
                 x_opt, exit_code = set_up_and_run_nlopt(H[fields_to_pass][sorted_run_inds], gen_specs)
             except Exception as e:
                 exit_code = 0
-                print(e.__doc__)
-                print(e.args)
-                print("These are the points in the run that has failed:", H['x_on_cube'][sorted_run_inds])
-                _, _, tb = sys.exc_info()
-                traceback.print_tb(tb) # Fixed format
-                tb_info = traceback.extract_tb(tb)
-                filename, line, func, text = tb_info[-1]
-                print('An error occurred on line {} in statement {}'.format(line, text))
-
+                display_exception(e)
 
         elif gen_specs['localopt_method'] in ['pounders']:
 
@@ -440,14 +432,8 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
                 x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
             except Exception as e:
                 exit_code = 0
-                print(e.__doc__)
-                print(e.args)
-                print("These are the points in the run that has failed:", Run_H['x_on_cube'])
-                _, _, tb = sys.exc_info()
-                traceback.print_tb(tb) # Fixed format
-                tb_info = traceback.extract_tb(tb)
-                filename, line, func, text = tb_info[-1]
-                print('An error occurred on line {} in statement {}'.format(line, text))
+                display_exception(e)
+
         else:
             sys.exit("Unknown localopt method. Exiting")
 
@@ -873,6 +859,14 @@ def queue_update_function(H, gen_specs, persis_info):
 
     return persis_info
 
+def display_exception(e):
+    print(e.__doc__)
+    print(e.args)
+    _, _, tb = sys.exc_info()
+    traceback.print_tb(tb) # Fixed format
+    tb_info = traceback.extract_tb(tb)
+    filename, line, func, text = tb_info[-1]
+    print('An error occurred on line {} in statement {}'.format(line, text))
 
 # if __name__ == "__main__":
 #     [H,gen_specs,persis_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','persis_info']]
