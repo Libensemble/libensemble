@@ -99,6 +99,8 @@ class QComm(Comm):
         if pb_result is not None:
             return pb_result
         try:
+            if not self._inbox.empty():
+                return self._inbox.get(timeout=None)
             return self._inbox.get(timeout=timeout)
         except queue.Empty:
             raise Timeout()
@@ -133,6 +135,8 @@ class QCommThread(Comm):
     def recv(self, timeout=None):
         "Return a message from the thread or raise TimeoutError."
         try:
+            if not self.outbox.empty():
+                return self.outbox.get(timeout=None)
             return self.outbox.get(timeout=timeout)
         except queue.Empty:
             raise Timeout()
@@ -207,7 +211,10 @@ class QCommProcess(Comm):
     def recv(self, timeout=None):
         "Return a message from the thread or raise TimeoutError."
         try:
-            msg = self.outbox.get(timeout=timeout)
+            if not self.outbox.empty():
+                msg = self.outbox.get(timeout=None)
+            else:
+                msg = self.outbox.get(timeout=timeout)
             if self._is_result_msg(msg):
                 raise Timeout()
             return msg
