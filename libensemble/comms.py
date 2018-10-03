@@ -28,6 +28,7 @@ from threading import Thread
 from multiprocessing import Process, Queue
 import queue
 import copy
+import traceback
 
 import numpy as np
 
@@ -83,6 +84,7 @@ class QComm(Comm):
         self._inbox = inbox
         self._outbox = outbox
         self._copy = copy_msg
+        self._pushback = None
 
     def send(self, *args):
         "Place a message on the outbox queue."
@@ -92,10 +94,18 @@ class QComm(Comm):
 
     def recv(self, timeout=None):
         "Return a message from the inbox queue or raise TimeoutError."
+        pb_result = self._pushback
+        self._pushback = None
+        if pb_result is not None:
+            return pb_result
         try:
             return self._inbox.get(timeout=timeout)
         except queue.Empty:
             raise Timeout()
+
+    # TODO: This should go away once I have internal comms working
+    def push_back(self, *args):
+        self._pushback = args
 
     def mail_flag(self):
         "Check whether we know a message is ready for receipt."
@@ -131,6 +141,10 @@ class QCommThread(Comm):
         "Check whether we know a message is ready for receipt."
         return not self.outbox.empty()
 
+    def run(self):
+        "Start the thread."
+        self.thread.start()
+
     def result(self):
         "Join and return the thread main result (or re-raise an exception)."
         self.thread.join()
@@ -151,7 +165,7 @@ class QCommThread(Comm):
             self._exception = e
 
     def __enter__(self):
-        self.thread.start()
+        self.run()
         return self
 
     def __exit__(self, etype, value, traceback):
@@ -204,6 +218,10 @@ class QCommProcess(Comm):
         "Check whether we know a message is ready for receipt."
         return not self.outbox.empty()
 
+    def run(self):
+        "Start the process."
+        self.process.start()
+
     def result(self):
         "Join and return the thread main result (or re-raise an exception)."
         self.process.join()
@@ -229,9 +247,10 @@ class QCommProcess(Comm):
             comm.send(QCommProcess.Result(_result))
         except Exception as e:
             comm.send(QCommProcess.Result(exception=str(e)))
+            traceback.print_exception(e)
 
     def __enter__(self):
-        self.process.start()
+        self.run()
         return self
 
     def __exit__(self, etype, value, traceback):

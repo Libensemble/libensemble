@@ -1,4 +1,11 @@
+import sys
 import time
+
+if len(sys.argv) > 1 and sys.argv[1] == "--threads":
+    quit()
+elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    quit()
+
 from mpi4py import MPI
 from libensemble.mpi_comms import MPIComm, Timeout
 

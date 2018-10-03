@@ -1,9 +1,15 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
+
+if len(sys.argv) > 1 and sys.argv[1] == "--threads":
+    quit()
+elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    quit()
+
+from mpi4py import MPI # for libE communicator
 
 # Import libEnsemble modules
 from libensemble.libE import libE

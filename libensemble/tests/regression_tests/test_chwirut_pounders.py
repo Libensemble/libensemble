@@ -9,12 +9,25 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
-from libensemble.libE import libE
+if len(sys.argv) > 1 and sys.argv[1] == "--threads":
+    from libensemble.libE_thread import libE
+    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    is_master = True
+    libE_specs = {'nworkers': nworkers}
+elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    from libensemble.libE_process import libE
+    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    is_master = True
+    libE_specs = {'nworkers': nworkers}
+else:
+    from mpi4py import MPI #
+    from libensemble.libE import libE
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func
 from libensemble.sim_funcs.chwirut1 import chwirut_eval, EvaluateJacobian
@@ -80,15 +93,15 @@ persis_info['complete'] = set()
 persis_info['has_nan'] = set()
 persis_info['already_paused'] = set()
 persis_info['H_len'] = 0
-for i in range(MPI.COMM_WORLD.Get_size()):
+for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert len(H) >= max_sim_budget
     short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(nworkers+1)
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 

@@ -11,9 +11,21 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI
 import sys, os
 import numpy as np
+
+if len(sys.argv) > 1 and sys.argv[1] == "--threads":
+    # MPI only
+    quit()
+elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    # MPI only
+    quit()
+else:
+    from mpi4py import MPI #
+    from libensemble.libE import libE
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking
@@ -30,7 +42,6 @@ if USE_DILL:
         MPI.pickle.dumps = dill.dumps
         MPI.pickle.loads = dill.loads
 
-from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID

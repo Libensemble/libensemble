@@ -23,7 +23,7 @@ logging.basicConfig(filename='ensemble.log', level=logging.DEBUG,
                     format='[%(threadName)s] %(name)s (%(levelname)s): %(message)s')
 
 from libensemble.history import History
-from libensemble.comms import QCommThread
+from libensemble.comms import QCommProcess
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
@@ -124,15 +124,15 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
               EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
 
     try:
-        wcomms = [QCommThread(worker_main, dtypes=dtypes,
-                              sim_specs=sim_specs,
-                              gen_specs=gen_specs,
-                              workerID=w+1)
+        wcomms = [QCommProcess(worker_main, dtypes=dtypes,
+                               sim_specs=sim_specs,
+                               gen_specs=gen_specs,
+                               workerID=w+1)
                   for w in range(libE_specs['nworkers'])]
-        print("Starting worker threads")
+        print("Starting worker processes")
         for wcomm in wcomms:
             wcomm.run()
-        print("Starting manager")
+        print("Starting processes")
         persis_info, exit_flag = \
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
@@ -153,7 +153,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         sys.stdout.flush()
 
     # Join on threads here
-    print("Joining")
+    print("Joining threads")
     for wcomm in wcomms:
         wcomm.result()
 
@@ -163,8 +163,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     H = hist.trim_H()
     return H, persis_info, exit_flag
-
-
 
 
 def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs,

@@ -9,12 +9,25 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
-from libensemble.libE import libE
+if len(sys.argv) > 1 and sys.argv[1] == "--threads":
+    from libensemble.libE_thread import libE
+    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    is_master = True
+    libE_specs = {'nworkers': nworkers}
+elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    from libensemble.libE_process import libE
+    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    is_master = True
+    libE_specs = {'nworkers': nworkers}
+else:
+    from mpi4py import MPI #
+    from libensemble.libE import libE
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func
 from libensemble.sim_funcs.chwirut1 import chwirut_eval

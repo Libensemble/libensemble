@@ -4,13 +4,24 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 import os
 import numpy as np
 
-# Import libEnsemble main
-from libensemble.libE import libE
+if len(sys.argv) > 1 and sys.argv[1] == "--threads":
+    # Actually requires local paths, so threads are out
+    quit()
+elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    from libensemble.libE_process import libE
+    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    is_master = True
+    libE_specs = {'nworkers': nworkers}
+else:
+    from mpi4py import MPI #
+    from libensemble.libE import libE
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func and declare directory to be copied by each worker to do its evaluations in
 import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')
@@ -24,7 +35,7 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 ### Declare the run parameters/functions
 max_sim_budget = 150
 n = 2
-w = MPI.COMM_WORLD.Get_size()-1
+w = nworkers
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': obj_func, # This is the function whose output is being minimized
@@ -85,14 +96,14 @@ exit_criteria = {'sim_max': max_sim_budget,
 
 np.random.seed(1)
 persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
+for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
 
 if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
-    if MPI.COMM_WORLD.Get_rank() == 0:
+    if is_master:
         short_name = script_name.split("test_", 1).pop()
         filename = short_name + '_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(w)
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
