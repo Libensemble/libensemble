@@ -132,7 +132,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     """
 
-    n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
+    n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
     if n_s < gen_specs['initial_sample_size']:
@@ -143,7 +143,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         updated_inds = update_history_dist(H, gen_specs, c_flag)
 
-        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions, mu, nu)
+        starting_inds = decide_where_to_start_localopt(H, n_s, r_k, mu, nu)
         updated_inds.update(starting_inds)
 
         for ind in starting_inds:
@@ -586,7 +586,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
 
 
 
-def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0, gamma_quantile=1):
+def decide_where_to_start_localopt(H, n_s, r_k, mu=0, nu=0, gamma_quantile=1):
     """
     Finds points in the history that satisfy the conditions (S1-S5 and L1-L8) in
     Table 1 of the `APOSMM paper <https://doi.org/10.1007/s12532-017-0131-4>`_
@@ -607,8 +607,8 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
         History array storing rows for each point.
     n_s: integer
         Number of sample points
-    rk_const: float
-        Constant in front of r_k evaluation
+    r_k_const: float
+        Radius for deciding when to start runs 
     lhs_divisions: integer
         Number of Latin hypercube sampling divisions (0 or 1 means uniform
         random sampling over the domain)
@@ -631,7 +631,6 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     """
 
     n = len(H['x_on_cube'][0])
-    r_k = calc_rk(n, n_s, rk_const, lhs_divisions)
 
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
@@ -861,7 +860,12 @@ def initialize_APOSMM(H, gen_specs):
     else:
         nu = 0
 
-    return n, n_s, c_flag, O, rk_c, ld, mu, nu
+    if n_s > 0:
+        r_k = calc_rk(n, n_s, rk_c, ld)
+    else:
+        r_k = np.inf
+
+    return n, n_s, c_flag, O, r_k, mu, nu
 
 
 def queue_update_function(H, gen_specs, persis_info):
