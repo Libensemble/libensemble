@@ -191,6 +191,7 @@ class QCommProcess(Comm):
         self.outbox = Queue()
         self._result = None
         self._exception = None
+        self._done = False
         kwargs['comm'] = QComm(self.inbox, self.outbox, True)
         kwargs['_qcommproc_main'] = main
         self.process = Process(target=QCommProcess._qcomm_main,
@@ -201,6 +202,7 @@ class QCommProcess(Comm):
         if len(msg) and isinstance(msg[0], QCommProcess.Result):
             self._result = msg[0].value
             self._exception = msg[0].exception
+            self._done = True
             return True
         return False
 
@@ -232,7 +234,7 @@ class QCommProcess(Comm):
     def result(self):
         "Join and return the thread main result (or re-raise an exception)."
         self.process.join()
-        while not self.outbox.empty():
+        while not self._done:
             msg = self.outbox.get()
             self._is_result_msg(msg)
         if self._exception is not None:
