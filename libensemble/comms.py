@@ -100,7 +100,7 @@ class QComm(Comm):
             return pb_result
         try:
             if not self._inbox.empty():
-                return self._inbox.get(timeout=None)
+                return self._inbox.get()
             return self._inbox.get(timeout=timeout)
         except queue.Empty:
             raise Timeout()
@@ -136,7 +136,7 @@ class QCommThread(Comm):
         "Return a message from the thread or raise TimeoutError."
         try:
             if not self.outbox.empty():
-                return self.outbox.get(timeout=None)
+                return self.outbox.get()
             return self.outbox.get(timeout=timeout)
         except queue.Empty:
             raise Timeout()
@@ -212,7 +212,7 @@ class QCommProcess(Comm):
         "Return a message from the thread or raise TimeoutError."
         try:
             if not self.outbox.empty():
-                msg = self.outbox.get(timeout=None)
+                msg = self.outbox.get()
             else:
                 msg = self.outbox.get(timeout=timeout)
             if self._is_result_msg(msg):
@@ -233,7 +233,7 @@ class QCommProcess(Comm):
         "Join and return the thread main result (or re-raise an exception)."
         self.process.join()
         while not self.outbox.empty():
-            msg = self.outbox.get(timeout=0)
+            msg = self.outbox.get()
             self._is_result_msg(msg)
         if self._exception is not None:
             raise RemoteException(self._exception)
