@@ -293,7 +293,7 @@ def test_comm_eval():
     assert gcomm.sim_started == 4 and gcomm.sim_pending == 0
 
 
-def test_qcomm_thread():
+def run_qcomm_threadproc_test(ThreadProc):
     "Test CommEval between two threads (allows timeout checks)"
 
     class BadWorkerException(Exception):
@@ -323,7 +323,7 @@ def test_qcomm_thread():
     gen_specs = {'out': [('x', float), ('flag', bool)]}
     results = np.zeros(3, dtype=[('f', float)])
     results['f'] = [5, 10, 30]
-    with comms.QCommThread(worker_thread, gen_specs=gen_specs) as mgr_comm:
+    with ThreadProc(worker_thread, gen_specs=gen_specs) as mgr_comm:
         assert mgr_comm.recv()[0] == 'request'
         mgr_comm.send('queued', 0)
         assert mgr_comm.recv()[0] == 'request'
@@ -340,7 +340,7 @@ def test_qcomm_thread():
 
     try:
         bad_worker_okay = True
-        with comms.QCommThread(bad_worker_thread) as comm:
+        with ThreadProc(bad_worker_thread) as comm:
 
             flag = True
             try:
@@ -354,5 +354,12 @@ def test_qcomm_thread():
             bad_worker_okay = False
     except BadWorkerException:
         pass
+    except comms.RemoteException as e:
+        assert str(e) == "Bad worker"
 
     assert bad_worker_okay, "Checking bad worker flag"
+
+
+def test_qcomm_threadproc():
+    run_qcomm_threadproc_test(comms.QCommThread)
+    run_qcomm_threadproc_test(comms.QCommProcess)
