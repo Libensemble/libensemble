@@ -107,9 +107,10 @@ class CalcInfo():
                 with open(fname, 'r') as infile:
                     outfile.write(infile.read())
         if not CalcInfo.keep_worker_stat_files:
-            shutil.rmtree(CalcInfo.statfile_dir)
-            #for file in stat_files:
-                #os.remove(file)
+            try:
+                shutil.rmtree(CalcInfo.statfile_dir)
+            except Exception:
+                print("Cannot remove {}".format(CalcInfo.statfile_dir))
 
     def __init__(self):
         """Create a new CalcInfo object

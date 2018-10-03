@@ -116,7 +116,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     CalcInfo.make_statdir()
 
-
     exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -156,7 +155,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     # Join on threads here
     print("Joining threads")
     for wcomm in wcomms:
-        wcomm.thread.join()
+        wcomm.result()
 
     print("Calc summary and wrap up")
     # Create calc summary file
