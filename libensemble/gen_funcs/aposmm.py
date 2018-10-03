@@ -162,6 +162,19 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             persis_info['active_runs'].update([new_run_num])
             persis_info['total_runs'] +=1
 
+        if 'max_active_runs' in gen_specs:
+            num_runs = len(persis_info['run_order'])
+            run_vals = np.zeros((num_runs,2))
+            for i,run in enumerate(persis_info['run_order'].keys()):
+                run_vals[i,0] = run
+                run_vals[i,1] = np.min(H['f'][persis_info['run_order'][run]])
+
+            
+            num_active_runs = min(gen_specs['max_active_runs'],num_runs)
+            k_sorted = np.argpartition(run_vals[:,1],kth=num_active_runs-1)
+            
+            persis_info['active_runs'] = set(run_vals[k_sorted[:num_active_runs],0].astype(int))
+
         inactive_runs = set()
 
         # Find next point in any uncompleted runs using information stored in persis_info
