@@ -31,7 +31,7 @@ from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, ABORT_ENSEMBLE
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
