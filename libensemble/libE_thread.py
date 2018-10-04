@@ -129,14 +129,11 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
                               gen_specs=gen_specs,
                               workerID=w+1)
                   for w in range(libE_specs['nworkers'])]
-        print("Starting worker threads")
         for wcomm in wcomms:
             wcomm.run()
-        print("Starting manager")
         persis_info, exit_flag = \
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
-        print("Normal manager exit")
 
     except Exception as e:
         eprint(traceback.format_exc())
@@ -153,11 +150,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         sys.stdout.flush()
 
     # Join on threads here
-    print("Joining")
     for wcomm in wcomms:
         wcomm.result()
 
-    print("Calc summary and wrap up")
     # Create calc summary file
     CalcInfo.merge_statfiles()
 

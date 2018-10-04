@@ -193,7 +193,7 @@ class QCommProcess(Comm):
         self._result = None
         self._exception = None
         self._done = False
-        kwargs['comm'] = QComm(self.inbox, self.outbox, True)
+        kwargs['comm'] = QComm(self.inbox, self.outbox)
         kwargs['_qcommproc_main'] = main
         self.process = Process(target=QCommProcess._qcomm_main,
                                args=args, kwargs=kwargs)
@@ -209,7 +209,7 @@ class QCommProcess(Comm):
 
     def send(self, *args):
         "Send a message to the thread (called from creator)"
-        self.inbox.put(copy.deepcopy(args))
+        self.inbox.put(args)
 
     def recv(self, timeout=None):
         "Return a message from the thread or raise TimeoutError."
@@ -234,10 +234,10 @@ class QCommProcess(Comm):
 
     def result(self):
         "Join and return the thread main result (or re-raise an exception)."
-        self.process.join()
-        while not self.outbox.empty():
+        while not self._done:
             msg = self.outbox.get()
             self._is_result_msg(msg)
+        self.process.join()
         if self._exception is not None:
             raise RemoteException(self._exception)
         return self._result

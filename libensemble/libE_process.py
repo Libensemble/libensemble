@@ -12,6 +12,7 @@ __all__ = ['libE']
 
 import numpy as np
 import sys
+import multiprocessing
 import logging
 import traceback
 
@@ -30,7 +31,7 @@ from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, ABORT_ENSEMBLE
 
-logger = logging.getLogger(__name__)
+logger = multiprocessing.get_logger()
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
@@ -127,16 +128,13 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         wcomms = [QCommProcess(worker_main, dtypes=dtypes,
                                sim_specs=sim_specs,
                                gen_specs=gen_specs,
-                               workerID=w+1)
-                  for w in range(libE_specs['nworkers'])]
-        print("Starting worker processes")
+                               workerID=w)
+                  for w in range(1,libE_specs['nworkers']+1)]
         for wcomm in wcomms:
             wcomm.run()
-        print("Starting processes")
         persis_info, exit_flag = \
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
-        print("Normal manager exit")
 
     except Exception as e:
         eprint(traceback.format_exc())
@@ -153,11 +151,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         sys.stdout.flush()
 
     # Join on threads here
-    print("Joining threads")
     for wcomm in wcomms:
         wcomm.result()
 
-    print("Calc summary and wrap up")
     # Create calc summary file
     CalcInfo.merge_statfiles()
 

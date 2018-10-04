@@ -87,55 +87,57 @@ def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None):
     workerID: manager assigned worker ID (if None, default is comm.rank)
     """
 
-    workerID = workerID or comm.rank
-    worker = Worker(workerID, sim_specs, gen_specs)
+    try:
+        workerID = workerID or comm.rank
+        worker = Worker(workerID, sim_specs, gen_specs)
 
-    #Setup logging
-    logger.info("Worker {} initiated on node {}". \
-                format(workerID, socket.gethostname()))
+        #Setup logging
+        logger.info("Worker {} initiated on node {}". \
+                    format(workerID, socket.gethostname()))
 
-    # Print calc_list on-the-fly
-    CalcInfo.create_worker_statfile(worker.workerID)
+        # Print calc_list on-the-fly
+        CalcInfo.create_worker_statfile(worker.workerID)
 
-    #Init in case of manager request before filled
-    worker_out = {'calc_status': UNSET_TAG}
+        #Init in case of manager request before filled
+        worker_out = {'calc_status': UNSET_TAG}
 
-    for worker_iter in count(start=1):
-        logger.debug("Iteration {}".format(worker_iter))
+        for worker_iter in count(start=1):
+            logger.debug("Iteration {}".format(worker_iter))
 
-        mtag, Work = comm.recv()
-        if mtag == STOP_TAG:
+            mtag, Work = comm.recv()
+            if mtag == STOP_TAG:
 
-            if Work == MAN_SIGNAL_FINISH: #shutdown the worker
+                if Work == MAN_SIGNAL_FINISH: #shutdown the worker
+                    break
+                #Need to handle manager job kill here - as well as finish
+                if Work == MAN_SIGNAL_REQ_RESEND:
+                    logger.debug("Re-sending to Manager with status {}".\
+                                 format(worker_out['calc_status']))
+                    comm.send(0, worker_out)
+                    continue
+
+                if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
+                    pfilename = "pickled_worker_{}_sim_{}.pkl".\
+                      format(worker.workerID, worker.calc_iter[EVAL_SIM_TAG])
+                    logger.debug("Make pickle for manager: status {}".\
+                                 format(worker_out['calc_status']))
+                    comm.send(0, dump_pickle(pfilename, worker_out))
+                    continue
+
+            worker_out = receive_and_run(comm, dtypes, worker, Work)
+
+            # Check whether worker exited because it polled a manager signal
+            if worker_out['calc_status'] == MAN_SIGNAL_FINISH:
                 break
-            #Need to handle manager job kill here - as well as finish
-            if Work == MAN_SIGNAL_REQ_RESEND:
-                logger.debug("Re-sending to Manager with status {}".\
-                             format(worker_out['calc_status']))
-                comm.send(0, worker_out)
-                continue
 
-            if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
-                pfilename = "pickled_worker_{}_sim_{}.pkl".\
-                  format(worker.workerID, worker.calc_iter[EVAL_SIM_TAG])
-                logger.debug("Make pickle for manager: status {}".\
-                             format(worker_out['calc_status']))
-                comm.send(0, dump_pickle(pfilename, worker_out))
-                continue
+            logger.debug("Sending to Manager with status {}".\
+                         format(worker_out['calc_status']))
+            comm.send(0, worker_out)
 
-        worker_out = receive_and_run(comm, dtypes, worker, Work)
-
-        # Check whether worker exited because it polled a manager signal
-        if worker_out['calc_status'] == MAN_SIGNAL_FINISH:
-            break
-
-        logger.debug("Sending to Manager with status {}".\
-                     format(worker_out['calc_status']))
-        comm.send(0, worker_out)
-
-    comm.kill_pending()
-    if sim_specs.get('clean_jobs'):
-        worker.clean()
+    finally:
+        comm.kill_pending()
+        if sim_specs.get('clean_jobs'):
+            worker.clean()
 
 
 ######################################################################
