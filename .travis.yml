@@ -16,11 +16,11 @@ env:
     - OMPI_MCA_rmaps_base_oversubscribe=yes  
   matrix:
     - MPI=mpich
-    - MPI=openmpi
+#    - MPI=openmpi
 
-matrix:
-  allow_failures:
-    - env: MPI=openmpi
+#matrix:
+#  allow_failures:
+#    - env: MPI=openmpi
     
 addons:
   apt:
