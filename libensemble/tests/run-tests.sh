@@ -360,6 +360,10 @@ if [ "$root_found" = true ]; then
       mkdir output/
     fi;
 
+    TIMEOUT=""
+    if [ -x "$(command -v timeout)" ] ; then
+        TIMEOUT="timeout 60s"
+    fi
     #Build any sim/gen source code dependencies here .....
 
     cd $ROOT_DIR/$REG_TEST_SUBDIR
@@ -412,14 +416,14 @@ if [ "$root_found" = true ]; then
                mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                test_code=$?
              else
-               $PYTHON_RUN -m pytest $TEST_SCRIPT --$LAUNCHER $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+               $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --$LAUNCHER $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
              fi
            else
              if [ "$LAUNCHER" = mpi ]; then
                mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                test_code=$?
              else
-               $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --$LAUNCHER $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+               $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --$LAUNCHER $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
                test_code=$?
              fi
            fi
