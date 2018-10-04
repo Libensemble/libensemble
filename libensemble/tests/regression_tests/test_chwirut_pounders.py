@@ -86,7 +86,7 @@ gen_specs = {'gen_f': aposmm_logic,
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
                   }
 
-libE_specs = {'queue_update_function': queue_update_function}
+libE_specs['queue_update_function'] = queue_update_function
 np.random.seed(1)
 persis_info = {}
 persis_info['complete'] = set()

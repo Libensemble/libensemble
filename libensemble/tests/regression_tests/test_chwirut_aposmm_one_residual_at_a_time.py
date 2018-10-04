@@ -99,7 +99,7 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
                   }
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
 
-libE_specs = {'queue_update_function': queue_update_function}
+libE_specs['queue_update_function'] = queue_update_function
 np.random.seed(1)
 persis_info = {'next_to_give':0}
 persis_info['total_gen_calls'] = 0
@@ -111,7 +111,7 @@ persis_info['H_len'] = 0
 for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
 
 if is_master:
     assert len(H) >= max_sim_budget

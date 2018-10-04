@@ -80,7 +80,7 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
 
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
 
-libE_specs = {'queue_update_function': queue_update_function}
+libE_specs['queue_update_function'] = queue_update_function
 np.random.seed(1)
 persis_info = {'next_to_give':0}
 persis_info['total_gen_calls'] = 0

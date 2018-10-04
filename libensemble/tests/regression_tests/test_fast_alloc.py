@@ -80,7 +80,7 @@ for time in np.append([0], np.logspace(-5,-1,5)):
         alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
         # Perform the run
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
         if is_master:
             assert len(H) == num_pts

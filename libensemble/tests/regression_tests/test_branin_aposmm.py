@@ -101,7 +101,7 @@ for i in range(1,nworkers+1):
 # Perform the run
 
 if __name__ == "__main__":
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_master:
         short_name = script_name.split("test_", 1).pop()
