@@ -233,10 +233,10 @@ class QCommProcess(Comm):
 
     def result(self):
         "Join and return the thread main result (or re-raise an exception)."
-        self.process.join()
         while not self._done:
             msg = self.outbox.get()
             self._is_result_msg(msg)
+        self.process.join()
         if self._exception is not None:
             raise RemoteException(self._exception)
         return self._result
