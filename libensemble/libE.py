@@ -10,21 +10,12 @@ from __future__ import print_function
 
 __all__ = ['libE']
 
-from mpi4py import MPI
-import numpy as np
 import sys
 import logging
 import traceback
 
-# Set root logger
-# (Set above libe imports so errors in import are captured)
-# LEVEL: DEBUG/INFO/WARNING/ERROR
-#logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
-rank = MPI.COMM_WORLD.Get_rank()
-logging.basicConfig(filename='ensemble-{}.log'.format(rank),
-                    level=logging.DEBUG,
-                    format=('[{}] %(name)s (%(levelname)s): %(message)s'.
-                            format(rank)))
+from mpi4py import MPI
+import numpy as np
 
 from libensemble.history import History
 from libensemble.mpi_comms import MainMPIComm
@@ -32,10 +23,23 @@ from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, ABORT_ENSEMBLE
+from libensemble.message_numbers import \
+     EVAL_SIM_TAG, EVAL_GEN_TAG, ABORT_ENSEMBLE
+
+# Set root logger
+# TODO: was above libe imports so errors in import are captured -- but why?
+# LEVEL: DEBUG/INFO/WARNING/ERROR
+#logging.basicConfig(level=logging.INFO,
+#                    format='%(name)s (%(levelname)s): %(message)s')
+
+rank = MPI.COMM_WORLD.Get_rank()
+logging.basicConfig(filename='ensemble-{}.log'.format(rank),
+                    level=logging.DEBUG,
+                    format=('[{}] %(name)s (%(levelname)s): %(message)s'.
+                            format(rank)))
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#For debug messages in this module  - uncomment
 #logger.setLevel(logging.DEBUG)
 
 
@@ -54,17 +58,19 @@ def comms_signal_abort_to_man(comm):
     comm.send(obj=None, dest=0, tag=ABORT_ENSEMBLE)
 
 
-def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
-         alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]},
-         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0}, H0=[]):
-    """
-    libE(sim_specs, gen_specs, exit_criteria, persis_info={}, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0}, H0 =[])
+def libE(sim_specs, gen_specs, exit_criteria,
+         persis_info={},
+         alloc_specs={'alloc_f': give_sim_work_first,
+                      'out':[('allocated', bool)]},
+         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0},
+         H0=[]):
+    """This is the outer libEnsemble routine using MPI.
 
-    This is the outer libEnsemble routine. If the rank in libE_specs['comm'] is
-    0, manager_main is run. Otherwise, worker_main is run.
+    If the rank in libE_specs['comm'] is 0, manager_main is
+    run. Otherwise, worker_main is run.
 
-    If an exception is encountered by the manager or workers,  the history array
-    is dumped to file and MPI abort is called.
+    If an exception is encountered by the manager or workers, the
+    history array is dumped to file and MPI abort is called.
 
     Parameters
     ----------
@@ -110,7 +116,8 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     H: :obj:`dict`
 
-        History array storing rows for each point.  :doc:`(example)<data_structures/history_array>`
+        History array storing rows for each point.
+        :doc:`(example)<data_structures/history_array>`
         Dictionary containing persistent info
 
     persis_info: :obj:`dict`
@@ -123,23 +130,30 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         Flag containing job status: 0 = No errors,
         1 = Exception occured and MPI aborted,
         2 = Manager timed out and ended simulation
+        """
 
-    """
-    libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs,
+    # Fill in default values (e.g. MPI_COMM_WORLD for communicator)
+    libE_specs = fill_libE_specs_mpi(libE_specs)
+    comm = libE_specs['comm']
+    is_master = (comm.Get_rank() == 0)
+
+    # Check correctness of inputs
+    libE_specs = check_inputs(is_master, libE_specs,
+                              alloc_specs, sim_specs, gen_specs,
                               exit_criteria, H0)
-    if libE_specs['comm'].Get_rank() == 0:
-        return libE_mpi_manager(sim_specs, gen_specs, exit_criteria,
+
+    # Run manager or worker code, depending
+    if is_master:
+        return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
                                 persis_info, alloc_specs, libE_specs, H0)
-    return libE_mpi_worker(sim_specs, gen_specs, exit_criteria,
-                           persis_info, alloc_specs, libE_specs, H0)
+    return libE_mpi_worker(comm, sim_specs, gen_specs, persis_info, libE_specs)
 
 
-
-def libE_mpi_manager(sim_specs, gen_specs, exit_criteria, persis_info,
+def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                      alloc_specs, libE_specs, H0):
+    "Manager routine run at rank 0."
 
     CalcInfo.make_statdir()
-    mpi_comm = libE_specs['comm']
     mpi_comm.Barrier()
 
     exit_flag = []
@@ -155,7 +169,7 @@ def libE_mpi_manager(sim_specs, gen_specs, exit_criteria, persis_info,
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
 
-    except Exception as e:
+    except Exception:
         eprint(traceback.format_exc())
         eprint("\nManager exception raised .. aborting ensemble:\n")
         eprint("\nDumping ensemble history with {} sims evaluated:\n".
@@ -178,10 +192,9 @@ def libE_mpi_manager(sim_specs, gen_specs, exit_criteria, persis_info,
     return H, persis_info, exit_flag
 
 
-def libE_mpi_worker(sim_specs, gen_specs, exit_criteria, persis_info,
-                    alloc_specs, libE_specs, H0):
+def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
+    "Worker routine run at ranks > 0."
 
-    mpi_comm = libE_specs['comm']
     mpi_comm.Barrier()
     try:
         # Exchange dtypes and set up comm
@@ -190,7 +203,7 @@ def libE_mpi_worker(sim_specs, gen_specs, exit_criteria, persis_info,
         dtypes[EVAL_GEN_TAG] = mpi_comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
         comm = MainMPIComm(mpi_comm)
         worker_main(comm, dtypes, sim_specs, gen_specs)
-    except Exception as e:
+    except Exception:
         eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".
                format(mpi_comm.Get_rank()))
         eprint(traceback.format_exc())
@@ -205,62 +218,95 @@ def libE_mpi_worker(sim_specs, gen_specs, exit_criteria, persis_info,
     return H, persis_info, exit_flag
 
 
-def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs,
+_USER_SIM_ID_WARNING = '\n' + 79*'*' + '\n' + \
+"""User generator script will be creating sim_id.
+Take care to do this sequentially.
+Also, any information given back for existing sim_id values will be overwritten!
+So everything in gen_out should be in gen_in!""" + \
+'\n' + 79*'*' + '\n\n'
+
+
+def fill_libE_specs_mpi(libE_specs):
+    "Fill in missing fields in libE_specs."
+    if 'comm' not in libE_specs:
+        libE_specs['comm'] = MPI.COMM_WORLD
+    if 'color' not in libE_specs:
+        libE_specs['color'] = 0
+    return libE_specs
+
+
+def check_consistent_field(name, field0, field1):
+    "Check that new field (field1) is compatible with an old field (field0)."
+    assert field0.ndim == field1.ndim, \
+      "H0 and H have different ndim for field {}".format(name)
+    assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \
+      "H too small to receive all components of H0 in field {}".format(name)
+
+
+def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
                  exit_criteria, H0):
     """
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run.
     """
 
-    if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD
-
-    if 'color' not in libE_specs:
-        libE_specs['color'] = 0
-
+    # Check all the input fields are dicts
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
     assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
     assert isinstance(exit_criteria, dict), "exit_criteria must be a dictionary"
 
+    # Check for at least one valid exit criterion
     assert len(exit_criteria) > 0, "Must have some exit criterion"
-    valid_term_fields = ['sim_max', 'gen_max', 'elapsed_wallclock_time', 'stop_val']
-    assert any([term_field in exit_criteria for term_field in valid_term_fields]), "Must have a valid termination option: " + str(valid_term_fields)
+    valid_term_fields = ['sim_max', 'gen_max',
+                         'elapsed_wallclock_time', 'stop_val']
+    assert any([term_field in exit_criteria for
+                term_field in valid_term_fields]), \
+        "Must have a valid termination option: " + str(valid_term_fields)
 
+    # Check that sim/gen have 'out' entries
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert len(gen_specs['out']), "gen_specs must have 'out' entries"
 
+    # If exit on stop, make sure it is something that a sim/gen outputs
     if 'stop_val' in exit_criteria:
-        assert exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']],\
-               "Can't stop on " + exit_criteria['stop_val'][0] + " if it's not \
-               returned from sim_specs['out'] or gen_specs['out']"
+        stop_name = exit_criteria['stop_val'][0]
+        sim_out_names = [e[0] for e in sim_specs['out']]
+        gen_out_names = [e[0] for e in gen_specs['out']]
+        assert stop_name in sim_out_names + gen_out_names, \
+          "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
 
+    # Handle if gen outputs sim IDs
     from libensemble.libE_fields import libE_fields
-
     if ('sim_id', int) in gen_specs['out']:
-        if MPI.COMM_WORLD.Get_rank() == 0:
-            print('\n' + 79*'*' + '\n'
-                  "User generator script will be creating sim_id.\n"\
-                  "Take care to do this sequentially.\n"\
-                  "Also, any information given back for existing sim_id values will be overwritten!\n"\
-                  "So everything in gen_out should be in gen_in!"\
-                  '\n' + 79*'*' + '\n\n')
+        if is_master:
+            print(_USER_SIM_ID_WARNING)
             sys.stdout.flush()
-        libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
-    if 'out' in alloc_specs:
-        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
-    else:
-        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'])))
+         # Must remove 'sim_id' from libE_fields (it is in gen_specs['out'])
+        libE_fields = libE_fields[1:]
 
+    # Set up history -- combine libE_fields and sim/gen/alloc specs
+    H = np.zeros(1 + len(H0),
+                 dtype=libE_fields + list(set(sim_specs['out'] +
+                                              gen_specs['out'] +
+                                              alloc_specs.get('out', []))))
+
+    # Sanity check prior history
     if len(H0):
         fields = H0.dtype.names
-        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names))
-        if 'returned' in fields:
-            assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
 
+        # Prior history must contain the fields in new history
+        assert set(fields).issubset(set(H.dtype.names)), \
+          "H0 contains fields {} not in H.".\
+          format(set(fields).difference(set(H.dtype.names)))
+
+        # Prior history cannot contain unreturned points
+        assert 'returned' not in fields or np.all(H0['returned']), \
+          "H0 contains unreturned points."
+
+        # Check dimensional compatibility of fields
         for field in fields:
-            assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"
-            assert np.all(np.array(H[field].shape) >= np.array(H0[field].shape)), "H is not large enough to receive all of the components of H0 in field: " + field + ". Exiting"
+            check_consistent_field(field, H0[field], H[field])
 
     return libE_specs
