@@ -176,15 +176,16 @@ class QCommThread(Comm):
         self.thread.join()
 
 
+class QCommProcessResult:
+    "Hold a returned result from a process."
+    def __init__(self, value=None, exception=None):
+        self.value = value
+        self.exception = exception
+
+
 class QCommProcess(Comm):
     """Launch a user function in a process with an attached QComm.
     """
-
-    class Result:
-        "Hold a returned result from a process."
-        def __init__(self, value=None, exception=None):
-            self.value = value
-            self.exception = exception
 
     def __init__(self, main, *args, **kwargs):
         self.inbox = Queue()
@@ -199,7 +200,7 @@ class QCommProcess(Comm):
 
     def _is_result_msg(self, msg):
         "Return true if message indicates final result (and set result/except)."
-        if len(msg) and isinstance(msg[0], QCommProcess.Result):
+        if len(msg) and isinstance(msg[0], QCommProcessResult):
             self._result = msg[0].value
             self._exception = msg[0].exception
             self._done = True
@@ -233,10 +234,10 @@ class QCommProcess(Comm):
 
     def result(self):
         "Join and return the thread main result (or re-raise an exception)."
-        while not self._done:
+        self.process.join()
+        while not self.outbox.empty():
             msg = self.outbox.get()
             self._is_result_msg(msg)
-        self.process.join()
         if self._exception is not None:
             raise RemoteException(self._exception)
         return self._result
@@ -252,13 +253,10 @@ class QCommProcess(Comm):
         main = _qcommproc_main
         comm = kwargs['comm']
         try:
-            print("Running main routine")
             _result = main(*args, **kwargs)
-            print("Returning result")
-            comm.send(QCommProcess.Result(_result))
+            comm.send(QCommProcessResult(_result))
         except Exception as e:
-            print("Saw exception, sending it...")
-            comm.send(QCommProcess.Result(exception=str(e)))
+            comm.send(QCommProcessResult(exception=str(e)))
             traceback.print_exception(e)
 
     def __enter__(self):
