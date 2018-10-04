@@ -251,8 +251,9 @@ def test_comm_eval():
 
     results = np.zeros(3, dtype=[('f', float)])
     results['f'] = [20, 10, 15]
+    resultsf = results['f']
 
-    results[0] = 15
+    resultsf[0] = 15
     inq.put(('update', 1, results[0]))
     gcomm.process_message(timeout=0.1)
     assert not promises[0].cancelled() and not promises[0].done()
@@ -260,7 +261,7 @@ def test_comm_eval():
     assert gcomm.sim_started == 3
     assert gcomm.sim_pending == 2
 
-    results[0] = 20
+    resultsf[0] = 20
     inq.put(('result', 1, results[0]))
     gcomm.process_message(timeout=0.1)
     assert not promises[0].cancelled() and promises[0].done()
@@ -323,6 +324,7 @@ def run_qcomm_threadproc_test(ThreadProc):
     gen_specs = {'out': [('x', float), ('flag', bool)]}
     results = np.zeros(3, dtype=[('f', float)])
     results['f'] = [5, 10, 30]
+    resultsf = results['f']
     with ThreadProc(worker_thread, gen_specs=gen_specs) as mgr_comm:
         assert mgr_comm.recv()[0] == 'request'
         mgr_comm.send('queued', 0)

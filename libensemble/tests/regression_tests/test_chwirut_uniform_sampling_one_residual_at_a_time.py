@@ -89,14 +89,14 @@ persis_info['has_nan'] = set()
 persis_info['already_paused'] = set()
 persis_info['H_len'] = 0
 
-for i in range(MPI.COMM_WORLD.Get_size()):
+for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
     short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(nworkers+1)
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
