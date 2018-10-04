@@ -21,7 +21,7 @@ import traceback
 # LEVEL: DEBUG/INFO/WARNING/ERROR
 #logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
 
-# TODO: Multi-process logging is trickier than this...
+# TODO: Multi-process logging is trickier than this
 # logging.basicConfig(filename='ensemble.log', level=logging.DEBUG,
 #                     format='%(name)s (%(levelname)s): %(message)s')
 
@@ -127,10 +127,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
               EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
 
     try:
-        wcomms = [QCommProcess(worker_main, dtypes=dtypes,
-                               sim_specs=sim_specs,
-                               gen_specs=gen_specs,
-                               workerID=w)
+        wcomms = [QCommProcess(worker_main, dtypes, sim_specs, gen_specs, w)
                   for w in range(1, libE_specs['nworkers']+1)]
         for wcomm in wcomms:
             wcomm.run()

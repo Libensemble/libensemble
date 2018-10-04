@@ -192,10 +192,9 @@ class QCommProcess(Comm):
         self._result = None
         self._exception = None
         self._done = False
-        kwargs['comm'] = QComm(self.inbox, self.outbox)
-        kwargs['_qcommproc_main'] = main
+        comm = QComm(self.inbox, self.outbox)
         self.process = Process(target=QCommProcess._qcomm_main,
-                               args=args, kwargs=kwargs)
+                               args=(comm, main) + args, kwargs=kwargs)
 
     def _is_result_msg(self, msg):
         "Return true if message indicates final result (and set result/except)."
@@ -262,12 +261,10 @@ class QCommProcess(Comm):
         return self.process.is_alive()
 
     @staticmethod
-    def _qcomm_main(*args, _qcommproc_main=None, **kwargs):
+    def _qcomm_main(comm, main, *args, **kwargs):
         "Main routine -- handles return values and exceptions."
-        main = _qcommproc_main
-        comm = kwargs['comm']
         try:
-            _result = main(*args, **kwargs)
+            _result = main(comm, *args, **kwargs)
             comm.send(QCommProcessResult(_result))
         except Exception as e:
             comm.send(QCommProcessResult(exception=str(e)))

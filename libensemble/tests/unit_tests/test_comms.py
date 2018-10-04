@@ -373,8 +373,8 @@ def test_qcomm_proc_terminate():
 
     def worker_main(comm):
         while True:
-            pass
+            time.sleep(1)
 
     with comms.QCommProcess(worker_main) as mgr_comm:
-        mgr_comm.terminate(timeout=15)
+        mgr_comm.terminate(timeout=30)
         assert not mgr_comm.running
