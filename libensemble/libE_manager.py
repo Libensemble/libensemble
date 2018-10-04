@@ -333,18 +333,21 @@ class Manager:
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
         ### Continue receiving and giving until termination test is satisfied
-        while not self.term_test():
-            persis_info = self._receive_from_workers(persis_info)
-            persis_info = self._queue_update(self.hist.trim_H(), persis_info)
-            if any(self.W['active'] == 0):
-                Work, persis_info = self._alloc_work(self.hist.trim_H(),
-                                                     persis_info)
-                for w in Work:
-                    if self.term_test():
-                        break
-                    self._check_work_order(Work[w], w)
-                    self._send_work_order(Work[w], w)
-                    self._update_state_on_alloc(Work[w], w)
+        try:
+            while not self.term_test():
+                persis_info = self._receive_from_workers(persis_info)
+                persis_info = self._queue_update(self.hist.trim_H(), persis_info)
+                if any(self.W['active'] == 0):
+                    Work, persis_info = self._alloc_work(self.hist.trim_H(),
+                                                         persis_info)
+                    for w in Work:
+                        if self.term_test():
+                            break
+                        self._check_work_order(Work[w], w)
+                        self._send_work_order(Work[w], w)
+                        self._update_state_on_alloc(Work[w], w)
 
-        # Return persis_info, exit_flag
-        return self._final_receive_and_kill(persis_info)
+        finally:
+            # Return persis_info, exit_flag
+            result = self._final_receive_and_kill(persis_info)
+        return result
