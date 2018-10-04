@@ -376,4 +376,5 @@ def test_qcomm_proc_terminate():
             pass
 
     with comms.QCommProcess(worker_main) as mgr_comm:
-        assert mgr_comm.terminate() is None
+        mgr_comm.terminate(timeout=15)
+        assert not mgr_comm.running
