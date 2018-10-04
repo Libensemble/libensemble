@@ -295,7 +295,7 @@ def test_comm_eval():
 
 
 def run_qcomm_threadproc_test(ThreadProc):
-    "Test CommEval between two threads (allows timeout checks)"
+    "Test CommEval between two threads or processes (allows timeout checks)"
 
     class BadWorkerException(Exception):
         pass
@@ -363,5 +363,17 @@ def run_qcomm_threadproc_test(ThreadProc):
 
 
 def test_qcomm_threadproc():
+    "Test CommEval between threads and processes"
     run_qcomm_threadproc_test(comms.QCommThread)
     run_qcomm_threadproc_test(comms.QCommProcess)
+
+
+def test_qcomm_proc_terminate():
+    "Test that a QCommProcess run amok can be gracefully terminated."
+
+    def worker_main(comm):
+        while True:
+            pass
+
+    with comms.QCommProcess(worker_main) as mgr_comm:
+        assert mgr_comm.terminate() is None

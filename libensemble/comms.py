@@ -242,6 +242,12 @@ class QCommProcess(Comm):
             raise RemoteException(self._exception)
         return self._result
 
+    def terminate(self, timeout=None):
+        "Terminate the process and return whatever we can get."
+        if self.running:
+            self.process.terminate()
+        return self.result(timeout=timeout)
+
     @property
     def running(self):
         "Return true if process is running"

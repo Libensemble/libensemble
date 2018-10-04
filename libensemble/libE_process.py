@@ -150,15 +150,11 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         print(libE_specs['nworkers'], exit_criteria)
         sys.stdout.flush()
 
-    # Join on threads here
+    # Join on threads here (and terminate forcefully if needed)
     for wcomm in wcomms:
         wcomm.result(timeout=libE_specs.get('worker_timeout'))
-
-    # Terminate more forcefully if the threads don't join gracefully
-    for wcomm in wcomms:
         if wcomm.running:
-            wcomm.process.terminate()
-            wcomm.process.join()
+            wcomm.terminate()
 
     # Create calc summary file
     CalcInfo.merge_statfiles()
