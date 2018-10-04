@@ -243,10 +243,10 @@ class QCommProcess(Comm):
         return self._result
 
     def terminate(self, timeout=None):
-        "Terminate the process and return whatever we can get."
+        "Terminate the process."
         if self.running:
             self.process.terminate()
-        return self.result(timeout=timeout)
+        self.process.join(timeout=timeout)
 
     @property
     def running(self):
