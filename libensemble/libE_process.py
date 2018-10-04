@@ -21,7 +21,7 @@ import traceback
 # LEVEL: DEBUG/INFO/WARNING/ERROR
 #logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
 logging.basicConfig(filename='ensemble.log', level=logging.DEBUG,
-                    format='[%(threadName)s] %(name)s (%(levelname)s): %(message)s')
+                    format='%(name)s (%(levelname)s): %(message)s')
 
 from libensemble.history import History
 from libensemble.comms import QCommProcess
@@ -31,7 +31,7 @@ from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, ABORT_ENSEMBLE
 
-logger = multiprocessing.get_logger()
+logger = logging.get_logger(__name__)
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
@@ -129,14 +129,14 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
                                sim_specs=sim_specs,
                                gen_specs=gen_specs,
                                workerID=w)
-                  for w in range(1,libE_specs['nworkers']+1)]
+                  for w in range(1, libE_specs['nworkers']+1)]
         for wcomm in wcomms:
             wcomm.run()
         persis_info, exit_flag = \
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
 
-    except Exception as e:
+    except Exception:
         eprint(traceback.format_exc())
         eprint("\nManager exception raised .. aborting ensemble:\n")
         eprint("\nDumping ensemble history with {} sims evaluated:\n".
@@ -152,8 +152,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     # Join on threads here (and terminate forcefully if needed)
     for wcomm in wcomms:
-        wcomm.result(timeout=libE_specs.get('worker_timeout'))
-        if wcomm.running:
+        try:
+            wcomm.result(timeout=libE_specs.get('worker_timeout'))
+        except comms.Timeout:
             wcomm.terminate()
 
     # Create calc summary file

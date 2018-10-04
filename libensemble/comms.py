@@ -23,12 +23,11 @@ access and monitoring (for persistent gens):
 """
 
 from abc import ABC, abstractmethod
-from time import time, sleep
+from time import time
 from threading import Thread
 from multiprocessing import Process, Queue
 import queue
 import copy
-import traceback
 
 import numpy as np
 
@@ -234,10 +233,17 @@ class QCommProcess(Comm):
 
     def result(self, timeout=None):
         "Join and return the thread main result (or re-raise an exception)."
-        self.process.join(timeout=timeout)
-        while not self.outbox.empty():
-            msg = self.outbox.get()
+        while not self._done and (timeout is None or timeout >= 0):
+            tstart = time()
+            msg = self.outbox.get(timeout=timeout)
             self._is_result_msg(msg)
+            if timeout is not None:
+                timeout -= (time()-tstart)
+        if not self._done:
+            raise Timeout()
+        self.process.join(timeout=timeout)
+        if self.running:
+            raise Timeout()
         if self._exception is not None:
             raise RemoteException(self._exception)
         return self._result
@@ -247,6 +253,8 @@ class QCommProcess(Comm):
         if self.running:
             self.process.terminate()
         self.process.join(timeout=timeout)
+        if self.running:
+            raise Timeout()
 
     @property
     def running(self):
@@ -263,7 +271,7 @@ class QCommProcess(Comm):
             comm.send(QCommProcessResult(_result))
         except Exception as e:
             comm.send(QCommProcessResult(exception=str(e)))
-            traceback.print_exception(e)
+            #traceback.print_exception(e)
 
     def __enter__(self):
         self.run()
