@@ -152,7 +152,13 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     # Join on threads here
     for wcomm in wcomms:
-        wcomm.result()
+        wcomm.result(timeout=libE_specs.get('worker_timeout'))
+
+    # Terminate more forcefully if the threads don't join gracefully
+    for wcomm in wcomms:
+        if wcomm.running:
+            wcomm.process.terminate()
+            wcomm.process.join()
 
     # Create calc summary file
     CalcInfo.merge_statfiles()
@@ -170,6 +176,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs,
 
     if 'nworkers' not in libE_specs:
         libE_specs['nworkers'] = 2
+    if 'worker_timeout' not in libE_specs:
+        libE_specs['worker_timeout'] = 30
 
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"

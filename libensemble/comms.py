@@ -232,12 +232,12 @@ class QCommProcess(Comm):
         "Start the process."
         self.process.start()
 
-    def result(self):
+    def result(self, timeout=None):
         "Join and return the thread main result (or re-raise an exception)."
-        while not self._done:
+        self.process.join(timeout=timeout)
+        while not self.outbox.empty():
             msg = self.outbox.get()
             self._is_result_msg(msg)
-        self.process.join()
         if self._exception is not None:
             raise RemoteException(self._exception)
         return self._result
