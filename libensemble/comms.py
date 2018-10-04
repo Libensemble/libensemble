@@ -252,9 +252,12 @@ class QCommProcess(Comm):
         main = _qcommproc_main
         comm = kwargs['comm']
         try:
+            print("Running main routine")
             _result = main(*args, **kwargs)
+            print("Returning result")
             comm.send(QCommProcess.Result(_result))
         except Exception as e:
+            print("Saw exception, sending it...")
             comm.send(QCommProcess.Result(exception=str(e)))
             traceback.print_exception(e)
 
