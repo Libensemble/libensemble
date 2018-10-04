@@ -12,8 +12,8 @@ __all__ = ['aposmm_logic','initialize_APOSMM', 'decide_where_to_start_localopt',
 import sys, os, traceback
 import numpy as np
 # import scipy as sp
-from scipy.spatial.distance import cdist
-from scipy import optimize as scipy_optimize
+from scipy.spatial.distance import cdist, pdist, squareform
+# from scipy import optimize as scipy_optimize
 
 from mpi4py import MPI
 
@@ -145,7 +145,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         updated_inds = update_history_dist(H, gen_specs, c_flag)
 
-        starting_inds = decide_where_to_start_localopt(H, n_s, r_k, mu, nu)
+        starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         updated_inds.update(starting_inds)
 
         for ind in starting_inds:
@@ -164,18 +164,24 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             persis_info['active_runs'].update([new_run_num])
             persis_info['total_runs'] +=1
 
-        if 'max_active_runs' in gen_specs:
-            num_runs = len(persis_info['run_order'])
-            run_vals = np.zeros((num_runs,2))
+        num_runs = len(persis_info['run_order'])
+        if 'max_active_runs' in gen_specs and gen_specs['max_active_runs'] < num_runs:
+            run_vals = np.zeros((num_runs,2),dtype=int)
             for i,run in enumerate(persis_info['run_order'].keys()):
                 run_vals[i,0] = run
-                run_vals[i,1] = np.min(H['f'][persis_info['run_order'][run]])
+                run_vals[i,1] = persis_info['run_order'][run][np.nanargmin(H['f'][persis_info['run_order'][run]])]
 
+            P = squareform(pdist(H['x_on_cube'][run_vals[:,1]], 'euclidean'))
+            dist_to_better = np.inf*np.ones(num_runs)
+
+            for i in range(num_runs):
+                better = H['f'][run_vals[:,1]]<H['f'][run_vals[i,1]]
+                if any(better):
+                    dist_to_better[i] = np.min(P[i,better])
+
+            k_sorted = np.argpartition(-dist_to_better,kth=gen_specs['max_active_runs']-1) # Take max_active_runs largest
             
-            num_active_runs = min(gen_specs['max_active_runs'],num_runs)
-            k_sorted = np.argpartition(run_vals[:,1],kth=num_active_runs-1)
-            
-            persis_info['active_runs'] = set(run_vals[k_sorted[:num_active_runs],0].astype(int))
+            persis_info['active_runs'] = set(run_vals[k_sorted[:gen_specs['max_active_runs']],0].astype(int))
 
         inactive_runs = set()
 
@@ -633,7 +639,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
 
 
 
-def decide_where_to_start_localopt(H, n_s, r_k, mu=0, nu=0, gamma_quantile=1):
+def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     """
     Finds points in the history that satisfy the conditions (S1-S5 and L1-L8) in
     Table 1 of the `APOSMM paper <https://doi.org/10.1007/s12532-017-0131-4>`_
@@ -652,8 +658,6 @@ def decide_where_to_start_localopt(H, n_s, r_k, mu=0, nu=0, gamma_quantile=1):
     ----------
     H: numpy structured array
         History array storing rows for each point.
-    n_s: integer
-        Number of sample points
     r_k_const: float
         Radius for deciding when to start runs 
     lhs_divisions: integer

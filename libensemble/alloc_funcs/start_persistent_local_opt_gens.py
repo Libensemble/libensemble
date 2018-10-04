@@ -58,9 +58,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
     for i in avail_worker_ids(W, persistent=False):
         # Find candidates to start local opt runs if a sample has been evaluated
         if np.any(np.logical_and(~H['local_pt'], H['returned'])):
-            _, n_s, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
+            _, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
             update_history_dist(H, gen_specs, c_flag=False)
-            starting_inds = decide_where_to_start_localopt(H, n_s, r_k, mu, nu)
+            starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         else:
             starting_inds = []
 
