@@ -366,15 +366,3 @@ def test_qcomm_threadproc():
     "Test CommEval between threads and processes"
     run_qcomm_threadproc_test(comms.QCommThread)
     run_qcomm_threadproc_test(comms.QCommProcess)
-
-
-def test_qcomm_proc_terminate():
-    "Test that a QCommProcess run amok can be gracefully terminated."
-
-    def worker_main(comm):
-        while True:
-            time.sleep(1)
-
-    with comms.QCommProcess(worker_main) as mgr_comm:
-        mgr_comm.terminate(timeout=30)
-        assert not mgr_comm.running
