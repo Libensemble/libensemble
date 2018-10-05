@@ -8,20 +8,20 @@ import sys             # for adding to path
 import os
 import numpy as np
 
+from libensemble.libE import libE
+
+nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+is_master = True
 if len(sys.argv) > 1 and sys.argv[1] == "--threads":
-    # Actually requires local paths, so threads are out
     quit()
 elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
-    from libensemble.libE_process import libE
-    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
-    is_master = True
-    libE_specs = {'nworkers': nworkers}
+    libE_specs = {'nprocesses': nworkers}
 else:
-    from mpi4py import MPI #
-    from libensemble.libE import libE
+    from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_master = MPI.COMM_WORLD.Get_rank() == 0
     libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
+
 
 # Import sim_func and declare directory to be copied by each worker to do its evaluations in
 import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')
