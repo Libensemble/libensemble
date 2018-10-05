@@ -15,13 +15,11 @@ import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
 # from scipy import optimize as scipy_optimize
 
-from mpi4py import MPI
 
 from numpy.lib.recfunctions import merge_arrays
 
 from math import log, gamma, pi, sqrt
 
-from petsc4py import PETSc
 import nlopt
 
 def aposmm_logic(H,persis_info,gen_specs,_):
@@ -567,6 +565,9 @@ def set_up_and_run_tao(Run_H, gen_specs):
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
+    from mpi4py import MPI
+    from petsc4py import PETSc
+
     tao_comm = MPI.COMM_SELF
     n = len(gen_specs['ub'])
     m = len(Run_H['fvec'][0])
