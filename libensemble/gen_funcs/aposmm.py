@@ -414,7 +414,7 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
 
         x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
 
-        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
+        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
 
             if gen_specs['localopt_method'] in ['LD_MMA']:
                 fields_to_pass = ['x_on_cube','f','grad']
