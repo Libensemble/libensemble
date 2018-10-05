@@ -154,6 +154,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             if not np.any(H['started_run']):
                 persis_info['active_runs'] = set()
                 persis_info['run_order'] = {}
+                persis_info['old_runs'] = {}
                 persis_info['total_runs'] = 0
 
             new_run_num = persis_info['total_runs']
@@ -208,7 +209,8 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         for i in inactive_runs:
             persis_info['active_runs'].remove(i)
-            persis_info['run_order'].pop(i) # Deletes any information about this run
+            old_run = persis_info['run_order'].pop(i) # Deletes any information about this run
+            persis_info['old_runs'][i] = old_run
 
     if len(H) == 0:
         samples_needed = gen_specs['initial_sample_size']
