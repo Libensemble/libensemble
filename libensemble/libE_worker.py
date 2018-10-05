@@ -18,6 +18,7 @@ from libensemble.message_numbers import \
 from libensemble.message_numbers import \
      MAN_SIGNAL_FINISH, \
      MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+from libensemble.message_numbers import calc_type_strings
 
 from libensemble.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
@@ -49,7 +50,7 @@ def receive_and_run(comm, dtypes, worker, Work):
         _, calc_in = comm.recv()
     else:
         calc_in = np.zeros(0, dtype=dtypes[calc_type])
-    logger.debug("Received calc_in of len {}".format(np.size(calc_in)))
+    logger.debug("Received calc_in ({}) of len {}".format(calc_type_strings[calc_type], np.size(calc_in)))
 
     # comm will be in the future comms module...
     if libE_info.get('persistent'):
