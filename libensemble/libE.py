@@ -14,12 +14,9 @@ import sys
 import logging
 import traceback
 
-from mpi4py import MPI
 import numpy as np
 
 from libensemble.history import History
-from libensemble.mpi_comms import MainMPIComm
-from libensemble.comms import QCommProcess, QCommThread, Timeout
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
@@ -41,7 +38,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
          persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first,
                       'out':[('allocated', bool)]},
-         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0},
+         libE_specs={},
          H0=[]):
     """This is the outer libEnsemble routine.
 
@@ -139,6 +136,8 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "MPI version of the libE main routine"
 
+    from mpi4py import MPI
+
     # Fill in default values (e.g. MPI_COMM_WORLD for communicator)
     if 'comm' not in libE_specs:
         libE_specs['comm'] = MPI.COMM_WORLD
@@ -169,6 +168,8 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                      alloc_specs, libE_specs, H0):
     "Manager routine run at rank 0."
+
+    from libensemble.mpi_comms import MainMPIComm
 
     CalcInfo.make_statdir()
     mpi_comm.Barrier()
@@ -212,6 +213,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
     "Worker routine run at ranks > 0."
 
+    from libensemble.mpi_comms import MainMPIComm
     mpi_comm.Barrier()
     try:
         # Exchange dtypes and set up comm
@@ -241,6 +243,8 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
 def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
     "Main routine for thread/process launch of libE."
+
+    from libensemble.comms import QCommProcess, QCommThread, Timeout
 
     # Set up if we are going to use
     if 'nthreads' in libE_specs:

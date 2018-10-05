@@ -1,5 +1,3 @@
-from mpi4py import MPI
-
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG
 
 
