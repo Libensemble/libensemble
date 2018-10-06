@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import socket
 import logging
+import logging.handlers
 from itertools import count
 
 import numpy as np
@@ -50,7 +51,8 @@ def receive_and_run(comm, dtypes, worker, Work):
         _, calc_in = comm.recv()
     else:
         calc_in = np.zeros(0, dtype=dtypes[calc_type])
-    logger.debug("Received calc_in ({}) of len {}".format(calc_type_strings[calc_type], np.size(calc_in)))
+    logger.debug("Received calc_in ({}) of len {}".
+                 format(calc_type_strings[calc_type], np.size(calc_in)))
 
     # comm will be in the future comms module...
     if libE_info.get('persistent'):
@@ -67,7 +69,7 @@ def receive_and_run(comm, dtypes, worker, Work):
 
 #The routine worker_main currently uses MPI.
 #Comms will be implemented using comms module in future
-def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None):
+def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None, logq=None):
     """
     Evaluate calculations given to it by the manager.
 
@@ -89,6 +91,13 @@ def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None):
     """
 
     try:
+        # Initialize logging queue
+        if logq is not None:
+            qh = logging.handlers.QueueHandler(logq)
+            root = logging.getLogger()
+            root.setLevel(logging.DEBUG)
+            root.addHandler(qh)
+
         workerID = workerID or comm.rank
         worker = Worker(workerID, sim_specs, gen_specs)
 

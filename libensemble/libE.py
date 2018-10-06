@@ -13,6 +13,8 @@ __all__ = ['libE']
 import sys
 import logging
 import traceback
+import threading
+import multiprocessing
 
 import numpy as np
 
@@ -240,6 +242,15 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
 # ==================== Thread/process version =================================
 
 
+def logger_thread(q):
+    "Forward log messages from queue to main logger."
+    while True:
+        record = q.get()
+        if record is None:
+            break
+        logging.getLogger(record.name).handle(record)
+
+
 def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
     "Main routine for thread/process launch of libE."
@@ -251,14 +262,14 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         QCommTP = QCommThread
         has_terminate = False
         nworkers = libE_specs['nthreads']
-        logging.basicConfig(
-            filename='ensemble.log', level=logging.DEBUG,
-            format='[%(threadName)s] %(name)s (%(levelname)s): %(message)s')
+        logfmt = '%(threadName)s %(name)s (%(levelname)s): %(message)s'
+        logq = None
     else:
         QCommTP = QCommProcess
         has_terminate = True
         nworkers = libE_specs['nprocesses']
-        # TODO: Add appropriate logging here
+        logfmt = '%(processName)-10s %(name)s (%(levelname)s): %(message)s'
+        logq = multiprocessing.Queue()
 
     libE_specs = check_inputs(True, libE_specs,
                               alloc_specs, sim_specs, gen_specs,
@@ -274,10 +285,23 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
               EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
 
     try:
-        wcomms = [QCommTP(worker_main, dtypes, sim_specs, gen_specs, w)
+        # Set up logging queue
+        lp = None
+
+        # Launch worker team
+        wcomms = [QCommTP(worker_main, dtypes, sim_specs, gen_specs, w, logq)
                   for w in range(1, nworkers+1)]
         for wcomm in wcomms:
             wcomm.run()
+
+        # Set up logger and start monitoring thread
+        logging.basicConfig(filename='ensemble.log', level=logging.DEBUG,
+                            format=logfmt)
+        if logq is not None:
+            lp = threading.Thread(target=logger_thread, args=(logq,))
+            lp.start()
+
+        # Run manager
         persis_info, exit_flag = \
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
@@ -295,6 +319,11 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         logger.debug("Manager exiting")
         print(nworkers, exit_criteria)
         sys.stdout.flush()
+    finally:
+        if logq is not None:
+            logq.put(None)
+        if lp is not None:
+            lp.join()
 
     # Join on workers here (and terminate forcefully if needed)
     for wcomm in wcomms:
