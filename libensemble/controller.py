@@ -14,7 +14,7 @@ import logging
 import itertools
 import time
 
-import libensemble.launcher as launcher
+import libensemble.util.launcher as launcher
 
 logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment

@@ -9,7 +9,7 @@ import threading
 import queue
 
 import numpy as np
-import libensemble.comms as comms
+import libensemble.comms.comms as comms
 
 
 def test_qcomm():

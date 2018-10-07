@@ -7,7 +7,7 @@ elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
     quit()
 
 from mpi4py import MPI
-from libensemble.mpi_comms import MPIComm, Timeout
+from libensemble.comms.mpi import MPIComm, Timeout
 
 
 def check_recv(comm, expected_msg):

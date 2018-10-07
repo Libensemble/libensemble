@@ -8,7 +8,7 @@ import itertools
 import os
 import shutil
 
-from libensemble.timer import Timer
+from libensemble.util.timer import Timer
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
 class CalcInfo():

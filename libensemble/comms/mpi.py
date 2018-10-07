@@ -6,7 +6,7 @@ MPI-based bidirectional communicator
 
 import time
 from mpi4py import MPI
-from libensemble.comms import Comm, Timeout
+from libensemble.comms.comms import Comm, Timeout
 
 
 class MPIComm(Comm):

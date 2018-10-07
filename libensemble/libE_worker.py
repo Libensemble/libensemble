@@ -21,7 +21,7 @@ from libensemble.message_numbers import \
      MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
 from libensemble.message_numbers import calc_type_strings
 
-from libensemble.loc_stack import LocationStack
+from libensemble.util.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 

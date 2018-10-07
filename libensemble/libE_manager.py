@@ -13,7 +13,7 @@ import socket
 import pickle
 import numpy as np
 
-from libensemble.timer import Timer
+from libensemble.util.timer import Timer
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
      EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \

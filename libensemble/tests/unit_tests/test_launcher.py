@@ -5,7 +5,7 @@ Unit test of launcher helpers for libensemble.
 """
 
 import sys
-import libensemble.launcher as launcher
+import libensemble.util.launcher as launcher
 
 
 def test_form_command():

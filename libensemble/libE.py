@@ -171,7 +171,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                      alloc_specs, libE_specs, H0):
     "Manager routine run at rank 0."
 
-    from libensemble.mpi_comms import MainMPIComm
+    from libensemble.comms.mpi import MainMPIComm
 
     CalcInfo.make_statdir()
     mpi_comm.Barrier()
@@ -215,7 +215,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
     "Worker routine run at ranks > 0."
 
-    from libensemble.mpi_comms import MainMPIComm
+    from libensemble.comms.mpi import MainMPIComm
     mpi_comm.Barrier()
     try:
         # Exchange dtypes and set up comm
@@ -255,7 +255,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
     "Main routine for thread/process launch of libE."
 
-    from libensemble.comms import QCommProcess, QCommThread, Timeout
+    from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 
     # Set up if we are going to use
     if 'nthreads' in libE_specs:
