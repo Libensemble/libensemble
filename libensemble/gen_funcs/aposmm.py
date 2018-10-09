@@ -148,12 +148,6 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         updated_inds.update(starting_inds)
 
-        if not np.any(H['started_run']):
-            persis_info['active_runs'] = set()
-            persis_info['run_order'] = {}
-            persis_info['old_runs'] = {}
-            persis_info['total_runs'] = 0
-
         for ind in starting_inds:
             # Find the run number
             new_run_num = persis_info['total_runs']
@@ -188,6 +182,8 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         # Find next point in any uncompleted runs using information stored in persis_info
         for run in persis_info['active_runs']:
+            if not np.all(H['returned'][persis_info['run_order'][run]]): 
+                continue # Can't advance this run since all of it's points haven't been returned.
 
             x_opt, exit_code, persis_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
 
@@ -410,8 +406,6 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
 
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
-        assert all(H['returned'][sorted_run_inds])
-
         x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
 
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
