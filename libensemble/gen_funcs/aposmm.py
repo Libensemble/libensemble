@@ -148,14 +148,14 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         updated_inds.update(starting_inds)
 
+        if not np.any(H['started_run']):
+            persis_info['active_runs'] = set()
+            persis_info['run_order'] = {}
+            persis_info['old_runs'] = {}
+            persis_info['total_runs'] = 0
+
         for ind in starting_inds:
             # Find the run number
-            if not np.any(H['started_run']):
-                persis_info['active_runs'] = set()
-                persis_info['run_order'] = {}
-                persis_info['old_runs'] = {}
-                persis_info['total_runs'] = 0
-
             new_run_num = persis_info['total_runs']
 
             H['started_run'][ind] = 1
