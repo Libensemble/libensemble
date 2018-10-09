@@ -67,6 +67,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-2,
              'num_active_gens':1,
+             'max_active_runs':6,
              }
 
 
