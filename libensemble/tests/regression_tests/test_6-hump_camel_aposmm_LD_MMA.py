@@ -107,6 +107,7 @@ for run in range(2):
         gen_specs['ftol_rel'] = 1e-2
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
+        exit_criteria = {'sim_max': 200}
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
