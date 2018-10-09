@@ -75,6 +75,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'num_active_gens': 1,
              'batch_mode': True,
              'high_priority_to_best_localopt_runs': True,
+             'max_active_runs': 3,
              }
 
 # Tell libEnsemble when to stop
