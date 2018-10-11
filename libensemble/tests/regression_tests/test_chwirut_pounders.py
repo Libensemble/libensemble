@@ -71,6 +71,7 @@ gen_specs = {'gen_f': aposmm_logic,
              }
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
+                 'elapsed_wallclock_time': 300
                   }
 
 libE_specs = {'queue_update_function': queue_update_function}
@@ -93,6 +94,7 @@ persis_info[1] = {'active_runs': set(),
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
+    assert flag == 0
     assert len(H) >= max_sim_budget
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())

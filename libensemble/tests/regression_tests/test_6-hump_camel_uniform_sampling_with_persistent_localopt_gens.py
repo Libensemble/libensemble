@@ -79,7 +79,7 @@ gen_out = [('x',float,2),
       ]
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
 
 np.random.seed(1)
 persis_info = {}
@@ -94,6 +94,7 @@ if MPI.COMM_WORLD.Get_size() == 2:
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
+    assert flag == 0
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
     print("\n\n\nRun completed.\nSaving results to file: " + filename)

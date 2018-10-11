@@ -108,11 +108,12 @@ for run in range(2):
         gen_specs['ftol_rel'] = 1e-2
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
-        exit_criteria = {'sim_max': 200}
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
+        assert flag == 0
         short_name = script_name.split("test_", 1).pop()
         filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
