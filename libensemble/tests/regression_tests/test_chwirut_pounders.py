@@ -80,8 +80,15 @@ persis_info['complete'] = set()
 persis_info['has_nan'] = set()
 persis_info['already_paused'] = set()
 persis_info['H_len'] = 0
+
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+
+persis_info[1] = {'active_runs': set(),
+                  'run_order': {},
+                  'old_runs': {},
+                  'total_runs': 0,
+                  'rand_stream': np.random.RandomState(1)}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 

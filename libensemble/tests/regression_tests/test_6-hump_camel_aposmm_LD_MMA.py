@@ -66,8 +66,8 @@ gen_specs = {'gen_f': aposmm_logic,
              'localopt_method': 'LD_MMA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-2,
-             'batch_mode': True,
              'num_active_gens':1,
+             'max_active_runs':6,
              }
 
 
@@ -82,12 +82,23 @@ for run in range(2):
 
     persis_info = {'next_to_give':0}
     persis_info['total_gen_calls'] = 0
+    persis_info['last_worker'] = 0
+    persis_info[0] = {'active_runs': set(),
+                      'run_order': {},
+                      'old_runs': {},
+                      'total_runs': 0,
+                      'rand_stream': np.random.RandomState(1)}
 
-    for i in range(MPI.COMM_WORLD.Get_size()):
+    # Making persis_info fields to store APOSMM information, but will be passed
+    # to various workers. 
+
+    for i in range(1,MPI.COMM_WORLD.Get_size()):
         persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
     if run == 1:
-        # Change the bounds to put a local min at a corner point (to test that APOSMM handles the same point being in multiple runs)  ability to give back a previously evaluated point)
+        # Change the bounds to put a local min at a corner point (to test that
+        # APOSMM handles the same point being in multiple runs) ability to 
+        # give back a previously evaluated point)
         gen_specs['ub']= np.array([-2.9, -1.9])
         gen_specs['mu']= 1e-4
         gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
@@ -97,6 +108,7 @@ for run in range(2):
         gen_specs['ftol_rel'] = 1e-2
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
+        exit_criteria = {'sim_max': 200}
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
