@@ -63,6 +63,7 @@ gen_specs = {'gen_f': uniform_random_sample_obj_components,
              }
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
+                 'elapsed_wallclock_time': 300
                   }
 
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}

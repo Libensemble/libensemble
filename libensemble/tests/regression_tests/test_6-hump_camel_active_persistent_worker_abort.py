@@ -68,7 +68,7 @@ gen_specs = {'gen_f': uniform_or_localopt,
 
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 10} # Intentially set low so as to test that a worker in persistent mode can be terminated correctly
+exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300} # Intentially set low so as to test that a worker in persistent mode can be terminated correctly
 
 np.random.seed(1)
 persis_info = {}
