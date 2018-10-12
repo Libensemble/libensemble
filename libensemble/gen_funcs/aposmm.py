@@ -216,14 +216,14 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     else:
         samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
 
-    if samples_needed > 0:
-        if 'sample_points' in gen_specs:
-            v = sum(~H['local_pt']) # Number of sample points so far
-            x_new = gen_specs['sample_points'][v:v+samples_needed]
-            on_cube = False # We assume the points are on the original domain, not unit cube
-            persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
-            samples_needed = samples_needed - len(x_new)
+    if samples_needed > 0 and 'sample_points' in gen_specs:
+        v = sum(~H['local_pt']) # Number of sample points so far
+        x_new = gen_specs['sample_points'][v:v+samples_needed]
+        on_cube = False # We assume the points are on the original domain, not unit cube
+        persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
+        samples_needed = samples_needed - len(x_new)
 
+    if samples_needed > 0:
         x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
         on_cube = True
         persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
