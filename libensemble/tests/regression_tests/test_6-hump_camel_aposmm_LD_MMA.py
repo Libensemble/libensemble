@@ -56,6 +56,18 @@ gen_out = [('x',float,n),
       ('pt_id',int), # To be used by APOSMM to identify points evaluated by different simulations
       ]
 
+
+# The minima are known on this test problem. 
+# 1) We use their values to test APOSMM has identified all minima
+# 2) We use their approximate values to ensure APOSMM evaluates a point in each
+#    minima's basin of attraction.
+minima = np.array([[ -0.089842,  0.712656],
+                   [  0.089842, -0.712656],
+                   [ -1.70361,  0.796084],
+                   [  1.70361, -0.796084],
+                   [ -1.6071,   -0.568651],
+                   [  1.6071,    0.568651]])
+
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': aposmm_logic,
              'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
@@ -63,16 +75,17 @@ gen_specs = {'gen_f': aposmm_logic,
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
              'initial_sample_size': 100,
+             'sample_points': np.round(minima,2),
              'localopt_method': 'LD_MMA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-             'xtol_rel': 1e-2,
+             'xtol_rel': 1e-3,
              'num_active_gens':1,
              'max_active_runs':6,
              }
 
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 300}
 
 
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
@@ -109,6 +122,7 @@ for run in range(2):
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
         exit_criteria = {'sim_max': 200}
+        minima = np.array([[-2.9, -1.9]])
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
@@ -118,15 +132,6 @@ for run in range(2):
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
         np.save(filename, H)
 
-        if run == 0:
-            minima = np.array([[ -0.089842,  0.712656],
-                               [  0.089842, -0.712656],
-                               [ -1.70361,  0.796084],
-                               [  1.70361, -0.796084],
-                               [ -1.6071,   -0.568651],
-                               [  1.6071,    0.568651]])
-        else:
-            minima = np.array([[-2.9, -1.9]])
 
         tol = 1e-4
         for m in minima:
