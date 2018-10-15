@@ -135,10 +135,11 @@ for run in range(2):
         tol = 1e-5
         for m in minima:
             print(np.min(np.sum((H[H['local_min']]['x']-m)**2,1)))
-            assert np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) < tol
+            sys.stdout.flush()
+            if np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) > tol:
+                MPI.COMM_WORLD.Abort()
 
         print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
 
-    MPI.COMM_WORLD.barrier()
 
 
