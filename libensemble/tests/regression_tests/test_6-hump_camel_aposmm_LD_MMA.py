@@ -139,4 +139,6 @@ for run in range(2):
 
         print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
 
+    MPI.COMM_WORLD.barrier()
+
 
