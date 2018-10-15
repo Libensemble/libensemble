@@ -85,7 +85,7 @@ gen_specs = {'gen_f': aposmm_logic,
 
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 400}
+exit_criteria = {'sim_max': 1000}
 
 
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
