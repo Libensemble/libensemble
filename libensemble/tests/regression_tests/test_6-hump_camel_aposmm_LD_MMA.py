@@ -75,7 +75,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'lb': np.array([-3,-2]),
              'ub': np.array([ 3, 2]),
              'initial_sample_size': 100,
-             'sample_points': np.round(minima,2),
+             'sample_points': np.round(minima,1),
              'localopt_method': 'LD_MMA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-3,
@@ -85,7 +85,7 @@ gen_specs = {'gen_f': aposmm_logic,
 
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 300}
+exit_criteria = {'sim_max': 400}
 
 
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
@@ -132,11 +132,10 @@ for run in range(2):
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
         np.save(filename, H)
 
-
-        tol = 1e-4
+        tol = 1e-5
         for m in minima:
-            print(np.min(np.sum((H['x']-m)**2,1)))
-            assert np.min(np.sum((H['x']-m)**2,1)) < tol
+            print(np.min(np.sum((H[H['local_min']]['x']-m)**2,1)))
+            assert np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) < tol
 
         print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
 
