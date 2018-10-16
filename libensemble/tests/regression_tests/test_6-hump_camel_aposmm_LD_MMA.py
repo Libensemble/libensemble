@@ -57,7 +57,7 @@ gen_out = [('x',float,n),
       ]
 
 
-# The minima are known on this test problem. 
+# The minima are known on this test problem.
 # 1) We use their values to test APOSMM has identified all minima
 # 2) We use their approximate values to ensure APOSMM evaluates a point in each
 #    minima's basin of attraction.
@@ -103,14 +103,14 @@ for run in range(2):
                       'rand_stream': np.random.RandomState(1)}
 
     # Making persis_info fields to store APOSMM information, but will be passed
-    # to various workers. 
+    # to various workers.
 
     for i in range(1,MPI.COMM_WORLD.Get_size()):
         persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
     if run == 1:
         # Change the bounds to put a local min at a corner point (to test that
-        # APOSMM handles the same point being in multiple runs) ability to 
+        # APOSMM handles the same point being in multiple runs) ability to
         # give back a previously evaluated point)
         gen_specs['ub']= np.array([-2.9, -1.9])
         gen_specs['mu']= 1e-4
@@ -121,12 +121,18 @@ for run in range(2):
         gen_specs['ftol_rel'] = 1e-2
         gen_specs['xtol_abs'] = 1e-3
         gen_specs['ftol_abs'] = 1e-8
-        exit_criteria = {'sim_max': 200}
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
         minima = np.array([[-2.9, -1.9]])
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
+
+        if flag != 0:
+            print("Exit was not on convergence (code {})".format(flag))
+            sys.stdout.flush()
+            MPI.COMM_WORLD.Abort(1)
+
         short_name = script_name.split("test_", 1).pop()
         filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
