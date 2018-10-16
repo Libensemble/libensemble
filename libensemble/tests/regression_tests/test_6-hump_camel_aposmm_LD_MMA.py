@@ -85,7 +85,7 @@ gen_specs = {'gen_f': aposmm_logic,
 
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 400}
+exit_criteria = {'sim_max': 1000}
 
 
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
@@ -135,8 +135,8 @@ for run in range(2):
         tol = 1e-5
         for m in minima:
             print(np.min(np.sum((H[H['local_min']]['x']-m)**2,1)))
-            assert np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) < tol
+            sys.stdout.flush()
+            if np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) > tol:
+                MPI.COMM_WORLD.Abort(1)
 
         print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
-
-
