@@ -106,6 +106,13 @@ persis_info['H_len'] = 0
 
 for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+
+persis_info['last_worker'] = 0
+persis_info[0] = {'active_runs': set(),
+                  'run_order': {},
+                  'old_runs': {},
+                  'total_runs': 0,
+                  'rand_stream': np.random.RandomState(1)}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
 

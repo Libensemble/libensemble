@@ -31,20 +31,31 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
             persis_info['next_to_give'] += 1
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
+            lw = persis_info['last_worker']
 
-            # Don't give gen instances in batch mode if points are unfinished
             last_size = persis_info.get('last_size')
-            if (gen_specs.get('batch_mode')
-                    and len(H)
+            if len(H):
+                # Don't give gen instances in batch mode if points are unfinished
+                if (gen_specs.get('batch_mode')
                     and not all(np.logical_or(H['returned'][last_size:],
                                               H['paused'][last_size:]))):
-                break
-            else:
-                persis_info['last_size'] = len(H)
+                    break
+                # Don't call APOSMM if there are runs going but none need advancing
+                if len(persis_info[lw]['run_order']):
+                    runs_needing_to_advance = np.zeros(len(persis_info[lw]['run_order']),dtype=bool)
+                    for run,inds in enumerate(persis_info[lw]['run_order'].values()):
+                        runs_needing_to_advance[run] = np.all(H['returned'][inds])
+
+                    if not np.any(runs_needing_to_advance):
+                        break
+
+            persis_info['last_size'] = len(H)
 
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], persis_info[i], range(len(H)))
+            gen_work(Work, i, gen_specs['in'], persis_info[lw], range(len(H)))
+
+            persis_info['last_worker'] = i
 
     return Work, persis_info

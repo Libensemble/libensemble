@@ -72,7 +72,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     Optional ``gen_specs`` entries are:
 
-    - ``'sample_points' [int]``: The points to be sampled (in the original domain)
+    - ``'sample_points' [numpy array]``: The points to be sampled (in the original domain)
     - ``'combine_component_func' [func]``: Function to combine objective components
     - ``'components' [int]``: Number of objective components
     - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the distance to the nearest boundary should the initial step size be in localopt runs
@@ -151,12 +151,6 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         for ind in starting_inds:
             # Find the run number
-            if not np.any(H['started_run']):
-                persis_info['active_runs'] = set()
-                persis_info['run_order'] = {}
-                persis_info['old_runs'] = {}
-                persis_info['total_runs'] = 0
-
             new_run_num = persis_info['total_runs']
 
             H['started_run'][ind] = 1
@@ -182,13 +176,17 @@ def aposmm_logic(H,persis_info,gen_specs,_):
                     dist_to_better[i] = np.min(P[i,better])
 
             k_sorted = np.argpartition(-dist_to_better,kth=gen_specs['max_active_runs']-1) # Take max_active_runs largest
-            
+
             persis_info['active_runs'] = set(run_vals[k_sorted[:gen_specs['max_active_runs']],0].astype(int))
+        else:
+            persis_info['active_runs'] = set(persis_info['run_order'].keys())
 
         inactive_runs = set()
 
         # Find next point in any uncompleted runs using information stored in persis_info
         for run in persis_info['active_runs']:
+            if not np.all(H['returned'][persis_info['run_order'][run]]):
+                continue # Can't advance this run since all of it's points haven't been returned.
 
             x_opt, exit_code, persis_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
 
@@ -219,15 +217,17 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     else:
         samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
 
-    if samples_needed > 0:
-        if 'sample_points' in gen_specs:
-            v = sum(H['local_pt'])
-            x_new = gen_specs['sample_points'][v:v+samples_needed]
-            on_cube = False # We assume the points are on the original domain, not unit cube
-        else:
-            x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
-            on_cube = True
+    if samples_needed > 0 and 'sample_points' in gen_specs:
+        v = sum(~H['local_pt']) # Number of sample points so far
+        x_new = gen_specs['sample_points'][v:v+samples_needed]
+        on_cube = False # We assume the points are on the original domain, not unit cube
+        if len(x_new):
+            persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
+        samples_needed = samples_needed - len(x_new)
 
+    if samples_needed > 0:
+        x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
+        on_cube = True
         persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
 
     O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
@@ -411,8 +411,6 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
 
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
-        assert all(H['returned'][sorted_run_inds])
-
         x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
 
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
@@ -662,7 +660,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     H: numpy structured array
         History array storing rows for each point.
     r_k_const: float
-        Radius for deciding when to start runs 
+        Radius for deciding when to start runs
     lhs_divisions: integer
         Number of Latin hypercube sampling divisions (0 or 1 means uniform
         random sampling over the domain)
