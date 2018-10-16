@@ -284,6 +284,8 @@ class Manager:
                 self.hist.update_history_f(D_recv)
             if calc_type == EVAL_GEN_TAG:
                 self.hist.update_history_x_in(w, D_recv['calc_out'])
+                assert len(D_recv['calc_out']) or np.any(self.W['active']), \
+                    "Gen must return work when is is the only thing active."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                 # Now a waiting, persistent worker
                 self.W[w-1]['persis_state'] = calc_type
