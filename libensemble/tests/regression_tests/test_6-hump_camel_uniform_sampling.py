@@ -54,7 +54,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'gen_max': 501}
+exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 
 np.random.seed(1)
 persis_info = {}
@@ -65,6 +65,7 @@ for i in range(1,nworkers+1):
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_master:
+    assert flag == 0
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(nworkers+1)
     print("\n\n\nRun completed.\nSaving results to file: " + filename)

@@ -77,7 +77,7 @@ gen_specs = {'gen_f': uniform_random_sample_with_different_nodes_and_ranks,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 10}
+exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 
 np.random.seed(1)
 persis_info = {}

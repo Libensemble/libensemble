@@ -57,7 +57,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches']}
+exit_criteria = {'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches'], 'elapsed_wallclock_time': 300}
 
 np.random.seed(1)
 persis_info = {}
@@ -75,6 +75,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 
 
 if is_master:
+    assert flag == 0
     # Change the last weights to correct values (H is a list on other cores and only array on manager)
     ind = 2*gen_specs['subbatch_size']*gen_specs['num_subbatches']
     H[-ind:] = H['prior'][-ind:] + H['like'][-ind:] - H['prop'][-ind:]

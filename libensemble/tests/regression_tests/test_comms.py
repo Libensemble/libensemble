@@ -79,7 +79,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              }
 
 #sim_max = num_workers
-exit_criteria = {'sim_max': sim_max}
+exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 
 
 np.random.seed(1)
@@ -92,6 +92,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
 
 if MPI.COMM_WORLD.Get_rank() == 0:
+    assert flag == 0
     #import pdb; pdb.set_trace()
     for w in range(1, num_workers+1):
         x = w * 1000.0

@@ -54,7 +54,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 40}
+exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 np.random.seed(1)
 persis_info = {}

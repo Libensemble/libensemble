@@ -257,6 +257,8 @@ class Manager:
                 self.hist.update_history_f(D_recv)
             if calc_type == EVAL_GEN_TAG:
                 self.hist.update_history_x_in(w, D_recv['calc_out'])
+                assert len(D_recv['calc_out']) or np.any(self.W['active']), \
+                    "Gen must return work when is is the only thing active."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                 # Now a waiting, persistent worker
                 self.W[w-1]['persis_state'] = calc_type
@@ -346,6 +348,8 @@ class Manager:
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
+                assert self.term_test() or any(self.W['active'] != 0), \
+                  "Should not wait for workers when all workers are idle."
 
         finally:
             # Return persis_info, exit_flag
