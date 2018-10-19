@@ -99,8 +99,7 @@ for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 persis_info['last_worker'] = 0
-persis_info[0] = {'active_runs': set(),
-                  'run_order': {},
+persis_info[0] = {'run_order': {},
                   'old_runs': {},
                   'total_runs': 0,
                   'rand_stream': np.random.RandomState(1)}
