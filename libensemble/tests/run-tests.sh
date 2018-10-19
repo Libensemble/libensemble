@@ -24,6 +24,7 @@ export CODE_DIR=libensemble
 export LIBE_SRC_DIR=$CODE_DIR
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
+export UNIT_TEST_NOMPI_SUBDIR=$TESTING_DIR/unit_tests_nompi
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
 
 #Coverage merge and report dir - will need the relevant .coveragerc file present
@@ -124,7 +125,8 @@ cleanup() {
   THISDIR=${PWD}
   cd $ROOT_DIR/$TESTING_DIR
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
-  cd $ROOT_DIR/$UNIT_TEST_SUBDIR
+  for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR ; do
+  cd $ROOT_DIR/$DIR
     filelist=(libE_history_at_abort_*.npy);                  [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
     filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
@@ -135,6 +137,7 @@ cleanup() {
     filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile
     filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
+  done
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
@@ -324,14 +327,15 @@ if [ "$root_found" = true ]; then
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running unit tests"
     tput sgr 0
 
-    cd $ROOT_DIR/$UNIT_TEST_SUBDIR
+    for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR ; do
+    cd $ROOT_DIR/$DIR
 #     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
       $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL #To see std out/err while running
     else
       $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
     fi;
-
+    
     code=$?
     if [ "$code" -eq "0" ]; then
       echo
@@ -342,6 +346,7 @@ if [ "$root_found" = true ]; then
       tput bold;tput setaf 1;echo -e "Abort $RUN_PREFIX: Unit tests failed: $code";tput sgr 0
       exit $code #return pytest exit code
     fi;
+    done
   fi;
   cd $ROOT_DIR/
 
@@ -492,10 +497,11 @@ if [ "$root_found" = true ]; then
           #Combine with unit test coverage at top-level
           cd $ROOT_DIR/$COV_MERGE_DIR
           cp $ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out .
+          cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
           cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_reg_out #Should create .cov_merge_out - see .coveragerc
+          coverage combine .cov_unit_out .cov_unit_out2 .cov_reg_out #Should create .cov_merge_out - see .coveragerc
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 

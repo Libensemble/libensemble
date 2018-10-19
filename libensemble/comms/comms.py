@@ -47,6 +47,15 @@ class RemoteException(Exception):
     pass
 
 
+def _timeout_fun(timeout):
+    "Return a function that gets timeouts for time remaining."
+    if timeout is None:
+        return (lambda: None)
+    else:
+        tdeath = time() + timeout
+        return (lambda: tdeath-time())
+
+
 class Comm(ABC):
     """Bidirectional communication
     """
@@ -232,12 +241,14 @@ class QCommProcess(Comm):
 
     def result(self, timeout=None):
         "Join and return the thread main result (or re-raise an exception)."
+        get_timeout = _timeout_fun(timeout)
         while not self._done and (timeout is None or timeout >= 0):
-            tstart = time()
-            msg = self.outbox.get(timeout=timeout)
+            try:
+                msg = self.outbox.get(timeout=timeout)
+            except queue.Empty:
+                raise Timeout()
             self._is_result_msg(msg)
-            if timeout is not None:
-                timeout -= (time()-tstart)
+            timeout = get_timeout()
         if not self._done:
             raise Timeout()
         self.process.join(timeout=timeout)
