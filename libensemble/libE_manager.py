@@ -35,6 +35,14 @@ def manager_main(hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
     """Manager routine to coordinate the generation and simulation evaluations
     """
+
+    # Send dtypes to workers
+    dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
+              EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
+    for wcomm in wcomms:
+        wcomm.send(0, dtypes)
+
+    # Set up and run manager
     mgr = Manager(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
     return mgr.run(persis_info)

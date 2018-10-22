@@ -178,9 +178,6 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     try:
 
-        # Exchange dtypes
-        mpi_comm.bcast(obj=hist.H[sim_specs['in']].dtype)
-        mpi_comm.bcast(obj=hist.H[gen_specs['in']].dtype)
         wcomms = [MainMPIComm(mpi_comm, w) for w in
                   range(1, mpi_comm.Get_size())]
         persis_info, exit_flag = \
@@ -215,12 +212,8 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
 
     from libensemble.comms.mpi import MainMPIComm
     try:
-        # Exchange dtypes and set up comm
-        dtypes = {EVAL_SIM_TAG: None, EVAL_GEN_TAG: None}
-        dtypes[EVAL_SIM_TAG] = mpi_comm.bcast(dtypes[EVAL_SIM_TAG], root=0)
-        dtypes[EVAL_GEN_TAG] = mpi_comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
         comm = MainMPIComm(mpi_comm)
-        worker_main(comm, dtypes, sim_specs, gen_specs)
+        worker_main(comm, sim_specs, gen_specs)
     except Exception:
         eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".
                format(mpi_comm.Get_rank()))
@@ -277,16 +270,12 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # Launch workers here
-    dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
-              EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
-
     try:
         # Set up logging queue
         lp = None
 
         # Launch worker team
-        wcomms = [QCommTP(worker_main, dtypes, sim_specs, gen_specs, w, logq)
+        wcomms = [QCommTP(worker_main, sim_specs, gen_specs, w, logq)
                   for w in range(1, nworkers+1)]
         for wcomm in wcomms:
             wcomm.run()

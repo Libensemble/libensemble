@@ -67,9 +67,8 @@ def receive_and_run(comm, dtypes, worker, Work):
             'calc_type': calc_type}
 
 
-#The routine worker_main currently uses MPI.
 #Comms will be implemented using comms module in future
-def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None, logq=None):
+def worker_main(comm, sim_specs, gen_specs, workerID=None, logq=None):
     """
     Evaluate calculations given to it by the manager.
 
@@ -81,8 +80,6 @@ def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None, logq=None):
     ----------
     comm: comm object for manager communications
 
-    dtypes: data types for sim/gen calculations
-
     sim_specs: dict with parameters/information for simulation calculations
 
     gen_specs: dict with parameters/information for generation calculations
@@ -91,6 +88,9 @@ def worker_main(comm, dtypes, sim_specs, gen_specs, workerID=None, logq=None):
     """
 
     try:
+        # Receive dtypes from manager
+        _, dtypes = comm.recv()
+
         # Initialize logging queue
         if logq is not None:
             qh = logging.handlers.QueueHandler(logq)
