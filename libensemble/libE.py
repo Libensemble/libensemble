@@ -174,8 +174,6 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     from libensemble.comms.mpi import MainMPIComm
 
     CalcInfo.make_statdir()
-    mpi_comm.Barrier()
-
     exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     try:
@@ -216,7 +214,6 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
-    mpi_comm.Barrier()
     try:
         # Exchange dtypes and set up comm
         dtypes = {EVAL_SIM_TAG: None, EVAL_GEN_TAG: None}
