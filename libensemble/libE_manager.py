@@ -112,7 +112,7 @@ class Manager:
                     return retval
         return 0
 
-    # --- Low-level communication routines (use MPI directly)
+    # --- Low-level communication routines
 
     def _kill_workers(self):
         """Kill the workers"""
