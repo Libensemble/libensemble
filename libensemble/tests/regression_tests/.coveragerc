@@ -14,9 +14,6 @@ data_file = .cov_reg_out
 
 parallel = true
 
-include = *.py
-          *.c
-
 [report]
 omit =
     */__init__.py/*
