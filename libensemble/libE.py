@@ -15,7 +15,7 @@ import numpy as np
 from libensemble.history import History
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
-from libensemble.calc_info import CalcInfo
+#from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.message_numbers import ABORT_ENSEMBLE
 from libensemble.comms.comms import QCommProcess, Timeout
@@ -164,7 +164,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     from libensemble.comms.mpi import MainMPIComm
 
-    CalcInfo.make_statdir()
+    #CalcInfo.make_statdir()
     exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     try:
@@ -192,8 +192,8 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
         sys.stdout.flush()
 
     # Create calc summary file
-    mpi_comm.Barrier()
-    CalcInfo.merge_statfiles()
+    #mpi_comm.Barrier()
+    #CalcInfo.merge_statfiles()
 
     H = hist.trim_H()
     return H, persis_info, exit_flag
@@ -215,7 +215,7 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
         comms_signal_abort_to_man(mpi_comm)
     else:
         logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
-    mpi_comm.Barrier()
+    #mpi_comm.Barrier()
 
     H = exit_flag = []
     return H, persis_info, exit_flag
@@ -233,7 +233,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
                               alloc_specs, sim_specs, gen_specs,
                               exit_criteria, H0)
 
-    CalcInfo.make_statdir()
+    #CalcInfo.make_statdir()
 
     exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
@@ -273,7 +273,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
             wcomm.terminate()
 
     # Create calc summary file
-    CalcInfo.merge_statfiles()
+    #CalcInfo.merge_statfiles()
 
     H = hist.trim_H()
     return H, persis_info, exit_flag

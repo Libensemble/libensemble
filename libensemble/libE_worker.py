@@ -14,12 +14,12 @@ from libensemble.message_numbers import \
      EVAL_SIM_TAG, EVAL_GEN_TAG, \
      UNSET_TAG, STOP_TAG, CALC_EXCEPTION
 from libensemble.message_numbers import \
-     MAN_SIGNAL_FINISH, \
-     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
-from libensemble.message_numbers import calc_type_strings
+     MAN_SIGNAL_FINISH, MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
 from libensemble.util.loc_stack import LocationStack
-from libensemble.calc_info import CalcInfo
+from libensemble.util.timer import Timer
+#from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 from libensemble.comms.logs import worker_logging_config
 
@@ -65,10 +65,8 @@ def receive_and_run(comm, dtypes, worker, Work):
             'calc_type': calc_type}
 
 
-#Comms will be implemented using comms module in future
 def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
-    """
-    Evaluate calculations given to it by the manager.
+    """Evaluate calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
     and communicates results. This routine also creates and writes to
@@ -101,7 +99,7 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
                     format(workerID, socket.gethostname()))
 
         # Print calc_list on-the-fly
-        CalcInfo.create_worker_statfile(worker.workerID)
+        #CalcInfo.create_worker_statfile(worker.workerID)
 
         #Init in case of manager request before filled
         worker_out = {'calc_status': UNSET_TAG}
@@ -168,6 +166,7 @@ class Worker:
         self.calc_iter = {EVAL_SIM_TAG : 0, EVAL_GEN_TAG : 0}
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
+        self._calc_id_counter = count()
         Worker._set_job_controller(workerID)
 
 
@@ -238,12 +237,12 @@ class Worker:
           "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
-        calc_stats = CalcInfo()
-        calc_stats.calc_type = calc_type
+        calc_id = next(self._calc_id_counter)
+        timer = Timer()
 
         try:
             calc = self._run_calc[calc_type]
-            with calc_stats.timer:
+            with timer:
                 with self.loc_stack.loc(calc_type):
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
@@ -258,8 +257,13 @@ class Worker:
             calc_status = CALC_EXCEPTION
             raise
         finally:
-            calc_stats.set_calc_status(calc_status)
-            CalcInfo.add_calc_worker_statfile(calc=calc_stats)
+            calc_msg = "Calc {:5d}: {} {} Status: {}". \
+              format(calc_id,
+                     calc_type_strings[calc_type],
+                     timer,
+                     calc_status_strings.get(calc_status, "Completed"))
+            logging.getLogger("calc stats").info(calc_msg)
+
 
 
     def clean(self):

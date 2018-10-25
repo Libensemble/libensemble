@@ -46,26 +46,40 @@ class WorkerIDFilter(logging.Filter):
         return True
 
 
-def worker_logging_config(comm, worker_id=None, logger=None,
-                          level=logging.NOTSET):
+def worker_logging_config(comm, worker_id=None, level=logging.NOTSET):
     """Add a comm handler with worker ID filter to the indicated logger.
     """
     ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
     ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
-    logger = logger or logging.getLogger()
-    logger.setLevel(level)
-    logger.addHandler(ch)
+    root = logging.getLogger()
+    root.setLevel(level)
+    root.addHandler(ch)
 
 
-def manager_logging_config(logger=None, fmt=None, filename='ensemble.log',
+def manager_logging_config(fmt=None,
+                           filename='ensemble.log',
+                           stat_filename='libE_stats.txt',
                            level=logging.DEBUG):
     """Add file-based logging at manager.
     """
+
+    # Regular logging
     fmt = fmt or '[%(worker)s] %(name)s (%(levelname)s): %(message)s'
+    formatter = logging.Formatter(fmt)
     wfilter = WorkerIDFilter(0)
     fh = logging.FileHandler(filename)
     fh.addFilter(wfilter)
     fh.setLevel(level)
-    fh.setFormatter(fmt)
-    root = logger or logging.getLogger()
+    fh.setFormatter(formatter)
+    root = logging.getLogger()
     root.addHandler(fh)
+
+    # Stats logging
+    # NB: Could add a specialized handler for immediate flushing
+    fh = logging.FileHandler(stat_filename, mode='w')
+    fh.addFilter(wfilter)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
+    stat_logger = logging.getLogger("calc stats")
+    stat_logger.propagate = False
+    stat_logger.addHandler(fh)

@@ -14,7 +14,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 from libensemble.controller import JobController
-from libensemble.calc_info import CalcInfo
+#from libensemble.calc_info import CalcInfo
 from libensemble.resources import Resources
 from libensemble.message_numbers import *
 
@@ -46,11 +46,11 @@ else:
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 summary_file_name = short_name + '.libe_summary.txt'
-CalcInfo.set_statfile_name(summary_file_name)
-if MPI.COMM_WORLD.Get_size() == 4:
-    CalcInfo.keep_worker_stat_files = True # Testing this functionality
-else:
-    CalcInfo.keep_worker_stat_files = False # Testing this functionality
+#CalcInfo.set_statfile_name(summary_file_name)
+#if MPI.COMM_WORLD.Get_size() == 4:
+#    CalcInfo.keep_worker_stat_files = True # Testing this functionality
+#else:
+#    CalcInfo.keep_worker_stat_files = False # Testing this functionality
 
 num_workers = Resources.get_num_workers()
 
@@ -108,13 +108,13 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     calc_desc_list_in = ['Completed','Worker killed job on Error','Worker killed job on Timeout', 'Job Failed', 'Manager killed on finish']
     #Repeat N times for N workers and insert Completed at start for generator
     calc_desc_list = ['Completed'] + calc_desc_list_in * num_workers
-    with open(summary_file_name,'r') as f:
-        i=0
-        for line in f:
-            if "Status:" in line:
-                _, file_status = line.partition("Status:")[::2]
-                print("Expected: {}   Filestatus: {}".format(calc_desc_list[i], file_status.strip()))
-                assert calc_desc_list[i] == file_status.strip(), "Status does not match file"
-                i+=1
+    # with open(summary_file_name,'r') as f:
+    #     i=0
+    #     for line in f:
+    #         if "Status:" in line:
+    #             _, file_status = line.partition("Status:")[::2]
+    #             print("Expected: {}   Filestatus: {}".format(calc_desc_list[i], file_status.strip()))
+    #             assert calc_desc_list[i] == file_status.strip(), "Status does not match file"
+    #             i+=1
 
     print("\n\n\nRun completed.")
