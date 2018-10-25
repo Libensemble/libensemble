@@ -28,6 +28,7 @@ from threading import Thread
 from multiprocessing import Process, Queue
 import queue
 import copy
+import logging
 
 import numpy as np
 
@@ -77,6 +78,24 @@ class Comm(ABC):
     def kill_pending(self):
         "Cancel any pending sends (don't worry about those in the system)."
         pass
+
+
+class CommLogHandler(logging.Handler):
+    """Logging handler class that forwards LogRecords to a Comm.
+    """
+
+    def __init__(self, comm, pack=None, level=logging.NOTSET):
+        "Initialize the handler instance, setting the level and the comm."
+        super().__init__(level)
+        self.comm = comm
+        self.pack = pack
+
+    def emit(self, record):
+        "Actually log the record."
+        if self.pack is not None:
+            self.comm.send(*self.pack(record))
+        else:
+            self.comm.send(record)
 
 
 class QComm(Comm):
@@ -279,7 +298,7 @@ class QCommProcess(Comm):
             comm.send(QCommProcessResult(_result))
         except Exception as e:
             comm.send(QCommProcessResult(exception=str(e)))
-            #traceback.print_exception(e)
+            raise e
 
     def __enter__(self):
         self.run()

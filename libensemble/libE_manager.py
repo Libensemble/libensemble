@@ -23,10 +23,11 @@ from libensemble.message_numbers import \
      MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
      MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP, \
      ABORT_ENSEMBLE
+from libensemble.comms.comms import Timeout
 
 logger = logging.getLogger(__name__)
 #For debug messages - uncomment
-# logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 class ManagerException(Exception): pass
 
@@ -285,7 +286,10 @@ class Manager:
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
         try:
-            tag, D_recv = self.wcomms[w-1].recv()
+            msg = self.wcomms[w-1].recv()
+            tag, D_recv = msg
+        except Timeout:
+            self.wcomms.result()
         except Exception as e:
             logger.error("Exception caught on Manager receive: {}".format(e))
             logger.error("From worker: {}".format(w))
@@ -297,8 +301,10 @@ class Manager:
 
         if tag == ABORT_ENSEMBLE:
             raise ManagerException('Received abort signal from worker')
-
-        self._update_state_on_worker_msg(persis_info, D_recv, w)
+        elif isinstance(D_recv, logging.LogRecord):
+            logging.getLogger(D_recv.name).handle(D_recv)
+        else:
+            self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     # --- Handle termination
 

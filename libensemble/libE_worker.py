@@ -24,6 +24,7 @@ from libensemble.message_numbers import calc_type_strings
 from libensemble.util.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
+from libensemble.comms.comms import CommLogHandler
 
 logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment
@@ -67,8 +68,19 @@ def receive_and_run(comm, dtypes, worker, Work):
             'calc_type': calc_type}
 
 
+class WorkerIDFilter(logging.Filter):
+
+    def __init__(self, worker_id):
+        super().__init__()
+        self.worker_id = worker_id
+
+    def filter(self, record):
+        record.worker = self.worker_id
+        return True
+
+
 #Comms will be implemented using comms module in future
-def worker_main(comm, sim_specs, gen_specs, workerID=None, logq=None):
+def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
     """
     Evaluate calculations given to it by the manager.
 
@@ -90,15 +102,17 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, logq=None):
     try:
         # Receive dtypes from manager
         _, dtypes = comm.recv()
+        workerID = workerID or comm.rank
 
-        # Initialize logging queue
-        if logq is not None:
-            qh = logging.handlers.QueueHandler(logq)
+        # Initialize logging on comms
+        if log_comm:
+            ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
+            wfilter = WorkerIDFilter(workerID)
+            ch.addFilter(wfilter)
             root = logging.getLogger()
             root.setLevel(logging.DEBUG)
-            root.addHandler(qh)
+            root.addHandler(ch)
 
-        workerID = workerID or comm.rank
         worker = Worker(workerID, sim_specs, gen_specs)
 
         #Setup logging

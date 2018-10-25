@@ -134,6 +134,17 @@ def comms_signal_abort_to_man(comm):
     comm.send(obj=None, dest=0, tag=ABORT_ENSEMBLE)
 
 
+class WorkerIDFilter(logging.Filter):
+
+    def __init__(self, worker_id):
+        super().__init__()
+        self.worker_id = worker_id
+
+    def filter(self, record):
+        record.worker = getattr(record, 'worker', self.worker_id)
+        return True
+
+
 def libE_mpi(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "MPI version of the libE main routine"
@@ -149,11 +160,18 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     comm = libE_specs['comm']
     is_master = (comm.Get_rank() == 0)
 
-    # Set up logging to separate files (only if logging not already set)
+    # Set up logging to common file
     rank = comm.Get_rank()
-    logging.basicConfig(filename='ensemble-{}.log'.format(rank),
-                        level=logging.DEBUG,
-                        format='%(name)s (%(levelname)s): %(message)s')
+    if is_master:
+        formatter = logging.Formatter(
+            '[%(worker)s] %(name)s (%(levelname)s): %(message)s')
+        wfilter = WorkerIDFilter(rank)
+        fh = logging.FileHandler('ensemble.log')
+        fh.addFilter(wfilter)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(formatter)
+        root = logging.getLogger()
+        root.addHandler(fh)
 
     # Check correctness of inputs
     libE_specs = check_inputs(is_master, libE_specs,
@@ -213,7 +231,7 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
     from libensemble.comms.mpi import MainMPIComm
     try:
         comm = MainMPIComm(mpi_comm)
-        worker_main(comm, sim_specs, gen_specs)
+        worker_main(comm, sim_specs, gen_specs, log_comm=True)
     except Exception:
         eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".
                format(mpi_comm.Get_rank()))
@@ -232,15 +250,6 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
 # ==================== Thread/process version =================================
 
 
-def logger_thread(q):
-    "Forward log messages from queue to main logger."
-    while True:
-        record = q.get()
-        if record is None:
-            break
-        logging.getLogger(record.name).handle(record)
-
-
 def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
     "Main routine for thread/process launch of libE."
@@ -253,13 +262,13 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         has_terminate = False
         nworkers = libE_specs['nthreads']
         logfmt = '%(threadName)s %(name)s (%(levelname)s): %(message)s'
-        logq = None
+        log_comm = False
     else:
         QCommTP = QCommProcess
         has_terminate = True
         nworkers = libE_specs['nprocesses']
         logfmt = '%(processName)-10s %(name)s (%(levelname)s): %(message)s'
-        logq = multiprocessing.Queue()
+        log_comm = True
 
     libE_specs = check_inputs(True, libE_specs,
                               alloc_specs, sim_specs, gen_specs,
@@ -271,11 +280,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     try:
-        # Set up logging queue
-        lp = None
-
         # Launch worker team
-        wcomms = [QCommTP(worker_main, sim_specs, gen_specs, w, logq)
+        wcomms = [QCommTP(worker_main, sim_specs, gen_specs, w, log_comm)
                   for w in range(1, nworkers+1)]
         for wcomm in wcomms:
             wcomm.run()
@@ -283,9 +289,6 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         # Set up logger and start monitoring thread
         logging.basicConfig(filename='ensemble.log', level=logging.DEBUG,
                             format=logfmt)
-        if logq is not None:
-            lp = threading.Thread(target=logger_thread, args=(logq,))
-            lp.start()
 
         # Run manager
         persis_info, exit_flag = \
@@ -305,11 +308,6 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         logger.debug("Manager exiting")
         print(nworkers, exit_criteria)
         sys.stdout.flush()
-    finally:
-        if logq is not None:
-            logq.put(None)
-        if lp is not None:
-            lp.join()
 
     # Join on workers here (and terminate forcefully if needed)
     for wcomm in wcomms:
