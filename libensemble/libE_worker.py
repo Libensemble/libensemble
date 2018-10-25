@@ -19,7 +19,6 @@ from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
 from libensemble.util.loc_stack import LocationStack
 from libensemble.util.timer import Timer
-#from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
 from libensemble.comms.logs import worker_logging_config
 
@@ -97,9 +96,6 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
         #Setup logging
         logger.info("Worker {} initiated on node {}". \
                     format(workerID, socket.gethostname()))
-
-        # Print calc_list on-the-fly
-        #CalcInfo.create_worker_statfile(worker.workerID)
 
         #Init in case of manager request before filled
         worker_out = {'calc_status': UNSET_TAG}
