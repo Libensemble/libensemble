@@ -21,7 +21,7 @@ from libensemble.message_numbers import calc_type_strings
 from libensemble.util.loc_stack import LocationStack
 from libensemble.calc_info import CalcInfo
 from libensemble.controller import JobController
-from libensemble.comms.comms import CommLogHandler
+from libensemble.comms.logs import worker_logging_config
 
 logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment
@@ -65,19 +65,6 @@ def receive_and_run(comm, dtypes, worker, Work):
             'calc_type': calc_type}
 
 
-class WorkerIDFilter(logging.Filter):
-    """Logging filter to add worker IDs to LogRecords
-    """
-
-    def __init__(self, worker_id):
-        super().__init__()
-        self.worker_id = worker_id
-
-    def filter(self, record):
-        record.worker = self.worker_id
-        return True
-
-
 #Comms will be implemented using comms module in future
 def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
     """
@@ -105,12 +92,7 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
 
         # Initialize logging on comms
         if log_comm:
-            ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
-            wfilter = WorkerIDFilter(workerID)
-            ch.addFilter(wfilter)
-            root = logging.getLogger()
-            root.setLevel(logging.DEBUG)
-            root.addHandler(ch)
+            worker_logging_config(comm, workerID, level=logging.DEBUG)
 
         worker = Worker(workerID, sim_specs, gen_specs)
 
