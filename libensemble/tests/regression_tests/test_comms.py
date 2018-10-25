@@ -14,10 +14,7 @@ from __future__ import absolute_import
 import sys, os
 import numpy as np
 
-if len(sys.argv) > 1 and sys.argv[1] == "--threads":
-    # MPI only
-    quit()
-elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
     # MPI only
     quit()
 else:

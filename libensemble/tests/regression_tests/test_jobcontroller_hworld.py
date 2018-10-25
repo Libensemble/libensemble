@@ -4,9 +4,7 @@ from __future__ import absolute_import
 import sys, os             # for adding to path
 import numpy as np
 
-if len(sys.argv) > 1 and sys.argv[1] == "--threads":
-    quit()
-elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
     quit()
 
 from mpi4py import MPI # for libE communicator

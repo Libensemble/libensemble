@@ -13,10 +13,7 @@ from __future__ import absolute_import
 import sys, os             # for adding to path
 import numpy as np
 
-if len(sys.argv) > 1 and sys.argv[1] == "--threads":
-    # Can't do this one with threads
-    quit()
-elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
     # Can't do this one with processes either?  Wants a machine file.
     quit()
 else:

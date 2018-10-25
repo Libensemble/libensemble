@@ -16,9 +16,7 @@ import numpy as np
 from libensemble.libE import libE
 
 # APOSMM uses MPI explicitly
-if len(sys.argv) > 1 and sys.argv[1] == "--threads":
-    quit()
-elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
     quit()
 else:
     from mpi4py import MPI

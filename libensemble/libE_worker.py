@@ -3,9 +3,6 @@ libEnsemble worker class
 ====================================================
 """
 
-from __future__ import division
-from __future__ import absolute_import
-
 import socket
 import logging
 import logging.handlers
@@ -69,6 +66,8 @@ def receive_and_run(comm, dtypes, worker, Work):
 
 
 class WorkerIDFilter(logging.Filter):
+    """Logging filter to add worker IDs to LogRecords
+    """
 
     def __init__(self, worker_id):
         super().__init__()

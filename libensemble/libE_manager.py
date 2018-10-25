@@ -3,9 +3,6 @@ libEnsemble manager routines
 ====================================================
 """
 
-from __future__ import division
-from __future__ import absolute_import
-
 import sys
 import os
 import logging
@@ -29,7 +26,9 @@ logger = logging.getLogger(__name__)
 #For debug messages - uncomment
 #logger.setLevel(logging.DEBUG)
 
-class ManagerException(Exception): pass
+class ManagerException(Exception):
+    "Exception at manager, raised on abort signal from worker"
+    pass
 
 
 def manager_main(hist, libE_specs, alloc_specs,
@@ -352,7 +351,8 @@ class Manager:
         try:
             while not self.term_test():
                 persis_info = self._receive_from_workers(persis_info)
-                persis_info = self._queue_update(self.hist.trim_H(), persis_info)
+                persis_info = self._queue_update(self.hist.trim_H(),
+                                                 persis_info)
                 if any(self.W['active'] == 0):
                     Work, persis_info = self._alloc_work(self.hist.trim_H(),
                                                          persis_info)

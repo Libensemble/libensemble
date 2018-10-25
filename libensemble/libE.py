@@ -4,17 +4,11 @@ Main libEnsemble routine
 
 """
 
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 __all__ = ['libE']
 
 import sys
 import logging
 import traceback
-import threading
-import multiprocessing
 
 import numpy as np
 
@@ -23,8 +17,9 @@ from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.message_numbers import \
-     EVAL_SIM_TAG, EVAL_GEN_TAG, ABORT_ENSEMBLE
+from libensemble.message_numbers import ABORT_ENSEMBLE
+from libensemble.comms.comms import QCommProcess, Timeout
+
 
 logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment
@@ -112,7 +107,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         2 = Manager timed out and ended simulation
     """
 
-    if 'nthreads' in libE_specs or 'nprocesses' in libE_specs:
+    if 'nprocesses' in libE_specs:
         libE_f = libE_local
     else:
         libE_f = libE_mpi
@@ -135,6 +130,8 @@ def comms_signal_abort_to_man(comm):
 
 
 class WorkerIDFilter(logging.Filter):
+    """Logging filter to add worker ID to records.
+    """
 
     def __init__(self, worker_id):
         super().__init__()
@@ -158,10 +155,10 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
         libE_specs['color'] = 0
 
     comm = libE_specs['comm']
-    is_master = (comm.Get_rank() == 0)
+    rank = comm.Get_rank()
+    is_master = (rank == 0)
 
     # Set up logging to common file
-    rank = comm.Get_rank()
     if is_master:
         formatter = logging.Formatter(
             '[%(worker)s] %(name)s (%(levelname)s): %(message)s')
@@ -254,21 +251,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
     "Main routine for thread/process launch of libE."
 
-    from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
-
-    # Set up if we are going to use
-    if 'nthreads' in libE_specs:
-        QCommTP = QCommThread
-        has_terminate = False
-        nworkers = libE_specs['nthreads']
-        logfmt = '%(threadName)s %(name)s (%(levelname)s): %(message)s'
-        log_comm = False
-    else:
-        QCommTP = QCommProcess
-        has_terminate = True
-        nworkers = libE_specs['nprocesses']
-        logfmt = '%(processName)-10s %(name)s (%(levelname)s): %(message)s'
-        log_comm = True
+    nworkers = libE_specs['nprocesses']
+    logfmt = '%(processName)-10s %(name)s (%(levelname)s): %(message)s'
 
     libE_specs = check_inputs(True, libE_specs,
                               alloc_specs, sim_specs, gen_specs,
@@ -281,7 +265,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     try:
         # Launch worker team
-        wcomms = [QCommTP(worker_main, sim_specs, gen_specs, w, log_comm)
+        wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, True)
                   for w in range(1, nworkers+1)]
         for wcomm in wcomms:
             wcomm.run()
@@ -314,8 +298,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         try:
             wcomm.result(timeout=libE_specs.get('worker_timeout'))
         except Timeout:
-            if has_terminate:
-                wcomm.terminate()
+            wcomm.terminate()
 
     # Create calc summary file
     CalcInfo.merge_statfiles()

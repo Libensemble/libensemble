@@ -15,9 +15,7 @@ import numpy as np
 from libensemble.libE import libE
 
 # APOSSM explicitly uses MPI and PETSc
-if len(sys.argv) > 1 and sys.argv[1] == "--threads":
-    quit()
-elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
     quit()
 else:
     from mpi4py import MPI

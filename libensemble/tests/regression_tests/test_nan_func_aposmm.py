@@ -16,9 +16,7 @@ from libensemble.libE import libE
 
 nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
 is_master = True
-if len(sys.argv) > 1 and sys.argv[1] == "--threads":
-    quit()
-elif len(sys.argv) > 1 and sys.argv[1] == "--processes":
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
     quit()
 else:
     from mpi4py import MPI
