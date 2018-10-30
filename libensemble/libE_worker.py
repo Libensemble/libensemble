@@ -38,32 +38,6 @@ def dump_pickle(pfilename, worker_out):
     return pfilename
 
 
-def receive_and_run(comm, dtypes, worker, Work):
-    """Receive data associated with a work order and run calc."""
-
-    libE_info = Work['libE_info']
-    calc_type = Work['tag']
-
-    if len(libE_info['H_rows']) > 0:
-        _, calc_in = comm.recv()
-    else:
-        calc_in = np.zeros(0, dtype=dtypes[calc_type])
-    logger.debug("Received calc_in ({}) of len {}".
-                 format(calc_type_strings[calc_type], np.size(calc_in)))
-
-    # comm will be in the future comms module...
-    if libE_info.get('persistent'):
-        libE_info['comm'] = comm
-    calc_out, persis_info, calc_status = worker.run(Work, calc_in)
-    libE_info.pop('comm', None)
-
-    return {'calc_out': calc_out,
-            'persis_info': persis_info,
-            'libE_info': libE_info,
-            'calc_status': calc_status,
-            'calc_type': calc_type}
-
-
 def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
     """Evaluate calculations given to it by the manager.
 
@@ -82,61 +56,17 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
     workerID: manager assigned worker ID (if None, default is comm.rank)
     """
 
-    try:
-        # Receive dtypes from manager
-        _, dtypes = comm.recv()
-        workerID = workerID or comm.rank
+    # Receive dtypes from manager
+    _, dtypes = comm.recv()
+    workerID = workerID or comm.rank
 
-        # Initialize logging on comms
-        if log_comm:
-            worker_logging_config(comm, workerID, level=logging.DEBUG)
+    # Initialize logging on comms
+    if log_comm:
+        worker_logging_config(comm, workerID, level=logging.DEBUG)
 
-        worker = Worker(workerID, sim_specs, gen_specs)
-
-        #Setup logging
-        logger.info("Worker {} initiated on node {}". \
-                    format(workerID, socket.gethostname()))
-
-        #Init in case of manager request before filled
-        worker_out = {'calc_status': UNSET_TAG}
-
-        for worker_iter in count(start=1):
-            logger.debug("Iteration {}".format(worker_iter))
-
-            mtag, Work = comm.recv()
-            if mtag == STOP_TAG:
-
-                if Work == MAN_SIGNAL_FINISH: #shutdown the worker
-                    break
-                #Need to handle manager job kill here - as well as finish
-                if Work == MAN_SIGNAL_REQ_RESEND:
-                    logger.debug("Re-sending to Manager with status {}".\
-                                 format(worker_out['calc_status']))
-                    comm.send(0, worker_out)
-                    continue
-
-                if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
-                    pfilename = "pickled_worker_{}_sim_{}.pkl".\
-                      format(worker.workerID, worker.calc_iter[EVAL_SIM_TAG])
-                    logger.debug("Make pickle for manager: status {}".\
-                                 format(worker_out['calc_status']))
-                    comm.send(0, dump_pickle(pfilename, worker_out))
-                    continue
-
-            worker_out = receive_and_run(comm, dtypes, worker, Work)
-
-            # Check whether worker exited because it polled a manager signal
-            if worker_out['calc_status'] == MAN_SIGNAL_FINISH:
-                break
-
-            logger.debug("Sending to Manager with status {}".\
-                         format(worker_out['calc_status']))
-            comm.send(0, worker_out)
-
-    finally:
-        comm.kill_pending()
-        if sim_specs.get('clean_jobs'):
-            worker.clean()
+    # Set up and run worker
+    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
+    worker.run()
 
 
 ######################################################################
@@ -148,7 +78,7 @@ class Worker:
     """The Worker Class provides methods for controlling sim and gen funcs"""
 
     # Worker Object methods
-    def __init__(self, workerID, sim_specs, gen_specs):
+    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs):
         """Initialise new worker object.
 
         Parameters
@@ -158,11 +88,15 @@ class Worker:
             The ID for this worker
 
         """
+        self.comm = comm
+        self.dtypes = dtypes
         self.workerID = workerID
+        self.sim_specs = sim_specs
         self.calc_iter = {EVAL_SIM_TAG : 0, EVAL_GEN_TAG : 0}
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
+        self.worker_out = {'calc_status': UNSET_TAG}
         Worker._set_job_controller(workerID)
 
 
@@ -211,7 +145,7 @@ class Worker:
             return True
 
 
-    def run(self, Work, calc_in):
+    def _handle_calc(self, Work, calc_in):
         """Run a calculation on this worker object.
 
         This routine calls the user calculations. Exceptions are caught,
@@ -229,8 +163,6 @@ class Worker:
         """
         calc_type = Work['tag']
         self.calc_iter[calc_type] += 1
-        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         calc_id = next(self._calc_id_counter)
@@ -261,7 +193,88 @@ class Worker:
             logging.getLogger("calc stats").info(calc_msg)
 
 
+    def _handle_admin(self, Work):
+        "Handle an admin request from the manager."
 
-    def clean(self):
-        """Clean up calculation directories"""
-        self.loc_stack.clean_locs()
+        if Work == MAN_SIGNAL_FINISH:
+            return None
+
+        if Work == MAN_SIGNAL_REQ_RESEND:
+            logger.debug("Re-sending to Manager with status {}".\
+                         format(self.worker_out['calc_status']))
+            return self.worker_out
+
+        if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
+            pfilename = "pickled_worker_{}_sim_{}.pkl".\
+              format(self.workerID, self.calc_iter[EVAL_SIM_TAG])
+            logger.debug("Make pickle for manager: status {}".\
+                         format(self.worker_out['calc_status']))
+            return dump_pickle(pfilename, self.worker_out)
+
+        return None
+
+
+    def _handle_work(self, Work):
+        "Handle a work request from the manager."
+
+        # Unpack data and receive anything else we need
+        libE_info = Work['libE_info']
+        calc_type = Work['tag']
+        if len(libE_info['H_rows']) > 0:
+            _, calc_in = self.comm.recv()
+        else:
+            calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
+
+        # Log receipt and check correctness
+        logger.debug("Received calc_in ({}) of len {}".
+                     format(calc_type_strings[calc_type], np.size(calc_in)))
+        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
+          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
+
+        # Call the user func
+        libE_info['comm'] = self.comm
+        calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+        del libE_info['comm']
+
+        # If there was a finish signal, bail
+        if calc_status == MAN_SIGNAL_FINISH:
+            return None
+
+        # Otherwise, send a calc result back to manager
+        logger.debug("Sending to Manager with status {}".format(calc_status))
+        return {'calc_out': calc_out,
+                'persis_info': persis_info,
+                'libE_info': libE_info,
+                'calc_status': calc_status,
+                'calc_type': calc_type}
+
+
+    def _handle(self, mtag, Work):
+        "Handle a message from the manager."
+
+        if mtag == STOP_TAG:
+            return self._handle_admin(Work)
+        self.worker_out = self._handle_work(Work)
+        return self.worker_out
+
+
+    def run(self):
+        "Run the main worker loop."
+
+        try:
+            logger.info("Worker {} initiated on node {}". \
+                        format(self.workerID, socket.gethostname()))
+
+            for worker_iter in count(start=1):
+                logger.debug("Iteration {}".format(worker_iter))
+
+                mtag, Work = self.comm.recv()
+                msg = self._handle(mtag, Work)
+                if msg is None:
+                    return
+                self.comm.send(0, msg)
+
+        finally:
+            self.comm.kill_pending()
+            if self.sim_specs.get('clean_jobs'):
+                self.loc_stack.clean_locs()

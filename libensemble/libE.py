@@ -31,6 +31,18 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
+def report_manager_exception(hist):
+    "Write out exception manager exception to stderr and flush streams."
+    eprint(traceback.format_exc())
+    eprint("\nManager exception raised .. aborting ensemble:\n")
+    eprint("\nDumping ensemble history with {} sims evaluated:\n".
+           format(hist.sim_count))
+    filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
+    np.save(filename, hist.trim_H())
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
 def libE(sim_specs, gen_specs, exit_criteria,
          persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first,
@@ -154,7 +166,11 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     if is_master:
         return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
                                 persis_info, alloc_specs, libE_specs, H0)
-    return libE_mpi_worker(comm, sim_specs, gen_specs, persis_info, libE_specs)
+
+    # Worker returns a subset of MPI output
+    libE_mpi_worker(comm, sim_specs, gen_specs, persis_info, libE_specs)
+    H = exit_flag = []
+    return [], persis_info, []
 
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
@@ -165,28 +181,23 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    try:
 
-        wcomms = [MainMPIComm(mpi_comm, w) for w in
-                  range(1, mpi_comm.Get_size())]
+    # Lauch worker team
+    wcomms = [MainMPIComm(mpi_comm, w) for w in
+              range(1, mpi_comm.Get_size())]
+
+    try:
         manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
         persis_info, exit_flag = \
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
 
     except Exception:
-        eprint(traceback.format_exc())
-        eprint("\nManager exception raised .. aborting ensemble:\n")
-        eprint("\nDumping ensemble history with {} sims evaluated:\n".
-               format(hist.sim_count))
-        filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
-        np.save(filename, hist.trim_H())
-        sys.stdout.flush()
-        sys.stderr.flush()
+        report_manager_exception(hist)
         comms_abort(mpi_comm)
     else:
         logger.debug("Manager exiting")
-        print(mpi_comm.Get_size(), exit_criteria)
+        print(len(wcomms), exit_criteria)
         sys.stdout.flush()
 
     H = hist.trim_H()
@@ -210,11 +221,9 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
     else:
         logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
-    H = exit_flag = []
-    return H, persis_info, exit_flag
 
 
-# ==================== Thread/process version =================================
+# ==================== Process version =================================
 
 
 def libE_local(sim_specs, gen_specs, exit_criteria,
@@ -229,28 +238,20 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    try:
-        # Launch worker team
-        wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, True)
-                  for w in range(1, nworkers+1)]
-        for wcomm in wcomms:
-            wcomm.run()
+    # Launch worker team
+    wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, True)
+              for w in range(1, nworkers+1)]
+    for wcomm in wcomms:
+        wcomm.run()
 
+    try:
         # Set up logger and run manager
         manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
         persis_info, exit_flag = \
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
-
     except Exception:
-        eprint(traceback.format_exc())
-        eprint("\nManager exception raised .. aborting ensemble:\n")
-        eprint("\nDumping ensemble history with {} sims evaluated:\n".
-               format(hist.sim_count))
-        filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
-        np.save(filename, hist.trim_H())
-        sys.stdout.flush()
-        sys.stderr.flush()
+        report_manager_exception(hist)
     else:
         logger.debug("Manager exiting")
         print(nworkers, exit_criteria)
