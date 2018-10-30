@@ -13,8 +13,7 @@ import numpy as np
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, EVAL_GEN_TAG, \
      UNSET_TAG, STOP_TAG, CALC_EXCEPTION
-from libensemble.message_numbers import \
-     MAN_SIGNAL_FINISH, MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP
+from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
 from libensemble.util.loc_stack import LocationStack
@@ -96,7 +95,6 @@ class Worker:
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
-        self.worker_out = {'calc_status': UNSET_TAG}
         Worker._set_job_controller(workerID)
 
 
@@ -193,27 +191,6 @@ class Worker:
             logging.getLogger("calc stats").info(calc_msg)
 
 
-    def _handle_admin(self, Work):
-        "Handle an admin request from the manager."
-
-        if Work == MAN_SIGNAL_FINISH:
-            return None
-
-        if Work == MAN_SIGNAL_REQ_RESEND:
-            logger.debug("Re-sending to Manager with status {}".\
-                         format(self.worker_out['calc_status']))
-            return self.worker_out
-
-        if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
-            pfilename = "pickled_worker_{}_sim_{}.pkl".\
-              format(self.workerID, self.calc_iter[EVAL_SIM_TAG])
-            logger.debug("Make pickle for manager: status {}".\
-                         format(self.worker_out['calc_status']))
-            return dump_pickle(pfilename, self.worker_out)
-
-        return None
-
-
     def _recv_H_rows(self, Work):
         "Unpack Work request and receiv any history rows we need."
 
@@ -232,7 +209,7 @@ class Worker:
         return libE_info, calc_type, calc_in
 
 
-    def _handle_work(self, Work):
+    def _handle(self, Work):
         "Handle a work request from the manager."
 
         # Check work request and receive second message (if needed)
@@ -256,15 +233,6 @@ class Worker:
                 'calc_type': calc_type}
 
 
-    def _handle(self, mtag, Work):
-        "Handle a message from the manager."
-
-        if mtag == STOP_TAG:
-            return self._handle_admin(Work)
-        self.worker_out = self._handle_work(Work)
-        return self.worker_out
-
-
     def run(self):
         "Run the main worker loop."
 
@@ -276,7 +244,10 @@ class Worker:
                 logger.debug("Iteration {}".format(worker_iter))
 
                 mtag, Work = self.comm.recv()
-                response = self._handle(mtag, Work)
+                if mtag == STOP_TAG:
+                    return
+
+                response = self._handle(Work)
                 if response is None:
                     return
                 self.comm.send(0, response)

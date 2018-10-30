@@ -18,7 +18,6 @@ from libensemble.message_numbers import \
      WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
      JOB_FAILED, WORKER_DONE, \
      MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
-     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP, \
      ABORT_ENSEMBLE
 from libensemble.comms.comms import Timeout
 
@@ -126,20 +125,6 @@ class Manager:
         """Kill the workers"""
         for w in self.W['worker_id']:
             self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_FINISH)
-
-    def _man_request_resend_on_error(self, w):
-        "Request the worker resend data on error."
-        self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_REQ_RESEND)
-        _, data = self.wcomms[w-1].recv()
-        return data
-
-    def _man_request_pkl_dump_on_error(self, w):
-        "Request the worker dump a pickle on error."
-        self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_REQ_PICKLE_DUMP)
-        _, pkl_recv = self.wcomms[w-1].recv()
-        D_recv = pickle.load(open(pkl_recv, "rb"))
-        os.remove(pkl_recv) #If want to delete file
-        return D_recv
 
     # --- Checkpointing logic
 
@@ -289,14 +274,6 @@ class Manager:
             tag, D_recv = msg
         except Timeout:
             self.wcomms.result()
-        except Exception as e:
-            logger.error("Exception caught on Manager receive: {}".format(e))
-            logger.error("From worker: {}".format(w))
-
-            # Check on working with peristent data - curently only use one
-            #D_recv = _man_request_resend_on_error(w)
-            D_recv = self._man_request_pkl_dump_on_error(w)
-            tag = None
 
         if tag == ABORT_ENSEMBLE:
             raise ManagerException('Received abort signal from worker')
