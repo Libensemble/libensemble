@@ -214,10 +214,9 @@ class Worker:
         return None
 
 
-    def _handle_work(self, Work):
-        "Handle a work request from the manager."
+    def _recv_H_rows(self, Work):
+        "Unpack Work request and receiv any history rows we need."
 
-        # Unpack data and receive anything else we need
         libE_info = Work['libE_info']
         calc_type = Work['tag']
         if len(libE_info['H_rows']) > 0:
@@ -225,13 +224,21 @@ class Worker:
         else:
             calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
 
-        # Log receipt and check correctness
         logger.debug("Received calc_in ({}) of len {}".
                      format(calc_type_strings[calc_type], np.size(calc_in)))
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
           "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
-        # Call the user func
+        return libE_info, calc_type, calc_in
+
+
+    def _handle_work(self, Work):
+        "Handle a work request from the manager."
+
+        # Check work request and receive second message (if needed)
+        libE_info, calc_type, calc_in = self._recv_H_rows(Work)
+
+        # Call user function
         libE_info['comm'] = self.comm
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
         del libE_info['comm']
@@ -269,10 +276,10 @@ class Worker:
                 logger.debug("Iteration {}".format(worker_iter))
 
                 mtag, Work = self.comm.recv()
-                msg = self._handle(mtag, Work)
-                if msg is None:
+                response = self._handle(mtag, Work)
+                if response is None:
                     return
-                self.comm.send(0, msg)
+                self.comm.send(0, response)
 
         finally:
             self.comm.kill_pending()
