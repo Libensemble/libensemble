@@ -252,7 +252,11 @@ class Worker:
                     return
                 self.comm.send(0, response)
 
-        finally:
+        except Exception as e:
+            # Send the exception over the comm here...
+            raise
+        else:
             self.comm.kill_pending()
+        finally:
             if self.sim_specs.get('clean_jobs'):
                 self.loc_stack.clean_locs()

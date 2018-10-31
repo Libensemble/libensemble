@@ -26,6 +26,7 @@ from abc import ABC, abstractmethod
 from time import time
 from threading import Thread
 from multiprocessing import Process, Queue
+from traceback import format_exc
 import queue
 import copy
 
@@ -44,7 +45,25 @@ class ManagerStop(Exception):
 
 class RemoteException(Exception):
     "Exception raised when we received a remote exception."
-    pass
+
+    def __init__(self, msg, exc):
+        super().__init__(msg)
+        self.exc = exc
+
+
+class CommResult:
+    "Container for a result returned on exit."
+
+    def __init__(self, value):
+        self.value = value
+
+
+class CommResultErr:
+    "Container for an exception returned on exit."
+
+    def __init__(self, msg, exc):
+        self.msg = msg
+        self.exc = exc
 
 
 def _timeout_fun(timeout):
@@ -184,13 +203,6 @@ class QCommThread(Comm):
         self.thread.join()
 
 
-class QCommProcessResult:
-    "Hold a returned result from a process."
-    def __init__(self, value=None, exception=None):
-        self.value = value
-        self.exception = exception
-
-
 class QCommProcess(Comm):
     """Launch a user function in a process with an attached QComm.
     """
@@ -207,9 +219,12 @@ class QCommProcess(Comm):
 
     def _is_result_msg(self, msg):
         "Return true if message indicates final result (and set result/except)."
-        if len(msg) and isinstance(msg[0], QCommProcessResult):
+        if len(msg) and isinstance(msg[0], CommResult):
             self._result = msg[0].value
-            self._exception = msg[0].exception
+            self._done = True
+            return True
+        if len(msg) and isinstance(msg[0], CommResultErr):
+            self._exception = msg[0]
             self._done = True
             return True
         return False
@@ -255,7 +270,7 @@ class QCommProcess(Comm):
         if self.running:
             raise Timeout()
         if self._exception is not None:
-            raise RemoteException(self._exception)
+            raise RemoteException(self._exception.msg, self._exception.exc)
         return self._result
 
     def terminate(self, timeout=None):
@@ -276,9 +291,9 @@ class QCommProcess(Comm):
         "Main routine -- handles return values and exceptions."
         try:
             _result = main(comm, *args, **kwargs)
-            comm.send(QCommProcessResult(_result))
+            comm.send(CommResult(_result))
         except Exception as e:
-            comm.send(QCommProcessResult(exception=str(e)))
+            comm.send(CommResultErr(str(e), format_exc()))
             raise e
 
     def __enter__(self):
