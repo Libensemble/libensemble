@@ -21,9 +21,6 @@ from numpy.lib.recfunctions import merge_arrays
 
 from math import log, gamma, pi, sqrt
 
-from petsc4py import PETSc
-import nlopt
-
 def aposmm_logic(H,persis_info,gen_specs,_):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
@@ -155,6 +152,11 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     persis_info['old_runs']: Sequence of indices of points in each finished run 
 
     """
+
+    if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
+        import nlopt
+    elif gen_specs['localopt_method'] in ['pounders']:
+        from petsc4py import PETSc
 
     n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
@@ -530,6 +532,7 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
+    import nlopt
 
     assert 'xtol_rel' or 'xtol_abs' or 'ftol_rel' or 'ftol_abs' in gen_specs, "NLopt can cycle if xtol_rel, xtol_abs, ftol_rel, or ftol_abs are not set"
 
@@ -587,6 +590,8 @@ def set_up_and_run_tao(Run_H, gen_specs):
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
+    from petsc4py import PETSc
+
     tao_comm = MPI.COMM_SELF
     n = len(gen_specs['ub'])
     m = len(Run_H['fvec'][0])
