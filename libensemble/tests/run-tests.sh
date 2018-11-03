@@ -431,7 +431,8 @@ if [ "$root_found" = true ]; then
              code=$test_code #sh - currently stop on failure
              if [ $REG_STOP_ON_FAILURE != "true" ]; then
                #Dump error to log file
-               echo -e "\nTest $test_num: $TEST_SCRIPT on $NPROCS processes:\n" >>log.err; cat test.err >>log.err
+               echo -e "\nTest $test_num: $TEST_SCRIPT on $NPROCS processes:\n" >>log.err
+               [ -e test.err ] && cat test.err >>log.err
              fi;
              reg_fail=$((reg_fail+1))     
            fi;
