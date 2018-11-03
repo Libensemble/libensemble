@@ -14,7 +14,7 @@ from libensemble.controller import \
 from libensemble.mpi_controller import MPIJobController
 
 import balsam.launcher.dag as dag
-from balsam.service import models
+from balsam.core import models
 
 logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
