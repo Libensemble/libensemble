@@ -1,14 +1,15 @@
 language: python
+sudo: required
+dist: xenial
 python:
   - 2.7
   - 3.4
   - 3.5
   - 3.6
-  #- 3.7
+  - 3.7
   
 os: linux
 dist: trusty
-sudo: false
 
 env:
   global:
