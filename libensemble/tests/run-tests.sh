@@ -166,15 +166,17 @@ RUN_PREFIX=$script_name
 CLEAN_ONLY=false
 unset MPIEXEC_FLAGS
 PYTEST_SHOW_OUT_ERR=false
+RTEST_SHOW_OUT_ERR=false
 
 usage() {
   echo -e "\nUsage:"
-  echo "  $0 [-hcsur] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
+  echo "  $0 [-hcsurz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
   echo "  -c              Clean up test directories and exit"  
-  echo "  -s              Print stdout and stderr to screen when running pytest (unit tests)"  
+  echo "  -s              Print stdout and stderr to screen when running pytest (unit tests)" 
+  echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"   
   echo "  -u              Run only the unit tests" 
   echo "  -r              Run only the regression tests"   
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
@@ -185,7 +187,7 @@ usage() {
   exit 1
 }
   
-while getopts ":p:n:a:hcsur" opt; do
+while getopts ":p:n:a:hcszur" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -208,7 +210,10 @@ while getopts ":p:n:a:hcsur" opt; do
       echo "Will show stdout and stderr during pytest"
       PYTEST_SHOW_OUT_ERR=true
       ;;
-    u)
+    z)
+      echo "Will show stdout and stderr during regression tests"
+      RTEST_SHOW_OUT_ERR=true
+      ;;    u)
       echo "Running only the unit tests"
       export RUN_REG_TESTS=false
       ;;
@@ -407,8 +412,13 @@ if [ "$root_found" = true ]; then
              mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
              test_code=$?
            else
-             mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT #>> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-             test_code=$?
+             if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
+               mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+               test_code=$?
+             else
+               mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+               test_code=$?
+             fi
            fi
            reg_count_runs=$((reg_count_runs+1))
 
@@ -508,7 +518,9 @@ if [ "$root_found" = true ]; then
     else
       if [ $REG_STOP_ON_FAILURE != "true" ]; then
         echo -e ""
-        echo -e "\n..see error log at $REG_TEST_SUBDIR/log.err"
+        if [ "$RTEST_SHOW_OUT_ERR" != "true" ]; then
+          echo -e "\n..see error log at $REG_TEST_SUBDIR/log.err"
+        fi
         summ_line="$reg_fail failed, $reg_pass passed in $reg_time seconds"
         tput bold;tput setaf 1;
         print_summary_line $summ_line

@@ -70,7 +70,7 @@ install:
 
 # Run test
 script:
-  - libensemble/tests/run-tests.sh
+  - libensemble/tests/run-tests.sh -z
 
 # Coverage
 after_success:
