@@ -21,7 +21,7 @@ class MPIJobController(JobController):
     """The MPI job_controller can create, poll and kill runnable MPI jobs
     """
 
-    def __init__(self, auto_resources=True,
+    def __init__(self, auto_resources=True, central_mode=False,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new JobController instance.
 
@@ -38,6 +38,12 @@ class MPIJobController(JobController):
         auto_resources: Boolean, optional
             Auto-detect available processor resources and assign to jobs
             if not explicitly provided on launch.
+
+        central_mode, optional: boolean:
+            If true, then running in central mode, else distributed.
+            Central mode means libE processes (manager and workers) are grouped together and
+            do not share nodes with applications. Distributed mode means Workers share nodes
+            with applications.
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format
@@ -56,6 +62,7 @@ class MPIJobController(JobController):
         if self.auto_resources:
             self.resources = \
               MPIResources(top_level_dir=self.top_level_dir,
+                           central_mode=central_mode,
                            nodelist_env_slurm=nodelist_env_slurm,
                            nodelist_env_cobalt=nodelist_env_cobalt)
 

@@ -81,7 +81,9 @@ class Resources:
 
         self.top_level_dir = top_level_dir or os.getcwd()
         self.central_mode = central_mode
-
+        if self.central_mode:
+            logger.debug('Running in central mode')
+            
         # These presence of these env vars will be used to detect scheduler
         self.nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt

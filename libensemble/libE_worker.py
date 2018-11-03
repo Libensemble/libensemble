@@ -250,6 +250,8 @@ class Worker():
         calc_stats.calc_type = calc_type
 
         try:
+            if calc_type == EVAL_GEN_TAG:
+                logger.debug("Running generator")
             calc = self._run_calc[calc_type]
             with calc_stats.timer:
                 with self.loc_stack.loc(calc_type):
