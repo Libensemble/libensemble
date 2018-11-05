@@ -38,7 +38,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController(auto_resources = True)
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources = True)
+    jobctrl = MPIJobController(auto_resources = False)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 summary_file_name = short_name + '.libe_summary.txt'
