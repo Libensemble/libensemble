@@ -64,7 +64,7 @@ for time in np.append([0], np.logspace(-5,-1,5)):
             gen_specs['gen_batch_size'] = num_pts//2
 
         # Tell libEnsemble when to stop
-        exit_criteria = {'sim_max': num_pts, 'elapsed_walclock_time': 300}
+        exit_criteria = {'sim_max': num_pts, 'elapsed_wallclock_time': 300}
 
         np.random.seed(1)
         persis_info = {'next_to_give':0}

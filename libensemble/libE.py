@@ -290,9 +290,9 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
     assert len(exit_criteria) > 0, "Must have some exit criterion"
     valid_term_fields = ['sim_max', 'gen_max',
                          'elapsed_wallclock_time', 'stop_val']
-    assert any([term_field in exit_criteria for
-                term_field in valid_term_fields]), \
-        "Must have a valid termination option: " + str(valid_term_fields)
+    assert all([term_field in valid_term_fields
+                for term_field in exit_criteria]), \
+                "Valid termination options: " + str(valid_term_fields)
 
     # Check that sim/gen have 'out' entries
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
