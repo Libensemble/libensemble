@@ -16,7 +16,6 @@ from libensemble.history import History
 from libensemble.libE_manager import manager_main
 from libensemble.libE_worker import worker_main
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.message_numbers import ABORT_ENSEMBLE
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 
@@ -136,11 +135,6 @@ def comms_abort(comm):
     comm.Abort(1) # Exit code 1 to represent an abort
 
 
-def comms_signal_abort_to_man(comm):
-    '''Worker signal manager to abort'''
-    comm.send(obj=None, dest=0, tag=ABORT_ENSEMBLE)
-
-
 def libE_mpi(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "MPI version of the libE main routine"
@@ -208,18 +202,9 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
-    try:
-        comm = MainMPIComm(mpi_comm)
-        worker_main(comm, sim_specs, gen_specs, log_comm=True)
-    except Exception:
-        eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".
-               format(mpi_comm.Get_rank()))
-        eprint(traceback.format_exc())
-        sys.stdout.flush()
-        sys.stderr.flush()
-        comms_signal_abort_to_man(mpi_comm)
-    else:
-        logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+    comm = MainMPIComm(mpi_comm)
+    worker_main(comm, sim_specs, gen_specs, log_comm=True)
+    logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
 
 

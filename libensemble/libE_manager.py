@@ -17,9 +17,9 @@ from libensemble.message_numbers import \
      STOP_TAG, UNSET_TAG, \
      WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
      JOB_FAILED, WORKER_DONE, \
-     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
-     ABORT_ENSEMBLE
+     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import Timeout
+from libensemble.libE_worker import WorkerErrMsg
 
 logger = logging.getLogger(__name__)
 #For debug messages - uncomment
@@ -269,14 +269,12 @@ class Manager:
         """Handle a message from worker w.
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
-        try:
-            msg = self.wcomms[w-1].recv()
-            tag, D_recv = msg
-        except Timeout:
-            self.wcomms.result()
+        msg = self.wcomms[w-1].recv()
+        tag, D_recv = msg
 
-        if tag == ABORT_ENSEMBLE:
-            raise ManagerException('Received abort signal from worker')
+        if isinstance(D_recv, WorkerErrMsg):
+            raise ManagerException('Received error message from {}'.format(w),
+                                   D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
             logging.getLogger(D_recv.name).handle(D_recv)
         else:

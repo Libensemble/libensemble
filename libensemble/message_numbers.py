@@ -7,7 +7,7 @@ STOP_TAG = 3
 PERSIS_STOP = 4                     # manager tells persistent worker to desist
 FINISHED_PERSISTENT_SIM_TAG = 11    # tells manager sim_f done persistent mode
 FINISHED_PERSISTENT_GEN_TAG = 12    # tells manager gen_f done persistent mode
-ABORT_ENSEMBLE = 13 # Worker asks manager to abort (and dump history)
+#ABORT_ENSEMBLE = 13 # Worker asks manager to abort (and dump history)
 
 calc_type_strings = {
     EVAL_SIM_TAG: 'sim',

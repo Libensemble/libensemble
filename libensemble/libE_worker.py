@@ -7,6 +7,7 @@ import socket
 import logging
 import logging.handlers
 from itertools import count
+from traceback import format_exc
 
 import numpy as np
 
@@ -71,6 +72,14 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
 ######################################################################
 # Worker Class
 ######################################################################
+
+
+class WorkerErrMsg:
+
+    def __init__(self, msg, exc):
+        self.msg = msg
+        self.exc = exc
+
 
 class Worker:
 
@@ -253,8 +262,7 @@ class Worker:
                 self.comm.send(0, response)
 
         except Exception as e:
-            # Send the exception over the comm here...
-            raise
+            self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
         else:
             self.comm.kill_pending()
         finally:
