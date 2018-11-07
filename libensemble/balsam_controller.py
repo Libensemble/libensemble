@@ -117,7 +117,7 @@ class BalsamJob(Job):
 
 
 class BalsamJobController(MPIJobController):
-    """Inherits from JobController and wraps the Balsam job management service
+    """Inherits from MPIJobController and wraps the Balsam job management service
 
     .. note::  Job kills are not configurable in the Balsam job_controller.
 
