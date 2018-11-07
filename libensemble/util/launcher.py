@@ -8,23 +8,9 @@ import sys
 import shlex
 import signal
 import time
+import subprocess
 
 from itertools import chain
-
-
-# See: https://github.com/google/python-subprocess32
-if os.name == 'posix' and sys.version_info[0] < 3:
-    try:
-        import subprocess32 as subprocess
-        have_subprocess32 = True
-    except ImportError:
-        import subprocess
-        have_subprocess32 = False
-else:
-    import subprocess
-    have_subprocess32 = (sys.version_info[0] >= 3
-                         and sys.version_info[1] >= 2)
-
 
 def form_command(cmd_template, specs):
     "Fill command parts with dict entries from specs; drop any missing."
@@ -40,9 +26,6 @@ def form_command(cmd_template, specs):
 
 def launch(cmd_template, specs=None, **kwargs):
     "Launch a new subprocess (with command templating and Python 3 help)."
-    if not have_subprocess32 and kwargs.get('start_new_session'):
-        del kwargs['start_new_session']
-        kwargs['preexec_fn'] = os.setsid
     cmd = (form_command(cmd_template, specs) if specs is not None
            else cmd_template)
     return subprocess.Popen(cmd, **kwargs)
@@ -69,9 +52,6 @@ def terminatepg(process):
         pgid = os.getpgid(pid) if hasattr(os, 'killpg') else -1
         if pgid == pid:
             os.killpg(pgid, signal.SIGTERM)
-        elif hasattr(signal, 'CTRL_BREAK_EVENT'):
-            # Supposedly does a group terminate for Windows...
-            process.send_signal(signal.CTRL_BREAK_EVENT)
         else:
             process.terminate()
         return True

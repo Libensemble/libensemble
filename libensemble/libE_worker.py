@@ -28,16 +28,6 @@ logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
 
 
-def dump_pickle(pfilename, worker_out):
-    """Write a pickle of the message."""
-    import pickle
-    with open(pfilename, "wb") as f:
-        pickle.dump(worker_out, f)
-    with open(pfilename, "rb") as f:
-        pickle.load(f)  #check can read in this side
-    return pfilename
-
-
 def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
     """Evaluate calculations given to it by the manager.
 
