@@ -69,23 +69,23 @@ def process_is_stopped(process, timeout):
     return process.poll() is not None
 
 
-if sys.version_info[0] < 3 or (sys.version_info[0] == 3 and sys.version_info[1] < 3):
+# Python 3.3 added timeout arguments
+def wait_py32(process, timeout=None):
+    "Wait on a process with timeout."
+    if timeout is None or process_is_stopped(process, timeout):
+        return process.wait()
+    return None
 
-    # Python 3.3 added timeout arguments
-    def wait(process, timeout=None):
-        "Wait on a process with timeout."
-        if timeout is None or process_is_stopped(process, timeout):
-            return process.wait()
+
+def wait_py33(process, timeout=None):
+    "Wait on a process with timeout (wait forever if None)."
+    try:
+        return process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
         return None
 
-else:
 
-    def wait(process, timeout=None):
-        "Wait on a process with timeout (wait forever if None)."
-        try:
-            return process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            return None
+wait = wait_py33 if sys.version_info[0:2] > (3,2) else wait_py32
 
 
 def wait_and_kill(process, timeout):

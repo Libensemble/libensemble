@@ -24,7 +24,7 @@ def test_form_command():
     assert args == aref, "Command templating test failed."
 
 
-def test_launch():
+def xtest_launch():
     "Test simple launch."
 
     py_exe = sys.executable or "python"
@@ -69,3 +69,17 @@ def test_launch():
     assert not launcher.process_is_stopped(process, 0.5), \
       "Process stopped early."
     launcher.cancel(process, 0)
+
+
+def test_launch32():
+    "If we are in Python > 3.2, still check that 3.2 wait func works"
+    saved_wait = launcher.wait
+    launcher.wait = launcher.wait_py32
+    xtest_launch()
+    launcher.wait = saved_wait
+
+
+def test_launch33():
+    "If we are in Python > 3.2, also check the new-style wait func"
+    if launcher.wait == launcher.wait_py33:
+        xtest_launch()
