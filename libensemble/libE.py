@@ -188,7 +188,9 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     except Exception:
         report_manager_exception(hist)
-        comms_abort(mpi_comm)
+        if libE_specs.get('abort_on_exception', True):
+            comms_abort(mpi_comm)
+        raise
     else:
         logger.debug("Manager exiting")
         print(len(wcomms), exit_criteria)
@@ -237,17 +239,19 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
                        exit_criteria, persis_info, wcomms)
     except Exception:
         report_manager_exception(hist)
+        raise
     else:
         logger.debug("Manager exiting")
         print(nworkers, exit_criteria)
         sys.stdout.flush()
+    finally:
 
-    # Join on workers here (and terminate forcefully if needed)
-    for wcomm in wcomms:
-        try:
-            wcomm.result(timeout=libE_specs.get('worker_timeout'))
-        except Timeout:
-            wcomm.terminate()
+        # Join on workers here (and terminate forcefully if needed)
+        for wcomm in wcomms:
+            try:
+                wcomm.result(timeout=libE_specs.get('worker_timeout'))
+            except Timeout:
+                wcomm.terminate()
 
     H = hist.trim_H()
     return H, persis_info, exit_flag

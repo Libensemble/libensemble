@@ -38,6 +38,11 @@ class Timeout(Exception):
     pass
 
 
+class CommFinishedException(Exception):
+    "Read from terminated comm exception."
+    pass
+
+
 class ManagerStop(Exception):
     "Exception raised by default when manager sends a stop message."
     pass
@@ -236,12 +241,14 @@ class QCommProcess(Comm):
     def recv(self, timeout=None):
         "Return a message from the thread or raise TimeoutError."
         try:
+            if self._done:
+                raise CommFinishedException()
             if not self.outbox.empty():
                 msg = self.outbox.get()
             else:
                 msg = self.outbox.get(timeout=timeout)
             if self._is_result_msg(msg):
-                raise Timeout()
+                raise CommFinishedException()
             return msg
         except queue.Empty:
             raise Timeout()

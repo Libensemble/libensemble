@@ -18,7 +18,7 @@ from libensemble.message_numbers import \
      WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
      JOB_FAILED, WORKER_DONE, \
      MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
-from libensemble.comms.comms import Timeout
+from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
 
 logger = logging.getLogger(__name__)
@@ -269,10 +269,15 @@ class Manager:
         """Handle a message from worker w.
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
-        msg = self.wcomms[w-1].recv()
-        tag, D_recv = msg
+        try:
+            msg = self.wcomms[w-1].recv()
+            tag, D_recv = msg
+        except CommFinishedException:
+            logger.debug("Finalizing message from Worker {}".format(w))
+            return
 
         if isinstance(D_recv, WorkerErrMsg):
+            self.W[w-1]['active'] = 0
             raise ManagerException('Received error message from {}'.format(w),
                                    D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):

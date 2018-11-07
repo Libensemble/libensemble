@@ -350,6 +350,8 @@ def run_qcomm_threadproc_test(ThreadProc):
                 flag = False
             except comms.Timeout:
                 pass
+            except comms.CommFinishedException:
+                pass
             assert flag, "Test receive timeout from worker"
 
             result = comm.result()

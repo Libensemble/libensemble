@@ -169,7 +169,9 @@ class Worker:
             calc = self._run_calc[calc_type]
             with timer:
                 with self.loc_stack.loc(calc_type):
+                    logger.debug("Calling calc {}".format(calc_type))
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+                    logger.debug("Return from calc call")
 
             assert isinstance(out, tuple), \
               "Calculation output must be a tuple."
@@ -179,6 +181,7 @@ class Worker:
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
             return out[0], out[1], calc_status
         except Exception:
+            logger.debug("Re-raising exception from calc")
             calc_status = CALC_EXCEPTION
             raise
         finally:
@@ -244,11 +247,11 @@ class Worker:
 
                 mtag, Work = self.comm.recv()
                 if mtag == STOP_TAG:
-                    return
+                    break
 
                 response = self._handle(Work)
                 if response is None:
-                    return
+                    break
                 self.comm.send(0, response)
 
         except Exception as e:
