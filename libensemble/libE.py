@@ -213,6 +213,24 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
 # ==================== Process version =================================
 
 
+def start_proc_team(nworkers, sim_specs, gen_specs, log_comm=True):
+    "Launch a process worker team."
+    wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, log_comm)
+              for w in range(1, nworkers+1)]
+    for wcomm in wcomms:
+        wcomm.run()
+    return wcomms
+
+
+def kill_proc_team(wcomms, timeout):
+    "Join on workers (and terminate forcefully if needed)."
+    for wcomm in wcomms:
+        try:
+            wcomm.result(timeout=timeout)
+        except Timeout:
+            wcomm.terminate()
+
+
 def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
     "Main routine for thread/process launch of libE."
@@ -226,10 +244,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Launch worker team
-    wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, True)
-              for w in range(1, nworkers+1)]
-    for wcomm in wcomms:
-        wcomm.run()
+    wcomms = start_proc_team(nworkers, sim_specs, gen_specs)
 
     try:
         # Set up logger and run manager
@@ -245,13 +260,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         print(nworkers, exit_criteria)
         sys.stdout.flush()
     finally:
-
-        # Join on workers here (and terminate forcefully if needed)
-        for wcomm in wcomms:
-            try:
-                wcomm.result(timeout=libE_specs.get('worker_timeout'))
-            except Timeout:
-                wcomm.terminate()
+        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout'))
 
     H = hist.trim_H()
     return H, persis_info, exit_flag

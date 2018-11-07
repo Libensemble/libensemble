@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
 
 
-def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=False):
+def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
     """Evaluate calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
