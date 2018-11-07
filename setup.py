@@ -25,10 +25,10 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.3.0',    
+    version='0.4.0',    
     description='Library for managing ensemble-like collections of computations',
     url='https://github.com/Libensemble/libensemble',
-    author='Jeffrey Larson and Stephen Hudson and David Bindel',
+    author='Jeffrey Larson, Stephen Hudson and David Bindel',
     author_email='libensemble@lists.mcs.anl.gov',
     license='BSD 2-clause',
 
@@ -51,7 +51,7 @@ setup(
     tests_require=['pytest>=3.1',
                    'pytest-cov>=2.5',
                    'pytest-pep8>=1.0',
-                   'tox>=2.7'
+                   'pytest-timeout',
                   ],
         
     classifiers=[
@@ -68,6 +68,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',        
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development :: Libraries :: Python Modules'  
