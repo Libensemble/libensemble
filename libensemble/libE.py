@@ -116,7 +116,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     exit_flag: :obj:`int`
 
         Flag containing job status: 0 = No errors,
-        1 = Exception occured and MPI aborted,
+        1 = Exception occured
         2 = Manager timed out and ended simulation
 
     """
