@@ -33,7 +33,7 @@ FAILED""".split()
 
 class JobControllerException(Exception):
     "Raised for any exception in the JobController"
-    pass
+
 
 def jassert(test, *args):
     "Version of assert that raises a JobControllerException"

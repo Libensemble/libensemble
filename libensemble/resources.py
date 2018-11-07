@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
-class ResourcesException(Exception): pass
+class ResourcesException(Exception):
+    "Resources module exception."
 
 class Resources:
 

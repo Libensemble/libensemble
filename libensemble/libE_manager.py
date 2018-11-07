@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 class ManagerException(Exception):
     "Exception at manager, raised on abort signal from worker"
-    pass
 
 
 def manager_main(hist, libE_specs, alloc_specs,

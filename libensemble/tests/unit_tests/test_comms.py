@@ -7,9 +7,11 @@ Unit test of comms for libensemble.
 import time
 import threading
 import queue
+import logging
 
 import numpy as np
 import libensemble.comms.comms as comms
+import libensemble.comms.logs as commlogs
 
 
 def test_qcomm():
@@ -24,9 +26,13 @@ def test_qcomm():
     assert outq.get() == ('a', 1) and outq.get() == ('b',) and outq.empty(), \
       "Check send appropriately goes to output queue."
 
+    comm.push_back('b',0)
     inq.put(('c', 3))
     inq.put(('d',))
-    assert comm.recv() == ('c', 3) and comm.recv() == ('d',) and inq.empty(), \
+    assert (comm.recv() == ('b',0)
+            and comm.recv() == ('c', 3)
+            and comm.recv() == ('d',)
+            and inq.empty()), \
       "Check recv appropriately comes from input queue."
 
     flag = True
@@ -326,11 +332,13 @@ def run_qcomm_threadproc_test(ThreadProc):
     results['f'] = [5, 10, 30]
     resultsf = results['f']
     with ThreadProc(worker_thread, gen_specs=gen_specs) as mgr_comm:
+        assert mgr_comm.running
         assert mgr_comm.recv()[0] == 'request'
         mgr_comm.send('queued', 0)
         assert mgr_comm.recv()[0] == 'request'
         mgr_comm.send('queued', 1)
         time.sleep(0.2)
+        assert not mgr_comm.mail_flag()
         mgr_comm.send('result', 0, results[0])
         time.sleep(0.5)
         mgr_comm.send('result', 1, results[1])
@@ -368,3 +376,19 @@ def test_qcomm_threadproc():
     "Test CommEval between threads and processes"
     run_qcomm_threadproc_test(comms.QCommThread)
     run_qcomm_threadproc_test(comms.QCommProcess)
+
+
+def test_comm_logging():
+    "Test logging from a worker process is handled correctly."
+
+    def worker_main(comm):
+        ch = commlogs.CommLogHandler(comm)
+        logger = logging.getLogger()
+        logger.addHandler(ch)
+        logger.setLevel(logging.INFO)
+        logger.info("Test message")
+        comm.send("Done!")
+
+    with comms.QCommProcess(worker_main) as mgr_comm:
+        msg = mgr_comm.recv()
+        assert isinstance(msg[0], logging.LogRecord)

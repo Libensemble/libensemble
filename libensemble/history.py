@@ -9,8 +9,6 @@ logger = logging.getLogger(__name__)
 #For debug messages - uncomment
 #logger.setLevel(logging.DEBUG)
 
-class HistoryException(Exception): pass
-
 class History:
 
     """The History Class provides methods for managing the history array.

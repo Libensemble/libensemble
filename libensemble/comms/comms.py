@@ -35,17 +35,14 @@ import numpy as np
 
 class Timeout(Exception):
     "Communication timeout exception."
-    pass
 
 
 class CommFinishedException(Exception):
     "Read from terminated comm exception."
-    pass
 
 
 class ManagerStop(Exception):
     "Exception raised by default when manager sends a stop message."
-    pass
 
 
 class RemoteException(Exception):
@@ -87,12 +84,10 @@ class Comm(ABC):
     @abstractmethod
     def send(self, *args):
         "Send a message."
-        pass
 
     @abstractmethod
     def recv(self, timeout=None):
         "Receive a message or raise TimeoutError."
-        pass
 
     def mail_flag(self):
         "Check whether we know a message is ready for receipt."
@@ -100,7 +95,6 @@ class Comm(ABC):
 
     def kill_pending(self):
         "Cancel any pending sends (don't worry about those in the system)."
-        pass
 
 
 class QComm(Comm):
@@ -372,27 +366,22 @@ class GenCommHandler(CommHandler):
     @abstractmethod
     def on_worker_avail(self, nworker):
         "Handle updated number of workers available to perform sims."
-        pass
 
     @abstractmethod
     def on_queued(self, sim_id):
         "Handle sim_id assignment in response to a request"
-        pass
 
     @abstractmethod
     def on_result(self, sim_id, recs):
         "Handle simulation results"
-        pass
 
     @abstractmethod
     def on_update(self, sim_id, recs):
         "Handle simulation updates"
-        pass
 
     @abstractmethod
     def on_killed(self, sim_id):
         "Handle a simulation kill"
-        pass
 
 
 class SimCommHandler(CommHandler):
@@ -417,12 +406,10 @@ class SimCommHandler(CommHandler):
     @abstractmethod
     def on_request(self, sim_id, recs):
         "Handle a request for a simulation"
-        pass
 
     @abstractmethod
     def on_kill(self, sim_id):
         "Handle a request to kill a simulation"
-        pass
 
 
 class CommEval(GenCommHandler):
