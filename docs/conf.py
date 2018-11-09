@@ -66,6 +66,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 ##breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["libE.py", "test.cpp"] )}
 #breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["test.cpp","test2.cpp"] )}
 
+autodoc_mock_imports = ["balsam"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -14,7 +14,7 @@ from libensemble.controller import \
 from libensemble.mpi_controller import MPIJobController
 
 import balsam.launcher.dag as dag
-from balsam.service import models
+from balsam.core import models
 
 logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
 #For debug messages in this module  - uncomment
@@ -117,19 +117,24 @@ class BalsamJob(Job):
 
 
 class BalsamJobController(MPIJobController):
-    """Inherits from JobController and wraps the Balsam job management service
+    """Inherits from MPIJobController and wraps the Balsam job management service
 
     .. note::  Job kills are not configurable in the Balsam job_controller.
 
     """
-    def __init__(self, auto_resources=True,
+    def __init__(self, auto_resources=True, central_mode=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None):
         """Instantiate a new BalsamJobController instance.
 
         A new BalsamJobController object is created with an application
         registry and configuration attributes
         """
-        super().__init__(auto_resources,
+        
+        if not central_mode:
+            logger.warning("Balsam does not currently support distributed mode - running in central mode")
+            central_mode=True
+            
+        super().__init__(auto_resources, central_mode,
                          nodelist_env_slurm, nodelist_env_cobalt)
         self.mpi_launcher = None
         if MPI.COMM_WORLD.Get_rank() == 0:
