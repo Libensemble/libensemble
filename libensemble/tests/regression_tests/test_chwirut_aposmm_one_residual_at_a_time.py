@@ -83,6 +83,7 @@ np.random.RandomState(0)
 gen_specs['sample_points'] = np.random.uniform(0,1,(max_sim_budget,n))*(gen_specs['ub']-gen_specs['lb'])+gen_specs['lb']
 
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
+                 'elapsed_wallclock_time': 300
                   }
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
 
@@ -97,10 +98,18 @@ persis_info['H_len'] = 0
 
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+
+persis_info['last_worker'] = 0
+persis_info[0] = {'active_runs': set(),
+                  'run_order': {},
+                  'old_runs': {},
+                  'total_runs': 0,
+                  'rand_stream': np.random.RandomState(1)}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
+    assert flag == 0
     assert len(H) >= max_sim_budget
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())

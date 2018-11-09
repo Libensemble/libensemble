@@ -75,6 +75,7 @@ gen_specs = {'gen_f': aposmm_logic,
              'num_active_gens': 1,
              'batch_mode': True,
              'high_priority_to_best_localopt_runs': True,
+             'max_active_runs': 3,
              }
 
 # Tell libEnsemble when to stop
@@ -87,6 +88,12 @@ np.random.seed(1)
 persis_info = {}
 for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+
+persis_info[1]['total_runs'] = 0
+persis_info[1]['active_runs'] = set()
+persis_info[1]['run_order'] = {}
+persis_info[1]['old_runs'] = {}
+persis_info[1]['total_runs'] = 0
 # Perform the run
 
 if __name__ == "__main__":

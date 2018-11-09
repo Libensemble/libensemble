@@ -116,14 +116,14 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
     exit_flag: :obj:`int`
 
         Flag containing job status: 0 = No errors,
-        1 = Exception occured and MPI aborted,
+        1 = Exception occured
         2 = Manager timed out and ended simulation
 
     """
     #sys.excepthook = comms_abort(libE_specs['comm'])
     H = exit_flag = []
     libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    
+
     if libE_specs['comm'].Get_rank() == 0:
         CalcInfo.make_statdir()
     libE_specs['comm'].Barrier()
@@ -196,7 +196,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     assert len(exit_criteria) > 0, "Must have some exit criterion"
     valid_term_fields = ['sim_max', 'gen_max', 'elapsed_wallclock_time', 'stop_val']
-    assert any([term_field in exit_criteria for term_field in valid_term_fields]), "Must have a valid termination option: " + str(valid_term_fields)
+    assert all([term_field in valid_term_fields for term_field in exit_criteria]), "Valid termination options: " + str(valid_term_fields)
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert len(gen_specs['out']), "gen_specs must have 'out' entries"

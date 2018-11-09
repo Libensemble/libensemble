@@ -26,16 +26,12 @@ from balsam.service import models
 
 def del_jobs():
     """ Deletes all jobs """
-    import balsam.launcher.dag as dag
-    from balsam.service import models
     Job = models.BalsamJob
     deletion_objs = Job.objects.all()
     deletion_objs.delete()
 
 def add_app(name,exepath,desc):
     """ Add application to database """
-    #import balsam.launcher.dag as dag
-    #from balsam.service import models
     AppDef = models.ApplicationDefinition
     app = AppDef()
     app.name = name

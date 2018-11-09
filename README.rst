@@ -79,7 +79,9 @@ regularly on:
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
-The test suite requires the pytest, pytest-cov and pytest-timeout packages to be installed and can be run from the libensemble/tests directory of the source distribution by running::
+The test suite requires the mock, pytest, pytest-cov and pytest-timeout
+packages to be installed and can be run from the libensemble/tests directory of
+the source distribution by running::
 
     ./run-tests.sh
 

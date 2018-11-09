@@ -15,7 +15,11 @@
 export EXE=libE_calling_script.py
 export NUM_WORKERS=4
 export MANAGER_NODE=false #true = Manager has a dedicated node (use one extra node for SBATCH -N)
-export I_MPI_FABRICS=shm:ofa
+
+unset I_MPI_FABRICS
+export I_MPI_FABRICS_LIST=tmi,tcp
+export I_MPI_FALLBACK=1
+
 
 #If using in calling script (After N mins manager kills workers and timing.dat created.)
 export LIBE_WALLCLOCK=55

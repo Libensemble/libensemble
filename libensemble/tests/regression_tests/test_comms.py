@@ -33,13 +33,11 @@ if USE_DILL:
 from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
-from libensemble.register import Register #Only being used to pass workerID
-from libensemble.controller import JobController #Only being used to pass workerID
+from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID
 from libensemble.resources import Resources #Only to get number of workers
 
-registry = Register()
-jobctrl = JobController(registry = registry, auto_resources = False)
-#registry.register_calc(full_path=sim_app, calc_type='sim') #Test with no app registered.
+jobctrl = MPIJobController(auto_resources = False)
+#jobctrl.register_calc(full_path=sim_app, calc_type='sim') #Test with no app registered.
 num_workers = Resources.get_num_workers()
 
 array_size = int(1e6)   # Size of large array in sim_specs
@@ -70,7 +68,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              }
 
 #sim_max = num_workers
-exit_criteria = {'sim_max': sim_max}
+exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 
 
 np.random.seed(1)
@@ -83,6 +81,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
 
 if MPI.COMM_WORLD.Get_rank() == 0:
+    assert flag == 0
     #import pdb; pdb.set_trace()
     for w in range(1, num_workers+1):
         x = w * 1000.0

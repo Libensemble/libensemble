@@ -81,7 +81,9 @@ class Resources:
 
         self.top_level_dir = top_level_dir or os.getcwd()
         self.central_mode = central_mode
-
+        if self.central_mode:
+            logger.debug('Running in central mode')
+            
         # These presence of these env vars will be used to detect scheduler
         self.nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
@@ -125,6 +127,13 @@ class Resources:
         from mpi4py import MPI
         num_workers = MPI.COMM_WORLD.Get_size() - 1
         return num_workers
+
+    @staticmethod
+    def get_my_name():
+        """Return name string"""
+        if Resources.am_I_manager():
+            return 'Manager'
+        return 'w{}'.format(Resources.get_workerID())
 
     #Call from all libE tasks (pref. inc. manager)
     @staticmethod

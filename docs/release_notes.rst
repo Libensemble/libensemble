@@ -2,6 +2,23 @@
 Release Notes
 =============
 
+Release 0.4.0
+-------------
+
+:Date: November 7, 2018
+
+* Separate job controller classes into different modules including a base class (API change)
+* Add central_mode run option to distributed type (MPI) job_controllers (API addition) (#93)
+* Make poll and kill job methods (API change)
+* In job_controller, set_kill_mode is removed and replaced by a wait argument for a hard kill (API change)
+* Removed register module - incorporated into job_controller (API change)
+* APOSMM has improved asynchronicity when batch mode is false (with new example). (#96)
+* Manager errors (instead of hangs) when alloc_f or gen_f don't return work when all workers are idle. (#95)
+
+:Known issues:
+
+* OpenMPI is not supported with direct MPI launches as nested MPI launches are not supported.
+
 
 Release 0.3.0
 -------------

@@ -12,7 +12,9 @@ __all__ = ['aposmm_logic','initialize_APOSMM', 'decide_where_to_start_localopt',
 import sys, os, traceback
 import numpy as np
 # import scipy as sp
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import cdist, pdist, squareform
+# from scipy import optimize as scipy_optimize
+
 from mpi4py import MPI
 
 from numpy.lib.recfunctions import merge_arrays
@@ -69,7 +71,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     Optional ``gen_specs`` entries are:
 
-    - ``'sample_points' [int]``: The points to be sampled (in the original domain)
+    - ``'sample_points' [numpy array]``: The points to be sampled (in the original domain)
     - ``'combine_component_func' [func]``: Function to combine objective components
     - ``'components' [int]``: Number of objective components
     - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the distance to the nearest boundary should the initial step size be in localopt runs
@@ -132,7 +134,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     """
 
-    n, n_s, c_flag, O, rk_const, lhs_divisions, mu, nu = initialize_APOSMM(H, gen_specs)
+    n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
     if n_s < gen_specs['initial_sample_size']:
@@ -143,16 +145,11 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         updated_inds = update_history_dist(H, gen_specs, c_flag)
 
-        starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions, mu, nu)
+        starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         updated_inds.update(starting_inds)
 
         for ind in starting_inds:
             # Find the run number
-            if not np.any(H['started_run']):
-                persis_info['active_runs'] = set()
-                persis_info['run_order'] = {}
-                persis_info['total_runs'] = 0
-
             new_run_num = persis_info['total_runs']
 
             H['started_run'][ind] = 1
@@ -162,10 +159,33 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             persis_info['active_runs'].update([new_run_num])
             persis_info['total_runs'] +=1
 
+        num_runs = len(persis_info['run_order'])
+        if 'max_active_runs' in gen_specs and gen_specs['max_active_runs'] < num_runs:
+            run_vals = np.zeros((num_runs,2),dtype=int)
+            for i,run in enumerate(persis_info['run_order'].keys()):
+                run_vals[i,0] = run
+                run_vals[i,1] = persis_info['run_order'][run][np.nanargmin(H['f'][persis_info['run_order'][run]])]
+
+            P = squareform(pdist(H['x_on_cube'][run_vals[:,1]], 'euclidean'))
+            dist_to_better = np.inf*np.ones(num_runs)
+
+            for i in range(num_runs):
+                better = H['f'][run_vals[:,1]]<H['f'][run_vals[i,1]]
+                if any(better):
+                    dist_to_better[i] = np.min(P[i,better])
+
+            k_sorted = np.argpartition(-dist_to_better,kth=gen_specs['max_active_runs']-1) # Take max_active_runs largest
+            
+            persis_info['active_runs'] = set(run_vals[k_sorted[:gen_specs['max_active_runs']],0].astype(int))
+        else:
+            persis_info['active_runs'] = set(persis_info['run_order'].keys())
+
         inactive_runs = set()
 
         # Find next point in any uncompleted runs using information stored in persis_info
         for run in persis_info['active_runs']:
+            if not np.all(H['returned'][persis_info['run_order'][run]]): 
+                continue # Can't advance this run since all of it's points haven't been returned.
 
             x_opt, exit_code, persis_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
 
@@ -186,7 +206,8 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         for i in inactive_runs:
             persis_info['active_runs'].remove(i)
-            persis_info['run_order'].pop(i) # Deletes any information about this run
+            old_run = persis_info['run_order'].pop(i) # Deletes any information about this run
+            persis_info['old_runs'][i] = old_run
 
     if len(H) == 0:
         samples_needed = gen_specs['initial_sample_size']
@@ -195,15 +216,17 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     else:
         samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
 
-    if samples_needed > 0:
-        if 'sample_points' in gen_specs:
-            v = sum(H['local_pt'])
-            x_new = gen_specs['sample_points'][v:v+samples_needed]
-            on_cube = False # We assume the points are on the original domain, not unit cube
-        else:
-            x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
-            on_cube = True
+    if samples_needed > 0 and 'sample_points' in gen_specs:
+        v = sum(~H['local_pt']) # Number of sample points so far
+        x_new = gen_specs['sample_points'][v:v+samples_needed]
+        on_cube = False # We assume the points are on the original domain, not unit cube
+        if len(x_new):
+            persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
+        samples_needed = samples_needed - len(x_new)
 
+    if samples_needed > 0:
+        x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
+        on_cube = True
         persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
 
     O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
@@ -387,11 +410,9 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
 
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
-        assert all(H['returned'][sorted_run_inds])
-
         x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
 
-        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NELDERMEAD', 'LD_MMA']:
+        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
 
             if gen_specs['localopt_method'] in ['LD_MMA']:
                 fields_to_pass = ['x_on_cube','f','grad']
@@ -402,15 +423,7 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
                 x_opt, exit_code = set_up_and_run_nlopt(H[fields_to_pass][sorted_run_inds], gen_specs)
             except Exception as e:
                 exit_code = 0
-                print(e.__doc__)
-                print(e.args)
-                print("These are the points in the run that has failed:", H['x_on_cube'][sorted_run_inds])
-                _, _, tb = sys.exc_info()
-                traceback.print_tb(tb) # Fixed format
-                tb_info = traceback.extract_tb(tb)
-                filename, line, func, text = tb_info[-1]
-                print('An error occurred on line {} in statement {}'.format(line, text))
-
+                display_exception(e)
 
         elif gen_specs['localopt_method'] in ['pounders']:
 
@@ -427,14 +440,19 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
                 x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
             except Exception as e:
                 exit_code = 0
-                print(e.__doc__)
-                print(e.args)
-                print("These are the points in the run that has failed:", Run_H['x_on_cube'])
-                _, _, tb = sys.exc_info()
-                traceback.print_tb(tb) # Fixed format
-                tb_info = traceback.extract_tb(tb)
-                filename, line, func, text = tb_info[-1]
-                print('An error occurred on line {} in statement {}'.format(line, text))
+                display_exception(e)
+
+        # elif gen_specs['localopt_method'] in ['COBYLA']:
+
+        #     fields_to_pass = ['x_on_cube','f']
+
+        #     try:
+        #         x_opt, exit_code = set_up_and_run_scipy_minimize(H[fields_to_pass][sorted_run_inds], gen_specs)
+        #     except Exception as e:
+        #         exit_code = 0
+        #         display_exception(e)
+
+
         else:
             sys.exit("Unknown localopt method. Exiting")
 
@@ -449,6 +467,41 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
     return x_opt, exit_code, persis_info, sorted_run_inds
 
 
+
+# def set_up_and_run_scipy_minimize(Run_H, gen_specs):
+#     """ Set up objective and runs scipy
+
+#     Declares the appropriate syntax for our special objective function to read
+#     through Run_H, sets the parameters and starting points for the run.
+#     """
+
+#     def scipy_obj_fun(x, Run_H):
+#         out = look_in_history(x, Run_H)
+
+#         return out
+
+#     obj = lambda x: scipy_obj_fun(x, Run_H)
+#     x0 = Run_H['x_on_cube'][0]
+
+
+#     import ipdb; ipdb.set_trace()
+#     #construct the bounds in the form of constraints
+#     cons = []
+#     for factor in range(len(x0)):
+#         l = {'type': 'ineq',
+#              'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i] - lb}
+#         u = {'type': 'ineq',
+#              'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub - x[i]}
+#         cons.append(l)
+#         cons.append(u)
+
+#     res = scipy_optimize.minimize(obj,x0,method=gen_specs['localopt_method'],options={'maxiter':len(Run_H['x_on_cube'])+1})
+
+#     if res['status'] == 2: # SciPy code for exhausting budget of evaluations, so not at a minimum
+#         exit_code = 0
+
+#     x_opt = res['x']
+#     return x_opt, exit_code
 
 
 def set_up_and_run_nlopt(Run_H, gen_specs):
@@ -586,7 +639,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
 
 
 
-def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0, gamma_quantile=1):
+def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     """
     Finds points in the history that satisfy the conditions (S1-S5 and L1-L8) in
     Table 1 of the `APOSMM paper <https://doi.org/10.1007/s12532-017-0131-4>`_
@@ -605,10 +658,8 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     ----------
     H: numpy structured array
         History array storing rows for each point.
-    n_s: integer
-        Number of sample points
-    rk_const: float
-        Constant in front of r_k evaluation
+    r_k_const: float
+        Radius for deciding when to start runs 
     lhs_divisions: integer
         Number of Latin hypercube sampling divisions (0 or 1 means uniform
         random sampling over the domain)
@@ -631,7 +682,6 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
     """
 
     n = len(H['x_on_cube'][0])
-    r_k = calc_rk(n, n_s, rk_const, lhs_divisions)
 
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
@@ -684,80 +734,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, lhs_divisions=0, mu=0, nu=0
 
 
     local_start_inds2 = list(np.ix_(local_seeds)[0])
-    # if ignore_L8:
-    # if True:
-    #     local_start_inds2 = list(np.ix_(local_seeds)[0])
-    # else:
-    #     # ### For L8, search for an rk-ascent path for a sample point
-    #     # lb = np.zeros(n)
-    #     # ub = np.ones(n)
-    #     # local_start_inds = []
-    #     # for i in np.ix_(local_seeds)[0]:
-    #     #     old_local_on_rk_ascent = np.array(np.zeros(len(H)), dtype=bool)
-    #     #     local_on_rk_ascent = np.array(np.eye(len(H))[i,:], dtype=bool)
 
-    #     #     done_with_i = False
-    #     #     while not done_with_i and not np.array_equiv(old_local_on_rk_ascent, local_on_rk_ascent):
-    #     #         old_local_on_rk_ascent = local_on_rk_ascent.copy()
-    #     #         to_add = np.array(np.zeros(len(H)),dtype=bool)
-    #     #         for j in np.ix_(local_on_rk_ascent)[0]:
-    #     #             if keep_pdist:
-    #     #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], H['dist_to_all'][:,j] <= r_k))
-    #     #             else:
-    #     #                 ind_of_last = np.max(np.ix_(H['returned']))
-    #     #                 pdist_vec = cdist([H['x_on_cube'][j]], H['x_on_cube'][:ind_of_last+1], 'euclidean').flatten()
-    #     #                 pdist_vec = np.append(pdist_vec, np.zeros(len(H)-ind_of_last-1))
-    #     #                 samples_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'], ~H['local_pt'], pdist_vec <= r_k))
-
-    #     #             if np.any(np.logical_and(samples_on_rk_ascent_from_j, sample_seeds)):
-    #     #                 done_with_i = True
-    #     #                 local_start_inds.append(i)
-    #     #                 break
-
-    #     #             if keep_pdist:
-    #     #                 feasible_locals_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'],
-    #     #                                                                              np.all(ub - H['x_on_cube'] >= 0, axis=1),
-    #     #                                                                              np.all(H['x_on_cube'] - lb >= 0, axis=1),
-    #     #                                                                              H['local_pt'],
-    #     #                                                                              H['dist_to_all'][:,j] <= r_k
-    #     #                                                                            ))
-    #     #             else:
-    #     #                 feasible_locals_on_rk_ascent_from_j = np.logical_and.reduce((H['f'][j] <= H['f'],
-    #     #                                                                              np.all(ub - H['x_on_cube'] >= 0, axis=1),
-    #     #                                                                              np.all(H['x_on_cube'] - lb >= 0, axis=1),
-    #     #                                                                              H['local_pt'],
-    #     #                                                                              pdist_vec <= r_k
-    #     #                                                                            ))
-
-    #     #             to_add = np.logical_or(to_add, feasible_locals_on_rk_ascent_from_j)
-    #     #         local_on_rk_ascent = to_add.copy()
-
-    #     #     if not done_with_i:
-    #     #         # sys.exit("We have an i satisfying (L1-L7) but failing L8")
-    #     #         print("\n\n We have ind %d satisfying (L1-L7) but failing L8 \n\n" % i)
-
-    #     # ### Faster L8 test
-    #     local_start_inds2 = []
-    #     for i in np.ix_(local_seeds)[0]:
-    #         old_pts_on_rk_ascent = np.array(np.zeros(len(H)), dtype=bool)
-    #         pts_on_rk_ascent = H['worse_within_rk'][i]
-
-    #         done_with_i = False
-    #         while not done_with_i and not np.array_equiv(old_pts_on_rk_ascent, pts_on_rk_ascent):
-    #             old_pts_on_rk_ascent = pts_on_rk_ascent.copy()
-    #             to_add = np.array(np.zeros(len(H)),dtype=bool)
-    #             for j in np.ix_(pts_on_rk_ascent)[0]:
-    #                 to_add = np.logical_or(to_add, H['worse_within_rk'][i])
-    #             pts_on_rk_ascent = to_add
-    #             if np.any(np.logical_and(to_add, sample_seeds)):
-    #                 done_with_i = True
-    #                 local_start_inds2.append(i)
-    #                 break
-    #         if not done_with_i:
-    #             print("Again, we have ind %d satisfying (L1-L7) but failing L8\n" % i)
-
-    #     # assert local_start_inds.sort() == local_start_inds2.sort(), "Something didn't match up"
-    # # start_inds = list(sample_start_inds) + local_start_inds
     start_inds = list(sample_start_inds) + local_start_inds2
     return start_inds
 
@@ -861,7 +838,12 @@ def initialize_APOSMM(H, gen_specs):
     else:
         nu = 0
 
-    return n, n_s, c_flag, O, rk_c, ld, mu, nu
+    if n_s > 0:
+        r_k = calc_rk(n, n_s, rk_c, ld)
+    else:
+        r_k = np.inf
+
+    return n, n_s, c_flag, O, r_k, mu, nu
 
 
 def queue_update_function(H, gen_specs, persis_info):
@@ -929,6 +911,14 @@ def queue_update_function(H, gen_specs, persis_info):
 
     return persis_info
 
+def display_exception(e):
+    print(e.__doc__)
+    print(e.args)
+    _, _, tb = sys.exc_info()
+    traceback.print_tb(tb) # Fixed format
+    tb_info = traceback.extract_tb(tb)
+    filename, line, func, text = tb_info[-1]
+    print('An error occurred on line {} in statement {}'.format(line, text))
 
 # if __name__ == "__main__":
 #     [H,gen_specs,persis_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','persis_info']]
