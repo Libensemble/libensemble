@@ -13,7 +13,7 @@ import traceback
 import numpy as np
 
 from libensemble.history import History
-from libensemble.libE_manager import manager_main
+from libensemble.libE_manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.comms.comms import QCommProcess, Timeout
@@ -30,9 +30,16 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def report_manager_exception(hist):
+def report_manager_exception(hist, mgr_exc=None):
     "Write out exception manager exception to stderr and flush streams."
-    eprint(traceback.format_exc())
+    if mgr_exc is not None:
+        from_line, msg, exc = mgr_exc.args
+        eprint("\n---- {} ----".format(from_line))
+        eprint("Message: {}".format(msg))
+        eprint(exc)
+        eprint("--------\n")
+    else:
+        eprint(traceback.format_exc())
     eprint("\nManager exception raised .. aborting ensemble:\n")
     eprint("\nDumping ensemble history with {} sims evaluated:\n".
            format(hist.sim_count))
@@ -127,26 +134,62 @@ def libE(sim_specs, gen_specs, exit_criteria,
                   persis_info, alloc_specs, libE_specs, H0)
 
 
+def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
+                 alloc_specs, libE_specs, hist,
+                 on_abort=None, on_cleanup=None):
+    "Generic manager routine run."
+
+    try:
+        persis_info, exit_flag = \
+          manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
+                       exit_criteria, persis_info, wcomms)
+    except ManagerException as e:
+        report_manager_exception(hist, e)
+        if libE_specs.get('abort_on_exception', True) and on_abort is not None:
+            on_abort()
+        raise
+    except Exception:
+        report_manager_exception(hist)
+        if libE_specs.get('abort_on_exception', True) and on_abort is not None:
+            on_abort()
+        raise
+    else:
+        logger.debug("Manager exiting")
+        print(len(wcomms), exit_criteria)
+        sys.stdout.flush()
+    finally:
+        if on_cleanup is not None:
+            on_cleanup()
+
+    H = hist.trim_H()
+    return H, persis_info, exit_flag
+
+
 # ==================== MPI version =================================
 
 
 def comms_abort(comm):
-    '''Abort all MPI ranks'''
+    "Abort all MPI ranks"
     comm.Abort(1) # Exit code 1 to represent an abort
+
+
+def libE_mpi_defaults(libE_specs):
+    "Fill in default values for MPI-based communicators."
+
+    from mpi4py import MPI
+
+    if 'comm' not in libE_specs:
+        libE_specs['comm'] = MPI.COMM_WORLD
+    if 'color' not in libE_specs:
+        libE_specs['color'] = 0
+    return libE_specs
 
 
 def libE_mpi(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "MPI version of the libE main routine"
 
-    from mpi4py import MPI
-
-    # Fill in default values (e.g. MPI_COMM_WORLD for communicator)
-    if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD
-    if 'color' not in libE_specs:
-        libE_specs['color'] = 0
-
+    libE_specs = libE_mpi_defaults(libE_specs)
     comm = libE_specs['comm']
     rank = comm.Get_rank()
     is_master = (rank == 0)
@@ -162,8 +205,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
                                 persis_info, alloc_specs, libE_specs, H0)
 
     # Worker returns a subset of MPI output
-    libE_mpi_worker(comm, sim_specs, gen_specs, persis_info, libE_specs)
-    H = exit_flag = []
+    libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
     return [], persis_info, []
 
 
@@ -173,34 +215,25 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     from libensemble.comms.mpi import MainMPIComm
 
-    exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Lauch worker team
     wcomms = [MainMPIComm(mpi_comm, w) for w in
               range(1, mpi_comm.Get_size())]
+    manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
 
-    try:
-        manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
-        persis_info, exit_flag = \
-          manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
-                       exit_criteria, persis_info, wcomms)
+    # Set up abort handler
+    def on_abort():
+        "Shut down MPI on error."
+        comms_abort(mpi_comm)
 
-    except Exception:
-        report_manager_exception(hist)
-        if libE_specs.get('abort_on_exception', True):
-            comms_abort(mpi_comm)
-        raise
-    else:
-        logger.debug("Manager exiting")
-        print(len(wcomms), exit_criteria)
-        sys.stdout.flush()
-
-    H = hist.trim_H()
-    return H, persis_info, exit_flag
+    # Run generic manager
+    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                        persis_info, alloc_specs, libE_specs, hist,
+                        on_abort=on_abort)
 
 
-def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, persis_info, libE_specs):
+def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
@@ -240,30 +273,21 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
                               alloc_specs, sim_specs, gen_specs,
                               exit_criteria, H0)
 
-    exit_flag = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # Launch worker team
+    # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs)
+    manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
 
-    try:
-        # Set up logger and run manager
-        manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
-        persis_info, exit_flag = \
-          manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
-                       exit_criteria, persis_info, wcomms)
-    except Exception:
-        report_manager_exception(hist)
-        raise
-    else:
-        logger.debug("Manager exiting")
-        print(nworkers, exit_criteria)
-        sys.stdout.flush()
-    finally:
+    # Set up cleanup routine to shut down worker team
+    def cleanup():
+        "Handler to clean up comms team."
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout'))
 
-    H = hist.trim_H()
-    return H, persis_info, exit_flag
+    # Run generic manager
+    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                        persis_info, alloc_specs, libE_specs, hist,
+                        on_cleanup=cleanup)
 
 
 # ==================== Common input checking =================================
