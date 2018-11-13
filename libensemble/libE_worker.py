@@ -166,6 +166,8 @@ class Worker:
         timer = Timer()
 
         try:
+            if calc_type == EVAL_GEN_TAG:
+                logger.debug("Running generator")
             calc = self._run_calc[calc_type]
             with timer:
                 with self.loc_stack.loc(calc_type):

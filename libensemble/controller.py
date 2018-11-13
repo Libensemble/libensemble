@@ -1,11 +1,12 @@
 """
 Module to launch and control running jobs.
 
-Contains job_controller and job.  Inherited classes include MPI and Balsam
-variants. A job_controller can create and manage multiple jobs. The worker or
-user-side code can issue and manage jobs using the launch, poll and kill
-functions. Job attributes are queried to determine status. Functions are also
-provided to access and interrogate files in the job's working directory.
+Contains job_controller and job. The class JobController is a base class and not
+intended for direct use. Instead one of the inherited classes should be used. Inherited
+classes include MPI and Balsam variants. A job_controller can create and manage
+multiple jobs. The worker or user-side code can issue and manage jobs using the launch,
+poll and kill functions. Job attributes are queried to determine status. Functions are
+also provided to access and interrogate files in the job's working directory.
 
 """
 
@@ -75,7 +76,7 @@ class Job:
         self.id = next(Job.newid)
 
         #Status attributes
-        self.state = 'CREATED' #: test1 docstring
+        self.state = 'CREATED'
         self.process = None
         self.errcode = None
         self.finished = False  # True means job ran, not that it succeeded
@@ -323,6 +324,10 @@ class JobController:
     def set_workerID(self, workerid):
         """Sets the worker ID for this job_controller"""
         self.workerID = workerid
+
+    def poll(self, job):
+        "Polls a job"
+        job.poll(job)
 
     def kill(self, job):
         "Kill a job"

@@ -3,46 +3,31 @@ Job Controller Module
 
 .. automodule:: controller
   :no-undoc-members:
-
+ 
 See  :doc:`example<overview>` for usage.
-  
-JobController Class
--------------------
 
-The JobController should be constructed after registering applications to a Registry::
+See the controller APIs for optional arguments. 
 
-    jobctl = JobController(registry = registry)
-
-or if using Balsam::
-
-   jobctr = BalsamJobController(registry = registry)
-
-.. autoclass:: JobController
-  :member-order: bysource
-  :members: __init__, launch, poll, manager_poll, kill, set_kill_mode
-
-.. autoclass:: BalsamJobController
-  :show-inheritance:
-  :member-order: bysource  
-..  :members: __init__, launch, poll, manager_poll, kill, set_kill_mode
-
+.. toctree::
+   :maxdepth: 1
+   :caption: Job Controllers:
+   
+   mpi_controller
+   balsam_controller
 
 Job Class
 ---------
 
-Jobs are created and returned though the job_controller launch function. Jobs can be passed as arguments
-to the job_controller poll and kill functions. Job information can be queired through the job attributes below and the query functions. Note that the job attributes are only updated when they are polled (or though other
-job controller functions).
+Jobs are created and returned though the job_controller launch function. Jobs can be polled and
+killed with the respective poll and kill functions. Job information can be queried through the job attributes
+below and the query functions. Note that the job attributes are only updated when they are
+polled/killed (or through other job or job controller functions).
 
 .. autoclass:: Job
-  :member-order: bysource
-  :members: workdir_exists, file_exists_in_workdir, read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr
-  
-.. autoclass:: BalsamJob
-  :show-inheritance:
-  :member-order: bysource
-..  :members: workdir_exists, file_exists_in_workdir, read_file_in_workdir, stdout_exists, read_stdout  
-..  :inherited-members:
+  :members:
+  :exclude-members: calc_job_timing,check_poll
+..  :member-order: bysource
+..  :members: poll, kill, workdir_exists, file_exists_in_workdir, read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr
 
 
 Job Attributes
@@ -65,7 +50,7 @@ Run configuration attributes - Some will be auto-generated:
 
 :job.workdir: (string) Work directory for the job
 :job.name: (string) Name of job - auto-generated
-:job.app: (app obj) Use application/executable, registered using registry.register_calc
+:job.app: (app obj) Use application/executable, registered using jobctl.register_calc
 :job.app_args: (string) Application arguments as a string  
 :job.num_procs: (int) Total number of processors for job
 :job.num_nodes: (int) Number of nodes for job
