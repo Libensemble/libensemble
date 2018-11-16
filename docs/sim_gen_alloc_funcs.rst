@@ -91,7 +91,7 @@ alloc_f API
 
 The alloc_f calculations will be called by libEnsemble with the following API::
 
-  Work, persis_info = alloc_f(W, H, sim_specs, gen_specs, persis_info)
+  Work, persis_info = alloc_f(W, H, sim_specs, gen_specs, alloc_specs, persis_info)
 
 Parameters:
 ***********
@@ -107,6 +107,9 @@ Parameters:
 
   **gen_specs**: :obj:`dict`
   :doc:`(example)<data_structures/gen_specs>`
+
+  **alloc_specs**: :obj:`dict`
+  :doc:`(example)<data_structures/alloc_specs>`
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`

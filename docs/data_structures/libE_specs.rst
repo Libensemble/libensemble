@@ -10,5 +10,3 @@ Specifications for libEnsemble::
             libEnsemble communicator. Default: MPI.COMM_WORLD
         'color' [int] :
             Communicator color. Default: 0
-        'queue_update_function' [func] :
-            Default: []
