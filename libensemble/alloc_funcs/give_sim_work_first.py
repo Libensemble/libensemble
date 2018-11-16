@@ -6,7 +6,7 @@ from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_gens
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are

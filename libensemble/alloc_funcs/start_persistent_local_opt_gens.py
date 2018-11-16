@@ -10,7 +10,7 @@ from libensemble.gen_funcs.aposmm import \
      initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
 
-def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, persis_info):
+def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will:
 

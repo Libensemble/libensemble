@@ -5,7 +5,7 @@ from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_gens
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
