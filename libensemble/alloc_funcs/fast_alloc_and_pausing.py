@@ -7,7 +7,6 @@ import sys
 from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_gens
 
-@profile
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
@@ -34,7 +33,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     gen_count = count_gens(W)
 
     if len(H)!=persis_info['H_len']:
-        # import ipdb; ipdb.set_trace()
         # Something new is in the history.
         persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())
         persis_info['H_len']=len(H)
@@ -45,7 +43,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         # Find indices of H that are not yet allocated
         if len(persis_info['need_to_give']):
-            # import ipdb; ipdb.set_trace()
             # Pause entries in H if one component is evaluated at a time and there are
             # any NaNs for some components.
             if 'stop_on_NaNs' in alloc_specs and alloc_specs['stop_on_NaNs']:
@@ -55,7 +52,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # worse than the best, known, complete evaluation (and the point is not a
             # local_opt point).
             if 'stop_partial_fvec_eval' in alloc_specs and alloc_specs['stop_partial_fvec_eval']:
-                # import ipdb; ipdb.set_trace()
                 pt_ids = np.unique(H['pt_id'])
 
                 for j,pt_id in enumerate(pt_ids):
