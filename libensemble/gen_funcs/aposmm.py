@@ -410,9 +410,16 @@ def update_history_optimal(x_opt, H, run_inds):
     Updated the history after any point has been declared a local minimum
     """
 
-    opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0]
-    assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
-    assert opt_ind in run_inds, "Why isn't the run optimum a point in the run?"
+    # opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
+    # assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
+    # assert opt_ind in run_inds, "Why isn't the run optimum a point in the run?"
+
+    dists = np.linalg.norm(H['x_on_cube'][run_inds]-x_opt,axis=1)
+    ind = np.argmin(dists)
+    opt_ind = run_inds[ind]
+
+    assert dists[ind] <= 1e-15, "Why is the closest point to x_opt not within 1e-15?"
+    assert np.min(dists[run_inds != opt_ind]) >= 1e-15, "Why are there two points from the run within 1e-15 of x_opt?"
 
     H['local_min'][opt_ind] = 1
     H['num_active_runs'][run_inds] -= 1
