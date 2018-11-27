@@ -10,12 +10,19 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
 from libensemble.libE import libE
+
+# APOSMM uses MPI explicitly
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    quit()
+else:
+    from mpi4py import MPI
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
@@ -105,7 +112,7 @@ for run in range(2):
     # Making persis_info fields to store APOSMM information, but will be passed
     # to various workers.
 
-    for i in range(1,MPI.COMM_WORLD.Get_size()):
+    for i in range(1,nworkers+1):
         persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
     if run == 1:
@@ -124,9 +131,9 @@ for run in range(2):
         exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
         minima = np.array([[-2.9, -1.9]])
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    if MPI.COMM_WORLD.Get_rank() == 0:
+    if is_master:
 
         if flag != 0:
             print("Exit was not on convergence (code {})".format(flag))
@@ -134,7 +141,7 @@ for run in range(2):
             MPI.COMM_WORLD.Abort(1)
 
         short_name = script_name.split("test_", 1).pop()
-        filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+        filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(nworkers+1)
         print("\n\n\nRun completed.\nSaving results to file: " + filename)
         np.save(filename, H)
 

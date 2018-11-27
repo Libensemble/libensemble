@@ -15,10 +15,9 @@ import logging
 import itertools
 import time
 
-import libensemble.launcher as launcher
-from libensemble.resources import Resources
+import libensemble.util.launcher as launcher
 
-logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
+logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment
 #(see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
@@ -35,7 +34,7 @@ FAILED""".split()
 
 class JobControllerException(Exception):
     "Raised for any exception in the JobController"
-    pass
+
 
 def jassert(test, *args):
     "Version of assert that raises a JobControllerException"
@@ -329,7 +328,7 @@ class JobController:
     def poll(self, job):
         "Polls a job"
         job.poll(job)
-        
+
     def kill(self, job):
         "Kill a job"
         jassert(isinstance(job, Job), "Invalid job has been provided")

@@ -16,12 +16,13 @@ from scipy.spatial.distance import cdist, pdist, squareform
 # from scipy import optimize as scipy_optimize
 
 from mpi4py import MPI
+from petsc4py import PETSc
+
 
 from numpy.lib.recfunctions import merge_arrays
 
 from math import log, gamma, pi, sqrt
 
-from petsc4py import PETSc
 import nlopt
 
 def aposmm_logic(H,persis_info,gen_specs,_):
@@ -175,7 +176,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
                     dist_to_better[i] = np.min(P[i,better])
 
             k_sorted = np.argpartition(-dist_to_better,kth=gen_specs['max_active_runs']-1) # Take max_active_runs largest
-            
+
             persis_info['active_runs'] = set(run_vals[k_sorted[:gen_specs['max_active_runs']],0].astype(int))
         else:
             persis_info['active_runs'] = set(persis_info['run_order'].keys())
@@ -184,7 +185,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
         # Find next point in any uncompleted runs using information stored in persis_info
         for run in persis_info['active_runs']:
-            if not np.all(H['returned'][persis_info['run_order'][run]]): 
+            if not np.all(H['returned'][persis_info['run_order'][run]]):
                 continue # Can't advance this run since all of it's points haven't been returned.
 
             x_opt, exit_code, persis_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
@@ -659,7 +660,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     H: numpy structured array
         History array storing rows for each point.
     r_k_const: float
-        Radius for deciding when to start runs 
+        Radius for deciding when to start runs
     lhs_divisions: integer
         Number of Latin hypercube sampling divisions (0 or 1 means uniform
         random sampling over the domain)

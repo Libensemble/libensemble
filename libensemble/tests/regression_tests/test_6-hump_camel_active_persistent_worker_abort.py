@@ -10,12 +10,20 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
 from libensemble.libE import libE
+
+nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+is_master = True
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    libE_specs = {'nprocesses': nworkers}
+else:
+    from mpi4py import MPI
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
@@ -72,20 +80,20 @@ exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300} # Intentially set
 
 np.random.seed(1)
 persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
+for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens}
-if MPI.COMM_WORLD.Get_size() == 2:
+if nworkers < 2:
     # Can't do a "persistent worker run" if only one worker
     quit()
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
     short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(nworkers+1)
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     # if flag == 2:
     #     print("\n\n\nKilling COMM_WORLD")

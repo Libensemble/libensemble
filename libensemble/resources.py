@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment (see libE.py to change root logging level)
 #logger.setLevel(logging.DEBUG)
 
-class ResourcesException(Exception): pass
+class ResourcesException(Exception):
+    "Resources module exception."
 
 class Resources:
 
@@ -83,7 +84,7 @@ class Resources:
         self.central_mode = central_mode
         if self.central_mode:
             logger.debug('Running in central mode')
-            
+
         # These presence of these env vars will be used to detect scheduler
         self.nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt

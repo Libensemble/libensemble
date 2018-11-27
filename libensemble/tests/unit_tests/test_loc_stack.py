@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 
-from libensemble.loc_stack import LocationStack
+from libensemble.util.loc_stack import LocationStack
 
 def test_location_stack():
     "Test correctness of location stack (all in a temp dir)."

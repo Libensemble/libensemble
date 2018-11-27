@@ -4,33 +4,24 @@ Main libEnsemble routine
 
 """
 
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-
 __all__ = ['libE']
 
-from mpi4py import MPI
-import numpy as np
 import sys
 import logging
 import traceback
 
-# Set root logger
-# (Set above libe imports so errors in import are captured)
-# LEVEL: DEBUG/INFO/WARNING/ERROR
-#logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
-logging.basicConfig(filename='ensemble.log', level=logging.DEBUG, format='%(name)s (%(levelname)s): %(message)s')
+import numpy as np
 
 from libensemble.history import History
-from libensemble.libE_manager import manager_main
+from libensemble.libE_manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
-from libensemble.calc_info import CalcInfo
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.message_numbers import ABORT_ENSEMBLE
+from libensemble.comms.comms import QCommProcess, Timeout
+from libensemble.comms.logs import manager_logging_config
+
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#For debug messages in this module  - uncomment
 #logger.setLevel(logging.DEBUG)
 
 
@@ -39,27 +30,40 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def comms_abort(comm):
-    '''Abort all MPI ranks'''
-    comm.Abort(1) # Exit code 1 to represent an abort
+def report_manager_exception(hist, mgr_exc=None):
+    "Write out exception manager exception to stderr and flush streams."
+    if mgr_exc is not None:
+        from_line, msg, exc = mgr_exc.args
+        eprint("\n---- {} ----".format(from_line))
+        eprint("Message: {}".format(msg))
+        eprint(exc)
+        eprint("--------\n")
+    else:
+        eprint(traceback.format_exc())
+    eprint("\nManager exception raised .. aborting ensemble:\n")
+    eprint("\nDumping ensemble history with {} sims evaluated:\n".
+           format(hist.sim_count))
+    filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
+    np.save(filename, hist.trim_H())
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 
-def comms_signal_abort_to_man(comm):
-    '''Worker signal manager to abort'''
-    comm.send(obj=None, dest=0, tag=ABORT_ENSEMBLE)
+def libE(sim_specs, gen_specs, exit_criteria,
+         persis_info={},
+         alloc_specs={'alloc_f': give_sim_work_first,
+                      'out':[('allocated', bool)]},
+         libE_specs={},
+         H0=[]):
+    """This is the outer libEnsemble routine.
 
+    We dispatch to different types of worker teams depending on
+    the contents of libE_specs.  If 'comm' is a field, we use MPI;
+    if 'nthreads' is a field, we use threads; if 'nprocesses' is a
+    field, we use multiprocessing.
 
-def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
-         alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated', bool)]},
-         libE_specs={'comm': MPI.COMM_WORLD, 'color': 0}, H0=[]):
-    """
-    libE(sim_specs, gen_specs, exit_criteria, persis_info={}, alloc_specs={'alloc_f': give_sim_work_first, 'out':[('allocated',bool)]}, libE_specs={'comm': MPI.COMM_WORLD, 'color': 0}, H0 =[])
-
-    This is the outer libEnsemble routine. If the rank in libE_specs['comm'] is
-    0, manager_main is run. Otherwise, worker_main is run.
-
-    If an exception is encountered by the manager or workers,  the history array
-    is dumped to file and MPI abort is called.
+    If an exception is encountered by the manager or workers, the
+    history array is dumped to file and MPI abort is called.
 
     Parameters
     ----------
@@ -105,7 +109,8 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
 
     H: :obj:`dict`
 
-        History array storing rows for each point.  :doc:`(example)<data_structures/history_array>`
+        History array storing rows for each point.
+        :doc:`(example)<data_structures/history_array>`
         Dictionary containing persistent info
 
     persis_info: :obj:`dict`
@@ -118,119 +123,256 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info={},
         Flag containing job status: 0 = No errors,
         1 = Exception occured
         2 = Manager timed out and ended simulation
-
     """
-    #sys.excepthook = comms_abort(libE_specs['comm'])
-    H = exit_flag = []
-    libE_specs = check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    if libE_specs['comm'].Get_rank() == 0:
-        CalcInfo.make_statdir()
-    libE_specs['comm'].Barrier()
-
-    if libE_specs['comm'].Get_rank() == 0:
-        hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-        try:
-            persis_info, exit_flag = manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info)
-        except Exception as e:
-
-            # Manager exceptions are fatal
-            eprint(traceback.format_exc())
-            eprint("\nManager exception raised .. aborting ensemble:\n") #datetime
-
-            eprint("\nDumping ensemble history with {} sims evaluated:\n".format(hist.sim_count)) #datetime
-            filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
-            np.save(filename, hist.trim_H())
-            sys.stdout.flush()
-            sys.stderr.flush()
-            #sys.excepthook = comms_abort(libE_specs['comm'])
-            comms_abort(libE_specs['comm'])
-            #raise
-
-        else:
-            logger.debug("Manager exiting")
-            print(libE_specs['comm'].Get_size(), exit_criteria)
-            sys.stdout.flush()
-
+    if 'nprocesses' in libE_specs:
+        libE_f = libE_local
     else:
-        try:
-            worker_main(libE_specs, sim_specs, gen_specs)
-        except Exception as e:
-            eprint("\nWorker exception raised on rank {} .. aborting ensemble:\n".format(libE_specs['comm'].Get_rank()))
-            eprint(traceback.format_exc())
-            sys.stdout.flush()
-            sys.stderr.flush()
+        libE_f = libE_mpi
 
-            #First try to signal manager to dump history
-            comms_signal_abort_to_man(libE_specs['comm'])
-            #comms_abort(libE_specs['comm'])
-        else:
-            logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+    return libE_f(sim_specs, gen_specs, exit_criteria,
+                  persis_info, alloc_specs, libE_specs, H0)
 
-    # Create calc summary file
-    libE_specs['comm'].Barrier()
-    if libE_specs['comm'].Get_rank() == 0:
-        CalcInfo.merge_statfiles()
-        H = hist.trim_H()
 
+def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
+                 alloc_specs, libE_specs, hist,
+                 on_abort=None, on_cleanup=None):
+    "Generic manager routine run."
+
+    try:
+        persis_info, exit_flag = \
+          manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
+                       exit_criteria, persis_info, wcomms)
+    except ManagerException as e:
+        report_manager_exception(hist, e)
+        if libE_specs.get('abort_on_exception', True) and on_abort is not None:
+            on_abort()
+        raise
+    except Exception:
+        report_manager_exception(hist)
+        if libE_specs.get('abort_on_exception', True) and on_abort is not None:
+            on_abort()
+        raise
+    else:
+        logger.debug("Manager exiting")
+        print(len(wcomms), exit_criteria)
+        sys.stdout.flush()
+    finally:
+        if on_cleanup is not None:
+            on_cleanup()
+
+    H = hist.trim_H()
     return H, persis_info, exit_flag
 
 
-def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
+# ==================== MPI version =================================
+
+
+def comms_abort(comm):
+    "Abort all MPI ranks"
+    comm.Abort(1) # Exit code 1 to represent an abort
+
+
+def libE_mpi_defaults(libE_specs):
+    "Fill in default values for MPI-based communicators."
+
+    from mpi4py import MPI
+
+    if 'comm' not in libE_specs:
+        libE_specs['comm'] = MPI.COMM_WORLD
+    if 'color' not in libE_specs:
+        libE_specs['color'] = 0
+    return libE_specs
+
+
+def libE_mpi(sim_specs, gen_specs, exit_criteria,
+             persis_info, alloc_specs, libE_specs, H0):
+    "MPI version of the libE main routine"
+
+    libE_specs = libE_mpi_defaults(libE_specs)
+    comm = libE_specs['comm']
+    rank = comm.Get_rank()
+    is_master = (rank == 0)
+
+    # Check correctness of inputs
+    libE_specs = check_inputs(is_master, libE_specs,
+                              alloc_specs, sim_specs, gen_specs,
+                              exit_criteria, H0)
+
+    # Run manager or worker code, depending
+    if is_master:
+        return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
+                                persis_info, alloc_specs, libE_specs, H0)
+
+    # Worker returns a subset of MPI output
+    libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
+    return [], persis_info, []
+
+
+def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
+                     alloc_specs, libE_specs, H0):
+    "Manager routine run at rank 0."
+
+    from libensemble.comms.mpi import MainMPIComm
+
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # Lauch worker team
+    wcomms = [MainMPIComm(mpi_comm, w) for w in
+              range(1, mpi_comm.Get_size())]
+    manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+
+    # Set up abort handler
+    def on_abort():
+        "Shut down MPI on error."
+        comms_abort(mpi_comm)
+
+    # Run generic manager
+    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                        persis_info, alloc_specs, libE_specs, hist,
+                        on_abort=on_abort)
+
+
+def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs):
+    "Worker routine run at ranks > 0."
+
+    from libensemble.comms.mpi import MainMPIComm
+    comm = MainMPIComm(mpi_comm)
+    worker_main(comm, sim_specs, gen_specs, log_comm=True)
+    logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+
+
+
+# ==================== Process version =================================
+
+
+def start_proc_team(nworkers, sim_specs, gen_specs, log_comm=True):
+    "Launch a process worker team."
+    wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, log_comm)
+              for w in range(1, nworkers+1)]
+    for wcomm in wcomms:
+        wcomm.run()
+    return wcomms
+
+
+def kill_proc_team(wcomms, timeout):
+    "Join on workers (and terminate forcefully if needed)."
+    for wcomm in wcomms:
+        try:
+            wcomm.result(timeout=timeout)
+        except Timeout:
+            wcomm.terminate()
+
+
+def libE_local(sim_specs, gen_specs, exit_criteria,
+               persis_info, alloc_specs, libE_specs, H0):
+    "Main routine for thread/process launch of libE."
+
+    nworkers = libE_specs['nprocesses']
+    libE_specs = check_inputs(True, libE_specs,
+                              alloc_specs, sim_specs, gen_specs,
+                              exit_criteria, H0)
+
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # Launch worker team and set up logger
+    wcomms = start_proc_team(nworkers, sim_specs, gen_specs)
+    manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+
+    # Set up cleanup routine to shut down worker team
+    def cleanup():
+        "Handler to clean up comms team."
+        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout'))
+
+    # Run generic manager
+    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                        persis_info, alloc_specs, libE_specs, hist,
+                        on_cleanup=cleanup)
+
+
+# ==================== Common input checking =================================
+
+
+_USER_SIM_ID_WARNING = '\n' + 79*'*' + '\n' + \
+"""User generator script will be creating sim_id.
+Take care to do this sequentially.
+Also, any information given back for existing sim_id values will be overwritten!
+So everything in gen_out should be in gen_in!""" + \
+'\n' + 79*'*' + '\n\n'
+
+
+def check_consistent_field(name, field0, field1):
+    "Check that new field (field1) is compatible with an old field (field0)."
+    assert field0.ndim == field1.ndim, \
+      "H0 and H have different ndim for field {}".format(name)
+    assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \
+      "H too small to receive all components of H0 in field {}".format(name)
+
+
+def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
+                 exit_criteria, H0):
     """
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run.
     """
 
-    if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD
-
-    if 'color' not in libE_specs:
-        libE_specs['color'] = 0
-
+    # Check all the input fields are dicts
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
     assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
     assert isinstance(exit_criteria, dict), "exit_criteria must be a dictionary"
 
+    # Check for at least one valid exit criterion
     assert len(exit_criteria) > 0, "Must have some exit criterion"
-    valid_term_fields = ['sim_max', 'gen_max', 'elapsed_wallclock_time', 'stop_val']
-    assert all([term_field in valid_term_fields for term_field in exit_criteria]), "Valid termination options: " + str(valid_term_fields)
+    valid_term_fields = ['sim_max', 'gen_max',
+                         'elapsed_wallclock_time', 'stop_val']
+    assert all([term_field in valid_term_fields
+                for term_field in exit_criteria]), \
+                "Valid termination options: " + str(valid_term_fields)
 
+    # Check that sim/gen have 'out' entries
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert len(gen_specs['out']), "gen_specs must have 'out' entries"
 
+    # If exit on stop, make sure it is something that a sim/gen outputs
     if 'stop_val' in exit_criteria:
-        assert exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']],\
-               "Can't stop on " + exit_criteria['stop_val'][0] + " if it's not \
-               returned from sim_specs['out'] or gen_specs['out']"
+        stop_name = exit_criteria['stop_val'][0]
+        sim_out_names = [e[0] for e in sim_specs['out']]
+        gen_out_names = [e[0] for e in gen_specs['out']]
+        assert stop_name in sim_out_names + gen_out_names, \
+          "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
 
+    # Handle if gen outputs sim IDs
     from libensemble.libE_fields import libE_fields
-
     if ('sim_id', int) in gen_specs['out']:
-        if MPI.COMM_WORLD.Get_rank() == 0:
-            print('\n' + 79*'*' + '\n'
-                  "User generator script will be creating sim_id.\n"\
-                  "Take care to do this sequentially.\n"\
-                  "Also, any information given back for existing sim_id values will be overwritten!\n"\
-                  "So everything in gen_out should be in gen_in!"\
-                  '\n' + 79*'*' + '\n\n')
+        if is_master:
+            print(_USER_SIM_ID_WARNING)
             sys.stdout.flush()
-        libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
-    if 'out' in alloc_specs:
-        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
-    else:
-        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'])))
+         # Must remove 'sim_id' from libE_fields (it is in gen_specs['out'])
+        libE_fields = libE_fields[1:]
 
+    # Set up history -- combine libE_fields and sim/gen/alloc specs
+    H = np.zeros(1 + len(H0),
+                 dtype=libE_fields + list(set(sim_specs['out'] +
+                                              gen_specs['out'] +
+                                              alloc_specs.get('out', []))))
+
+    # Sanity check prior history
     if len(H0):
         fields = H0.dtype.names
-        assert set(fields).issubset(set(H.dtype.names)), "H0 contains fields %r not in H. Exiting" % set(fields).difference(set(H.dtype.names))
-        if 'returned' in fields:
-            assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
 
+        # Prior history must contain the fields in new history
+        assert set(fields).issubset(set(H.dtype.names)), \
+          "H0 contains fields {} not in H.".\
+          format(set(fields).difference(set(H.dtype.names)))
+
+        # Prior history cannot contain unreturned points
+        assert 'returned' not in fields or np.all(H0['returned']), \
+          "H0 contains unreturned points."
+
+        # Check dimensional compatibility of fields
         for field in fields:
-            assert H[field].ndim == H0[field].ndim, "H0 and H have different ndim for field: " + field + ". Exiting"
-            assert np.all(np.array(H[field].shape) >= np.array(H0[field].shape)), "H is not large enough to receive all of the components of H0 in field: " + field + ". Exiting"
+            check_consistent_field(field, H0[field], H[field])
 
     return libE_specs

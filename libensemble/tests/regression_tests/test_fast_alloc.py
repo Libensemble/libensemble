@@ -10,12 +10,20 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
 from libensemble.libE import libE
+
+nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+is_master = True
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    libE_specs = {'nprocesses': nworkers}
+else:
+    from mpi4py import MPI
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple
@@ -41,7 +49,7 @@ for time in np.append([0], np.logspace(-5,-1,5)):
             sim_specs.pop('pause_time')
 
         # State the generating function, its arguments, output, and necessary parameters.
-        num_pts = 30*(MPI.COMM_WORLD.Get_size()-1)
+        num_pts = 30*nworkers
         gen_specs = {'gen_f': uniform_random_sample,
                      'in': [],
                      'out': [('x',float,2),
@@ -61,14 +69,14 @@ for time in np.append([0], np.logspace(-5,-1,5)):
         np.random.seed(1)
         persis_info = {'next_to_give':0}
         persis_info['total_gen_calls'] = 1
-        for i in range(MPI.COMM_WORLD.Get_size()):
+        for i in range(1,nworkers+1):
             persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
         alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
         # Perform the run
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-        if MPI.COMM_WORLD.Get_rank() == 0:
+        if is_master:
             assert flag == 0
             assert len(H) == num_pts

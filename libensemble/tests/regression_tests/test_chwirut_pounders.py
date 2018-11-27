@@ -9,12 +9,19 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
 from libensemble.libE import libE
+
+# APOSMM explicitly uses MPI
+if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    quit()
+else:
+    from mpi4py import MPI
+    nworkers = MPI.COMM_WORLD.Get_size()-1
+    is_master = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func
 from libensemble.sim_funcs.chwirut1 import chwirut_eval, EvaluateJacobian
@@ -74,15 +81,14 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
                  'elapsed_wallclock_time': 300
                   }
 
-libE_specs = {'queue_update_function': queue_update_function}
+libE_specs['queue_update_function'] = queue_update_function
 np.random.seed(1)
 persis_info = {}
 persis_info['complete'] = set()
 persis_info['has_nan'] = set()
 persis_info['already_paused'] = set()
 persis_info['H_len'] = 0
-
-for i in range(MPI.COMM_WORLD.Get_size()):
+for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 persis_info[1] = {'active_runs': set(),
@@ -93,11 +99,11 @@ persis_info[1] = {'active_runs': set(),
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
     assert len(H) >= max_sim_budget
     short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(nworkers+1)
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 
