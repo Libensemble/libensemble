@@ -17,7 +17,7 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs = parse_args()
-if libE_specs['comms'] != 'mpi':
+if libE_specs['comms'] == 'local':
     quit()
 
 # Import gen_func
