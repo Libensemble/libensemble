@@ -401,7 +401,7 @@ if [ "$root_found" = true ]; then
     test_num=0
     for TEST_SCRIPT in $REG_TEST_LIST
     do
-      for LAUNCHER in "mpi" "processes"
+      for LAUNCHER in "mpi" "processes" "tcp"
       do
 
       #Need proc count here for now - still stop on failure etc.

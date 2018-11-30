@@ -18,6 +18,11 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs = parse_args()
+if libE_specs['comms'] == 'tcp':
+    # Can't use the same interface for manager and worker if we want
+    # repeated calls to libE -- the manager sets up a different server
+    # each time, and the worker will not know what port to connect to.
+    quit()
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple
