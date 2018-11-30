@@ -33,6 +33,11 @@ class ServerQCommManager:
         "Shutdown the manager"
         self.manager.shutdown()
 
+    @property
+    def address(self):
+        "Get IP address for socket."
+        return self.manager.address
+
     def get_queue(self, name):
         "Get a queue from the shared manager"
         return self.manager.get_queue(name)
@@ -85,7 +90,6 @@ class ClientQCommManager:
         self.manager = ClientQueueManager(address=(ip, port), authkey=authkey)
         self.manager.connect()
         sharedq = self.get_shared()
-        print("Put to shared queue {}: {}".format(sharedq, workerID))
         sharedq.put(workerID)
 
     def get_queue(self, name):

@@ -15,10 +15,28 @@ import numpy as np
 
 from libensemble.libE import libE
 
-nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
 is_master = True
 if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
     libE_specs = {'nprocesses': nworkers}
+elif len(sys.argv) > 1 and sys.argv[1] == "--tcp":
+    nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+    cmd = [sys.executable, sys.argv[0], 'client',
+           '{manager_ip}', '{manager_port}', '{authkey}',
+           '{workerID}', str(nworkers)]
+    libE_specs = {'nprocesses': nworkers,
+                  'worker_cmd': cmd,
+                  'remote': True}
+    is_master = True
+elif len(sys.argv) > 1 and sys.argv[1] == "client":
+    nworkers = int(sys.argv[6])
+    libE_specs = {'ip': sys.argv[2],
+                  'port': int(sys.argv[3]),
+                  'authkey': sys.argv[4].encode('utf-8'),
+                  'workerID': int(sys.argv[5]),
+                  'nprocesses': nworkers,
+                  'remote': True}
+    is_master = False
 else:
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1

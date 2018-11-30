@@ -6,9 +6,12 @@ Main libEnsemble routine
 
 __all__ = ['libE']
 
+import os
 import sys
 import logging
 import traceback
+import random
+import socket
 
 import numpy as np
 import libensemble.util.launcher as launcher
@@ -126,8 +129,8 @@ def libE(sim_specs, gen_specs, exit_criteria,
     """
 
     if 'nprocesses' in libE_specs:
-        if 'worker_cmd' in libE_specs:
-            libE_f = libE_tcp_mgr
+        if libE_specs.get('remote', False):
+            libE_f = libE_tcp
         else:
             libE_f = libE_local
     else:
@@ -296,36 +299,78 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 # ==================== TCP version =================================
 
 
-def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
-                 persis_info, alloc_specs, libE_specs, H0):
-    "Main routine for TCP multiprocessing launch of libE."
+def get_ip():
+    "Get the IP address of the current host"
+    return socket.gethostbyname(socket.gethostname())
 
-    worker_cmd = libE_specs['worker_cmd']
-    nworkers = libE_specs['nprocesses']
-    port = libE_specs['port']
-    authkey = libE_specs['authkey']
+
+def libE_tcp_authkey():
+    "Generate an authkey if not assigned by manager."
+    nonce = random.randrange(99999)
+    return 'libE_auth_{}'.format(nonce)
+
+
+def libE_tcp_default_ID():
+    "Assign a (we hope unique) worker ID if not assigned by manager."
+    return "{}_pid{}".format(get_ip(), os.getpid())
+
+
+def libE_tcp(sim_specs, gen_specs, exit_criteria,
+             persis_info, alloc_specs, libE_specs, H0):
+    "Main routine for TCP multiprocessing launch of libE."
 
     libE_specs = check_inputs(True, libE_specs,
                               alloc_specs, sim_specs, gen_specs,
                               exit_criteria, H0)
 
+    if 'workerID' in libE_specs:
+        libE_tcp_worker(sim_specs, gen_specs, exit_criteria,
+                        alloc_specs, libE_specs)
+        return [], persis_info, []
+
+    return libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
+                        persis_info, alloc_specs, libE_specs, H0)
+
+
+def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
+                 persis_info, alloc_specs, libE_specs, H0):
+    "Main routine for TCP multiprocessing launch of libE at manager."
+
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    with ServerQCommManager(port, authkey) as manager:
+    # Get worker launch parameters and fill in defaults for TCP/IP conn
+    worker_cmd = libE_specs['worker_cmd']
+    nworkers = libE_specs['nprocesses']
+    ip = libE_specs.get('ip', get_ip())
+    port = libE_specs.get('port', 0)
+    authkey = libE_specs.get('authkey', libE_tcp_authkey())
+
+    with ServerQCommManager(port, authkey.encode('utf-8')) as manager:
+
+        # Get port if needed because of auto-assignment
+        if port == 0:
+            _, port = manager.address
+
+        manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+        logger.info("Launched server at ({}, {})".format(ip, port))
 
         # Launch worker team and set up logger
         worker_procs = []
-        specs = {'port' : port, 'authkey' : authkey}
+        specs = {'manager_ip' : ip,
+                 'manager_port' : port,
+                 'authkey' : authkey}
         for w in range(1, nworkers+1):
+            logger.info("Manager is launching worker {}".format(w))
             specs['workerID'] = w
             worker_procs.append(launcher.launch(worker_cmd, specs))
+        logger.info("Manager is awaiting {} workers".format(nworkers))
         wcomms = manager.await_workers(nworkers)
-        manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+        logger.info("Manager connected to {} workers".format(nworkers))
 
         def cleanup():
             "Handler to clean up launched team."
             for wp in worker_procs:
-                wp.cancel(timeout=libE_specs.get('worker_timeout'))
+                launcher.cancel(wp, timeout=libE_specs.get('worker_timeout'))
 
         # Run generic manager
         return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
@@ -334,7 +379,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
 
 def libE_tcp_worker(sim_specs, gen_specs, exit_criteria,
-                    alloc_specs, libE_specs, H0):
+                    alloc_specs, libE_specs):
     "Main routine for TCP worker launched by libE."
 
     ip = libE_specs['ip']
@@ -342,12 +387,9 @@ def libE_tcp_worker(sim_specs, gen_specs, exit_criteria,
     authkey = libE_specs['authkey']
     workerID = libE_specs['workerID']
 
-    libE_specs = check_inputs(True, libE_specs,
-                              alloc_specs, sim_specs, gen_specs,
-                              exit_criteria, H0)
-
     with ClientQCommManager(ip, port, authkey, workerID) as comm:
-        worker_main(comm, sim_specs, gen_specs, log_comm=True)
+        worker_main(comm, sim_specs, gen_specs,
+                    workerID=workerID, log_comm=True)
         logger.debug("Worker {} exiting".format(workerID))
 
 
