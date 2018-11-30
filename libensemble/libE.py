@@ -11,14 +11,14 @@ import logging
 import traceback
 
 import numpy as np
-
+import libensemble.util.launcher as launcher
 from libensemble.history import History
 from libensemble.libE_manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
-
+from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 
 logger = logging.getLogger(__name__)
 #For debug messages in this module  - uncomment
@@ -126,7 +126,10 @@ def libE(sim_specs, gen_specs, exit_criteria,
     """
 
     if 'nprocesses' in libE_specs:
-        libE_f = libE_local
+        if 'worker_cmd' in libE_specs:
+            libE_f = libE_tcp_mgr
+        else:
+            libE_f = libE_local
     else:
         libE_f = libE_mpi
 
@@ -288,6 +291,64 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
                         persis_info, alloc_specs, libE_specs, hist,
                         on_cleanup=cleanup)
+
+
+# ==================== TCP version =================================
+
+
+def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
+                 persis_info, alloc_specs, libE_specs, H0):
+    "Main routine for TCP multiprocessing launch of libE."
+
+    worker_cmd = libE_specs['worker_cmd']
+    nworkers = libE_specs['nprocesses']
+    port = libE_specs['port']
+    authkey = libE_specs['authkey']
+
+    libE_specs = check_inputs(True, libE_specs,
+                              alloc_specs, sim_specs, gen_specs,
+                              exit_criteria, H0)
+
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    with ServerQCommManager(port, authkey) as manager:
+
+        # Launch worker team and set up logger
+        worker_procs = []
+        specs = {'port' : port, 'authkey' : authkey}
+        for w in range(1, nworkers+1):
+            specs['workerID'] = w
+            worker_procs.append(launcher.launch(worker_cmd, specs))
+        wcomms = manager.await_workers(nworkers)
+        manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+
+        def cleanup():
+            "Handler to clean up launched team."
+            for wp in worker_procs:
+                wp.cancel(timeout=libE_specs.get('worker_timeout'))
+
+        # Run generic manager
+        return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                            persis_info, alloc_specs, libE_specs, hist,
+                            on_cleanup=cleanup)
+
+
+def libE_tcp_worker(sim_specs, gen_specs, exit_criteria,
+                    alloc_specs, libE_specs, H0):
+    "Main routine for TCP worker launched by libE."
+
+    ip = libE_specs['ip']
+    port = libE_specs['port']
+    authkey = libE_specs['authkey']
+    workerID = libE_specs['workerID']
+
+    libE_specs = check_inputs(True, libE_specs,
+                              alloc_specs, sim_specs, gen_specs,
+                              exit_criteria, H0)
+
+    with ClientQCommManager(ip, port, authkey, workerID) as comm:
+        worker_main(comm, sim_specs, gen_specs, log_comm=True)
+        logger.debug("Worker {} exiting".format(workerID))
 
 
 # ==================== Common input checking =================================
