@@ -128,16 +128,13 @@ def libE(sim_specs, gen_specs, exit_criteria,
         2 = Manager timed out and ended simulation
     """
 
-    if 'nprocesses' in libE_specs:
-        if libE_specs.get('remote', False):
-            libE_f = libE_tcp
-        else:
-            libE_f = libE_local
-    else:
-        libE_f = libE_mpi
-
-    return libE_f(sim_specs, gen_specs, exit_criteria,
-                  persis_info, alloc_specs, libE_specs, H0)
+    comms_type = libE_specs.get('comms', 'mpi')
+    libE_funcs = {'mpi': libE_mpi,
+                  'tcp': libE_tcp,
+                  'local': libE_local}
+    assert comms_type in libE_funcs, "Unknown comms type: {}".format(comms_type)
+    return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria,
+                                  persis_info, alloc_specs, libE_specs, H0)
 
 
 def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,

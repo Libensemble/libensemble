@@ -14,15 +14,12 @@ import sys, os             # for adding to path
 import numpy as np
 
 from libensemble.libE import libE
+from libensemble.tests.regression_tests.common import parse_args
 
-# APOSMM uses MPI explicitly
-if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+# Parse args for test code
+nworkers, is_master, libE_specs = parse_args()
+if libE_specs['comms'] != 'mpi':
     quit()
-else:
-    from mpi4py import MPI
-    nworkers = MPI.COMM_WORLD.Get_size()-1
-    is_master = MPI.COMM_WORLD.Get_rank() == 0
-    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
