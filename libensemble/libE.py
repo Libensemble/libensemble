@@ -321,8 +321,7 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
                               exit_criteria, H0)
 
     if 'workerID' in libE_specs:
-        libE_tcp_worker(sim_specs, gen_specs, exit_criteria,
-                        alloc_specs, libE_specs)
+        libE_tcp_worker(sim_specs, gen_specs, libE_specs)
         return [], persis_info, []
 
     return libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
@@ -375,8 +374,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                             on_cleanup=cleanup)
 
 
-def libE_tcp_worker(sim_specs, gen_specs, exit_criteria,
-                    alloc_specs, libE_specs):
+def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
     "Main routine for TCP worker launched by libE."
 
     ip = libE_specs['ip']
