@@ -18,14 +18,16 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs = parse_args()
-if libE_specs['comms'] == 'local':
+if libE_specs['comms'] != 'mpi':
     quit()
 
 # Set up appropriate abort mechanism depending on comms
 libE_abort = quit
 if libE_specs['comms'] == 'mpi':
     from mpi4py import MPI
-    libE_abort = lambda: MPI.COMM_WORLD.Abort(1)
+    def libE_mpi_abort():
+        MPI.COMM_WORLD.Abort(1)
+    libE_abort = libE_mpi_abort
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
