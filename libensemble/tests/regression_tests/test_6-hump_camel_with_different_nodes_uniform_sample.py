@@ -18,7 +18,7 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
-nworkers, is_master, libE_specs = parse_args()
+nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     # Can't do this one with processes either?  Wants a machine file.
     quit()

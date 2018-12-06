@@ -18,7 +18,7 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
-nworkers, is_master, libE_specs = parse_args()
+nworkers, is_master, libE_specs, _ = parse_args()
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel

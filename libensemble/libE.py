@@ -351,7 +351,7 @@ def libE_tcp_start_team(manager, nworkers, workers,
         logger.info("Manager is launching worker {}".format(w))
         if workers is not None:
             specs['worker_ip'] = workers[w]
-            specs['rtunnel_port'] = 0x71BE + w
+            specs['tunnel_port'] = 0x71BE + w
         specs['workerID'] = w
         worker_procs.append(launchf(specs))
     logger.info("Manager is awaiting {} workers".format(nworkers))
