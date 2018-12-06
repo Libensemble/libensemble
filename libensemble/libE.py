@@ -336,7 +336,8 @@ def libE_tcp_worker_launcher(libE_specs):
         worker_cmd = libE_specs['worker_cmd']
         def worker_launcher(specs):
             "Basic worker launch function."
-            return launcher.launch(worker_cmd, specs)
+            print(launcher.form_command(worker_cmd, specs))
+            return launcher.launch(worker_cmd, specs, shell=True)
     return worker_launcher
 
 
@@ -350,7 +351,7 @@ def libE_tcp_start_team(manager, nworkers, workers,
     for w in range(1, nworkers+1):
         logger.info("Manager is launching worker {}".format(w))
         if workers is not None:
-            specs['worker_ip'] = workers[w]
+            specs['worker_ip'] = workers[w-1]
             specs['tunnel_port'] = 0x71BE + w
         specs['workerID'] = w
         worker_procs.append(launchf(specs))

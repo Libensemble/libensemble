@@ -4,10 +4,11 @@ Common plumbing for regression tests
 
 import sys
 import os
+import os.path
 import argparse
 
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(prog='test_...')
 parser.add_argument('--comms', type=str, nargs='?',
                     choices=['local', 'tcp', 'ssh', 'client', 'mpi'],
                     default='mpi',
@@ -22,6 +23,8 @@ parser.add_argument('--server', type=str, nargs=3,
                     help='Triple of (ip, port, authkey) used to reach manager')
 parser.add_argument('--pwd', type=str, nargs='?',
                     help='Working directory to be used')
+parser.add_argument('--worker_pwd', type=str, nargs='?',
+                    help='Working directory on remote client')
 parser.add_argument('--tester_args', type=str, nargs='*',
                     help='Additional arguments for use by specific testers')
 
@@ -60,9 +63,14 @@ def tcp_parse_args(args):
 def ssh_parse_args(args):
     "Parse arguments for SSH with reverse tunnel."
     nworkers = len(args.workers)
-    cmd = ["ssh", "-R", "{tunnel_port}:localhost:{manager_port}",
-           "python", sys.argv[0],
-           "--pwd", "/TODO/",
+    worker_pwd = args.worker_pwd or os.getcwd()
+    script_dir, script_name = os.path.split(sys.argv[0])
+    worker_script_name = os.path.join(worker_pwd, script_name)
+    cmd = ["ssh", "-R", "{tunnel_port}:{manager_port}",
+           "{worker_ip}",
+           "python", worker_script_name,
+           "--comms", "client",
+           "--pwd", worker_pwd,
            "--server", "localhost", "{tunnel_port}", "{authkey}",
            "--workerID", "{workerID}", "--nworkers", str(nworkers)]
     libE_specs = {'workers': args.workers,
