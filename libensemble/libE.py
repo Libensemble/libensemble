@@ -328,15 +328,54 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
                         persis_info, alloc_specs, libE_specs, H0)
 
 
+def libE_tcp_worker_launcher(libE_specs):
+    "Get a launch function from libE_specs."
+    if 'worker_launcher' in libE_specs:
+        worker_launcher = libE_specs['worker_launcher']
+    else:
+        worker_cmd = libE_specs['worker_cmd']
+        def worker_launcher(specs):
+            "Basic worker launch function."
+            return launcher.launch(worker_cmd, specs)
+    return worker_launcher
+
+
+def libE_tcp_start_team(manager, nworkers, workers,
+                        ip, port, authkey, launchf):
+    "Launch nworkers workers that attach back to a managers server."
+    worker_procs = []
+    specs = {'manager_ip' : ip,
+             'manager_port' : port,
+             'authkey' : authkey}
+    for w in range(1, nworkers+1):
+        logger.info("Manager is launching worker {}".format(w))
+        if workers is not None:
+            specs['worker_ip'] = workers[w]
+            specs['rtunnel_port'] = 0x71BE + w
+        specs['workerID'] = w
+        worker_procs.append(launchf(specs))
+    logger.info("Manager is awaiting {} workers".format(nworkers))
+    wcomms = manager.await_workers(nworkers)
+    logger.info("Manager connected to {} workers".format(nworkers))
+    return worker_procs, wcomms
+
+
 def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                  persis_info, alloc_specs, libE_specs, H0):
     "Main routine for TCP multiprocessing launch of libE at manager."
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
+    # Set up a worker launcher
+    launchf = libE_tcp_worker_launcher(libE_specs)
+
     # Get worker launch parameters and fill in defaults for TCP/IP conn
-    worker_cmd = libE_specs['worker_cmd']
-    nworkers = libE_specs['nprocesses']
+    if 'nprocesses' in libE_specs:
+        workers = None
+        nworkers = libE_specs['nprocesses']
+    elif 'workers' in libE_specs:
+        workers = libE_specs['workers']
+        nworkers = len(workers)
     ip = libE_specs.get('ip', get_ip())
     port = libE_specs.get('port', 0)
     authkey = libE_specs.get('authkey', libE_tcp_authkey())
@@ -351,17 +390,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
         logger.info("Launched server at ({}, {})".format(ip, port))
 
         # Launch worker team and set up logger
-        worker_procs = []
-        specs = {'manager_ip' : ip,
-                 'manager_port' : port,
-                 'authkey' : authkey}
-        for w in range(1, nworkers+1):
-            logger.info("Manager is launching worker {}".format(w))
-            specs['workerID'] = w
-            worker_procs.append(launcher.launch(worker_cmd, specs))
-        logger.info("Manager is awaiting {} workers".format(nworkers))
-        wcomms = manager.await_workers(nworkers)
-        logger.info("Manager connected to {} workers".format(nworkers))
+        worker_procs, wcomms =\
+          libE_tcp_start_team(manager, nworkers, workers,
+                              ip, port, authkey, launchf)
 
         def cleanup():
             "Handler to clean up launched team."
