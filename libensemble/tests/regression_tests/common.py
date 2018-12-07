@@ -100,6 +100,6 @@ def parse_args():
                   'tcp': tcp_parse_args,
                   'ssh': ssh_parse_args,
                   'client': client_parse_args}
-    if args.pwd:
+    if args.pwd is not None:
         os.chdir(args.pwd)
     return front_ends[args.comms or 'mpi'](args)

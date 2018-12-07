@@ -337,7 +337,7 @@ def libE_tcp_worker_launcher(libE_specs):
         def worker_launcher(specs):
             "Basic worker launch function."
             print(launcher.form_command(worker_cmd, specs))
-            return launcher.launch(worker_cmd, specs, shell=True)
+            return launcher.launch(worker_cmd, specs)
     return worker_launcher
 
 
