@@ -15,6 +15,7 @@ import socket
 
 import numpy as np
 import libensemble.util.launcher as launcher
+from libensemble.util.timer import Timer
 from libensemble.history import History
 from libensemble.libE_manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
@@ -339,7 +340,6 @@ def libE_tcp_worker_launcher(libE_specs):
         worker_cmd = libE_specs['worker_cmd']
         def worker_launcher(specs):
             "Basic worker launch function."
-            print(launcher.form_command(worker_cmd, specs))
             return launcher.launch(worker_cmd, specs)
     return worker_launcher
 
@@ -351,16 +351,18 @@ def libE_tcp_start_team(manager, nworkers, workers,
     specs = {'manager_ip' : ip,
              'manager_port' : port,
              'authkey' : authkey}
-    for w in range(1, nworkers+1):
-        logger.info("Manager is launching worker {}".format(w))
-        if workers is not None:
-            specs['worker_ip'] = workers[w-1]
-            specs['tunnel_port'] = 0x71BE + w
-        specs['workerID'] = w
-        worker_procs.append(launchf(specs))
-    logger.info("Manager is awaiting {} workers".format(nworkers))
-    wcomms = manager.await_workers(nworkers)
-    logger.info("Manager connected to {} workers".format(nworkers))
+    with Timer() as timer:
+        for w in range(1, nworkers+1):
+            logger.info("Manager is launching worker {}".format(w))
+            if workers is not None:
+                specs['worker_ip'] = workers[w-1]
+                specs['tunnel_port'] = 0x71BE
+            specs['workerID'] = w
+            worker_procs.append(launchf(specs))
+        logger.info("Manager is awaiting {} workers".format(nworkers))
+        wcomms = manager.await_workers(nworkers)
+        logger.info("Manager connected to {} workers ({} s)".
+                    format(nworkers, timer.elapsed))
     return worker_procs, wcomms
 
 

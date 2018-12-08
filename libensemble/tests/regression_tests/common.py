@@ -69,14 +69,13 @@ def ssh_parse_args(args):
     worker_pwd = args.worker_pwd or os.getcwd()
     script_dir, script_name = os.path.split(sys.argv[0])
     worker_script_name = os.path.join(worker_pwd, script_name)
-    ssh = ["ssh", "-R", "{tunnel_port}:{manager_port}", "{worker_ip}"]
+    ssh = ["ssh", "-R", "{tunnel_port}:localhost:{manager_port}", "{worker_ip}"]
     cmd = [args.worker_python, worker_script_name,
            "--comms", "client",
            "--server", "localhost", "{tunnel_port}", "{authkey}",
            "--workerID", "{workerID}", "--nworkers", str(nworkers)]
     cmd = " ".join(cmd)
     cmd = "( cd {} ; {} )".format(worker_pwd, cmd)
-    print(cmd)
     ssh.append(cmd)
     libE_specs = {'workers': args.workers,
                   'worker_cmd': ssh,
