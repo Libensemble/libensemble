@@ -25,6 +25,9 @@ parser.add_argument('--pwd', type=str, nargs='?',
                     help='Working directory to be used')
 parser.add_argument('--worker_pwd', type=str, nargs='?',
                     help='Working directory on remote client')
+parser.add_argument('--worker_python', type=str, nargs='?',
+                    default=sys.executable,
+                    help='Python version on remote client')
 parser.add_argument('--tester_args', type=str, nargs='*',
                     help='Additional arguments for use by specific testers')
 
@@ -66,15 +69,18 @@ def ssh_parse_args(args):
     worker_pwd = args.worker_pwd or os.getcwd()
     script_dir, script_name = os.path.split(sys.argv[0])
     worker_script_name = os.path.join(worker_pwd, script_name)
-    cmd = ["ssh", "-R", "{tunnel_port}:{manager_port}",
-           "{worker_ip}",
-           "python", worker_script_name,
+    ssh = ["ssh", "-R", "{tunnel_port}:{manager_port}", "{worker_ip}"]
+    cmd = [args.worker_python, worker_script_name,
            "--comms", "client",
-           "--pwd", worker_pwd,
            "--server", "localhost", "{tunnel_port}", "{authkey}",
            "--workerID", "{workerID}", "--nworkers", str(nworkers)]
+    cmd = " ".join(cmd)
+    cmd = "( cd {} ; {} )".format(worker_pwd, cmd)
+    print(cmd)
+    ssh.append(cmd)
     libE_specs = {'workers': args.workers,
-                  'worker_cmd': cmd,
+                  'worker_cmd': ssh,
+                  'ip': 'localhost',
                   'comms': 'tcp'}
     return nworkers, True, libE_specs, args.tester_args
 

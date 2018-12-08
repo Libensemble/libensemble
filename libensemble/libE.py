@@ -298,7 +298,10 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
 def get_ip():
     "Get the IP address of the current host"
-    return socket.gethostbyname(socket.gethostname())
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except socket.gaierror:
+        return 'localhost'
 
 
 def libE_tcp_authkey():
@@ -377,7 +380,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
     elif 'workers' in libE_specs:
         workers = libE_specs['workers']
         nworkers = len(workers)
-    ip = libE_specs.get('ip', get_ip())
+    ip = libE_specs.get('ip', None) or get_ip()
     port = libE_specs.get('port', 0)
     authkey = libE_specs.get('authkey', libE_tcp_authkey())
 
