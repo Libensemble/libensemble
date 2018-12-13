@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# This is for setting up libEnsemble, license and details can be
+# found at https://github.com/Libensemble/libensemble/
 
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
