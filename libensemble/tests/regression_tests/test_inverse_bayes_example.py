@@ -16,16 +16,10 @@ import numpy as np
 import pdb
 
 from libensemble.libE import libE
+from libensemble.tests.regression_tests.common import parse_args
 
-nworkers = int(sys.argv[2]) if len(sys.argv) > 2 else 4
-is_master = True
-if len(sys.argv) > 1 and sys.argv[1] == "--processes":
-    libE_specs = {'nprocesses': nworkers}
-else:
-    from mpi4py import MPI
-    nworkers = MPI.COMM_WORLD.Get_size()-1
-    is_master = MPI.COMM_WORLD.Get_rank() == 0
-    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
 
 # Import sim_func
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f

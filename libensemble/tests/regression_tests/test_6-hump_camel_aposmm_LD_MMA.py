@@ -13,16 +13,21 @@ from __future__ import absolute_import
 import sys, os             # for adding to path
 import numpy as np
 
-from libensemble.libE import libE
+from libensemble.libE import libE, libE_tcp_worker
+from libensemble.tests.regression_tests.common import parse_args
 
-# APOSMM uses MPI explicitly
-if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
     quit()
-else:
+
+# Set up appropriate abort mechanism depending on comms
+libE_abort = quit
+if libE_specs['comms'] == 'mpi':
     from mpi4py import MPI
-    nworkers = MPI.COMM_WORLD.Get_size()-1
-    is_master = MPI.COMM_WORLD.Get_rank() == 0
-    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
+    def libE_mpi_abort():
+        MPI.COMM_WORLD.Abort(1)
+    libE_abort = libE_mpi_abort
 
 # Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
@@ -38,10 +43,10 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 n = 2
 
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float),('grad',float,n), # This is the output from the function being minimized
+#State the objective, arguments, output, and necessary parameters (and  sizes)
+sim_specs = {'sim_f': six_hump_camel, # Objective function
+             'in': ['x'],             # These keys will be given to objective
+             'out': [('f',float),('grad',float,n), # sim outputs
                     ],
              }
 
@@ -68,36 +73,66 @@ gen_out = [('x',float,n),
 # 1) We use their values to test APOSMM has identified all minima
 # 2) We use their approximate values to ensure APOSMM evaluates a point in each
 #    minima's basin of attraction.
-minima = np.array([[ -0.089842,  0.712656],
-                   [  0.089842, -0.712656],
-                   [ -1.70361,  0.796084],
-                   [  1.70361, -0.796084],
-                   [ -1.6071,   -0.568651],
-                   [  1.6071,    0.568651]])
+minima = [np.array([[ -0.089842,  0.712656],
+                    [  0.089842, -0.712656],
+                    [ -1.70361,  0.796084],
+                    [  1.70361, -0.796084],
+                    [ -1.6071,   -0.568651],
+                    [  1.6071,    0.568651]]),
+          np.array([[-2.9, -1.9]])]
 
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': aposmm_logic,
-             'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
-             'out': gen_out,
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'initial_sample_size': 100,
-             'sample_points': np.round(minima,1),
-             'localopt_method': 'LD_MMA',
-             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-             'xtol_rel': 1e-3,
-             'num_active_gens':1,
-             'max_active_runs':6,
-             }
-
+# State the generating function, arguments, output, and parameters.
+gen_specs = [{'gen_f': aposmm_logic,
+              'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
+              'out': gen_out,
+              'lb': np.array([-3,-2]),
+              'ub': np.array([ 3, 2]),
+              'initial_sample_size': 100,
+              'sample_points': np.round(minima[0],1),
+              'localopt_method': 'LD_MMA',
+              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+              'xtol_rel': 1e-3,
+              'num_active_gens':1,
+              'max_active_runs':6,
+              },
+             {'gen_f': aposmm_logic,
+              'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
+              'out': gen_out,
+              'lb': np.array([-3,-2]),
+              'ub': np.array([-2.9, -1.9]),
+              'initial_sample_size': 100,
+              'sample_points': np.round(minima[1],1),
+              'localopt_method': 'LD_MMA',
+              'rk_const': 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+              'ftol_rel': 1e-2,
+              'xtol_abs': 1e-3,
+              'ftol_abs': 1e-8,
+              'num_active_gens':1,
+              'max_active_runs':6,
+              'mu': 1e-4,
+              'lhs_divisions': 2
+              }]
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 1000}
+exit_criteria = [{'sim_max': 1000},
+                 {'sim_max': 200, 'elapsed_wallclock_time': 300}]
 
 
 alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
+
+
+# Perform the run (TCP worker mode)
+if libE_specs['comms'] == 'tcp' and not is_master:
+    run = int(sys.argv[-1])
+    libE_tcp_worker(sim_specs, gen_specs[run], libE_specs)
+    quit()
+
+
 # Perform the run
 for run in range(2):
+    if libE_specs['comms'] == 'tcp' and is_master:
+        libE_specs['worker_cmd'].append(str(run))
+
     np.random.seed(1)
 
     persis_info = {'next_to_give':0}
@@ -115,30 +150,15 @@ for run in range(2):
     for i in range(1,nworkers+1):
         persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
-    if run == 1:
-        # Change the bounds to put a local min at a corner point (to test that
-        # APOSMM handles the same point being in multiple runs) ability to
-        # give back a previously evaluated point)
-        gen_specs['ub']= np.array([-2.9, -1.9])
-        gen_specs['mu']= 1e-4
-        gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
-        gen_specs['lhs_divisions'] = 2
-
-        gen_specs.pop('xtol_rel')
-        gen_specs['ftol_rel'] = 1e-2
-        gen_specs['xtol_abs'] = 1e-3
-        gen_specs['ftol_abs'] = 1e-8
-        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
-        minima = np.array([[-2.9, -1.9]])
-
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs[run], exit_criteria[run],
+                                persis_info, alloc_specs, libE_specs)
 
     if is_master:
 
         if flag != 0:
             print("Exit was not on convergence (code {})".format(flag))
             sys.stdout.flush()
-            MPI.COMM_WORLD.Abort(1)
+            libE_abort()
 
         short_name = script_name.split("test_", 1).pop()
         filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(nworkers+1)
@@ -146,10 +166,10 @@ for run in range(2):
         np.save(filename, H)
 
         tol = 1e-5
-        for m in minima:
+        for m in minima[run]:
             print(np.min(np.sum((H[H['local_min']]['x']-m)**2,1)))
             sys.stdout.flush()
             if np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) > tol:
-                MPI.COMM_WORLD.Abort(1)
+                libE_abort()
 
-        print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
+        print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima[run])[0]) + " minima within a tolerance " + str(tol))

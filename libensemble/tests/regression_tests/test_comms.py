@@ -14,15 +14,14 @@ from __future__ import absolute_import
 import sys, os
 import numpy as np
 
-if len(sys.argv) > 1 and sys.argv[1] == "--processes":
-    # MPI only
+from mpi4py import MPI
+from libensemble.libE import libE
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
     quit()
-else:
-    from mpi4py import MPI #
-    from libensemble.libE import libE
-    nworkers = MPI.COMM_WORLD.Get_size()-1
-    is_master = MPI.COMM_WORLD.Get_rank() == 0
-    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0}
 
 # Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking

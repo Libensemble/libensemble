@@ -401,7 +401,7 @@ if [ "$root_found" = true ]; then
     test_num=0
     for TEST_SCRIPT in $REG_TEST_LIST
     do
-      for LAUNCHER in "mpi" "processes"
+      for LAUNCHER in "mpi" "local" "tcp"
       do
 
       #Need proc count here for now - still stop on failure etc.
@@ -426,7 +426,7 @@ if [ "$root_found" = true ]; then
                mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                test_code=$?
              else
-               $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --$LAUNCHER $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+               $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
              fi
            else
              if [ "$LAUNCHER" = mpi ]; then
@@ -439,10 +439,10 @@ if [ "$root_found" = true ]; then
                fi               
              else
                if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                 $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --$LAUNCHER $NWORKERS
+                 $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
                  test_code=$?
                else      
-                 $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --$LAUNCHER $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+                 $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
                  test_code=$?
                fi
              fi

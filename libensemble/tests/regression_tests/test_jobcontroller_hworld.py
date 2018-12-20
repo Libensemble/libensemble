@@ -4,7 +4,11 @@ from __future__ import absolute_import
 import sys, os             # for adding to path
 import numpy as np
 
-if len(sys.argv) > 1 and sys.argv[1] == "--processes":
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
     quit()
 
 from mpi4py import MPI # for libE communicator
