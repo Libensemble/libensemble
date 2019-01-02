@@ -120,7 +120,7 @@ class MPIJobController(JobController):
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False):
+               hyperthreads=False, test=False, wait_on_run=False):
         """Creates a new job, and either launches or schedules launch.
 
         The created job object is returned.
@@ -163,6 +163,9 @@ class MPIJobController(JobController):
         test: boolean, optional
             Whether this is a test - No job will be launched. Instead
             runline is printed to logger (At INFO level).
+            
+        wait_on_run: boolean, optional
+            Whether to wait for job to be polled as RUNNING (or other active/end state) before continuing.
 
 
         Returns
@@ -204,6 +207,8 @@ class MPIJobController(JobController):
                                           stdout=open(job.stdout, 'w'),
                                           stderr=open(job.stderr, 'w'),
                                           start_new_session=True)
+            if (wait_on_run):
+                self._wait_on_run(job)
             self.list_of_jobs.append(job)
 
         return job

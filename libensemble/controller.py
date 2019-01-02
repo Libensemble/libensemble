@@ -32,6 +32,11 @@ FINISHED
 USER_KILLED
 FAILED""".split()
 
+NOT_STARTED_STATES = '''
+CREATED
+WAITING
+'''.split()
+
 
 class JobControllerException(Exception):
     "Raised for any exception in the JobController"
@@ -227,6 +232,16 @@ class JobController:
     """
 
     controller = None
+    
+    
+    def _wait_on_run(self, job):
+        '''Called by launch when wait_on_run is True'''
+        start = time.time()
+        while job.state in NOT_STARTED_STATES:
+            time.sleep(0.2)
+            job.poll()
+        logger.debug("Job {} polled as {} after {} seconds".format(job.name, job.state, time.time()-start))
+        
 
     def __init__(self):
         """Instantiate a new JobController instance.
@@ -334,3 +349,4 @@ class JobController:
         "Kill a job"
         jassert(isinstance(job, Job), "Invalid job has been provided")
         job.kill(self.wait_time)
+

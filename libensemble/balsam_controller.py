@@ -214,7 +214,7 @@ class BalsamJobController(MPIJobController):
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False):
+               hyperthreads=False, test=False, wait_on_run=False):
         """Creates a new job, and either launches or schedules to launch
         in the job controller
 
@@ -283,6 +283,9 @@ class BalsamJobController(MPIJobController):
             add_job_args['stage_out_files'] = "*.out"
 
         job.process = dag.add_job(**add_job_args)
+        
+        if (wait_on_run):
+            self._wait_on_run(job)
 
         logger.debug("Added job to Balsam database {}: "
                      "Worker {} nodes {} ppn {}".
