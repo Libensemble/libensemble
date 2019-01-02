@@ -1,6 +1,6 @@
-======================
-Balsam anaylis scripts
-======================
+=======================
+Balsam analysis scripts
+=======================
 
 These scripts require an activated balsam database, and create plots as png file.
 
