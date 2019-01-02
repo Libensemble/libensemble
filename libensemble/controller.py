@@ -343,7 +343,7 @@ class JobController:
 
     def poll(self, job):
         "Polls a job"
-        job.poll(job)
+        job.poll()
         
     def kill(self, job):
         "Kill a job"
