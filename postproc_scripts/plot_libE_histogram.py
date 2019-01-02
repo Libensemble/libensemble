@@ -4,6 +4,7 @@
 infile='libe_summary.txt'
 time_key='Time:'
 status_key='Status:'
+sim_only = True # Ignore generator times
 
 #States - could add multiple lines - eg Failed.
 ran_ok = ['Completed'] # list of ok states
@@ -46,6 +47,8 @@ with open(infile) as f:
         found_status = False
         for i, val in enumerate(lst):
             if val == time_key:
+                if sim_only and lst[i-1] != 'sim':
+                    break
                 in_times.append(lst[i+1])
                 found_time = True
             if val == status_key:
@@ -86,7 +89,13 @@ p1 = plt.hist(times_ran, bins, label='Completed')
 p2 = plt.hist(times_kill, bins, label='Killed')
 
 #plt.title('Theta Opal/libEnsemble Times: 127 Workers - sim_max 508')
-plt.title('libEnsemble histogram of calc times' + ' (' + str(active_line_count) + ' user calcs)')
+if sim_only:
+    calc_type = 'sim'
+else:
+    calc_type = 'calc'
+title = 'libEnsemble histogram of ' + calc_type  + ' times' + ' (' + str(active_line_count) + ' user calcs)'   
+
+plt.title(title)
 plt.xlabel('Calc run-time (sec)')
 plt.ylabel('Count')
 plt.grid(True)
