@@ -12,8 +12,7 @@ from libensemble.mpi_resources import MPIResources
 from libensemble.controller import JobController, Job, jassert
 
 logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
-#For debug messages in this module  - uncomment
-#(see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
