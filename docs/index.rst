@@ -21,7 +21,8 @@ Library for managing ensemble-like collections of computations.
    :caption: User Guide:
    
    user_guide
-   libE_module   
+   libE_module
+   logging
    data_structures/data_structures
    user_funcs
    job_controller/jc_index

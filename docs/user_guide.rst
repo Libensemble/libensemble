@@ -114,5 +114,6 @@ a summary file is produced for each worker in directory named *libe_stat_files*.
 the run these are concatenated into *libe_summary.txt*. If a run aborts, the *libe_stat_files* directory
 will remain.
 
-**ensemble.log**: This is the logging output from libEnsemble. The default logging is DEBUG level, as
+**ensemble.log**: This is the logging output from libEnsemble. The default logging is at DEBUG level, as
 this can provide useful diagnostics. If this file is not removed, multiple runs will append output.
+For more info, see :doc:`Logging<logging>`.
