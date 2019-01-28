@@ -22,10 +22,10 @@ Library for managing ensemble-like collections of computations.
    
    user_guide
    libE_module
-   logging
    data_structures/data_structures
    user_funcs
    job_controller/jc_index
+   logging
    
 .. toctree::
    :maxdepth: 2
