@@ -186,7 +186,7 @@ class Job:
         self.errcode = self.process.returncode
         self.success = (self.errcode == 0)
         self.state = 'FINISHED' if self.success else 'FAILED'
-        logger.debug("Job {} completed with errcode {} ({})".
+        logger.info("Job {} completed with errcode {} ({})".
                      format(self.name, self.errcode, self.state))
 
     def kill(self, wait_time=60):
@@ -208,7 +208,7 @@ class Job:
                     "Attempting to kill job {} that has no process ID - "
                     "check jobs been launched".format(self.name))
 
-        logger.debug("Killing job {}".format(self.name))
+        logger.info("Killing job {}".format(self.name))
         launcher.cancel(self.process, wait_time)
         self.state = 'USER_KILLED'
         self.finished = True

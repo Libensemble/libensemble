@@ -199,7 +199,7 @@ class MPIJobController(JobController):
             logger.info('Test selected: Not launching job')
             logger.info('runline args are {}'.format(runline))
         else:
-            logger.debug("Launching job {}: {}".
+            logger.info("Launching job {}: {}".
                          format(job.name, " ".join(runline))) #One line
             job.launch_time = time.time()
             job.process = launcher.launch(runline, cwd='./',
