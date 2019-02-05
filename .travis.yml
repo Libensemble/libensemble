@@ -47,7 +47,7 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+  #- conda update -q conda
   - conda info -a # For debugging any issues with conda
   - conda config --add channels conda-forge  
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION 
