@@ -52,11 +52,12 @@ before_install:
   - source activate condaenv
 
 install:
+  - conda install gxx_linux-64
   - conda install $MPI
   - pip install numpy
   - pip install scipy
   - pip install mpi4py
-  - pip install petsc=3.10.0 petsc4py=3.10.0
+  - pip install petsc petsc4py
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout 
