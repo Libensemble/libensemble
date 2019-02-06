@@ -54,7 +54,7 @@ before_install:
 install:
   - conda install gcc_linux-64
   - conda install $MPI
-  - conda install numpy
+  #- conda install numpy
   - conda install scipy
   - conda install mpi4py
   - conda install petsc
