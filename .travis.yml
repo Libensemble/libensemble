@@ -16,7 +16,7 @@ env:
     - OMPI_MCA_rmaps_base_oversubscribe=yes  
   matrix:
     - MPI=mpich
-    - MPI=openmpi
+    #- MPI=openmpi
 
 matrix:
   allow_failures:
@@ -37,39 +37,36 @@ cache:
 before_install:
   # Do this conditionally because it saves some downloading if the version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-4.5.11-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  #- conda update -q conda
+  - conda update -q -y conda
   - conda info -a # For debugging any issues with conda
   - conda config --add channels conda-forge  
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION 
   - source activate condaenv
 
 install:
-  #- conda install gxx_linux-64
+  - conda install gcc_linux-64
   - conda install $MPI
-  - pip install numpy
-  - pip install scipy
-  - pip install mpi4py
-  - pip install petsc petsc4py
-  - pip install pytest
-  - pip install pytest-cov
-  - pip install pytest-timeout 
-  - pip install mock
-  - pip install coveralls
-  - conda install --no-deps nlopt  
+  - conda install numpy
+  - conda install scipy
+  - conda install mpi4py
+  - conda install petsc
+  - conda install petsc4py 
+  - conda install pytest pytest-cov pytest-timeout mock coveralls
+  - conda install --no-deps nlopt
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
   - pip install -e .
 
-# Run test
+# Run test (-z show output)
 script:
   - libensemble/tests/run-tests.sh -z
 
