@@ -165,7 +165,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     else:
         global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
-        updated_inds = update_history_dist(H, gen_specs, c_flag)
+        updated_inds = update_history_dist(H, n, gen_specs, c_flag)
 
         starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         updated_inds.update(starting_inds)
@@ -323,15 +323,13 @@ def add_points_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0, sor
     return persis_info
 
 
-def update_history_dist(H, gen_specs, c_flag):
+def update_history_dist(H, n, gen_specs, c_flag):
     """
     Updates distances/indices after new points that have been evaluated.
 
     :See:
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
-
-    n = len(H['x_on_cube'][0])
 
     updated_inds = set()
 
