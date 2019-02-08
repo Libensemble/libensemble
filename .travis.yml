@@ -54,17 +54,16 @@ before_install:
 install:
   - conda install gcc_linux-64
   - conda install $MPI
-  #- conda install numpy
-  - conda install --no-update-deps scipy
+  - conda install --no-update-deps scipy # includes numpy
   - conda install --no-update-deps mpi4py
   - conda install --no-update-deps petsc4py petsc
+  - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout
   - pip install mock
   - pip install coveralls
-  - conda install --no-update-deps nlopt
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
