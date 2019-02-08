@@ -57,7 +57,7 @@ install:
   #- conda install numpy
   - conda install --no-update-deps scipy
   - conda install --no-update-deps mpi4py
-  - onda install --no-update-deps petsc4py petsc
+  - conda install --no-update-deps petsc4py petsc
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install pytest
   - pip install pytest-cov
