@@ -59,7 +59,12 @@ install:
   - conda install mpi4py
   - conda install petsc
   - conda install petsc4py 
-  - conda install pytest pytest-cov pytest-timeout mock coveralls
+  - conda install pytest
+  # pip install these as the conda installs downgrade pytest on python3.4
+  - pip install pytest-cov
+  - pip install pytest-timeout
+  - pip install mock
+  - pip install coveralls
   - conda install --no-deps nlopt
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
