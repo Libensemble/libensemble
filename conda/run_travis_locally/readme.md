@@ -119,6 +119,7 @@ Note: This will not by default save your environment variables
 First to check running containers (ie. running server - whether or not you are in a session):
 
     docker ps
+    
 OR
 
     docker container ls
