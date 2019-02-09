@@ -43,7 +43,6 @@ Install the Travis Docker image for Python and run the container (server):
 This might take a while if image is not downloaded. Once image is downloaded it will be run from cache.
 
 Note: 
-
 travisci/ci-garnet:packer-1512502276-986baf0 is the Travis Python image.
 travis-debug-3.7-v1 is the name you are assigning to the new container made from the image.
 
@@ -54,7 +53,7 @@ Alternative travisCI docker images can be found [here](https://hub.docker.com/r/
 
 Then open a shell in running container:
 
-    sudo docker exec -it travis-debug bash -l
+    sudo docker exec -it travis-debug-3.7-v1 bash -l
     
 Prompt should say travis@ rather than root@:
 
@@ -64,7 +63,7 @@ Prompt should say travis@ rather than root@:
 You now want to copy the latest build script to the container and run it.
 
 The default build script is build_mpich_libE.sh. If this is not up to date, check
-the installs in here against .travis.yml
+the installs against .travis.yml in the top level libEnsemble package directory.
 
 
 #### Copy build script from host system to the running container
@@ -80,18 +79,19 @@ On the docker side you may need to set ownership of the script:
     chown travis:travis /home/travis/build_mpich_libE.sh
 
     
-#### Now run the libEnsemble build-and-run script
+#### Run the libEnsemble build-and-run script
 
 Now, in the docker container, become user travis:
 
     su - travis
  
 Source the script, setting python version and libEnsemble branch if necessary (see script for defaults).
-**Always source** to maintain environment variables after running (inc. miniconda path):
+**Always source** to maintain environment variables after running (inc. miniconda path). The following
+would run with Python 3.7 and test the libEnsemble branch hotfix/logging:
 
     . ./build_mpich_libE.sh -p 3.7 -b hotfix/logging
     
-Note: libEnsemble will be git cloned and check out the given branch.
+Note: libEnsemble will be git cloned and checked out at the given branch.
 
 The script should build all dependencies and run tests. Having sourced the script, you should
 be left in the same environment for debugging. The script should stop running if an install step fails.
@@ -153,11 +153,12 @@ where <user_name>/<image_name> is as used above to save (or from first column in
 
 The CPU cores available will be all those on your machine, not just what Travis supports.
 Parallel/threaded code run-time errors may well depend on timing of processes/threads and
-so may not be replicated.
+so may not be replicated. At time of writing, Travis provides 2 cores. Resources in docker
+container can be [restricted](https://docs.docker.com/config/containers/resource_constraints/).
 
-An alternative to this is to log in to your Travis build and debug. For public repositories,
-this requires contacting Travis support for a token that can only be used by the given user.
-See [here](https://docs.travis-ci.com/user/running-build-in-debug-mode/).
+An alternative to this process is to log in to your Travis build and debug. For public
+repositories, this requires contacting Travis support for a token that can only be used by
+the given user. See [here](https://docs.travis-ci.com/user/running-build-in-debug-mode/).
 
 
     
