@@ -58,7 +58,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
                 break
 
             # Assign resources and mark tasks as allocated to workers
-            sim_work(Work, i, sim_specs['in'], sim_ids_to_send)
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info[i])
             H['allocated'][sim_ids_to_send] = True
 
             # Update resource records
@@ -81,6 +81,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
 
             # Give gen work
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], persis_info[i], range(len(H)))
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
 
     return Work, persis_info

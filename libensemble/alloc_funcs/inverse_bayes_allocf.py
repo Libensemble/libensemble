@@ -41,8 +41,8 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_in
                 k = H['batch'][-1]
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
 
-            gen_work(Work, i, ['like'], persis_info[i],
-                     np.atleast_1d(inds_to_send_back), persistent=True)
+            gen_work(Work, i, ['like'], np.atleast_1d(inds_to_send_back),
+                    persis_info[i], persistent=True)
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
@@ -52,14 +52,14 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, persis_in
             sim_subbatches = H['subbatch'][task_avail]
             sim_inds = (sim_subbatches == np.min(sim_subbatches))
             sim_ids_to_send = np.nonzero(task_avail)[0][sim_inds]
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send))
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), [])
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
 
             # Finally, generate points since there is nothing else to do.
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], persis_info[i],
-                     [], persistent=True)
+            gen_work(Work, i, gen_specs['in'], [], persis_info[i],
+                    persistent=True)
 
     return Work, persis_info
