@@ -26,10 +26,9 @@ import nlopt
 
 def aposmm_logic(H,persis_info,gen_specs,_):
     """
-    APOSMM as a libEnsemble generation function. Coordinates multiple local
-    optimization runs, starting from points which do not have a better point
-    nearby them. This generation function produces/requires the following
-    fields in ``H``:
+    APOSMM coordinates multiple local optimization runs, starting from points
+    which do not have a better point nearby (within a distance ``r_k``). This
+    generation function produces/requires the following fields in ``H``:
 
     - ``'x' [n floats]``: Parameters being optimized over
     - ``'x_on_cube' [n floats]``: Parameters scaled to the unit cube
@@ -43,6 +42,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - ``'started_run' [bool]``: True if point has started a local optimization run
     - ``'num_active_runs' [int]``: Counts number of non-terminated local runs the point is in
     - ``'local_min' [float]``: True if point has been ruled a local minima
+    - ``'sim_id' [int]``: Row number of entry in history
 
     and optionally
 
@@ -50,11 +50,11 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - ``'f_i' [float]``: Value of ith objective component (if calculated one at a time)
     - ``'fvec' [m floats]``: All objective components (if calculated together)
     - ``'obj_component' [int]``: Index corresponding to value in ``'f_i``'
-    - ``'pt_id' [int]``: Identify the point
+    - ``'pt_id' [int]``: Identify the point (useful when evaluating different objective components for a given ``'x'``)
 
     When using libEnsemble to do individual objective component evaluations,
     APOSMM will return ``gen_specs['components']`` copies of each point, but
-    each component=0 version of the point will only be considered when
+    the component=0 entry of each point will only be considered when
 
     - deciding where to start a run,
     - best nearby point,
@@ -81,9 +81,10 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - ``'mu' [float]``: Distance from the boundary that all localopt starting points must satisfy
     - ``'nu' [float]``: Distance from identified minima that all starting points must satisfy
     - ``'single_component_at_a_time' [bool]``: True if single objective components will be evaluated at a time
-    - ``'rk_const' [float]``:
+    - ``'rk_const' [float]``: Multiplier in front of the r_k value 
+    - ``'max_active_runs' [int]``: Upper bound on the number of runs APOSMM is advancing
 
-    And ``gen_specs`` convergence tolerances for NLopt and PETSc/TAO:
+    And ``gen_specs`` convergence tolerances for NLopt and PETSc/TAO localopt_methods:
 
     - ``'fatol' [float]``:
     - ``'ftol_abs' [float]``:
@@ -92,6 +93,20 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     - ``'grtol' [float]``:
     - ``'xtol_abs' [float]``:
     - ``'xtol_rel' [float]``:
+
+
+    As a default, APOSMM starts a local optimization runs from a point that:
+
+    - is not in an active local optimization run,
+    - is more than ``mu`` from the boundary (in the unit-cube domain),
+    - is more than ``nu`` from identified minima (in the unit-cube domain),
+    - does not have a better point within a distance ``r_k`` of it.
+
+    If the above results in more than ``'max_active_runs'`` being advanced, the
+    best point in each run is determined and the dist_to_better is computed
+    (with inf being the value for the best run). Then those
+    ``'max_active_runs'`` runs with largest dist_to_better are advanced
+    (breaking ties arbitrarily). 
 
     :Note:
         ``gen_specs['combine_component_func']`` must be defined when there are
@@ -132,6 +147,13 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     exit_code:        0 if a new localopt point has been found, otherwise it's the NLopt/POUNDERS code
     samples_needed:   counts the number of additional uniformly drawn samples needed
 
+
+    Description of persistent variables used to maintain the state of APOSMM
+
+    persis_info['total_runs']: Running count of started and completed localopt runs 
+    persis_info['run_order']: Sequence of indices of points in each unfinished run 
+    persis_info['old_runs']: Sequence of indices of points in each finished run 
+
     """
 
     n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
@@ -143,7 +165,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     else:
         global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
 
-        updated_inds = update_history_dist(H, gen_specs, c_flag)
+        updated_inds = update_history_dist(H, n, gen_specs, c_flag)
 
         starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         updated_inds.update(starting_inds)
@@ -156,17 +178,16 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             H['num_active_runs'][ind] += 1
 
             persis_info['run_order'][new_run_num] = [ind]
-            persis_info['active_runs'].update([new_run_num])
             persis_info['total_runs'] +=1
 
         num_runs = len(persis_info['run_order'])
         if 'max_active_runs' in gen_specs and gen_specs['max_active_runs'] < num_runs:
-            run_vals = np.zeros((num_runs,2),dtype=int)
+            run_vals = np.zeros((num_runs,2),dtype=int) # Stores run number and sim_id (i.e., the row in H) of the best point in each run
             for i,run in enumerate(persis_info['run_order'].keys()):
                 run_vals[i,0] = run
                 run_vals[i,1] = persis_info['run_order'][run][np.nanargmin(H['f'][persis_info['run_order'][run]])]
 
-            P = squareform(pdist(H['x_on_cube'][run_vals[:,1]], 'euclidean'))
+            P = squareform(pdist(H['x_on_cube'][run_vals[:,1]], 'euclidean')) # Pairwise distance between the best points in each run
             dist_to_better = np.inf*np.ones(num_runs)
 
             for i in range(num_runs):
@@ -176,14 +197,14 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
             k_sorted = np.argpartition(-dist_to_better,kth=gen_specs['max_active_runs']-1) # Take max_active_runs largest
             
-            persis_info['active_runs'] = set(run_vals[k_sorted[:gen_specs['max_active_runs']],0].astype(int))
+            active_runs = set(run_vals[k_sorted[:gen_specs['max_active_runs']],0].astype(int))
         else:
-            persis_info['active_runs'] = set(persis_info['run_order'].keys())
+            active_runs = set(persis_info['run_order'].keys())
 
         inactive_runs = set()
 
         # Find next point in any uncompleted runs using information stored in persis_info
-        for run in persis_info['active_runs']:
+        for run in active_runs:
             if not np.all(H['returned'][persis_info['run_order'][run]]): 
                 continue # Can't advance this run since all of it's points haven't been returned.
 
@@ -205,7 +226,6 @@ def aposmm_logic(H,persis_info,gen_specs,_):
                     persis_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
 
         for i in inactive_runs:
-            persis_info['active_runs'].remove(i)
             old_run = persis_info['run_order'].pop(i) # Deletes any information about this run
             persis_info['old_runs'][i] = old_run
 
@@ -303,15 +323,13 @@ def add_points_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0, sor
     return persis_info
 
 
-def update_history_dist(H, gen_specs, c_flag):
+def update_history_dist(H, n, gen_specs, c_flag):
     """
     Updates distances/indices after new points that have been evaluated.
 
     :See:
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
-
-    n = len(H['x_on_cube'][0])
 
     updated_inds = set()
 
@@ -390,9 +408,16 @@ def update_history_optimal(x_opt, H, run_inds):
     Updated the history after any point has been declared a local minimum
     """
 
-    opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0]
-    assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
-    assert opt_ind in run_inds, "Why isn't the run optimum a point in the run?"
+    # opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
+    # assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
+    # assert opt_ind in run_inds, "Why isn't the run optimum a point in the run?"
+
+    dists = np.linalg.norm(H['x_on_cube'][run_inds]-x_opt,axis=1)
+    ind = np.argmin(dists)
+    opt_ind = run_inds[ind]
+
+    assert dists[ind] <= 1e-15, "Why is the closest point to x_opt not within 1e-15?"
+    assert np.min(dists[run_inds != opt_ind]) >= 1e-15, "Why are there two points from the run within 1e-15 of x_opt?"
 
     H['local_min'][opt_ind] = 1
     H['num_active_runs'][run_inds] -= 1
@@ -846,70 +871,6 @@ def initialize_APOSMM(H, gen_specs):
     return n, n_s, c_flag, O, r_k, mu, nu
 
 
-def queue_update_function(H, gen_specs, persis_info):
-    """
-    A specific queue update function that stops evaluations under a variety of
-    conditions
-
-    gen_specs['stop_on_NaNs']
-    gen_specs['stop_partial_fvec_eval']
-    H['paused']
-    """
-
-    if len(H)==persis_info['H_len']:
-        return persis_info
-    else:
-        persis_info['H_len']=len(H)
-
-    pt_ids_to_pause = set()
-
-    # Pause entries in H if one component is evaluated at a time and there are
-    # any NaNs for some components.
-    if 'stop_on_NaNs' in gen_specs and gen_specs['stop_on_NaNs']:
-        pt_ids_to_pause.update(H['pt_id'][np.isnan(H['f_i'])])
-
-    # Pause entries in H if a partial combine_component_func evaluation is
-    # worse than the best, known, complete evaluation (and the point is not a
-    # local_opt point).
-    if 'stop_partial_fvec_eval' in gen_specs and gen_specs['stop_partial_fvec_eval']:
-        pt_ids = np.unique(H['pt_id'])
-
-        complete_fvals_flag = np.zeros(len(pt_ids),dtype=bool)
-        for i,pt_id in enumerate(pt_ids):
-            if pt_id in persis_info['has_nan']:
-                continue
-
-            a1 = H['pt_id']==pt_id
-            if np.any(np.isnan(H['f_i'][a1])):
-                persis_info['has_nan'].add(pt_id)
-                continue
-
-            if np.all(H['returned'][a1]):
-                complete_fvals_flag[i] = True
-                persis_info['complete'].add(pt_id)
-
-        # complete_fvals_flag = np.array([np.all(H['returned'][H['pt_id']==i]) for i in pt_ids],dtype=bool)
-
-        if np.any(complete_fvals_flag) and len(pt_ids)>1:
-            # Ensure combine_component_func calculates partial fevals correctly
-            # with H['f_i'] = 0 for non-returned point
-            possibly_partial_fvals = np.array([gen_specs['combine_component_func'](H['f_i'][H['pt_id']==i]) for i in pt_ids])
-
-            best_complete = np.nanmin(possibly_partial_fvals[complete_fvals_flag])
-
-            worse_flag = np.zeros(len(pt_ids),dtype=bool)
-            for i in range(len(pt_ids)):
-                if not np.isnan(possibly_partial_fvals[i]) and possibly_partial_fvals[i] > best_complete:
-                    worse_flag[i] = True
-
-            # Pause incompete evaluations with worse_flag==True
-            pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
-
-    if not pt_ids_to_pause.issubset(persis_info['already_paused']):
-        persis_info['already_paused'].update(pt_ids_to_pause)
-        H['paused'][np.in1d(H['pt_id'],list(pt_ids_to_pause))] = True
-
-    return persis_info
 
 def display_exception(e):
     print(e.__doc__)

@@ -86,6 +86,6 @@ def uniform_random_sample(H,persis_info,gen_specs,_):
 
     O = np.zeros(b, dtype=gen_specs['out'])
 
-    O['x'] = persis_info['rand_stream'].uniform(lb,ub,(b,n))
+    O['x'] = persis_info['rand_stream'].uniform(lb,ub,(b,n)).squeeze()
 
     return O, persis_info

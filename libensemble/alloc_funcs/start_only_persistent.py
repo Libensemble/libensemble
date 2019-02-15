@@ -6,7 +6,7 @@ from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
-def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
+def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start up to 1 persistent generator.  If all points requested by
