@@ -35,7 +35,7 @@ sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimi
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
-             'out': [('x',float,1)],
+             'out': [('x',float,(1,))],
              'lb': np.array([-3]),
              'ub': np.array([ 3]),
              'gen_batch_size': 500,
