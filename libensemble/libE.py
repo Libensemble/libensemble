@@ -187,6 +187,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
+        
+    assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
 
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
