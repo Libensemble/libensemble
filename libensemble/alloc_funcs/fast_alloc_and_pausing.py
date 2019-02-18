@@ -97,7 +97,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 continue
 
             next_row = persis_info['need_to_give'].pop()
-            sim_work(Work, i, sim_specs['in'], [next_row])
+            sim_work(Work, i, sim_specs['in'], [next_row], [])
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
             lw = persis_info['last_worker']
@@ -123,7 +123,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], persis_info[lw], range(len(H)))
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[lw])
 
             persis_info['last_worker'] = i
 
