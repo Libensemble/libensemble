@@ -7,6 +7,8 @@ import time
 import pytest
 import socket
 from libensemble.controller import JobController
+from libensemble.controller import NOT_STARTED_STATES
+
 
 USE_BALSAM = False
 
@@ -164,6 +166,20 @@ def test_launch_and_poll():
     assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)
 
+def test_launch_wait_on_run():
+    """ Test of launching job with wait_on_run """
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_job_controller()
+    jobctl = JobController.controller
+    cores = NCORES
+    args_for_sim = 'sleep 0.2'
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_run=True)
+    assert job.state not in NOT_STARTED_STATES, "Job should not be in a NOT_STARTED state. State: " + str(job.state)
+    jobctl.poll(job)
+    if not job.finished:
+        job = polling_loop(jobctl, job)
+    assert job.finished, "job.finished should be True. Returned " + str(job.finished)
+    assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)       
 
 def test_kill_on_file():
     """ Test of killing job based on something in output file"""
@@ -488,6 +504,7 @@ def test_job_failure():
 if __name__ == "__main__":
     #setup_module(__file__)
     test_launch_and_poll()
+    test_launch_wait_on_run()
     test_kill_on_file()
     test_kill_on_timeout()
     test_launch_and_poll_multijobs()
