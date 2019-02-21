@@ -20,7 +20,7 @@ import traceback
 # (Set above libe imports so errors in import are captured)
 # LEVEL: DEBUG/INFO/WARNING/ERROR
 #logging.basicConfig(level=logging.INFO, format='%(name)s (%(levelname)s): %(message)s')
-logging.basicConfig(filename='ensemble.log', level=logging.DEBUG, format='%(name)s (%(levelname)s): %(message)s')
+#logging.basicConfig(filename='ensemble.log', level=logging.DEBUG, format='%(name)s (%(levelname)s): %(message)s')
 
 from libensemble.history import History
 from libensemble.libE_manager import manager_main
@@ -30,7 +30,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.message_numbers import ABORT_ENSEMBLE
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
@@ -187,6 +187,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
+        
+    assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
 
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"

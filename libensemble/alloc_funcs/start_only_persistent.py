@@ -6,7 +6,7 @@ from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
-def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
+def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start up to 1 persistent generator.  If all points requested by
@@ -29,7 +29,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
-                     persis_info[i], np.atleast_1d(last_ind), persistent=True)
+                     np.atleast_1d(last_ind), persis_info[i], persistent=True)
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
@@ -37,13 +37,13 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, persis_info):
 
             # perform sim evaluations from existing runs (if they exist).
             sim_ids_to_send = np.nonzero(task_avail)[0][0] # oldest point
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send))
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
             # Finally, generate points since there is nothing else to do.
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], persis_info[i],
-                     [], persistent=True)
+            gen_work(Work, i, gen_specs['in'], [], persis_info[i],
+                     persistent=True)
 
     return Work, persis_info

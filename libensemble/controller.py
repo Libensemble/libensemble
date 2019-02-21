@@ -19,8 +19,7 @@ import libensemble.launcher as launcher
 from libensemble.resources import Resources
 
 logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
-#For debug messages in this module  - uncomment
-#(see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 STATES = """
@@ -31,6 +30,11 @@ RUNNING
 FINISHED
 USER_KILLED
 FAILED""".split()
+
+NOT_STARTED_STATES = '''
+CREATED
+WAITING
+'''.split()
 
 
 class JobControllerException(Exception):
@@ -182,7 +186,7 @@ class Job:
         self.errcode = self.process.returncode
         self.success = (self.errcode == 0)
         self.state = 'FINISHED' if self.success else 'FAILED'
-        logger.debug("Job {} completed with errcode {} ({})".
+        logger.info("Job {} completed with errcode {} ({})".
                      format(self.name, self.errcode, self.state))
 
     def kill(self, wait_time=60):
@@ -204,7 +208,7 @@ class Job:
                     "Attempting to kill job {} that has no process ID - "
                     "check jobs been launched".format(self.name))
 
-        logger.debug("Killing job {}".format(self.name))
+        logger.info("Killing job {}".format(self.name))
         launcher.cancel(self.process, wait_time)
         self.state = 'USER_KILLED'
         self.finished = True
@@ -227,6 +231,16 @@ class JobController:
     """
 
     controller = None
+    
+    
+    def _wait_on_run(self, job):
+        '''Called by launch when wait_on_run is True'''
+        start = time.time()
+        while job.state in NOT_STARTED_STATES:
+            time.sleep(0.2)
+            job.poll()
+        logger.debug("Job {} polled as {} after {} seconds".format(job.name, job.state, time.time()-start))
+        
 
     def __init__(self):
         """Instantiate a new JobController instance.
@@ -328,9 +342,10 @@ class JobController:
 
     def poll(self, job):
         "Polls a job"
-        job.poll(job)
+        job.poll()
         
     def kill(self, job):
         "Kill a job"
         jassert(isinstance(job, Job), "Invalid job has been provided")
         job.kill(self.wait_time)
+

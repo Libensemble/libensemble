@@ -6,7 +6,7 @@ import numpy as np
 from libensemble.alloc_funcs.support import \
      avail_worker_ids, sim_work, gen_work, count_gens
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
@@ -27,7 +27,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
         # Find indices of H that are not yet allocated
         if persis_info['next_to_give'] < len(H):
             # Give sim work if possible
-            sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']])
+            sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
             persis_info['next_to_give'] += 1
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
@@ -54,7 +54,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, persis_info):
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], persis_info[lw], range(len(H)))
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[lw])
 
             persis_info['last_worker'] = i
 

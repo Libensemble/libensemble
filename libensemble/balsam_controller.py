@@ -17,8 +17,7 @@ import balsam.launcher.dag as dag
 from balsam.core import models
 
 logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
-#For debug messages in this module  - uncomment
-#(see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
@@ -89,6 +88,9 @@ class BalsamJob(Job):
                                "Balsam state {}".format(balsam_state))
                 self.state = 'UNKNOWN'
 
+            logger.info("Job {} ended with state {}".
+                        format(self.name, self.state))
+
         elif balsam_state in models.ACTIVE_STATES:
             self.state = 'RUNNING'
             self.workdir = self.workdir or self.process.working_directory
@@ -110,7 +112,8 @@ class BalsamJob(Job):
 
         #Could have Wait here and check with Balsam its killed -
         #but not implemented yet.
-
+        
+        logger.info("Killing job {}".format(self.name))
         self.state = 'USER_KILLED'
         self.finished = True
         self.calc_job_timing()
@@ -214,7 +217,7 @@ class BalsamJobController(MPIJobController):
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False):
+               hyperthreads=False, test=False, wait_on_run=False):
         """Creates a new job, and either launches or schedules to launch
         in the job controller
 
@@ -283,8 +286,11 @@ class BalsamJobController(MPIJobController):
             add_job_args['stage_out_files'] = "*.out"
 
         job.process = dag.add_job(**add_job_args)
+        
+        if (wait_on_run):
+            self._wait_on_run(job)
 
-        logger.debug("Added job to Balsam database {}: "
+        logger.info("Added job to Balsam database {}: "
                      "Worker {} nodes {} ppn {}".
                      format(job.name, self.workerID, num_nodes, ranks_per_node))
 
