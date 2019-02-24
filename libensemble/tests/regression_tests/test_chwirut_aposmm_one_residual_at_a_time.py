@@ -30,7 +30,7 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 10*m
+max_sim_budget = 30*m
 
 sim_specs = {'sim_f': chwirut_eval,
              'in': ['x', 'obj_component'],
@@ -92,9 +92,11 @@ alloc_specs = {'out':[('allocated',bool)],
 
 np.random.seed(1)
 persis_info = {}
+persis_info['local_pt_ids'] = set()
 persis_info['need_to_give'] = set()
 persis_info['total_gen_calls'] = 0
 persis_info['complete'] = set()
+persis_info['best_complete_val'] = np.inf
 persis_info['has_nan'] = set()
 persis_info['already_paused'] = set()
 persis_info['H_len'] = 0

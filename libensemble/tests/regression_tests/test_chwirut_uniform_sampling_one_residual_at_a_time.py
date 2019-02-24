@@ -31,18 +31,19 @@ script_name = os.path.splitext(os.path.basename(__file__))[0]
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 10*m
+max_sim_budget = 100*m
 
 sim_specs = {'sim_f': chwirut_eval,
              'in': ['x', 'obj_component'],
              'out': [('f_i',float),
                      ],
-             'component_nan_frequency': 0.05,
+             'component_nan_frequency': 0.01,
              }
 
 gen_out = [('x',float,n),
       ('priority',float),
       ('paused',bool),
+      ('local_pt',bool),
       ('obj_component',int),
       ('pt_id',int),
       ]
@@ -73,6 +74,8 @@ alloc_specs = {'out':[('allocated',bool)],
 np.random.seed(1)
 persis_info = {}
 persis_info['need_to_give'] = set()
+persis_info['best_complete_val'] = np.inf
+persis_info['local_pt_ids'] = set()
 persis_info['total_gen_calls'] = 0
 persis_info['complete'] = set()
 persis_info['has_nan'] = set()
