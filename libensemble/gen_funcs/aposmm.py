@@ -760,7 +760,13 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
 
     local_start_inds2 = list(np.ix_(local_seeds)[0])
 
-    start_inds = list(sample_start_inds) + local_start_inds2
+    # If paused is a field in H, don't start from paused points.
+    if 'paused' in H.dtype.names:
+        sample_start_inds = sample_start_inds[~H[sample_start_inds]['paused']]
+        start_inds = list(sample_start_inds) + local_start_inds2
+    else:
+        start_inds = list(sample_start_inds) + local_start_inds2
+
     return start_inds
 
 def look_in_history(x, Run_H, vector_return=False):
