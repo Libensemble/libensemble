@@ -138,7 +138,6 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     x_new:            when re-running a local opt method to get the next point: stores the first new point requested by a local optimization method
     pt_in_run:        when re-running a local opt method to get the next point: counts function evaluations to know when a new point is given
-    total_pts_in_run: when re-running a local opt method to get the next point: total evaluations in run to be incremented
 
     starting_inds:    indices where a runs should be started.
     active_runs:      indices of active local optimization runs (currently saved to disk between calls to APOSMM)
@@ -163,7 +162,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         updated_inds = set()
 
     else:
-        global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
+        global x_new, pt_in_run # Used to generate a next local opt point
 
         updated_inds = update_history_dist(H, n, gen_specs, c_flag)
 
@@ -431,11 +430,11 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
     storing the first new point generated
     """
 
-    global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
+    global x_new, pt_in_run # Used to generate a next local opt point
 
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
-        x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
+        x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; 
 
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
 
@@ -634,7 +633,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
     #     tao.setObjectiveGradient(lambda tao, x, g: blmvm_obj_func(tao, x, g, Run_H))
 
     # Set everything for tao before solving
-    PETSc.Options().setValue('-tao_max_funcs',str(total_pts_in_run+1))
+    PETSc.Options().setValue('-tao_max_funcs',str(len(Run_H)+1))
     tao.setFromOptions()
     tao.setVariableBounds((lb,ub))
     # tao.setObjectiveTolerances(fatol=gen_specs['fatol'], frtol=gen_specs['frtol'])
@@ -768,7 +767,7 @@ def look_in_history(x, Run_H, vector_return=False):
     x_new if every point in Run_H has been checked.
     """
 
-    global pt_in_run, total_pts_in_run, x_new
+    global pt_in_run, x_new
 
     if vector_return:
         to_return = 'fvec'
@@ -778,22 +777,20 @@ def look_in_history(x, Run_H, vector_return=False):
         else:
             to_return = 'f'
 
-    if pt_in_run < total_pts_in_run:
+    if pt_in_run < len(Run_H):
         # Return the value in history to the localopt algorithm.
         assert np.allclose(x, Run_H['x_on_cube'][pt_in_run], rtol=1e-08, atol=1e-08), \
             "History point does not match Localopt point"
         f_out = Run_H[to_return][pt_in_run]
     else:
-        if pt_in_run == total_pts_in_run:
+        if pt_in_run == len(Run_H):
             # The history of points is exhausted. Save the requested point x to
             # x_new. x_new will be returned to the manager.
             x_new[:] = x
 
         # Just in case the local opt method requests more points after a new
         # point has been identified.
-        # f_out = np.finfo(np.float64).max
-        # f_out = Run_H[to_return][total_pts_in_run-1]
-        f_out = Run_H[to_return][total_pts_in_run-1]
+        f_out = Run_H[to_return][-1]
 
     pt_in_run += 1
 
