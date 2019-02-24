@@ -41,19 +41,22 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         pt_ids_to_pause = set()
 
-        # Find indices of H that are not yet allocated
+        # Find indices of H that are not yet given out to be evaluated
         if len(persis_info['need_to_give']):
-            # Pause entries in H if one component is evaluated at a time and there are
-            # any NaNs for some components.
+            # If 'stop_on_NaN' is true and any f_i is a NaN, then pause
+            # evaluations of other f_i, corresponding to the same pt_id 
             if 'stop_on_NaNs' in alloc_specs and alloc_specs['stop_on_NaNs']:
                 pt_ids_to_pause.update(H['pt_id'][np.isnan(H['f_i'])])
 
-            # Pause entries in H if a partial combine_component_func evaluation is
-            # worse than the best, known, complete evaluation (and the point is not a
-            # local_opt point).
+            # If 'stop_partial_fvec_eval' is true, pause entries in H if a
+            # partial combine_component_func evaluation is # worse than the
+            # best, known, complete evaluation (and the point is not a
+            # local_pt).
             if 'stop_partial_fvec_eval' in alloc_specs and alloc_specs['stop_partial_fvec_eval']:
                 pt_ids = np.unique(H['pt_id'])
+                partial_fvals = np.zeros(len(pt_ids)) 
 
+                # Mark 'complete' and 'has_nan' pt_ids, compute complete and partial fvals
                 for j,pt_id in enumerate(pt_ids):
                     if (pt_id in persis_info['has_nan']) or \
                        (pt_id in persis_info['complete']):
@@ -64,27 +67,29 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                         persis_info['has_nan'].add(pt_id)
                         continue
 
+                    if H['local_pt'][a1][0]:
+                        persis_info['local_pt_ids'].add(pt_id)
+
                     if np.all(H['returned'][a1]):
                         persis_info['complete'].add(pt_id)
+                        persis_info['best_complete_val'] = min(persis_info['best_complete_val'], gen_specs['combine_component_func'](H['f_i'][a1]))
+                    else:
+                        # Ensure combine_component_func calculates partial fevals correctly
+                        # with H['f_i'] = 0 for non-returned point
+                        partial_fvals[j] = gen_specs['combine_component_func'](H['f_i'][a1])
 
                 if len(persis_info['complete']) and len(pt_ids)>1:
-                    complete_fvals_flag = np.zeros(len(pt_ids),dtype=bool)
-                    sys.stdout.flush()
-                    complete_fvals_flag[list(persis_info['complete'])] = True
-
-                    # Ensure combine_component_func calculates partial fevals correctly
-                    # with H['f_i'] = 0 for non-returned point
-                    possibly_partial_fvals = np.array([gen_specs['combine_component_func'](H['f_i'][H['pt_id']==j]) for j in pt_ids])
-
-                    best_complete = np.nanmin(possibly_partial_fvals[complete_fvals_flag])
 
                     worse_flag = np.zeros(len(pt_ids),dtype=bool)
                     for j in range(len(pt_ids)):
-                        if not np.isnan(possibly_partial_fvals[j]) and possibly_partial_fvals[j] > best_complete:
+                        if (not np.isnan(partial_fvals[j])) and \
+                           (not pt_id in persis_info['local_pt_ids']) and \
+                           (not pt_id in persis_info['complete']) and \
+                           (partial_fvals[j] > persis_info['best_complete_val']): 
                             worse_flag[j] = True
 
                     # Pause incompete evaluations with worse_flag==True
-                    pt_ids_to_pause.update(pt_ids[np.logical_and(worse_flag,~complete_fvals_flag)])
+                    pt_ids_to_pause.update(pt_ids[worse_flag])
 
             if not pt_ids_to_pause.issubset(persis_info['already_paused']):
                 persis_info['already_paused'].update(pt_ids_to_pause)
