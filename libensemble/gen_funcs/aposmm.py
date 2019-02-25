@@ -162,7 +162,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         updated_inds = set()
 
     else:
-        global x_new, pt_in_run # Used to generate a next local opt point
+        global x_new # Used to generate a next local opt point
 
         updated_inds = update_history_dist(H, n, gen_specs, c_flag)
 
@@ -430,11 +430,12 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
     storing the first new point generated
     """
 
-    global x_new, pt_in_run # Used to generate a next local opt point
+    global x_new# Used to generate a next local opt point
 
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
-        x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; 
+        x_new = np.ones((1,len(gen_specs['ub'])))*np.inf;  
+        advance_localopt_method.pt_in_run = 0
 
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
 
@@ -767,7 +768,7 @@ def look_in_history(x, Run_H, vector_return=False):
     x_new if every point in Run_H has been checked.
     """
 
-    global pt_in_run, x_new
+    global x_new
 
     if vector_return:
         to_return = 'fvec'
@@ -777,13 +778,13 @@ def look_in_history(x, Run_H, vector_return=False):
         else:
             to_return = 'f'
 
-    if pt_in_run < len(Run_H):
+    if advance_localopt_method.pt_in_run < len(Run_H):
         # Return the value in history to the localopt algorithm.
-        assert np.allclose(x, Run_H['x_on_cube'][pt_in_run], rtol=1e-08, atol=1e-08), \
+        assert np.allclose(x, Run_H['x_on_cube'][advance_localopt_method.pt_in_run], rtol=1e-08, atol=1e-08), \
             "History point does not match Localopt point"
-        f_out = Run_H[to_return][pt_in_run]
+        f_out = Run_H[to_return][advance_localopt_method.pt_in_run]
     else:
-        if pt_in_run == len(Run_H):
+        if advance_localopt_method.pt_in_run == len(Run_H):
             # The history of points is exhausted. Save the requested point x to
             # x_new. x_new will be returned to the manager.
             x_new[:] = x
@@ -792,7 +793,7 @@ def look_in_history(x, Run_H, vector_return=False):
         # point has been identified.
         f_out = Run_H[to_return][-1]
 
-    pt_in_run += 1
+    advance_localopt_method.pt_in_run += 1
 
     return f_out
 
