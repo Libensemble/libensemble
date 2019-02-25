@@ -16,7 +16,6 @@ from libensemble.message_numbers import \
      UNSET_TAG, STOP_TAG, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-     calc_type_strings
 
 from libensemble.util.loc_stack import LocationStack
 from libensemble.util.timer import Timer

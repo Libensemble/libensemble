@@ -323,7 +323,6 @@ class Manager:
         try:
             while not self.term_test():
                 persis_info = self._receive_from_workers(persis_info)
-                                                 persis_info)
                 if any(self.W['active'] == 0):
                     Work, persis_info = self._alloc_work(self.hist.trim_H(),
                                                          persis_info)
