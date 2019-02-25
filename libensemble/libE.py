@@ -451,9 +451,10 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
     sufficient information to perform a run.
     """
 
-    # Check all the input fields are dicts
-        
-    assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+    if libE_specs.get('comms','undefined') in 'mpi':
+        assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+
+    # Check all the input fields are dicts        
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
