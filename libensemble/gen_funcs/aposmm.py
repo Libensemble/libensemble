@@ -467,7 +467,7 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
                 exit_code = 0
                 display_exception(e)
 
-        elif gen_specs['localopt_method'][:5] == 'scipy':
+        elif gen_specs['localopt_method'] == 'scipy_COBYLA':
 
             fields_to_pass = ['x_on_cube','f']
 
