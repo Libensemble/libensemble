@@ -86,36 +86,6 @@ def test_initialize_APOSMM():
     al.initialize_APOSMM(hist.H,gen_specs_0)
 
 
-def test_queue_update_function():
-
-    gen_specs_0 = {}
-    gen_specs_0['stop_on_NaNs'] = True
-    gen_specs_0['combine_component_func'] = np.linalg.norm
-    H = np.zeros(10, dtype=[('f_i',float),('returned',bool),('pt_id',int),('sim_id',int),('paused',bool)])
-
-    H['sim_id'] = np.arange(0,10)
-    H['pt_id'] = np.sort(np.concatenate([np.arange(0,5),np.arange(0,5)]))
-
-    H['returned'][0:10:2] = 1 # All of the first components have been evaluated
-    H['returned'][1] = 1
-
-    H['f_i'][4] = np.nan
-
-    persis_info = {}
-    persis_info['total_gen_calls'] = 0
-    persis_info['complete'] = set()
-    persis_info['has_nan'] = set()
-    persis_info['already_paused'] = set()
-    persis_info['H_len'] = 0
-
-    _ = al.queue_update_function(H, gen_specs_0,persis_info)
-    assert np.all(H['paused'][4:6])
-
-    persis_info['H_len'] = 6
-    gen_specs_0['stop_partial_fvec_eval'] = True
-    H['f_i'][6:10:2] = 0.5
-    _ = al.queue_update_function(H, gen_specs_0,persis_info)
-    assert np.all(H['paused'][4:])
 
 
 if __name__ == "__main__":
@@ -128,6 +98,4 @@ if __name__ == "__main__":
     test_calc_rk()
     print('done')
     test_initialize_APOSMM()
-    print('done')
-    test_queue_update_function()
     print('done')

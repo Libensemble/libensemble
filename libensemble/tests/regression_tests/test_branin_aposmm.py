@@ -94,7 +94,6 @@ for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 persis_info[1]['total_runs'] = 0
-persis_info[1]['active_runs'] = set()
 persis_info[1]['run_order'] = {}
 persis_info[1]['old_runs'] = {}
 persis_info[1]['total_runs'] = 0

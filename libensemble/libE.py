@@ -25,7 +25,7 @@ from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
@@ -452,6 +452,8 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
     """
 
     # Check all the input fields are dicts
+        
+    assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"

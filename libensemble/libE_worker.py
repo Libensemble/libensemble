@@ -16,6 +16,7 @@ from libensemble.message_numbers import \
      UNSET_TAG, STOP_TAG, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
+     calc_type_strings
 
 from libensemble.util.loc_stack import LocationStack
 from libensemble.util.timer import Timer
@@ -23,8 +24,7 @@ from libensemble.controller import JobController
 from libensemble.comms.logs import worker_logging_config
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment
-#  (see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
@@ -166,8 +166,7 @@ class Worker:
         timer = Timer()
 
         try:
-            if calc_type == EVAL_GEN_TAG:
-                logger.debug("Running generator")
+            logger.debug("Running {}".format(calc_type_strings[calc_type]))
             calc = self._run_calc[calc_type]
             with timer:
                 with self.loc_stack.loc(calc_type):

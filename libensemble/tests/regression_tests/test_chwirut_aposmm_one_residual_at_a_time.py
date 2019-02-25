@@ -24,10 +24,10 @@ if libE_specs['comms'] == 'local':
 from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
 # Import gen_func
-from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
+from libensemble.gen_funcs.aposmm import aposmm_logic
 
 # Import alloc_func
-from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
+from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -79,8 +79,6 @@ gen_specs = {'gen_f': aposmm_logic,
              'combine_component_func': lambda x: np.sum(np.power(x,2)),
              'num_active_gens': 1,
              'batch_mode': True,
-             'stop_on_NaNs': True,
-             'stop_partial_fvec_eval': True,
              }
 
 np.random.RandomState(0)
@@ -89,11 +87,16 @@ gen_specs['sample_points'] = np.random.uniform(0,1,(max_sim_budget,n))*(gen_spec
 exit_criteria = {'sim_max': max_sim_budget, # must be provided
                  'elapsed_wallclock_time': 300
                   }
-alloc_specs = {'out':[('allocated',bool)], 'alloc_f':alloc_f}
 
-libE_specs['queue_update_function'] = queue_update_function
+alloc_specs = {'out':[('allocated',bool)], 
+               'alloc_f':alloc_f,
+               'stop_on_NaNs': True,
+               'stop_partial_fvec_eval': True,
+               }
+
 np.random.seed(1)
-persis_info = {'next_to_give':0}
+persis_info = {}
+persis_info['need_to_give'] = set()
 persis_info['total_gen_calls'] = 0
 persis_info['complete'] = set()
 persis_info['has_nan'] = set()
@@ -104,13 +107,12 @@ for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 persis_info['last_worker'] = 0
-persis_info[0] = {'active_runs': set(),
-                  'run_order': {},
+persis_info[0] = {'run_order': {},
                   'old_runs': {},
                   'total_runs': 0,
                   'rand_stream': np.random.RandomState(1)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
 
 if is_master:
     assert flag == 0
