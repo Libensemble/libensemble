@@ -13,7 +13,7 @@ import sys, os, traceback
 import numpy as np
 # import scipy as sp
 from scipy.spatial.distance import cdist, pdist, squareform
-# from scipy import optimize as scipy_optimize
+from scipy import optimize as scipy_optimize
 
 from mpi4py import MPI
 
@@ -467,15 +467,15 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
                 exit_code = 0
                 display_exception(e)
 
-        # elif gen_specs['localopt_method'] in ['COBYLA']:
+        elif gen_specs['localopt_method'][:5] == 'scipy':
 
-        #     fields_to_pass = ['x_on_cube','f']
+            fields_to_pass = ['x_on_cube','f']
 
-        #     try:
-        #         x_opt, exit_code = set_up_and_run_scipy_minimize(H[fields_to_pass][sorted_run_inds], gen_specs)
-        #     except Exception as e:
-        #         exit_code = 0
-        #         display_exception(e)
+            try:
+                x_opt, exit_code = set_up_and_run_scipy_minimize(H[fields_to_pass][sorted_run_inds], gen_specs)
+            except Exception as e:
+                exit_code = 0
+                display_exception(e)
 
 
         else:
@@ -493,40 +493,45 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
 
 
 
-# def set_up_and_run_scipy_minimize(Run_H, gen_specs):
-#     """ Set up objective and runs scipy
+def set_up_and_run_scipy_minimize(Run_H, gen_specs):
+    """ Set up objective and runs scipy
 
-#     Declares the appropriate syntax for our special objective function to read
-#     through Run_H, sets the parameters and starting points for the run.
-#     """
+    Declares the appropriate syntax for our special objective function to read
+    through Run_H, sets the parameters and starting points for the run.
+    """
 
-#     def scipy_obj_fun(x, Run_H):
-#         out = look_in_history(x, Run_H)
+    def scipy_obj_fun(x, Run_H):
+        out = look_in_history(x, Run_H)
 
-#         return out
+        return out
 
-#     obj = lambda x: scipy_obj_fun(x, Run_H)
-#     x0 = Run_H['x_on_cube'][0]
+    obj = lambda x: scipy_obj_fun(x, Run_H)
+    x0 = Run_H['x_on_cube'][0]
 
 
-#     import ipdb; ipdb.set_trace()
-#     #construct the bounds in the form of constraints
-#     cons = []
-#     for factor in range(len(x0)):
-#         l = {'type': 'ineq',
-#              'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i] - lb}
-#         u = {'type': 'ineq',
-#              'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub - x[i]}
-#         cons.append(l)
-#         cons.append(u)
+    #construct the bounds in the form of constraints
+    cons = []
+    for factor in range(len(x0)):
+        l = {'type': 'ineq',
+             'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i] - lb}
+        u = {'type': 'ineq',
+             'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub - x[i]}
+        cons.append(l)
+        cons.append(u)
 
-#     res = scipy_optimize.minimize(obj,x0,method=gen_specs['localopt_method'],options={'maxiter':len(Run_H['x_on_cube'])+1})
+    method = gen_specs['localopt_method'][6:]
+    res = scipy_optimize.minimize(obj,x0,method=gen_specs['localopt_method'][6:],
+            options={'maxiter':len(Run_H['x_on_cube'])+1,'tol':gen_specs['tol']})
 
-#     if res['status'] == 2: # SciPy code for exhausting budget of evaluations, so not at a minimum
-#         exit_code = 0
+    if res['status'] == 2: # SciPy code for exhausting budget of evaluations, so not at a minimum
+        exit_code = 0
+    else:
+        if method=='COBYLA':
+            assert res['status']==1, "Unknown status for COBYLA inside APOSMM"
+            exit_code = 1
 
-#     x_opt = res['x']
-#     return x_opt, exit_code
+    x_opt = res['x']
+    return x_opt, exit_code
 
 
 def set_up_and_run_nlopt(Run_H, gen_specs):
