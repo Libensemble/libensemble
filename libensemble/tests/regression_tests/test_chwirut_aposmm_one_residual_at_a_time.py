@@ -112,7 +112,7 @@ persis_info[0] = {'run_order': {},
                   'total_runs': 0,
                   'rand_stream': np.random.RandomState(1)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_master:
     assert flag == 0
