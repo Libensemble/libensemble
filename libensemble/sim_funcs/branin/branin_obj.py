@@ -8,7 +8,6 @@ import os
 import time
 from libensemble.sim_funcs.branin.branin import branin
 
-# @profile
 def call_branin(H,persis_info,sim_specs,libE_info):
     del libE_info # Ignored parameter
 
