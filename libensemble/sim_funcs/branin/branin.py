@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-A small example of reading/writing from/to files for libEnsemble evaluation
+A small example of using the call_branin function from branin_obj.py in order
+to (write to)/(read from) files when doing a sim_f evaluation
 """
 
 import numpy as np
@@ -12,10 +13,6 @@ def branin(x1,x2):
     r = 6.0
     s = 10.0
     t = 1.0/(8.0*np.pi)
-
-    # # Numerical decisions
-    # x1 = model.float(-5.0,10.0)
-    # x2 = model.float(0.0,15.0)
 
     f = a*(x2 - b*x1**2 + c*x1 -r)**2 + s*(1-t)*np.cos(x1) + s
 

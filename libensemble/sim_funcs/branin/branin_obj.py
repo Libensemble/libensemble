@@ -1,4 +1,7 @@
-"""Placeholder for default doc """
+"""
+Calls the branin function. Default behavior uses the python function, but
+uncommenting lines will write x.in to file, call branin.py, and then read f.out. 
+"""
 from __future__ import division
 from __future__ import absolute_import
 
@@ -28,10 +31,5 @@ def call_branin(H,persis_info,sim_specs,libE_info):
 
         if 'uniform_random_pause_ub' in sim_specs:
             time.sleep(sim_specs['uniform_random_pause_ub']*np.random.uniform())
-
-        # if not H['local_pt'][i]:
-        #     if np.random.uniform(0,1) < 0.1:
-        #         print('blam')
-        #         O['f'][i] = np.nan
 
     return O, persis_info
