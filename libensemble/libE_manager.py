@@ -138,7 +138,10 @@ class Manager:
     def _send_dtypes_to_workers(self):
         "Broadcast sim_spec/gen_spec input dtypes to workers."
         self.comm.bcast(obj=self.hist.H[self.sim_specs['in']].dtype)
-        self.comm.bcast(obj=self.hist.H[self.gen_specs['in']].dtype)
+        if self.gen_specs:
+            self.comm.bcast(obj=self.hist.H[self.gen_specs['in']].dtype)
+        else:
+            self.comm.bcast(obj=[])
 
     def _kill_workers(self):
         """Kill the workers"""
@@ -296,7 +299,7 @@ class Manager:
                 self.W[w_i-1]['blocked'] = 0
                 self.W[w_i-1]['active'] = 0
 
-        if 'persis_info' in D_recv:
+        if 'persis_info' in D_recv and len(D_recv['persis_info']):
             persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w, status):

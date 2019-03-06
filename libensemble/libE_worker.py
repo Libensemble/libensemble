@@ -197,15 +197,18 @@ class Worker():
         "Create functions to run a sim or gen"
 
         sim_f = sim_specs['sim_f']
-        gen_f = gen_specs['gen_f']
 
         def run_sim(calc_in, persis_info, libE_info):
             "Call the sim func."
             return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
-        def run_gen(calc_in, persis_info, libE_info):
-            "Call the gen func."
-            return gen_f(calc_in, persis_info, gen_specs, libE_info)
+        if gen_specs:
+            gen_f = gen_specs['gen_f']
+            def run_gen(calc_in, persis_info, libE_info):
+                "Call the gen func."
+                return gen_f(calc_in, persis_info, gen_specs, libE_info)
+        else:
+            run_gen = []
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 

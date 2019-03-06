@@ -201,7 +201,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
     assert all([term_field in valid_term_fields for term_field in exit_criteria]), "Valid termination options: " + str(valid_term_fields)
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
-    assert len(gen_specs['out']), "gen_specs must have 'out' entries"
+    assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
     if 'stop_val' in exit_criteria:
         assert exit_criteria['stop_val'][0] in [e[0] for e in sim_specs['out']] + [e[0] for e in gen_specs['out']],\
@@ -210,7 +210,7 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
 
     from libensemble.libE_fields import libE_fields
 
-    if ('sim_id', int) in gen_specs['out']:
+    if bool(gen_specs) and ('sim_id', int) in gen_specs['out']:
         if MPI.COMM_WORLD.Get_rank() == 0:
             print('\n' + 79*'*' + '\n'
                   "User generator script will be creating sim_id.\n"\
@@ -220,10 +220,8 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
                   '\n' + 79*'*' + '\n\n')
             sys.stdout.flush()
         libE_fields = libE_fields[1:] # Must remove 'sim_id' from libE_fields because it's in gen_specs['out']
-    if 'out' in alloc_specs:
-        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
-    else:
-        H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sim_specs['out'] + gen_specs['out'])))
+    
+    H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k],[])))) # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
 
     if len(H0):
         fields = H0.dtype.names
