@@ -45,15 +45,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 
     save_libE_output(H,__file__)
 
-# Perform the run with a much higher nan frequency
-sim_specs['component_nan_frequency'] = 1
-persis_info = copy.deepcopy(persis_info_safe) 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
-if MPI.COMM_WORLD.Get_rank() == 0:
-    assert flag == 0
-
 # Perform the run but not stopping on NaNs
-sim_specs['component_nan_frequency'] = 0.05
 alloc_specs.pop('stop_on_NaNs')
 persis_info = copy.deepcopy(persis_info_safe) 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
