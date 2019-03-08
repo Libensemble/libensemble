@@ -26,9 +26,6 @@ from libensemble.tests.regression_tests.support import persis_info_1 as persis_i
 import copy 
 persis_info_safe = copy.deepcopy(persis_info)
 
-# Import gen_func
-from libensemble.gen_funcs.aposmm import aposmm_logic
-
 from math import gamma, pi, sqrt
 
 n = 2
@@ -54,7 +51,7 @@ gen_specs['num_active_gens'] = 1
 gen_specs['max_active_runs'] = 6
 gen_specs['lb'] = np.array([-3,-2])
 gen_specs['ub'] = np.array([ 3, 2])
-
+gen_specs.pop('batch_mode')  # Tests that APOSMM is okay being called when all pts in a run aren't completed
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 1000}
