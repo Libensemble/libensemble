@@ -23,6 +23,7 @@ from libensemble.tests.regression_tests.support import persis_info_0 as persis_i
 n=2
 gen_specs['out'] += [('x',float,n), ('x_on_cube',float,n),]
 gen_specs['dist_to_bound_multiple'] = 0.5
+gen_specs['localopt_maxeval'] = 4
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300} # Intentially set low so as to test that a worker in persistent mode can be terminated correctly
