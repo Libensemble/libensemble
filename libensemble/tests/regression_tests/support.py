@@ -136,8 +136,6 @@ uniform_or_localopt_gen_specs = {'gen_f': uniform_or_localopt,
              'ub': np.array([ 3, 2]),
              'gen_batch_size': 2,
              'batch_mode': True,
-             'dist_to_bound_multiple': 0.5,
-             'localopt_maxeval': 4,
              'num_active_gens':1,
              }
 
