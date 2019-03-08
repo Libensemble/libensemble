@@ -11,6 +11,9 @@ USE_BALSAM = False
 
 from forces_simf import run_forces # From current dir
 
+from libensemble import libE_logger
+libE_logger.set_level('INFO')
+
 # Import libEnsemble modules
 from libensemble.libE import libE
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
