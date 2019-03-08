@@ -11,19 +11,16 @@ from __future__ import division
 from __future__ import absolute_import
 
 from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
+from libensemble.tests.regression_tests.support import save_libE_output
+
+# Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import six_hump_camel_with_different_ranks_and_nodes_sim_specs as sim_specs
+from libensemble.tests.regression_tests.support import uniform_random_sample_with_different_nodes_and_ranks_gen_specs as gen_specs
+from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
-# Import sim_func
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_ranks_and_nodes
-
-# Import gen_func
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks
-
-script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 import argparse
 #Parse arguments
@@ -39,64 +36,19 @@ except:
         print("WARNING: No machine file provided - defaulting to local node")
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': six_hump_camel_with_different_ranks_and_nodes, # This is the function whose output is being minimized
-             'in': ['x','num_nodes','ranks_per_node'], # These keys will be given to the above function
-             'out': [('f',float), # This is the output from the function being minimized
-                    ],
-             'nodelist': libE_machinefile,
-             # 'save_every_k': 10
-             }
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_random_sample_with_different_nodes_and_ranks,
-             'in': ['sim_id'],
-             'out': [('x',float,2),
-                     ('priority',float),
-                     ('num_nodes',int),
-                     ('ranks_per_node',int),
-                    ],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'initial_batch_size': 5,
-             'max_ranks_per_node': 8,
-             'max_num_nodes': MPI.COMM_WORLD.Get_size()-1,
-             'num_active_gens': 1,
-             'batch_mode': False,
-             'give_all_with_same_priority': True,
-             # 'save_every_k': 10
-             }
+n=2
+sim_specs['nodelist'] = libE_machinefile
+gen_specs['out'] += [('x',float,n), ('x_on_cube',float,n),]
+gen_specs['lb'] = np.array([-3,-2])
+gen_specs['ub'] = np.array([ 3, 2])
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
-
-np.random.seed(1)
-persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
 
-
-    # minima = np.array([[ -0.089842,  0.712656],
-    #                    [  0.089842, -0.712656],
-    #                    [ -1.70361,  0.796084],
-    #                    [  1.70361, -0.796084],
-    #                    [ -1.6071,   -0.568651],
-    #                    [  1.6071,    0.568651]])
-    # tol = 0.1
-    # for m in minima:
-    #     print(np.min(np.sum((H['x']-m)**2,1)))
-    #     assert np.min(np.sum((H['x']-m)**2,1)) < tol
-
-    #     print("\nlibEnsemble with APOSMM has identified the 6 minima within a tolerance " + str(tol))
-
-
+    save_libE_output(H,__file__)

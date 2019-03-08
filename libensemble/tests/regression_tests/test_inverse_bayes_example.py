@@ -12,13 +12,11 @@ from __future__ import division
 from __future__ import absolute_import
 
 from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
 import numpy as np
-import pdb
 
 # Import libEnsemble main
 from libensemble.libE import libE
-
+from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
 # Import sim_func
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
@@ -50,20 +48,14 @@ gen_specs = {'gen_f': gen_f,
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches'], 'elapsed_wallclock_time': 300}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
-
 alloc_specs = {'out':[], 'alloc_f':alloc_f}
 
+# Can't do a "persistent worker run" if only one worker
 if MPI.COMM_WORLD.Get_size()==2:
-    # Can't do a "persistent worker run" if only one worker
     quit()
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
-
 
 if MPI.COMM_WORLD.Get_rank() == 0:
     assert flag == 0
