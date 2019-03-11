@@ -11,55 +11,37 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import sys, os             # for adding to path
+import sys             # for adding to path
 import numpy as np
 
-from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 
-# Import sim_func
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+# Import libEnsemble main, sim_specs, gen_specs, and persis_info
+from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
+from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
 
-# Import gen_func
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-script_name = os.path.splitext(os.path.basename(__file__))[0]
-
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float), # This is the output from the function being minimized
-                    ],
-             'pause_time': 2,
-             # 'save_every_k': 10
-             }
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_random_sample,
-             'in': ['sim_id'],
-             'out': [('x',float,2),
-                    ],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'gen_batch_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': False,
-             # 'save_every_k': 10
-             }
+# Test the following features
+sim_specs['pause_time'] = 2
+gen_specs['gen_batch_size'] = 5
+gen_specs['num_active_gens'] = 1
+gen_specs['batch_mode'] = False
+gen_specs['out'] = [('x',float,(2,))]
+gen_specs['lb'] = np.array([-3,-2])
+gen_specs['ub'] = np.array([ 3, 2])
 
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 1}
-
-np.random.seed(1)
-persis_info = {}
-for i in range(1,nworkers+1):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
@@ -68,9 +50,4 @@ if is_master:
     eprint(flag)
     eprint(H)
     assert flag == 2
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(nworkers+1)
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    # if flag == 2:
-    #     print("\n\n\nKilling COMM_WORLD")
-    #     MPI.COMM_WORLD.Abort()
+    save_libE_output(H,__file__,nworkers)

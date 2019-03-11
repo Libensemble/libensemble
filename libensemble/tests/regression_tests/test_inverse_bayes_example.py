@@ -11,15 +11,16 @@
 from __future__ import division
 from __future__ import absolute_import
 
-import sys, os             # for adding to path
 import numpy as np
-import pdb
 
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 # Import sim_func
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
@@ -51,11 +52,6 @@ gen_specs = {'gen_f': gen_f,
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches'], 'elapsed_wallclock_time': 300}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(1,nworkers+1):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
-
 alloc_specs = {'out':[], 'alloc_f':alloc_f}
 
 if nworkers < 2:
@@ -64,7 +60,6 @@ if nworkers < 2:
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-
 
 if is_master:
     assert flag == 0

@@ -14,36 +14,27 @@ libE_specs['abort_on_exception'] = False
 def six_hump_camel_err(H, persis_info, sim_specs, _):
     raise Exception('Deliberate error')
 
+from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
+
 # Import gen_func
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
-
-script_name = os.path.splitext(os.path.basename(__file__))[0]
 
 # State the objective function and params
 sim_specs = {'sim_f': six_hump_camel_err,
              'in': ['x'],
              'out': [('f',float),],
-             'save_every_k': 400
              }
 
 # State the generating function
-gen_specs = {'gen_f': uniform_random_sample,
-             'in': ['sim_id'],
-             'out': [('x',float,2)],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'num_active_gens': 1,
-             'gen_batch_size': 500,
-             'save_every_k': 300
-             }
+gen_specs['out'] = [('x',float,2)]
+gen_specs['lb'] = np.array([-3,-2])
+gen_specs['ub'] = np.array([ 3, 2])
 
 # Tell libEnsemble when to stop
-exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
+exit_criteria = {'elapsed_wallclock_time': 300}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(1,nworkers+1):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
 return_flag = 1

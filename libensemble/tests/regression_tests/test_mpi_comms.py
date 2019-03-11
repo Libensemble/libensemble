@@ -48,7 +48,7 @@ def manager_main():
         comm.send("Goodbye")
 
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     manager_main()
 else:
     worker_main()
