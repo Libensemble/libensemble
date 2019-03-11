@@ -38,12 +38,12 @@ class Timer:
     @property
     def date_start(self):
         """Return a string representing the start datetime."""
-        return time.strftime("%Y-%m-%d %H:%M", time.localtime(self.tstart))
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.tstart))
 
     @property
     def date_end(self):
         """Return a string representing the end datetime."""
-        return time.strftime("%Y-%m-%d %H:%M", time.localtime(self.tend))
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.tend))
 
     @property
     def elapsed(self):

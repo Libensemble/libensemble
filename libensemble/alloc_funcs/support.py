@@ -23,16 +23,16 @@ def count_persis_gens(W):
     return sum(W['persis_state'] == EVAL_GEN_TAG)
 
 
-def sim_work(Work, i, H_fields, H_rows, **libE_info):
+def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
     "Add sim work record to work array."
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
-               'persis_info': {},
+               'persis_info': persis_info,
                'tag': EVAL_SIM_TAG,
                'libE_info': libE_info}
 
 
-def gen_work(Work, i, H_fields, persis_info, H_rows, **libE_info):
+def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
     "Add gen work record to work array."
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,

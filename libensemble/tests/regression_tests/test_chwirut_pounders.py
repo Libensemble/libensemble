@@ -24,7 +24,7 @@ if libE_specs['comms'] == 'local':
 from libensemble.sim_funcs.chwirut1 import chwirut_eval, EvaluateJacobian
 
 # Import gen_func
-from libensemble.gen_funcs.aposmm import aposmm_logic, queue_update_function
+from libensemble.gen_funcs.aposmm import aposmm_logic
 
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -78,18 +78,12 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
                  'elapsed_wallclock_time': 300
                   }
 
-libE_specs['queue_update_function'] = queue_update_function
 np.random.seed(1)
 persis_info = {}
-persis_info['complete'] = set()
-persis_info['has_nan'] = set()
-persis_info['already_paused'] = set()
-persis_info['H_len'] = 0
 for i in range(1,nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
-persis_info[1] = {'active_runs': set(),
-                  'run_order': {},
+persis_info[1] = {'run_order': {},
                   'old_runs': {},
                   'total_runs': 0,
                   'rand_stream': np.random.RandomState(1)}

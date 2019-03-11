@@ -10,7 +10,7 @@ import itertools
 import subprocess
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment (see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 class ResourcesException(Exception):

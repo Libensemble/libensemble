@@ -21,10 +21,10 @@ from libensemble.util.loc_stack import LocationStack
 from libensemble.util.timer import Timer
 from libensemble.controller import JobController
 from libensemble.comms.logs import worker_logging_config
+from libensemble.comms.logs import LogConfig
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment
-#  (see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
@@ -52,7 +52,7 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
 
     # Initialize logging on comms
     if log_comm:
-        worker_logging_config(comm, workerID, level=logging.DEBUG)
+        worker_logging_config(comm, workerID)
 
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
@@ -166,8 +166,7 @@ class Worker:
         timer = Timer()
 
         try:
-            if calc_type == EVAL_GEN_TAG:
-                logger.debug("Running generator")
+            logger.debug("Running {}".format(calc_type_strings[calc_type]))
             calc = self._run_calc[calc_type]
             with timer:
                 with self.loc_stack.loc(calc_type):
@@ -192,7 +191,7 @@ class Worker:
                      calc_type_strings[calc_type],
                      timer,
                      calc_status_strings.get(calc_status, "Completed"))
-            logging.getLogger("calc stats").info(calc_msg)
+            logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
 
     def _recv_H_rows(self, Work):

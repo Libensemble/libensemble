@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# This is for setting up libEnsemble, license and details can be
+# found at https://github.com/Libensemble/libensemble/
 
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
@@ -25,7 +27,7 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.4.0',
+    version='0.4.1',    
     description='Library for managing ensemble-like collections of computations',
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson and David Bindel',

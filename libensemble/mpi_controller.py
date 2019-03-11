@@ -12,8 +12,7 @@ from libensemble.mpi_resources import MPIResources
 from libensemble.controller import JobController, Job, jassert
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment
-#(see libE.py to change root logging level)
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
@@ -120,7 +119,7 @@ class MPIJobController(JobController):
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False):
+               hyperthreads=False, test=False, wait_on_run=False):
         """Creates a new job, and either launches or schedules launch.
 
         The created job object is returned.
@@ -163,6 +162,9 @@ class MPIJobController(JobController):
         test: boolean, optional
             Whether this is a test - No job will be launched. Instead
             runline is printed to logger (At INFO level).
+            
+        wait_on_run: boolean, optional
+            Whether to wait for job to be polled as RUNNING (or other active/end state) before continuing.
 
 
         Returns
@@ -197,13 +199,15 @@ class MPIJobController(JobController):
             logger.info('Test selected: Not launching job')
             logger.info('runline args are {}'.format(runline))
         else:
-            logger.debug("Launching job {}: {}".
+            logger.info("Launching job {}: {}".
                          format(job.name, " ".join(runline))) #One line
             job.launch_time = time.time()
             job.process = launcher.launch(runline, cwd='./',
                                           stdout=open(job.stdout, 'w'),
                                           stderr=open(job.stderr, 'w'),
                                           start_new_session=True)
+            if (wait_on_run):
+                self._wait_on_run(job)
             self.list_of_jobs.append(job)
 
         return job

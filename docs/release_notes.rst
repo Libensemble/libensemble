@@ -2,6 +2,20 @@
 Release Notes
 =============
 
+
+Release 0.4.1
+-------------
+
+:Date: February 20, 2019
+
+
+* Logging no longer uses root logger (Also added option to change libEnsemble log level) (#105)
+* Added wait_on_run option for job controller launch to block until jobs have started (#111)
+* persis_info can be passed to sim as well as gen functions (#112)
+* Post-processing scripts added to create performance/utilization graphs (#102)
+* New scaling test added (not part of current CI test suite) (#114)
+
+
 Release 0.4.0
 -------------
 

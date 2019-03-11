@@ -25,7 +25,7 @@ from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 
 logger = logging.getLogger(__name__)
-#For debug messages in this module  - uncomment
+#To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
@@ -224,7 +224,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     # Lauch worker team
     wcomms = [MainMPIComm(mpi_comm, w) for w in
               range(1, mpi_comm.Get_size())]
-    manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+    manager_logging_config()
 
     # Set up abort handler
     def on_abort():
@@ -281,7 +281,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs)
-    manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+    manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
@@ -392,7 +392,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
         if port == 0:
             _, port = manager.address
 
-        manager_logging_config(filename='ensemble.log', level=logging.DEBUG)
+        manager_logging_config()
         logger.info("Launched server at ({}, {})".format(ip, port))
 
         # Launch worker team and set up logger
@@ -451,7 +451,10 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
     sufficient information to perform a run.
     """
 
-    # Check all the input fields are dicts
+    if libE_specs.get('comms','undefined') in ['mpi']:
+        assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+
+    # Check all the input fields are dicts        
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"

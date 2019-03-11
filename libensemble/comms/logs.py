@@ -13,6 +13,29 @@ a given log message (manager or worker ID).
 
 import logging
 
+class LogConfig:
+    """Class for storing logging configuration info"""
+    config = None
+    
+    def __init__(self, name):
+        """Instantiate a new LogConfig instance."""
+        LogConfig.config = self
+        self.logger_set = False
+        self.log_level = logging.DEBUG
+        self.name = name
+        self.stats_name = name + ".calc stats"
+        self.filename = "ensemble.log"
+        self.stat_filename='libE_stats.txt'
+        self.fmt = '[%(worker)s] %(name)s (%(levelname)s): %(message)s'
+
+    def set_level(self, level):
+        """Set logger level either before or after creating loggers"""
+        numeric_level = getattr(logging, level.upper(), 10)
+        self.log_level = numeric_level    
+        if self.logger_set:
+            logger = logging.getLogger(self.name)
+            logger.setLevel(self.log_level)
+
 
 class CommLogHandler(logging.Handler):
     """Logging handler class that forwards LogRecords to a Comm.
@@ -46,40 +69,42 @@ class WorkerIDFilter(logging.Filter):
         return True
 
 
-def worker_logging_config(comm, worker_id=None, level=logging.NOTSET):
+def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger.
     """
+    logconfig = LogConfig.config
     ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
     ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
-    root = logging.getLogger()
-    root.setLevel(level)
-    root.addHandler(ch)
+    logger = logging.getLogger(logconfig.name)
+    logger.propagate = False
+    logger.setLevel(logconfig.log_level)
+    logger.addHandler(ch)
+    logconfig.logger_set = True
 
 
-def manager_logging_config(fmt=None,
-                           filename='ensemble.log',
-                           stat_filename='libE_stats.txt',
-                           level=logging.DEBUG):
+def manager_logging_config():
     """Add file-based logging at manager.
     """
 
     # Regular logging
-    fmt = fmt or '[%(worker)s] %(name)s (%(levelname)s): %(message)s'
-    formatter = logging.Formatter(fmt)
+    logconfig = LogConfig.config    
+    formatter = logging.Formatter(logconfig.fmt)
     wfilter = WorkerIDFilter(0)
-    fh = logging.FileHandler(filename)
+    fh = logging.FileHandler(logconfig.filename)
     fh.addFilter(wfilter)
-    fh.setLevel(level)
     fh.setFormatter(formatter)
-    root = logging.getLogger()
-    root.addHandler(fh)
+    logger = logging.getLogger(logconfig.name)
+    logger.propagate = False
+    logger.setLevel(logconfig.log_level) # Formatter filters on top of this
+    logger.addHandler(fh)
+    logconfig.logger_set = True
 
     # Stats logging
     # NB: Could add a specialized handler for immediate flushing
-    fh = logging.FileHandler(stat_filename, mode='w')
+    fh = logging.FileHandler(logconfig.stat_filename, mode='w')
     fh.addFilter(wfilter)
-    fh.setLevel(logging.DEBUG)
     fh.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
-    stat_logger = logging.getLogger("calc stats")
-    stat_logger.propagate = False
+    stat_logger = logging.getLogger(logconfig.stats_name)
+    stat_logger.propagate = False    
+    stat_logger.setLevel(logging.DEBUG)
     stat_logger.addHandler(fh)
