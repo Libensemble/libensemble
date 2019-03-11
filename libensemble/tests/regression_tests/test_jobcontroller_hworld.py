@@ -74,7 +74,7 @@ gen_specs['ub'] = np.array([ 3, 2])
 exit_criteria = {'elapsed_wallclock_time': 15}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_master:
     print('\nChecking expected job status against Workers ...\n')

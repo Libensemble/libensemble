@@ -30,7 +30,7 @@ def worker_main():
 def manager_main():
     "Manager main routine"
     worker_comms = [MPIComm(MPI.COMM_WORLD, r)
-                    for r in range(1, nworkers))]
+                    for r in range(1, MPI.COMM_WORLD.Get_size())]
     for comm in worker_comms:
         try:
             okay_flag = True

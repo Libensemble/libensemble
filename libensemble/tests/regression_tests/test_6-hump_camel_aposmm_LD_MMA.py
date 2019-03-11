@@ -100,7 +100,7 @@ for run in range(2):
 
         persis_info = persis_info_safe
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_master:
         if flag != 0:
@@ -109,7 +109,7 @@ for run in range(2):
             libE_abort()
 
         tol = 1e-5
-        for m in minima[run]:
+        for m in minima:
             print(np.min(np.sum((H[H['local_min']]['x']-m)**2,1)))
             sys.stdout.flush()
             if np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) > tol:

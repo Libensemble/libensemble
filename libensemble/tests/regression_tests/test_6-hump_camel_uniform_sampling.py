@@ -19,6 +19,7 @@ from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs 
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
+from libensemble.tests.regression_tests.common import parse_args
 _, is_master, libE_specs, _ = parse_args()
 
 sim_specs['save_every_k'] = 400
