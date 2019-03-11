@@ -14,12 +14,13 @@ from __future__ import absolute_import
 import numpy as np
 
 from libensemble.libE import libE
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 # Import sim_func
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f

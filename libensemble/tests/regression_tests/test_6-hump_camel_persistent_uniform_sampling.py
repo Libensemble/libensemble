@@ -23,9 +23,9 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import persistent_uniform_sampling_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import only_persistent_gens_alloc_specs as alloc_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
-# Import gen_func
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs['out'] += [('grad',float,2)]
@@ -45,4 +45,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 if is_master:
     assert flag == 0
 
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

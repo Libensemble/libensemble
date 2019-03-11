@@ -15,7 +15,7 @@ from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
-_, is_master, libE_specs, _ = parse_args()
+nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'local':
     quit()
 
@@ -24,6 +24,9 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import chwirut_all_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import aposmm_without_grad_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 
 ### Declare the run parameters/functions
 m = 214
@@ -58,4 +61,4 @@ if is_master:
     J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
     assert np.linalg.norm(J) < 2000
 
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

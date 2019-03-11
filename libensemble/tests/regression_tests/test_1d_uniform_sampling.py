@@ -16,13 +16,15 @@ from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
-_, is_master, libE_specs, _ = parse_args()
+nworkers, is_master, libE_specs, _ = parse_args()
 
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import one_d_example_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 # Test the following features
 gen_specs['out'] = [('x',float,(1,))]
@@ -38,4 +40,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 if is_master:
     assert len(H)>= 501
     print("\nlibEnsemble with Uniform random sampling has generated enough points")
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

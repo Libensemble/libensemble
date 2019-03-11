@@ -11,16 +11,18 @@ from __future__ import division
 from __future__ import absolute_import
 
 import numpy as np
+
 from libensemble.tests.regression_tests.support import save_libE_output
+from libensemble.tests.regression_tests.common import parse_args
+nworkers, is_master, libE_specs, _ = parse_args()
 
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
-from libensemble.tests.regression_tests.common import parse_args
-_, is_master, libE_specs, _ = parse_args()
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 sim_specs['save_every_k'] = 400
 gen_specs['gen_batch_size'] = 500
@@ -44,5 +46,4 @@ if is_master:
         assert np.min(np.sum((H['x']-m)**2,1)) < tol
 
     print("\nlibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
-    save_libE_output(H,__file__)
-
+    save_libE_output(H,__file__,nworkers)

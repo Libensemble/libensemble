@@ -24,6 +24,8 @@ from libensemble.tests.regression_tests.support import branin_sim_specs as sim_s
 from libensemble.tests.regression_tests.support import aposmm_without_grad_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info
 
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 
 w = nworkers
 
@@ -69,4 +71,4 @@ if is_master:
         assert np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)) < tol
 
     print("\nlibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

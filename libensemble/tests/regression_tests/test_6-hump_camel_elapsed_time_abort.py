@@ -18,13 +18,15 @@ from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
-_, is_master, libE_specs, _ = parse_args()
+nworkers, is_master, libE_specs, _ = parse_args()
 
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -48,4 +50,4 @@ if is_master:
     eprint(flag)
     eprint(H)
     assert flag == 2
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

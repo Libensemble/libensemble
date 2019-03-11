@@ -15,7 +15,7 @@ from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
-_, is_master, libE_specs, _ = parse_args()
+nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'local':
     quit()
 
@@ -26,7 +26,8 @@ from libensemble.tests.regression_tests.support import uniform_random_sample_obj
 from libensemble.tests.regression_tests.support import give_sim_work_first_pausing_alloc_specs as alloc_specs
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 
-# Import gen_func
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 
 ### Declare the run parameters/functions
 m = 214
@@ -48,4 +49,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 if is_master:
     assert flag == 0
 
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

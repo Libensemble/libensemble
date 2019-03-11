@@ -36,7 +36,9 @@ if libE_specs['comms'] == 'mpi':
 from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import aposmm_with_grad_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import give_sim_work_first_aposmm_alloc_specs as alloc_specs
-from libensemble.tests.regression_tests.support import persis_info_1 as persis_info
+
+from libensemble.tests.regression_tests.support import persis_info_1 as persis_info, give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 
 import copy 
 persis_info_safe = copy.deepcopy(persis_info)
@@ -116,4 +118,4 @@ for run in range(2):
                 libE_abort()
 
         print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
-        save_libE_output(H,__file__)
+        save_libE_output(H,__file__,nworkers)

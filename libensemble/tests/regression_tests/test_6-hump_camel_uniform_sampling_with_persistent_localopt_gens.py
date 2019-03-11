@@ -23,7 +23,9 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import start_persistent_local_opt_gens_alloc_specs as alloc_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 n= 2
 sim_specs['out'] += [('grad',float,n)]
@@ -53,4 +55,4 @@ if is_master:
 
     print("\nlibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
 
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

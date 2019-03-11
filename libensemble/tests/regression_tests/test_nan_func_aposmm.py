@@ -13,7 +13,6 @@ from __future__ import absolute_import
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
-
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
@@ -25,7 +24,9 @@ if libE_specs['comms'] == 'local':
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import nan_func_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import aposmm_without_grad_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 n = 2
 gen_specs['in'] += ['f_i','x','x_on_cube','obj_component']
@@ -48,4 +49,4 @@ if is_master:
     assert flag == 0
     assert np.all(~H['local_pt'])
 
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

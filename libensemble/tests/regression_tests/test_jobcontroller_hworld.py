@@ -21,7 +21,9 @@ from libensemble.message_numbers import *
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import job_control_hworld_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 USE_BALSAM = False
 

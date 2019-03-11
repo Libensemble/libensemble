@@ -12,15 +12,18 @@ from __future__ import absolute_import
 
 import numpy as np
 
+from libensemble.tests.regression_tests.common import parse_args
+nworkers, is_master, libE_specs, _ = parse_args()
+
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_simple_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import give_sim_work_first_alloc_specs as alloc_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
-from libensemble.tests.regression_tests.common import parse_args
-nworkers, is_master, libE_specs, _ = parse_args()
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
+
 # State the generating function, its arguments, output, and necessary parameters.
 num_pts = 30*(nworkers-1)
 gen_specs['gen_batch_size'] = num_pts

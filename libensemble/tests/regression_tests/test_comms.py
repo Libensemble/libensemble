@@ -13,8 +13,7 @@ from __future__ import absolute_import
 
 import numpy as np
 
-from mpi4py import MPI
-from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
@@ -29,7 +28,7 @@ USE_DILL = False # True/False (req: pip install dill)
 
 if USE_DILL:
     import dill
-    import mpi4py
+    from mpi4py import MPI
     # Note for mpi4py v3+ - have to initialize differently than previous
     if int(mpi4py.__version__[0]) >= 3:
         MPI.pickle.__init__(dill.dumps, dill.loads)
@@ -41,7 +40,9 @@ if USE_DILL:
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import float_x1000_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID
 from libensemble.resources import Resources #Only to get number of workers
@@ -79,3 +80,5 @@ if is_master:
         x = w * 1000.0
         assert np.all(H['arr_vals'][w-1] == x), "Array values do not all match"
         assert H['scal_val'][w-1] == x + x/1e7, "Scalar values do not all match"
+
+    save_libE_output(H,__file__,nworkers)

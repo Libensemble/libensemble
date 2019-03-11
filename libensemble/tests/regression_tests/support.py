@@ -1,19 +1,18 @@
 import numpy as np
-from mpi4py import MPI     # for libE communicator
-import os, copy
+import copy
 
-def save_libE_output(H,calling_file):
+def save_libE_output(H,calling_file,nworkers):
+    import os
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_History_length=' + str(len(H)) \
                           + '_evals=' + str(sum(H['returned'])) \
-                          + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
+                          + '_ranks=' + str(nworkers)
 
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
 
 ##### sim_f #####
-
 # float_x1000
 from libensemble.sim_funcs.comms_testing import float_x1000
 array_size = int(1e6)   # Size of large array in sim_specs
@@ -185,7 +184,6 @@ uniform_random_sample_with_different_nodes_and_ranks_gen_specs = \
                     ],
              'initial_batch_size': 5,
              'max_ranks_per_node': 8,
-             'max_num_nodes': MPI.COMM_WORLD.Get_size()-1,
              'num_active_gens': 1,
              'batch_mode': False,
              'give_all_with_same_priority': True,
@@ -230,13 +228,16 @@ give_sim_work_first_pausing_alloc_specs = {'out':[('allocated',bool)],
 
 ##### persis_info #####
 
-# Each worker getting their own random stream
-persis_info_0 = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info_0[i] = {'rand_stream': np.random.RandomState(i)}
+def give_each_worker_own_stream(persis_info,nworkers):
+    for i in range(nworkers):
+        if i in persis_info:
+            persis_info[i].update({'rand_stream': np.random.RandomState(i)})
+        else:
+            persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+    return persis_info
 
 # give_sim_work_first persis_info 
-persis_info_1 = copy.deepcopy(persis_info_0)
+persis_info_1={}
 # Below persis_info fields store APOSMM information, but can be passed to various workers.
 persis_info_1['total_gen_calls'] = 0
 persis_info_1['last_worker'] = 0
