@@ -9,10 +9,10 @@
 from __future__ import division
 from __future__ import absolute_import
 
-import sys, os             # for adding to path
+
 import numpy as np
 
-from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
@@ -20,58 +20,19 @@ nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'local':
     quit()
 
-# Import gen_func
-from libensemble.gen_funcs.aposmm import aposmm_logic
-from math import gamma, pi, sqrt
-script_name = os.path.splitext(os.path.basename(__file__))[0]
+# Import libEnsemble main, sim_specs, gen_specs, and persis_info
+from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import nan_func_sim_specs as sim_specs
+from libensemble.tests.regression_tests.support import aposmm_without_grad_gen_specs as gen_specs
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 n = 2
-
-def nan_func(calc_in,persis_info,sim_specs,libE_info):
-    H = np.zeros(1,dtype=sim_specs['out'])
-    H['f_i'] = np.nan
-    H['f'] = np.nan
-    return (H, persis_info)
-
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': nan_func, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float),('f_i',float),('grad',float,n), # This is the output from the function being minimized
-                    ],
-             }
-
-gen_out = [('x',float,n),
-      ('x_on_cube',float,n),
-      ('sim_id',int),
-      ('priority',float),
-      ('local_pt',bool),
-      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
-      ('dist_to_unit_bounds',float),
-      ('dist_to_better_l',float),
-      ('dist_to_better_s',float),
-      ('ind_of_better_l',int),
-      ('ind_of_better_s',int),
-      ('started_run',bool),
-      ('num_active_runs',int), # Number of active runs point is involved in
-      ('local_min',bool),
-      ('obj_component',int),
-      ('pt_id',int), # To be used by APOSMM to identify points evaluated by different simulations
-      ]
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': aposmm_logic,
-             'in': [o[0] for o in gen_out] + ['f','f_i', 'grad', 'returned'],
-             'out': gen_out,
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'initial_sample_size': 10,
-             'localopt_method': 'LD_MMA',
-             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-             'xtol_rel': 1e-2,
-             'lhs_divisions':2,
-             'batch_mode': True,
-             'num_active_gens':1,
-             }
+gen_specs['in'] += ['f_i','x','x_on_cube','obj_component']
+gen_specs['out'] += [('x',float,n),('x_on_cube',float,n),('obj_component',int)]
+gen_specs['lb'] = -2*np.ones(n)
+gen_specs['ub'] =  2*np.ones(n)
 
 w = nworkers
 if w == 3:
@@ -82,21 +43,10 @@ if w == 3:
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 100, 'elapsed_wallclock_time': 300}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(1,nworkers+1):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
-
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 if is_master:
     assert flag == 0
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(nworkers+1)
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
-
     assert np.all(~H['local_pt'])
 
-
-
+    save_libE_output(H,__file__,nworkers)

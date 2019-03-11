@@ -10,61 +10,34 @@
 from __future__ import division
 from __future__ import absolute_import
 
-#from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
-from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 
-# Import sim_func
-from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
+# Import libEnsemble main, sim_specs, gen_specs, and persis_info
+from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import one_d_example_sim_specs as sim_specs
+from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
 
-# Import gen_func
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
-script_name = os.path.splitext(os.path.basename(__file__))[0]
-
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float), # This is the output from the function being minimized
-                    ],
-             }
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_random_sample,
-             'in': ['sim_id'],
-             'out': [('x',float,(1,))],
-             'lb': np.array([-3]),
-             'ub': np.array([ 3]),
-             'gen_batch_size': 500,
-             'save_every_k': 300
-             }
-
-# Tell libEnsemble when to stop
+# Test the following features
+gen_specs['out'] = [('x',float,(1,))]
+gen_specs['lb'] = np.array([-3])
+gen_specs['ub'] = np.array([ 3])
+gen_specs['gen_batch_size'] = 500
+gen_specs['save_every_k'] = 300
 exit_criteria = {'gen_max': 501}
-
-np.random.seed(1)
-persis_info = {}
-for i in range(1,nworkers+1):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_master:
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(nworkers+1)
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
-
     assert len(H)>= 501
-
     print("\nlibEnsemble with Uniform random sampling has generated enough points")
-
-
+    save_libE_output(H,__file__,nworkers)

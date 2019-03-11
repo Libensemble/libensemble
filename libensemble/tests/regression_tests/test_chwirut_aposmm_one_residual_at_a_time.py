@@ -9,10 +9,9 @@
 from __future__ import division
 from __future__ import absolute_import
 
-import sys, os             # for adding to path
 import numpy as np
 
-from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
@@ -20,66 +19,36 @@ nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'local':
     quit()
 
-# Import sim_func
-from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
-# Import gen_func
-from libensemble.gen_funcs.aposmm import aposmm_logic
+# Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
+from libensemble.libE import libE
+from libensemble.tests.regression_tests.support import chwirut_one_at_a_time_sim_specs as sim_specs
+from libensemble.tests.regression_tests.support import aposmm_without_grad_gen_specs as gen_specs
+from libensemble.tests.regression_tests.support import give_sim_work_first_pausing_alloc_specs as alloc_specs
 
-# Import alloc_func
-from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
-
-script_name = os.path.splitext(os.path.basename(__file__))[0]
+from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 
 ### Declare the run parameters/functions
 m = 214
 n = 3
 max_sim_budget = 10*m
 
-sim_specs = {'sim_f': chwirut_eval,
-             'in': ['x', 'obj_component'],
-             'out': [('f_i',float),
-                     ],
-             }
+gen_specs['out'] += [('x',float,n),
+                     ('x_on_cube',float,n),
+                     ('obj_component',int),
+                     ('f',float)]
 
-gen_out = [('x',float,n),
-      ('x_on_cube',float,n),
-      ('sim_id',int),
-      ('priority',float),
-      ('local_pt',bool),
-      ('paused',bool),
-      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
-      ('dist_to_unit_bounds',float),
-      ('dist_to_better_l',float),
-      ('dist_to_better_s',float),
-      ('ind_of_better_l',int),
-      ('ind_of_better_s',int),
-      ('started_run',bool),
-      ('num_active_runs',int), # Number of active runs point is involved in
-      ('local_min',bool),
-      ('obj_component',int),
-      ('f',float), # To store the point's combined objective function value (after all f_i are computed)
-      ('pt_id',int), # To be used by APOSMM to identify points evaluated by different simulations
-      ]
-
-gen_specs = {'gen_f': aposmm_logic,
-             'in': [o[0] for o in gen_out] + ['f_i','returned'],
-             'out': gen_out,
-             'lb': -2*np.ones(3),
-             'ub':  2*np.ones(3),
-             'initial_sample_size': 5, # All 214 residuals must be done
-             'localopt_method': 'pounders',
-             'dist_to_bound_multiple': 0.5,
-             'grtol': 1e-4,
-             'gatol': 1e-4,
-             'frtol': 1e-15,
-             'fatol': 1e-15,
-             'single_component_at_a_time': True,
-             'components': m,
-             'combine_component_func': lambda x: np.sum(np.power(x,2)),
-             'num_active_gens': 1,
-             'batch_mode': True,
-             }
+gen_specs['in'] += ['f_i','x','x_on_cube','obj_component']
+gen_specs['lb'] = -2*np.ones(n)
+gen_specs['ub'] =  2*np.ones(n)
+gen_specs['localopt_method'] = 'pounders'
+gen_specs['dist_to_bound_multiple'] = 0.5
+gen_specs.update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
+gen_specs['single_component_at_a_time'] = True
+gen_specs['components'] = m
+gen_specs['combine_component_func'] = lambda x: np.sum(np.power(x,2))
 
 np.random.RandomState(0)
 gen_specs['sample_points'] = np.random.uniform(0,1,(max_sim_budget,n))*(gen_specs['ub']-gen_specs['lb'])+gen_specs['lb']
@@ -88,36 +57,11 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
                  'elapsed_wallclock_time': 300
                   }
 
-alloc_specs = {'out':[('allocated',bool)], 
-               'alloc_f':alloc_f,
-               'stop_on_NaNs': True,
-               'stop_partial_fvec_eval': True,
-               }
-
-np.random.seed(1)
-persis_info = {}
-persis_info['need_to_give'] = set()
-persis_info['total_gen_calls'] = 0
-persis_info['complete'] = set()
-persis_info['has_nan'] = set()
-persis_info['already_paused'] = set()
-persis_info['H_len'] = 0
-
-for i in range(1,nworkers+1):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
-
-persis_info['last_worker'] = 0
-persis_info[0] = {'run_order': {},
-                  'old_runs': {},
-                  'total_runs': 0,
-                  'rand_stream': np.random.RandomState(1)}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_master:
     assert flag == 0
     assert len(H) >= max_sim_budget
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(nworkers+1)
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
+
+    save_libE_output(H,__file__,nworkers)
