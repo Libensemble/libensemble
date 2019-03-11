@@ -11,11 +11,14 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+_, is_master, libE_specs, _ = parse_args()
 
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
@@ -39,9 +42,9 @@ gen_specs['ub'] = np.array([ 3, 2])
 exit_criteria = {'elapsed_wallclock_time': 1}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     eprint(flag)
     eprint(H)
     assert flag == 2

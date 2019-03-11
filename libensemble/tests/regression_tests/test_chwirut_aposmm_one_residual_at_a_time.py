@@ -13,6 +13,13 @@ from mpi4py import MPI # for libE communicator
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+_, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] == 'local':
+    quit()
+
 
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
 from libensemble.libE import libE
@@ -48,11 +55,11 @@ exit_criteria = {'sim_max': max_sim_budget, # must be provided
                  'elapsed_wallclock_time': 300
                   }
 
-
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
     assert len(H) >= max_sim_budget
+
     save_libE_output(H,__file__)

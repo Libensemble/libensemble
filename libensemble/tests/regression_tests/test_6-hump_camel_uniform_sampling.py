@@ -20,6 +20,7 @@ from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs 
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
+_, is_master, libE_specs, _ = parse_args()
 
 sim_specs['save_every_k'] = 400
 gen_specs['gen_batch_size'] = 500
@@ -31,13 +32,11 @@ gen_specs['ub'] = np.array([ 3, 2])
 # Tell libEnsemble when to stop
 exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 
-
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
-
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
     tol = 0.1
@@ -45,6 +44,5 @@ if MPI.COMM_WORLD.Get_rank() == 0:
         assert np.min(np.sum((H['x']-m)**2,1)) < tol
 
     print("\nlibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
-
     save_libE_output(H,__file__)
 

@@ -11,8 +11,16 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI
 import numpy as np
+
+from mpi4py import MPI
+from libensemble.libE import libE
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
+    quit()
 
 # Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking
@@ -34,6 +42,7 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import float_x1000_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
 from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID
 from libensemble.resources import Resources #Only to get number of workers
 

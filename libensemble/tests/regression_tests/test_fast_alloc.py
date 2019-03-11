@@ -28,11 +28,20 @@ gen_specs['out'] = [('x',float,(2,))]
 gen_specs['lb'] = np.array([-3,-2])
 gen_specs['ub'] = np.array([ 3, 2])
 
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+_, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] == 'tcp':
+    # Can't use the same interface for manager and worker if we want
+    # repeated calls to libE -- the manager sets up a different server
+    # each time, and the worker will not know what port to connect to.
+    quit()
+
 for time in np.append([0], np.logspace(-5,-1,5)):
     for rep in range(1):
         #State the objective function, its arguments, output, and necessary parameters (and their sizes)
         sim_specs['pause_time'] = time
-
 
         if time == 0:
             sim_specs.pop('pause_time')
@@ -44,9 +53,8 @@ for time in np.append([0], np.logspace(-5,-1,5)):
         persis_info['next_to_give'] = 0
         persis_info['total_gen_calls'] = 1
 
-        # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-        if MPI.COMM_WORLD.Get_rank() == 0:
+        if is_master:
             assert flag == 0
             assert len(H) == num_pts

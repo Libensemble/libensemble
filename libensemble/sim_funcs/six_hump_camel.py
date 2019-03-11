@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 __all__ = ['six_hump_camel_with_different_ranks_and_nodes','six_hump_camel','six_hump_camel_simple']
-from mpi4py import MPI # for libE communicator
 import subprocess, os
 import numpy as np
 
@@ -21,6 +20,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         ``/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
     """
 
+    from mpi4py import MPI # for libE communicator
     batch = len(H['x'])
     O = np.zeros(batch,dtype=sim_specs['out'])
 

@@ -9,10 +9,17 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
+
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
+
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+_, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] == 'local':
+    quit()
 
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
@@ -26,7 +33,7 @@ gen_specs['out'] += [('x',float,n),('x_on_cube',float,n),('obj_component',int)]
 gen_specs['lb'] = -2*np.ones(n)
 gen_specs['ub'] =  2*np.ones(n)
 
-w = MPI.COMM_WORLD.Get_size()-1
+w = nworkers
 if w == 3:
     gen_specs['single_component_at_a_time'] = True
     gen_specs['components'] = 1
@@ -36,8 +43,8 @@ if w == 3:
 exit_criteria = {'sim_max': 100, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
-if MPI.COMM_WORLD.Get_rank() == 0:
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if is_master:
     assert flag == 0
     assert np.all(~H['local_pt'])
 
