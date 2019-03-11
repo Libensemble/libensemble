@@ -30,7 +30,7 @@ def worker_main():
 def manager_main():
     "Manager main routine"
     worker_comms = [MPIComm(MPI.COMM_WORLD, r)
-                    for r in range(1, MPI.COMM_WORLD.Get_size())]
+                    for r in range(1, nworkers))]
     for comm in worker_comms:
         try:
             okay_flag = True
@@ -48,7 +48,7 @@ def manager_main():
         comm.send("Goodbye")
 
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     manager_main()
 else:
     worker_main()

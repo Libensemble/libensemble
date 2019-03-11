@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 
-from mpi4py import MPI # for libE communicator
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output

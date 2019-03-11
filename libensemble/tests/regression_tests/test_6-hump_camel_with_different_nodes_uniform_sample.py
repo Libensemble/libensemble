@@ -39,7 +39,7 @@ args = parser.parse_args()
 try:
     libE_machinefile = open(args.machinefile).read().splitlines()
 except:
-    if MPI.COMM_WORLD.Get_rank() == 0:
+    if is_master:
         print("WARNING: No machine file provided - defaulting to local node")
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
@@ -55,7 +55,7 @@ exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
 
     save_libE_output(H,__file__)

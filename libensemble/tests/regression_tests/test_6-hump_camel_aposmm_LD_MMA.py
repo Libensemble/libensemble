@@ -11,7 +11,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 
-from mpi4py import MPI # for libE communicator
 import sys             # for adding to path
 import numpy as np
 
@@ -21,7 +20,7 @@ from libensemble.libE import libE, libE_tcp_worker
 from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
-_, is_master, libE_specs, _ = parse_args()
+nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()
 
@@ -70,8 +69,7 @@ gen_specs['ub'] = np.array([ 3, 2])
 gen_specs.pop('batch_mode')  # Tests that APOSMM is okay being called when all pts in a run aren't completed
 
 # Tell libEnsemble when to stop
-exit_criteria = [{'sim_max': 1000},
-                 {'sim_max': 200, 'elapsed_wallclock_time': 300}]
+exit_criteria = {'sim_max': 1000}
 
 # Perform the run (TCP worker mode)
 if libE_specs['comms'] == 'tcp' and not is_master:

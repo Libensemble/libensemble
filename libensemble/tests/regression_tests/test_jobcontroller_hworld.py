@@ -11,8 +11,6 @@ nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()
 
-from mpi4py import MPI # for libE communicator
-
 # Import libEnsemble modules
 from libensemble.controller import JobController
 #from libensemble.calc_info import CalcInfo
@@ -78,7 +76,7 @@ exit_criteria = {'elapsed_wallclock_time': 15}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     print('\nChecking expected job status against Workers ...\n')
 
     #Expected list: Last is zero as will not be entered into H array on manager kill - but should show in the summary file.

@@ -73,7 +73,7 @@ exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
     for w in range(1, num_workers+1):
         x = w * 1000.0
