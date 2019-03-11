@@ -10,18 +10,35 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
+
 import sys             # for adding to path
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
 
+from libensemble.libE import libE, libE_tcp_worker
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
+    quit()
+
+# Set up appropriate abort mechanism depending on comms
+libE_abort = quit
+if libE_specs['comms'] == 'mpi':
+    from mpi4py import MPI
+    def libE_mpi_abort():
+        MPI.COMM_WORLD.Abort(1)
+    libE_abort = libE_mpi_abort
+
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
-from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import aposmm_with_grad_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import give_sim_work_first_aposmm_alloc_specs as alloc_specs
-from libensemble.tests.regression_tests.support import persis_info_1 as persis_info
+
+from libensemble.tests.regression_tests.support import persis_info_1 as persis_info, give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 
 import copy 
 persis_info_safe = copy.deepcopy(persis_info)
@@ -56,9 +73,16 @@ gen_specs.pop('batch_mode')  # Tests that APOSMM is okay being called when all p
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 1000}
 
+# Perform the run (TCP worker mode)
+if libE_specs['comms'] == 'tcp' and not is_master:
+    run = int(sys.argv[-1])
+    libE_tcp_worker(sim_specs, gen_specs[run], libE_specs)
+    quit()
 
 # Perform the run
 for run in range(2):
+    if libE_specs['comms'] == 'tcp' and is_master:
+        libE_specs['worker_cmd'].append(str(run))
 
     if run == 1:
         # Change the bounds to put a local min at a corner point (to test that
@@ -78,22 +102,20 @@ for run in range(2):
 
         persis_info = persis_info_safe
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    if MPI.COMM_WORLD.Get_rank() == 0:
-
+    if is_master:
         if flag != 0:
             print("Exit was not on convergence (code {})".format(flag))
             sys.stdout.flush()
-            MPI.COMM_WORLD.Abort(1)
+            libE_abort()
 
         tol = 1e-5
         for m in minima:
             print(np.min(np.sum((H[H['local_min']]['x']-m)**2,1)))
             sys.stdout.flush()
             if np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) > tol:
-                MPI.COMM_WORLD.Abort(1)
+                libE_abort()
 
         print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
-
-        save_libE_output(H,__file__)
+        save_libE_output(H,__file__,nworkers)

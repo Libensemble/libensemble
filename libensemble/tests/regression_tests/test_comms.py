@@ -11,8 +11,15 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI
 import numpy as np
+
+from libensemble.tests.regression_tests.support import save_libE_output
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
+    quit()
 
 # Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking
@@ -21,7 +28,7 @@ USE_DILL = False # True/False (req: pip install dill)
 
 if USE_DILL:
     import dill
-    import mpi4py
+    from mpi4py import MPI
     # Note for mpi4py v3+ - have to initialize differently than previous
     if int(mpi4py.__version__[0]) >= 3:
         MPI.pickle.__init__(dill.dumps, dill.loads)
@@ -33,7 +40,10 @@ if USE_DILL:
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import float_x1000_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
+
 from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID
 from libensemble.resources import Resources #Only to get number of workers
 
@@ -61,12 +71,14 @@ exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 
 
 ## Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
     for w in range(1, num_workers+1):
         x = w * 1000.0
         assert np.all(H['arr_vals'][w-1] == x), "Array values do not all match"
         assert H['scal_val'][w-1] == x + x/1e7, "Scalar values do not all match"
+
+    save_libE_output(H,__file__,nworkers)

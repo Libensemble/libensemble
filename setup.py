@@ -37,14 +37,14 @@ setup(
     packages=['libensemble',
               'libensemble.gen_funcs',
               'libensemble.sim_funcs',
-              'libensemble.sim_funcs.branin',	      
+              'libensemble.sim_funcs.branin',
               'libensemble.alloc_funcs',
-              'libensemble.tests',              
+              'libensemble.tests',
               'libensemble.tests.unit_tests',
               'libensemble.tests.regression_tests'],
-    
+
     package_data={'libensemble.sim_funcs.branin': ['known_minima_and_func_values']},
-    
+
     install_requires=['mpi4py>=2.0',
                       'numpy'
                       ],
@@ -55,25 +55,25 @@ setup(
                    'pytest-pep8>=1.0',
                    'pytest-timeout',
                   ],
-        
+
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
-        'Natural Language :: English',   
+        'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
-        'Operating System :: Unix',         
+        'Operating System :: Unix',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',        
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Scientific/Engineering',
-        'Topic :: Software Development :: Libraries :: Python Modules'  
+        'Topic :: Software Development :: Libraries :: Python Modules'
     ],
 
     cmdclass = {'test': Run_TestSuite,

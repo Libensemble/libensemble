@@ -14,13 +14,21 @@ from mpi4py import MPI # for libE communicator
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
+    # Can't do this one with processes either?  Wants a machine file.
+    quit()
 
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_with_different_ranks_and_nodes_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_random_sample_with_different_nodes_and_ranks_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
 
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 import argparse
 #Parse arguments
@@ -32,7 +40,7 @@ args = parser.parse_args()
 try:
     libE_machinefile = open(args.machinefile).read().splitlines()
 except:
-    if MPI.COMM_WORLD.Get_rank() == 0:
+    if is_master:
         print("WARNING: No machine file provided - defaulting to local node")
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
@@ -41,14 +49,15 @@ sim_specs['nodelist'] = libE_machinefile
 gen_specs['out'] += [('x',float,n), ('x_on_cube',float,n),]
 gen_specs['lb'] = np.array([-3,-2])
 gen_specs['ub'] = np.array([ 3, 2])
+gen_specs['max_num_nodes'] = nworkers # Used in uniform_random_sample_with_different_nodes_and_ranks
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
 
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)

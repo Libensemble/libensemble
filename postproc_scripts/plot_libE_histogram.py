@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #infile='testfile.txt'
-infile='libe_summary.txt'
+infile='libE_stats.txt'
 time_key='Time:'
 status_key='Status:'
 sim_only = True # Ignore generator times
@@ -12,6 +12,10 @@ run_killed = ['killed'] # Currently searches for this word in string
 
 import sys
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 #import csv
 

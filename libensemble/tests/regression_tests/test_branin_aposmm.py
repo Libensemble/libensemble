@@ -4,10 +4,19 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
+
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] == 'local':
+    quit()
+
+# Import sim_func and declare directory to be copied by each worker to do its evaluations in
+import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')
 
 # Import libEnsemble main, sim_specs, gen_specs, and persis_info
 from libensemble.libE import libE
@@ -15,9 +24,10 @@ from libensemble.tests.regression_tests.support import branin_sim_specs as sim_s
 from libensemble.tests.regression_tests.support import aposmm_without_grad_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info
 
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 
-### Declare the run parameters/functions
-w = MPI.COMM_WORLD.Get_size()-1
+w = nworkers
 
 # As an example, have the workers put their directories in a different
 # location. (Useful if a /scratch/ directory is faster than the filesystem.)
@@ -47,13 +57,11 @@ exit_criteria = {'sim_max': 150,
                  'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out']
                 }
 
-
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
-    save_libE_output(H,__file__)
 
+if is_master:
     from libensemble.tests.regression_tests.support import branin_vals_and_minima as M
 
     M = M[M[:,-1].argsort()] # Sort by function values (last column)
@@ -63,3 +71,4 @@ if MPI.COMM_WORLD.Get_rank() == 0:
         assert np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)) < tol
 
     print("\nlibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
+    save_libE_output(H,__file__,nworkers)

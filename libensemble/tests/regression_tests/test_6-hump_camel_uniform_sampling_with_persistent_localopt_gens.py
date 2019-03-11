@@ -10,17 +10,22 @@
 from __future__ import division
 from __future__ import absolute_import
 
-from mpi4py import MPI # for libE communicator
 import numpy as np
 
 from libensemble.tests.regression_tests.support import save_libE_output
+from libensemble.tests.regression_tests.common import parse_args
+
+# Parse args for test code
+nworkers, is_master, libE_specs, _ = parse_args()
 
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_specs as gen_specs
 from libensemble.tests.regression_tests.support import start_persistent_local_opt_gens_alloc_specs as alloc_specs
-from libensemble.tests.regression_tests.support import persis_info_0 as persis_info
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 n= 2
 sim_specs['out'] += [('grad',float,n)]
@@ -34,13 +39,13 @@ gen_specs['xtol_rel'] = 1e-4
 exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
 
 # Don't do a "persistent worker run" if only one wokrer
-if MPI.COMM_WORLD.Get_size() == 2:
+if nworkers < 2:
     quit()
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
 
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
@@ -50,4 +55,4 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 
     print("\nlibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
 
-    save_libE_output(H,__file__)
+    save_libE_output(H,__file__,nworkers)
