@@ -450,15 +450,15 @@ if [ "$root_found" = true ]; then
            reg_count_runs=$((reg_count_runs+1))
 
            if [ "$test_code" -eq "0" ]; then
-             echo -e " ---Test $test_num: $TEST_SCRIPT on $NPROCS processes ${pass_color} ...passed ${textreset}"
+             echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed ${textreset}"
              reg_pass=$((reg_pass+1))
              #continue testing
            else
-             echo -e " ---Test $test_num: $TEST_SCRIPT on $NPROCS processes ${fail_color}  ...failed ${textreset}"
+             echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed ${textreset}"
              code=$test_code #sh - currently stop on failure
              if [ $REG_STOP_ON_FAILURE != "true" ]; then
                #Dump error to log file
-               echo -e "\nTest $test_num: $TEST_SCRIPT on $NPROCS processes:\n" >>log.err
+               echo -e "\nTest $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes:\n" >>log.err
                [ -e test.err ] && cat test.err >>log.err
              fi;
              reg_fail=$((reg_fail+1))
