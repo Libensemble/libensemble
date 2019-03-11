@@ -66,8 +66,8 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
-    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that must be returned (with a non-nan value) before a local optimization run is started.
-    - ``'localopt_method' [str]``: Name of an NLopt or PETSc/TAO method
+    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that must be returned (with a non-nan value) before a local optimization run is started
+    - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method (see 'advance_localopt_method' below for supported methods)
 
     Optional ``gen_specs`` entries are:
 
