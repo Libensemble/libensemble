@@ -37,7 +37,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())
         persis_info['H_len']=len(H)
 
-    for i in avail_worker_ids(W):
+    idle_workers = avail_worker_ids(W)
+
+    while len(idle_workers):
 
         pt_ids_to_pause = set()
 
@@ -91,13 +93,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 sim_ids_to_remove = np.in1d(H['pt_id'],list(pt_ids_to_pause))
                 H['paused'][sim_ids_to_remove] = True
 
-                persis_info['need_to_give'].difference(np.where(sim_ids_to_remove)[0])
+                persis_info['need_to_give'] = persis_info['need_to_give'].difference(np.where(sim_ids_to_remove)[0])
 
-            if len(persis_info['need_to_give']) == 0: 
-                continue
-
-            next_row = persis_info['need_to_give'].pop()
-            sim_work(Work, i, sim_specs['in'], [next_row], [])
+            if len(persis_info['need_to_give']) != 0: 
+                next_row = persis_info['need_to_give'].pop()
+                i, idle_workers = idle_workers[0], idle_workers[1:]
+                sim_work(Work, i, sim_specs['in'], [next_row], [])
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
             lw = persis_info['last_worker']
@@ -123,8 +124,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_count += 1
+            i, idle_workers = idle_workers[0], idle_workers[1:]
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[lw])
 
             persis_info['last_worker'] = i
+
+        elif gen_count >= gen_specs.get('num_active_gens', gen_count+1):
+            idle_workers = []
 
     return Work, persis_info
