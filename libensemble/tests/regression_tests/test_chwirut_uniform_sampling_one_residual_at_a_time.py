@@ -34,7 +34,7 @@ persis_info_safe = copy.deepcopy(persis_info)
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 100*m
+max_sim_budget = 10*m
 
 sim_specs['component_nan_frequency'] = 0.01
 
