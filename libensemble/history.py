@@ -46,7 +46,7 @@ class History:
         """
         L = exit_criteria.get('sim_max', 100)
         #import pdb; pdb.set_trace()
-        H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
+        H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k],[])))) # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
 
         if len(H0):
             fields = H0.dtype.names

@@ -261,7 +261,7 @@ class Manager:
                 self.W[w_i-1]['blocked'] = 0
                 self.W[w_i-1]['active'] = 0
 
-        if 'persis_info' in D_recv:
+        if 'persis_info' in D_recv and len(D_recv['persis_info']):
             persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w):

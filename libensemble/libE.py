@@ -471,7 +471,7 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
 
     # Check that sim/gen have 'out' entries
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
-    assert len(gen_specs['out']), "gen_specs must have 'out' entries"
+    assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
     # If exit on stop, make sure it is something that a sim/gen outputs
     if 'stop_val' in exit_criteria:
@@ -483,7 +483,8 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
 
     # Handle if gen outputs sim IDs
     from libensemble.libE_fields import libE_fields
-    if ('sim_id', int) in gen_specs['out']:
+    
+    if bool(gen_specs) and ('sim_id', int) in gen_specs['out']:
         if is_master:
             print(_USER_SIM_ID_WARNING)
             sys.stdout.flush()
@@ -491,10 +492,7 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
         libE_fields = libE_fields[1:]
 
     # Set up history -- combine libE_fields and sim/gen/alloc specs
-    H = np.zeros(1 + len(H0),
-                 dtype=libE_fields + list(set(sim_specs['out'] +
-                                              gen_specs['out'] +
-                                              alloc_specs.get('out', []))))
+    H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k],[])))) # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
 
     # Sanity check prior history
     if len(H0):
