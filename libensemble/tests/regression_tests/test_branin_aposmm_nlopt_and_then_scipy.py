@@ -6,6 +6,7 @@ from __future__ import absolute_import
 
 
 import numpy as np
+import copy
 
 from libensemble.tests.regression_tests.support import save_libE_output
 from libensemble.tests.regression_tests.common import parse_args
@@ -26,6 +27,7 @@ from libensemble.tests.regression_tests.support import persis_info_2 as persis_i
 
 from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
 persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
+persis_info_safe = copy.deepcopy(persis_info)
 
 w = nworkers
 
@@ -70,5 +72,24 @@ if is_master:
         print(np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)))
         assert np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)) < tol
 
-    print("\nlibEnsemble with APOSMM has identified the " + str(k) + " best minima within a tolerance " + str(tol))
+    print("\nlibEnsemble with APOSMM + NLopt has identified the " + str(k) + " best minima within a tolerance " + str(tol))
     save_libE_output(H,__file__,nworkers)
+
+gen_specs['localopt_method'] = 'scipy_COBYLA'
+gen_specs.pop('xtol_rel')
+gen_specs['tol'] = 1e-5
+exit_criteria['sim_max'] = 500
+persis_info = copy.deepcopy(persis_info_safe)
+
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+
+if is_master:
+    M = M[M[:,-1].argsort()] # Sort by function values (last column)
+    k = 3; tol = 1e-5
+    for i in range(k):
+        print(np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)))
+        assert np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)) < tol
+
+    print("\nlibEnsemble with APOSMM + SciPy has identified the " + str(k) + " best minima within a tolerance " + str(tol))
+    save_libE_output(H,__file__,nworkers)
+
