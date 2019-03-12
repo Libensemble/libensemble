@@ -7,7 +7,7 @@ __all__ = ['job_control_hworld']
 #Alt send values through X
 sim_count = 0
 
-def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
+def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
     import time
     start = time.time()
 
@@ -17,7 +17,7 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
         time.sleep(delay)
 
         #print('Probing manager at time: ', time.time() - start)
-        jobctl.manager_poll()
+        jobctl.manager_poll(comm)
         if jobctl.manager_signal == 'finish':
             jobctl.kill(job)
             calc_status = MAN_SIGNAL_FINISH # Worker will pick this up and close down
@@ -62,10 +62,11 @@ def polling_loop(jobctl, job, timeout_sec=6.0, delay=1.0):
     return job, calc_status
 
 
-def job_control_hworld(H, persis_info, sim_specs, _):
+def job_control_hworld(H, persis_info, sim_specs, libE_specs):
     """ Test of launching and polling job and exiting on job finish"""
     jobctl = MPIJobController.controller
     cores = sim_specs['cores']
+    comm = libE_specs['comm']
 
     args_for_sim = 'sleep 3'
     #pref send this in X as a sim_in from calling script
@@ -86,7 +87,7 @@ def job_control_hworld(H, persis_info, sim_specs, _):
         timeout = 20.0
 
     job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
-    job, calc_status = polling_loop(jobctl, job, timeout)
+    job, calc_status = polling_loop(comm, jobctl, job, timeout)
 
     #assert job.finished, "job.finished should be True. Returned " + str(job.finished)
     #assert job.state == 'FINISHED', "job.state should be FINISHED. Returned " + str(job.state)

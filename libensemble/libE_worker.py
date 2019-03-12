@@ -3,90 +3,33 @@ libEnsemble worker class
 ====================================================
 """
 
-from __future__ import division
-from __future__ import absolute_import
-
 import socket
 import logging
+import logging.handlers
 from itertools import count
+from traceback import format_exc
 
 import numpy as np
-from mpi4py import MPI
 
 from libensemble.message_numbers import \
      EVAL_SIM_TAG, EVAL_GEN_TAG, \
      UNSET_TAG, STOP_TAG, CALC_EXCEPTION
-from libensemble.message_numbers import \
-     MAN_SIGNAL_FINISH, \
-     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP, \
-     calc_type_strings
+from libensemble.message_numbers import MAN_SIGNAL_FINISH
+from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
-from libensemble.loc_stack import LocationStack
-from libensemble.calc_info import CalcInfo
+from libensemble.util.loc_stack import LocationStack
+from libensemble.util.timer import Timer
 from libensemble.controller import JobController
-from libensemble.resources import Resources
+from libensemble.comms.logs import worker_logging_config
+from libensemble.comms.logs import LogConfig
 
-logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
+logger = logging.getLogger(__name__)
 #To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
 
-def recv_dtypes(comm):
-    """Receive dtypes array broadcast from manager."""
-    dtypes = {}
-    dtypes[EVAL_SIM_TAG] = None
-    dtypes[EVAL_GEN_TAG] = None
-    dtypes[EVAL_SIM_TAG] = comm.bcast(dtypes[EVAL_SIM_TAG], root=0)
-    dtypes[EVAL_GEN_TAG] = comm.bcast(dtypes[EVAL_GEN_TAG], root=0)
-    return dtypes
-
-
-def recv_from_manager(comm):
-    """Receive a tagged message from the manager."""
-    status = MPI.Status()
-    msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-    mtag = status.Get_tag()
-    return mtag, msg
-
-
-def dump_pickle(pfilename, worker_out):
-    """Write a pickle of the message."""
-    import pickle
-    with open(pfilename, "wb") as f:
-        pickle.dump(worker_out, f)
-    with open(pfilename, "rb") as f:
-        pickle.load(f)  #check can read in this side
-    return pfilename
-
-
-def receive_and_run(comm, dtypes, worker, Work):
-    """Receive data associated with a work order and run calc."""
-
-    libE_info = Work['libE_info']
-    calc_type = Work['tag']
-
-    calc_in = (comm.recv(source=0) if len(libE_info['H_rows']) > 0
-               else np.zeros(0, dtype=dtypes[calc_type]))
-    logger.debug("Received calc_in of len {}".format(np.size(calc_in)))
-
-    #comm will be in the future comms module...
-    if libE_info.get('persistent'):
-        libE_info['comm'] = comm
-    calc_out, persis_info, calc_status = worker.run(Work, calc_in)
-    libE_info.pop('comm', None)
-
-    return {'calc_out': calc_out,
-            'persis_info': persis_info,
-            'libE_info': libE_info,
-            'calc_status': calc_status,
-            'calc_type': calc_type}
-
-
-#The routine worker_main currently uses MPI.
-#Comms will be implemented using comms module in future
-def worker_main(c, sim_specs, gen_specs):
-    """
-    Evaluate calculations given to it by the manager.
+def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
+    """Evaluate calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
     and communicates results. This routine also creates and writes to
@@ -94,75 +37,46 @@ def worker_main(c, sim_specs, gen_specs):
 
     Parameters
     ----------
-    c: dict containing fields 'comm' and 'color' for the communicator.
+    comm: comm object for manager communications
 
     sim_specs: dict with parameters/information for simulation calculations
 
     gen_specs: dict with parameters/information for generation calculations
 
+    workerID: manager assigned worker ID (if None, default is comm.rank)
     """
 
-    comm = c['comm']
-    dtypes = recv_dtypes(comm)
-    worker = Worker(comm.Get_rank(), sim_specs, gen_specs)
+    # Receive dtypes from manager
+    _, dtypes = comm.recv()
+    workerID = workerID or comm.rank
 
-    #Setup logging
-    logger.info("Worker initiated on MPI rank {} on node {}". \
-                format(comm.Get_rank(), socket.gethostname()))
+    # Initialize logging on comms
+    if log_comm:
+        worker_logging_config(comm, workerID)
 
-    # Print calc_list on-the-fly
-    CalcInfo.create_worker_statfile(worker.workerID)
-
-    #Init in case of manager request before filled
-    worker_out = {'calc_status': UNSET_TAG}
-
-    for worker_iter in count(start=1):
-        logger.debug("Iteration {}".format(worker_iter))
-
-        mtag, Work = recv_from_manager(comm)
-        if mtag == STOP_TAG:
-
-            if Work == MAN_SIGNAL_FINISH: #shutdown the worker
-                break
-            #Need to handle manager job kill here - as well as finish
-            if Work == MAN_SIGNAL_REQ_RESEND:
-                logger.debug("Re-sending to Manager with status {}".\
-                             format(worker_out['calc_status']))
-                comm.send(obj=worker_out, dest=0)
-                continue
-
-            if Work == MAN_SIGNAL_REQ_PICKLE_DUMP:
-                pfilename = "pickled_worker_{}_sim_{}.pkl".\
-                  format(worker.workerID, worker.calc_iter[EVAL_SIM_TAG])
-                logger.debug("Make pickle for manager: status {}".\
-                             format(worker_out['calc_status']))
-                comm.send(obj=dump_pickle(pfilename, worker_out), dest=0)
-                continue
-
-        worker_out = receive_and_run(comm, dtypes, worker, Work)
-
-        # Check whether worker exited because it polled a manager signal
-        if worker_out['calc_status'] == MAN_SIGNAL_FINISH:
-            break
-
-        logger.debug("Sending to Manager with status {}".\
-                     format(worker_out['calc_status']))
-        comm.send(obj=worker_out, dest=0)
-
-    if sim_specs.get('clean_jobs'):
-        worker.clean()
+    # Set up and run worker
+    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
+    worker.run()
 
 
 ######################################################################
 # Worker Class
 ######################################################################
 
-class Worker():
+
+class WorkerErrMsg:
+
+    def __init__(self, msg, exc):
+        self.msg = msg
+        self.exc = exc
+
+
+class Worker:
 
     """The Worker Class provides methods for controlling sim and gen funcs"""
 
     # Worker Object methods
-    def __init__(self, workerID, sim_specs, gen_specs):
+    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs):
         """Initialise new worker object.
 
         Parameters
@@ -172,10 +86,14 @@ class Worker():
             The ID for this worker
 
         """
+        self.comm = comm
+        self.dtypes = dtypes
         self.workerID = workerID
+        self.sim_specs = sim_specs
         self.calc_iter = {EVAL_SIM_TAG : 0, EVAL_GEN_TAG : 0}
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
+        self._calc_id_counter = count()
         Worker._set_job_controller(workerID)
 
 
@@ -224,7 +142,7 @@ class Worker():
             return True
 
 
-    def run(self, Work, calc_in):
+    def _handle_calc(self, Work, calc_in):
         """Run a calculation on this worker object.
 
         This routine calls the user calculations. Exceptions are caught,
@@ -242,19 +160,19 @@ class Worker():
         """
         calc_type = Work['tag']
         self.calc_iter[calc_type] += 1
-        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
-        calc_stats = CalcInfo()
-        calc_stats.calc_type = calc_type
+        calc_id = next(self._calc_id_counter)
+        timer = Timer()
 
         try:
             logger.debug("Running {}".format(calc_type_strings[calc_type]))
             calc = self._run_calc[calc_type]
-            with calc_stats.timer:
+            with timer:
                 with self.loc_stack.loc(calc_type):
+                    logger.debug("Calling calc {}".format(calc_type))
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+                    logger.debug("Return from calc call")
 
             assert isinstance(out, tuple), \
               "Calculation output must be a tuple."
@@ -264,13 +182,83 @@ class Worker():
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
             return out[0], out[1], calc_status
         except Exception:
+            logger.debug("Re-raising exception from calc")
             calc_status = CALC_EXCEPTION
             raise
         finally:
-            calc_stats.set_calc_status(calc_status)
-            CalcInfo.add_calc_worker_statfile(calc=calc_stats)
+            calc_msg = "Calc {:5d}: {} {} Status: {}". \
+              format(calc_id,
+                     calc_type_strings[calc_type],
+                     timer,
+                     calc_status_strings.get(calc_status, "Completed"))
+            logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
 
-    def clean(self):
-        """Clean up calculation directories"""
-        self.loc_stack.clean_locs()
+    def _recv_H_rows(self, Work):
+        "Unpack Work request and receiv any history rows we need."
+
+        libE_info = Work['libE_info']
+        calc_type = Work['tag']
+        if len(libE_info['H_rows']) > 0:
+            _, calc_in = self.comm.recv()
+        else:
+            calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
+
+        logger.debug("Received calc_in ({}) of len {}".
+                     format(calc_type_strings[calc_type], np.size(calc_in)))
+        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
+          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
+
+        return libE_info, calc_type, calc_in
+
+
+    def _handle(self, Work):
+        "Handle a work request from the manager."
+
+        # Check work request and receive second message (if needed)
+        libE_info, calc_type, calc_in = self._recv_H_rows(Work)
+
+        # Call user function
+        libE_info['comm'] = self.comm
+        calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+        del libE_info['comm']
+
+        # If there was a finish signal, bail
+        if calc_status == MAN_SIGNAL_FINISH:
+            return None
+
+        # Otherwise, send a calc result back to manager
+        logger.debug("Sending to Manager with status {}".format(calc_status))
+        return {'calc_out': calc_out,
+                'persis_info': persis_info,
+                'libE_info': libE_info,
+                'calc_status': calc_status,
+                'calc_type': calc_type}
+
+
+    def run(self):
+        "Run the main worker loop."
+
+        try:
+            logger.info("Worker {} initiated on node {}". \
+                        format(self.workerID, socket.gethostname()))
+
+            for worker_iter in count(start=1):
+                logger.debug("Iteration {}".format(worker_iter))
+
+                mtag, Work = self.comm.recv()
+                if mtag == STOP_TAG:
+                    break
+
+                response = self._handle(Work)
+                if response is None:
+                    break
+                self.comm.send(0, response)
+
+        except Exception as e:
+            self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
+        else:
+            self.comm.kill_pending()
+        finally:
+            if self.sim_specs.get('clean_jobs'):
+                self.loc_stack.clean_locs()

@@ -19,7 +19,7 @@ Library for managing ensemble-like collections of computations.
 Dependencies
 ------------
 
-* Python_ 2.7, 3.4 or above.
+* Python_ 3.4 or above.
 
 * A functional MPI 1.x/2.x/3.x implementation such as `MPICH
   <http://www.mpich.org/>`_  built with shared/dynamic libraries.

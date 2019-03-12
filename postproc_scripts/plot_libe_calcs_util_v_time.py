@@ -1,4 +1,4 @@
-infile='libe_summary.txt'
+infile='libE_stats.txt'
 import pandas as pd
 
 run_stats = []
@@ -46,6 +46,9 @@ df_count = pd.DataFrame({'count': counts}) # Transpose to columns like this
 
 final = df_list.join(df_count)
 #print(final)
+
+import matplotlib
+matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 final.plot(x='datetime',y='count')

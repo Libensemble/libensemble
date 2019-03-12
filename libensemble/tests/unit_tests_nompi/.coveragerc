@@ -9,7 +9,7 @@ omit =
 
 branch = true
 	 
-data_file = .cov_unit_out
+data_file = .cov_unit_out2
 
 #parallel = true
 
@@ -19,6 +19,7 @@ omit =
     */setup.py/*
     */tests/*
     */unit_tests/*
+    */unit_tests_nompi/*
     */regression_tests/*
 
 exclude_lines =    

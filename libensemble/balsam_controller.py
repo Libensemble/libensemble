@@ -16,7 +16,7 @@ from libensemble.mpi_controller import MPIJobController
 import balsam.launcher.dag as dag
 from balsam.core import models
 
-logger = logging.getLogger(__name__ + '(' + MPIResources.get_my_name() + ')')
+logger = logging.getLogger(__name__)
 #To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
@@ -132,11 +132,11 @@ class BalsamJobController(MPIJobController):
         A new BalsamJobController object is created with an application
         registry and configuration attributes
         """
-        
+
         if not central_mode:
             logger.warning("Balsam does not currently support distributed mode - running in central mode")
             central_mode=True
-            
+
         super().__init__(auto_resources, central_mode,
                          nodelist_env_slurm, nodelist_env_cobalt)
         self.mpi_launcher = None
