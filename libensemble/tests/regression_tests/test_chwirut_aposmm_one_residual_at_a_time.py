@@ -16,7 +16,7 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] == 'local':
+if libE_specs['comms'] != 'mpi':
     quit()
 
 
@@ -33,7 +33,7 @@ persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 10*m
+max_sim_budget = 30*m
 
 gen_specs['out'] += [('x',float,n),
                      ('x_on_cube',float,n),
