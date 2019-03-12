@@ -137,9 +137,8 @@ def aposmm_logic(H,persis_info,gen_specs,_):
     O:                new points to be sent back to the history
 
 
-    x_new:            when re-running a local opt method to get the next point: stores the first new point requested by a local optimization method
-    pt_in_run:        when re-running a local opt method to get the next point: counts function evaluations to know when a new point is given
-    total_pts_in_run: when re-running a local opt method to get the next point: total evaluations in run to be incremented
+    advance_localopt_method.x_new:      when re-running a local opt method to get the next point: stores the first new point requested by a local optimization method
+    advance_localopt_method.pt_in_run:  when re-running a local opt method to get the next point: counts function evaluations to know when a new point is given
 
     starting_inds:    indices where a runs should be started.
     active_runs:      indices of active local optimization runs (currently saved to disk between calls to APOSMM)
@@ -164,8 +163,6 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         updated_inds = set()
 
     else:
-        global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
-
         updated_inds = update_history_dist(H, n, gen_specs, c_flag)
 
         starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
@@ -209,7 +206,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
             if not np.all(H['returned'][persis_info['run_order'][run]]):
                 continue # Can't advance this run since all of it's points haven't been returned.
 
-            x_opt, exit_code, persis_info, sorted_run_inds = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
+            x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
 
             if np.isinf(x_new).all():
                 assert exit_code>0, "Exit code not zero, but no information in x_new.\n Local opt run " + str(run) + " after " + str(len(sorted_run_inds)) + " evaluations.\n Worker crashing!"
@@ -239,16 +236,16 @@ def aposmm_logic(H,persis_info,gen_specs,_):
 
     if samples_needed > 0 and 'sample_points' in gen_specs:
         v = sum(~H['local_pt']) # Number of sample points so far
-        x_new = gen_specs['sample_points'][v:v+samples_needed]
+        sampled_points = gen_specs['sample_points'][v:v+samples_needed]
         on_cube = False # We assume the points are on the original domain, not unit cube
-        if len(x_new):
-            persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
-        samples_needed = samples_needed - len(x_new)
+        if len(sampled_points):
+            persis_info = add_points_to_O(O, sampled_points, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
+        samples_needed = samples_needed - len(sampled_points)
 
     if samples_needed > 0:
-        x_new = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
+        sampled_points = persis_info['rand_stream'].uniform(0,1,(samples_needed,n))
         on_cube = True
-        persis_info = add_points_to_O(O, x_new, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
+        persis_info = add_points_to_O(O, sampled_points, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
 
     O = np.append(H[np.array(list(updated_inds),dtype=int)][[o[0] for o in gen_specs['out']]],O)
 
@@ -432,11 +429,10 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
     storing the first new point generated
     """
 
-    global x_new, pt_in_run, total_pts_in_run # Used to generate a next local opt point
-
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
-        x_new = np.ones((1,len(gen_specs['ub'])))*np.inf; pt_in_run = 0; total_pts_in_run = len(sorted_run_inds)
+        advance_localopt_method.x_new = np.ones((1,len(gen_specs['ub'])))*np.inf;  
+        advance_localopt_method.pt_in_run = 0
 
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
 
@@ -482,7 +478,7 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
         else:
             sys.exit("Unknown localopt method. Exiting")
 
-        matching_ind = np.equal(x_new,H['x_on_cube']).all(1)
+        matching_ind = np.equal(advance_localopt_method.x_new,H['x_on_cube']).all(1)
         if ~matching_ind.any():
             # Generated a new point
             break
@@ -490,7 +486,7 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
             # We need to add a previously evaluated point into this run
             persis_info['run_order'][run].append(np.nonzero(matching_ind)[0][0])
 
-    return x_opt, exit_code, persis_info, sorted_run_inds
+    return x_opt, exit_code, persis_info, sorted_run_inds, advance_localopt_method.x_new
 
 
 
@@ -640,7 +636,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
     #     tao.setObjectiveGradient(lambda tao, x, g: blmvm_obj_func(tao, x, g, Run_H))
 
     # Set everything for tao before solving
-    PETSc.Options().setValue('-tao_max_funcs',str(total_pts_in_run+1))
+    PETSc.Options().setValue('-tao_max_funcs',str(len(Run_H)+1))
     tao.setFromOptions()
     tao.setVariableBounds((lb,ub))
     # tao.setObjectiveTolerances(fatol=gen_specs['fatol'], frtol=gen_specs['frtol'])
@@ -776,11 +772,10 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     return start_inds
 
 def look_in_history(x, Run_H, vector_return=False):
-    """ See if Run['x_on_cube'][pt_in_run] matches x, returning f or fvec, or saves x to
-    x_new if every point in Run_H has been checked.
+    """ See if Run['x_on_cube'][advance_localopt_method.pt_in_run] matches x,
+    returning f or fvec, or saves x to advance_localopt_method.x_new if every point in Run_H has been
+    checked.
     """
-
-    global pt_in_run, total_pts_in_run, x_new
 
     if vector_return:
         to_return = 'fvec'
@@ -790,24 +785,22 @@ def look_in_history(x, Run_H, vector_return=False):
         else:
             to_return = 'f'
 
-    if pt_in_run < total_pts_in_run:
+    if advance_localopt_method.pt_in_run < len(Run_H):
         # Return the value in history to the localopt algorithm.
-        assert np.allclose(x, Run_H['x_on_cube'][pt_in_run], rtol=1e-08, atol=1e-08), \
+        assert np.allclose(x, Run_H['x_on_cube'][advance_localopt_method.pt_in_run], rtol=1e-08, atol=1e-08), \
             "History point does not match Localopt point"
-        f_out = Run_H[to_return][pt_in_run]
+        f_out = Run_H[to_return][advance_localopt_method.pt_in_run]
     else:
-        if pt_in_run == total_pts_in_run:
+        if advance_localopt_method.pt_in_run == len(Run_H):
             # The history of points is exhausted. Save the requested point x to
             # x_new. x_new will be returned to the manager.
-            x_new[:] = x
+            advance_localopt_method.x_new[:] = x
 
         # Just in case the local opt method requests more points after a new
         # point has been identified.
-        # f_out = np.finfo(np.float64).max
-        # f_out = Run_H[to_return][total_pts_in_run-1]
-        f_out = Run_H[to_return][total_pts_in_run-1]
+        f_out = Run_H[to_return][-1]
 
-    pt_in_run += 1
+    advance_localopt_method.pt_in_run += 1
 
     return f_out
 
