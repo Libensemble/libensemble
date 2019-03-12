@@ -69,7 +69,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                         persis_info['has_nan'].add(pt_id)
                         continue
 
-                    if H['local_pt'][a1][0]:
+                    if 'local_pt' in H.dtype.names and H['local_pt'][a1][0]:
                         persis_info['local_pt_ids'].add(pt_id)
 
                     if np.all(H['returned'][a1]):

@@ -36,7 +36,7 @@ m = 214
 n = 3
 max_sim_budget = 100*m
 
-sim_specs['component_nan_frequency'] = 0.05
+sim_specs['component_nan_frequency'] = 0.01
 
 gen_specs['out'] += [('x',float,n),]
 gen_specs['lb'] = -2*np.ones(n)
