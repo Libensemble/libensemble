@@ -39,7 +39,7 @@ max_sim_budget = 10*m
 sim_specs['component_nan_frequency'] = 0.01
 
 gen_specs['out'] += [('x',float,n),]
-gen_specs['lb'] = -2*np.ones(n)
+gen_specs['lb'] = (-2-np.pi/10)*np.ones(n) # Trying to avoid exactly having x[1]=-x[2] from being hit, which results in division by zero in chwirut. 
 gen_specs['ub'] =  2*np.ones(n)
 gen_specs['components'] = m
 

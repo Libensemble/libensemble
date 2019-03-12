@@ -38,7 +38,7 @@ gen_specs['out'] += [('x',float,n),
                      ]
 
 gen_specs['in'] += ['fvec','x','x_on_cube']
-gen_specs['lb'] = -2*np.ones(n)
+gen_specs['lb'] = (-2-np.pi/10)*np.ones(n) # Trying to avoid exactly having x[1]=-x[2] from being hit, which results in division by zero in chwirut. 
 gen_specs['ub'] =  2*np.ones(n)
 gen_specs['localopt_method'] = 'pounders'
 gen_specs['dist_to_bound_multiple'] = 0.5
