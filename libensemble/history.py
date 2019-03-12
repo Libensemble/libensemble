@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 import time
 import logging
@@ -11,8 +8,6 @@ logger = logging.getLogger(__name__)
 
 #For debug messages - uncomment
 #logger.setLevel(logging.DEBUG)
-
-class HistoryException(Exception): pass
 
 class History:
 

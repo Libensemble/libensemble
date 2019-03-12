@@ -15,6 +15,7 @@ omit =
     */.tox/*
     */setup.py
     */unit_tests/*    
+    */unit_tests_nompi/*    
     */regression_tests/*
     */sim_funcs/helloworld.py
 #    */sim_funcs/*

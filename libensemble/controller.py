@@ -15,10 +15,9 @@ import logging
 import itertools
 import time
 
-import libensemble.launcher as launcher
-from libensemble.resources import Resources
+import libensemble.util.launcher as launcher
 
-logger = logging.getLogger(__name__ + '(' + Resources.get_my_name() + ')')
+logger = logging.getLogger(__name__)
 #To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
 
@@ -39,7 +38,7 @@ WAITING
 
 class JobControllerException(Exception):
     "Raised for any exception in the JobController"
-    pass
+
 
 def jassert(test, *args):
     "Version of assert that raises a JobControllerException"
@@ -302,32 +301,30 @@ class JobController:
                 "Default {} app already set".format(calc_type))
         self.default_apps[calc_type] = Application(full_path, calc_type, desc)
 
-    def manager_poll(self):
+    def manager_poll(self, comm):
         """ Polls for a manager signal
 
         The job controller manager_signal attribute will be updated.
 
         """
 
-        #Will use MPI_MODE from settings.py but for now assume MPI
-        from libensemble.message_numbers import \
-            STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
-        from mpi4py import MPI
+        # Check for messages; disregard anything but a stop signal
+        if not comm.mail_flag():
+            return
+        mtag, man_signal = comm.recv()
+        if mtag != STOP_TAG:
+            return
 
-        # Manager Signals
-        # Stop tag may be manager interupt as diff kill/stop/pause....
-        comm = MPI.COMM_WORLD
-        status = MPI.Status()
-        if comm.Iprobe(source=0, tag=STOP_TAG, status=status):
-            logger.info('Manager probe hit true')
-            man_signal = comm.recv(source=0, tag=STOP_TAG, status=status)
-            if man_signal == MAN_SIGNAL_FINISH:
-                self.manager_signal = 'finish'
-            elif man_signal == MAN_SIGNAL_KILL:
-                self.manager_signal = 'kill'
-            else:
-                logger.warning("Received unrecognized manager signal {} - "
-                               "ignoring".format(man_signal))
+        # Process the signal and push back on comm (for now)
+        logger.info('Manager probe hit true')
+        if man_signal == MAN_SIGNAL_FINISH:
+            self.manager_signal = 'finish'
+        elif man_signal == MAN_SIGNAL_KILL:
+            self.manager_signal = 'kill'
+        else:
+            logger.warning("Received unrecognized manager signal {} - "
+                           "ignoring".format(man_signal))
+        comm.push_back(mtag, Work)
 
     def get_job(self, jobid):
         """ Returns the job object for the supplied job ID """
@@ -343,7 +340,7 @@ class JobController:
     def poll(self, job):
         "Polls a job"
         job.poll()
-        
+
     def kill(self, job):
         "Kill a job"
         jassert(isinstance(job, Job), "Invalid job has been provided")

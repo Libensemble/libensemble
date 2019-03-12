@@ -2,7 +2,7 @@ language: python
 sudo: required
 dist: xenial
 python:
-  - 2.7
+  #- 2.7
   - 3.4
   - 3.5
   - 3.6
@@ -18,9 +18,9 @@ env:
     - MPI=mpich
     #- MPI=openmpi
 
-matrix:
-  allow_failures:
-    - env: MPI=openmpi
+#matrix:
+#  allow_failures:
+#    - env: MPI=openmpi
     
 addons:
   apt:

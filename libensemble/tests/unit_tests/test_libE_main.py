@@ -60,20 +60,20 @@ def test_checking_inputs():
     
     # Should fail because only got a manager
     H0 = {}
-    libE_specs = {'comm':MPI.COMM_WORLD}
+    libE_specs = {'comm':MPI.COMM_WORLD, 'comms':'mpi'}
     try:
-        check_inputs(libE_specs, al, sim_specs, gen_specs, exit_criteria,H0)
+        check_inputs(True, libE_specs, al, sim_specs, gen_specs, exit_criteria,H0)
     except AssertionError:
         assert 1
     else:
         assert 0
         
-    libE_specs={'comm': fake_mpi}
+    libE_specs['comm'] = fake_mpi
     
     H0 = np.zeros(3,dtype=sim_specs['out'] + gen_specs['out'] + [('returned',bool)])
     # Should fail because H0 has points with 'return'==False
     try:
-        check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
+        check_inputs(True, libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
     except AssertionError:
         assert 1
     else:
@@ -81,16 +81,16 @@ def test_checking_inputs():
 
     # Should not fail
     H0['returned']=True
-    check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
+    check_inputs(True, libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
 
     # Removing 'returned' and then testing again.
     H0 = rmfield( H0, 'returned')
-    check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
+    check_inputs(True, libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
 
     # Should fail because H0 has fields not in H
     H0 = np.zeros(3,dtype=sim_specs['out'] + gen_specs['out'] + [('bad_name',bool),('bad_name2',bool)])
     try:
-        check_inputs(libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
+        check_inputs(True, libE_specs,al, sim_specs, gen_specs, exit_criteria,H0)
     except AssertionError:
         assert 1
     else:
