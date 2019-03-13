@@ -226,6 +226,9 @@ give_sim_work_first_pausing_alloc_specs = {'out':[('allocated',bool)],
                'stop_partial_fvec_eval': True,
                }
 
+from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work
+give_pregenerated_sim_work_alloc_specs = {'alloc_f':give_pregenerated_sim_work}
+
 ##### persis_info #####
 
 def give_each_worker_own_stream(persis_info,nworkers):
