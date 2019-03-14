@@ -102,7 +102,7 @@ class Worker:
         "Create a dir for sim workers if 'sim_dir' is in sim_specs"
         locs = locs or LocationStack()
         if 'sim_dir' in sim_specs:
-            sim_dir = sim_specs['sim_dir']
+            sim_dir = sim_specs['sim_dir'].rstrip('/')
             prefix = sim_specs.get('sim_dir_prefix')
             worker_dir = "{}_{}".format(sim_dir, workerID)
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
