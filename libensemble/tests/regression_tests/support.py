@@ -231,9 +231,9 @@ give_sim_work_first_pausing_alloc_specs = {'out':[('allocated',bool)],
 def give_each_worker_own_stream(persis_info,nworkers):
     for i in range(nworkers):
         if i in persis_info:
-            persis_info[i].update({'rand_stream': np.random.RandomState(i)})
+            persis_info[i].update({'rand_stream': np.random.RandomState(i), 'worker_num': i})
         else:
-            persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+            persis_info[i] = {'rand_stream': np.random.RandomState(i), 'worker_num': i}
     return persis_info
 
 # give_sim_work_first persis_info 
