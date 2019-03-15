@@ -34,6 +34,9 @@ def manager_main(hist, libE_specs, alloc_specs,
     """Manager routine to coordinate the generation and simulation evaluations
     """
 
+    if 'in' not in gen_specs:
+        gen_specs['in'] = []
+
     # Send dtypes to workers
     dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
               EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
