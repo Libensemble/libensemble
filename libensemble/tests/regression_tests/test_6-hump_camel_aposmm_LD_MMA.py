@@ -68,7 +68,6 @@ gen_specs['num_active_gens'] = 1
 gen_specs['max_active_runs'] = 6
 gen_specs['lb'] = np.array([-3,-2])
 gen_specs['ub'] = np.array([ 3, 2])
-gen_specs.pop('batch_mode')  # Tests that APOSMM is okay being called when all pts in a run aren't completed
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 1000}
@@ -92,6 +91,7 @@ for run in range(2):
         gen_specs['mu']= 1e-4
         gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
         gen_specs['lhs_divisions'] = 2
+        gen_specs.pop('batch_mode')  # Tests that APOSMM is okay being called when all pts in a run aren't completed
 
         gen_specs.pop('xtol_rel')
         gen_specs['ftol_rel'] = 1e-2

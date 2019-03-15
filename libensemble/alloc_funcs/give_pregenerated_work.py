@@ -18,15 +18,11 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
     if not persis_info:
         persis_info['next_to_give'] = 0
 
+    assert persis_info['next_to_give'] < len(H), 'No more work to give inside give_pregenerated_sim_work.'
+
     for i in avail_worker_ids(W):
-        if persis_info['next_to_give'] < len(H):
-
-            # Give sim work 
-            sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
-            persis_info['next_to_give'] += 1
-
-        else: 
-            print('No more work to give inside give_pregenerated_sim_work.') 
-
+        # Give sim work 
+        sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
+        persis_info['next_to_give'] += 1
 
     return Work, persis_info
