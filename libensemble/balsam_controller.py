@@ -69,6 +69,7 @@ class BalsamJob(Job):
         # Get current state of jobs from Balsam database
         self.process.refresh_from_db()
         balsam_state = self.process.state
+        self.runtime = self.process.runtime_seconds
 
         if balsam_state in models.END_STATES:
             self.finished = True
