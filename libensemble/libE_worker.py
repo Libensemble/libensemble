@@ -26,6 +26,7 @@ from libensemble.comms.logs import LogConfig
 logger = logging.getLogger(__name__)
 #To change logging level for just this module
 #logger.setLevel(logging.DEBUG)
+job_timing = False
 
 
 def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
@@ -189,11 +190,23 @@ class Worker:
             calc_status = CALC_EXCEPTION
             raise
         finally:
-            calc_msg = "Calc {:5d}: {} {} Status: {}". \
-              format(calc_id,
-                     calc_type_strings[calc_type],
-                     timer,
-                     calc_status_strings.get(calc_status, "Completed"))
+            # This was meant to be handled by calc_stats module.
+            if job_timing:
+                # Initially supporting one per calc. One line output.
+                job = JobController.controller.list_of_jobs[-1]
+                calc_msg = "Calc {:5d}: {} {} {} Status: {}". \
+                format(calc_id,
+                       calc_type_strings[calc_type],
+                       timer,
+                       job.timer,
+                       calc_status_strings.get(calc_status, "Completed"))
+            else:
+                calc_msg = "Calc {:5d}: {} {} Status: {}". \
+                format(calc_id,
+                        calc_type_strings[calc_type],
+                        timer,
+                        calc_status_strings.get(calc_status, "Completed"))
+
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
 
