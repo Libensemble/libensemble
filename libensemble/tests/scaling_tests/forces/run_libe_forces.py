@@ -1,15 +1,29 @@
-from __future__ import division
-from __future__ import absolute_import
-
-import mpi4py
-mpi4py.rc.recv_mprobe = False # Disable matching probes
-from mpi4py import MPI
-import sys, os        
+#!/usr/bin/env python
+import sys, os      
 import numpy as np
 
 USE_BALSAM = False
+USE_MPI = True
 
-from forces_simf import run_forces # From current dir
+if USE_MPI:
+    # Run with MPI (Add a proc for manager): mpiexec -np <num_workers+1> python run_libe_forces.py 
+    import mpi4py
+    mpi4py.rc.recv_mprobe = False # Disable matching probes
+    from mpi4py import MPI
+    nworkers = MPI.COMM_WORLD.Get_size()
+    is_master = (MPI.COMM_WORLD.Get_rank() == 0)
+    libE_specs = {} # MPI is default comms, workers are decided at launch
+else:
+    # Run with multi-processing: python run_libe_forces.py <num_workers>
+    try:
+        nworkers = int(sys.argv[1])
+    except:
+        print("WARNING: nworkers not passed to script - defaulting to 4")
+        nworkers = 4
+    is_master = True # processes are forked in libE
+    libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+
+from forces_simf import run_forces # Sim func from current dir
 
 from libensemble import libE_logger
 libE_logger.set_level('INFO')
@@ -41,7 +55,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController()    
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController()
+    jobctrl = MPIJobController(auto_resources=False)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 
@@ -78,21 +92,20 @@ gen_specs = {'gen_f': uniform_random_sample,# Generator function
              }
 
 # Maximum number of simulations
-sim_max = 5
+sim_max = 8
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker (used by uniform_random_sample)
 np.random.seed(1)
 persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
+for i in range(1, nworkers+1):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 #Save results to numpy file
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned']))
     print("\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
-
