@@ -134,6 +134,7 @@ cleanup() {
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
     filelist=(job_my_simjob.x*.out);   [ -e ${filelist[0]} ] && rm job_my_simjob.x*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
+    filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
     filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile
     filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
@@ -148,6 +149,7 @@ cleanup() {
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
     filelist=(job_my_simjob.x.*.out);  [ -e ${filelist[0]} ] && rm job_my_simjob.x.*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
+    filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
     filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log

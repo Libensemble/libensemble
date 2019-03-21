@@ -16,6 +16,7 @@ import itertools
 import time
 
 import libensemble.util.launcher as launcher
+from libensemble.util.timer import JobTimer
 
 logger = logging.getLogger(__name__)
 #To change logging level for just this module
@@ -83,13 +84,13 @@ class Job:
         self.state = 'CREATED'
         self.process = None
         self.errcode = None
-        self.finished = False  # True means job ran, not that it succeeded
+        self.finished = False # True means job ran, not that it succeeded
         self.success = False
 
-        # Note: runtime, total_time, and time since launch may differ!
         self.launch_time = None
-        self.runtime = None
-        self.total_time = None
+        self.timer = JobTimer()
+        self.runtime = 0 # Time since job started to latest poll (or finished).
+        self.total_time = None # Time from job submission until polled as finished.
 
         #Run attributes
         self.app = app
@@ -146,13 +147,11 @@ class Job:
             logger.warning("Cannot calc job timing - launch time not set")
             return
 
-        #In case already been killed and set then
-        if self.runtime is None:
-            self.runtime = time.time() - self.launch_time
-
-        #For direct launched jobs - these should be the same.
+        # Do not update if total_time is already set
         if self.total_time is None:
-            self.total_time = self.runtime
+            self.timer.stop()
+            self.runtime = self.timer.elapsed
+            self.total_time = self.runtime # For direct launched jobs
 
     def check_poll(self):
         """Check whether polling this job makes sense."""
@@ -176,6 +175,7 @@ class Job:
         poll = self.process.poll()
         if poll is None:
             self.state = 'RUNNING'
+            self.runtime = self.timer.elapsed
             return
 
         self.finished = True

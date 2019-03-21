@@ -201,13 +201,16 @@ class MPIJobController(JobController):
         else:
             logger.info("Launching job {}: {}".
                          format(job.name, " ".join(runline))) #One line
-            job.launch_time = time.time()
+
             job.process = launcher.launch(runline, cwd='./',
                                           stdout=open(job.stdout, 'w'),
                                           stderr=open(job.stderr, 'w'),
                                           start_new_session=True)
             if (wait_on_run):
                 self._wait_on_run(job)
+            
+            job.timer.start()
+            job.launch_time = job.timer.tstart # Time not date - may not need if using timer. 
             self.list_of_jobs.append(job)
 
         return job
