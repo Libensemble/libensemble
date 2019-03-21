@@ -32,7 +32,6 @@
 
 static FILE* stat_fp;
 
-  
 typedef struct particle {
     double p[3]; // Particle position
     double f[3]; // Particle force
@@ -215,6 +214,7 @@ int open_stat_file() {
         printf("Error opening statfile");   
         return 1;             
     }
+    fflush(stat_fp);
     return 0;
 }
 
@@ -224,6 +224,14 @@ int close_stat_file() {
 
 int write_stat_file(double value) {
     fprintf(stat_fp,"%.5f\n",value);
+    fflush(stat_fp);
+    return 0;
+}
+
+
+int write_stat_file_kill() {
+    fprintf(stat_fp,"kill\n");
+    fflush(stat_fp);
     return 0;
 }
 
@@ -257,18 +265,29 @@ int comm_forces(int n, particle* parr) {
     return 0;
 }
 
+int test_badrun(double rate) {
+    int bad_run = 0;
+    if (get_rand() >= rate) {
+        bad_run = 1;
+    }
+    return bad_run;
+}
+
 
 int main(int argc, char **argv) {
     
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
+    double kill_rate = 0; // default proportion of jobs to kill
     
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
     double compute_forces_time, comms_time, total_time;
     clock_t start, compute_start, comms_start;
     double local_en, total_en;
+    double step_survival_rate;
+    int badrun = 0;
     
     if (argc >=2) {
         num_particles = atoi(argv[1]); // no. of particles
@@ -281,6 +300,11 @@ int main(int argc, char **argv) {
     if (argc >=4) {
         rand_seed = atoi(argv[3]); // RNG seed
         seed_rand(rand_seed);
+    }
+    
+    if (argc >=5) {
+        kill_rate = atof(argv[4]); // Proportion of jobs to kill
+        step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     }
     
     particle* parr = malloc(num_particles * sizeof(particle));
@@ -343,9 +367,19 @@ int main(int argc, char **argv) {
         // Update positions globally (each rank replicates)
         move_particles(0, num_particles, parr);
         
+        if (!badrun) {
+            badrun = test_badrun(step_survival_rate);
+        }
+        
+        
         if (rank == 0) {
             print_step_summary(step, total_en, compute_forces_time, comms_time);
-            write_stat_file(total_en);
+            if (badrun) {
+                write_stat_file_kill();
+            }
+            else {
+                write_stat_file(total_en);
+            }
         }
     }
     
@@ -354,7 +388,12 @@ int main(int argc, char **argv) {
     total_time = (double)(clock() - start)/CLOCKS_PER_SEC;
     
     if (rank == 0) {
-        printf("\nFinal total %f after total time of %.3f seconds\n",total_en, total_time);
+        printf("\nFinal total %f after total time of %.3f seconds.",total_en, total_time);
+        if (badrun) {
+            printf(" Kill flag set.");
+        }
+        printf("\n");
+        fflush(stdout);
     }
 
     if (PRINT_ALL_PARTICLES) {
