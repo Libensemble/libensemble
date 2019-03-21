@@ -47,11 +47,12 @@ The scripts are set up assuming a conda environment. To use script directly you 
 
 	<projectID> in the COBALT -A directive with your project ID.
 
-	<conda_env_name> is the name of your conda environment (balsam must be installed if using MPI mode on Theta).
+	<conda_env_name> is the name of your conda environment.
 
 and in Balsam scripts:
 
-	<dbase_name> The name of an initialized balsam database (with max_connections enough for number of workers)
+	<dbase_name> The name of an initialized balsam database.
+	             (with max_connections enough for number of workers)
 
 The included scripts are.
 
@@ -70,8 +71,9 @@ The included scripts are.
 #### Plotting Options
 
 If either of the plotting options in the submission scripts are set to true, the scripts must be in the directory specified by PLOT_DIR. These scripts can be found in the libEnsemble project in the postproc_scripts/ directory.
-export LIBE_PLOTS=true
-export BALSAM_PLOTS=true
+
+        export LIBE_PLOTS=true
+        export BALSAM_PLOTS=true
 
 #### Note on theta_submit_balsam.sh
 
