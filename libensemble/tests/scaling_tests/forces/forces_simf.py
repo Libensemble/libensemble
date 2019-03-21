@@ -39,7 +39,6 @@ def run_forces(x,gen_specs,sim_specs,libE_info):
     # keys              = variable names
     # x                 = variable values
     # output            = what will be returned to libE
-    # simdir_basename   = Basename for simulation directories
     
     calc_status = 0 # Returns to worker
     
@@ -49,6 +48,10 @@ def run_forces(x,gen_specs,sim_specs,libE_info):
     sim_particles   = sim_specs['sim_particles']
     sim_timesteps   = sim_specs['sim_timesteps']
     time_limit      = sim_specs['sim_kill_minutes'] * 60.0
+    
+    # Get from dictionary if key exists, else return default (e.g. 0)
+    kill_rate         = sim_specs.get('kill_rate', 0)
+    particle_variance = sim_specs.get('particle_variance',0)
        
     ## Composing variable names and x values to set up simulation
     #arguments = []
@@ -63,23 +66,16 @@ def run_forces(x,gen_specs,sim_specs,libE_info):
     seed = int(np.rint(x[0][0]))
     
     # This is to give a random variance of work-load
-    perturb_particles = True # Can be sent
-    max_fraction = 0.2 # Can be sent
-    if perturb_particles:
-        sim_particles = perturb(sim_particles, seed, max_fraction)
-        
-    kill_rate = 0.5 # Can be sent: usually between 0 and 1.
-    #kill_rate = 0 # Can be sent: Between 0 and 1 for proportion jobs that go bad.
-    
+    sim_particles = perturb(sim_particles, seed, particle_variance)
     print('seed: {}   particles: {}'.format(seed, sim_particles))
     
-    simdir = simdir_basename + '_' + keys[0] + '_' + str(seed)
-    simdir = make_unique_simdir(simdir)
-    os.mkdir(simdir)
     
     # At this point you will be in the sim directory (really worker dir) for this worker (eg. sim_1).
     # The simdir below is created for each job for this worker.
     # Any input needs to be copied into this directory. Currently there is none.
+    simdir = simdir_basename + '_' + keys[0] + '_' + str(seed)
+    simdir = make_unique_simdir(simdir)
+    os.mkdir(simdir)
     os.chdir(simdir)
     jobctl = JobController.controller # Get JobController
     
@@ -129,14 +125,12 @@ def run_forces(x,gen_specs,sim_specs,libE_info):
         #job.read_file_in_workdir(statfile)
         final_energy = data[-1]
     except Exception as e:
-        print(e)
+        print('Caught:', e)
         final_energy = np.nan
         #print('Warning - Energy Nan')
 
     outspecs = sim_specs['out']
     output = np.zeros(1,dtype=outspecs)
     output['energy'][0] = final_energy
-    
-    #calc_status = WORKER_DONE
     
     return output, gen_specs, calc_status

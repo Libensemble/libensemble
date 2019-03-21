@@ -45,7 +45,8 @@ else:
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 
-#todo - clarify difference sim 'in' and 'keys'
+# Todo - clarify difference sim 'in' and 'keys'
+# Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_forces,           # This is the function whose output is being minimized (sim func)
@@ -59,7 +60,9 @@ sim_specs = {'sim_f': run_forces,           # This is the function whose output 
              'cores': 2,                    # User attribute to set number of cores for sim func runs (optional)
              'sim_particles': 1e3,          # User attribute for number of particles in simulations
              'sim_timesteps': 5,            # User attribute for number of timesteps in simulations             
-             'sim_kill_minutes': 10.0       # User attribute for max time for simulations
+             'sim_kill_minutes': 10.0,      # User attribute for max time for simulations
+             'kill_rate': 0.5,              # Between 0 and 1 for proportion of jobs that go bad (for testing kills)
+             'particle_variance': 0.2       # Range over which particle count varies (for testing load imbalance)
              }
              
 # State the generating function, its arguments, output, and necessary parameters.
