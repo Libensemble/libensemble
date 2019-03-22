@@ -155,9 +155,22 @@ class Resources:
         Returns
         -------
         mpi_variant: string:
-            MPI variant 'mpich' or 'openmpi'
+            MPI variant 'aprun' or 'jsrun' or 'mpich' or 'openmpi'
 
         """
+
+        try:
+            subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+            return 'aprun'
+        except:
+            pass
+
+        try:
+            subprocess.check_call(['jsrun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+            return 'jsrun'
+        except:
+            pass   
+
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
         try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT)

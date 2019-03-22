@@ -191,7 +191,7 @@ class Worker:
             raise
         finally:
             # This was meant to be handled by calc_stats module.
-            if job_timing:
+            if job_timing and JobController.controller.list_of_jobs:               
                 # Initially supporting one per calc. One line output.
                 job = JobController.controller.list_of_jobs[-1]
                 calc_msg = "Calc {:5d}: {} {} {} Status: {}". \

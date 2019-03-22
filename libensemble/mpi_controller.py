@@ -72,8 +72,13 @@ class MPIJobController(JobController):
             'openmpi': ['mpirun', '-x {env}', '-machinefile {machinefile}',
                         '-host {hostlist}', '-np {num_procs}',
                         '-npernode {ranks_per_node}'],
+            'aprun':   ['aprun', '-e {env}',
+                        '-L {hostlist}', '-n {num_procs}',
+                        '-N {ranks_per_node}'],
+            'jsrun':   ['jsrun', '--np {num_procs}']
         }
-        self.mpi_command = mpi_commands[MPIResources.get_MPI_variant()]
+        self.mpi_launcher = MPIResources.get_MPI_variant()
+        self.mpi_command = mpi_commands[self.mpi_launcher]
 
 
     def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
@@ -202,10 +207,15 @@ class MPIJobController(JobController):
             logger.info("Launching job {}: {}".
                          format(job.name, " ".join(runline))) #One line
 
+            subgroup_launch = True
+            #Need more robust test
+            if self.mpi_launcher in ['aprun']:
+                subgroup_launch = False
+
             job.process = launcher.launch(runline, cwd='./',
                                           stdout=open(job.stdout, 'w'),
                                           stderr=open(job.stderr, 'w'),
-                                          start_new_session=True)
+                                          start_new_session=subgroup_launch)
             if (wait_on_run):
                 self._wait_on_run(job)
             
