@@ -80,18 +80,9 @@ class Job:
         """
         self.id = next(Job.newid)
 
-        #Status attributes
-        self.state = 'CREATED'
-        self.process = None
-        self.errcode = None
-        self.finished = False # True means job ran, not that it succeeded
-        self.success = False
-
-        self.launch_time = None
+        self.reset() # Set status attributes
         self.timer = JobTimer()
-        self.runtime = 0 # Time since job started to latest poll (or finished).
-        self.total_time = None # Time from job submission until polled as finished.
-
+        
         #Run attributes
         self.app = app
         self.app_args = app_args
@@ -106,6 +97,18 @@ class Job:
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
+        
+    def reset(self):
+        #Status attributes
+        self.state = 'CREATED'
+        self.process = None
+        self.errcode = None
+        self.finished = False # True means job ran, not that it succeeded
+        self.success = False
+        self.launch_time = None
+        self.runtime = 0 # Time since job started to latest poll (or finished).
+        self.total_time = None # Time from job submission until polled as finished.
+        
 
     def workdir_exists(self):
         """Returns True if the job's workdir exists"""
@@ -232,13 +235,18 @@ class JobController:
     controller = None
     
     
-    def _wait_on_run(self, job):
+    def _wait_on_run(self, job, fail_time=None):
         '''Called by launch when wait_on_run is True'''
         start = time.time()
         while job.state in NOT_STARTED_STATES:
             time.sleep(0.2)
             job.poll()
+        job.timer.start()
         logger.debug("Job {} polled as {} after {} seconds".format(job.name, job.state, time.time()-start))
+        if fail_time:
+            time.sleep(fail_time)
+            job.poll()
+            logger.debug("After {} seconds: job {} polled as {}".format(fail_time, job.name, job.state))
         
 
     def __init__(self):
