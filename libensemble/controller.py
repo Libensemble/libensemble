@@ -238,16 +238,18 @@ class JobController:
     def _wait_on_run(self, job, fail_time=None):
         '''Called by launch when wait_on_run is True'''
         start = time.time()
+        job.timer.start() # To ensure a start time before poll - will be overwritten unless finished by poll.
         while job.state in NOT_STARTED_STATES:
             time.sleep(0.2)
             job.poll()
-        job.timer.start()
         logger.debug("Job {} polled as {} after {} seconds".format(job.name, job.state, time.time()-start))
-        if fail_time:
-            time.sleep(fail_time)
-            job.poll()
-            logger.debug("After {} seconds: job {} polled as {}".format(fail_time, job.name, job.state))
-        
+        if not job.finished:
+            job.timer.start()
+            if fail_time:
+                time.sleep(fail_time)
+                job.poll()
+                logger.debug("After {} seconds: job {} polled as {}".format(fail_time, job.name, job.state))
+
 
     def __init__(self):
         """Instantiate a new JobController instance.
