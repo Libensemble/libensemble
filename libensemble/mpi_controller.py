@@ -57,7 +57,7 @@ class MPIJobController(JobController):
         """
 
         JobController.__init__(self)
-        self.max_launch_attempts = 10
+        self.max_launch_attempts = 5
         self.fail_time = 2
         self.auto_resources = auto_resources
         if self.auto_resources:
@@ -243,8 +243,8 @@ class MPIJobController(JobController):
 
             if not job.timer.timing:
                 job.timer.start()
+                job.launch_time = job.timer.tstart # Time not date - may not need if using timer.
                 
-            job.launch_time = job.timer.tstart # Time not date - may not need if using timer. 
             self.list_of_jobs.append(job)
 
         return job
