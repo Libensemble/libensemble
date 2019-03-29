@@ -221,8 +221,8 @@ class MPIJobController(JobController):
                                                 stdout=open(job.stdout, 'w'),
                                                 stderr=open(job.stderr, 'w'),
                                                 start_new_session=subgroup_launch)
-                except:
-                    logger.warning('job {} launch command failed on try {}'.format(job.name, retry_count))
+                except Exception as e:
+                    logger.warning('job {} launch command failed on try {} with error {}'.format(job.name, retry_count, e))
                     retry = True
                     retry_count += 1 #
                 else:
@@ -230,13 +230,13 @@ class MPIJobController(JobController):
                         self._wait_on_run(job, self.fail_time)
                     
                     if job.state == 'FAILED':
-                        logger.warning('job {} failed immediately on try {}'.format(job.name, retry_count))
+                        logger.warning('job {} failed immediately on try {} with err code {}'.format(job.name, retry_count, job.errcode))
                         retry = True
                         retry_count += 1
                    
                 if retry and retry_count < self.max_launch_attempts:
                     #retry_count += 1 # Do not want to reset job if not going to retry.
-                    time.sleep(3+retry_count*2)
+                    time.sleep(retry_count*5)
                     job.reset() # Note: Some cases may require user cleanup - currently not supported (could use callback)
                 else:
                     break
