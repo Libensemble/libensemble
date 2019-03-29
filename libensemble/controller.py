@@ -239,12 +239,14 @@ class JobController:
         '''Called by launch when wait_on_run is True'''
         start = time.time()
         job.timer.start() # To ensure a start time before poll - will be overwritten unless finished by poll.
+        job.launch_time = job.timer.tstart
         while job.state in NOT_STARTED_STATES:
             time.sleep(0.2)
             job.poll()
         logger.debug("Job {} polled as {} after {} seconds".format(job.name, job.state, time.time()-start))
         if not job.finished:
             job.timer.start()
+            job.launch_time = job.timer.tstart
             if fail_time:
                 time.sleep(fail_time)
                 job.poll()
