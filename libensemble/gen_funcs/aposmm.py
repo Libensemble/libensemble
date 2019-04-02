@@ -628,7 +628,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
 
     PETSc.Options().setValue('-tao_pounders_delta',str(delta_0))
     # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
-    tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
+    tao.setResidual(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
     # elif gen_specs['localopt_method'] == 'blmvm':
     #     g = PETSc.Vec().create(tao_comm)
     #     g.setSizes(n)
