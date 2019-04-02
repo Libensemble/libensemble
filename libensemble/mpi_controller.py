@@ -57,6 +57,8 @@ class MPIJobController(JobController):
         """
 
         JobController.__init__(self)
+        self.max_launch_attempts = 5
+        self.fail_time = 2
         self.auto_resources = auto_resources
         if self.auto_resources:
             self.resources = \
@@ -208,19 +210,41 @@ class MPIJobController(JobController):
                          format(job.name, " ".join(runline))) #One line
 
             subgroup_launch = True
-            #Need more robust test
             if self.mpi_launcher in ['aprun']:
                 subgroup_launch = False
 
-            job.process = launcher.launch(runline, cwd='./',
-                                          stdout=open(job.stdout, 'w'),
-                                          stderr=open(job.stderr, 'w'),
-                                          start_new_session=subgroup_launch)
-            if (wait_on_run):
-                self._wait_on_run(job)
-            
-            job.timer.start()
-            job.launch_time = job.timer.tstart # Time not date - may not need if using timer. 
+            retry_count = 0
+            while retry_count < self.max_launch_attempts:
+                retry = False
+                try:
+                    job.process = launcher.launch(runline, cwd='./',
+                                                stdout=open(job.stdout, 'w'),
+                                                stderr=open(job.stderr, 'w'),
+                                                start_new_session=subgroup_launch)
+                except Exception as e:
+                    logger.warning('job {} launch command failed on try {} with error {}'.format(job.name, retry_count, e))
+                    retry = True
+                    retry_count += 1 #
+                else:
+                    if (wait_on_run):
+                        self._wait_on_run(job, self.fail_time)
+                    
+                    if job.state == 'FAILED':
+                        logger.warning('job {} failed immediately on try {} with err code {}'.format(job.name, retry_count, job.errcode))
+                        retry = True
+                        retry_count += 1
+                   
+                if retry and retry_count < self.max_launch_attempts:
+                    #retry_count += 1 # Do not want to reset job if not going to retry.
+                    time.sleep(retry_count*5)
+                    job.reset() # Note: Some cases may require user cleanup - currently not supported (could use callback)
+                else:
+                    break
+
+            if not job.timer.timing:
+                job.timer.start()
+                job.launch_time = job.timer.tstart # Time not date - may not need if using timer.
+                
             self.list_of_jobs.append(job)
 
         return job
