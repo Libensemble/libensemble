@@ -73,13 +73,14 @@ def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger.
     """
     logconfig = LogConfig.config
-    ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
-    ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
-    logger = logging.getLogger(logconfig.name)
-    logger.propagate = False
-    logger.setLevel(logconfig.log_level)
-    logger.addHandler(ch)
-    logconfig.logger_set = True
+    if not logconfig.logger_set:
+        ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
+        ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
+        logger = logging.getLogger(logconfig.name)
+        logger.propagate = False
+        logger.setLevel(logconfig.log_level)
+        logger.addHandler(ch)
+        logconfig.logger_set = True
 
 
 def manager_logging_config():
@@ -87,24 +88,25 @@ def manager_logging_config():
     """
 
     # Regular logging
-    logconfig = LogConfig.config    
-    formatter = logging.Formatter(logconfig.fmt)
-    wfilter = WorkerIDFilter(0)
-    fh = logging.FileHandler(logconfig.filename)
-    fh.addFilter(wfilter)
-    fh.setFormatter(formatter)
-    logger = logging.getLogger(logconfig.name)
-    logger.propagate = False
-    logger.setLevel(logconfig.log_level) # Formatter filters on top of this
-    logger.addHandler(fh)
-    logconfig.logger_set = True
+    logconfig = LogConfig.config   
+    if not logconfig.logger_set:
+        formatter = logging.Formatter(logconfig.fmt)
+        wfilter = WorkerIDFilter(0)
+        fh = logging.FileHandler(logconfig.filename)
+        fh.addFilter(wfilter)
+        fh.setFormatter(formatter)
+        logger = logging.getLogger(logconfig.name)
+        logger.propagate = False
+        logger.setLevel(logconfig.log_level) # Formatter filters on top of this
+        logger.addHandler(fh)
+        logconfig.logger_set = True
 
-    # Stats logging
-    # NB: Could add a specialized handler for immediate flushing
-    fh = logging.FileHandler(logconfig.stat_filename, mode='w')
-    fh.addFilter(wfilter)
-    fh.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
-    stat_logger = logging.getLogger(logconfig.stats_name)
-    stat_logger.propagate = False    
-    stat_logger.setLevel(logging.DEBUG)
-    stat_logger.addHandler(fh)
+        # Stats logging
+        # NB: Could add a specialized handler for immediate flushing
+        fh = logging.FileHandler(logconfig.stat_filename, mode='w')
+        fh.addFilter(wfilter)
+        fh.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
+        stat_logger = logging.getLogger(logconfig.stats_name)
+        stat_logger.propagate = False    
+        stat_logger.setLevel(logging.DEBUG)
+        stat_logger.addHandler(fh)
