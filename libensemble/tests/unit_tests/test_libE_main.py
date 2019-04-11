@@ -32,9 +32,10 @@ def test_manager_exception():
         managerMock.side_effect = Exception
         with mock.patch('libensemble.libE.comms_abort') as abortMock:
             abortMock.side_effect = Exception
-            with pytest.raises(Exception, message='Expected exception'):
+            with pytest.raises(Exception):
                 #libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
                 libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': fake_mpi})
+                pytest.fail('Expected exception')
             # Check npy file dumped
             assert os.path.isfile(fname_abort), "History file not dumped"
             os.remove(fname_abort)
@@ -44,8 +45,9 @@ def test_exception_raising_manager():
     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
     with mock.patch('libensemble.libE.comms_abort') as abortMock:
         abortMock.side_effect = Exception
-        with pytest.raises(Exception, message='Expected exception'):
+        with pytest.raises(Exception):
             H,_,_ = libE({'out':[('f',float)]},{'out':[('x',float)]},{'sim_max':1},libE_specs={'comm': MPI.COMM_WORLD})
+            pytest.fail('Expected exception')
 
 
 # def test_exception_raising_worker():
