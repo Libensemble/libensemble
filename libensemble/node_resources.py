@@ -1,13 +1,11 @@
 import os
 import sys
 
-#@staticmethod
+
 def _open_binary(fname, **kwargs):
     return open(fname, "rb", **kwargs)
 
 
-#@staticmethod ? may use self.physical_cores if already set.
-#@staticmethod
 def _cpu_count_physical():
     """Returns the number of physical cores on the node."""
     mapping = {}
@@ -31,7 +29,6 @@ def _cpu_count_physical():
     return sum(mapping.values()) or None
 
 
-#@staticmethod
 def get_cpu_cores(hyperthreads=False):
     """Returns the number of cores on the node.
 
@@ -76,24 +73,16 @@ def _print_local_cpu_resources():
 
 def _get_remote_cpu_resources(launcher):
     import subprocess
-    #p = subprocess.check_call([launcher, 'python', os.path.basename(__file__)], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
-    #output = subprocess.check_output([launcher, 'python', os.path.basename(__file__)])
-    #subprocess.check_call([launcher, 'python', os.path.basename(__file__)])
-    #subprocess.check_call([launcher, 'python', __file__])
     output = subprocess.check_output([launcher, 'python', __file__])
-    
-    #stdout, _ = p.communicate()
-    print('this line here', output)
-    print('this line here decoded', output.decode())
     return output.decode()
 
 
 def get_sub_node_resources(launcher=None):
     remote = True if launcher else False
-    #****************note - add special way of doing it one summit - eg. if jsrun and LSB_HOSTS or maybe just if LSB_HOSTS....
-    #On mpi vrsion this will result in every worker launching a job - that might be good if launch onto its own node but would be diff
+    #todo Add special way of doing it one summit - eg. if LSB_HOSTS....
+    #On MPI version this will result in every worker launching a job - that might be good if launch onto its own node but would be diff
     #to multiproc version - might be better if mpi4py version does just launch from master and shares???
-    #Or it could be we should change to do this on worker phase instead - then they all launch where they will launch - but think thats next iteration.
+    #Or it could be we should change to do this on worker phase instead - but think thats next iteration.
     if remote:
         cores_info_str = _get_remote_cpu_resources(launcher=launcher)
         cores_log, cores_phy, *_ = cores_info_str.split()
