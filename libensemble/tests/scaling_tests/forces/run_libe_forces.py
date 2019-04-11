@@ -3,7 +3,7 @@ import sys, os
 import numpy as np
 
 USE_BALSAM = False
-USE_MPI = True
+USE_MPI = False
 
 if USE_MPI:
     # Run with MPI (Add a proc for manager): mpiexec -np <num_workers+1> python run_libe_forces.py 
@@ -23,8 +23,9 @@ else:
     is_master = True # processes are forked in libE
     libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
 
-from forces_simf import run_forces # Sim func from current dir
+print('\nRunning with {} workers\n'.format(nworkers))
 
+from forces_simf import run_forces # Sim func from current dir
 from libensemble import libE_logger
 libE_logger.set_level('INFO')
 
@@ -55,7 +56,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController()    
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=False)
+    jobctrl = MPIJobController(auto_resources=True)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 

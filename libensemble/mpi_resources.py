@@ -63,15 +63,15 @@ class MPIResources(Resources):
         raised if these are infeasible.
         """
 
-        node_list = self.local_nodelist
-        num_workers = self.num_workers
-        local_node_count = self.local_node_count
+        node_list = self.worker_resources.local_nodelist
+        num_workers = self.worker_resources.num_workers
+        local_node_count = self.worker_resources.local_node_count
 
         cores_avail_per_node = \
           (self.logical_cores_avail_per_node if hyperthreads else
            self.physical_cores_avail_per_node)
         workers_per_node = \
-          (self.workers_per_node if num_workers > local_node_count else 1)
+          (self.worker_resources.workers_per_node if num_workers > local_node_count else 1)
         cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
 
         rassert(node_list, "Node list is empty - aborting")
@@ -138,7 +138,7 @@ class MPIResources(Resources):
             except:
                 pass
 
-        node_list = self.local_nodelist
+        node_list = self.worker_resources.local_nodelist
         logger.debug("Creating machinefile with {} nodes and {} ranks per node".
                      format(num_nodes, ranks_per_node))
 
@@ -154,6 +154,6 @@ class MPIResources(Resources):
     def get_hostlist(self):
         """Create a hostlist based on user supplied config options,
         completed by detected machine resources"""
-        node_list = self.local_nodelist
+        node_list = self.worker_resources.local_nodelis
         hostlist_str = ",".join([str(x) for x in node_list])
         return hostlist_str

@@ -21,7 +21,9 @@ class MPIJobController(JobController):
     """
 
     def __init__(self, auto_resources=True, central_mode=False,
-                 nodelist_env_slurm=None, nodelist_env_cobalt=None):
+                 nodelist_env_slurm=None,
+                 nodelist_env_cobalt=None,
+                 nodelist_env_lsf=None):
         """Instantiate a new JobController instance.
 
         A new JobController object is created with an application
@@ -54,18 +56,18 @@ class MPIJobController(JobController):
             (Default: Uses COBALT_PARTNAME) Note: This is only queried
             if a worker_list file is not provided and
             auto_resources=True.
+
+        nodelist_env_lsf: String, optional
+            The environment variable giving a node list in LSF format
+            (Default: Uses LSB_HOSTS) Note: This is only queried
+            if a worker_list file is not provided and
+            auto_resources=True.            
         """
 
         JobController.__init__(self)
         self.max_launch_attempts = 5
         self.fail_time = 2
         self.auto_resources = auto_resources
-        if self.auto_resources:
-            self.resources = \
-              MPIResources(top_level_dir=self.top_level_dir,
-                           central_mode=central_mode,
-                           nodelist_env_slurm=nodelist_env_slurm,
-                           nodelist_env_cobalt=nodelist_env_cobalt)
 
         mpi_commands = {
             'mpich':   ['mpirun', '--env {env}', '-machinefile {machinefile}',
@@ -79,8 +81,17 @@ class MPIJobController(JobController):
                         '-N {ranks_per_node}'],
             'jsrun':   ['jsrun', '--np {num_procs}']
         }
-        self.mpi_launcher = MPIResources.get_MPI_variant()
-        self.mpi_command = mpi_commands[self.mpi_launcher]
+        self.mpi_launch_type = MPIResources.get_MPI_variant()
+        self.mpi_command = mpi_commands[self.mpi_launch_type]
+        
+        if self.auto_resources:
+            self.resources = \
+              MPIResources(top_level_dir=self.top_level_dir,
+                           central_mode=central_mode,
+                           launcher = self.mpi_command[0],
+                           nodelist_env_slurm=nodelist_env_slurm,
+                           nodelist_env_cobalt=nodelist_env_cobalt,
+                           nodelist_env_lsf=nodelist_env_lsf)
 
 
     def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
@@ -210,7 +221,7 @@ class MPIJobController(JobController):
                          format(job.name, " ".join(runline))) #One line
 
             subgroup_launch = True
-            if self.mpi_launcher in ['aprun']:
+            if self.mpi_launch_type in ['aprun']:
                 subgroup_launch = False
 
             retry_count = 0
@@ -248,3 +259,10 @@ class MPIJobController(JobController):
             self.list_of_jobs.append(job)
 
         return job
+
+
+    def set_worker_info(self, comm, workerid=None):
+        """Sets info for this job_controller"""
+        self.workerID = workerid
+        if self.workerID:
+            self.resources.set_worker_resources(self.workerID, comm)
