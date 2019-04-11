@@ -97,6 +97,9 @@ will include the following fields:
 
 * gen_worker' [int]: libEnsemble worker that generated this sim_id
 
+* gen_time' [float]: At what time (since the epoch) was this entry (or
+  collection of entries) put into H by the manager
+
 * returned' [bool]: Has this worker completed the evaluation of this unit of
   work?
 
