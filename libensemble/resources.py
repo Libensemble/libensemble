@@ -215,7 +215,7 @@ class Resources:
         for nidgroup in nidstr.split(','):
             a, b, _ = Resources._range_split(nidgroup)
             for nid in range(a, b):
-                nidlst.append(prefix + str(nid).zfill(nnum_len))
+                nidlst.append(str(nid))
         return sorted(nidlst)
 
     @staticmethod
