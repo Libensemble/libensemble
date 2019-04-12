@@ -43,13 +43,14 @@ def run_forces(x,gen_specs,sim_specs,libE_info):
     calc_status = 0 # Returns to worker
     
     simdir_basename = sim_specs['simdir_basename']
-    cores           = sim_specs['cores']
+    #cores           = sim_specs['cores']
     keys            = sim_specs['keys']
     sim_particles   = sim_specs['sim_particles']
     sim_timesteps   = sim_specs['sim_timesteps']
     time_limit      = sim_specs['sim_kill_minutes'] * 60.0
     
     # Get from dictionary if key exists, else return default (e.g. 0)
+    cores             = sim_specs.get('cores', None)
     kill_rate         = sim_specs.get('kill_rate', 0)
     particle_variance = sim_specs.get('particle_variance',0)
        
@@ -82,7 +83,11 @@ def run_forces(x,gen_specs,sim_specs,libE_info):
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
     
     #job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
-    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
+    
+    if cores:
+        job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
+    else:
+        job = jobctl.launch(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True) # Auto-partition
     
     # Stat file to check for bad runs
     statfile = simdir_basename+'.stat'
