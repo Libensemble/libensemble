@@ -25,11 +25,11 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
         if np.all(H['returned'][gen_inds]):
-            last_time_pos = np.argmax(H['given_time'][gen_inds])
-            last_ind = np.nonzero(gen_inds)[0][last_time_pos]
+            last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
+            inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds]==last_time_gen_gave_batch]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
-                     np.atleast_1d(last_ind), persis_info[i], persistent=True)
+                     np.atleast_1d(inds_of_last_batch_from_gen), persis_info[i], persistent=True)
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
