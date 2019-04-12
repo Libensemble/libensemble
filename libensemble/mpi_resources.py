@@ -154,6 +154,6 @@ class MPIResources(Resources):
     def get_hostlist(self):
         """Create a hostlist based on user supplied config options,
         completed by detected machine resources"""
-        node_list = self.worker_resources.local_nodelis
+        node_list = self.worker_resources.local_nodelist
         hostlist_str = ",".join([str(x) for x in node_list])
         return hostlist_str
