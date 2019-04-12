@@ -43,6 +43,6 @@ if nworkers < 2:
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_master:
-    assert flag == 0
+    assert len(np.unique(H['gen_time'])) == 2
 
     save_libE_output(H,__file__,nworkers)
