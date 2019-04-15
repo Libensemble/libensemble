@@ -83,8 +83,8 @@ sim_specs = {'sim_f': run_forces,           # This is the function whose output 
 gen_specs = {'gen_f': uniform_random_sample,# Generator function
              'in': ['sim_id'],              # Generator input
              'out': [('x',float,(1,))],     # Name, type and size of data produced (must match sim_specs 'in')
-             'lb': np.array([0]),           # List of lower bounds for random sample array (1D)
-             'ub': np.array([32767]),       # List of upper bounds for random sample array (1D) 
+             'lb': np.array([0]),           # Lower bound for random sample array (1D)
+             'ub': np.array([32767]),       # Upper bound for random sample array (1D) 
              'gen_batch_size': 1000,        # How many random samples to generate in one call
              'batch_mode': True,            # If true wait for sims to process before generate more
              'num_active_gens':1,           # Only one active generator at a time.

@@ -56,7 +56,7 @@ gen_specs['max_active_runs'] = 3
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 150,
                  'elapsed_wallclock_time': 100,
-                 'stop_val': ('f', -1), # key must be in sim_specs['out'] or gen_specs['out']
+                 'stop_val': ('f', -1), # key must be in H
                 }
 
 # Perform the run
