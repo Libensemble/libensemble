@@ -21,6 +21,8 @@ from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_
 from libensemble.libE_manager import ManagerException
 from libensemble.tests.regression_tests.common import parse_args
 nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] != 'mpi':
+    quit()
 
 n = 2
 
