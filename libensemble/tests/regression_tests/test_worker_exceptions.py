@@ -18,7 +18,9 @@ from libensemble.libE import libE
 
 # Import gen_func
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-script_name = os.path.splitext(os.path.basename(__file__))[0]
+from libensemble.libE_manager import ManagerException
+from libensemble.tests.regression_tests.common import parse_args
+nworkers, is_master, libE_specs, _ = parse_args()
 
 n = 2
 
@@ -54,11 +56,16 @@ for i in range(MPI.COMM_WORLD.Get_size()):
     persis_info[i] = {'rand_stream': np.random.RandomState(i)}
 
 
-libE_specs = {'abort_on_worker_exc': True}
+libE_specs = {'abort_on_exception': False}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
-assert len(H)==0
+return_flag = 1
+try:
+    H, persis_info, return_flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
+except ManagerException as e:
+    print("Caught deliberate exception: {}".format(e))
+    return_flag = 0
 
-
-
+if is_master:
+    assert return_flag == 0
+    
