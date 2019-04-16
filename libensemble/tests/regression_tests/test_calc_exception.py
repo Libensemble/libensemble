@@ -34,7 +34,7 @@ gen_specs['ub'] = np.array([ 3, 2])
 gen_specs['gen_batch_size'] = 10
 
 # Tell libEnsemble when to stop
-exit_criteria = {'elapsed_wallclock_time': 300}
+exit_criteria = {'elapsed_wallclock_time': 10}
 
 
 # Perform the run

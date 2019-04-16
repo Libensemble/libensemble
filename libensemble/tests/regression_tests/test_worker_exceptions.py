@@ -44,7 +44,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 # Tell libEnsemble when to stop
-exit_criteria = {'elapsed_wallclock_time': 0.1}
+exit_criteria = {'elapsed_wallclock_time': 10}
 
 
 # Perform the run
