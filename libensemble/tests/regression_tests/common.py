@@ -119,3 +119,26 @@ def save_libE_output(H,calling_file,nworkers):
 
     print("\n\n\nRun completed.\nSaving results to file: " + filename)
     np.save(filename, H)
+
+def give_each_worker_own_stream(persis_info,nworkers):
+    for i in range(nworkers):
+        if i in persis_info:
+            persis_info[i].update({'rand_stream': np.random.RandomState(i), 'worker_num': i})
+        else:
+            persis_info[i] = {'rand_stream': np.random.RandomState(i), 'worker_num': i}
+    return persis_info
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+def build_simfunc():
+    import subprocess
+
+    #Build simfunc
+    #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
+    buildstring='mpicc -o my_simjob.x ../unit_tests/simdir/my_simjob.c'
+    #subprocess.run(buildstring.split(),check=True) #Python3.5+
+    subprocess.check_call(buildstring.split())
+

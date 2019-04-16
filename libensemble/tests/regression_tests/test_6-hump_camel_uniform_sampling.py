@@ -8,25 +8,28 @@
 # """
 import numpy as np
 
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output
+# Import libEnsemble items for this test
+from libensemble.libE import libE
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
+from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
 nworkers, is_master, libE_specs, _ = parse_args()
 
-# Import libEnsemble main, sim_specs, gen_specs, and persis_info
-from libensemble.libE import libE
-from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
-from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f',float)], 'save_every_k': 400,}
 
-from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+gen_specs = {'gen_f': gen_f,
+             'in': ['sim_id'],
+            'gen_batch_size': 500,
+            'save_every_k':  300,
+            'out': [('x',float,(2,))],
+            'lb': np.array([-3,-2]),
+            'ub': np.array([ 3, 2]),
+             }
+
 persis_info = give_each_worker_own_stream({},nworkers+1)
 
-sim_specs['save_every_k'] = 400
-gen_specs['gen_batch_size'] = 500
-gen_specs['save_every_k'] =  300
-gen_specs['out'] = [('x',float,(2,))]
-gen_specs['lb'] = np.array([-3,-2])
-gen_specs['ub'] = np.array([ 3, 2])
-
-# Tell libEnsemble when to stop
 exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 
 # Perform the run
@@ -34,7 +37,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 
 if is_master:
     assert flag == 0
-    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
     tol = 0.1
     for m in minima:

@@ -3,39 +3,32 @@ import numpy as np
 
 from libensemble.libE import libE
 from libensemble.libE_manager import ManagerException
-from libensemble.tests.regression_tests.common import parse_args
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
+from libensemble.tests.regression_tests.common import parse_args, give_each_worker_own_stream
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
-libE_specs['abort_on_exception'] = False
-
 
 # Define sim_func
 def six_hump_camel_err(H, persis_info, sim_specs, _):
     raise Exception('Deliberate error')
 
-from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+
+sim_specs = {'sim_f': six_hump_camel_err, 'in': ['x'], 'out': [('f',float),]}
+gen_specs = {'gen_f': gen_f, 
+        'in': ['sim_id'],
+        'out': [('x',float,2)],
+        'lb': np.array([-3,-2]),
+        'ub': np.array([ 3, 2]),
+        'gen_batch_size': 10,
+        }
+
 persis_info = give_each_worker_own_stream({},nworkers+1)
-
-# Import gen_func
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
-
-# State the objective function and params
-sim_specs = {'sim_f': six_hump_camel_err,
-             'in': ['x'],
-             'out': [('f',float),],
-             }
-
-# State the generating function
-gen_specs['out'] = [('x',float,2)]
-gen_specs['lb'] = np.array([-3,-2])
-gen_specs['ub'] = np.array([ 3, 2])
-gen_specs['gen_batch_size'] = 10
 
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 10}
 
+libE_specs['abort_on_exception'] = False
 
 # Perform the run
 return_flag = 1

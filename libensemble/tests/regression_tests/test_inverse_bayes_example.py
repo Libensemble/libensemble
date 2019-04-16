@@ -10,22 +10,17 @@
 import numpy as np
 
 from libensemble.libE import libE
-from libensemble.tests.regression_tests.common import parse_args
+from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
+from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
+from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
+from libensemble.tests.regression_tests.common import parse_args, give_each_worker_own_stream
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 
-from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
-persis_info = give_each_worker_own_stream({},nworkers+1)
-
-# Import sim_func
-from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
-
-# Import gen_func
-from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
-
-# Import alloc_func
-from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
+if nworkers < 2:
+    # Can't do a "persistent worker run" if only one worker
+    quit()
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimized
@@ -45,14 +40,12 @@ gen_specs = {'gen_f': gen_f,
              'num_batches': 10,
              }
 
+persis_info = give_each_worker_own_stream({},nworkers+1)
+
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches'], 'elapsed_wallclock_time': 300}
 
 alloc_specs = {'out':[], 'alloc_f':alloc_f}
-
-if nworkers < 2:
-    # Can't do a "persistent worker run" if only one worker
-    quit()
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
