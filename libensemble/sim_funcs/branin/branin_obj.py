@@ -2,9 +2,6 @@
 Calls the branin function. Default behavior uses the python function, but
 uncommenting lines will write x.in to file, call branin.py, and then read f.out. 
 """
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 import subprocess
 import os

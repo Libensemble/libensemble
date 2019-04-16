@@ -2,10 +2,6 @@
 
 Testing for message errors and correctness of data
 """
-
-from __future__ import division
-from __future__ import absolute_import
-
 from mpi4py import MPI
 import sys, os
 import numpy as np

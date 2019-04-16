@@ -1,9 +1,6 @@
 """
 This module contains various versions that evaluate the six hump camel function.
 """
-from __future__ import division
-from __future__ import absolute_import
-
 __all__ = ['six_hump_camel_with_different_ranks_and_nodes','six_hump_camel','six_hump_camel_simple']
 import subprocess, os
 import numpy as np
