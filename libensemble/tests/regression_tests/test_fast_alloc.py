@@ -8,7 +8,6 @@
 # """
 import numpy as np
 
-
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
@@ -20,20 +19,20 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 num_pts = 30*(nworkers-1)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f',float)]}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x',float,(2,))],
-             'gen_batch_size': num_pts,
-             'num_active_gens': 1,
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (2,))],
+    'gen_batch_size': num_pts,
+    'num_active_gens': 1,
+    'lb': np.array([-3, -2]),
+    'ub': np.array([3, 2]),}
 
-alloc_specs = {'alloc_f':alloc_f, 'out':[('allocated',bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
 
-persis_info = give_each_worker_own_stream({},nworkers+1)
+persis_info = give_each_worker_own_stream({}, nworkers+1)
 
 exit_criteria = {'sim_max': num_pts, 'elapsed_wallclock_time': 300}
 
@@ -43,7 +42,7 @@ if libE_specs['comms'] == 'tcp':
     # each time, and the worker will not know what port to connect to.
     quit()
 
-for time in np.append([0], np.logspace(-5,-1,5)):
+for time in np.append([0], np.logspace(-5, -1, 5)):
     for rep in range(1):
         #State the objective function, its arguments, output, and necessary parameters (and their sizes)
         sim_specs['pause_time'] = time
@@ -55,7 +54,8 @@ for time in np.append([0], np.logspace(-5,-1,5)):
         persis_info['next_to_give'] = 0
         persis_info['total_gen_calls'] = 1
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                    persis_info, alloc_specs, libE_specs)
 
         if is_master:
             assert flag == 0

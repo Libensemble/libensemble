@@ -22,45 +22,53 @@ if libE_specs['comms'] == 'local':
 ### Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 10
+budget = 10
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f',float), ('fvec',float,m),
-                     ],
-             'combine_component_func': lambda x: np.sum(np.power(x,2)),
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [
+        ('f', float),
+        ('fvec', float, m),],
+    'combine_component_func': lambda x: np.sum(np.power(x, 2)),}
 
-gen_out += [('x',float,n), ('x_on_cube',float,n)]
+gen_out += [('x', float, n), ('x_on_cube', float, n)]
 
-gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f','fvec', 'returned'],
-             'out': gen_out,
-             'initial_sample_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': True,
-             'lb': (-2-np.pi/10)*np.ones(n), # Trying to avoid exactly having x[1]=-x[2] from being hit, which results in division by zero in chwirut. 
-             'ub':  2*np.ones(n),
-             'localopt_method': 'pounders',
-             'dist_to_bound_multiple': 0.5,
-             'components': m,
-             }
-gen_specs.update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
+# lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [o[0] for o in gen_out]+['f', 'fvec', 'returned'],
+    'out': gen_out,
+    'initial_sample_size': 5,
+    'num_active_gens': 1,
+    'batch_mode': True,
+    'lb': (-2-np.pi/10)*np.ones(n),
+    'ub': 2*np.ones(n),
+    'localopt_method': 'pounders',
+    'dist_to_bound_multiple': 0.5,
+    'components': m,}
 
-persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
+gen_specs.update({
+    'grtol': 1e-4,
+    'gatol': 1e-4,
+    'frtol': 1e-15,
+    'fatol': 1e-15})
 
-exit_criteria = {'sim_max': max_sim_budget, 'elapsed_wallclock_time': 300 }
+persis_info = give_each_worker_own_stream(persis_info, nworkers+1)
+
+exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            libE_specs=libE_specs)
 
 if is_master:
     assert flag == 0
-    assert len(H) >= max_sim_budget
+    assert len(H) >= budget
 
     # Calculating the Jacobian at the best point (though this information was not used by pounders)
     from libensemble.sim_funcs.chwirut1 import EvaluateJacobian
     J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
     assert np.linalg.norm(J) < 2000
 
-    save_libE_output(H,__file__,nworkers)
+    save_libE_output(H, __file__, nworkers)

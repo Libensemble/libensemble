@@ -17,30 +17,35 @@ from libensemble.tests.regression_tests.support import six_hump_camel_minima as 
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f',float)], 'save_every_k': 400,}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'save_every_k': 400,}
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-            'gen_batch_size': 500,
-            'save_every_k':  300,
-            'out': [('x',float,(2,))],
-            'lb': np.array([-3,-2]),
-            'ub': np.array([ 3, 2]),
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'gen_batch_size': 500,
+    'save_every_k': 300,
+    'out': [('x', float, (2,))],
+    'lb': np.array([-3, -2]),
+    'ub': np.array([3, 2]),}
 
-persis_info = give_each_worker_own_stream({},nworkers+1)
+persis_info = give_each_worker_own_stream({}, nworkers+1)
 
 exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            libE_specs=libE_specs)
 
 if is_master:
     assert flag == 0
 
     tol = 0.1
     for m in minima:
-        assert np.min(np.sum((H['x']-m)**2,1)) < tol
+        assert np.min(np.sum((H['x']-m)**2, 1)) < tol
 
-    print("\nlibEnsemble with Uniform random sampling has identified the 6 minima within a tolerance " + str(tol))
-    save_libE_output(H,__file__,nworkers)
+    print("\nlibEnsemble found the 6 minima within a tolerance "+str(tol))
+    save_libE_output(H, __file__, nworkers)

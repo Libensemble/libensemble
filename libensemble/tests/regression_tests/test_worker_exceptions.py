@@ -5,7 +5,6 @@
 #    mpiexec -np 4 python3 test_worker_exceptions.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
-import sys, os             # for adding to path
 import numpy as np
 
 from libensemble.libE import libE
@@ -18,30 +17,30 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 n = 2
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f',float)] }
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': [('x',float,2)],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'initial_sample': 100,
-             'batch_mode': True,
-             'num_active_gens':1,
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [],
+    'out': [('x', float, 2)],
+    'lb': np.array([-3, -2]),
+    'ub': np.array([3, 2]),
+    'initial_sample': 100,
+    'batch_mode': True,
+    'num_active_gens': 1,}
 
-persis_info = give_each_worker_own_stream({},nworkers+1)
+persis_info = give_each_worker_own_stream({}, nworkers+1)
 
 libE_specs['abort_on_exception'] = False
 
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 10}
 
-
 # Perform the run
 return_flag = 1
 try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                persis_info, libE_specs=libE_specs)
 except ManagerException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0

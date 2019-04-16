@@ -4,7 +4,7 @@ import numpy as np
 from copy import deepcopy
 import pkg_resources
 
-# Import libEnsemble items for this test 
+# Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
@@ -16,17 +16,16 @@ nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()
 
-persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
+persis_info = give_each_worker_own_stream(persis_info, nworkers+1)
 persis_info_safe = deepcopy(persis_info)
 
-
-sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float), # This is the output from the function being minimized
-                    ],
-             'sim_dir': pkg_resources.resource_filename('libensemble.sim_funcs.branin', ''), # to be copied by each worker
-             'clean_jobs': True,
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'sim_dir': pkg_resources.resource_filename(
+        'libensemble.sim_funcs.branin', ''), # to be copied by each worker
+    'clean_jobs': True,}
 # Have the workers put their directories in a different (e.g., a faster
 # /sandbox/ or /scratch/ directory)
 # Otherwise, will just copy in same directory as sim_dir
@@ -35,30 +34,30 @@ if nworkers == 1:
 elif nworkers == 3:
     sim_specs['uniform_random_pause_ub'] = 0.05
 
-n=2
-gen_out += [('x',float,n), ('x_on_cube',float,n)]
-gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f', 'returned'],
-             'out': gen_out,
-             'num_active_gens': 1,
-             'batch_mode': True,
-             'lb': np.array([-5,0]),
-             'ub': np.array([10,15]),
-             'initial_sample_size': 20,
-             'localopt_method': 'LN_BOBYQA',
-             'dist_to_bound_multiple': 0.99,
-             'xtol_rel': 1e-3,
-             'min_batch_size': nworkers,
-             'high_priority_to_best_localopt_runs': True,
-             'max_active_runs': 3,
-             }
-
+n = 2
+gen_out += [('x', float, n), ('x_on_cube', float, n)]
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [o[0] for o in gen_out]+['f', 'returned'],
+    'out': gen_out,
+    'num_active_gens': 1,
+    'batch_mode': True,
+    'lb': np.array([-5, 0]),
+    'ub': np.array([10, 15]),
+    'initial_sample_size': 20,
+    'localopt_method': 'LN_BOBYQA',
+    'dist_to_bound_multiple': 0.99,
+    'xtol_rel': 1e-3,
+    'min_batch_size': nworkers,
+    'high_priority_to_best_localopt_runs': True,
+    'max_active_runs': 3,}
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 150,
-                 'elapsed_wallclock_time': 100,
-                 'stop_val': ('f', -1), # key must be in H
-                }
+exit_criteria = {
+    'sim_max': 150,
+    'elapsed_wallclock_time': 100,
+    'stop_val': ('f', -1), # key must be in H
+}
 
 # Perform the run
 for run in range(2):
@@ -69,16 +68,19 @@ for run in range(2):
         exit_criteria['sim_max'] = 500
         persis_info = deepcopy(persis_info_safe)
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                persis_info, libE_specs=libE_specs)
 
     if is_master:
-        M = M[M[:,-1].argsort()] # Sort by function values (last column)
-        k = M.shape[0]; tol = 1e-5
+        M = M[M[:, -1].argsort()] # Sort by function values (last column)
+        k = M.shape[0]
+        tol = 1e-5
         for i in range(k):
-            print(np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)))
-            assert np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)) < tol
+            print(np.min(np.sum((H['x'][H['local_min']]-M[i, :2])**2, 1)))
+            assert np.min(np.sum(
+                (H['x'][H['local_min']]-M[i, :2])**2, 1)) < tol
 
-        print("\nlibEnsemble with APOSMM + " + gen_specs['localopt_method'] + " has identified the " + str(k) + " best minima within a tolerance " + str(tol))
-        save_libE_output(H,__file__,nworkers)
-
-
+        print("\nAPOSMM + "+gen_specs['localopt_method']+
+              " has identified the "+str(k)+" best minima within a tolerance "+
+              str(tol))
+        save_libE_output(H, __file__, nworkers)

@@ -14,25 +14,26 @@ from libensemble.tests.regression_tests.common import parse_args, save_libE_outp
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f',float)]}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x',float,(1,))],
-             'lb': np.array([-3]),
-             'ub': np.array([ 3]),
-             'gen_batch_size': 500,
-             'save_every_k': 300,
-            }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (1,))],
+    'lb': np.array([-3]),
+    'ub': np.array([3]),
+    'gen_batch_size': 500,
+    'save_every_k': 300,}
 
-persis_info = give_each_worker_own_stream({},nworkers+1)
+persis_info = give_each_worker_own_stream({}, nworkers+1)
 
 exit_criteria = {'gen_max': 501}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            libE_specs=libE_specs)
 
 if is_master:
-    assert len(H)>= 501
-    print("\nlibEnsemble with Uniform random sampling has generated enough points")
-    save_libE_output(H,__file__,nworkers)
+    assert len(H) >= 501
+    print("\nlibEnsemble with random sampling has generated enough points")
+    save_libE_output(H, __file__, nworkers)
