@@ -31,6 +31,7 @@ sim_specs = {'sim_f': six_hump_camel_err,
 gen_specs['out'] = [('x',float,2)]
 gen_specs['lb'] = np.array([-3,-2])
 gen_specs['ub'] = np.array([ 3, 2])
+gen_specs['gen_batch_size'] = 10
 
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 300}
@@ -45,6 +46,4 @@ except ManagerException as e:
     return_flag = 0
 
 if is_master:
-    if 'abort_on_exception' in libE_specs:
-        print("Failed to properly handle error")
     assert return_flag == 0

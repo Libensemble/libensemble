@@ -5,20 +5,15 @@
 #    mpiexec -np 4 python3 test_worker_exceptions.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
-from mpi4py import MPI # for libE communicator
 import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
 from libensemble.libE import libE
-
-# Import gen_func
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
 from libensemble.libE_manager import ManagerException
 from libensemble.tests.regression_tests.common import parse_args
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] != 'mpi':
-    quit()
+libE_specs['abort_on_exception'] = False
 
 n = 2
 
@@ -27,6 +22,9 @@ def nan_func(calc_in,persis_info,sim_specs,libE_info):
     H['f_i'] = np.nan
     H['f'] = np.nan
     return (H, persis_info)
+
+from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
+persis_info = give_each_worker_own_stream({},nworkers+1)
 
 #State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': nan_func, # This is the function whose output is being minimized
@@ -48,22 +46,14 @@ gen_specs = {'gen_f': gen_f,
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 0.1}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
-
-
-libE_specs = {'abort_on_exception': False}
 
 # Perform the run
 return_flag = 1
 try:
-    H, persis_info, return_flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 except ManagerException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0
 
 if is_master:
     assert return_flag == 0
-    
