@@ -5,10 +5,6 @@
 # mpiexec -np 4 python3 call_chwirut_aposmm_one_residual_at_a_time.py
 
 # """
-
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output

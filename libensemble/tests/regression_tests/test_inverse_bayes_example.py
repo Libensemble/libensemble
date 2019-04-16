@@ -7,10 +7,6 @@
 #    mpiexec -np 4 xterm -e "python3 inverse_bayes_example.py"
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
-
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
 from libensemble.libE import libE

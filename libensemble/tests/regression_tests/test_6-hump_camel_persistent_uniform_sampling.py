@@ -6,10 +6,6 @@
 #    mpiexec -np 4 python3 {FILENAME}.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
-
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output

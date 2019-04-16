@@ -6,11 +6,6 @@
 #    mpiexec -np 4 python3 test_6-hump_camel_aposmm_LD_MMA.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
-
-from __future__ import division
-from __future__ import absolute_import
-
-
 import sys             # for adding to path
 import numpy as np
 

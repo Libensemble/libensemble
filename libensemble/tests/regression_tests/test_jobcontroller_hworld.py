@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import absolute_import
-
 import os              # for adding to path
 import numpy as np
 
