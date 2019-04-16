@@ -14,10 +14,8 @@ from __future__ import absolute_import
 import sys             # for adding to path
 import numpy as np
 
-from libensemble.tests.regression_tests.support import save_libE_output
-
 from libensemble.libE import libE, libE_tcp_worker
-from libensemble.tests.regression_tests.common import parse_args
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()

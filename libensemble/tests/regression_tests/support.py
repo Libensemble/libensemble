@@ -1,17 +1,6 @@
 import numpy as np
 import copy
 
-def save_libE_output(H,calling_file,nworkers):
-    import os
-    script_name = os.path.splitext(os.path.basename(calling_file))[0]
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) \
-                          + '_evals=' + str(sum(H['returned'])) \
-                          + '_ranks=' + str(nworkers)
-
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
-
 ##### sim_f #####
 # float_x1000
 from libensemble.sim_funcs.comms_testing import float_x1000
