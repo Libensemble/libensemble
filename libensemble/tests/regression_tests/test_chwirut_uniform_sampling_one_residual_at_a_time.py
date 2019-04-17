@@ -14,7 +14,7 @@ from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_obj_components as gen_f
 from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
@@ -56,7 +56,7 @@ alloc_specs = {
     'stop_on_NaNs': True,
     'stop_partial_fvec_eval': True,}
 
-persis_info = give_each_worker_own_stream(persis_info, nworkers+1)
+persis_info = per_worker_stream(persis_info, nworkers+1)
 persis_info_safe = deepcopy(persis_info)
 
 exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}

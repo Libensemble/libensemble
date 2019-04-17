@@ -12,7 +12,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out, branin_vals_and_minima as M
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'local':
@@ -53,7 +53,7 @@ gen_specs.update({
     'frtol': 1e-15,
     'fatol': 1e-15})
 
-persis_info = give_each_worker_own_stream(persis_info, nworkers+1)
+persis_info = per_worker_stream(persis_info, nworkers+1)
 
 exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 

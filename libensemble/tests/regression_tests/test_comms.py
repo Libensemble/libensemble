@@ -14,7 +14,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000 as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 from libensemble.mpi_controller import MPIJobController #Only used to get workerID in float_x1000
 jobctrl = MPIJobController(auto_resources=False)
 
@@ -57,7 +57,7 @@ gen_specs = {
     'num_active_gens': 1,
     'save_every_k': 300,}
 
-persis_info = give_each_worker_own_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers+1)
 
 exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 

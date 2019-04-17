@@ -15,7 +15,7 @@ import argparse
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_ranks_and_nodes as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks as gen_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -64,7 +64,7 @@ gen_specs = {
     'max_num_nodes': nworkers # Used in uniform_random_sample_with_different_nodes_and_ranks,
 }
 
-persis_info = give_each_worker_own_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers+1)
 
 exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 

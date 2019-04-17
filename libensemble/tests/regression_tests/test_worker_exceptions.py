@@ -12,7 +12,7 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import nan_func as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
 from libensemble.libE_manager import ManagerException
-from libensemble.tests.regression_tests.common import parse_args, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -30,7 +30,7 @@ gen_specs = {
     'batch_mode': True,
     'num_active_gens': 1,}
 
-persis_info = give_each_worker_own_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers+1)
 
 libE_specs['abort_on_exception'] = False
 

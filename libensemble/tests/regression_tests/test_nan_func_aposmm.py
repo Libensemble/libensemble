@@ -12,7 +12,7 @@ import numpy as np
 from libensemble.libE import libE
 from support import nan_func as sim_f, aposmm_gen_out as gen_out
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'local':
@@ -42,7 +42,7 @@ if nworkers == 3:
     gen_specs['components'] = 1
     gen_specs['combine_component_func'] = np.linalg.norm
 
-persis_info = give_each_worker_own_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers+1)
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 100, 'elapsed_wallclock_time': 300}

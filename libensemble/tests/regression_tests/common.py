@@ -121,7 +121,7 @@ def save_libE_output(H, calling_file, nworkers):
     np.save(filename, H)
 
 
-def give_each_worker_own_stream(persis_info, nworkers):
+def per_worker_stream(persis_info, nworkers):
     for i in range(nworkers):
         if i in persis_info:
             persis_info[i].update({

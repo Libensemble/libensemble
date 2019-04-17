@@ -3,7 +3,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.libE_manager import ManagerException
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import parse_args, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -22,7 +22,7 @@ gen_specs = {
     'ub': np.array([3, 2]),
     'gen_batch_size': 10,}
 
-persis_info = give_each_worker_own_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers+1)
 
 exit_criteria = {'elapsed_wallclock_time': 10}
 

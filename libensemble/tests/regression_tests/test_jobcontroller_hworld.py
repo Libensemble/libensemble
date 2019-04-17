@@ -9,7 +9,7 @@ from libensemble.message_numbers import *
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import build_simfunc, parse_args, give_each_worker_own_stream
+from libensemble.tests.regression_tests.common import build_simfunc, parse_args, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
@@ -55,7 +55,7 @@ gen_specs = {
     'num_active_gens': 1,
     'save_every_k': 20,}
 
-persis_info = give_each_worker_own_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers+1)
 
 exit_criteria = {'elapsed_wallclock_time': 15}
 
