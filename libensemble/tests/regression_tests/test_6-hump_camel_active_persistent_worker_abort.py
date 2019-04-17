@@ -17,6 +17,8 @@ from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persis
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 
+nworkers, is_master, libE_specs, _ = parse_args()
+
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_out += [('x', float, 2), ('x_on_cube', float, 2)]
@@ -34,20 +36,13 @@ gen_specs = {
     'dist_to_bound_multiple': 0.5,
     'localopt_maxeval': 4,}
 
-alloc_specs = {
-    'alloc_f': alloc_f,
-    'out': gen_out,}
+alloc_specs = { 'alloc_f': alloc_f, 'out': gen_out,}
 
-# Parse args for test code
-nworkers, is_master, libE_specs, _ = parse_args()
 
 persis_info = give_each_worker_own_stream({}, nworkers+1)
 
-# Tell libEnsemble when to stop
-exit_criteria = {
-    'sim_max': 10,
-    'elapsed_wallclock_time': 300
-} # Intentially set low so as to test that a worker in persistent mode can be terminated correctly
+# Set sim_max small so persistent worker is quickly terminated 
+exit_criteria = { 'sim_max': 10, 'elapsed_wallclock_time': 300 } 
 
 if nworkers < 2:
     # Can't do a "persistent worker run" if only one worker
