@@ -1,9 +1,9 @@
 import os # for adding to path
 import numpy as np
 
-# Import libEnsemble items
-from libensemble.controller import JobController
+# Import libEnsemble items for this test
 # from libensemble.calc_info import CalcInfo
+from libensemble.controller import JobController
 from libensemble.resources import Resources
 from libensemble.message_numbers import *
 from libensemble.libE import libE

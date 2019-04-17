@@ -5,6 +5,7 @@
 #    mpiexec -np 4 python3 test_nan_func_aposmm.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
+
 import numpy as np
 
 # Import libEnsemble items for this test

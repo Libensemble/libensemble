@@ -6,6 +6,7 @@
 #    mpiexec -np 4 python3 test_6-hump_camel_aposmm_LD_MMA.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
+
 import sys
 import numpy as np
 from math import gamma, pi, sqrt
@@ -19,8 +20,8 @@ from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as 
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
 from libensemble.tests.regression_tests.support import persis_info_1 as persis_info, aposmm_gen_out as gen_out, six_hump_camel_minima as minima
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
+
 if libE_specs['comms'] != 'mpi':
     quit()
 

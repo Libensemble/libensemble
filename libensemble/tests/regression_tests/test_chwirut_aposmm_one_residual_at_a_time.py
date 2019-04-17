@@ -5,6 +5,7 @@
 # mpiexec -np 4 python3 call_chwirut_aposmm_one_residual_at_a_time.py
 
 # """
+
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -16,6 +17,7 @@ from libensemble.tests.regression_tests.common import parse_args, save_libE_outp
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info, aposmm_gen_out as gen_out, branin_vals_and_minima as M
 
 nworkers, is_master, libE_specs, _ = parse_args()
+
 if libE_specs['comms'] != 'mpi':
     quit()
 
@@ -35,7 +37,6 @@ gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int),
 # LB tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 UB = 2*np.ones(n)
 LB = (-2-np.pi/10)*np.ones(n)
-
 gen_specs = {
     'gen_f': gen_f,
     'in': [o[0] for o in gen_out]+['f_i', 'returned'],
@@ -65,9 +66,7 @@ alloc_specs = {
 
 persis_info = give_each_worker_own_stream(persis_info, nworkers+1)
 
-exit_criteria = {
-    'sim_max': budget, # must be provided
-    'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
@@ -76,5 +75,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_master:
     assert flag == 0
     assert len(H) >= budget
-
     save_libE_output(H, __file__, nworkers)

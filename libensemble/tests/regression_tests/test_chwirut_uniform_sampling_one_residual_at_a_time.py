@@ -3,8 +3,8 @@
 # problem. # Execute via the following command:
 
 # mpiexec -np 4 python3 test_chwirut_uniform_sampling_one_residual_at_a_time.py
-
 # """
+
 import numpy as np
 from copy import deepcopy
 
@@ -16,7 +16,6 @@ from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first a
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()

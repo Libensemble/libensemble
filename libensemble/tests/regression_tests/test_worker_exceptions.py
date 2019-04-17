@@ -5,10 +5,11 @@
 #    mpiexec -np 4 python3 test_worker_exceptions.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
+
 import numpy as np
 
 from libensemble.libE import libE
-from support import nan_func as sim_f
+from libensemble.tests.regression_tests.support import nan_func as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
 from libensemble.libE_manager import ManagerException
 from libensemble.tests.regression_tests.common import parse_args, give_each_worker_own_stream

@@ -6,18 +6,19 @@
 #    mpiexec -np 4 python3 test_6-hump_camel_with_different_nodes_uniform_sample.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
-from mpi4py import MPI # for libE communicator
+
+from mpi4py import MPI
 import numpy as np
 import argparse
 
-# Import libEnsemble main, sim_specs, gen_specs, and persis_info
+# Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_ranks_and_nodes as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_with_different_nodes_and_ranks as gen_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
+
 if libE_specs['comms'] != 'mpi':
     # Can't do this one with processes either?  Wants a machine file.
     quit()

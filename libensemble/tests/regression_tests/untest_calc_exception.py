@@ -5,7 +5,6 @@ from libensemble.libE_manager import ManagerException
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
 from libensemble.tests.regression_tests.common import parse_args, give_each_worker_own_stream
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 
 
@@ -25,7 +24,6 @@ gen_specs = {
 
 persis_info = give_each_worker_own_stream({}, nworkers+1)
 
-# Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 10}
 
 libE_specs['abort_on_exception'] = False

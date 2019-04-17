@@ -3,18 +3,17 @@
 # problem. # Execute via the following command:
 
 # mpiexec -np 4 python3 test_chwirut_pounders.py
-
 # """
+
 import numpy as np
 
-# Import libEnsemble items
+# Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out, branin_vals_and_minima as M
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'local':
     quit()

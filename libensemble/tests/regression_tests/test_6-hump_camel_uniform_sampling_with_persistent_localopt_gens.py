@@ -16,7 +16,6 @@ from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persis
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 
 if nworkers < 2: # Don't do a "persistent worker run" if only one worker
@@ -61,6 +60,6 @@ if is_master:
     for m in minima:
         assert np.min(np.sum((H['x']-m)**2, 1)) < tol
 
-    print("\nlibEnsemble identified the 6 minima to a tolerance "+str(tol))
+    print("\nlibEnsemble found the 6 minima to a tolerance "+str(tol))
 
     save_libE_output(H, __file__, nworkers)

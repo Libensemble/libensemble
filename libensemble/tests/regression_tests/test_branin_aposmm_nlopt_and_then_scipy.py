@@ -11,13 +11,10 @@ from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out, branin_vals_and_minima as M
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, give_each_worker_own_stream
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
+
 if libE_specs['comms'] != 'mpi':
     quit()
-
-persis_info = give_each_worker_own_stream(persis_info, nworkers+1)
-persis_info_safe = deepcopy(persis_info)
 
 sim_specs = {
     'sim_f': sim_f,
@@ -52,6 +49,9 @@ gen_specs = {
     'high_priority_to_best_localopt_runs': True,
     'max_active_runs': 3,}
 
+persis_info = give_each_worker_own_stream(persis_info, nworkers+1)
+persis_info_safe = deepcopy(persis_info)
+
 # Tell libEnsemble when to stop
 exit_criteria = {
     'sim_max': 150,
@@ -76,11 +76,10 @@ for run in range(2):
         k = M.shape[0]
         tol = 1e-5
         for i in range(k):
-            print(np.min(np.sum((H['x'][H['local_min']]-M[i, :2])**2, 1)))
-            assert np.min(np.sum(
-                (H['x'][H['local_min']]-M[i, :2])**2, 1)) < tol
+            dist = np.min(np.sum((H['x'][H['local_min']]-M[i, :2])**2, 1))
+            print(dist)
+            assert dist < tol
 
-        print("\nAPOSMM + "+gen_specs['localopt_method']+
-              " has identified the "+str(k)+" best minima within a tolerance "+
-              str(tol))
+        print("\nAPOSMM + "+gen_specs['localopt_method']+" found "+str(k)+
+              " minima to tolerance "+str(tol))
         save_libE_output(H, __file__, nworkers)

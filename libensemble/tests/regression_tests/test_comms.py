@@ -7,6 +7,7 @@
 # where N is >= 2
 # The number of concurrent evaluations of the objective function will be N-1.
 # """
+
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -17,7 +18,6 @@ from libensemble.tests.regression_tests.common import parse_args, save_libE_outp
 from libensemble.mpi_controller import MPIJobController #Only used to get workerID in float_x1000
 jobctrl = MPIJobController(auto_resources=False)
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()
