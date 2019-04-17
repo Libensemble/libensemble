@@ -36,7 +36,6 @@ gen_specs = {
     'gen_f': gen_f,
     'in': [o[0] for o in gen_out]+['f', 'grad', 'returned'],
     'out': gen_out,
-    'initial_sample_size': 5,
     'num_active_gens': 1,
     'batch_mode': True,
     'initial_sample_size': 100,
