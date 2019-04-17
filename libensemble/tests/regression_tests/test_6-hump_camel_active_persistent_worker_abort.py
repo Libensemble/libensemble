@@ -36,13 +36,12 @@ gen_specs = {
     'dist_to_bound_multiple': 0.5,
     'localopt_maxeval': 4,}
 
-alloc_specs = { 'alloc_f': alloc_f, 'out': gen_out,}
-
+alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
 
 persis_info = give_each_worker_own_stream({}, nworkers+1)
 
-# Set sim_max small so persistent worker is quickly terminated 
-exit_criteria = { 'sim_max': 10, 'elapsed_wallclock_time': 300 } 
+# Set sim_max small so persistent worker is quickly terminated
+exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 
 if nworkers < 2:
     # Can't do a "persistent worker run" if only one worker
