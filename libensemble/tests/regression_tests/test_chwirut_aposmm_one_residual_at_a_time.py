@@ -33,8 +33,8 @@ gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int),
             ('f', float)]
 
 # LB tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
-UB = 2*np.ones(n),
-LB = (-2-np.pi/10)*np.ones(n),
+UB = 2*np.ones(n)
+LB = (-2-np.pi/10)*np.ones(n)
 
 gen_specs = {
     'gen_f': gen_f,
