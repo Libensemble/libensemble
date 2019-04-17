@@ -22,6 +22,7 @@ from math import log, gamma, pi, sqrt
 
 import nlopt
 
+@profile
 def aposmm_logic(H,persis_info,gen_specs,_):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
@@ -232,7 +233,7 @@ def aposmm_logic(H,persis_info,gen_specs,_):
         samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
 
     if samples_needed > 0 and 'sample_points' in gen_specs:
-        v = sum(~H['local_pt']) # Number of sample points so far
+        v = np.sum(~H['local_pt']) # Number of sample points so far
         sampled_points = gen_specs['sample_points'][v:v+samples_needed]
         on_cube = False # We assume the points are on the original domain, not unit cube
         if len(sampled_points):
