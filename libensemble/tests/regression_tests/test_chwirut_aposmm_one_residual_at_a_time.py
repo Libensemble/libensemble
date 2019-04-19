@@ -24,7 +24,7 @@ if libE_specs['comms'] != 'mpi':
 ### Declare the run parameters/functions
 m = 214
 n = 3
-budget = 30*m
+budget = 100*m
 
 sim_specs = {
     'sim_f': sim_f,
