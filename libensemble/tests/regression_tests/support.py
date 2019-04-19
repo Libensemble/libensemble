@@ -63,3 +63,4 @@ persis_info_3['already_paused'] = set()
 persis_info_3['H_len'] = 0
 persis_info_3['best_complete_val'] = np.inf
 persis_info_3['local_pt_ids'] = set()
+persis_info_3['inds_of_pt_ids'] = {}

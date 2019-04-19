@@ -23,10 +23,11 @@ sim_specs = {
     'sim_dir': pkg_resources.resource_filename(
         'libensemble.sim_funcs.branin', ''), # to be copied by each worker
     'clean_jobs': True,}
-# Have the workers put their directories in a different (e.g., a faster
-# /sandbox/ or /scratch/ directory)
-# Otherwise, will just copy in same directory as sim_dir
+
 if nworkers == 1:
+    # Have the workers put their directories in a different (e.g., a faster
+    # /sandbox/ or /scratch/ directory)
+    # Otherwise, will just copy in same directory as sim_dir
     sim_specs['sim_dir_prefix'] = '~'
 elif nworkers == 3:
     sim_specs['uniform_random_pause_ub'] = 0.05
