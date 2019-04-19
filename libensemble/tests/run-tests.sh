@@ -131,6 +131,7 @@ cleanup() {
     filelist=(libE_history_at_abort_*.npy);                  [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
     filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
+    filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
     filelist=(job_my_simjob.x*.out);   [ -e ${filelist[0]} ] && rm job_my_simjob.x*.out
@@ -143,6 +144,7 @@ cleanup() {
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
+    filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_reg_out*);          [ -e ${filelist[0]} ] && rm .cov_reg_out*
     filelist=(*active_runs.txt);       [ -e ${filelist[0]} ] && rm *active_runs.txt
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
