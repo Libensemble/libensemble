@@ -49,10 +49,10 @@ def report_manager_exception(hist, persis_info, mgr_exc=None):
     eprint("\nDumping ensemble history with {} sims evaluated:\n".
            format(hist.sim_count))
 
-    filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
-    np.save(filename, hist.trim_H())
-    filename2 = 'libE_persis_info_at_abort_' + str(hist.sim_count) + '.pkl'
-    pickle.dump(persis_info, filename)
+    filename = 'libE_history_at_abort_' + str(hist.sim_count)
+    np.save(filename + '.npy', hist.trim_H())
+    with open(filename + 'pickle', "wb") as f:
+        pickle.dump(persis_info, f)
 
     sys.stdout.flush()
     sys.stderr.flush()
