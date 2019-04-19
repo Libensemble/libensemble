@@ -120,7 +120,9 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
 
     print("\n\n\nRun completed.\nSaving results to file: "+filename)
     np.save(filename, H)
-    pickle.dump(persis_info, filename)
+
+    with open(filename + ".pickle", "wb") as f:
+        pickle.dump(persis_info, f)
 
 
 def per_worker_stream(persis_info, nworkers):
