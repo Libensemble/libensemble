@@ -885,6 +885,7 @@ def display_exception(e):
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
     print('An error occurred on line {} in statement {}'.format(line, text))
+    sys.stdout.flush()
 
 # if __name__ == "__main__":
 #     [H,gen_specs,persis_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','persis_info']]
