@@ -54,4 +54,4 @@ if is_master:
     assert flag == 0
     assert np.all(~H['local_pt'])
 
-    save_libE_output(H, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)

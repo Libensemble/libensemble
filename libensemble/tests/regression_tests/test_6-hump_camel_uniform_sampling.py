@@ -49,4 +49,4 @@ if is_master:
         assert np.min(np.sum((H['x']-m)**2, 1)) < tol
 
     print("\nlibEnsemble found the 6 minima within a tolerance "+str(tol))
-    save_libE_output(H, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)

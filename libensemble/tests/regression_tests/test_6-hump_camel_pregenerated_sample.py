@@ -37,4 +37,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 if is_master:
     assert len(H) == len(H0)
     print("\nlibEnsemble correctly didn't add anything to initial sample")
-    save_libE_output(H, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)

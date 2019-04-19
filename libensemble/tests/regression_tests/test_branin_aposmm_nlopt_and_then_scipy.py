@@ -83,4 +83,4 @@ for run in range(2):
 
         print("\nAPOSMM + "+gen_specs['localopt_method']+" found "+str(k)+
               " minima to tolerance "+str(tol))
-        save_libE_output(H, __file__, nworkers)
+        save_libE_output(H, persis_info, persis_info, __file__, nworkers)

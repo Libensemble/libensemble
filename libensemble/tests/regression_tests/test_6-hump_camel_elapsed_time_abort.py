@@ -45,4 +45,4 @@ if is_master:
     eprint(flag)
     eprint(H)
     assert flag == 2
-    save_libE_output(H, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)

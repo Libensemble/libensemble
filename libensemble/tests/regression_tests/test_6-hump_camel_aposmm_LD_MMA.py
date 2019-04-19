@@ -119,4 +119,4 @@ for run in range(2):
         print(
             "\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the "
             +str(np.shape(minima)[0])+" minima within a tolerance "+str(tol))
-        save_libE_output(H, __file__, nworkers)
+        save_libE_output(H, persis_info, __file__, nworkers)

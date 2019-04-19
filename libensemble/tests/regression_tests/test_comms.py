@@ -72,4 +72,4 @@ if is_master:
         assert np.all(H['arr_vals'][w-1] == x), "Array values do not all match"
         assert H['scal_val'][w-1] == x+x/1e7, "Scalar values do not all match"
 
-    save_libE_output(H, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)

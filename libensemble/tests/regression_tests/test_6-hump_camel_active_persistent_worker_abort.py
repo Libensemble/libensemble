@@ -53,4 +53,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 
 if is_master:
     assert flag == 0
-    save_libE_output(H, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)

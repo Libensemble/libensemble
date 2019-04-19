@@ -62,4 +62,4 @@ if is_master:
 
     print("\nlibEnsemble found the 6 minima to a tolerance "+str(tol))
 
-    save_libE_output(H, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)
