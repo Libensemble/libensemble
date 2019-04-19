@@ -12,6 +12,7 @@ import logging
 import traceback
 import random
 import socket
+import pickle # Only used when saving output on error
 
 import numpy as np
 import libensemble.util.launcher as launcher
@@ -34,7 +35,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def report_manager_exception(hist, mgr_exc=None):
+def report_manager_exception(hist, persis_info, mgr_exc=None):
     "Write out exception manager exception to stderr and flush streams."
     if mgr_exc is not None:
         from_line, msg, exc = mgr_exc.args
@@ -47,8 +48,12 @@ def report_manager_exception(hist, mgr_exc=None):
     eprint("\nManager exception raised .. aborting ensemble:\n")
     eprint("\nDumping ensemble history with {} sims evaluated:\n".
            format(hist.sim_count))
+
     filename = 'libE_history_at_abort_' + str(hist.sim_count) + '.npy'
     np.save(filename, hist.trim_H())
+    filename2 = 'libE_persis_info_at_abort_' + str(hist.sim_count) + '.pkl'
+    pickle.dump(persis_info, filename)
+
     sys.stdout.flush()
     sys.stderr.flush()
 
@@ -148,12 +153,12 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
           manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                        exit_criteria, persis_info, wcomms)
     except ManagerException as e:
-        report_manager_exception(hist, e)
+        report_manager_exception(hist, persis_info,  e)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
     except Exception:
-        report_manager_exception(hist)
+        report_manager_exception(hist, persis_info)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
