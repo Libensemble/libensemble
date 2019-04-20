@@ -411,10 +411,6 @@ def update_history_optimal(x_opt, H, run_inds):
     ind = np.argmin(dists)
     opt_ind = run_inds[ind]
 
-    if dists[ind] >= 1e-15:
-        print("Dist from x_opt to closest point is:" + str(dists[ind]))
-        print(x_opt)
-        print(run_inds)
     assert dists[ind] <= 1e-15, "Why is the closest point to x_opt not within 1e-15?"
     assert np.min(dists[run_inds != opt_ind]) >= 1e-15, "Why are there two points from the run within 1e-15 of x_opt?"
 
