@@ -8,15 +8,16 @@
 # The number of concurrent evaluations of the objective function will be N-1.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
-from libensemble.tests.regression_tests.support import save_libE_output
-from libensemble.tests.regression_tests.common import parse_args
+# Import libEnsemble items for this test
+from libensemble.libE import libE
+from libensemble.sim_funcs.comms_testing import float_x1000 as sim_f
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.mpi_controller import MPIJobController #Only used to get workerID in float_x1000
+jobctrl = MPIJobController(auto_resources=False)
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()
@@ -36,49 +37,39 @@ if USE_DILL:
         MPI.pickle.dumps = dill.dumps
         MPI.pickle.loads = dill.loads
 
-# Import libEnsemble main, sim_specs, gen_specs, and persis_info
-from libensemble.libE import libE
-from libensemble.tests.regression_tests.support import float_x1000_sim_specs as sim_specs
-from libensemble.tests.regression_tests.support import uniform_random_sample_gen_specs as gen_specs
+array_size = int(1e6) # Size of large array in sim_specs
+rounds = 2 # Number of work units for each worker
+sim_max = nworkers*rounds
 
-from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
-persis_info = give_each_worker_own_stream({},nworkers+1)
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('arr_vals', float, array_size), ('scal_val', float)],}
 
-from libensemble.mpi_controller import MPIJobController #Only being used to pass workerID
-from libensemble.resources import Resources #Only to get number of workers
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (2,))],
+    'lb': np.array([-3, -2]),
+    'ub': np.array([3, 2]),
+    'gen_batch_size': sim_max,
+    'batch_mode': True,
+    'num_active_gens': 1,
+    'save_every_k': 300,}
 
-jobctrl = MPIJobController(auto_resources = False)
-#jobctrl.register_calc(full_path=sim_app, calc_type='sim') #Test with no app registered.
-num_workers = Resources.get_num_workers()
+persis_info = per_worker_stream({}, nworkers+1)
 
-rounds = 2              # Number of work units for each worker
-sim_max = num_workers*rounds
-
-
-# This may not nec. be used for this test
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs['gen_batch_size'] = sim_max
-gen_specs['batch_mode'] = True
-gen_specs['num_active_gens'] =1
-gen_specs['save_every_k'] = 300
-
-gen_specs['out'] = [('x',float,(2,))]
-gen_specs['lb'] = np.array([-3,-2])
-gen_specs['ub'] = np.array([ 3, 2])
-
-#sim_max = num_workers
 exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 
-
 ## Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            libE_specs=libE_specs)
 
 if is_master:
     assert flag == 0
-    for w in range(1, num_workers+1):
-        x = w * 1000.0
+    for w in range(1, nworkers+1):
+        x = w*1000.0
         assert np.all(H['arr_vals'][w-1] == x), "Array values do not all match"
-        assert H['scal_val'][w-1] == x + x/1e7, "Scalar values do not all match"
+        assert H['scal_val'][w-1] == x+x/1e7, "Scalar values do not all match"
 
-    save_libE_output(H,__file__,nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)

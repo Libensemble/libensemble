@@ -3,9 +3,6 @@ This module contains multiple generation functions for sampling a domain. All
 use (and return) a random stream in ``persis_info``, given by the allocation
 function.
 """
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
 def uniform_random_sample_with_different_nodes_and_ranks(H,persis_info,gen_specs,_):

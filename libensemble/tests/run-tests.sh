@@ -25,6 +25,7 @@ export LIBE_SRC_DIR=$CODE_DIR
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
 export UNIT_TEST_NOMPI_SUBDIR=$TESTING_DIR/unit_tests_nompi
+export UNIT_TEST_LOGGER_SUBDIR=$TESTING_DIR/unit_tests_logger
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
 
 #Coverage merge and report dir - will need the relevant .coveragerc file present
@@ -125,11 +126,12 @@ cleanup() {
   THISDIR=${PWD}
   cd $ROOT_DIR/$TESTING_DIR
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
-  for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR ; do
+  for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
   cd $ROOT_DIR/$DIR
     filelist=(libE_history_at_abort_*.npy);                  [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
     filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
+    filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
     filelist=(job_my_simjob.x*.out);   [ -e ${filelist[0]} ] && rm job_my_simjob.x*.out
@@ -142,6 +144,7 @@ cleanup() {
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
+    filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_reg_out*);          [ -e ${filelist[0]} ] && rm .cov_reg_out*
     filelist=(*active_runs.txt);       [ -e ${filelist[0]} ] && rm *active_runs.txt
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
@@ -334,7 +337,7 @@ if [ "$root_found" = true ]; then
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running unit tests"
     tput sgr 0
 
-    for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR ; do
+    for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
     cd $ROOT_DIR/$DIR
 #     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
@@ -516,10 +519,11 @@ if [ "$root_found" = true ]; then
           cd $ROOT_DIR/$COV_MERGE_DIR
           cp $ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out .
           cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
+          cp $ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3 .
           cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_unit_out2 .cov_reg_out #Should create .cov_merge_out - see .coveragerc
+          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out #Should create .cov_merge_out - see .coveragerc
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 

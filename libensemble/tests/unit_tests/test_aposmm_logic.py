@@ -44,10 +44,10 @@ def test_failing_localopt_method():
 
 
 def test_exception_raising():
-    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1(n=2)
     hist.H['returned'] = 1
 
-    for method in ['LN_SBPLX','pounders']:
+    for method in ['LN_SBPLX','pounders','scipy_COBYLA']:
         gen_specs_0['localopt_method'] = method
         try:
             al.advance_localopt_method(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
@@ -85,6 +85,24 @@ def test_initialize_APOSMM():
 
     al.initialize_APOSMM(hist.H,gen_specs_0)
 
+def test_declare_opt():
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1(n=2)
+
+    try: 
+        al.update_history_optimal(hist.H['x_on_cube'][0]+1,hist.H,np.arange(0,10))
+    except: 
+        assert 1, "Failed because the best point is not in H"
+    else: 
+        assert 0
+
+
+    hist.H['x_on_cube'][1] += np.finfo(float).eps
+    hist.H['f'][1] -= np.finfo(float).eps
+
+    # Testing case where point near x_opt is slightly better. 
+    al.update_history_optimal(hist.H['x_on_cube'][0],hist.H,np.arange(0,10))
+    assert np.sum(hist.H['local_min']) == 2
+
 
 
 
@@ -98,4 +116,6 @@ if __name__ == "__main__":
     test_calc_rk()
     print('done')
     test_initialize_APOSMM()
+    print('done')
+    test_declare_opt()
     print('done')

@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 import sys
 
@@ -36,6 +33,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # Something new is in the history.
         persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())
         persis_info['H_len']=len(H)
+        persis_info['pt_ids']=set(np.unique(H['pt_id']))
+        for pt_id in persis_info['pt_ids']: 
+            persis_info['inds_of_pt_ids'][pt_id] = H['pt_id']==pt_id
 
     idle_workers = avail_worker_ids(W)
 
@@ -55,16 +55,14 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # best, known, complete evaluation (and the point is not a
             # local_pt).
             if 'stop_partial_fvec_eval' in alloc_specs and alloc_specs['stop_partial_fvec_eval']:
-                pt_ids = np.unique(H['pt_id'])
+                pt_ids = set(persis_info['pt_ids']) - persis_info['has_nan'] - persis_info['complete']
+                pt_ids = np.array(list(pt_ids))
                 partial_fvals = np.zeros(len(pt_ids)) 
 
                 # Mark 'complete' and 'has_nan' pt_ids, compute complete and partial fvals
                 for j,pt_id in enumerate(pt_ids):
-                    if (pt_id in persis_info['has_nan']) or \
-                       (pt_id in persis_info['complete']):
-                        continue
 
-                    a1 = H['pt_id']==pt_id
+                    a1 = persis_info['inds_of_pt_ids'][pt_id] 
                     if np.any(np.isnan(H['f_i'][a1])):
                         persis_info['has_nan'].add(pt_id)
                         continue
@@ -83,7 +81,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 if len(persis_info['complete']) and len(pt_ids)>1:
 
                     worse_flag = np.zeros(len(pt_ids),dtype=bool)
-                    for j in range(len(pt_ids)):
+                    for j,pt_id in enumerate((pt_ids)):
                         if (not np.isnan(partial_fvals[j])) and \
                            (not pt_id in persis_info['local_pt_ids']) and \
                            (not pt_id in persis_info['complete']) and \

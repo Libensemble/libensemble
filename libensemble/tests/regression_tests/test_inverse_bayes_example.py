@@ -8,63 +8,53 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
 from libensemble.libE import libE
-from libensemble.tests.regression_tests.common import parse_args
+from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
+from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
+from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
+from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
-
-from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
-persis_info = give_each_worker_own_stream({},nworkers+1)
-
-# Import sim_func
-from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
-
-# Import gen_func
-from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
-
-# Import alloc_func
-from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
-
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('like',float), # This is the output from the function being minimized
-                    ],
-             }
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': [('x',float,2),('batch',int),('subbatch',int),('prior',float,1),('prop',float,1), ('weight',float,1)],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
-             'subbatch_size': 3,
-             'num_subbatches': 2,
-             'num_batches': 10,
-             }
-
-# Tell libEnsemble when to stop
-exit_criteria = {'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches'], 'elapsed_wallclock_time': 300}
-
-alloc_specs = {'out':[], 'alloc_f':alloc_f}
 
 if nworkers < 2:
     # Can't do a "persistent worker run" if only one worker
     quit()
 
+#State the objective function, its arguments, output, and necessary parameters (and their sizes)
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('like', float)]}
+
+# State the generating function, its arguments, output, and necessary parameters.
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [],
+    'out': [('x', float, 2), ('batch', int), ('subbatch', int),
+            ('prior', float, 1), ('prop', float, 1), ('weight', float, 1)],
+    'lb': np.array([-3, -2]),
+    'ub': np.array([3, 2]),
+    'subbatch_size': 3,
+    'num_subbatches': 2,
+    'num_batches': 10,}
+
+persis_info = per_worker_stream({}, nworkers+1)
+
+# Tell libEnsemble when to stop
+exit_criteria = {
+    'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*
+               gen_specs['num_batches'],
+    'elapsed_wallclock_time': 300}
+
+alloc_specs = {'out': [], 'alloc_f': alloc_f}
+
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
 
 if is_master:
     assert flag == 0
     # Change the last weights to correct values (H is a list on other cores and only array on manager)
     ind = 2*gen_specs['subbatch_size']*gen_specs['num_subbatches']
-    H[-ind:] = H['prior'][-ind:] + H['like'][-ind:] - H['prop'][-ind:]
-    # np.save('in_bayes_ex', H)
+    H[-ind:] = H['prior'][-ind:]+H['like'][-ind:]-H['prop'][-ind:]
     assert len(H) == 60, "Failed"

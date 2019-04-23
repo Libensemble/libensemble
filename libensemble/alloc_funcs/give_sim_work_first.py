@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import absolute_import
 import numpy as np
 
 from libensemble.alloc_funcs.support import \

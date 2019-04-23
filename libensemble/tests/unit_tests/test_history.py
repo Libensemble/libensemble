@@ -22,17 +22,17 @@ exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.
                      (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
       dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
 
-wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
-      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_time', '<f8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0)],
+      dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_time', '<f8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8'), ('local_min','?'), ('num_active_runs','<i8')])
 
 wrs2 = np.array([(0, False, 0., 0., 0, False, 0., False, -1, inf, 0.),
                  (0, False, 0., 0., 0, False, 0., False, -1, inf, 0.),

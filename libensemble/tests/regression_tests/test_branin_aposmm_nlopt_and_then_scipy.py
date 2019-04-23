@@ -1,95 +1,86 @@
 # """
 # """
-
-from __future__ import division
-from __future__ import absolute_import
-
-
 import numpy as np
-import copy
+from copy import deepcopy
+import pkg_resources
 
-from libensemble.tests.regression_tests.support import save_libE_output
-from libensemble.tests.regression_tests.common import parse_args
+# Import libEnsemble items for this test
+from libensemble.libE import libE
+from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
+from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
+from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out, branin_vals_and_minima as M
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
+
 if libE_specs['comms'] != 'mpi':
     quit()
 
-# Import sim_func and declare directory to be copied by each worker to do its evaluations in
-import pkg_resources; sim_dir_name=pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'sim_dir': pkg_resources.resource_filename(
+        'libensemble.sim_funcs.branin', ''), # to be copied by each worker
+    'clean_jobs': True,}
 
-# Import libEnsemble main, sim_specs, gen_specs, and persis_info
-from libensemble.libE import libE
-from libensemble.tests.regression_tests.support import branin_sim_specs as sim_specs
-from libensemble.tests.regression_tests.support import aposmm_without_grad_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import persis_info_2 as persis_info
-
-from libensemble.tests.regression_tests.support import give_each_worker_own_stream 
-persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
-persis_info_safe = copy.deepcopy(persis_info)
-
-w = nworkers
-
-# As an example, have the workers put their directories in a different
-# location. (Useful if a /scratch/ directory is faster than the filesystem.)
-# (Otherwise, will just copy in same directory as sim_dir)
-if w == 1:
+if nworkers == 1:
+    # Have the workers put their directories in a different (e.g., a faster
+    # /sandbox/ or /scratch/ directory)
+    # Otherwise, will just copy in same directory as sim_dir
     sim_specs['sim_dir_prefix'] = '~'
-
-if w == 3:
+elif nworkers == 3:
     sim_specs['uniform_random_pause_ub'] = 0.05
 
-n=2
-gen_specs['in'] += ['x','x_on_cube']
-gen_specs['out'] += [('x',float,n), ('x_on_cube',float,n),]
-gen_specs['lb'] = np.array([-5,0])
-gen_specs['ub'] = np.array([10,15])
-gen_specs['initial_sample_size'] = 20
-gen_specs['localopt_method'] = 'LN_BOBYQA'
-gen_specs['dist_to_bound_multiple'] = 0.99
-gen_specs['xtol_rel'] = 1e-3
-gen_specs['min_batch_size'] = w
-gen_specs['high_priority_to_best_localopt_runs'] = True
-gen_specs['max_active_runs'] = 3
+n = 2
+gen_out += [('x', float, n), ('x_on_cube', float, n)]
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [o[0] for o in gen_out]+['f', 'returned'],
+    'out': gen_out,
+    'num_active_gens': 1,
+    'batch_mode': True,
+    'lb': np.array([-5, 0]),
+    'ub': np.array([10, 15]),
+    'initial_sample_size': 20,
+    'localopt_method': 'LN_BOBYQA',
+    'dist_to_bound_multiple': 0.99,
+    'xtol_rel': 1e-3,
+    'min_batch_size': nworkers,
+    'high_priority_to_best_localopt_runs': True,
+    'max_active_runs': 3,}
+
+persis_info = per_worker_stream(persis_info, nworkers+1)
+persis_info_safe = deepcopy(persis_info)
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 150,
-                 'elapsed_wallclock_time': 100,
-                 'stop_val': ('f', -1), # key must be in H
-                }
+exit_criteria = {
+    'sim_max': 150,
+    'elapsed_wallclock_time': 100,
+    'stop_val': ('f', -1), # key must be in H
+}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+for run in range(2):
+    if run == 1:
+        gen_specs['localopt_method'] = 'scipy_COBYLA'
+        gen_specs.pop('xtol_rel')
+        gen_specs['tol'] = 1e-5
+        exit_criteria['sim_max'] = 500
+        persis_info = deepcopy(persis_info_safe)
 
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                persis_info, libE_specs=libE_specs)
 
-if is_master:
-    from libensemble.tests.regression_tests.support import branin_vals_and_minima as M
+    if is_master:
+        M = M[M[:, -1].argsort()] # Sort by function values (last column)
+        k = M.shape[0]
+        tol = 1e-5
+        for i in range(k):
+            dist = np.min(np.sum((H['x'][H['local_min']]-M[i, :2])**2, 1))
+            print(dist)
+            assert dist < tol
 
-    M = M[M[:,-1].argsort()] # Sort by function values (last column)
-    k = 3; tol = 1e-5
-    for i in range(k):
-        print(np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)))
-        assert np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)) < tol
-
-    print("\nlibEnsemble with APOSMM + NLopt has identified the " + str(k) + " best minima within a tolerance " + str(tol))
-    save_libE_output(H,__file__,nworkers)
-
-gen_specs['localopt_method'] = 'scipy_COBYLA'
-gen_specs.pop('xtol_rel')
-gen_specs['tol'] = 1e-5
-exit_criteria['sim_max'] = 500
-persis_info = copy.deepcopy(persis_info_safe)
-
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-
-if is_master:
-    M = M[M[:,-1].argsort()] # Sort by function values (last column)
-    k = 3; tol = 1e-5
-    for i in range(k):
-        print(np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)))
-        assert np.min(np.sum((H['x'][H['local_min']]-M[i,:2])**2,1)) < tol
-
-    print("\nlibEnsemble with APOSMM + SciPy has identified the " + str(k) + " best minima within a tolerance " + str(tol))
-    save_libE_output(H,__file__,nworkers)
-
+        print("\nAPOSMM + "+gen_specs['localopt_method']+" found "+str(k)+
+              " minima to tolerance "+str(tol))
+        save_libE_output(H, persis_info, __file__, nworkers)

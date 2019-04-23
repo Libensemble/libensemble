@@ -1,8 +1,4 @@
 # Sim_func
-
-from __future__ import division
-from __future__ import absolute_import
-
 __all__ = ['likelihood_calculator']
 
 import subprocess, os

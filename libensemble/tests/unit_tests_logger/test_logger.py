@@ -47,34 +47,40 @@ def test_set_log_level():
     #assert level_from_child_logger==20, "Log level from child logger should be 20. Found: " + str(level)
 
 
-#def test_set_filename():
-    #from libensemble.comms.logs import LogConfig
-    ##from libensemble.comms.logs import manager_logging_config
-    #alt_name = "alt_name.log"
+def test_set_filename():
+    from libensemble.comms.logs import LogConfig
+    from libensemble.comms.logs import manager_logging_config
+    alt_name = "alt_name.log"
     
-    ## Test
-    #logs = LogConfig.config
-    #print('logger set:',logs.logger_set)
+    # #Test
+    logs = LogConfig.config
+    print('logger set:',logs.logger_set)
     
-    #logs = LogConfig.config
-    #assert logs.filename=="ensemble.log", "Log filename expected ensemble.log. Found: " + logs.filename
+    logs = LogConfig.config
+    assert logs.filename=="ensemble.log", "Log filename expected ensemble.log. Found: " + logs.filename
     
-    #libE_logger.set_filename(alt_name)
-    #assert logs.filename==alt_name, "Log filename expected " + str(alt_name) + ". Found: " + logs.filename
+    libE_logger.set_filename(alt_name)
+    assert logs.filename==alt_name, "Log filename expected " + str(alt_name) + ". Found: " + logs.filename
     
-    #manager_logging_config()
-    #libE_logger.set_filename('toolate.log')
-    #assert logs.filename==alt_name, "Log filename expected " + str(alt_name) + ". Found: " + logs.filename
+    manager_logging_config()
+    libE_logger.set_filename('toolate.log')
+    assert logs.filename==alt_name, "Log filename expected " + str(alt_name) + ". Found: " + logs.filename
 
-    #assert os.path.isfile(alt_name), "Expected creation of file" + str(alt_name)
-    #with open(alt_name,'r') as f:
-        #line = f.readline()
-        #assert "Cannot set filename after loggers initialized" in line
-    #os.remove(alt_name)
+    assert os.path.isfile(alt_name), "Expected creation of file" + str(alt_name)
+    with open(alt_name,'r') as f:
+        line = f.readline()
+        assert "Cannot set filename after loggers initialized" in line
+    os.remove(alt_name)
+
+    logs = LogConfig.config
+    logs.logger_set=True
+    logs.set_level('DEBUG')
 
 # Need setup/teardown here to kill loggers if running file without pytest
 # Issue: cannot destroy loggers and they are set up in other unit tests.
+# Partial solution: either rename the file so it is the first unit test, or
+#   move this unit test to its own directory.
 if __name__ == "__main__":
     test_set_log_level()
     #test_change_log_level()
-    #test_set_filename()
+    test_set_filename()
