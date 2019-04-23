@@ -81,7 +81,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 if len(persis_info['complete']) and len(pt_ids)>1:
 
                     worse_flag = np.zeros(len(pt_ids),dtype=bool)
-                    for j in range(len(pt_ids)):
+                    for j,pt_id in enumerate((pt_ids)):
                         if (not np.isnan(partial_fvals[j])) and \
                            (not pt_id in persis_info['local_pt_ids']) and \
                            (not pt_id in persis_info['complete']) and \

@@ -413,9 +413,9 @@ def update_history_optimal(x_opt, H, run_inds):
     if dists[ind] > 1e-15:
         print("Dist from x_opt to closest point is:" + str(dists[ind]))
         print("Report this!")
-        sys.stdout.flush()
         print(x_opt)
         print(run_inds)
+        sys.stdout.flush()
     assert dists[ind] <= 1e-15, "Why is the closest point to x_opt not within 1e-15?"
 
     failsafe_min = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists<1e-8) 
