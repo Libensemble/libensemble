@@ -44,10 +44,10 @@ def test_failing_localopt_method():
 
 
 def test_exception_raising():
-    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1(n=2)
     hist.H['returned'] = 1
 
-    for method in ['LN_SBPLX','pounders']:
+    for method in ['LN_SBPLX','pounders','scipy_COBYLA']:
         gen_specs_0['localopt_method'] = method
         try:
             al.advance_localopt_method(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})

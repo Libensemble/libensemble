@@ -7,7 +7,7 @@ from libensemble.history import History
 
 def make_criteria_and_specs_0(simx=10,n=1):
     sim_specs={'sim_f': np.linalg.norm, 'in':['x_on_cube'], 'out':[('f',float),('fvec',float,3)], }
-    gen_specs={'gen_f': np.random.uniform, 'in':[], 'out':[('x_on_cube',float,n),('priority',float),('local_pt',bool),('local_min',bool),('num_active_runs',int)], 'ub':np.ones(1), 'nu':0}
+    gen_specs={'gen_f': np.random.uniform, 'in':[], 'out':[('x_on_cube',float,n),('priority',float),('local_pt',bool),('local_min',bool),('num_active_runs',int)], 'ub':np.ones(n), 'lb':np.zeros(n), 'nu':0}
     exit_criteria={'sim_max':simx}
 
     return sim_specs, gen_specs, exit_criteria
