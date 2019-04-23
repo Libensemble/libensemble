@@ -72,6 +72,10 @@ def test_set_filename():
         assert "Cannot set filename after loggers initialized" in line
     os.remove(alt_name)
 
+    logs = LogConfig.config
+    logs.logger_set=True
+    logs.set_level('DEBUG')
+
 # Need setup/teardown here to kill loggers if running file without pytest
 # Issue: cannot destroy loggers and they are set up in other unit tests.
 # Partial solution: either rename the file so it is the first unit test, or
