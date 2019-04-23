@@ -44,7 +44,7 @@ def test_failing_localopt_method():
 
 
 def test_exception_raising():
-    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1(n=1)
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
     hist.H['returned'] = 1
 
     for method in ['LN_SBPLX','pounders']:
@@ -86,7 +86,7 @@ def test_initialize_APOSMM():
     al.initialize_APOSMM(hist.H,gen_specs_0)
 
 def test_declare_opt():
-    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1(n=2)
 
     try: 
         al.update_history_optimal(hist.H['x_on_cube'][0]+1,hist.H,np.arange(0,10))
