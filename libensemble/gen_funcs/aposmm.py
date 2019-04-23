@@ -404,19 +404,27 @@ def update_history_optimal(x_opt, H, run_inds):
     """
 
     # opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
-    # assert len(opt_ind) == 1, "Why isn't there exactly one optimal point?"
-    # assert opt_ind in run_inds, "Why isn't the run optimum a point in the run?"
+    run_inds = np.unique(run_inds)
 
     dists = np.linalg.norm(H['x_on_cube'][run_inds]-x_opt,axis=1)
     ind = np.argmin(dists)
     opt_ind = run_inds[ind]
 
-    if dists[ind] >= 1e-15:
+    if dists[ind] > 1e-15:
         print("Dist from x_opt to closest point is:" + str(dists[ind]))
+        print("Report this!")
+        sys.stdout.flush()
         print(x_opt)
         print(run_inds)
     assert dists[ind] <= 1e-15, "Why is the closest point to x_opt not within 1e-15?"
-    assert np.min(dists[run_inds != opt_ind]) >= 1e-15, "Why are there two points from the run within 1e-15 of x_opt?"
+
+    failsafe_min = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists<1e-8) 
+    if np.any(failsafe_min):
+        # Rare event, but want to not start another run next to a minimum
+        print('Marking more than 1 point in this run as a min!')
+        print("Report this!")
+        sys.stdout.flush()
+        H['local_min'][run_inds[failsafe_min]] = 1
 
     H['local_min'][opt_ind] = 1
     H['num_active_runs'][run_inds] -= 1
