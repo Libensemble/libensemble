@@ -217,8 +217,9 @@ def aposmm_logic(H, persis_info, gen_specs, _):
                 updated_inds.update(sorted_run_inds)
 
             else:
-                matching_ind = np.where(
-                    np.equal(x_new, O['x_on_cube']).all(1))[0]
+                # Check if x_new is already being requested (a check if it's in
+                # H is performed inside advance_localopt_method)
+                matching_ind = np.where(np.equal(x_new, O['x_on_cube']).all(1))[0]
                 if len(matching_ind) == 0:
                     persis_info = add_points_to_O(O, x_new, H, gen_specs,
                                                   c_flag, persis_info,
@@ -309,7 +310,7 @@ def add_points_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
         # O['priority'][-num_pts:] = 1
         # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
         if 'high_priority_to_best_localopt_runs' in gen_specs and gen_specs['high_priority_to_best_localopt_runs']:
-            O['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]]) # Give highest priority to run with lowest function value
+            O['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
         else:
             O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0, 1, num_pts)
         persis_info['run_order'][run].append(O[-num_pts]['sim_id'])
