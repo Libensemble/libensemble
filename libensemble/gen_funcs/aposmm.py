@@ -50,7 +50,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'fvec' [m floats]``: All objective components (if calculated together)
     - ``'obj_component' [int]``: Index corresponding to value in ``'f_i``'
     - ``'pt_id' [int]``: Identify the point (useful when evaluating different
-                         objective components for a given ``'x'``)
+      objective components for a given ``'x'``)
 
     When using libEnsemble to do individual objective component evaluations,
     APOSMM will return ``gen_specs['components']`` copies of each point, but
@@ -66,29 +66,36 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
-    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that
-                                       must be returned (with a non-nan value)
-                                       before a local opt run is started
+    - ``'initial_sample_size' [int]``: Number of uniformly sampled points 
+      must be returned (non-nan value) before a local opt run is started
+
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
-                                  (see 'advance_localopt_method' below for
-                                  supported methods)
+      (see 'advance_localopt_method' below for supported methods)
 
     Optional ``gen_specs`` entries are:
 
-    - ``'sample_points' [numpy array]``: The points to be sampled (in the original domain)
-    - ``'combine_component_func' [func]``: Function to combine objective components
+    - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
+    - ``'combine_component_func' [func]``: Function to combine obj components
     - ``'components' [int]``: Number of objective components
-    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the distance to the nearest boundary should the initial step size be in localopt runs
-    - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs with smallest observed function value are given priority
-    - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions (0 or 1 results in uniform sampling)
-    - ``'min_batch_size' [int]``: Lower bound on the number of points given every time APOSMM is called
-    - ``'mu' [float]``: Distance from the boundary that all localopt starting points must satisfy
-    - ``'nu' [float]``: Distance from identified minima that all starting points must satisfy
-    - ``'single_component_at_a_time' [bool]``: True if single objective components will be evaluated at a time
+    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
+      distance to the nearest boundary should the initial step size be in
+      localopt runs
+    - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs
+      with smallest observed function value are given priority
+    - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
+      (0 or 1 results in uniform sampling)
+    - ``'min_batch_size' [int]``: Lower bound on the number of points given
+      every time APOSMM is called
+    - ``'mu' [float]``: Distance from the boundary that all localopt starting
+      points must satisfy
+    - ``'nu' [float]``: Distance from identified minima that all starting
+      points must satisfy
+    - ``'single_component_at_a_time' [bool]``: True if single objective
+      components will be evaluated at a time
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
-    - ``'max_active_runs' [int]``: Upper bound on the number of runs APOSMM is advancing
+    - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
-    And ``gen_specs`` convergence tolerances for NLopt and PETSc/TAO localopt_methods:
+    And ``gen_specs`` convergence tolerances for NLopt, PETSc/TAO, SciPy 
 
     - ``'fatol' [float]``:
     - ``'ftol_abs' [float]``:
@@ -97,6 +104,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'grtol' [float]``:
     - ``'xtol_abs' [float]``:
     - ``'xtol_rel' [float]``:
+    - ``'tol' [float]``:
 
 
     As a default, APOSMM starts a local optimization runs from a point that:
@@ -139,15 +147,21 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     O:                new points to be sent back to the history
 
 
-    advance_localopt_method.x_new:      when re-running a local opt method to get the next point: stores the first new point requested by a local optimization method
-    advance_localopt_method.pt_in_run:  when re-running a local opt method to get the next point: counts function evaluations to know when a new point is given
+    When re-running a local opt method to get the next point: 
+    advance_localopt_method.x_new:      stores the first new point requested by
+                                        a local optimization method
+    advance_localopt_method.pt_in_run:  counts function evaluations to know
+                                        when a new point is given
 
     starting_inds:    indices where a runs should be started.
-    active_runs:      indices of active local optimization runs (currently saved to disk between calls to APOSMM)
-    sorted_run_inds:  indices of the considered run (in the order they were requested by the localopt method)
-    x_opt:            the reported minimum from a localopt run (disregarded unless exit_code isn't 0)
-    exit_code:        0 if a new localopt point has been found, otherwise it's the NLopt/POUNDERS code
-    samples_needed:   counts the number of additional uniformly drawn samples needed
+    active_runs:      indices of active local optimization runs 
+    sorted_run_inds:  indices of the considered run (in the order they were
+                      requested by the localopt method)
+    x_opt:            the reported minimum from a localopt run (disregarded
+                      unless exit_code isn't 0)
+    exit_code:        0 if a new localopt point has been found, otherwise it's
+                      the NLopt/TAO/SciPy code
+    samples_needed:   Number of additional uniformly drawn samples needed
 
 
     Description of persistent variables used to maintain the state of APOSMM
