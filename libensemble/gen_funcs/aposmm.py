@@ -141,9 +141,12 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     Description of intermediate variables in aposmm_logic:
 
     n:                domain dimension
-    c_flag:           True if giving libEnsemble individual components of fvec to evaluate. (Note if c_flag is True, APOSMM will only use the com
-    n_s:              the number of complete evaluations (not just component evaluations)
-    updated_inds:     indices of H that have been updated (and so all their information must be sent back to libE manager to update)
+    c_flag:           True if giving libEnsemble individual components of fvec
+                      to evaluate. (Note if c_flag is True, APOSMM will use
+                      only the component to store the function value f)
+    n_s:              the number of complete evaluations of sampled points
+    updated_inds:     indices of H that have been updated (and so all their
+                      information must be sent back to libE manager to update)
     O:                new points to be sent back to the history
 
 
