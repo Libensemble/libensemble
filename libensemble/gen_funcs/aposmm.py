@@ -32,24 +32,25 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'x' [n floats]``: Parameters being optimized over
     - ``'x_on_cube' [n floats]``: Parameters scaled to the unit cube
     - ``'f' [float]``: Objective function being minimized
-    - ``'local_pt' [bool]``: True if point from a local optimization run, false if it is a sample point
+    - ``'local_pt' [bool]``: True if point from a local optimization run
     - ``'dist_to_unit_bounds' [float]``: Distance to domain boundary
-    - ``'dist_to_better_l' [float]``: Distance to closest better local optimization point
-    - ``'dist_to_better_s' [float]``: Distance to closest better sample optimization point
+    - ``'dist_to_better_l' [float]``: Dist to closest better local opt point
+    - ``'dist_to_better_s' [float]``: Dist to closest better sample point
     - ``'ind_of_better_l' [int]``: Index of point ``'dist_to_better_l``' away
     - ``'ind_of_better_s' [int]``: Index of point ``'dist_to_better_s``' away
-    - ``'started_run' [bool]``: True if point has started a local optimization run
-    - ``'num_active_runs' [int]``: Counts number of non-terminated local runs the point is in
+    - ``'started_run' [bool]``: True if point has started a local opt run
+    - ``'num_active_runs' [int]``: Number of active local runs point is in
     - ``'local_min' [float]``: True if point has been ruled a local minima
     - ``'sim_id' [int]``: Row number of entry in history
 
     and optionally
 
     - ``'priority' [float]``: Value quantifying a point's desirability
-    - ``'f_i' [float]``: Value of ith objective component (if calculated one at a time)
+    - ``'f_i' [float]``: Value of ith objective component (if single_component)
     - ``'fvec' [m floats]``: All objective components (if calculated together)
     - ``'obj_component' [int]``: Index corresponding to value in ``'f_i``'
-    - ``'pt_id' [int]``: Identify the point (useful when evaluating different objective components for a given ``'x'``)
+    - ``'pt_id' [int]``: Identify the point (useful when evaluating different
+                         objective components for a given ``'x'``)
 
     When using libEnsemble to do individual objective component evaluations,
     APOSMM will return ``gen_specs['components']`` copies of each point, but
@@ -65,8 +66,12 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
-    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that must be returned (with a non-nan value) before a local optimization run is started
-    - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method (see 'advance_localopt_method' below for supported methods)
+    - ``'initial_sample_size' [int]``: Number of uniformly sampled points that
+                                       must be returned (with a non-nan value)
+                                       before a local opt run is started
+    - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
+                                  (see 'advance_localopt_method' below for
+                                  supported methods)
 
     Optional ``gen_specs`` entries are:
 
@@ -526,13 +531,13 @@ def set_up_and_run_scipy_minimize(Run_H, gen_specs):
     obj = lambda x: scipy_obj_fun(x, Run_H)
     x0 = Run_H['x_on_cube'][0]
 
-    #construct the bounds in the form of constraints
+    # Construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
         lo = {'type': 'ineq',
-             'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i]-lb}
+              'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i]-lb}
         up = {'type': 'ineq',
-             'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub-x[i]}
+              'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub-x[i]}
         cons.append(lo)
         cons.append(up)
 
@@ -729,8 +734,6 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
-    n = len(H['x_on_cube'][0])
-
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
             H['returned'] == 1,  # have a returned function value
@@ -759,7 +762,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     # else:
     #     cut_off_value = np.inf
 
-    ### Find the indices of points that...
+    # Find the indices of points that...
     sample_seeds = np.logical_and.reduce((
         ~H['local_pt'],  # are not localopt points
         # H['f'] <= cut_off_value,      # have a small enough objective value
@@ -775,7 +778,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     those_satisfying_S1 = H['dist_to_better_l'][sample_seeds] > r_k  # no better localopt point within r_k
     sample_start_inds = np.ix_(sample_seeds)[0][those_satisfying_S1]
 
-    ### Find the indices of points that...
+    # Find the indices of points that...
     local_seeds = np.logical_and.reduce((
         H['local_pt'],  # are localopt points
         H['dist_to_better_l'] > r_k,  # no better local point within r_k (L1)
