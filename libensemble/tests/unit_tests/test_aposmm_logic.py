@@ -49,12 +49,10 @@ def test_exception_raising():
 
     for method in ['LN_SBPLX','pounders','scipy_COBYLA']:
         gen_specs_0['localopt_method'] = method
-        try:
-            al.advance_localopt_method(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
-        except:
-            assert 1, "Failed like it should have"
-        else:
-            assert 0, "Failed like it should have"
+
+        out = al.advance_localopt_method(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
+
+        assert out[0]==0, "Failed like it should have"
 
 
 def test_decide_where_to_start_localopt():
