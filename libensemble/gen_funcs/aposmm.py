@@ -199,7 +199,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
         num_runs = len(persis_info['run_order'])
         if 'max_active_runs' in gen_specs and gen_specs['max_active_runs'] < num_runs:
-            # Stores run number and sim_id (row in H) of the best point in each run
+            # Store run number and sim_id of the best point in each run
             run_vals = np.zeros((num_runs, 2), dtype=int)
             for i, run in enumerate(persis_info['run_order'].keys()):
                 run_vals[i, 0] = run
@@ -217,14 +217,13 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
             # Take max_active_runs largest
             k_sorted = np.argpartition(-dist_to_better, kth=gen_specs['max_active_runs']-1)
-
             active_runs = set(run_vals[k_sorted[:gen_specs['max_active_runs']], 0].astype(int))
         else:
             active_runs = set(persis_info['run_order'].keys())
 
         inactive_runs = set()
 
-        # Find next point in any uncompleted runs using persis_info['run_order']
+        # Find next point in any uncompleted run using persis_info['run_order']
         for run in active_runs:
             if not np.all(H['returned'][persis_info['run_order'][run]]):
                 continue  # Can't advance a run if all points aren't returned.
@@ -232,7 +231,11 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
 
             if np.isinf(x_new).all():
-                assert exit_code > 0, "Exit code not zero, but no information in x_new.\n Local opt run "+str(run)+" after "+str(len(sorted_run_inds))+" evaluations.\n Worker crashing!"
+                assert exit_code > 0, ("Exit code not 0, but no information "
+                                       "in x_new.\n Local opt run "+str(run)+
+                                       "after "+str(len(sorted_run_inds))+
+                                       "evaluations.\n Worker crashing!")
+
                 # No new point was added. Hopefully at a minimum
                 update_history_optimal(x_opt, H, sorted_run_inds)
                 inactive_runs.add(run)
@@ -241,16 +244,16 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             else:
                 # Check if x_new is already being requested (a check if it's in
                 # H is performed inside advance_localopt_method)
-                matching_ind = np.where(np.equal(x_new, O['x_on_cube']).all(1))[0]
-                if len(matching_ind) == 0:
+                match_ind = np.where(np.equal(x_new, O['x_on_cube']).all(1))[0]
+                if len(match_ind) == 0:
                     persis_info = add_points_to_O(O, x_new, H, gen_specs,
                                                   c_flag, persis_info,
                                                   local_flag=1,
                                                   sorted_run_inds=sorted_run_inds,
                                                   run=run)
                 else:
-                    assert len(matching_ind) == 1, "This point shouldn't have ended up in the O twice!"
-                    persis_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
+                    assert len(match_ind) == 1, "This point shouldn't have ended up in the O twice!"
+                    persis_info['run_order'][run].append(O['sim_id'][match_ind[0]])
 
         for i in inactive_runs:
             old_run = persis_info['run_order'].pop(i)  # Deletes all run info
@@ -450,15 +453,15 @@ def update_history_optimal(x_opt, H, run_inds):
         print(x_opt)
         print(run_inds)
         sys.stdout.flush()
-    assert dists[ind] <= 1e-15, "Why is the closest point to x_opt not within 1e-15?"
+    assert dists[ind] <= 1e-15, "Closest point to x_opt not within 1e-15?"
 
-    failsafe_min = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < 1e-8)
-    if np.any(failsafe_min):
+    failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < 1e-8)
+    if np.any(failsafe):
         # Rare event, but want to not start another run next to a minimum
         print('Marking more than 1 point in this run as a min!')
         print("Report this!")
         sys.stdout.flush()
-        H['local_min'][run_inds[failsafe_min]] = 1
+        H['local_min'][run_inds[failsafe]] = 1
 
     H['local_min'][opt_ind] = 1
     H['num_active_runs'][run_inds] -= 1
@@ -522,13 +525,13 @@ def advance_localopt_method(H, gen_specs, c_flag, run, persis_info):
         else:
             sys.exit("Unknown localopt method. Exiting")
 
-        matching_ind = np.equal(advance_localopt_method.x_new, H['x_on_cube']).all(1)
-        if ~matching_ind.any():
+        match_ind = np.equal(advance_localopt_method.x_new, H['x_on_cube']).all(1)
+        if ~match_ind.any():
             # Generated a new point
             break
         else:
             # We need to add a previously evaluated point into this run
-            persis_info['run_order'][run].append(np.nonzero(matching_ind)[0][0])
+            persis_info['run_order'][run].append(np.nonzero(match_ind)[0][0])
 
     return x_opt, exit_code, persis_info, sorted_run_inds, advance_localopt_method.x_new
 
