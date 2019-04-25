@@ -205,7 +205,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         # Find next point in any uncompleted runs using persis_info['run_order']
         for run in active_runs:
             if not np.all(H['returned'][persis_info['run_order'][run]]):
-                continue # Can't advance a run if all points aren't returned.
+                continue  # Can't advance a run if all points aren't returned.
 
             x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_localopt_method(H, gen_specs, c_flag, run, persis_info)
 
@@ -230,7 +230,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
                     persis_info['run_order'][run].append(O['sim_id'][matching_ind[0]])
 
         for i in inactive_runs:
-            old_run = persis_info['run_order'].pop(i) # Deletes all run info
+            old_run = persis_info['run_order'].pop(i)  # Deletes all run info
             persis_info['old_runs'][i] = old_run
 
     if len(H) == 0:
@@ -238,12 +238,12 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     elif 'min_batch_size' in gen_specs:
         samples_needed = gen_specs['min_batch_size']-len(O)
     else:
-        samples_needed = int(not bool(len(O))) # 1 if len(O)==0, 0 otherwise
+        samples_needed = int(not bool(len(O)))  # 1 if len(O)==0, 0 otherwise
 
     if samples_needed > 0 and 'sample_points' in gen_specs:
-        v = np.sum(~H['local_pt']) # Number of sample points so far
+        v = np.sum(~H['local_pt'])  # Number of sample points so far
         sampled_points = gen_specs['sample_points'][v:v+samples_needed]
-        on_cube = False # Assume points are on original domain, not unit cube
+        on_cube = False  # Assume points are on original domain, not unit cube
         if len(sampled_points):
             persis_info = add_points_to_O(O, sampled_points, H, gen_specs,
                                           c_flag, persis_info, on_cube=on_cube)
@@ -538,7 +538,7 @@ def set_up_and_run_scipy_minimize(Run_H, gen_specs):
     method = gen_specs['localopt_method'][6:]
     res = scipy_optimize.minimize(obj, x0, method=method, options={'maxiter': len(Run_H['x_on_cube'])+1, 'tol': gen_specs['tol']})
 
-    if res['status'] == 2: # SciPy code for exhausting budget of evaluations, so not at a minimum
+    if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
         exit_code = 0
     else:
         if method == 'COBYLA':
@@ -586,7 +586,7 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     else:
         opt.set_initial_step(dist_to_bound)
 
-    opt.set_maxeval(len(Run_H)+1) # evaluate one more point
+    opt.set_maxeval(len(Run_H)+1)  # evaluate one more point
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
     if 'xtol_rel' in gen_specs:
         opt.set_xtol_rel(gen_specs['xtol_rel'])
@@ -600,7 +600,7 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()
 
-    if exit_code == 5: # NLOPT code for exhausting budget of evaluations, so not at a minimum
+    if exit_code == 5:  # NLOPT code for exhausting budget of evaluations, so not at a minimum
         exit_code = 0
 
     return x_opt, exit_code
@@ -732,25 +732,25 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
 
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
-            H['returned'] == 1, # have a returned function value
+            H['returned'] == 1,  # have a returned function value
             H['dist_to_better_s'] >
-            r_k, # no better sample point within r_k (L2)
-            ~H['started_run'], # have not started a run (L3)
+            r_k,  # no better sample point within r_k (L2)
+            ~H['started_run'],  # have not started a run (L3)
             H['dist_to_unit_bounds'] >=
-            mu, # have all components at least mu away from bounds (L4)
+            mu,  # have all components at least mu away from bounds (L4)
             np.all(
                 cdist(H['x_on_cube'], H['x_on_cube'][H['local_min']]) >= nu,
-                axis=1) # distance nu away from known local mins (L5)
+                axis=1)  # distance nu away from known local mins (L5)
         ))
     else:
         test_2_through_5 = np.logical_and.reduce((
-            H['returned'] == 1, # have a returned function value
+            H['returned'] == 1,  # have a returned function value
             H['dist_to_better_s'] >
-            r_k, # no better sample point within r_k (L2)
-            ~H['started_run'], # have not started a run (L3)
+            r_k,  # no better sample point within r_k (L2)
+            ~H['started_run'],  # have not started a run (L3)
             H['dist_to_unit_bounds'] >=
-            mu, # have all components at least mu away from bounds (L4)
-        )) # (L5) is always true when nu = 0
+            mu,  # have all components at least mu away from bounds (L4)
+        ))  # (L5) is always true when nu = 0
 
     assert gamma_quantile == 1, "This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?"
     # if gamma_quantile < 1:
@@ -760,29 +760,29 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
 
     ### Find the indices of points that...
     sample_seeds = np.logical_and.reduce((
-        ~H['local_pt'], # are not localopt points
+        ~H['local_pt'],  # are not localopt points
         # H['f'] <= cut_off_value,      # have a small enough objective value
-        ~np.isinf(H['f']), # have a non-infinity objective value
-        ~np.isnan(H['f']), # have a non-NaN objective value
-        test_2_through_5, # satisfy tests 2 through 5
+        ~np.isinf(H['f']),  # have a non-infinity objective value
+        ~np.isnan(H['f']),  # have a non-NaN objective value
+        test_2_through_5,  # satisfy tests 2 through 5
     ))
 
     # Uncomment the following to test the effect of ignorning LocalOpt points
     # in APOSMM. This allows us to test a parallel MLSL.
     # return list(np.ix_(sample_seeds)[0])
 
-    those_satisfying_S1 = H['dist_to_better_l'][sample_seeds] > r_k # no better localopt point within r_k
+    those_satisfying_S1 = H['dist_to_better_l'][sample_seeds] > r_k  # no better localopt point within r_k
     sample_start_inds = np.ix_(sample_seeds)[0][those_satisfying_S1]
 
     ### Find the indices of points that...
     local_seeds = np.logical_and.reduce((
-        H['local_pt'], # are localopt points
-        H['dist_to_better_l'] > r_k, # no better local point within r_k (L1)
-        ~np.isinf(H['f']), # have a non-infinity objective value
-        ~np.isnan(H['f']), # have a non-NaN objective value
+        H['local_pt'],  # are localopt points
+        H['dist_to_better_l'] > r_k,  # no better local point within r_k (L1)
+        ~np.isinf(H['f']),  # have a non-infinity objective value
+        ~np.isnan(H['f']),  # have a non-NaN objective value
         test_2_through_5,
-        H['num_active_runs'] == 0, # are not in an active run (L6)
-        ~H['local_min'] # are not a local min (L7)
+        H['num_active_runs'] == 0,  # are not in an active run (L6)
+        ~H['local_min']  # are not a local min (L7)
     ))
 
     local_start_inds2 = list(np.ix_(local_seeds)[0])
@@ -838,7 +838,7 @@ def calc_rk(n, n_s, rk_const, lhs_divisions=0):
         r_k = rk_const*(log(n_s)/n_s)**(1/n)
     else:
         k = np.floor(n_s/lhs_divisions).astype(int)
-        if k <= 1: # to prevent r_k=0
+        if k <= 1:  # to prevent r_k=0
             r_k = np.inf
         else:
             r_k = rk_const*(log(k)/k)**(1/n)
@@ -907,7 +907,7 @@ def display_exception(e):
     print(e.__doc__)
     print(e.args)
     _, _, tb = sys.exc_info()
-    traceback.print_tb(tb) # Fixed format
+    traceback.print_tb(tb)  # Fixed format
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
     print('An error occurred on line {} in statement {}'.format(line, text))
