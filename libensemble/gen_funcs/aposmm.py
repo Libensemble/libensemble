@@ -529,12 +529,12 @@ def set_up_and_run_scipy_minimize(Run_H, gen_specs):
     #construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
-        l = {'type': 'ineq',
+        lo = {'type': 'ineq',
              'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i]-lb}
-        u = {'type': 'ineq',
+        up = {'type': 'ineq',
              'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub-x[i]}
-        cons.append(l)
-        cons.append(u)
+        cons.append(lo)
+        cons.append(up)
 
     method = gen_specs['localopt_method'][6:]
     res = scipy_optimize.minimize(obj, x0, method=method, options={'maxiter': len(Run_H['x_on_cube'])+1, 'tol': gen_specs['tol']})
@@ -874,7 +874,7 @@ def initialize_APOSMM(H, gen_specs):
 
     # Rather than build up a large output, we will just make changes in the
     # given H, and then send back the rows corresponding to updated H entries.
-    O = np.empty(0, dtype=gen_specs['out'])
+    Out = np.empty(0, dtype=gen_specs['out'])
 
     if 'rk_const' in gen_specs:
         rk_c = gen_specs['rk_const']
@@ -901,7 +901,7 @@ def initialize_APOSMM(H, gen_specs):
     else:
         r_k = np.inf
 
-    return n, n_s, c_flag, O, r_k, mu, nu
+    return n, n_s, c_flag, Out, r_k, mu, nu
 
 
 def display_exception(e):
