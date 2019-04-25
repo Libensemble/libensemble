@@ -193,7 +193,8 @@ def aposmm_logic(H, persis_info, gen_specs, _):
                 if any(better):
                     dist_to_better[i] = np.min(P[i, better])
 
-            k_sorted = np.argpartition(-dist_to_better, kth=gen_specs['max_active_runs']- 1) # Take max_active_runs largest
+            # Take max_active_runs largest
+            k_sorted = np.argpartition(-dist_to_better, kth=gen_specs['max_active_runs']-1)
 
             active_runs = set(run_vals[k_sorted[:gen_specs['max_active_runs']], 0].astype(int))
         else:
@@ -535,8 +536,7 @@ def set_up_and_run_scipy_minimize(Run_H, gen_specs):
         cons.append(u)
 
     method = gen_specs['localopt_method'][6:]
-    res = scipy_optimize.minimize(obj,x0,method=gen_specs['localopt_method'][6:],
-            options={'maxiter': len(Run_H['x_on_cube'])+1,'tol': gen_specs['tol']})
+    res = scipy_optimize.minimize(obj, x0, method=method, options={'maxiter': len(Run_H['x_on_cube'])+1, 'tol': gen_specs['tol']})
 
     if res['status'] == 2: # SciPy code for exhausting budget of evaluations, so not at a minimum
         exit_code = 0
@@ -646,7 +646,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
 
     PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
     # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
-    if hasattr(tao,'setResidual'):
+    if hasattr(tao, 'setResidual'):
         tao.setResidual(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
     else:
         tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
@@ -864,7 +864,7 @@ def initialize_APOSMM(H, gen_specs):
 
     if c_flag:
         # Get the pt_id for non-nan, returned points
-        pt_ids = H['pt_id'][np.logical_and( H['returned'], ~np.isnan(H['f_i']))]
+        pt_ids = H['pt_id'][np.logical_and(H['returned'], ~np.isnan(H['f_i']))]
         _, counts = np.unique(pt_ids, return_counts=True)
         n_s = np.sum(counts == gen_specs['components'])
     else:
