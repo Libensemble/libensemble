@@ -120,6 +120,21 @@ Documentation
 
 * http://libensemble.readthedocs.org/
 
+Citing libEnsemble
+------------------
+Please use the following to cite libEnsemble in a publication:
+
+.. code-block:: bibtex
+
+  @techreport{libEnsemble,
+    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel},
+    title       = {{libEnsemble} Users Manual},
+    institution = {Argonne National Laboratory},
+    number      = {Revision 0.5.0},
+    year        = {2019},
+    url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
+  }
+
 
 Support 
 -------
