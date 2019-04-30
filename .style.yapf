@@ -1,6 +1,6 @@
 [style]
 based_on_style = pep8
-spaces_before_comment = 1
+spaces_before_comment = 2
 INDENT_WIDTH = 4
 SPLIT_BEFORE_DOT = True
 COLUMN_LIMIT = 79

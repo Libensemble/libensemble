@@ -15,10 +15,11 @@ from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt as gen
 from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens as alloc_f
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-if nworkers < 2: # Don't do a "persistent worker run" if only one worker
+if nworkers < 2:  # Don't do a "persistent worker run" if only one worker
     quit()
 
 n = 2
@@ -28,23 +29,21 @@ sim_specs = {
     'out': [('f', float), ('grad', float, n)]}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
-gen_specs = {
-    'gen_f': gen_f,
-    'in': [],
-    'localopt_method': 'LN_BOBYQA',
-    'xtol_rel': 1e-4,
-    'out': gen_out,
-    'lb': np.array([-3, -2]),
-    'ub': np.array([3, 2]),
-    'gen_batch_size': 2,
-    'batch_mode': True,
-    'num_active_gens': 1,
-    'localopt_method': 'LD_MMA',
-    'xtol_rel': 1e-4,}
+gen_specs = {'gen_f': gen_f,
+             'in': [],
+             'xtol_rel': 1e-4,
+             'out': gen_out,
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2]),
+             'gen_batch_size': 2,
+             'batch_mode': True,
+             'num_active_gens': 1,
+             'localopt_method': 'LD_MMA',
+             'xtol_rel': 1e-4}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
 
-persis_info = per_worker_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
 
@@ -55,11 +54,10 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_master:
     assert flag == 0
 
-    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
     tol = 0.1
     for m in minima:
-        assert np.min(np.sum((H['x']-m)**2, 1)) < tol
+        assert np.min(np.sum((H['x'] - m)**2, 1)) < tol
 
-    print("\nlibEnsemble found the 6 minima to a tolerance "+str(tol))
+    print("\nlibEnsemble found the 6 minima to a tolerance " + str(tol))
 
     save_libE_output(H, persis_info, __file__, nworkers)
