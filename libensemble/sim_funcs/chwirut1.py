@@ -221,7 +221,8 @@ y[211] =    10.0500;  t[211] =   3.7500;
 y[212] =    28.9000;  t[212] =   1.7500;
 y[213] =    28.9500;  t[213] =   1.7500;
 
-def EvaluateFunction(x,component=np.nan):
+
+def EvaluateFunction(x, component=np.nan):
     """
     Evaluates the chwirut function
     """
@@ -240,7 +241,7 @@ def EvaluateJacobian(x):
     """
     Evaluates the chwirut Jacobian
     """
-    j = np.zeros((NOBSERVATIONS,3))
+    j = np.zeros((NOBSERVATIONS, 3))
 
     for i in range(NOBSERVATIONS):
         base = np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
@@ -251,7 +252,8 @@ def EvaluateJacobian(x):
 
     return j
 
-def chwirut_eval(H,persis_info,sim_specs,_):
+
+def chwirut_eval(H, persis_info, sim_specs, _):
     """
     Evaluates the chwirut objective function at a given set of points in
     ``H['x']``. If ``'obj_component'`` is a field in ``sim_specs['out']``, only that
@@ -266,11 +268,11 @@ def chwirut_eval(H,persis_info,sim_specs,_):
     """
 
     batch = len(H['x'])
-    O = np.zeros(batch,dtype=sim_specs['out'])
+    O = np.zeros(batch, dtype=sim_specs['out'])
 
-    for i,x in enumerate(H['x']):
+    for i, x in enumerate(H['x']):
         if 'obj_component' in H.dtype.names:
-            if 'component_nan_frequency' in sim_specs and np.random.uniform(0,1)< sim_specs['component_nan_frequency']:
+            if 'component_nan_frequency' in sim_specs and np.random.uniform(0, 1) < sim_specs['component_nan_frequency']:
                 O['f_i'][i] = np.nan
             else:
                 O['f_i'][i] = EvaluateFunction(x, H['obj_component'][i])
@@ -291,5 +293,3 @@ def chwirut_eval(H,persis_info,sim_specs,_):
 #     J = EvaluateJacobian(x)
 
 #     print(f,J)
-
-

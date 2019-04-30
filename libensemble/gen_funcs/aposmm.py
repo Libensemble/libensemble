@@ -499,8 +499,8 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
             if c_flag:
                 Run_H_F = np.zeros(len(sorted_run_inds), dtype=[('fvec', float, gen_specs['components'])])
                 for i, ind in enumerate(sorted_run_inds):
-                    a1 = H['pt_id']==H['pt_id'][ind]
-                    Run_H_F['fvec'][i,:] = H['f_i'][a1]
+                    a1 = H['pt_id'] == H['pt_id'][ind]
+                    Run_H_F['fvec'][i, :] = H['f_i'][a1]
                 Run_H = merge_arrays([H[['x_on_cube']][sorted_run_inds], Run_H_F], flatten=True)
             else:
                 Run_H = H[['x_on_cube', 'fvec']][sorted_run_inds]
