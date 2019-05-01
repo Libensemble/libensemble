@@ -15,12 +15,13 @@ import logging
 import itertools
 import time
 
+from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 import libensemble.util.launcher as launcher
 from libensemble.util.timer import JobTimer
 
 logger = logging.getLogger(__name__)
-#To change logging level for just this module
-#logger.setLevel(logging.DEBUG)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
 
 STATES = """
 UNKNOWN
@@ -80,10 +81,10 @@ class Job:
         """
         self.id = next(Job.newid)
 
-        self.reset() # Set status attributes
+        self.reset()  # Set status attributes
         self.timer = JobTimer()
-        
-        #Run attributes
+
+        # Run attributes
         self.app = app
         self.app_args = app_args
         self.workerID = workerid
@@ -97,18 +98,17 @@ class Job:
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
-        
+
     def reset(self):
-        #Status attributes
+        # Status attributes
         self.state = 'CREATED'
         self.process = None
         self.errcode = None
-        self.finished = False # True means job ran, not that it succeeded
+        self.finished = False  # True means job ran, not that it succeeded
         self.success = False
         self.launch_time = None
-        self.runtime = 0 # Time since job started to latest poll (or finished).
-        self.total_time = None # Time from job submission until polled as finished.
-        
+        self.runtime = 0  # Time since job started to latest poll (or finished).
+        self.total_time = None  # Time from job submission until polled as finished.
 
     def workdir_exists(self):
         """Returns True if the job's workdir exists"""
@@ -154,7 +154,7 @@ class Job:
         if self.total_time is None:
             self.timer.stop()
             self.runtime = self.timer.elapsed
-            self.total_time = self.runtime # For direct launched jobs
+            self.total_time = self.runtime  # For direct launched jobs
 
     def check_poll(self):
         """Check whether polling this job makes sense."""
@@ -167,7 +167,6 @@ class Job:
                            format(self.name, self.state))
             return False
         return True
-
 
     def poll(self):
         """Polls and updates the status attributes of the job"""
@@ -189,7 +188,7 @@ class Job:
         self.success = (self.errcode == 0)
         self.state = 'FINISHED' if self.success else 'FAILED'
         logger.info("Job {} completed with errcode {} ({})".
-                     format(self.name, self.errcode, self.state))
+                    format(self.name, self.errcode, self.state))
 
     def kill(self, wait_time=60):
         """Kills or cancels the supplied job
@@ -233,12 +232,11 @@ class JobController:
     """
 
     controller = None
-    
-    
+
     def _wait_on_run(self, job, fail_time=None):
         '''Called by launch when wait_on_run is True'''
         start = time.time()
-        job.timer.start() # To ensure a start time before poll - will be overwritten unless finished by poll.
+        job.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
         job.launch_time = job.timer.tstart
         while job.state in NOT_STARTED_STATES:
             time.sleep(0.2)
@@ -252,7 +250,6 @@ class JobController:
                 job.poll()
                 logger.debug("After {} seconds: job {} polled as {}".format(fail_time, job.name, job.state))
 
-
     def __init__(self):
         """Instantiate a new JobController instance.
 
@@ -265,7 +262,7 @@ class JobController:
         """
         self.top_level_dir = os.getcwd()
         self.manager_signal = 'none'
-        self.default_apps = {'sim' : None, 'gen': None}
+        self.default_apps = {'sim': None, 'gen': None}
 
         self.wait_time = 60
         self.list_of_jobs = []
@@ -357,4 +354,3 @@ class JobController:
         "Kill a job"
         jassert(isinstance(job, Job), "Invalid job has been provided")
         job.kill(self.wait_time)
-

@@ -12,7 +12,7 @@ import logging
 import traceback
 import random
 import socket
-import pickle # Only used when saving output on error
+import pickle  # Only used when saving output on error
 
 import numpy as np
 import libensemble.util.launcher as launcher
@@ -26,8 +26,8 @@ from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 
 logger = logging.getLogger(__name__)
-#To change logging level for just this module
-#logger.setLevel(logging.DEBUG)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
 
 
 def eprint(*args, **kwargs):
@@ -61,7 +61,7 @@ def report_manager_exception(hist, persis_info, mgr_exc=None):
 def libE(sim_specs, gen_specs, exit_criteria,
          persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first,
-                      'out':[('allocated', bool)]},
+                      'out': [('allocated', bool)]},
          libE_specs={},
          H0=[]):
     """This is the outer libEnsemble routine.
@@ -150,10 +150,10 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
 
     try:
         persis_info, exit_flag = \
-          manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
-                       exit_criteria, persis_info, wcomms)
+            manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
+                         exit_criteria, persis_info, wcomms)
     except ManagerException as e:
-        report_manager_exception(hist, persis_info,  e)
+        report_manager_exception(hist, persis_info, e)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
@@ -179,7 +179,7 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
 
 def comms_abort(comm):
     "Abort all MPI ranks"
-    comm.Abort(1) # Exit code 1 to represent an abort
+    comm.Abort(1)  # Exit code 1 to represent an abort
 
 
 def libE_mpi_defaults(libE_specs):
@@ -251,10 +251,7 @@ def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs):
     logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
 
-
 # ==================== Process version =================================
-
-
 def start_proc_team(nworkers, sim_specs, gen_specs, log_comm=True):
     "Launch a process worker team."
     wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, log_comm)
@@ -343,6 +340,7 @@ def libE_tcp_worker_launcher(libE_specs):
         worker_launcher = libE_specs['worker_launcher']
     else:
         worker_cmd = libE_specs['worker_cmd']
+
         def worker_launcher(specs):
             "Basic worker launch function."
             return launcher.launch(worker_cmd, specs)
@@ -353,9 +351,7 @@ def libE_tcp_start_team(manager, nworkers, workers,
                         ip, port, authkey, launchf):
     "Launch nworkers workers that attach back to a managers server."
     worker_procs = []
-    specs = {'manager_ip' : ip,
-             'manager_port' : port,
-             'authkey' : authkey}
+    specs = {'manager_ip': ip, 'manager_port': port, 'authkey': authkey}
     with Timer() as timer:
         for w in range(1, nworkers+1):
             logger.info("Manager is launching worker {}".format(w))
@@ -402,8 +398,8 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
         # Launch worker team and set up logger
         worker_procs, wcomms =\
-          libE_tcp_start_team(manager, nworkers, workers,
-                              ip, port, authkey, launchf)
+            libE_tcp_start_team(manager, nworkers, workers,
+                                ip, port, authkey, launchf)
 
         def cleanup():
             "Handler to clean up launched team."
@@ -434,19 +430,19 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 
 
 _USER_SIM_ID_WARNING = '\n' + 79*'*' + '\n' + \
-"""User generator script will be creating sim_id.
-Take care to do this sequentially.
-Also, any information given back for existing sim_id values will be overwritten!
-So everything in gen_out should be in gen_in!""" + \
-'\n' + 79*'*' + '\n\n'
+    """User generator script will be creating sim_id.
+    Take care to do this sequentially.
+    Also, any information given back for existing sim_id values will be overwritten!
+    So everything in gen_out should be in gen_in!""" + \
+    '\n' + 79*'*' + '\n\n'
 
 
 def check_consistent_field(name, field0, field1):
     "Check that new field (field1) is compatible with an old field (field0)."
     assert field0.ndim == field1.ndim, \
-      "H0 and H have different ndim for field {}".format(name)
+        "H0 and H have different ndim for field {}".format(name)
     assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \
-      "H too small to receive all components of H0 in field {}".format(name)
+        "H too small to receive all components of H0 in field {}".format(name)
 
 
 def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
@@ -456,10 +452,10 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
     sufficient information to perform a run.
     """
 
-    if libE_specs.get('comms','undefined') in ['mpi']:
+    if libE_specs.get('comms', 'undefined') in ['mpi']:
         assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
 
-    # Check all the input fields are dicts        
+    # Check all the input fields are dicts
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
@@ -470,9 +466,8 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
     assert len(exit_criteria) > 0, "Must have some exit criterion"
     valid_term_fields = ['sim_max', 'gen_max',
                          'elapsed_wallclock_time', 'stop_val']
-    assert all([term_field in valid_term_fields
-                for term_field in exit_criteria]), \
-                "Valid termination options: " + str(valid_term_fields)
+    assert all([term_field in valid_term_fields for term_field in exit_criteria]), \
+        "Valid termination options: " + str(valid_term_fields)
 
     # Check that sim/gen have 'out' entries
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
@@ -484,20 +479,20 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
         sim_out_names = [e[0] for e in sim_specs['out']]
         gen_out_names = [e[0] for e in gen_specs['out']]
         assert stop_name in sim_out_names + gen_out_names, \
-          "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
+            "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
 
     # Handle if gen outputs sim IDs
     from libensemble.libE_fields import libE_fields
-    
+
     if bool(gen_specs) and ('sim_id', int) in gen_specs['out']:
         if is_master:
             print(_USER_SIM_ID_WARNING)
             sys.stdout.flush()
-         # Must remove 'sim_id' from libE_fields (it is in gen_specs['out'])
+        # Must remove 'sim_id' from libE_fields (it is in gen_specs['out'])
         libE_fields = libE_fields[1:]
 
     # Set up history -- combine libE_fields and sim/gen/alloc specs
-    H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k],[])))) # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
+    H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], []))))  # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
 
     # Sanity check prior history
     if len(H0):
@@ -505,12 +500,12 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
 
         # Prior history must contain the fields in new history
         assert set(fields).issubset(set(H.dtype.names)), \
-          "H0 contains fields {} not in H.".\
-          format(set(fields).difference(set(H.dtype.names)))
+            "H0 contains fields {} not in H.".\
+            format(set(fields).difference(set(H.dtype.names)))
 
         # Prior history cannot contain unreturned points
         assert 'returned' not in fields or np.all(H0['returned']), \
-          "H0 contains unreturned points."
+            "H0 contains unreturned points."
 
         # Check dimensional compatibility of fields
         for field in fields:

@@ -12,8 +12,8 @@ from libensemble.mpi_resources import MPIResources
 from libensemble.controller import JobController, Job, jassert
 
 logger = logging.getLogger(__name__)
-#To change logging level for just this module
-#logger.setLevel(logging.DEBUG)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
 
 
 class MPIJobController(JobController):
@@ -62,26 +62,25 @@ class MPIJobController(JobController):
         self.auto_resources = auto_resources
         if self.auto_resources:
             self.resources = \
-              MPIResources(top_level_dir=self.top_level_dir,
-                           central_mode=central_mode,
-                           nodelist_env_slurm=nodelist_env_slurm,
-                           nodelist_env_cobalt=nodelist_env_cobalt)
+                MPIResources(top_level_dir=self.top_level_dir,
+                             central_mode=central_mode,
+                             nodelist_env_slurm=nodelist_env_slurm,
+                             nodelist_env_cobalt=nodelist_env_cobalt)
 
         mpi_commands = {
-            'mpich':   ['mpirun', '--env {env}', '-machinefile {machinefile}',
-                        '-hosts {hostlist}', '-np {num_procs}',
-                        '--ppn {ranks_per_node}'],
+            'mpich': ['mpirun', '--env {env}', '-machinefile {machinefile}',
+                      '-hosts {hostlist}', '-np {num_procs}',
+                      '--ppn {ranks_per_node}'],
             'openmpi': ['mpirun', '-x {env}', '-machinefile {machinefile}',
                         '-host {hostlist}', '-np {num_procs}',
                         '-npernode {ranks_per_node}'],
-            'aprun':   ['aprun', '-e {env}',
-                        '-L {hostlist}', '-n {num_procs}',
-                        '-N {ranks_per_node}'],
-            'jsrun':   ['jsrun', '--np {num_procs}']
+            'aprun': ['aprun', '-e {env}',
+                      '-L {hostlist}', '-n {num_procs}',
+                      '-N {ranks_per_node}'],
+            'jsrun': ['jsrun', '--np {num_procs}']
         }
         self.mpi_launcher = MPIResources.get_MPI_variant()
         self.mpi_command = mpi_commands[self.mpi_launcher]
-
 
     def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
                        machinefile, hyperthreads):
@@ -89,39 +88,38 @@ class MPIJobController(JobController):
         hostlist = None
         if machinefile is None and self.auto_resources:
 
-            #kludging this for now - not nec machinefile if more than one node
-            #- try a hostlist
+            # kludging this for now - not nec machinefile if more than one node
+            # - try a hostlist
             num_procs, num_nodes, ranks_per_node = \
-              self.resources.get_resources(
-                  num_procs=num_procs,
-                  num_nodes=num_nodes, ranks_per_node=ranks_per_node,
-                  hyperthreads=hyperthreads)
+                self.resources.get_resources(
+                    num_procs=num_procs,
+                    num_nodes=num_nodes, ranks_per_node=ranks_per_node,
+                    hyperthreads=hyperthreads)
 
             if num_nodes > 1:
-                #hostlist
+                # hostlist
                 hostlist = self.resources.get_hostlist()
             else:
-                #machinefile
+                # machinefile
                 machinefile = "machinefile_autogen"
                 if self.workerID is not None:
                     machinefile += "_for_worker_{}".format(self.workerID)
                 mfile_created, num_procs, num_nodes, ranks_per_node = \
-                  self.resources.create_machinefile(
-                      machinefile, num_procs, num_nodes,
-                      ranks_per_node, hyperthreads)
+                    self.resources.create_machinefile(
+                        machinefile, num_procs, num_nodes,
+                        ranks_per_node, hyperthreads)
                 jassert(mfile_created, "Auto-creation of machinefile failed")
 
         else:
             num_procs, num_nodes, ranks_per_node = \
-              MPIResources.job_partition(num_procs, num_nodes,
-                                         ranks_per_node, machinefile)
+                MPIResources.job_partition(num_procs, num_nodes,
+                                           ranks_per_node, machinefile)
 
         return {'num_procs': num_procs,
                 'num_nodes': num_nodes,
                 'ranks_per_node': ranks_per_node,
                 'machinefile': machinefile,
                 'hostlist': hostlist}
-
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
@@ -169,7 +167,7 @@ class MPIJobController(JobController):
         test: boolean, optional
             Whether this is a test - No job will be launched. Instead
             runline is printed to logger (At INFO level).
-            
+
         wait_on_run: boolean, optional
             Whether to wait for job to be polled as RUNNING (or other active/end state) before continuing.
 
@@ -207,7 +205,7 @@ class MPIJobController(JobController):
             logger.info('runline args are {}'.format(runline))
         else:
             logger.info("Launching job {}: {}".
-                         format(job.name, " ".join(runline))) #One line
+                        format(job.name, " ".join(runline)))  # One line
 
             subgroup_launch = True
             if self.mpi_launcher in ['aprun']:
@@ -218,33 +216,33 @@ class MPIJobController(JobController):
                 retry = False
                 try:
                     job.process = launcher.launch(runline, cwd='./',
-                                                stdout=open(job.stdout, 'w'),
-                                                stderr=open(job.stderr, 'w'),
-                                                start_new_session=subgroup_launch)
+                                                  stdout=open(job.stdout, 'w'),
+                                                  stderr=open(job.stderr, 'w'),
+                                                  start_new_session=subgroup_launch)
                 except Exception as e:
                     logger.warning('job {} launch command failed on try {} with error {}'.format(job.name, retry_count, e))
                     retry = True
-                    retry_count += 1 #
+                    retry_count += 1
                 else:
                     if (wait_on_run):
                         self._wait_on_run(job, self.fail_time)
-                    
+
                     if job.state == 'FAILED':
                         logger.warning('job {} failed immediately on try {} with err code {}'.format(job.name, retry_count, job.errcode))
                         retry = True
                         retry_count += 1
-                   
+
                 if retry and retry_count < self.max_launch_attempts:
-                    #retry_count += 1 # Do not want to reset job if not going to retry.
+                    # retry_count += 1 # Do not want to reset job if not going to retry.
                     time.sleep(retry_count*5)
-                    job.reset() # Note: Some cases may require user cleanup - currently not supported (could use callback)
+                    job.reset()  # Note: Some cases may require user cleanup - currently not supported (could use callback)
                 else:
                     break
 
             if not job.timer.timing:
                 job.timer.start()
-                job.launch_time = job.timer.tstart # Time not date - may not need if using timer.
-                
+                job.launch_time = job.timer.tstart  # Time not date - may not need if using timer.
+
             self.list_of_jobs.append(job)
 
         return job
