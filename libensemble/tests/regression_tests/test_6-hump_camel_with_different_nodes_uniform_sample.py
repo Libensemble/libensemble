@@ -23,48 +23,42 @@ if libE_specs['comms'] != 'mpi':
     # Can't do this one with processes either?  Wants a machine file.
     quit()
 
-#Parse arguments
+# Parse arguments
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    '-m', '--mfile', action="store", dest='machinefile',
-    help='A machine file containing ordered list of nodes required for each libE rank'
-)
+parser.add_argument('-m', '--mfile', action="store", dest='machinefile',
+                    help='A machine file containing ordered list of nodes required for each libE rank')
 args = parser.parse_args()
 
 try:
     libE_machinefile = open(args.machinefile).read().splitlines()
-except:
+except TypeError:
     if is_master:
         print("WARNING: No machine file provided - defaulting to local node")
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
 n = 2
-sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x', 'num_nodes', 'ranks_per_node'],
-    'out': [('f', float)],
-    'nodelist': libE_machinefile,}
+sim_specs = {'sim_f': sim_f,
+             'in': ['x', 'num_nodes', 'ranks_per_node'],
+             'out': [('f', float)],
+             'nodelist': libE_machinefile}
 
-gen_specs = {
-    'gen_f': gen_f,
-    'in': ['sim_id'],
-    'out': [
-        ('priority', float),
-        ('num_nodes', int),
-        ('ranks_per_node', int),
-        ('x', float, n),
-        ('x_on_cube', float, n),],
-    'initial_batch_size': 5,
-    'max_ranks_per_node': 8,
-    'num_active_gens': 1,
-    'batch_mode': False,
-    'give_all_with_same_priority': True,
-    'lb': np.array([-3, -2]),
-    'ub': np.array([3, 2]),
-    'max_num_nodes': nworkers # Used in uniform_random_sample_with_different_nodes_and_ranks,
-}
+gen_specs = {'gen_f': gen_f,
+             'in': ['sim_id'],
+             'out': [('priority', float),
+                     ('num_nodes', int),
+                     ('ranks_per_node', int),
+                     ('x', float, n),
+                     ('x_on_cube', float, n)],
+             'initial_batch_size': 5,
+             'max_ranks_per_node': 8,
+             'num_active_gens': 1,
+             'batch_mode': False,
+             'give_all_with_same_priority': True,
+             'max_num_nodes': nworkers,  # Used in uniform_random_sample_with_different_nodes_and_ranks,
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2])}
 
-persis_info = per_worker_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 

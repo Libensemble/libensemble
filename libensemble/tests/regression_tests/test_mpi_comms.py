@@ -9,8 +9,7 @@ if libE_specs['comms'] != 'mpi':
 
 def check_recv(comm, expected_msg):
     msg = comm.recv()
-    assert msg == expected_msg, \
-      "Expected {}, received {}".format(expected_msg, msg)
+    assert msg == expected_msg, "Expected {}, received {}".format(expected_msg, msg)
 
 
 def worker_main():

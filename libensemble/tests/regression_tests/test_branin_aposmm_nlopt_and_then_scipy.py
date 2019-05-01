@@ -16,13 +16,11 @@ nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()
 
-sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
-    'sim_dir': pkg_resources.resource_filename(
-        'libensemble.sim_funcs.branin', ''), # to be copied by each worker
-    'clean_jobs': True,}
+sim_specs = {'sim_f': sim_f,
+             'in': ['x'],
+             'out': [('f', float)],
+             'sim_dir': pkg_resources.resource_filename('libensemble.sim_funcs.branin', ''),  # to be copied by each worker
+             'clean_jobs': True}
 
 if nworkers == 1:
     # Have the workers put their directories in a different (e.g., a faster
@@ -34,31 +32,28 @@ elif nworkers == 3:
 
 n = 2
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
-gen_specs = {
-    'gen_f': gen_f,
-    'in': [o[0] for o in gen_out]+['f', 'returned'],
-    'out': gen_out,
-    'num_active_gens': 1,
-    'batch_mode': True,
-    'lb': np.array([-5, 0]),
-    'ub': np.array([10, 15]),
-    'initial_sample_size': 20,
-    'localopt_method': 'LN_BOBYQA',
-    'dist_to_bound_multiple': 0.99,
-    'xtol_rel': 1e-3,
-    'min_batch_size': nworkers,
-    'high_priority_to_best_localopt_runs': True,
-    'max_active_runs': 3,}
+gen_specs = {'gen_f': gen_f,
+             'in': [o[0] for o in gen_out] + ['f', 'returned'],
+             'out': gen_out,
+             'num_active_gens': 1,
+             'batch_mode': True,
+             'lb': np.array([-5, 0]),
+             'ub': np.array([10, 15]),
+             'initial_sample_size': 20,
+             'localopt_method': 'LN_BOBYQA',
+             'dist_to_bound_multiple': 0.99,
+             'xtol_rel': 1e-3,
+             'min_batch_size': nworkers,
+             'high_priority_to_best_localopt_runs': True,
+             'max_active_runs': 3}
 
-persis_info = per_worker_stream(persis_info, nworkers+1)
+persis_info = per_worker_stream(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
 
-# Tell libEnsemble when to stop
-exit_criteria = {
-    'sim_max': 150,
-    'elapsed_wallclock_time': 100,
-    'stop_val': ('f', -1), # key must be in H
-}
+# Tell libEnsemble when to stop (stop_val key must be in H)
+exit_criteria = {'sim_max': 150,
+                 'elapsed_wallclock_time': 100,
+                 'stop_val': ('f', -1)}
 
 # Perform the run
 for run in range(2):
@@ -73,7 +68,7 @@ for run in range(2):
                                 persis_info, libE_specs=libE_specs)
 
     if is_master:
-        M = M[M[:, -1].argsort()] # Sort by function values (last column)
+        M = M[M[:, -1].argsort()]  # Sort by function values (last column)
         k = M.shape[0]
         tol = 1e-5
         for i in range(k):
@@ -81,6 +76,5 @@ for run in range(2):
             print(dist)
             assert dist < tol
 
-        print("\nAPOSMM + "+gen_specs['localopt_method']+" found "+str(k)+
-              " minima to tolerance "+str(tol))
+        print("\nAPOSMM + " + gen_specs['localopt_method'] + " found " + str(k) + " minima to tolerance " + str(tol))
         save_libE_output(H, persis_info, __file__, nworkers)

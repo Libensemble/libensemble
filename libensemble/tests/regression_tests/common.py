@@ -75,11 +75,10 @@ def ssh_parse_args(args):
     cmd = " ".join(cmd)
     cmd = "( cd {} ; {} )".format(worker_pwd, cmd)
     ssh.append(cmd)
-    libE_specs = {
-        'workers': args.workers,
-        'worker_cmd': ssh,
-        'ip': 'localhost',
-        'comms': 'tcp'}
+    libE_specs = {'workers': args.workers,
+                  'worker_cmd': ssh,
+                  'ip': 'localhost',
+                  'comms': 'tcp'}
     return nworkers, True, libE_specs, args.tester_args
 
 
@@ -87,13 +86,12 @@ def client_parse_args(args):
     "Parse arguments for a TCP client."
     nworkers = args.nworkers or 4
     ip, port, authkey = args.server
-    libE_specs = {
-        'ip': ip,
-        'port': int(port),
-        'authkey': authkey.encode('utf-8'),
-        'workerID': args.workerID,
-        'nprocesses': nworkers,
-        'comms': 'tcp'}
+    libE_specs = {'ip': ip,
+                  'port': int(port),
+                  'authkey': authkey.encode('utf-8'),
+                  'workerID': args.workerID,
+                  'nprocesses': nworkers,
+                  'comms': 'tcp'}
     return nworkers, False, libE_specs, args.tester_args
 
 
@@ -145,8 +143,8 @@ def eprint(*args, **kwargs):
 def build_simfunc():
     import subprocess
 
-    #Build simfunc
-    #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
+    # Build simfunc
+    # buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
     buildstring = 'mpicc -o my_simjob.x ../unit_tests/simdir/my_simjob.c'
-    #subprocess.run(buildstring.split(),check=True) #Python3.5+
+    # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())

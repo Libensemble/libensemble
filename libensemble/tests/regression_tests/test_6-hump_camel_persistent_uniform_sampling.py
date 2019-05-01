@@ -22,22 +22,20 @@ if nworkers < 2:
     quit()
 
 n = 2
-sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float), ('grad', float, n)]}
+sim_specs = {'sim_f': sim_f,
+             'in': ['x'],
+             'out': [('f', float), ('grad', float, n)]}
 
-gen_specs = {
-    'gen_f': gen_f,
-    'in': [],
-    'gen_batch_size': 20,
-    'out': [('x', float, (n,))],
-    'lb': np.array([-3, -2]),
-    'ub': np.array([3, 2]),}
+gen_specs = {'gen_f': gen_f,
+             'in': [],
+             'gen_batch_size': 20,
+             'out': [('x', float, (n,))],
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2])}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
-persis_info = per_worker_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 

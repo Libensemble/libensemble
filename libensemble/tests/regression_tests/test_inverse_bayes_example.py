@@ -23,27 +23,23 @@ if nworkers < 2:
     # Can't do a "persistent worker run" if only one worker
     quit()
 
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('like', float)]}
 
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {
-    'gen_f': gen_f,
-    'in': [],
-    'out': [('x', float, 2), ('batch', int), ('subbatch', int),
-            ('prior', float, 1), ('prop', float, 1), ('weight', float, 1)],
-    'lb': np.array([-3, -2]),
-    'ub': np.array([3, 2]),
-    'subbatch_size': 3,
-    'num_subbatches': 2,
-    'num_batches': 10,}
+gen_specs = {'gen_f': gen_f,
+             'in': [],
+             'out': [('x', float, 2), ('batch', int), ('subbatch', int),
+                     ('prior', float, 1), ('prop', float, 1), ('weight', float, 1)],
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2]),
+             'subbatch_size': 3,
+             'num_subbatches': 2,
+             'num_batches': 10}
 
-persis_info = per_worker_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
 exit_criteria = {
-    'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*
-               gen_specs['num_batches'],
+    'sim_max': gen_specs['subbatch_size']*gen_specs['num_subbatches']*gen_specs['num_batches'],
     'elapsed_wallclock_time': 300}
 
 alloc_specs = {'out': [], 'alloc_f': alloc_f}
@@ -56,5 +52,5 @@ if is_master:
     assert flag == 0
     # Change the last weights to correct values (H is a list on other cores and only array on manager)
     ind = 2*gen_specs['subbatch_size']*gen_specs['num_subbatches']
-    H[-ind:] = H['prior'][-ind:]+H['like'][-ind:]-H['prop'][-ind:]
+    H[-ind:] = H['prior'][-ind:] + H['like'][-ind:] - H['prop'][-ind:]
     assert len(H) == 60, "Failed"
