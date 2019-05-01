@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import os             # for adding to path
 import time
 from mpi4py import MPI

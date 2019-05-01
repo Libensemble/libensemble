@@ -10,11 +10,13 @@ import itertools
 import subprocess
 
 logger = logging.getLogger(__name__)
-#To change logging level for just this module
-#logger.setLevel(logging.DEBUG)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
+
 
 class ResourcesException(Exception):
     "Resources module exception."
+
 
 class Resources:
 
@@ -86,10 +88,10 @@ class Resources:
             logger.debug('Running in central mode')
 
         # These presence of these env vars will be used to detect scheduler
-        self.nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
+        self.nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
 
-        #This is global nodelist avail to workers - may change to global_worker_nodelist
+        # This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir, central_mode=self.central_mode,
                                                              nodelist_env_slurm=self.nodelist_env_slurm,
                                                              nodelist_env_cobalt=self.nodelist_env_cobalt)
@@ -103,8 +105,7 @@ class Resources:
             self.local_node_count = len(self.local_nodelist)
             self.workers_per_node = self.get_workers_on_a_node()
 
-
-    #Will be in comms module ------------------------------------------------
+    # Will be in comms module ------------------------------------------------
 
     @staticmethod
     def am_I_manager():
@@ -123,8 +124,8 @@ class Resources:
     @staticmethod
     def get_num_workers():
         """Returns total number of workers"""
-        #Will use MPI_MODE from settyings.py global - for now assume using mpi.
-        #Or the function may be in some worker_concurrency module
+        # Will use MPI_MODE from settyings.py global - for now assume using mpi.
+        # Or the function may be in some worker_concurrency module
         from mpi4py import MPI
         num_workers = MPI.COMM_WORLD.Get_size() - 1
         return num_workers
@@ -136,15 +137,15 @@ class Resources:
             return 'Manager'
         return 'w{}'.format(Resources.get_workerID())
 
-    #Call from all libE tasks (pref. inc. manager)
+    # Call from all libE tasks (pref. inc. manager)
     @staticmethod
     def get_libE_nodes():
         """Returns a list of nodes running libE workers"""
         from mpi4py import MPI
         comm = MPI.COMM_WORLD
 
-        #This is a libE node
-        local_host = socket.gethostname() #or MPI version
+        # This is a libE node
+        local_host = socket.gethostname()  # or MPI version
         all_hosts = comm.allgather(local_host)
         return all_hosts
 
@@ -160,16 +161,16 @@ class Resources:
         """
 
         try:
-            subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+            subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             return 'aprun'
         except:
             pass
 
         try:
-            subprocess.check_call(['jsrun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+            subprocess.check_call(['jsrun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             return 'jsrun'
         except:
-            pass   
+            pass
 
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
         try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
@@ -179,7 +180,7 @@ class Resources:
             return 'mpich'
         return 'openmpi'
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     @staticmethod
     def _range_split(s):
@@ -214,7 +215,7 @@ class Resources:
         """Get global libEnsemble nodelist from the Cobalt environment"""
         prefix = 'nid'
         hostname = socket.gethostname()
-        nnum_len = 5 # default
+        nnum_len = 5  # default
         if hostname.startswith(prefix):
             nnum_len = len(hostname[len(prefix):])
         nidlst = []
@@ -227,9 +228,8 @@ class Resources:
                 nidlst.append(prefix + str(nid).zfill(nnum_len))
         return sorted(nidlst)
 
-
-    #This is for central mode where libE nodes will not share with app nodes
-    #ie this is not for removing a manager node in distributed mode.
+    # This is for central mode where libE nodes will not share with app nodes
+    # ie this is not for removing a manager node in distributed mode.
     @staticmethod
     def remove_libE_nodes(global_nodelist_in):
         """Any node containing a libensemble task is removed from the global nodelist"""
@@ -244,9 +244,8 @@ class Resources:
         k, m = divmod(len(a), n)
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
-
-    #Consider changing from static - top_level_dir could be moved to resources attribute - set once on init
-    #Also nodelist_env_slurm etc could just use self values.
+    # Consider changing from static - top_level_dir could be moved to resources attribute - set once on init
+    # Also nodelist_env_slurm etc could just use self values.
     @staticmethod
     def get_global_nodelist(rundir=None, central_mode=False,
                             nodelist_env_slurm=None,
@@ -261,7 +260,7 @@ class Resources:
         In central mode, any node with a libE worker is removed from the list.
         """
         top_level_dir = rundir or os.getcwd()
-        nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
+        nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
 
         worker_list_file = os.path.join(top_level_dir, 'worker_list')
@@ -281,7 +280,7 @@ class Resources:
                 logger.debug("Cobalt env found - getting nodelist from Cobalt")
                 global_nodelist = Resources.get_cobalt_nodelist(nodelist_env_cobalt)
             else:
-                #Assume a standalone machine if all workers on same node - though give warning.
+                # Assume a standalone machine if all workers on same node - though give warning.
                 if len(set(Resources.get_libE_nodes())) == 1:
                     logger.info("Can not find nodelist from environment. Assuming standalone")
                     global_nodelist.append(socket.gethostname())
@@ -295,17 +294,15 @@ class Resources:
             return global_nodelist
         raise ResourcesException("Error. global_nodelist is empty")
 
-
     def get_workers_on_a_node(self):
         """ Returns the number of workers that can be placed on each node"""
         num_workers = self.num_workers
         num_nodes = len(self.global_nodelist)
 
-        #Round up if theres a remainder
+        # Round up if theres a remainder
         workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)
 
         return workers_per_node
-
 
     def get_available_nodes(self):
         """Returns the list of nodes available to the current worker
@@ -336,19 +333,18 @@ class Resources:
 
         # Currently require even split for distrib mode - to match machinefile - throw away remainder
         if distrib_mode and not sub_node_workers:
-            #Could just read in the libe machinefile and use that - but this should match
-            #Alt. create machinefile/host-list with same algorithm as best_split - future soln.
+            # Could just read in the libe machinefile and use that - but this should match
+            # Alt. create machinefile/host-list with same algorithm as best_split - future soln.
             nodes_per_worker, remainder = divmod(num_nodes, num_workers)
             if remainder != 0:
                 # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
-                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. {} workers and {} nodes"\
-                                .format(num_workers, num_nodes))
+                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. {} workers and {} nodes".format(num_workers, num_nodes))
                 num_nodes = num_nodes - remainder
                 global_nodelist = global_nodelist[0:num_nodes]
 
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers))
-        #logger.debug("split_list is {}".format(split_list))
+        # logger.debug("split_list is {}".format(split_list))
 
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")
@@ -361,13 +357,11 @@ class Resources:
         logger.debug("local_nodelist is {}".format(local_nodelist))
         return local_nodelist
 
-
     @staticmethod
     def _open_binary(fname, **kwargs):
         return open(fname, "rb", **kwargs)
 
-
-    #@staticmethod ? may use self.physical_cores if already set.
+    # @staticmethod ? may use self.physical_cores if already set.
     @staticmethod
     def _cpu_count_physical():
         """Returns the number of physical cores on the node."""
@@ -390,8 +384,7 @@ class Resources:
 
         return sum(mapping.values()) or None
 
-
-    #@staticmethod ? may use self.num_cores if already set.
+    # @staticmethod ? may use self.num_cores if already set.
     @staticmethod
     def get_cpu_cores(hyperthreads=False):
         """Returns the number of cores on the node.
@@ -406,7 +399,7 @@ class Resources:
             import psutil
             ranks_per_node = psutil.cpu_count(logical=hyperthreads)
         except ImportError:
-            #logger
+            # logger
             if hyperthreads:
                 import multiprocessing
                 ranks_per_node = multiprocessing.cpu_count()
@@ -417,4 +410,4 @@ class Resources:
                     import multiprocessing
                     ranks_per_node = multiprocessing.cpu_count()
                     logger.warning('Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override')
-        return ranks_per_node #This is ranks available per node
+        return ranks_per_node  # This is ranks available per node
