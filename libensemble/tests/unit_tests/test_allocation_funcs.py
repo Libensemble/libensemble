@@ -1,19 +1,14 @@
-import sys, time, os
-import numpy as np
-import numpy.lib.recfunctions
 from mpi4py import MPI
-
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/alloc_funcs'))
 
 import libensemble.libE_manager as man
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.history import History
 
-al = {'alloc_f': give_sim_work_first,'out':[]}
+al = {'alloc_f': give_sim_work_first, 'out': []}
 libE_specs = {'comm': MPI.COMM_WORLD}
-H0=[]
+H0 = []
+
 
 def test_decide_work_and_resources():
 
@@ -27,7 +22,7 @@ def test_decide_work_and_resources():
     W['active'] = 1
     Work, persis_info = al['alloc_f'](W, hist.H, sim_specs, gen_specs, al, {})
     assert len(Work) == 0
-    #
+
 
 if __name__ == "__main__":
     test_decide_work_and_resources()

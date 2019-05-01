@@ -5,7 +5,6 @@ Unit test of comms for libensemble.
 """
 
 import time
-import threading
 import queue
 import logging
 
@@ -24,16 +23,16 @@ def test_qcomm():
     comm.send('a', 1)
     comm.send('b')
     assert outq.get() == ('a', 1) and outq.get() == ('b',) and outq.empty(), \
-      "Check send appropriately goes to output queue."
+        "Check send appropriately goes to output queue."
 
-    comm.push_back('b',0)
+    comm.push_back('b', 0)
     inq.put(('c', 3))
     inq.put(('d',))
-    assert (comm.recv() == ('b',0)
+    assert (comm.recv() == ('b', 0)
             and comm.recv() == ('c', 3)
             and comm.recv() == ('d',)
             and inq.empty()), \
-      "Check recv appropriately comes from input queue."
+        "Check recv appropriately comes from input queue."
 
     flag = True
     try:

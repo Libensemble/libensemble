@@ -9,12 +9,7 @@ since pytest slurps up everything (including all the modules) in one go.
 """
 
 import time
-import threading
-import queue
-import sys
 import signal
-
-import numpy as np
 import libensemble.comms.comms as comms
 
 

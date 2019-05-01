@@ -1,5 +1,5 @@
-import sys, os
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/sim_funcs'))
+from libensemble.sim_funcs.helloworld import size, rank, name
 
-from libensemble.sim_funcs.helloworld import *
-
+assert size == 1
+assert rank == 0
+assert len(name)
