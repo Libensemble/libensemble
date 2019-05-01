@@ -12,9 +12,11 @@ import subprocess
 
 from itertools import chain
 
+
 def form_command(cmd_template, specs):
     "Fill command parts with dict entries from specs; drop any missing."
     specs = {k: v for k, v in specs.items() if v is not None}
+
     def fill(fmt):
         "Fill a template string and split with shlex; drop if missing specs"
         try:
@@ -85,7 +87,7 @@ def wait_py33(process, timeout=None):
         return None
 
 
-wait = wait_py33 if sys.version_info[0:2] > (3,2) else wait_py32
+wait = wait_py33 if sys.version_info[0:2] > (3, 2) else wait_py32
 
 
 def wait_and_kill(process, timeout):
@@ -107,4 +109,3 @@ def cancel(process, timeout=0):
 # Note: cancel with timeout 0    -- just kill and then wait
 #       cancel with timeout None -- just terminate and then wait
 #       cancel with timeout > 0  -- try terminating, then hard kill if needed
-

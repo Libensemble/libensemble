@@ -24,3 +24,5 @@ exclude =
         examples/sim_funcs/chwirut1.py
         # This is not implemented yet
         controller_tests/test_jobcontroller_manager_poll.py
+        # Not checking these scripts yet
+        postproc_scripts
