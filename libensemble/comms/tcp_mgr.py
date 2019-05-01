@@ -19,12 +19,15 @@ class ServerQCommManager:
     def __init__(self, port, authkey):
         "Initialize the server on localhost at an indicated TCP port and key."
         queues = {'shared': Queue()}
+
         class ServerQueueManager(BaseManager):
             pass
+
         def get_queue(name):
             if name not in queues:
                 queues[name] = Queue()
             return queues[name]
+
         ServerQueueManager.register('get_queue', callable=get_queue)
         self.manager = ServerQueueManager(address=('', port), authkey=authkey)
         self.manager.start()
@@ -84,8 +87,10 @@ class ClientQCommManager:
     def __init__(self, ip, port, authkey, workerID):
         "Attach by TCP to (ip, port) with a uniquely given workerID"
         self.workerID = workerID
+
         class ClientQueueManager(BaseManager):
             pass
+
         ClientQueueManager.register('get_queue')
         self.manager = ClientQueueManager(address=(ip, port), authkey=authkey)
         self.manager.connect()
