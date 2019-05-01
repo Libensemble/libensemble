@@ -1,4 +1,3 @@
-#gen_func
 import numpy as np
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
@@ -18,15 +17,16 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
     # Receive information from the manager (or a STOP_TAG)
     batch = -1
     tag = None
+    w = np.nan
     while tag not in [STOP_TAG, PERSIS_STOP]:
         batch += 1
         O = np.zeros(subbatch_size*num_subbatches, dtype=gen_specs['out'])
-        if 'w' in vars():
+        if ~np.isnan(w):
             O['weight'] = w
         for j in range(num_subbatches):
             for i in range(subbatch_size):
                 row = subbatch_size*j + i
-                O['x'][row] = persis_info['rand_stream'].uniform(lb,ub,(1,n))
+                O['x'][row] = persis_info['rand_stream'].uniform(lb, ub, (1, n))
                 O['subbatch'][row] = j
                 O['batch'][row] = batch
                 O['prior'][row] = np.random.randn()

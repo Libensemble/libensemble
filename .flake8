@@ -10,6 +10,8 @@ ignore =
         E741
         # Line breaks before unary operators are okay
         W503
+        # Line breaks after unary operators are okay
+        W504
 exclude = 
         # Don't need to check .git
         .git,

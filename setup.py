@@ -6,14 +6,16 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
+
 class Run_TestSuite(TestCommand):
     def run_tests(self):
         import os
         import sys
-        py_version=sys.version_info[0]
+        py_version = sys.version_info[0]
         print('Python version from setup.py is', py_version)
-        run_string="code/tests/run-tests.sh -p " + str(py_version)
+        run_string = "code/tests/run-tests.sh -p " + str(py_version)
         os.system(run_string)
+
 
 class ToxTest(TestCommand):
     user_options = []
@@ -25,12 +27,13 @@ class ToxTest(TestCommand):
         import tox
         tox.cmdline()
 
+
 setup(
     name='libensemble',
-    version='0.4.1',    
+    version='0.4.1',
     description='Library for managing ensemble-like collections of computations',
     url='https://github.com/Libensemble/libensemble',
-    author='Jeffrey Larson, Stephen Hudson and David Bindel',
+    author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, and David Bindel',
     author_email='libensemble@lists.mcs.anl.gov',
     license='BSD 2-clause',
 
@@ -49,12 +52,12 @@ setup(
                       'numpy'
                       ],
 
-    #If run tests through setup.py - downloads these but does not install
+    # If run tests through setup.py - downloads these but does not install
     tests_require=['pytest>=3.1',
                    'pytest-cov>=2.5',
                    'pytest-pep8>=1.0',
                    'pytest-timeout',
-                  ],
+                   ],
 
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -74,6 +77,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
 
-    cmdclass = {'test': Run_TestSuite,
-                'tox': ToxTest}
+    cmdclass={'test': Run_TestSuite, 'tox': ToxTest}
 )
