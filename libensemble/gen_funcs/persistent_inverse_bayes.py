@@ -21,7 +21,7 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         batch += 1
         O = np.zeros(subbatch_size*num_subbatches, dtype=gen_specs['out'])
-        if ~np.isnan(w):
+        if np.all(~np.isnan(w)):
             O['weight'] = w
         for j in range(num_subbatches):
             for i in range(subbatch_size):
