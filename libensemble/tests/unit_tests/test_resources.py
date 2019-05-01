@@ -148,7 +148,7 @@ def test_get_global_nodelist_frm_cobalt():
 
 def test_get_global_nodelist_frm_wrklst_file():
     # worker_list file should override env variables
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,137-139,1234" # Should not be this
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,137-139,1234"  # Should not be this
     exp_out = ['knl-0019', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-2345']  # Should be this
 
     # Try empty (really want to start testing error messages - should be "Error. global_nodelist is empty"

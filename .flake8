@@ -22,3 +22,5 @@ exclude =
         # Keeping bad python format to match PETSc source code 
         libensemble/sim_funcs/chwirut1.py
         examples/sim_funcs/chwirut1.py
+        # This is not implemented yet
+        controller_tests/test_jobcontroller_manager_poll.py

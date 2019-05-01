@@ -4,7 +4,8 @@ Parallel Hello World
 """
 
 from mpi4py import MPI
-import sys, time
+import sys
+import time
 
 size = MPI.COMM_WORLD.Get_size()
 rank = MPI.COMM_WORLD.Get_rank()
