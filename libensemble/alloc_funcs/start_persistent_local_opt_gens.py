@@ -1,11 +1,9 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import \
-     avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
-from libensemble.gen_funcs.aposmm import \
-     initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
+from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -82,7 +80,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             q_inds_logical = np.logical_and(task_avail, H['local_pt'])
             if not np.any(q_inds_logical):
                 q_inds_logical = task_avail
-            sim_ids_to_send = np.nonzero(q_inds_logical)[0][0] # oldest point
+            sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]  # oldest point
             sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), [])
             task_avail[sim_ids_to_send] = False
 

@@ -12,6 +12,8 @@ ignore =
         W503
         # Line breaks after unary operators are okay
         W504
+        # Lambda expressions are okay
+        E731
 exclude = 
         # Don't need to check .git
         .git,
@@ -19,3 +21,4 @@ exclude =
         docs/conf.py
         # Keeping bad python format to match PETSc source code 
         libensemble/sim_funcs/chwirut1.py
+        examples/sim_funcs/chwirut1.py

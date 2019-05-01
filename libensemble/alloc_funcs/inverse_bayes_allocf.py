@@ -1,8 +1,6 @@
-#alloc_func
 import numpy as np
 
-from libensemble.alloc_funcs.support import \
-     avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
 def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -39,7 +37,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
 
             gen_work(Work, i, ['like'], np.atleast_1d(inds_to_send_back),
-                    persis_info[i], persistent=True)
+                     persis_info[i], persistent=True)
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
@@ -57,6 +55,6 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             # Finally, generate points since there is nothing else to do.
             gen_count += 1
             gen_work(Work, i, gen_specs['in'], [], persis_info[i],
-                    persistent=True)
+                     persistent=True)
 
     return Work, persis_info
