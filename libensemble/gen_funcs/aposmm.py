@@ -8,6 +8,7 @@ __all__ = ['aposmm_logic', 'initialize_APOSMM',
            'decide_where_to_start_localopt', 'update_history_dist']
 
 import sys
+import pickle
 import traceback
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
@@ -231,10 +232,17 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_local_run(H, gen_specs, c_flag, run, persis_info)
 
             if np.isinf(x_new).all():
-                assert exit_code > 0, ("Exit code not 0, but no information " +
-                                       "in x_new.\n Local opt run " + str(run) +
-                                       "after " + str(len(sorted_run_inds)) +
-                                       "evaluations.\n Worker crashing!")
+                if exit_code == 0:
+                    run_out_file = "run_" + str(run) + "_abort.pickle"
+
+                    with open(run_out_file, "wb") as f:
+                        pickle.dump((H, gen_specs, c_flag, run, persis_info), f)
+
+                    sys.exit("Exit code is 0, but x_new was not updated in " +
+                             "local opt run " + str(run) + " after " +
+                             str(len(sorted_run_inds)) + " evaluations.\n" +
+                             "Saving run information to: " + run_out_file +
+                             "\nWorker crashing!")
 
                 # No new point was added. Hopefully at a minimum
                 update_history_optimal(x_opt, H, sorted_run_inds)
@@ -936,7 +944,11 @@ def display_exception(e):
     traceback.print_tb(tb)  # Fixed format
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
-    print('An error occurred on line {} in statement {}'.format(line, text))
+    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text))
+    if hasattr(e,'_traceback_'):
+        print('The error was:')
+        for i in e._traceback_:
+            print(i)
     sys.stdout.flush()
 
 

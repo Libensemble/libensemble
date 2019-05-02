@@ -427,14 +427,13 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 
 
 # ==================== Common input checking =================================
-
-
-_USER_SIM_ID_WARNING = '\n' + 79*'*' + '\n' + \
-    """User generator script will be creating sim_id.
-    Take care to do this sequentially.
-    Also, any information given back for existing sim_id values will be overwritten!
-    So everything in gen_out should be in gen_in!""" + \
-    '\n' + 79*'*' + '\n\n'
+_USER_SIM_ID_WARNING = \
+    ('\n' + 79*'*' + '\n' +
+     "User generator script will be creating sim_id.\n" +
+     "Take care to do this sequentially.\n" +
+     "Also, any information given back for existing sim_id values will be overwritten!\n" +
+     "So everything in gen_out should be in gen_in!" +
+     '\n' + 79*'*' + '\n\n')
 
 
 def check_consistent_field(name, field0, field1):
