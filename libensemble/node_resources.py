@@ -2,6 +2,8 @@ import os
 import sys
 
 
+REMOTE_LAUNCH_LIST = ['aprun']
+
 def _open_binary(fname, **kwargs):
     return open(fname, "rb", **kwargs)
 
@@ -78,7 +80,10 @@ def _get_remote_cpu_resources(launcher):
 
 
 def get_sub_node_resources(launcher=None):
-    remote = True if launcher else False
+    remote = False
+    if launcher in REMOTE_LAUNCH_LIST:
+        remote = True
+    #remote = True if launcher else False
     #todo Add special way of doing it one summit - eg. if LSB_HOSTS....
     #On MPI version this will result in every worker launching a job - that might be good if launch onto its own node but would be diff
     #to multiproc version - might be better if mpi4py version does just launch from master and shares???
