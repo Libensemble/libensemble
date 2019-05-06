@@ -221,8 +221,9 @@ class Resources:
     @staticmethod
     def get_lsf_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the LSF environment"""
-        entries = self.workers_str.split()
-        unique_entries = list(set(nodes))
+        full_list = os.environ[node_list_env]
+        entries = full_list.split()
+        unique_entries = list(set(entries)) # This will not retain order
         nodes = [n for n in unique_entries if 'batch' not in n]
 
     #This is for central mode where libE nodes will not share with app nodes
