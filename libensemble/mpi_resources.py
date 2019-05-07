@@ -48,8 +48,6 @@ class MPIResources(Resources):
         return num_procs, num_nodes, ranks_per_node
 
 
-    #Reformat create_machinefile to use this and also use this for
-    #non-machinefile cases when auto-detecting
     def get_resources(self, num_procs=None, num_nodes=None,
                       ranks_per_node=None, hyperthreads=False):
         """Reconciles user supplied options with available Worker
