@@ -115,7 +115,7 @@ class Resources:
         libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
         if libE_nodes_in_list:
             if central_mode and len(self.global_nodelist) > 1:
-                global_nodelist = Resources.remove_nodes(global_nodelist, self.libE_nodes)
+                self.global_nodelist = Resources.remove_nodes(self.global_nodelist, self.libE_nodes)
         else:
             remote_detect = True
         
@@ -345,11 +345,6 @@ class WorkerResources:
         # Check if current host in nodelist - if it is then in distributed mode.
         local_host = socket.gethostname()
         distrib_mode = local_host in global_nodelist
-
-        # If not in central mode (ie. in distrib mode) then this host should be in nodelist.
-        # Either an error - or set to central mode. Currently make error for transparency
-        if not resources.central_mode and not distrib_mode:
-            raise ResourcesException("Not in central mode, yet worker hostname is not in node list - aborting")
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = (num_workers >= num_nodes)
