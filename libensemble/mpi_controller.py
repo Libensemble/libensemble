@@ -100,19 +100,16 @@ class MPIJobController(JobController):
         hostlist = None
         if machinefile is None and self.auto_resources:
 
-            #kludging this for now - not nec machinefile if more than one node
-            #- try a hostlist
             num_procs, num_nodes, ranks_per_node = \
               self.resources.get_resources(
                   num_procs=num_procs,
                   num_nodes=num_nodes, ranks_per_node=ranks_per_node,
                   hyperthreads=hyperthreads)
-
+            
+            # Use hostlist if multiple nodes, otherwise machinefile
             if num_nodes > 1:
-                #hostlist
                 hostlist = self.resources.get_hostlist()
             else:
-                #machinefile
                 machinefile = "machinefile_autogen"
                 if self.workerID is not None:
                     machinefile += "_for_worker_{}".format(self.workerID)

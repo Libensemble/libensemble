@@ -76,7 +76,7 @@ class MPIResources(Resources):
 
         rassert(node_list, "Node list is empty - aborting")
 
-        #If no decomposition supplied - use all available cores/nodes
+        # If no decomposition supplied - use all available cores/nodes
         if not num_procs and not num_nodes and not ranks_per_node:
             num_nodes = local_node_count
             ranks_per_node = cores_avail_per_node_per_worker
@@ -91,8 +91,8 @@ class MPIResources(Resources):
         elif not num_procs and not num_nodes:
             num_nodes = local_node_count
 
-        #checks config is consistent and sufficient to express -
-        #does not check actual resources
+        # Checks config is consistent and sufficient to express
+        # - does not check actual resources
         num_procs, num_nodes, ranks_per_node = \
           MPIResources.job_partition(num_procs, num_nodes, ranks_per_node)
 
