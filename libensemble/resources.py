@@ -145,7 +145,7 @@ class Resources:
 
         # This is a libE node
         local_host = socket.gethostname()
-        if Resources.am_I_mpi4py:
+        if Resources.am_I_mpi4py():
             from mpi4py import MPI
             comm = MPI.COMM_WORLD           
             all_hosts = comm.allgather(local_host)
@@ -243,6 +243,7 @@ class Resources:
         #unique_entries = list(set(entries)) # This will not retain order
         unique_entries = list(OrderedDict.fromkeys(entries))
         nodes = [n for n in unique_entries if 'batch' not in n]
+        return nodes
 
     # This is for central mode where libE nodes will not share with app nodes
     @staticmethod
@@ -278,7 +279,6 @@ class Resources:
         nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
 
         worker_list_file = os.path.join(top_level_dir, 'worker_list')
-
         global_nodelist = []
         if os.path.isfile(worker_list_file):
             logger.debug("worker_list found - getting nodelist from worker_list")

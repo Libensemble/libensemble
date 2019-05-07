@@ -1,6 +1,9 @@
 import os
 import sys
+import logging
 import collections
+
+logger = logging.getLogger(__name__)
 
 REMOTE_LAUNCH_LIST = ['aprun', 'jsrun']
 
@@ -12,7 +15,6 @@ def _cpu_count_physical():
     """Returns the number of physical cores on the node."""
     mapping = {}
     current_info = {}
-    #import pdb;pdb.set_trace()
     with _open_binary('/proc/cpuinfo') as f:
         for line in f:
             line = line.strip().lower()
@@ -82,11 +84,16 @@ def _get_remote_cpu_resources(launcher):
 def _get_cpu_resources_from_env():
     #May create env resources module to share between other resources modules or send arg.
     if os.environ['LSB_HOSTS']:
-        full_list = os.environ['LSB_HOSTS']
-        counter=collections.Counter(full_list)
+        full_list = os.environ['LSB_HOSTS'].split()
+        nodes = [n for n in full_list if 'batch' not in n]
+        counter=list(collections.Counter(nodes).values())
+        
+        # Check all nodes have equal cores -  Not doing for other methods currently.
+        if len(set(counter)) != 1:
+            logger.warning("Detected compute nodes have different core counts: {}".format(set(counter)))        
+        
         physical_cores_avail_per_node = counter[0]
         logical_cores_avail_per_node = counter[0] # How to get SMT threads remotely - support requested.
-        #Could check all nodes have equal cores? Not doing for other methods currently.
         return (logical_cores_avail_per_node, physical_cores_avail_per_node)
     else:
         return None
