@@ -8,6 +8,9 @@ import os
 import sys
 import pdb
 
+# Best implementation depends on system.
+# If one of these does not work, try the other.
+
 class ForkablePdb(pdb.Pdb):
     """A Pdb subclass that may be used
     from a forked multiprocessing child
