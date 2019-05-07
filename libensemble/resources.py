@@ -9,6 +9,7 @@ import socket
 import logging
 import itertools
 import subprocess
+from collections import OrderedDict
 from libensemble import node_resources
 
 logger = logging.getLogger(__name__)
@@ -105,16 +106,24 @@ class Resources:
 
         #This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir,
-                                                             central_mode=self.central_mode,
                                                              nodelist_env_slurm=self.nodelist_env_slurm,
                                                              nodelist_env_cobalt=self.nodelist_env_cobalt,
                                                              nodelist_env_lsf=self.nodelist_env_lsf)
+
+        remote_detect = False
+        self.libE_nodes = Resources.get_libE_nodes()
+        libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
+        if libE_nodes_in_list:
+            if central_mode and len(self.global_nodelist) > 1:
+                global_nodelist = Resources.remove_nodes(global_nodelist, self.libE_nodes)
+        else:
+            remote_detect = True
         
-        cores_info = node_resources.get_sub_node_resources(launcher=launcher)
+        cores_info = node_resources.get_sub_node_resources(launcher=launcher, remote_mode=remote_detect)
         self.logical_cores_avail_per_node = cores_info[0]
         self.physical_cores_avail_per_node = cores_info[1]
         
-        self.comm = None
+        #self.comm = None
         self.worker_resources = None
 
 
@@ -123,20 +132,28 @@ class Resources:
 
 
     @staticmethod
+    def am_I_mpi4py():
+        # Not ideal, but can be used before comms set up.
+        if 'mpi4py' in sys.modules.keys():
+            return True
+        return False
+
+
+    @staticmethod
     def get_libE_nodes():
         """Returns a list of nodes running libE workers"""
-        
-        #todo ..Heres the kluge. Doing this before comms set up so bit of kluge to check for MPI - soln?
 
         # This is a libE node
         local_host = socket.gethostname()
-        if 'mpi4py' in sys.modules.keys():
+        if Resources.am_I_mpi4py:
             from mpi4py import MPI
             comm = MPI.COMM_WORLD           
             all_hosts = comm.allgather(local_host)
         else:
             all_hosts = [local_host]
-        return all_hosts
+        unique_hosts = list(set(all_hosts))
+        #unique_hosts = list(OrderedDict.fromkeys(all_hosts))
+        return unique_hosts
 
 
     @staticmethod
@@ -223,17 +240,15 @@ class Resources:
         """Get global libEnsemble nodelist from the LSF environment"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()
-        unique_entries = list(set(entries)) # This will not retain order
+        #unique_entries = list(set(entries)) # This will not retain order
+        unique_entries = list(OrderedDict.fromkeys(entries))
         nodes = [n for n in unique_entries if 'batch' not in n]
 
-    #This is for central mode where libE nodes will not share with app nodes
-    #ie this is not for removing a manager node in distributed mode.
+    # This is for central mode where libE nodes will not share with app nodes
     @staticmethod
-    def remove_libE_nodes(global_nodelist_in):
-        """Any node containing a libensemble task is removed from the global nodelist"""
-        libE_nodes_gather = Resources.get_libE_nodes()
-        libE_nodes_set = set(libE_nodes_gather)
-        global_nodelist = list(filter(lambda x: x not in libE_nodes_set, global_nodelist_in))
+    def remove_nodes(global_nodelist_in, remove_list):
+        """Any nodes in remove_list are removed from the global nodelist"""
+        global_nodelist = list(filter(lambda x: x not in remove_list, global_nodelist_in))
         return global_nodelist
 
     @staticmethod
@@ -244,7 +259,7 @@ class Resources:
 
 
     @staticmethod
-    def get_global_nodelist(rundir=None, central_mode=False,
+    def get_global_nodelist(rundir=None,
                             nodelist_env_slurm=None,
                             nodelist_env_cobalt=None,
                             nodelist_env_lsf=None):
@@ -289,8 +304,8 @@ class Resources:
                 else:
                     raise ResourcesException("Error. Can not find nodelist from environment")
 
-        if central_mode:
-            global_nodelist = Resources.remove_libE_nodes(global_nodelist)
+        #if central_mode:
+            #global_nodelist = Resources.remove_libE_nodes(global_nodelist)
 
         if global_nodelist:
             return global_nodelist

@@ -1,8 +1,8 @@
 import os
 import sys
+import collections
 
-
-REMOTE_LAUNCH_LIST = ['aprun']
+REMOTE_LAUNCH_LIST = ['aprun', 'jsrun']
 
 def _open_binary(fname, **kwargs):
     return open(fname, "rb", **kwargs)
@@ -79,16 +79,31 @@ def _get_remote_cpu_resources(launcher):
     return output.decode()
 
 
-def get_sub_node_resources(launcher=None):
-    remote = False
-    if launcher in REMOTE_LAUNCH_LIST:
-        remote = True
-    #remote = True if launcher else False
-    #todo Add special way of doing it one summit - eg. if LSB_HOSTS....
-    #On MPI version this will result in every worker launching a job - that might be good if launch onto its own node but would be diff
-    #to multiproc version - might be better if mpi4py version does just launch from master and shares???
-    #Or it could be we should change to do this on worker phase instead - but think thats next iteration.
-    if remote:
+def _get_cpu_resources_from_env():
+    #May create env resources module to share between other resources modules or send arg.
+    if os.environ['LSB_HOSTS']:
+        full_list = os.environ['LSB_HOSTS']
+        counter=collections.Counter(full_list)
+        physical_cores_avail_per_node = counter[0]
+        logical_cores_avail_per_node = counter[0] # How to get SMT threads remotely - support requested.
+        #Could check all nodes have equal cores? Not doing for other methods currently.
+        return (logical_cores_avail_per_node, physical_cores_avail_per_node)
+    else:
+        return None
+        
+
+def get_sub_node_resources(launcher=None, remote_mode=False):
+    """Retruns logical and physical cores per node as a tuple"""
+    remote_detection = False
+    if remote_mode:
+        #May be unnecessary condition
+        if launcher in REMOTE_LAUNCH_LIST:
+            cores_info = _get_cpu_resources_from_env()
+            if cores_info:
+                return (cores_info)
+            remote_detection = True # Cannot obtain from environment
+
+    if remote_detection:
         cores_info_str = _get_remote_cpu_resources(launcher=launcher)
         cores_log, cores_phy, *_ = cores_info_str.split()
         cores_info = (int(cores_log), int(cores_phy))
