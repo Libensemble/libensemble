@@ -10,14 +10,14 @@ if USE_MPI:
     import mpi4py
     mpi4py.rc.recv_mprobe = False # Disable matching probes
     from mpi4py import MPI
-    nworkers = MPI.COMM_WORLD.Get_size()
+    nworkers = MPI.COMM_WORLD.Get_size() - 1
     is_master = (MPI.COMM_WORLD.Get_rank() == 0)
     libE_specs = {} # MPI is default comms, workers are decided at launch
 else:
     # Run with multi-processing: python run_libe_forces.py <num_workers>
     try:
         nworkers = int(sys.argv[1])
-    except:
+    except Exception:
         print("WARNING: nworkers not passed to script - defaulting to 4")
         nworkers = 4
     is_master = True # processes are forked in libE
