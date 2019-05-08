@@ -372,9 +372,5 @@ class WorkerResources:
             raise ResourcesException("Worker has no workerID - aborting")
         local_nodelist = split_list[workerID - 1]
 
-        # If in distrib_mode local host must be in local nodelist
-        if distrib_mode and local_host not in local_nodelist:
-            raise ResourcesException("In distributed mode, but local host is not in local nodelist - aborting")
-
         logger.debug("local_nodelist is {}".format(local_nodelist))
         return local_nodelist
