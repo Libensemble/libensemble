@@ -8,8 +8,8 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] != 'mpi':
-    quit()
+#if libE_specs['comms'] != 'mpi':
+    #quit()
 
 # Import libEnsemble modules
 from libensemble.controller import JobController
@@ -59,12 +59,10 @@ summary_file_name = short_name + '.libe_summary.txt'
 #else:
 #    CalcInfo.keep_worker_stat_files = False # Testing this functionality
 
-num_workers = Resources.get_num_workers()
-
 sim_specs['cores'] = NCORES
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs['gen_batch_size'] = 5*num_workers
+gen_specs['gen_batch_size'] = 5*nworkers
 gen_specs['batch_mode'] = True
 gen_specs['num_active_gens'] =1
 gen_specs['save_every_k'] = 20
@@ -82,9 +80,9 @@ if is_master:
     print('\nChecking expected job status against Workers ...\n')
 
     #Expected list: Last is zero as will not be entered into H array on manager kill - but should show in the summary file.
-    #Repeat expected lists num_workers times and compare with list of status's received from workers
+    #Repeat expected lists nworkers times and compare with list of status's received from workers
     calc_status_list_in = np.asarray([WORKER_DONE,WORKER_KILL_ON_ERR,WORKER_KILL_ON_TIMEOUT, JOB_FAILED, 0])
-    calc_status_list = np.repeat(calc_status_list_in,num_workers)
+    calc_status_list = np.repeat(calc_status_list_in,nworkers)
 
     #For debug
     print("Expecting: {}".format(calc_status_list))
@@ -97,7 +95,7 @@ if is_master:
 
     calc_desc_list_in = ['Completed','Worker killed job on Error','Worker killed job on Timeout', 'Job Failed', 'Manager killed on finish']
     #Repeat N times for N workers and insert Completed at start for generator
-    calc_desc_list = ['Completed'] + calc_desc_list_in * num_workers
+    calc_desc_list = ['Completed'] + calc_desc_list_in * nworkers
     # with open(summary_file_name,'r') as f:
     #     i=0
     #     for line in f:
