@@ -233,7 +233,7 @@ class Resources:
             a, b, _ = Resources._range_split(nidgroup)
             for nid in range(a, b):
                 nidlst.append(str(nid))
-        return sorted(nidlst)
+        return sorted(nidlst, key=int)
 
     @staticmethod
     def get_lsf_nodelist(node_list_env):
