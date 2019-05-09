@@ -97,28 +97,28 @@ def test_cobalt_nodelist_empty():
 
 def test_cobalt_nodelist_single():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "56"
-    exp_out = ["nid00056"]
+    exp_out = ["56"]
     nodelist = Resources.get_cobalt_nodelist(node_list_env = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned is does not match expected"
 
 
 def test_cobalt_nodelist_seq():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "9-12"
-    exp_out = ['nid00009', 'nid00010', 'nid00011', 'nid00012']
+    exp_out = ['9', '10', '11', '12']
     nodelist = Resources.get_cobalt_nodelist(node_list_env = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned is does not match expected"
 
 
 def test_cobalt_nodelist_groups():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,137-139,1234"
-    exp_out = ['nid00020', 'nid00021', 'nid00022', 'nid00137', 'nid00138', 'nid00139', 'nid01234']
+    exp_out = ['20', '21', '22', '137', '138', '139', '1234']
     nodelist = Resources.get_cobalt_nodelist(node_list_env = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned is does not match expected"
 
 
 def test_cobalt_nodelist_reverse_grp():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,139-137,1234"
-    exp_out = ['nid00020', 'nid00021', 'nid00022', 'nid00137', 'nid00138', 'nid00139', 'nid01234']
+    exp_out = ['20', '21', '22', '137', '138', '139', '1234']
     nodelist = Resources.get_cobalt_nodelist(node_list_env = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned is does not match expected"
 
@@ -128,7 +128,7 @@ def test_cobalt_nodelist_reverse_grp():
 def test_get_global_nodelist_frm_slurm():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0137-0139,1234]"
     exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), central_mode=False,
+    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(),
                                                     nodelist_env_slurm = "LIBE_RESOURCES_TEST_NODE_LIST",
                                                     nodelist_env_cobalt = "THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
     assert global_nodelist == exp_out, "global_nodelist returned does not match expected"
@@ -136,8 +136,8 @@ def test_get_global_nodelist_frm_slurm():
 
 def test_get_global_nodelist_frm_cobalt():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,137-139,1234"
-    exp_out = ['nid00020', 'nid00021', 'nid00022', 'nid00137', 'nid00138', 'nid00139', 'nid01234']
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), central_mode=False,
+    exp_out = ['20', '21', '22', '137', '138', '139', '1234']
+    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(),
                                                     nodelist_env_slurm = "THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                                     nodelist_env_cobalt = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert global_nodelist == exp_out, "global_nodelist returned does not match expected"
@@ -151,7 +151,7 @@ def test_get_global_nodelist_frm_wrklst_file():
     #Try empty (really want to start testing error messages - should be "Error. global_nodelist is empty"
     open('worker_list','w').close()
     try:
-        global_nodelist0 = Resources.get_global_nodelist(rundir=os.getcwd(), central_mode=False)
+        global_nodelist0 = Resources.get_global_nodelist(rundir=os.getcwd())
     except:
         assert 1
     else:
@@ -162,11 +162,11 @@ def test_get_global_nodelist_frm_wrklst_file():
             f.write(node + '\n')
 
     # Do not specify env vars.
-    global_nodelist1 = Resources.get_global_nodelist(rundir=os.getcwd(), central_mode=False)
+    global_nodelist1 = Resources.get_global_nodelist(rundir=os.getcwd())
     assert global_nodelist1 == exp_out, "global_nodelist returned does not match expected"
 
     # Specify env vars - should ignore
-    global_nodelist2 = Resources.get_global_nodelist(rundir=os.getcwd(), central_mode=False,
+    global_nodelist2 = Resources.get_global_nodelist(rundir=os.getcwd(),
                                                     nodelist_env_slurm = "THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                                     nodelist_env_cobalt = "LIBE_RESOURCES_TEST_NODE_LIST")
     assert global_nodelist2 == exp_out, "global_nodelist returned does not match expected"
