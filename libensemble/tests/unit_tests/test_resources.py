@@ -1,6 +1,6 @@
 import os
 import socket
-from libensemble.resources import Resources
+from libensemble.resources import Resources, WorkerResources
 
 
 def setup_standalone_run():
@@ -192,47 +192,47 @@ def test_remove_libE_nodes():
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
 
-def test_get_available_nodes_central_mode():
+def test_get_local_nodelist_central_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resources = Resources(nodelist_env_slurm = "LIBE_RESOURCES_TEST_NODE_LIST", central_mode = True)
 
     #Now mock up some more stuff - so consistent
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 8
+    num_workers = 8
     exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 4
+    num_workers = 4
     exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137','knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 1
+    num_workers = 1
     exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
     #Test the best_split algorithm
-    resources.num_workers = 3
+    num_workers = 3
     exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
 
 # The main tests are same as above - note for when fixtures set up
-def test_get_available_nodes_central_mode_remove_libE_proc():
+def test_get_local_nodelist_central_mode_remove_libE_proc():
     mynode = socket.gethostname()
     nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
     with open('worker_list','w') as f:
@@ -246,59 +246,63 @@ def test_get_available_nodes_central_mode_remove_libE_proc():
     #Now mock up some more stuff - so consistent
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 8
+    num_workers = 8
     exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 4
+    num_workers = 4
     exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137','knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 1
+    num_workers = 1
     exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
     #Test the best_split algorithm
-    resources.num_workers = 3
+    num_workers = 3
     exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(resources.num_workers):
-        resources.workerID = wrk + 1
-        local_nodelist = resources.get_available_nodes()
+    for wrk in range(num_workers):
+        workerID = wrk + 1
+        local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
         assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
     os.remove('worker_list')
 
 
-def test_get_available_nodes_distrib_mode_host_not_in_list():
+def test_get_local_nodelist_distrib_mode_host_not_in_list():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resources = Resources(nodelist_env_slurm = "LIBE_RESOURCES_TEST_NODE_LIST", central_mode = False)
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 8
-    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    num_workers = 4
+    exp_out = ['knl-0022', 'knl-0036']
 
     # Test running distributed mode without current host in list.
-    resources.workerID = 2
-    try:
-        local_nodelist = resources.get_available_nodes()
-    except:
-        assert 1
-    else:
-        assert 0
+    workerID = 2
+    local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
+    
+    # Now this should work
+    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    #try:
+        #local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
+    #except:
+        #assert 1
+    #else:
+        #assert 0
 
 
-def test_get_available_nodes_distrib_mode():
+def test_get_local_nodelist_distrib_mode():
     mynode = socket.gethostname()
     #nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
     nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139']
@@ -311,51 +315,51 @@ def test_get_available_nodes_distrib_mode():
     resources = Resources(central_mode = False)
 
     #Spoof current process as each worker and check nodelist.
-    resources.num_workers = 8
+    num_workers = 8
 
-    #Test workerID not in local_nodelist
-    resources.workerID = 4
-    try:
-        local_nodelist = resources.get_available_nodes()
-    except:
-        assert 1
-    else:
-        assert 0
+    #Test workerID not in local_nodelist [update: This should now work - check removed]
+    #workerID = 4
+    #try:
+        #local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
+    #except:
+        #assert 1
+    #else:
+        #assert 0
 
-    resources.workerID = 5
+    workerID = 5
     exp_out = [mynode]
-    local_nodelist = resources.get_available_nodes()
+    local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
-    resources.num_workers = 1
-    resources.workerID = 1
+    num_workers = 1
+    workerID = 1
     exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', mynode, 'knl-0137','knl-0138', 'knl-0139']
-    local_nodelist = resources.get_available_nodes()
+    local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
-    resources.num_workers = 4
-    resources.workerID = 3
+    num_workers = 4
+    workerID = 3
     exp_out = [mynode, 'knl-0137']
-    local_nodelist = resources.get_available_nodes()
+    local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
     #Sub-node workers
-    resources.num_workers = 16
+    num_workers = 16
 
-    resources.workerID = 9
+    workerID = 9
     exp_out = [mynode]
-    local_nodelist = resources.get_available_nodes()
+    local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
-    resources.workerID = 10
+    workerID = 10
     exp_out = [mynode]
     #import pdb; pdb.set_trace()
-    local_nodelist = resources.get_available_nodes()
+    local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
     os.remove('worker_list')
 
 
-def test_get_available_nodes_distrib_mode_uneven_split():
+def test_get_local_nodelist_distrib_mode_uneven_split():
     mynode = socket.gethostname()
     nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
     with open('worker_list','w') as f:
@@ -365,12 +369,12 @@ def test_get_available_nodes_distrib_mode_uneven_split():
                 f.write(mynode + '\n')
 
     resources = Resources(central_mode = False)
-    resources.num_workers = 2
+    num_workers = 2
 
     # May not be at head of list - should perhaps be warning or enforced
-    resources.workerID = 2
+    workerID = 2
     exp_out = ['knl-0137', mynode, 'knl-0138', 'knl-0139']
-    local_nodelist = resources.get_available_nodes()
+    local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
     os.remove('worker_list')
 
@@ -393,9 +397,9 @@ if __name__ == "__main__":
     test_get_global_nodelist_frm_cobalt()
     test_get_global_nodelist_frm_wrklst_file()
     test_remove_libE_nodes()
-    test_get_available_nodes_central_mode()
-    test_get_available_nodes_central_mode_remove_libE_proc()
-    test_get_available_nodes_distrib_mode_host_not_in_list()
-    test_get_available_nodes_distrib_mode()
-    test_get_available_nodes_distrib_mode_uneven_split()
+    test_get_local_nodelist_central_mode()
+    test_get_local_nodelist_central_mode_remove_libE_proc()
+    test_get_local_nodelist_distrib_mode_host_not_in_list()
+    test_get_local_nodelist_distrib_mode()
+    test_get_local_nodelist_distrib_mode_uneven_split()
     teardown_standalone_run()
