@@ -18,9 +18,9 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] != 'mpi':
+if libE_specs['comms'] == 'tcp':
     quit()
-
+    
 # Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking
 # Using dill seems more reliable on Bebop - less unpickle errors
@@ -49,10 +49,9 @@ from libensemble.resources import Resources #Only to get number of workers
 
 jobctrl = MPIJobController(auto_resources = False)
 #jobctrl.register_calc(full_path=sim_app, calc_type='sim') #Test with no app registered.
-num_workers = Resources.get_num_workers()
 
 rounds = 2              # Number of work units for each worker
-sim_max = num_workers*rounds
+sim_max = nworkers*rounds
 
 
 # This may not nec. be used for this test
@@ -66,7 +65,7 @@ gen_specs['out'] = [('x',float,(2,))]
 gen_specs['lb'] = np.array([-3,-2])
 gen_specs['ub'] = np.array([ 3, 2])
 
-#sim_max = num_workers
+#sim_max = nworkers
 exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 
 
@@ -76,7 +75,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 
 if is_master:
     assert flag == 0
-    for w in range(1, num_workers+1):
+    for w in range(1, nworkers+1):
         x = w * 1000.0
         assert np.all(H['arr_vals'][w-1] == x), "Array values do not all match"
         assert H['scal_val'][w-1] == x + x/1e7, "Scalar values do not all match"
