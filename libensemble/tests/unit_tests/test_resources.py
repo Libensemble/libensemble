@@ -179,7 +179,7 @@ def test_remove_libE_nodes():
 
     #Add at beginning
     nodes_in = [mynode] + exp_out
-    nodes_out = Resources.remove_libE_nodes(nodes_in)
+    nodes_out = Resources.remove_nodes(nodes_in, mynode)
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
     #Add twice in middle and at end
@@ -188,7 +188,7 @@ def test_remove_libE_nodes():
         nodes_in.append(node)
         if i==1 or i==4 or i==6:
             nodes_in.append(mynode)
-    nodes_out = Resources.remove_libE_nodes(nodes_in)
+    nodes_out = Resources.remove_nodes(nodes_in, mynode)
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
 
@@ -399,5 +399,3 @@ if __name__ == "__main__":
     test_get_available_nodes_distrib_mode()
     test_get_available_nodes_distrib_mode_uneven_split()
     teardown_standalone_run()
-
-
