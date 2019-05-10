@@ -26,31 +26,29 @@ if libE_specs['comms'] != 'mpi':
     quit()
 
 n = 2
-sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float), ('grad', float, n)]}
+sim_specs = {'sim_f': sim_f,
+             'in': ['x'],
+             'out': [('f', float), ('grad', float, n)]}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
-gen_specs = {
-    'gen_f': gen_f,
-    'in': [o[0] for o in gen_out]+['f', 'grad', 'returned'],
-    'out': gen_out,
-    'num_active_gens': 1,
-    'batch_mode': True,
-    'initial_sample_size': 100,
-    'sample_points': np.round(minima, 1),
-    'localopt_method': 'LD_MMA',
-    'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-    'xtol_rel': 1e-3,
-    'num_active_gens': 1,
-    'max_active_runs': 6,
-    'lb': np.array([-3, -2]),
-    'ub': np.array([3, 2]),}
+gen_specs = {'gen_f': gen_f,
+             'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
+             'out': gen_out,
+             'num_active_gens': 1,
+             'batch_mode': True,
+             'initial_sample_size': 100,
+             'sample_points': np.round(minima, 1),
+             'localopt_method': 'LD_MMA',
+             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+             'xtol_rel': 1e-3,
+             'num_active_gens': 1,
+             'max_active_runs': 6,
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2])}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
 
-persis_info = per_worker_stream(persis_info, nworkers+1)
+persis_info = per_worker_stream(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
 
 exit_criteria = {'sim_max': 1000}
@@ -111,12 +109,10 @@ for run in range(2):
             # 1) We use their values to test APOSMM has identified all minima
             # 2) We use their approximate values to ensure APOSMM evaluates a
             #    point in each minima's basin of attraction.
-            print(np.min(np.sum((H[H['local_min']]['x']-m)**2, 1)))
+            print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)))
             sys.stdout.flush()
-            if np.min(np.sum((H[H['local_min']]['x']-m)**2, 1)) > tol:
+            if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) > tol:
                 libE_abort()
 
-        print(
-            "\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the "
-            +str(np.shape(minima)[0])+" minima within a tolerance "+str(tol))
+        print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
         save_libE_output(H, persis_info, __file__, nworkers)

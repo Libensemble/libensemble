@@ -7,9 +7,10 @@ described in detail in the paper
 __all__ = ['aposmm_logic', 'initialize_APOSMM',
            'decide_where_to_start_localopt', 'update_history_dist']
 
-import sys, os, traceback
+import sys
+import pickle
+import traceback
 import numpy as np
-# import scipy as sp
 from scipy.spatial.distance import cdist, pdist, squareform
 from scipy import optimize as scipy_optimize
 
@@ -66,7 +67,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
-    - ``'initial_sample_size' [int]``: Number of uniformly sampled points 
+    - ``'initial_sample_size' [int]``: Number of uniformly sampled points
       must be returned (non-nan value) before a local opt run is started
 
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
@@ -95,7 +96,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
-    And ``gen_specs`` convergence tolerances for NLopt, PETSc/TAO, SciPy 
+    And ``gen_specs`` convergence tolerances for NLopt, PETSc/TAO, SciPy
 
     - ``'fatol' [float]``:
     - ``'ftol_abs' [float]``:
@@ -150,14 +151,14 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     O:                new points to be sent back to the history
 
 
-    When re-running a local opt method to get the next point: 
+    When re-running a local opt method to get the next point:
     advance_local_run.x_new:      stores the first new point requested by
                                   a local optimization method
     advance_local_run.pt_in_run:  counts function evaluations to know
                                   when a new point is given
 
     starting_inds:    indices where a runs should be started.
-    active_runs:      indices of active local optimization runs 
+    active_runs:      indices of active local optimization runs
     sorted_run_inds:  indices of the considered run (in the order they were
                       requested by the localopt method)
     x_opt:            the reported minimum from a localopt run (disregarded
@@ -231,10 +232,17 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_local_run(H, gen_specs, c_flag, run, persis_info)
 
             if np.isinf(x_new).all():
-                assert exit_code > 0, ("Exit code not 0, but no information "
-                                       "in x_new.\n Local opt run "+str(run)+
-                                       "after "+str(len(sorted_run_inds))+
-                                       "evaluations.\n Worker crashing!")
+                if exit_code == 0:
+                    run_out_file = "run_" + str(run) + "_abort.pickle"
+
+                    with open(run_out_file, "wb") as f:
+                        pickle.dump((H, gen_specs, c_flag, run, persis_info), f)
+
+                    sys.exit("Exit code is 0, but x_new was not updated in " +
+                             "local opt run " + str(run) + " after " +
+                             str(len(sorted_run_inds)) + " evaluations.\n" +
+                             "Saving run information to: " + run_out_file +
+                             "\nWorker crashing!")
 
                 # No new point was added. Hopefully at a minimum
                 update_history_optimal(x_opt, H, sorted_run_inds)
@@ -271,14 +279,14 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         on_cube = False  # Assume points are on original domain, not unit cube
         if len(sampled_points):
             persis_info = add_to_O(O, sampled_points, H, gen_specs,
-                                          c_flag, persis_info, on_cube=on_cube)
+                                   c_flag, persis_info, on_cube=on_cube)
         samples_needed = samples_needed-len(sampled_points)
 
     if samples_needed > 0:
         sampled_points = persis_info['rand_stream'].uniform(0, 1, (samples_needed, n))
         on_cube = True
         persis_info = add_to_O(O, sampled_points, H, gen_specs, c_flag,
-                                      persis_info, on_cube=on_cube)
+                               persis_info, on_cube=on_cube)
 
     O = np.append(H[np.array(list(updated_inds), dtype=int)][[o[0] for o in gen_specs['out']]], O)
 
@@ -286,7 +294,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
 
 def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
-                    sorted_run_inds=[], run=[], on_cube=True):
+             sorted_run_inds=[], run=[], on_cube=True):
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
@@ -936,7 +944,11 @@ def display_exception(e):
     traceback.print_tb(tb)  # Fixed format
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
-    print('An error occurred on line {} in statement {}'.format(line, text))
+    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text))
+    if hasattr(e,'_traceback_'):
+        print('The error was:')
+        for i in e._traceback_:
+            print(i)
     sys.stdout.flush()
 
 

@@ -5,6 +5,7 @@ libensemble utility class -- keeps a stack of directory locations.
 import os
 import shutil
 
+
 class LocationStack:
     """Keep a stack of directory locations.
     """
@@ -41,7 +42,7 @@ class LocationStack:
         self.dirs[key] = dirname
         if srcdir is not None:
             assert ~os.path.isdir(dirname), \
-              "Directory {} already exists".format(dirname)
+                "Directory {} already exists".format(dirname)
             shutil.copytree(srcdir, dirname)
         return dirname
 
@@ -74,9 +75,11 @@ class LocationStack:
         def __init__(self, ls, dirname):
             self.ls = ls
             self.dirname = dirname
+
         def __enter__(self):
             self.ls.push(self.dirname)
             return self.ls
+
         def __exit__(self, etype, value, traceback):
             self.ls.pop()
 

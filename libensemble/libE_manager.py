@@ -7,23 +7,23 @@ import sys
 import os
 import logging
 import socket
-import pickle
 import numpy as np
 
 from libensemble.util.timer import Timer
 from libensemble.message_numbers import \
-     EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
-     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
-     STOP_TAG, UNSET_TAG, \
-     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
-     JOB_FAILED, WORKER_DONE, \
-     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+    EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
+    EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
+    STOP_TAG, UNSET_TAG, \
+    WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
+    JOB_FAILED, WORKER_DONE, \
+    MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
 
 logger = logging.getLogger(__name__)
-#For debug messages - uncomment
-#logger.setLevel(logging.DEBUG)
+# For debug messages - uncomment
+# logger.setLevel(logging.DEBUG)
+
 
 class ManagerException(Exception):
     "Exception at manager, raised on abort signal from worker"
@@ -60,6 +60,7 @@ A last attempt has been made to receive any completed work.
 Posting nonblocking receives and kill messages for all active workers.
 """
 
+
 class Manager:
     """Manager class for libensemble."""
 
@@ -85,10 +86,10 @@ class Manager:
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
-          [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
-           (1, 'sim_max', self.term_test_sim_max),
-           (1, 'gen_max', self.term_test_gen_max),
-           (1, 'stop_val', self.term_test_stop_val)]
+            [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
+             (1, 'sim_max', self.term_test_sim_max),
+             (1, 'gen_max', self.term_test_gen_max),
+             (1, 'stop_val', self.term_test_stop_val)]
 
     # --- Termination logic routines
 
@@ -156,15 +157,15 @@ class Manager:
         """
         assert w != 0, "Can't send to worker 0; this is the manager."
         assert self.W[w-1]['active'] == 0, \
-          "Allocation function requested work to an already active worker."
+            "Allocation function requested work to an already active worker."
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
             hist_fields = self.hist.H.dtype.names
             diff_fields = list(work_fields.difference(hist_fields))
             assert not diff_fields, \
-              "Allocation function requested invalid fields {}" \
-              "be sent to worker={}.".format(diff_fields, w)
+                "Allocation function requested invalid fields {}" \
+                "be sent to worker={}.".format(diff_fields, w)
 
     def _send_work_order(self, Work, w):
         """Send an allocation function order to a worker.
@@ -185,7 +186,7 @@ class Manager:
         if 'blocking' in Work['libE_info']:
             for w_i in Work['libE_info']['blocking']:
                 assert self.W[w_i-1]['active'] == 0, \
-                  "Active worker being blocked; aborting"
+                    "Active worker being blocked; aborting"
                 self.W[w_i-1]['blocked'] = 1
                 self.W[w_i-1]['active'] = 1
 
@@ -201,8 +202,8 @@ class Manager:
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          "Aborting, Unknown calculation type received. " \
-          "Received type: {}".format(calc_type)
+            "Aborting, Unknown calculation type received. " \
+            "Received type: {}".format(calc_type)
         assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                                FINISHED_PERSISTENT_GEN_TAG,
                                UNSET_TAG,
@@ -213,8 +214,8 @@ class Manager:
                                WORKER_KILL,
                                JOB_FAILED,
                                WORKER_DONE], \
-          "Aborting: Unknown calculation status received. " \
-          "Received status: {}".format(calc_status)
+            "Aborting: Unknown calculation status received. " \
+            "Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
         """Receive calculation output from workers. Loops over all
@@ -322,7 +323,7 @@ class Manager:
         logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
-        ### Continue receiving and giving until termination test is satisfied
+        # Continue receiving and giving until termination test is satisfied
         try:
             while not self.term_test():
                 persis_info = self._receive_from_workers(persis_info)
@@ -336,7 +337,7 @@ class Manager:
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(self.W['active'] != 0), \
-                  "Should not wait for workers when all workers are idle."
+                    "Should not wait for workers when all workers are idle."
 
         finally:
             # Return persis_info, exit_flag

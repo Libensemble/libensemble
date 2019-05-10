@@ -18,22 +18,21 @@ from libensemble.tests.regression_tests.common import parse_args, per_worker_str
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-num_pts = 30*(nworkers-1)
+num_pts = 30*(nworkers - 1)
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {
-    'gen_f': gen_f,
-    'in': ['sim_id'],
-    'out': [('x', float, (2,))],
-    'gen_batch_size': num_pts,
-    'num_active_gens': 1,
-    'lb': np.array([-3, -2]),
-    'ub': np.array([3, 2]),}
+gen_specs = {'gen_f': gen_f,
+             'in': ['sim_id'],
+             'out': [('x', float, (2,))],
+             'gen_batch_size': num_pts,
+             'num_active_gens': 1,
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2])}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
 
-persis_info = per_worker_stream({}, nworkers+1)
+persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'sim_max': num_pts, 'elapsed_wallclock_time': 300}
 
@@ -45,7 +44,6 @@ if libE_specs['comms'] == 'tcp':
 
 for time in np.append([0], np.logspace(-5, -1, 5)):
     for rep in range(1):
-        #State the objective function, its arguments, output, and necessary parameters (and their sizes)
         sim_specs['pause_time'] = time
 
         if time == 0:

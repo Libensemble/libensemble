@@ -2,8 +2,10 @@ import time
 import sys
 import signal
 
+
 def ignore_handler(signum, frame):
     print("Ignoring SIGTERM")
+
 
 def main(ignore_term=False, wait_time=-1):
     print("Call with {}, {}".format(ignore_term, wait_time))
@@ -14,6 +16,7 @@ def main(ignore_term=False, wait_time=-1):
     else:
         while True:
             pass
+
 
 if __name__ == "__main__":
     main(*[float(x) for x in sys.argv[1:]])

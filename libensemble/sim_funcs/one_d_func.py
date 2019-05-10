@@ -14,7 +14,7 @@ def one_d_example(x, persis_info, sim_specs, _):
         ``/libensemble/libensemble/tests/regression_tests/test_fast_alloc.py``
     """
 
-    O = np.zeros(1,dtype=sim_specs['out'])
+    O = np.zeros(1, dtype=sim_specs['out'])
 
     O['f'] = np.linalg.norm(x)
 

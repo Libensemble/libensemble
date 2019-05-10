@@ -458,13 +458,13 @@ class CommEval(GenCommHandler):
     def __call__(self, *args, **kwargs):
         "Request a simulation and return a promise"
         assert not (args and kwargs), \
-          "Must specify simulation args by position or keyword, but not both"
+            "Must specify simulation args by position or keyword, but not both"
         assert args or kwargs, \
-          "Must specify simulation arguments."
+            "Must specify simulation arguments."
         rec = np.zeros(1, dtype=self.gen_specs['out'])
         if args:
             assert len(args) == len(self.gen_specs['out']), \
-              "Wrong number of positional arguments in sim call."
+                "Wrong number of positional arguments in sim call."
             for k, spec in enumerate(self.gen_specs['out']):
                 name = spec[0]
                 rec[name] = args[k]

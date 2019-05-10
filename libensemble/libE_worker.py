@@ -12,8 +12,8 @@ from traceback import format_exc
 import numpy as np
 
 from libensemble.message_numbers import \
-     EVAL_SIM_TAG, EVAL_GEN_TAG, \
-     UNSET_TAG, STOP_TAG, CALC_EXCEPTION
+    EVAL_SIM_TAG, EVAL_GEN_TAG, \
+    UNSET_TAG, STOP_TAG, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
@@ -24,8 +24,8 @@ from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 
 logger = logging.getLogger(__name__)
-#To change logging level for just this module
-#logger.setLevel(logging.DEBUG)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
 job_timing = False
 
 
@@ -91,12 +91,11 @@ class Worker:
         self.dtypes = dtypes
         self.workerID = workerID
         self.sim_specs = sim_specs
-        self.calc_iter = {EVAL_SIM_TAG : 0, EVAL_GEN_TAG : 0}
+        self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
         Worker._set_job_controller(self.workerID, self.comm)
-
 
     @staticmethod
     def _make_sim_worker_dir(sim_specs, workerID, locs=None):
@@ -110,7 +109,6 @@ class Worker:
                               prefix=prefix, srcdir=sim_dir)
         return locs
 
-
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
         "Create functions to run a sim or gen"
@@ -123,6 +121,7 @@ class Worker:
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
+
             def run_gen(calc_in, persis_info, libE_info):
                 "Call the gen func."
                 return gen_f(calc_in, persis_info, gen_specs, libE_info)
@@ -130,7 +129,6 @@ class Worker:
             run_gen = []
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
-
 
     @staticmethod
     def _set_job_controller(workerID, comm):
@@ -141,12 +139,10 @@ class Worker:
             jobctl.set_worker_info(comm, workerID)
         #todo Need to differentiate no controller to actual exception
         except Exception:
-            logger.info("No job_controller set on worker {}".\
-                        format(workerID))
+            logger.info("No job_controller set on worker {}".format(workerID))
             return False
         else:
             return True
-
 
     def _handle_calc(self, Work, calc_in):
         """Run a calculation on this worker object.
@@ -181,9 +177,9 @@ class Worker:
                     logger.debug("Return from calc call")
 
             assert isinstance(out, tuple), \
-              "Calculation output must be a tuple."
+                "Calculation output must be a tuple."
             assert len(out) >= 2, \
-              "Calculation output must be at least two elements."
+                "Calculation output must be at least two elements."
 
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
             return out[0], out[1], calc_status
@@ -193,24 +189,23 @@ class Worker:
             raise
         finally:
             # This was meant to be handled by calc_stats module.
-            if job_timing and JobController.controller.list_of_jobs:               
+            if job_timing and JobController.controller.list_of_jobs:
                 # Initially supporting one per calc. One line output.
                 job = JobController.controller.list_of_jobs[-1]
-                calc_msg = "Calc {:5d}: {} {} {} Status: {}". \
-                format(calc_id,
-                       calc_type_strings[calc_type],
-                       timer,
-                       job.timer,
-                       calc_status_strings.get(calc_status, "Completed"))
+                calc_msg = "Calc {:5d}: {} {} {} Status: {}".\
+                    format(calc_id,
+                           calc_type_strings[calc_type],
+                           timer,
+                           job.timer,
+                           calc_status_strings.get(calc_status, "Completed"))
             else:
-                calc_msg = "Calc {:5d}: {} {} Status: {}". \
-                format(calc_id,
-                        calc_type_strings[calc_type],
-                        timer,
-                        calc_status_strings.get(calc_status, "Completed"))
+                calc_msg = "Calc {:5d}: {} {} Status: {}".\
+                    format(calc_id,
+                           calc_type_strings[calc_type],
+                           timer,
+                           calc_status_strings.get(calc_status, "Completed"))
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
-
 
     def _recv_H_rows(self, Work):
         "Unpack Work request and receiv any history rows we need."
@@ -225,10 +220,9 @@ class Worker:
         logger.debug("Received calc_in ({}) of len {}".
                      format(calc_type_strings[calc_type], np.size(calc_in)))
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
+            "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         return libE_info, calc_type, calc_in
-
 
     def _handle(self, Work):
         "Handle a work request from the manager."
@@ -253,12 +247,11 @@ class Worker:
                 'calc_status': calc_status,
                 'calc_type': calc_type}
 
-
     def run(self):
         "Run the main worker loop."
 
         try:
-            logger.info("Worker {} initiated on node {}". \
+            logger.info("Worker {} initiated on node {}".
                         format(self.workerID, socket.gethostname()))
 
             for worker_iter in count(start=1):

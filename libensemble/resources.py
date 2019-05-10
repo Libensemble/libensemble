@@ -13,11 +13,13 @@ from collections import OrderedDict
 from libensemble import node_resources
 
 logger = logging.getLogger(__name__)
-#To change logging level for just this module
-#logger.setLevel(logging.DEBUG)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
+
 
 class ResourcesException(Exception):
     "Resources module exception."
+
 
 class Resources:
 
@@ -100,7 +102,7 @@ class Resources:
             logger.debug('Running in central mode')
 
         # These presence of these env vars will be used to detect scheduler
-        self.nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
+        self.nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
         self.nodelist_env_lsf    = nodelist_env_lsf    or Resources.default_nodelist_env_lsf
 
@@ -126,7 +128,6 @@ class Resources:
         #self.comm = None
         self.worker_resources = None
 
-
     def set_worker_resources(self, workerid, comm):
         self.worker_resources = WorkerResources(workerid, comm, self)
 
@@ -138,7 +139,7 @@ class Resources:
             return True
         return False
 
-
+      
     @staticmethod
     def get_libE_nodes():
         """Returns a list of nodes running libE workers"""
@@ -168,16 +169,16 @@ class Resources:
         """
 
         try:
-            subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+            subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             return 'aprun'
         except:
             pass
 
         try:
-            subprocess.check_call(['jsrun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
+            subprocess.check_call(['jsrun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             return 'jsrun'
         except:
-            pass   
+            pass
 
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
         try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
@@ -187,7 +188,7 @@ class Resources:
             return 'mpich'
         return 'openmpi'
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     @staticmethod
     def _range_split(s):
@@ -222,7 +223,7 @@ class Resources:
         """Get global libEnsemble nodelist from the Cobalt environment"""
         prefix = 'nid'
         hostname = socket.gethostname()
-        nnum_len = 5 # default
+        nnum_len = 5  # default
         if hostname.startswith(prefix):
             nnum_len = len(hostname[len(prefix):])
         nidlst = []
@@ -258,7 +259,6 @@ class Resources:
         k, m = divmod(len(a), n)
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
-
     @staticmethod
     def get_global_nodelist(rundir=None,
                             nodelist_env_slurm=None,
@@ -274,7 +274,7 @@ class Resources:
         In central mode, any node with a libE worker is removed from the list.
         """
         top_level_dir = rundir or os.getcwd()
-        nodelist_env_slurm  = nodelist_env_slurm  or Resources.default_nodelist_env_slurm
+        nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
         nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
 
@@ -297,7 +297,7 @@ class Resources:
                 logger.debug("LSF env found - getting nodelist from LSF")
                 global_nodelist = Resources.get_lsf_nodelist(nodelist_env_lsf)
             else:
-                #Assume a standalone machine if all workers on same node - though give warning.
+                # Assume a standalone machine if all workers on same node - though give warning.
                 if len(set(Resources.get_libE_nodes())) == 1:
                     logger.info("Can not find nodelist from environment. Assuming standalone")
                     global_nodelist.append(socket.gethostname())
@@ -310,7 +310,6 @@ class Resources:
         if global_nodelist:
             return global_nodelist
         raise ResourcesException("Error. global_nodelist is empty")
-
 
 class WorkerResources:
     
@@ -354,19 +353,18 @@ class WorkerResources:
 
         # Currently require even split for distrib mode - to match machinefile - throw away remainder
         if distrib_mode and not sub_node_workers:
-            #Could just read in the libe machinefile and use that - but this should match
-            #Alt. create machinefile/host-list with same algorithm as best_split - future soln.
+            # Could just read in the libe machinefile and use that - but this should match
+            # Alt. create machinefile/host-list with same algorithm as best_split - future soln.
             nodes_per_worker, remainder = divmod(num_nodes, num_workers)
             if remainder != 0:
                 # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
-                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. {} workers and {} nodes"\
-                                .format(num_workers, num_nodes))
+                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. {} workers and {} nodes".format(num_workers, num_nodes))
                 num_nodes = num_nodes - remainder
                 global_nodelist = global_nodelist[0:num_nodes]
 
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers))
-        #logger.debug("split_list is {}".format(split_list))
+        # logger.debug("split_list is {}".format(split_list))
 
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")

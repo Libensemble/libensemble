@@ -4,6 +4,7 @@ libensemble utility class -- manages timer
 
 import time
 
+
 class Timer:
     """Timer class used in libensemble.
 
@@ -78,9 +79,10 @@ class Timer:
         """Exit a timing context."""
         self.stop()
 
+
 class JobTimer(Timer):
     """Timer class used in job controller jobs."""
     def __str__(self):
         """Return a string representation of the timer."""
         return ("JobTime: {0:.2f} JStart: {1} JEnd: {2}".
-                format(self.total, self.date_start, self.date_end))    
+                format(self.total, self.date_start, self.date_end))

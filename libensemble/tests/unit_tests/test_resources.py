@@ -8,28 +8,31 @@ def setup_standalone_run():
     if os.path.isfile('worker_list'):
         os.remove('worker_list')
 
+
 def teardown_standalone_run():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
     if os.path.isfile('worker_list'):
         os.remove('worker_list')
 
+
 def setup_function(function):
-    print ("setup_function    function:%s" % function.__name__)
+    print("setup_function    function:%s" % function.__name__)
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
-    #if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
-        #del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
-    #if os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']:
-        #del os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']
+    # if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
+    #     del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
+    # if os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']:
+    #     del os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']
     if os.path.isfile('worker_list'):
         os.remove('worker_list')
 
+
 def teardown_function(function):
-    print ("teardown_function    function:%s" % function.__name__)
+    print("teardown_function    function:%s" % function.__name__)
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
-    #if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
-        #del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
-    #if os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']:
-        #del os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']
+    # if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
+    #     del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
+    # if os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']:
+    #     del os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']
     if os.path.isfile('worker_list'):
         os.remove('worker_list')
 
@@ -188,11 +191,11 @@ def test_get_global_nodelist_standalone():
     
 def test_get_global_nodelist_frm_wrklst_file():
     # worker_list file should override env variables
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,137-139,1234" # Should not be this
-    exp_out = ['knl-0019', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-2345'] # Should be this
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,137-139,1234"  # Should not be this
+    exp_out = ['knl-0019', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-2345']  # Should be this
 
-    #Try empty (really want to start testing error messages - should be "Error. global_nodelist is empty"
-    open('worker_list','w').close()
+    # Try empty (really want to start testing error messages - should be "Error. global_nodelist is empty"
+    open('worker_list', 'w').close()
     try:
         global_nodelist0 = Resources.get_global_nodelist(rundir=os.getcwd())
     except:
@@ -200,7 +203,7 @@ def test_get_global_nodelist_frm_wrklst_file():
     else:
         assert 0
 
-    with open('worker_list','w') as f:
+    with open('worker_list', 'w') as f:
         for node in exp_out:
             f.write(node + '\n')
 
@@ -220,16 +223,16 @@ def test_remove_libE_nodes():
     mynode = socket.gethostname()
     exp_out = ['knl-0019', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-2345']
 
-    #Add at beginning
+    # Add at beginning
     nodes_in = [mynode] + exp_out
     nodes_out = Resources.remove_nodes(nodes_in, mynode)
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
-    #Add twice in middle and at end
+    # Add twice in middle and at end
     nodes_in = []
     for i, node in enumerate(exp_out):
         nodes_in.append(node)
-        if i==1 or i==4 or i==6:
+        if i == 1 or i == 4 or i == 6:
             nodes_in.append(mynode)
     nodes_out = Resources.remove_nodes(nodes_in, mynode)
     assert nodes_out == exp_out, "nodelist returned does not match expected"
@@ -237,9 +240,9 @@ def test_remove_libE_nodes():
 
 def test_get_local_nodelist_central_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
-    resources = Resources(nodelist_env_slurm = "LIBE_RESOURCES_TEST_NODE_LIST", central_mode = True)
+    resources = Resources(nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST", central_mode=True)
 
-    #Now mock up some more stuff - so consistent
+    # Now mock up some more stuff - so consistent
 
     #Spoof current process as each worker and check nodelist.
     num_workers = 8
@@ -277,16 +280,16 @@ def test_get_local_nodelist_central_mode():
 # The main tests are same as above - note for when fixtures set up
 def test_get_local_nodelist_central_mode_remove_libE_proc():
     mynode = socket.gethostname()
-    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
-    with open('worker_list','w') as f:
+    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
+    with open('worker_list', 'w') as f:
         for i, node in enumerate(nodelist_in):
             f.write(node + '\n')
-            if i==3:
+            if i == 3:
                 f.write(mynode + '\n')
 
-    resources = Resources(central_mode = True)
+    resources = Resources(central_mode=True)
 
-    #Now mock up some more stuff - so consistent
+    # Now mock up some more stuff - so consistent
 
     #Spoof current process as each worker and check nodelist.
     num_workers = 8
@@ -325,7 +328,7 @@ def test_get_local_nodelist_central_mode_remove_libE_proc():
 
 def test_get_local_nodelist_distrib_mode_host_not_in_list():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
-    resources = Resources(nodelist_env_slurm = "LIBE_RESOURCES_TEST_NODE_LIST", central_mode = False)
+    resources = Resources(nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST", central_mode=False)
 
     #Spoof current process as each worker and check nodelist.
     num_workers = 4
@@ -347,15 +350,15 @@ def test_get_local_nodelist_distrib_mode_host_not_in_list():
 
 def test_get_local_nodelist_distrib_mode():
     mynode = socket.gethostname()
-    #nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
-    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139']
-    with open('worker_list','w') as f:
+    # nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
+    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139']
+    with open('worker_list', 'w') as f:
         for i, node in enumerate(nodelist_in):
             f.write(node + '\n')
-            if i==3:
+            if i == 3:
                 f.write(mynode + '\n')
 
-    resources = Resources(central_mode = False)
+    resources = Resources(central_mode=False)
 
     #Spoof current process as each worker and check nodelist.
     num_workers = 8
@@ -396,7 +399,7 @@ def test_get_local_nodelist_distrib_mode():
 
     workerID = 10
     exp_out = [mynode]
-    #import pdb; pdb.set_trace()
+
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
     os.remove('worker_list')
@@ -404,11 +407,11 @@ def test_get_local_nodelist_distrib_mode():
 
 def test_get_local_nodelist_distrib_mode_uneven_split():
     mynode = socket.gethostname()
-    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137','knl-0138', 'knl-0139', 'knl-1234']
-    with open('worker_list','w') as f:
+    nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
+    with open('worker_list', 'w') as f:
         for i, node in enumerate(nodelist_in):
             f.write(node + '\n')
-            if i==4:
+            if i == 4:
                 f.write(mynode + '\n')
 
     resources = Resources(central_mode = False)
