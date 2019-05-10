@@ -104,11 +104,11 @@ class QComm(Comm):
     queues: an inbox for incoming messages and an outbox for outgoing messages.
     These can be used with threads or multiprocessing.
     """
-    
+
     # Integer count - shared amongst Processes in multiprocessing
     lock = Lock()
-    _ncomms = Value('i', 0) #todo - check: Maybe this should be in QCommProcess
-    
+    _ncomms = Value('i', 0)  # todo - check: Maybe this should be in QCommProcess
+
     def __init__(self, inbox, outbox, copy_msg=False):
         "Set the inbox and outbox queues."
         self._inbox = inbox
@@ -119,13 +119,13 @@ class QComm(Comm):
             QComm._ncomms.value += 1
 
     # Does this fit with terminate?
-    #def __del__(self):
-        ##global _ncomms
-        #with QComm.lock:
-            #QComm._ncomms.value -= 1
-    
+    # def __del__(self):
+        # #global _ncomms
+        # with QComm.lock:
+            # QComm._ncomms.value -= 1
+
     def get_num_workers(self):
-        #global _ncomms
+        # global _ncomms
         print('In get function', QComm._ncomms.value)
         return QComm._ncomms.value
 

@@ -61,7 +61,7 @@ class MPIJobController(JobController):
             The environment variable giving a node list in LSF format
             (Default: Uses LSB_HOSTS) Note: This is only queried
             if a worker_list file is not provided and
-            auto_resources=True.            
+            auto_resources=True.
         """
 
         JobController.__init__(self)
@@ -83,15 +83,15 @@ class MPIJobController(JobController):
         }
         self.mpi_launch_type = MPIResources.get_MPI_variant()
         self.mpi_command = mpi_commands[self.mpi_launch_type]
-        
+
         if self.auto_resources:
             self.resources = \
-              MPIResources(top_level_dir=self.top_level_dir,
-                           central_mode=central_mode,
-                           launcher = self.mpi_command[0],
-                           nodelist_env_slurm=nodelist_env_slurm,
-                           nodelist_env_cobalt=nodelist_env_cobalt,
-                           nodelist_env_lsf=nodelist_env_lsf)
+                MPIResources(top_level_dir=self.top_level_dir,
+                             central_mode=central_mode,
+                             launcher=self.mpi_command[0],
+                             nodelist_env_slurm=nodelist_env_slurm,
+                             nodelist_env_cobalt=nodelist_env_cobalt,
+                             nodelist_env_lsf=nodelist_env_lsf)
 
     def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
                        machinefile, hyperthreads):
@@ -99,11 +99,11 @@ class MPIJobController(JobController):
         hostlist = None
         if machinefile is None and self.auto_resources:
             num_procs, num_nodes, ranks_per_node = \
-              self.resources.get_resources(
-                  num_procs=num_procs,
-                  num_nodes=num_nodes, ranks_per_node=ranks_per_node,
-                  hyperthreads=hyperthreads)
-            
+                self.resources.get_resources(num_procs=num_procs,
+                                             num_nodes=num_nodes,
+                                             ranks_per_node=ranks_per_node,
+                                             hyperthreads=hyperthreads)
+
             # Use hostlist if multiple nodes, otherwise machinefile
             if num_nodes > 1:
                 hostlist = self.resources.get_hostlist()
@@ -253,7 +253,6 @@ class MPIJobController(JobController):
             self.list_of_jobs.append(job)
 
         return job
-
 
     def set_worker_info(self, comm, workerid=None):
         """Sets info for this job_controller"""

@@ -69,7 +69,7 @@ class MPIResources(Resources):
             (self.logical_cores_avail_per_node if hyperthreads else
              self.physical_cores_avail_per_node)
         workers_per_node = \
-          (self.worker_resources.workers_per_node if num_workers > local_node_count else 1)
+            (self.worker_resources.workers_per_node if num_workers > local_node_count else 1)
         cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
 
         rassert(node_list, "Node list is empty - aborting")

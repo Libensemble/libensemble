@@ -22,7 +22,6 @@ class ResourcesException(Exception):
 
 
 class Resources:
-
     """Provide system resources to libEnsemble and job controller.
 
     This is intialised when the job_controller is created with auto_resources set to True.
@@ -61,7 +60,7 @@ class Resources:
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None):
         """Initialise new Resources instance
-        
+
         Works out the compute resources available for current allocation, including
         node list and cores/hardware threads available within nodes.
 
@@ -76,7 +75,7 @@ class Resources:
             Central mode means libE processes (manager and workers) are grouped together and
             do not share nodes with applications. Distributed mode means Workers share nodes
             with applications.
-            
+
         launcher: String, optional
             The name of the job launcher such as mpirun or aprun. This may be used to obtain
             intra-node information by launching a probing job onto the compute nodes.
@@ -104,9 +103,9 @@ class Resources:
         # These presence of these env vars will be used to detect scheduler
         self.nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
-        self.nodelist_env_lsf    = nodelist_env_lsf    or Resources.default_nodelist_env_lsf
+        self.nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
 
-        #This is global nodelist avail to workers - may change to global_worker_nodelist
+        # This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir,
                                                              nodelist_env_slurm=self.nodelist_env_slurm,
                                                              nodelist_env_cobalt=self.nodelist_env_cobalt,
@@ -120,17 +119,16 @@ class Resources:
                 self.global_nodelist = Resources.remove_nodes(self.global_nodelist, self.libE_nodes)
         else:
             remote_detect = True
-        
+
         cores_info = node_resources.get_sub_node_resources(launcher=launcher, remote_mode=remote_detect)
         self.logical_cores_avail_per_node = cores_info[0]
         self.physical_cores_avail_per_node = cores_info[1]
-        
-        #self.comm = None
+
+        # self.comm = None
         self.worker_resources = None
 
     def set_worker_resources(self, workerid, comm):
         self.worker_resources = WorkerResources(workerid, comm, self)
-
 
     @staticmethod
     def am_I_mpi4py():
@@ -139,7 +137,6 @@ class Resources:
             return True
         return False
 
-      
     @staticmethod
     def get_libE_nodes():
         """Returns a list of nodes running libE workers"""
@@ -148,14 +145,13 @@ class Resources:
         local_host = socket.gethostname()
         if Resources.am_I_mpi4py():
             from mpi4py import MPI
-            comm = MPI.COMM_WORLD           
+            comm = MPI.COMM_WORLD
             all_hosts = comm.allgather(local_host)
         else:
             all_hosts = [local_host]
         unique_hosts = list(set(all_hosts))
-        #unique_hosts = list(OrderedDict.fromkeys(all_hosts))
+        # unique_hosts = list(OrderedDict.fromkeys(all_hosts))
         return unique_hosts
-
 
     @staticmethod
     def get_MPI_variant():
@@ -241,7 +237,7 @@ class Resources:
         """Get global libEnsemble nodelist from the LSF environment"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()
-        #unique_entries = list(set(entries)) # This will not retain order
+        # unique_entries = list(set(entries)) # This will not retain order
         unique_entries = list(OrderedDict.fromkeys(entries))
         nodes = [n for n in unique_entries if 'batch' not in n]
         return nodes
@@ -304,29 +300,29 @@ class Resources:
                 else:
                     raise ResourcesException("Error. Can not find nodelist from environment")
 
-        #if central_mode:
-            #global_nodelist = Resources.remove_libE_nodes(global_nodelist)
+        # if central_mode:
+        #     global_nodelist = Resources.remove_libE_nodes(global_nodelist)
 
         if global_nodelist:
             return global_nodelist
         raise ResourcesException("Error. global_nodelist is empty")
 
+
 class WorkerResources:
-    
     """Provide system resources per worker to libEnsemble and job controller."""
-    
+
     def __init__(self, workerID, comm, resources):
         self.num_workers = comm.get_num_workers()
         self.workerID = workerID
         self.local_nodelist = WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
-        self.local_node_count = len(self.local_nodelist)        
-        self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers, resources) 
+        self.local_node_count = len(self.local_nodelist)
+        self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers, resources)
 
     @staticmethod
     def get_workers_on_a_node(num_workers, resources):
         """ Returns the number of workers that can be placed on each node"""
         num_nodes = len(resources.global_nodelist)
-        #Round up if theres a remainder
+        # Round up if theres a remainder
         workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)
         return workers_per_node
 
