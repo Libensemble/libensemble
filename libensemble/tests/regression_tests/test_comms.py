@@ -19,9 +19,9 @@ from libensemble.mpi_controller import MPIJobController #Only used to get worker
 jobctrl = MPIJobController(auto_resources=False)
 
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] != 'mpi':
+if libE_specs['comms'] == 'tcp':
     quit()
-
+    
 # Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking
 # Using dill seems more reliable on Bebop - less unpickle errors

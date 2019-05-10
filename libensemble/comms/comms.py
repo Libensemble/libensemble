@@ -25,7 +25,7 @@ access and monitoring (for persistent gens):
 from abc import ABC, abstractmethod
 from time import time
 from threading import Thread
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Value, Lock
 from traceback import format_exc
 import queue
 import copy
@@ -104,13 +104,30 @@ class QComm(Comm):
     queues: an inbox for incoming messages and an outbox for outgoing messages.
     These can be used with threads or multiprocessing.
     """
-
+    
+    # Integer count - shared amongst Processes in multiprocessing
+    lock = Lock()
+    _ncomms = Value('i', 0) #todo - check: Maybe this should be in QCommProcess
+    
     def __init__(self, inbox, outbox, copy_msg=False):
         "Set the inbox and outbox queues."
         self._inbox = inbox
         self._outbox = outbox
         self._copy = copy_msg
         self._pushback = None
+        with QComm.lock:
+            QComm._ncomms.value += 1
+
+    # Does this fit with terminate?
+    #def __del__(self):
+        ##global _ncomms
+        #with QComm.lock:
+            #QComm._ncomms.value -= 1
+    
+    def get_num_workers(self):
+        #global _ncomms
+        print('In get function', QComm._ncomms.value)
+        return QComm._ncomms.value
 
     def send(self, *args):
         "Place a message on the outbox queue."

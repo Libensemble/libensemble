@@ -95,7 +95,7 @@ class Worker:
         self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
-        Worker._set_job_controller(workerID)
+        Worker._set_job_controller(self.workerID, self.comm)
 
 
     @staticmethod
@@ -133,11 +133,13 @@ class Worker:
 
 
     @staticmethod
-    def _set_job_controller(workerID):
+    def _set_job_controller(workerID, comm):
         "Optional -- set worker ID in the job controller, return if set"
         try:
             jobctl = JobController.controller
-            jobctl.set_workerID(workerID)
+            #jobctl.set_workerID(workerID)
+            jobctl.set_worker_info(comm, workerID)
+        #todo Need to differentiate no controller to actual exception
         except Exception:
             logger.info("No job_controller set on worker {}".\
                         format(workerID))
