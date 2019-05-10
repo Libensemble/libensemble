@@ -1,11 +1,7 @@
-import sys
-import time
-
 from mpi4py import MPI
 from libensemble.comms.mpi import MPIComm, Timeout
 from libensemble.tests.regression_tests.common import parse_args
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
     quit()
@@ -29,8 +25,9 @@ def worker_main():
 
 def manager_main():
     "Manager main routine"
-    worker_comms = [MPIComm(MPI.COMM_WORLD, r)
-                    for r in range(1, MPI.COMM_WORLD.Get_size())]
+    worker_comms = [
+        MPIComm(MPI.COMM_WORLD, r)
+        for r in range(1, MPI.COMM_WORLD.Get_size())]
     for comm in worker_comms:
         try:
             okay_flag = True

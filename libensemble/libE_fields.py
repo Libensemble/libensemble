@@ -6,5 +6,6 @@ libE_fields = [('sim_id',int),        # The number of the entry in H that was ge
                ('given_time',float),  # Time (since epoch) that the entry was given to a worker for a sim eval
                ('sim_worker',int),    # Worker that did (or is doing) the sim eval
                ('gen_worker',int),    # Worker that generated the entry
+               ('gen_time',float),    # Time (since epoch) that entry was entered into H
                ('returned',bool),     # True if the entry has been returned from the sim eval
                ]

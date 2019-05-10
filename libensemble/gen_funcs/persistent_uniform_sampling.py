@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP

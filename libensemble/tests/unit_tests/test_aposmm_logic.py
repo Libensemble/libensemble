@@ -1,15 +1,11 @@
 import sys, time, os
 import numpy as np
 
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../examples/gen_funcs'))
 import libensemble.gen_funcs.aposmm as al
-
-#sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 
 import libensemble.tests.unit_tests.setup as setup
 
 n = 2
-#alloc = {'out':[]}
 libE_specs = {'comm':{}}
 
 gen_out = [('x',float,n),
@@ -17,7 +13,7 @@ gen_out = [('x',float,n),
       ('sim_id',int),
       ('priority',float),
       ('local_pt',bool),
-      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
+      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed
       ('dist_to_unit_bounds',float),
       ('dist_to_better_l',float),
       ('dist_to_better_s',float),
@@ -36,7 +32,7 @@ def test_failing_localopt_method():
     gen_specs_0['localopt_method'] = 'BADNAME'
 
     try:
-        al.advance_localopt_method(hist.H, gen_specs_0, 0, 0, {'run_order': {0:[0,1]}})
+        al.advance_local_run(hist.H, gen_specs_0, 0, 0, {'run_order': {0:[0,1]}})
     except:
         assert 1, "Failed like it should have"
     else:
@@ -44,17 +40,15 @@ def test_failing_localopt_method():
 
 
 def test_exception_raising():
-    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1()
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1(n=2)
     hist.H['returned'] = 1
 
-    for method in ['LN_SBPLX','pounders']:
+    for method in ['LN_SBPLX','pounders','scipy_COBYLA']:
         gen_specs_0['localopt_method'] = method
-        try:
-            al.advance_localopt_method(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
-        except:
-            assert 1, "Failed like it should have"
-        else:
-            assert 0, "Failed like it should have"
+
+        out = al.advance_local_run(hist.H, gen_specs_0,  0, 0, {'run_order': {0:[0,1]}})
+
+        assert out[0]==0, "Failed like it should have"
 
 
 def test_decide_where_to_start_localopt():
@@ -85,6 +79,24 @@ def test_initialize_APOSMM():
 
     al.initialize_APOSMM(hist.H,gen_specs_0)
 
+def test_declare_opt():
+    hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc  = setup.hist_setup1(n=2)
+
+    try: 
+        al.update_history_optimal(hist.H['x_on_cube'][0]+1,hist.H,np.arange(0,10))
+    except: 
+        assert 1, "Failed because the best point is not in H"
+    else: 
+        assert 0
+
+
+    hist.H['x_on_cube'][1] += np.finfo(float).eps
+    hist.H['f'][1] -= np.finfo(float).eps
+
+    # Testing case where point near x_opt is slightly better. 
+    al.update_history_optimal(hist.H['x_on_cube'][0],hist.H,np.arange(0,10))
+    assert np.sum(hist.H['local_min']) == 2
+
 
 
 
@@ -98,4 +110,6 @@ if __name__ == "__main__":
     test_calc_rk()
     print('done')
     test_initialize_APOSMM()
+    print('done')
+    test_declare_opt()
     print('done')

@@ -7,70 +7,63 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
-
-
-import sys             # for adding to path
+import sys
 import numpy as np
+from math import gamma, pi, sqrt
+from copy import deepcopy
 
-from libensemble.tests.regression_tests.support import save_libE_output
-
+# Import libEnsemble items for this test
 from libensemble.libE import libE, libE_tcp_worker
-from libensemble.tests.regression_tests.common import parse_args
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
+from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.tests.regression_tests.support import persis_info_1 as persis_info, aposmm_gen_out as gen_out, six_hump_camel_minima as minima
 
-# Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
+
 if libE_specs['comms'] != 'mpi':
     quit()
+
+n = 2
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('grad', float, n)]}
+
+gen_out += [('x', float, n), ('x_on_cube', float, n)]
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [o[0] for o in gen_out]+['f', 'grad', 'returned'],
+    'out': gen_out,
+    'num_active_gens': 1,
+    'batch_mode': True,
+    'initial_sample_size': 100,
+    'sample_points': np.round(minima, 1),
+    'localopt_method': 'LD_MMA',
+    'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+    'xtol_rel': 1e-3,
+    'num_active_gens': 1,
+    'max_active_runs': 6,
+    'lb': np.array([-3, -2]),
+    'ub': np.array([3, 2]),}
+
+alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
+
+persis_info = per_worker_stream(persis_info, nworkers+1)
+persis_info_safe = deepcopy(persis_info)
+
+exit_criteria = {'sim_max': 1000}
 
 # Set up appropriate abort mechanism depending on comms
 libE_abort = quit
 if libE_specs['comms'] == 'mpi':
     from mpi4py import MPI
+
     def libE_mpi_abort():
         MPI.COMM_WORLD.Abort(1)
+
     libE_abort = libE_mpi_abort
-
-# Import libEnsemble main, sim_specs, gen_specs, and persis_info
-from libensemble.tests.regression_tests.support import six_hump_camel_sim_specs as sim_specs
-from libensemble.tests.regression_tests.support import aposmm_with_grad_gen_specs as gen_specs
-from libensemble.tests.regression_tests.support import give_sim_work_first_aposmm_alloc_specs as alloc_specs
-
-from libensemble.tests.regression_tests.support import persis_info_1 as persis_info, give_each_worker_own_stream 
-persis_info = give_each_worker_own_stream(persis_info,nworkers+1)
-
-import copy 
-persis_info_safe = copy.deepcopy(persis_info)
-
-from math import gamma, pi, sqrt
-
-n = 2
-
-sim_specs['out'] += [('grad',float,n)] 
-
-
-# The minima are known on this test problem.
-from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-# 1) We use their values to test APOSMM has identified all minima
-# 2) We use their approximate values to ensure APOSMM evaluates a point in each
-#    minima's basin of attraction.
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs['in'] += ['x','x_on_cube']
-gen_specs['out'] += [('x',float,n), ('x_on_cube',float,n),]
-gen_specs['initial_sample_size'] = 100
-gen_specs['sample_points'] = np.round(minima,1)
-gen_specs['localopt_method'] = 'LD_MMA'
-gen_specs['rk_const'] = 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
-gen_specs['xtol_rel'] = 1e-3
-gen_specs['num_active_gens'] = 1
-gen_specs['max_active_runs'] = 6
-gen_specs['lb'] = np.array([-3,-2])
-gen_specs['ub'] = np.array([ 3, 2])
-
-# Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 1000}
 
 # Perform the run (TCP worker mode)
 if libE_specs['comms'] == 'tcp' and not is_master:
@@ -87,11 +80,12 @@ for run in range(2):
         # Change the bounds to put a local min at a corner point (to test that
         # APOSMM handles the same point being in multiple runs) ability to
         # give back a previously evaluated point)
-        gen_specs['ub']= np.array([-2.9, -1.9])
-        gen_specs['mu']= 1e-4
-        gen_specs['rk_const']= 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
+        gen_specs['ub'] = np.array([-2.9, -1.9])
+        gen_specs['mu'] = 1e-4
+        gen_specs['rk_const'] = 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
         gen_specs['lhs_divisions'] = 2
-        gen_specs.pop('batch_mode')  # Tests that APOSMM is okay being called when all pts in a run aren't completed
+        # APOSMM can be called when some run is incomplete
+        gen_specs.pop('batch_mode')
 
         gen_specs.pop('xtol_rel')
         gen_specs['ftol_rel'] = 1e-2
@@ -102,7 +96,8 @@ for run in range(2):
 
         persis_info = persis_info_safe
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                persis_info, alloc_specs, libE_specs)
 
     if is_master:
         if flag != 0:
@@ -112,10 +107,16 @@ for run in range(2):
 
         tol = 1e-5
         for m in minima:
-            print(np.min(np.sum((H[H['local_min']]['x']-m)**2,1)))
+            # The minima are known on this test problem.
+            # 1) We use their values to test APOSMM has identified all minima
+            # 2) We use their approximate values to ensure APOSMM evaluates a
+            #    point in each minima's basin of attraction.
+            print(np.min(np.sum((H[H['local_min']]['x']-m)**2, 1)))
             sys.stdout.flush()
-            if np.min(np.sum((H[H['local_min']]['x']-m)**2,1)) > tol:
+            if np.min(np.sum((H[H['local_min']]['x']-m)**2, 1)) > tol:
                 libE_abort()
 
-        print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
-        save_libE_output(H,__file__,nworkers)
+        print(
+            "\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the "
+            +str(np.shape(minima)[0])+" minima within a tolerance "+str(tol))
+        save_libE_output(H, persis_info, __file__, nworkers)

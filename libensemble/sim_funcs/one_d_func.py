@@ -1,9 +1,6 @@
 """
 This module contains an example 1d function
 """
-from __future__ import division
-from __future__ import absolute_import
-
 __all__ = ['one_d_example']
 
 import numpy as np

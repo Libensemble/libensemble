@@ -164,6 +164,7 @@ class History:
         for field in O.dtype.names:
             self.H[field][update_inds] = O[field]
 
+        self.H['gen_time'][update_inds] = time.time()
         self.H['gen_worker'][update_inds] = gen_worker
         self.index += num_new
 
