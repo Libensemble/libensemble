@@ -346,6 +346,10 @@ class JobController:
         """Sets the worker ID for this job_controller"""
         self.workerID = workerid
 
+    def set_worker_info(self, workerid=None):
+        """Sets info for this job_controller"""
+        self.workerID = workerid
+
     def poll(self, job):
         "Polls a job"
         job.poll()

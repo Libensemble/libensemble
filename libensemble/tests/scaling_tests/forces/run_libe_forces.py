@@ -12,26 +12,35 @@ from libensemble import libE_logger
 libE_logger.set_level('INFO')
 
 USE_BALSAM = False
-USE_MPI = True
+USE_MPI = False
 
 if USE_MPI:
     # Run with MPI (Add a proc for manager): mpiexec -np <num_workers+1> python run_libe_forces.py
     import mpi4py
     mpi4py.rc.recv_mprobe = False  # Disable matching probes
     from mpi4py import MPI
-    nworkers = MPI.COMM_WORLD.Get_size()
+    nworkers = MPI.COMM_WORLD.Get_size() - 1
     is_master = (MPI.COMM_WORLD.Get_rank() == 0)
     libE_specs = {}  # MPI is default comms, workers are decided at launch
 else:
     # Run with multi-processing: python run_libe_forces.py <num_workers>
     try:
         nworkers = int(sys.argv[1])
-    except:
+    except Exception:
         print("WARNING: nworkers not passed to script - defaulting to 4")
         nworkers = 4
     is_master = True  # processes are forked in libE
     libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
 
+print('\nRunning with {} workers\n'.format(nworkers))
+
+from forces_simf import run_forces # Sim func from current dir
+from libensemble import libE_logger
+libE_logger.set_level('INFO')
+
+# Import libEnsemble modules
+from libensemble.libE import libE
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
 
 # Get this script name (for output at end)
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -56,7 +65,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController()
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=False)
+    jobctrl = MPIJobController(auto_resources=True)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 

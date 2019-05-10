@@ -5,7 +5,7 @@ MPI-based bidirectional communicator
 """
 
 import time
-
+import socket
 from mpi4py import MPI
 from libensemble.comms.comms import Comm, Timeout
 
@@ -90,6 +90,8 @@ class MPIComm(Comm):
         assert self._pushed is None, "Cannot push back multiple messages"
         self._pushed = args
 
+    def get_num_workers(self):
+        return self.mpi_comm.Get_size() - 1
 
 class MainMPIComm(MPIComm):
     """MPI communicator used by the workers and managers for the moment."""

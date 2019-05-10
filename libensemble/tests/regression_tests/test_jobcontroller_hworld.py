@@ -12,8 +12,6 @@ from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_
 from libensemble.tests.regression_tests.common import build_simfunc, parse_args, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] != 'mpi':
-    quit()
 
 USE_BALSAM = False
 
