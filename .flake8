@@ -23,7 +23,7 @@ exclude =
         # This is not implemented yet
         controller_tests/test_jobcontroller_manager_poll.py
         # Not checking these scripts yet
-        postproc_scripts,
+        postproc_scripts
         # Do not check these experimental tests
         balsam_tests
 
