@@ -133,7 +133,7 @@ class MPIResources(Resources):
             try:
                 os.remove(machinefile)
             except Exception as e:
-                logger.warning("Could not remove existing machinefile")
+                logger.warning("Could not remove existing machinefile: {}".format(e))
 
         node_list = self.worker_resources.local_nodelist
         logger.debug("Creating machinefile with {} nodes and {} ranks per node".
