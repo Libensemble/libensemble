@@ -26,3 +26,12 @@ exclude =
         controller_tests/test_jobcontroller_manager_poll.py
         # Not checking these scripts yet
         postproc_scripts
+
+# Note that you can use wildcard exceptions with something such as
+# libensemble/libensemble/tests/regression_tests/*:F401
+per-file-ignores =
+        # init needs to import the logger.
+        libensemble/__init__.py:F401
+        # Need to turn of matching probes (before other imports) on some
+        # systems/versions of MPI:
+        libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402 
