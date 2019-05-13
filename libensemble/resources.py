@@ -217,11 +217,6 @@ class Resources:
     @staticmethod
     def get_cobalt_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Cobalt environment"""
-        prefix = 'nid'
-        hostname = socket.gethostname()
-        nnum_len = 5  # default
-        if hostname.startswith(prefix):
-            nnum_len = len(hostname[len(prefix):])
         nidlst = []
         nidstr = os.environ[node_list_env]
         if not nidstr:

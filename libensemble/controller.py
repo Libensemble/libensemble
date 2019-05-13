@@ -333,7 +333,7 @@ class JobController:
         else:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
-        comm.push_back(mtag, Work)
+        comm.push_back(mtag)
 
     def get_job(self, jobid):
         """ Returns the job object for the supplied job ID """
