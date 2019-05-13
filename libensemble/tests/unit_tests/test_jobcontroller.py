@@ -6,7 +6,8 @@ import sys
 import time
 import pytest
 import socket
-from libensemble.controller import JobController
+from libensemble.resources import ResourcesException
+from libensemble.controller import JobController, JobControllerException
 from libensemble.controller import NOT_STARTED_STATES
 
 
@@ -299,7 +300,7 @@ def test_procs_and_machinefile_logic():
     # Testing num_procs not num_nodes*ranks_per_node (should fail)
     try:
         job = jobctl.launch(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5, app_args=args_for_sim)
-    except:
+    except ResourcesException:
         assert 1
     else:
         assert 0
@@ -314,7 +315,7 @@ def test_procs_and_machinefile_logic():
     # Testing nothing given (should fail)
     try:
         job = jobctl.launch(calc_type='sim', app_args=args_for_sim)
-    except:
+    except ResourcesException:
         assert 1
     else:
         assert 0
@@ -413,7 +414,7 @@ def test_launch_as_gen():
     # Try launching as gen when not registered as gen
     try:
         job = jobctl.launch(calc_type='gen', num_procs=cores, app_args=args_for_sim)
-    except:
+    except JobControllerException:
         assert 1
     else:
         assert 0
@@ -427,7 +428,7 @@ def test_launch_as_gen():
     # Try launching as 'alloc' which is not a type
     try:
         job = jobctl.launch(calc_type='alloc', num_procs=cores, app_args=args_for_sim)
-    except:
+    except JobControllerException:
         assert 1
     else:
         assert 0
@@ -453,7 +454,7 @@ def test_launch_no_app():
     args_for_sim = 'sleep 0.1'
     try:
         job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    except:
+    except JobControllerException:
         assert 1
     else:
         assert 0
@@ -469,7 +470,7 @@ def test_kill_job_with_no_launch():
     # Try kill invalid job
     try:
         jobctl.kill('myjob')
-    except:
+    except JobControllerException:
         assert 1
     else:
         assert 0
@@ -479,7 +480,7 @@ def test_kill_job_with_no_launch():
     job1 = Job(app=myapp, stdout='stdout.txt')
     try:
         jobctl.kill(job1)
-    except:
+    except JobControllerException:
         assert 1
     else:
         assert 0
@@ -497,7 +498,7 @@ def test_poll_job_with_no_launch():
     job1 = Job(app=myapp, stdout='stdout.txt')
     try:
         job1.poll()
-    except:
+    except JobControllerException:
         assert 1
     else:
         assert 0
