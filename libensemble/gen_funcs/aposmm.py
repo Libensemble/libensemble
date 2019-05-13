@@ -23,9 +23,11 @@ from math import log, gamma, pi, sqrt
 
 import nlopt
 
+
 class APOSMMException(Exception):
     "Raised for any exception in APOSMM"
-    
+
+
 def aposmm_logic(H, persis_info, gen_specs, _):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
