@@ -40,7 +40,7 @@ print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type, num
 launcher = 'mpich'  # Includes mpich based - eg. intelmpi
 try:
     subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-except:
+except OSError:
     launcher = 'mpich'
 else:
     launcher = 'aprun'

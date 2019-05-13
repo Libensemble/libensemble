@@ -4,8 +4,6 @@ ignore =
         E501,
         # Not worrying about spaces around arithmetic operations
         E226
-        # Bare excepts (but we should fix this!)
-        E722
         # Allow variables O, l, etc
         E741
         # Line breaks before unary operators are okay
