@@ -23,7 +23,9 @@ from math import log, gamma, pi, sqrt
 
 import nlopt
 
-
+class APOSMMException(Exception):
+    "Raised for any exception in APOSMM"
+    
 def aposmm_logic(H, persis_info, gen_specs, _):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
@@ -238,11 +240,11 @@ def aposmm_logic(H, persis_info, gen_specs, _):
                     with open(run_out_file, "wb") as f:
                         pickle.dump((H, gen_specs, c_flag, run, persis_info), f)
 
-                    sys.exit("Exit code is 0, but x_new was not updated in " +
-                             "local opt run " + str(run) + " after " +
-                             str(len(sorted_run_inds)) + " evaluations.\n" +
-                             "Saving run information to: " + run_out_file +
-                             "\nWorker crashing!")
+                    raise APOSMMException("Exit code is 0, but x_new was not updated in " +
+                                          "local opt run " + str(run) + " after " +
+                                          str(len(sorted_run_inds)) + " evaluations.\n" +
+                                          "Saving run information to: " + run_out_file +
+                                          "\nWorker crashing!")
 
                 # No new point was added. Hopefully at a minimum
                 update_history_optimal(x_opt, H, sorted_run_inds)
@@ -532,7 +534,7 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
                 display_exception(e)
 
         else:
-            sys.exit("Unknown localopt method. Exiting")
+            raise APOSMMException("Unknown localopt method. Exiting")
 
         match_ind = np.equal(advance_local_run.x_new, H['x_on_cube']).all(1)
         if ~match_ind.any():
