@@ -53,12 +53,10 @@ def get_cpu_cores(hyperthreads=False):
         else:
             try:
                 ranks_per_node = _cpu_count_physical()
-            except:
+            except Exception as e:
+                logger.warning("Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override. Exception {}".format(e))
                 import multiprocessing
                 ranks_per_node = multiprocessing.cpu_count()
-                # logger.warning('Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override')
-                # tmp
-                print('Warning: Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override')
     return ranks_per_node  # This is ranks available per node
 
 
@@ -93,7 +91,8 @@ def _get_cpu_resources_from_env():
             logger.warning("Detected compute nodes have different core counts: {}".format(set(counter)))
 
         physical_cores_avail_per_node = counter[0]
-        logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely - support requested.
+        logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely
+        logger.warning("SMT currently not detected, returning physical cores only. Specify ranks_per_node to override")
         return (logical_cores_avail_per_node, physical_cores_avail_per_node)
     else:
         return None

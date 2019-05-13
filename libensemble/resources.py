@@ -167,13 +167,13 @@ class Resources:
         try:
             subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             return 'aprun'
-        except:
+        except OSError:
             pass
 
         try:
             subprocess.check_call(['jsrun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             return 'jsrun'
-        except:
+        except OSError:
             pass
 
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
