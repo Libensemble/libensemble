@@ -1,3 +1,4 @@
+import sys
 from mpi4py import MPI
 from libensemble.comms.mpi import MPIComm, Timeout
 from libensemble.tests.regression_tests.common import parse_args

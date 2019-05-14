@@ -11,6 +11,7 @@
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 
+import sys
 from mpi4py import MPI
 import numpy as np
 import argparse
