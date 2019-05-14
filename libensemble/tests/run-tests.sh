@@ -404,14 +404,15 @@ if [ "$root_found" = true ]; then
     reg_pass=0
     reg_fail=0
     test_num=0
+    set -x
     for TEST_SCRIPT in $REG_TEST_LIST
     do
-      COMMS_LIST=$(grep -Po '# TESTSUITE_COMMS: \K.*' $file)
+      COMMS_LIST=$(grep -Po '# TESTSUITE_COMMS: \K.*' $TEST_SCRIPT)
       for LAUNCHER in $COMMS_LIST
       do
 
       #Need proc count here for now - still stop on failure etc.
-      NPROCS_LIST=$(grep -Po '# TESTSUITE_NPROCS: \K.*' $file)
+      NPROCS_LIST=$(grep -Po '# TESTSUITE_NPROCS: \K.*' $TEST_SCRIPT)
       for NPROCS in $NPROCS_LIST
       do
         test_num=$((test_num+1))
