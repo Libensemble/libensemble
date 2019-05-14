@@ -481,7 +481,8 @@ def test_kill_job_with_no_launch():
     try:
         jobctl.kill(job1)
     except JobControllerException as e:
-        assert e.args[0] == 'Attempting to kill job job_my_simjob.x.simfunc_24 that has no process ID - check jobs been launched'
+        assert e.args[0][:47] == 'Attempting to kill job job_my_simjob.x.simfunc_'
+        assert e.args[0][49:] == ' that has no process ID - check jobs been launched'
     else:
         assert 0
 
@@ -498,7 +499,8 @@ def test_poll_job_with_no_launch():
     try:
         job1.poll()
     except JobControllerException as e:
-        assert e.args[0] == 'Polled job job_my_simjob.x.simfunc_25 has no process ID - check jobs been launched'
+        assert e.args[0][:35] == 'Polled job job_my_simjob.x.simfunc_'
+        assert e.args[0][37:] == ' has no process ID - check jobs been launched'
     else:
         assert 0
 
