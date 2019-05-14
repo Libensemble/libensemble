@@ -404,7 +404,6 @@ if [ "$root_found" = true ]; then
     reg_pass=0
     reg_fail=0
     test_num=0
-    set -x
     for TEST_SCRIPT in $REG_TEST_LIST
     do
       COMMS_LIST=$(grep -Po '# TESTSUITE_COMMS: \K.*' $TEST_SCRIPT)
