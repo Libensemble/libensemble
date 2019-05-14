@@ -26,9 +26,6 @@ from libensemble.tests.regression_tests.support import persis_info_1 as persis_i
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-#if libE_specs['comms'] == 'tcp':
-    #sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
-
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],

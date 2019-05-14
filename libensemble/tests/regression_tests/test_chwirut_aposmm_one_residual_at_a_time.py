@@ -22,9 +22,6 @@ from libensemble.tests.regression_tests.support import persis_info_3 as persis_i
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-#if libE_specs['comms'] != 'mpi':
-    #quit()
-
 # Declare the run parameters/functions
 m = 214
 n = 3

@@ -5,6 +5,7 @@
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 
+import sys
 import numpy as np
 from copy import deepcopy
 import pkg_resources
