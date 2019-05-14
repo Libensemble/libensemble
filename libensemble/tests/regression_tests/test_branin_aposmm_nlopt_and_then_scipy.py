@@ -1,5 +1,10 @@
 # """
 # """
+
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 from copy import deepcopy
 import pkg_resources
@@ -13,8 +18,8 @@ from libensemble.tests.regression_tests.common import parse_args, save_libE_outp
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-if libE_specs['comms'] != 'mpi':
-    quit()
+if libE_specs['comms'] == 'tcp':
+    sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],

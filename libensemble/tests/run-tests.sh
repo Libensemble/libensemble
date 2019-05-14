@@ -13,7 +13,7 @@ export RUN_PEP_TESTS=false     #Code syle conventions
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
 export REG_TEST_LIST=test_*.py #unordered
-export REG_TEST_PROCESS_COUNT_LIST='2 4'
+# export REG_TEST_PROCESS_COUNT_LIST='2 4'
 export REG_USE_PYTEST=false
 export REG_TEST_OUTPUT_EXT=std.out #/dev/null
 export REG_STOP_ON_FAILURE=false
@@ -404,77 +404,79 @@ if [ "$root_found" = true ]; then
     reg_pass=0
     reg_fail=0
     test_num=0
+    
     for TEST_SCRIPT in $REG_TEST_LIST
     do
-      for LAUNCHER in "mpi" "local" "tcp"
+      COMMS_LIST=$(grep -Po '# TESTSUITE_COMMS: \K.*' $TEST_SCRIPT)
+      for LAUNCHER in $COMMS_LIST
       do
-
-      #Need proc count here for now - still stop on failure etc.
-      for NPROCS in $REG_TEST_PROCESS_COUNT_LIST
-      do
-        test_num=$((test_num+1))
-        NWORKERS=$((NPROCS-1))  
-
-        RUN_TEST=true
-        if [ $REG_STOP_ON_FAILURE = "true" ]; then
-          #Before Each Test check code is 0 (passed so far) - or skip to test summary
-          if [ "$code" -ne "0" ]; then
-            RUN_TEST=false
-            break
+        #Need proc count here for now - still stop on failure etc.
+        NPROCS_LIST=$(grep -Po '# TESTSUITE_NPROCS: \K.*' $TEST_SCRIPT)
+        for NPROCS in $NPROCS_LIST
+        do
+          test_num=$((test_num+1))
+          NWORKERS=$((NPROCS-1))  
+        
+          RUN_TEST=true
+          if [ $REG_STOP_ON_FAILURE = "true" ]; then
+            #Before Each Test check code is 0 (passed so far) - or skip to test summary
+            if [ "$code" -ne "0" ]; then
+              RUN_TEST=false
+              break
+            fi
           fi
-        fi
-
-        if [ "$RUN_TEST" = "true" ]; then
-
-           if [ "$REG_USE_PYTEST" = true ]; then
-             if [ "$LAUNCHER" = mpi ]; then
-               mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-               test_code=$?
-             else
-               $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
-             fi
-           else
-             if [ "$LAUNCHER" = mpi ]; then
-               if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                 mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+        
+          if [ "$RUN_TEST" = "true" ]; then
+        
+             if [ "$REG_USE_PYTEST" = true ]; then
+               if [ "$LAUNCHER" = mpi ]; then
+                 mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                  test_code=$?
                else
-                 mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-                 test_code=$?
-               fi               
+                 $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+               fi
              else
-               if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                 $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
-                 test_code=$?
-               else      
-                 $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
-                 test_code=$?
+               if [ "$LAUNCHER" = mpi ]; then
+                 if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
+                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+                   test_code=$?
+                 else
+                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+                   test_code=$?
+                 fi               
+               else
+                 if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
+                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
+                   test_code=$?
+                 else      
+                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+                   test_code=$?
+                 fi
                fi
              fi
-           fi
-           reg_count_runs=$((reg_count_runs+1))
-
-           if [ "$test_code" -eq "0" ]; then
-             echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed ${textreset}"
-             reg_pass=$((reg_pass+1))
-             #continue testing
-           else
-             echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed ${textreset}"
-             code=$test_code #sh - currently stop on failure
-             if [ $REG_STOP_ON_FAILURE != "true" ]; then
-               #Dump error to log file
-               echo -e "\nTest $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes:\n" >>log.err
-               [ -e test.err ] && cat test.err >>log.err
+             reg_count_runs=$((reg_count_runs+1))
+        
+             if [ "$test_code" -eq "0" ]; then
+               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed ${textreset}"
+               reg_pass=$((reg_pass+1))
+               #continue testing
+             else
+               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed ${textreset}"
+               code=$test_code #sh - currently stop on failure
+               if [ $REG_STOP_ON_FAILURE != "true" ]; then
+                 #Dump error to log file
+                 echo -e "\nTest $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes:\n" >>log.err
+                 [ -e test.err ] && cat test.err >>log.err
+               fi;
+               reg_fail=$((reg_fail+1))
              fi;
-             reg_fail=$((reg_fail+1))
-           fi;
-
-           #If use sub-dirs - move this test's coverage files to regression dir where they can be merged with other tests
-           #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
-
-        fi; #if [ "$RUN_TEST" = "true" ];
-
-      done #nprocs
+        
+             #If use sub-dirs - move this test's coverage files to regression dir where they can be merged with other tests
+             #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
+        
+          fi; #if [ "$RUN_TEST" = "true" ];
+        
+        done #nprocs
       done #launcher
 
       [ $REG_STOP_ON_FAILURE = "true" ] && [ "$code" -ne "0" ] && cat test.err && break

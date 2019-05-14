@@ -7,6 +7,10 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 2 4
+
 from mpi4py import MPI
 import numpy as np
 import argparse
@@ -21,7 +25,7 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 if libE_specs['comms'] != 'mpi':
     # Can't do this one with processes either?  Wants a machine file.
-    quit()
+    sys.exit("This test only runs with MPI -- aborting...")
 
 # Parse arguments
 parser = argparse.ArgumentParser()

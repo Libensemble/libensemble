@@ -8,6 +8,10 @@
 # The number of concurrent evaluations of the objective function will be N-1.
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -20,7 +24,7 @@ jobctrl = MPIJobController(auto_resources=False)
 
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'tcp':
-    quit()
+    sys.exit("Cannot be run with tcp -- aborting...")
 
 # Prob wrap this in the future libe comms module - and that will have init_comms...
 # and can report what its using - for comms - and in mpi case for packing/unpacking

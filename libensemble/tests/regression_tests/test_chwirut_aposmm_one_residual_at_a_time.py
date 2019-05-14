@@ -6,6 +6,10 @@
 
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -18,8 +22,8 @@ from libensemble.tests.regression_tests.support import persis_info_3 as persis_i
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-if libE_specs['comms'] != 'mpi':
-    quit()
+#if libE_specs['comms'] != 'mpi':
+    #quit()
 
 # Declare the run parameters/functions
 m = 214

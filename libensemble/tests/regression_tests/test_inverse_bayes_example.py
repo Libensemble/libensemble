@@ -8,6 +8,11 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 3 4
+
+import sys
 import numpy as np
 
 from libensemble.libE import libE
@@ -20,8 +25,7 @@ from libensemble.tests.regression_tests.common import parse_args, per_worker_str
 nworkers, is_master, libE_specs, _ = parse_args()
 
 if nworkers < 2:
-    # Can't do a "persistent worker run" if only one worker
-    quit()
+    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('like', float)]}
 

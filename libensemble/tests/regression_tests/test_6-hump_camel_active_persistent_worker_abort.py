@@ -7,6 +7,11 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 3 4
+
+import sys
 import numpy as np
 
 # Import libEnsemble requirements
@@ -43,8 +48,7 @@ persis_info = per_worker_stream({}, nworkers + 1)
 exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 
 if nworkers < 2:
-    # Can't do a "persistent worker run" if only one worker
-    quit()
+    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
