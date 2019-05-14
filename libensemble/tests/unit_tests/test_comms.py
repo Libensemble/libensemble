@@ -329,7 +329,7 @@ def run_qcomm_threadproc_test(ThreadProc):
     gen_specs = {'out': [('x', float), ('flag', bool)]}
     results = np.zeros(3, dtype=[('f', float)])
     results['f'] = [5, 10, 30]
-    resultsf = results['f']
+    # resultsf = results['f']
     with ThreadProc(worker_thread, gen_specs=gen_specs) as mgr_comm:
         assert mgr_comm.running
         assert mgr_comm.recv()[0] == 'request'
@@ -361,7 +361,7 @@ def run_qcomm_threadproc_test(ThreadProc):
                 pass
             assert flag, "Test receive timeout from worker"
 
-            result = comm.result()
+            # result = comm.result()
             bad_worker_okay = False
     except BadWorkerException:
         pass

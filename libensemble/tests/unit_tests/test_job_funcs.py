@@ -43,7 +43,7 @@ def test_job_funcs():
     # First try no app - check exception raised?
     jc_triggered = False
     try:
-        job = Job(workdir=myworkdir, stdout='stdout.txt', stderr='stderr.txt')
+        _ = Job(workdir=myworkdir, stdout='stdout.txt', stderr='stderr.txt')
     except JobControllerException:
         jc_triggered = True
 

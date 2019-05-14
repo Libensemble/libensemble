@@ -17,34 +17,33 @@ NCORES = 1
 sim_app = './my_simjob.x'
 
 
-def setup_module(module):
-    print("setup_module      module:%s" % module.__name__)
-    if JobController.controller is not None:
-        ctrl = JobController.controller
-        del ctrl
-        JobController.controller = None
+# def setup_module(module):
+#     print("setup_module      module:%s" % module.__name__)
+#     if JobController.controller is not None:
+#         ctrl = JobController.controller
+#         del ctrl
+#         JobController.controller = None
 
 
-def setup_function(function):
-    print("setup_function    function:%s" % function.__name__)
-    if JobController.controller is not None:
-        ctrl = JobController.controller
-        del ctrl
-        JobController.controller = None
+# def setup_function(function):
+#     print("setup_function    function:%s" % function.__name__)
+#     if JobController.controller is not None:
+#         ctrl = JobController.controller
+#         del ctrl
+#         JobController.controller = None
 
 
-def teardown_module(module):
-    print("teardown_module   module:%s" % module.__name__)
-    if JobController.controller is not None:
-        ctrl = JobController.controller
-        del ctrl
-        JobController.controller = None
+# def teardown_module(module):
+#     print("teardown_module   module:%s" % module.__name__)
+#     if JobController.controller is not None:
+#         ctrl = JobController.controller
+#         del ctrl
+#         JobController.controller = None
 
 
 # def setup_module(module):
-    # import pdb; pdb.set_trace
-    # if JobController.controller is not None:
-        # print('controller found')
+#     if JobController.controller is not None:
+#         print('controller found')
 
 def build_simfunc():
     import subprocess
@@ -99,6 +98,8 @@ def setup_job_controller_noapp():
     else:
         from libensemble.mpi_controller import MPIJobController
         jobctrl = MPIJobController(auto_resources=False)
+        if jobctrl.workerID is not None:
+            sys.exit("Something went wrong in creating JobController")
 
 
 # -----------------------------------------------------------------------------
@@ -233,7 +234,7 @@ def test_launch_and_poll_multijobs():
         outfile = 'multijob_job_' + str(j) + '.out'
         sleeptime = 0.3 + (j*0.2)  # Change args
         args_for_sim = 'sleep' + ' ' + str(sleeptime)
-        rundir = 'run_' + str(sleeptime)
+        # rundir = 'run_' + str(sleeptime)
         job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfile)
         job_list.append(job)
 
@@ -300,8 +301,8 @@ def test_procs_and_machinefile_logic():
     # Testing num_procs not num_nodes*ranks_per_node (should fail)
     try:
         job = jobctl.launch(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5, app_args=args_for_sim)
-    except ResourcesException:
-        assert 1
+    except ResourcesException as e:
+        assert e.args[0] == 'num_procs does not equal num_nodes*ranks_per_node'
     else:
         assert 0
 
@@ -315,8 +316,8 @@ def test_procs_and_machinefile_logic():
     # Testing nothing given (should fail)
     try:
         job = jobctl.launch(calc_type='sim', app_args=args_for_sim)
-    except ResourcesException:
-        assert 1
+    except ResourcesException as e:
+        assert e.args[0] == 'Need num_procs, num_nodes/ranks_per_node, or machinefile'
     else:
         assert 0
 
@@ -414,8 +415,8 @@ def test_launch_as_gen():
     # Try launching as gen when not registered as gen
     try:
         job = jobctl.launch(calc_type='gen', num_procs=cores, app_args=args_for_sim)
-    except JobControllerException:
-        assert 1
+    except JobControllerException as e:
+        assert e.args[0] == 'Default gen app is not set'
     else:
         assert 0
 
@@ -428,8 +429,8 @@ def test_launch_as_gen():
     # Try launching as 'alloc' which is not a type
     try:
         job = jobctl.launch(calc_type='alloc', num_procs=cores, app_args=args_for_sim)
-    except JobControllerException:
-        assert 1
+    except JobControllerException as e:
+        assert e.args[0] + e.args[1] == 'Unrecognized calculation type' + 'alloc'
     else:
         assert 0
 
@@ -453,9 +454,9 @@ def test_launch_no_app():
     cores = NCORES
     args_for_sim = 'sleep 0.1'
     try:
-        job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    except JobControllerException:
-        assert 1
+        _ = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    except JobControllerException as e:
+        assert e.args[0] == 'Default sim app is not set'
     else:
         assert 0
 
@@ -465,13 +466,12 @@ def test_kill_job_with_no_launch():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller
-    cores = NCORES
 
     # Try kill invalid job
     try:
         jobctl.kill('myjob')
-    except JobControllerException:
-        assert 1
+    except JobControllerException as e:
+        assert e.args[0] == 'Invalid job has been provided'
     else:
         assert 0
 
@@ -480,8 +480,8 @@ def test_kill_job_with_no_launch():
     job1 = Job(app=myapp, stdout='stdout.txt')
     try:
         jobctl.kill(job1)
-    except JobControllerException:
-        assert 1
+    except JobControllerException as e:
+        assert e.args[0] == 'Attempting to kill job job_my_simjob.x.simfunc_24 that has no process ID - check jobs been launched'
     else:
         assert 0
 
@@ -491,15 +491,14 @@ def test_poll_job_with_no_launch():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller
-    cores = NCORES
 
     # Create a job directly with no launch (Not supported for users)
     myapp = jobctl.sim_default_app
     job1 = Job(app=myapp, stdout='stdout.txt')
     try:
         job1.poll()
-    except JobControllerException:
-        assert 1
+    except JobControllerException as e:
+        assert e.args[0] == 'Polled job job_my_simjob.x.simfunc_25 has no process ID - check jobs been launched'
     else:
         assert 0
 
