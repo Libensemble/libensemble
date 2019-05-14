@@ -30,7 +30,7 @@ def test_failing_localopt_method():
 
     try:
         al.advance_local_run(hist.H, gen_specs_0, 0, 0, {'run_order': {0: [0, 1]}})
-    except:
+    except al.APOSMMException:
         assert 1, "Failed like it should have"
     else:
         assert 0, "Didn't fail like it should have"
@@ -79,7 +79,7 @@ def test_declare_opt():
 
     try:
         al.update_history_optimal(hist.H['x_on_cube'][0]+1, hist.H, np.arange(0, 10))
-    except:
+    except AssertionError:
         assert 1, "Failed because the best point is not in H"
     else:
         assert 0

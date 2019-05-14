@@ -1,11 +1,11 @@
 import os
-import sys
 import logging
 import collections
 
 logger = logging.getLogger(__name__)
 
 REMOTE_LAUNCH_LIST = ['aprun', 'jsrun']
+
 
 def _open_binary(fname, **kwargs):
     return open(fname, "rb", **kwargs)
@@ -46,25 +46,23 @@ def get_cpu_cores(hyperthreads=False):
         import psutil
         ranks_per_node = psutil.cpu_count(logical=hyperthreads)
     except ImportError:
-        #logger
+        # logger
         if hyperthreads:
             import multiprocessing
             ranks_per_node = multiprocessing.cpu_count()
         else:
             try:
                 ranks_per_node = _cpu_count_physical()
-            except:
+            except Exception as e:
+                logger.warning("Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override. Exception {}".format(e))
                 import multiprocessing
                 ranks_per_node = multiprocessing.cpu_count()
-                #logger.warning('Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override')
-                #tmp
-                print('Warning: Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override')
-    return ranks_per_node #This is ranks available per node
+    return ranks_per_node  # This is ranks available per node
 
 
 def _get_local_cpu_resources():
     logical_cores_avail_per_node = get_cpu_cores(hyperthreads=True)
-    physical_cores_avail_per_node = get_cpu_cores(hyperthreads=False) 
+    physical_cores_avail_per_node = get_cpu_cores(hyperthreads=False)
     return (logical_cores_avail_per_node, physical_cores_avail_per_node)
 
 
@@ -82,39 +80,40 @@ def _get_remote_cpu_resources(launcher):
 
 
 def _get_cpu_resources_from_env():
-    #May create env resources module to share between other resources modules or send arg.
+    # May create env resources module to share between other resources modules or send arg.
     if os.environ['LSB_HOSTS']:
         full_list = os.environ['LSB_HOSTS'].split()
         nodes = [n for n in full_list if 'batch' not in n]
-        counter=list(collections.Counter(nodes).values())
-        
+        counter = list(collections.Counter(nodes).values())
+
         # Check all nodes have equal cores -  Not doing for other methods currently.
         if len(set(counter)) != 1:
-            logger.warning("Detected compute nodes have different core counts: {}".format(set(counter)))        
-        
+            logger.warning("Detected compute nodes have different core counts: {}".format(set(counter)))
+
         physical_cores_avail_per_node = counter[0]
-        logical_cores_avail_per_node = counter[0] # How to get SMT threads remotely - support requested.
+        logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely
+        logger.warning("SMT currently not detected, returning physical cores only. Specify ranks_per_node to override")
         return (logical_cores_avail_per_node, physical_cores_avail_per_node)
     else:
         return None
-        
+
 
 def get_sub_node_resources(launcher=None, remote_mode=False):
     """Retruns logical and physical cores per node as a tuple"""
     remote_detection = False
     if remote_mode:
-        #May be unnecessary condition
+        # May be unnecessary condition
         if launcher in REMOTE_LAUNCH_LIST:
             cores_info = _get_cpu_resources_from_env()
             if cores_info:
                 return (cores_info)
-            remote_detection = True # Cannot obtain from environment
+            remote_detection = True  # Cannot obtain from environment
 
     if remote_detection:
         cores_info_str = _get_remote_cpu_resources(launcher=launcher)
         cores_log, cores_phy, *_ = cores_info_str.split()
         cores_info = (int(cores_log), int(cores_phy))
-    else: 
+    else:
         cores_info = _get_local_cpu_resources()
     return (cores_info)
 

@@ -135,9 +135,9 @@ class Worker:
         "Optional -- set worker ID in the job controller, return if set"
         try:
             jobctl = JobController.controller
-            #jobctl.set_workerID(workerID)
+            # jobctl.set_workerID(workerID)
             jobctl.set_worker_info(comm, workerID)
-        #todo Need to differentiate no controller to actual exception
+        # todo Need to differentiate no controller to actual exception
         except Exception:
             logger.info("No job_controller set on worker {}".format(workerID))
             return False

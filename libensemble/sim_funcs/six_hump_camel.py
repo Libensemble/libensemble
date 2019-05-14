@@ -42,7 +42,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
             os.remove(outfile_name)
 
         call_str = ["mpiexec", "-np", str(H[i]['ranks_per_node']*len(ranks_involved)), "-machinefile", machinefilename, "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
-        _ = subprocess.call(call_str, stdout=open(outfile_name, 'w'), shell=False)
+        subprocess.call(call_str, stdout=open(outfile_name, 'w'), shell=False)
 
         O['f'][i] = six_hump_camel_func(x)
 
