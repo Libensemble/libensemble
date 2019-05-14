@@ -57,7 +57,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController()
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=True)
+    jobctrl = MPIJobController(auto_resources=False)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 
