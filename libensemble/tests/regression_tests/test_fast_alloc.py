@@ -7,6 +7,10 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -40,7 +44,7 @@ if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want
     # repeated calls to libE -- the manager sets up a different server
     # each time, and the worker will not know what port to connect to.
-    quit()
+    sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 for time in np.append([0], np.logspace(-5, -1, 5)):
     for rep in range(1):

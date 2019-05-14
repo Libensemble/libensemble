@@ -5,6 +5,10 @@
 # mpiexec -np 4 python3 test_chwirut_uniform_sampling_one_residual_at_a_time.py
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 from copy import deepcopy
 
@@ -17,8 +21,11 @@ from libensemble.tests.regression_tests.support import persis_info_3 as persis_i
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] != 'mpi':
-    quit()
+if libE_specs['comms'] == 'tcp':
+    # Can't use the same interface for manager and worker if we want
+    # repeated calls to libE -- the manager sets up a different server
+    # each time, and the worker will not know what port to connect to.
+    sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 # Declare the run parameters/functions
 m = 214

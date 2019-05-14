@@ -2,9 +2,13 @@ from mpi4py import MPI
 from libensemble.comms.mpi import MPIComm, Timeout
 from libensemble.tests.regression_tests.common import parse_args
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 2 4
+
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] != 'mpi':
-    quit()
+    sys.exit("This test can only be run with mpi comms -- aborting...")
 
 
 def check_recv(comm, expected_msg):

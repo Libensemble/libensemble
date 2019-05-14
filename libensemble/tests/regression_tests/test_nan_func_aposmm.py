@@ -6,6 +6,10 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -15,9 +19,6 @@ from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] == 'local':
-    quit()
-
 n = 2
 
 sim_specs = {'sim_f': sim_f,

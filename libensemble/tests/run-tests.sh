@@ -13,7 +13,7 @@ export RUN_PEP_TESTS=false     #Code syle conventions
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
 export REG_TEST_LIST=test_*.py #unordered
-export REG_TEST_PROCESS_COUNT_LIST='2 4'
+# export REG_TEST_PROCESS_COUNT_LIST='2 4'
 export REG_USE_PYTEST=false
 export REG_TEST_OUTPUT_EXT=std.out #/dev/null
 export REG_STOP_ON_FAILURE=false
@@ -406,11 +406,13 @@ if [ "$root_found" = true ]; then
     test_num=0
     for TEST_SCRIPT in $REG_TEST_LIST
     do
-      for LAUNCHER in "mpi" "local" "tcp"
+      COMMS_LIST=$(grep -Po '# TESTSUITE_COMMS: \K.*' $file)
+      for LAUNCHER in $COMMS_LIST
       do
 
       #Need proc count here for now - still stop on failure etc.
-      for NPROCS in $REG_TEST_PROCESS_COUNT_LIST
+      NPROCS_LIST=$(grep -Po '# TESTSUITE_NPROCS: \K.*' $file)
+      for NPROCS in $NPROCS_LIST
       do
         test_num=$((test_num+1))
         NWORKERS=$((NPROCS-1))  

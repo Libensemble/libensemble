@@ -7,6 +7,10 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local
+# TESTSUITE_NPROCS: 2 4
+
 import sys
 import numpy as np
 from math import gamma, pi, sqrt
@@ -22,8 +26,8 @@ from libensemble.tests.regression_tests.support import persis_info_1 as persis_i
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-if libE_specs['comms'] != 'mpi':
-    quit()
+#if libE_specs['comms'] == 'tcp':
+    #sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 n = 2
 sim_specs = {'sim_f': sim_f,

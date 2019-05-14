@@ -5,6 +5,10 @@
 # mpiexec -np 4 python3 test_chwirut_pounders.py
 # """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -15,8 +19,6 @@ from libensemble.tests.regression_tests.support import persis_info_2 as persis_i
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] == 'local':
-    quit()
 
 # Declare the run parameters/functions
 m = 214

@@ -6,6 +6,11 @@
 #    mpiexec -np 4 python3 {FILENAME}.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
+
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 3 4
+
 import numpy as np
 
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
@@ -19,8 +24,8 @@ from libensemble.tests.regression_tests.support import six_hump_camel_minima as 
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-if nworkers < 2:  # Don't do a "persistent worker run" if only one worker
-    quit()
+if nworkers < 2:
+    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
 sim_specs = {'sim_f': sim_f,

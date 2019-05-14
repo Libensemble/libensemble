@@ -11,6 +11,10 @@ from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
 from libensemble.tests.regression_tests.common import build_simfunc, parse_args, per_worker_stream
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 2 4
+
 nworkers, is_master, libE_specs, _ = parse_args()
 
 USE_BALSAM = False
