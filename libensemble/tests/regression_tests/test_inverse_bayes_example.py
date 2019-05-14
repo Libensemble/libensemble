@@ -12,6 +12,7 @@
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 
+import sys
 import numpy as np
 
 from libensemble.libE import libE

@@ -9,8 +9,9 @@
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 3 4
 
+import sys
 import numpy as np
 
 # Import libEnsemble requirements
