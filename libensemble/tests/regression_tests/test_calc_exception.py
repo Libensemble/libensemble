@@ -36,6 +36,8 @@ persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 10}
 
+libE_specs['abort_on_exception'] = False
+
 # Perform the run
 return_flag = 1
 try:
