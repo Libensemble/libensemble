@@ -9,7 +9,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local
+# TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
 import sys
@@ -24,28 +24,10 @@ from libensemble.mpi_controller import MPIJobController  # Only used to get work
 jobctrl = MPIJobController(auto_resources=False)
 
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] == 'tcp':
-    sys.exit("Cannot be run with tcp -- aborting...")
-
-# Prob wrap this in the future libe comms module - and that will have init_comms...
-# and can report what its using - for comms - and in mpi case for packing/unpacking
-# Using dill seems more reliable on Bebop - less unpickle errors
-USE_DILL = False  # True/False (req: pip install dill)
-
-if USE_DILL:
-    import dill
-    import mpi4py
-    from mpi4py import MPI
-    # Note for mpi4py v3+ - have to initialize differently than previous
-    if int(mpi4py.__version__[0]) >= 3:
-        MPI.pickle.__init__(dill.dumps, dill.loads)
-    else:
-        MPI.pickle.dumps = dill.dumps
-        MPI.pickle.loads = dill.loads
 
 array_size = int(1e6)  # Size of large array in sim_specs
 rounds = 2  # Number of work units for each worker
-sim_max = nworkers*rounds
+sim_max = nworkers * rounds
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
@@ -71,9 +53,10 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 
 if is_master:
     assert flag == 0
-    for w in range(1, nworkers + 1):
-        x = w*1000.0
-        assert np.all(H['arr_vals'][w-1] == x), "Array values do not all match"
-        assert H['scal_val'][w-1] == x+x/1e7, "Scalar values do not all match"
+    for i in range(sim_max):
+        x1 = H['x'][i][0]*1000.0
+        x2 = H['x'][i][1]
+        assert np.all(H['arr_vals'][i] == x1), "Array values do not all match"
+        assert H['scal_val'][i] == x2 + x2/1e7, "Scalar values do not all match"
 
     save_libE_output(H, persis_info, __file__, nworkers)
