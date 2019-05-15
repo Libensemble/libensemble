@@ -1,4 +1,6 @@
 # """
+# Runs libEnsemble with random sampling on a simple 1D problem
+#
 # Execute via the following command:
 #    mpiexec -np 4 python3 {FILENAME}.py
 # The number of concurrent evaluations of the objective function will be 4-1=3.

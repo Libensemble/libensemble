@@ -1,4 +1,9 @@
 # """
+# Runs libEnsemble on a branin calculation with aposmm/nlopt.
+#
+# Execute via the following command:
+#    mpiexec -np 4 python3 test_branin_aposmm_nlopt_and_then_scipy.py
+# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh

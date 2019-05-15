@@ -1,3 +1,14 @@
+# """
+# A test of libEnsemble exception handling.
+#
+# Execute via the following command:
+#    mpiexec -np 4 python3 {FILENAME}.py
+# """
+
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 
 from libensemble.libE import libE
@@ -6,7 +17,6 @@ from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_
 from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
-
 
 # Define sim_func
 def six_hump_camel_err(H, persis_info, sim_specs, _):
