@@ -29,10 +29,14 @@ from libensemble.tests.regression_tests.common import build_simfunc, parse_args,
 nworkers, is_master, libE_specs, _ = parse_args()
 
 import multiprocessing
-coresp = multiprocessing.cpu_count(logical=False)
-coresh = multiprocessing.cpu_count(logical=True)
+import psutil
+coresp = psutil.cpu_count(logical=False)
+coresh = psutil.cpu_count(logical=True)
+coresm = multiprocessing.cpu_count()
 
-print('cores p: {} h: {}'.format(coresp, coresh))
+print('cores from psutil physical: {} logical: {}'.format(coresp, coresh))
+print('cores from multiprocessing: {}'.format(coresm))
+
 
 USE_BALSAM = False
 
