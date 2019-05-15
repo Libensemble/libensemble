@@ -1,8 +1,11 @@
 # """
 # Runs libEnsemble on a function that returns only nan; tests APOSMM functionality
 #
-# Execute via the following command:
+# Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_nan_func_aposmm.py
+#    python3 test_nan_func_aposmm.py --nworkers 3 --comms local
+#    python3 test_nan_func_aposmm.py --nworkers 3 --comms tcp
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 

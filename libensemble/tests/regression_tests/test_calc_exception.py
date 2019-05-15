@@ -1,8 +1,9 @@
 # """
 # A test of libEnsemble exception handling.
 #
-# Execute via the following command:
-#    mpiexec -np 4 python3 {FILENAME}.py
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_calc_exception.py
+#
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh

@@ -1,8 +1,11 @@
 # """
 # Runs libEnsemble testing the job controller functionality.
 #
-# Execute via the following command:
-#    mpiexec -np 4 python3 test_nan_func_aposmm.py
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_jobcontroller_hworld.py
+#    python3 test_jobcontroller_hworld.py --nworkers 3 --comms local
+#    python3 test_jobcontroller_hworld.py --nworkers 3 --comms tcp
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 

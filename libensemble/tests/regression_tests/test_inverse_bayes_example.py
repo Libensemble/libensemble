@@ -2,9 +2,14 @@
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
-# Execute via the following command:
-#    mpiexec -np 4 python3 inverse_bayes_example.py
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_inverse_bayes_example.py
+#    python3 test_inverse_bayes_example.py --nworkers 3 --comms local
+#    python3 test_inverse_bayes_example.py --nworkers 3 --comms tcp
+#
+# Debugging:
 #    mpiexec -np 4 xterm -e "python3 inverse_bayes_example.py"
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 

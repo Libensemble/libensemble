@@ -2,8 +2,11 @@
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
-# Execute via the following command:
-#    mpiexec -np 4 python3 {FILENAME}.py
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py
+#    python3 test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py --nworkers 3 --comms local
+#    python3 test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py --nworkers 3 --comms tcp
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
