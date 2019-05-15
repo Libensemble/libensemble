@@ -257,5 +257,5 @@ class MPIJobController(JobController):
     def set_worker_info(self, comm, workerid=None):
         """Sets info for this job_controller"""
         self.workerID = workerid
-        if self.workerID:
+        if self.workerID and self.auto_resources:
             self.resources.set_worker_resources(self.workerID, comm)
