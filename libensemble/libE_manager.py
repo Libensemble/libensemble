@@ -281,6 +281,7 @@ class Manager:
 
         if isinstance(D_recv, WorkerErrMsg):
             self.W[w-1]['active'] = 0
+            self._kill_workers()
             raise ManagerException('Received error message from {}'.format(w),
                                    D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
