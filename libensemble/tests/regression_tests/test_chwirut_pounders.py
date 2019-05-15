@@ -1,12 +1,16 @@
 # """
-# Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. # Execute via the following command:
-
-# mpiexec -np 4 python3 test_chwirut_pounders.py
+# Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
+# All 214 residual calculations for a given point are performed as a single
+# simulation evaluation.
+#
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_chwirut_pounders.py
+#
+# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np

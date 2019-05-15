@@ -2,8 +2,9 @@
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
-# Execute via the following command:
+# Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_6-hump_camel_with_different_nodes_uniform_sample.py
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 

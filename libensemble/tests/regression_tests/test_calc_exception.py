@@ -1,3 +1,18 @@
+# """
+# A test of libEnsemble exception handling.
+#
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_calc_exception.py
+#    python3 test_calc_exception.py --nworkers 3 --comms local
+#    python3 test_calc_exception.py --nworkers 3 --comms tcp
+#
+#
+# """
+
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 2 4
+
 import numpy as np
 
 from libensemble.libE import libE
@@ -6,7 +21,6 @@ from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_
 from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
-
 
 # Define sim_func
 def six_hump_camel_err(H, persis_info, sim_specs, _):
@@ -24,6 +38,8 @@ gen_specs = {'gen_f': gen_f,
 persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 10}
+
+libE_specs['abort_on_exception'] = False
 
 # Perform the run
 return_flag = 1

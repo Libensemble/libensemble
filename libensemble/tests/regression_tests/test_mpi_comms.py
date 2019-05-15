@@ -1,3 +1,12 @@
+# """
+# Test of MPI comms.
+#
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_mpi_comms.py
+#
+# The number of concurrent evaluations of the objective function will be 4-1=3.
+# """
+
 import sys
 from mpi4py import MPI
 from libensemble.comms.mpi import MPIComm, Timeout
