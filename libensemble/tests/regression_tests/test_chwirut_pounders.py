@@ -1,5 +1,7 @@
 # """
-# Runs libEnsemble with a simple uniform random sample on one instance of the GKLS problem. 
+# Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
+# All 214 residual calculations for a given point are performed as a single
+# simulation evaluation.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_chwirut_pounders.py

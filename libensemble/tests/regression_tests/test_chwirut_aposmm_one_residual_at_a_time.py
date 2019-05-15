@@ -1,5 +1,7 @@
 # """
-# Runs libEnsemble with a simple uniform random sample on one instance of the GKLS problem.
+# Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
+# Each of the 214 residual calculation for a given point is performed as a
+# separate simulation evaluation.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_chwirut_aposmm_one_residual_at_a_time.py
@@ -8,7 +10,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi
+# TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
