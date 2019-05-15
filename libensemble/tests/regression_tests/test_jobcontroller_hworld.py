@@ -28,6 +28,12 @@ from libensemble.tests.regression_tests.common import build_simfunc, parse_args,
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
+import multiprocessing
+coresp = multiprocessing.cpu_count(logical=False)
+coresh = multiprocessing.cpu_count(logical=True)
+
+print('cores p: {} h: {}'.format(coresp, coresh))
+
 USE_BALSAM = False
 
 NCORES = 1
@@ -40,7 +46,7 @@ if USE_BALSAM:
     jobctrl = BalsamJobController(auto_resources=True)
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=False)
+    jobctrl = MPIJobController(auto_resources=True)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 # if nworkers == 3:
