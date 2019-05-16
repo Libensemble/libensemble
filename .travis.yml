@@ -62,7 +62,6 @@ install:
   - pip install pytest-cov
   - pip install pytest-timeout
   - pip install mock
-  - pip install psutil
   - pip install coveralls
   # For confirmation of MPI library being used.
   - python conda/find_mpi.py #locate compilers
