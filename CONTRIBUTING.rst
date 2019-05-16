@@ -1,3 +1,6 @@
+Contributing
+============
+
 Contributions may be made via Github pull request to:
 
     https://github.com/Libensemble/libensemble
