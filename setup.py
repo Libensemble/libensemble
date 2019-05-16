@@ -48,7 +48,8 @@ setup(
 
     package_data={'libensemble.sim_funcs.branin': ['known_minima_and_func_values']},
 
-    install_requires=['numpy'
+    install_requires=['mpi4py>=2.0',
+                      'numpy'
                       ],
 
     # If run tests through setup.py - downloads these but does not install
