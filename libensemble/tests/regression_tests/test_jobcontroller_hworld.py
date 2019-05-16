@@ -11,6 +11,7 @@
 
 import os
 import numpy as np
+import multiprocessing
 
 # Import libEnsemble items for this test
 # from libensemble.calc_info import CalcInfo
@@ -24,23 +25,39 @@ from libensemble.tests.regression_tests.common import build_simfunc, parse_args,
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 2 3 4
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
 USE_BALSAM = False
 
-NCORES = 1
+cores_per_job = 1
+logical_cores = multiprocessing.cpu_count()
+cores_all_jobs = nworkers*cores_per_job
+
+if cores_all_jobs > logical_cores:
+    use_auto_resources = False
+    mess_resources = 'Oversubscribing - auto_resources set to False'
+elif libE_specs.get('comms', False) == 'tcp':
+    use_auto_resources = False
+    mess_resources = 'TCP comms does not support auto_resources. Auto_resources set to False'
+else:
+    use_auto_resources = True
+    mess_resources = 'Auto_resources set to True'
+    
+if is_master:
+    print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_jobs, logical_cores, mess_resources))    
+
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
 if USE_BALSAM:
     from libensemble.balsam_controller import BalsamJobController
-    jobctrl = BalsamJobController(auto_resources=True)
+    jobctrl = BalsamJobController(auto_resources=use_auto_resources)
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=False)
+    jobctrl = MPIJobController(auto_resources=use_auto_resources)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 # if nworkers == 3:
@@ -52,7 +69,7 @@ sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
              'save_every_k': 400,
-             'cores': NCORES}
+             'cores': cores_per_job}
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
