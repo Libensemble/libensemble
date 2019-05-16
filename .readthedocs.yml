@@ -1,7 +1,7 @@
-conda:
-    file: conda/environment.yml
+#conda:
+    #file: conda/environment.yml
     
 python:
-    version: 3.5
+    version: 3.7
     pip_install: true
 
