@@ -92,7 +92,49 @@ def test_declare_opt():
     assert np.sum(hist.H['local_min']) == 2
 
 
+def test_localopt_error_saving():
+    _, sim_specs_0, gen_specs_0, _, _ = setup.hist_setup1()
+
+    H = np.zeros(4, dtype=gen_out + [('f', float), ('fvec', float, 2), ('returned', bool)])
+    H['x'] = np.random.uniform(0, 1, (4, 2))
+    H['f'] = np.random.uniform(0, 1, 4)
+    H['returned'] = True
+    H['local_pt'][1:] = True
+    gen_specs_0['initial_sample_size'] = 1
+    gen_specs_0['localopt_method'] = 'scipy_COBYLA'
+    gen_specs_0['tol'] = 0.1
+    gen_specs_0['ub'] = np.ones(2)
+    gen_specs_0['lb'] = np.zeros(2)
+
+    persis_info_1 = {'run_order': {0: [1, 2, 3]},
+                     'old_runs': {},
+                     'total_runs': 0,
+                     'rand_stream': np.random.RandomState(1)}
+
+    try:
+        al.aposmm_logic(H, persis_info_1, gen_specs_0, _)
+    except Exception as e:
+        assert e.args[0] == 'Exit code is 0, but x_new was not updated in local opt run 0 after 3 evaluations.\nSaving run information to: run_0_abort.pickle\nWorker crashing!'
+    else:
+        assert 0
+
+    gen_specs_0.pop('tol')
+
+    gen_specs_0['localopt_method'] = 'pounders'
+    gen_specs_0['gatol'] = 0.1
+    gen_specs_0['grtol'] = 0.1
+    gen_specs_0['dist_to_bound_multiple'] = 0.1
+    try:
+        al.aposmm_logic(H, persis_info_1, gen_specs_0, _)
+    except Exception as e:
+        assert e.args[0] == 'Exit code is 0, but x_new was not updated in local opt run 0 after 3 evaluations.\nSaving run information to: run_0_abort.pickle\nWorker crashing!'
+    else:
+        assert 0
+
+
 if __name__ == "__main__":
+    test_localopt_error_saving()
+    print('done')
     test_failing_localopt_method()
     print('done')
     test_exception_raising()
