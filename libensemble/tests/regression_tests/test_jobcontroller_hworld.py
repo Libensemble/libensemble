@@ -44,9 +44,9 @@ elif libE_specs.get('comms', False) == 'tcp':
 else:
     use_auto_resources = True
     mess_resources = 'Auto_resources set to True'
-    
+
 if is_master:
-    print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_jobs, logical_cores, mess_resources))    
+    print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_jobs, logical_cores, mess_resources))
 
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):

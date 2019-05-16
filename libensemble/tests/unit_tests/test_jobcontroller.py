@@ -20,24 +20,21 @@ sim_app = './my_simjob.x'
 def setup_module(module):
     print("setup_module      module:%s" % module.__name__)
     if JobController.controller is not None:
-        ctrl = JobController.controller
-        del ctrl
+        del JobController.controller
         JobController.controller = None
 
 
 def setup_function(function):
     print("setup_function    function:%s" % function.__name__)
     if JobController.controller is not None:
-        ctrl = JobController.controller
-        del ctrl
+        del JobController.controller
         JobController.controller = None
 
 
 def teardown_module(module):
     print("teardown_module   module:%s" % module.__name__)
     if JobController.controller is not None:
-        ctrl = JobController.controller
-        del ctrl
+        del JobController.controller
         JobController.controller = None
 
 
