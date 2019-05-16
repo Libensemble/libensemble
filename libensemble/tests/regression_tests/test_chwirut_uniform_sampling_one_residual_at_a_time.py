@@ -5,7 +5,7 @@
 # test the allocation function's ability to preempt future residual
 # calculations. Also, the allocation function tries to preempt calculations
 # corresponding to points with partial sum-squared error worse than the
-# best-evaluated point so far.   
+# best-evaluated point so far.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_chwirut_uniform_sampling_one_residual_at_a_time.py

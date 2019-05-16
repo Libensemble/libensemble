@@ -1,10 +1,10 @@
 import numpy as np
-from libensemble.controller import JobController
+
 
 def float_x1000(H, persis_info, sim_specs, _):
     """
     Transforms an array and a scalar input and returns values
-    """ 
+    """
     output = np.zeros(1, dtype=sim_specs['out'])
 
     x1 = H['x'][0][0] * 1000.0

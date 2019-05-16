@@ -22,6 +22,7 @@ from libensemble.tests.regression_tests.common import parse_args, per_worker_str
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
+
 # Define sim_func
 def six_hump_camel_err(H, persis_info, sim_specs, _):
     raise Exception('Deliberate error')

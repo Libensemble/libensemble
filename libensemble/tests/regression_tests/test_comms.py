@@ -14,7 +14,6 @@
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
-import sys
 import numpy as np
 
 # Import libEnsemble items for this test
