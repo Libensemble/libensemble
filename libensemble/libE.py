@@ -203,10 +203,8 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     rank = comm.Get_rank()
     is_master = (rank == 0)
 
-    # Check correctness of inputs
-    libE_specs = check_inputs(is_master, libE_specs,
-                              alloc_specs, sim_specs, gen_specs,
-                              exit_criteria, H0)
+    check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
+                 exit_criteria, H0)
 
     # Run manager or worker code, depending
     if is_master:
@@ -275,9 +273,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     "Main routine for thread/process launch of libE."
 
     nworkers = libE_specs['nprocesses']
-    libE_specs = check_inputs(True, libE_specs,
-                              alloc_specs, sim_specs, gen_specs,
-                              exit_criteria, H0)
+    check_inputs(True, libE_specs, alloc_specs, sim_specs, gen_specs,
+                 exit_criteria, H0)
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -322,9 +319,8 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "Main routine for TCP multiprocessing launch of libE."
 
-    libE_specs = check_inputs(True, libE_specs,
-                              alloc_specs, sim_specs, gen_specs,
-                              exit_criteria, H0)
+    check_inputs(True, libE_specs, alloc_specs, sim_specs, gen_specs,
+                 exit_criteria, H0)
 
     if 'workerID' in libE_specs:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)
@@ -509,5 +505,3 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
         # Check dimensional compatibility of fields
         for field in fields:
             check_consistent_field(field, H0[field], H[field])
-
-    return libE_specs
