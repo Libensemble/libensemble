@@ -148,6 +148,10 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
                  on_abort=None, on_cleanup=None):
     "Generic manager routine run."
 
+    if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
+        print(_USER_SIM_ID_WARNING)
+        sys.stdout.flush()
+
     try:
         persis_info, exit_flag = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
@@ -203,10 +207,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     rank = comm.Get_rank()
     is_master = (rank == 0)
 
-    # Check correctness of inputs
-    libE_specs = check_inputs(is_master, libE_specs,
-                              alloc_specs, sim_specs, gen_specs,
-                              exit_criteria, H0)
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Run manager or worker code, depending
     if is_master:
@@ -275,9 +276,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     "Main routine for thread/process launch of libE."
 
     nworkers = libE_specs['nprocesses']
-    libE_specs = check_inputs(True, libE_specs,
-                              alloc_specs, sim_specs, gen_specs,
-                              exit_criteria, H0)
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -322,9 +321,7 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "Main routine for TCP multiprocessing launch of libE."
 
-    libE_specs = check_inputs(True, libE_specs,
-                              alloc_specs, sim_specs, gen_specs,
-                              exit_criteria, H0)
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     if 'workerID' in libE_specs:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)
@@ -432,7 +429,7 @@ _USER_SIM_ID_WARNING = \
      "User generator script will be creating sim_id.\n" +
      "Take care to do this sequentially.\n" +
      "Also, any information given back for existing sim_id values will be overwritten!\n" +
-     "So everything in gen_out should be in gen_in!" +
+     "So everything in gen_specs['out'] should be in gen_specs['in']!" +
      '\n' + 79*'*' + '\n\n')
 
 
@@ -444,8 +441,7 @@ def check_consistent_field(name, field0, field1):
         "H too small to receive all components of H0 in field {}".format(name)
 
 
-def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
-                 exit_criteria, H0):
+def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
     """
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run.
@@ -480,27 +476,20 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
         assert stop_name in sim_out_names + gen_out_names, \
             "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
 
-    # Handle if gen outputs sim IDs
-    from libensemble.libE_fields import libE_fields
-
-    if bool(gen_specs) and ('sim_id', int) in gen_specs['out']:
-        if is_master:
-            print(_USER_SIM_ID_WARNING)
-            sys.stdout.flush()
-        # Must remove 'sim_id' from libE_fields (it is in gen_specs['out'])
-        libE_fields = libE_fields[1:]
-
-    # Set up history -- combine libE_fields and sim/gen/alloc specs
-    H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], []))))  # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-
     # Sanity check prior history
     if len(H0):
+        # Handle if gen outputs sim IDs
+        from libensemble.libE_fields import libE_fields
+
+        # Set up dummy history to see if it agrees with H0
+        Dummy_H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], []))))  # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
+
         fields = H0.dtype.names
 
         # Prior history must contain the fields in new history
-        assert set(fields).issubset(set(H.dtype.names)), \
-            "H0 contains fields {} not in H.".\
-            format(set(fields).difference(set(H.dtype.names)))
+        assert set(fields).issubset(set(Dummy_H.dtype.names)), \
+            "H0 contains fields {} not in the History.".\
+            format(set(fields).difference(set(Dummy_H.dtype.names)))
 
         # Prior history cannot contain unreturned points
         assert 'returned' not in fields or np.all(H0['returned']), \
@@ -508,6 +497,4 @@ def check_inputs(is_master, libE_specs, alloc_specs, sim_specs, gen_specs,
 
         # Check dimensional compatibility of fields
         for field in fields:
-            check_consistent_field(field, H0[field], H[field])
-
-    return libE_specs
+            check_consistent_field(field, H0[field], Dummy_H[field])
