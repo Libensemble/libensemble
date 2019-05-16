@@ -949,6 +949,8 @@ def display_exception(e):
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
     print('An error occurred on line {} of function {} with statement {}'.format(line, func, text))
+
+    # PETSc/TAO errors are printed in the following manner:
     if hasattr(e, '_traceback_'):
         print('The error was:')
         for i in e._traceback_:
