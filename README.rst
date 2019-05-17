@@ -1,6 +1,8 @@
-.. image::  docs/images/libE_logo.png
+.. image:: docs/images/libE_logo.png
   :alt: libEnsemble
-  
+
+|
+
 .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
    :target: https://travis-ci.org/Libensemble/libensemble
 
@@ -10,6 +12,12 @@
 .. image::  https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
+
+|
+
+====================
+What is libEnsemble?
+====================
 
 A library for managing ensemble-like collections of computations.
 
