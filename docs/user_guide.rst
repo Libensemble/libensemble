@@ -112,9 +112,9 @@ aborts on an exception, the existing history array is dumped to a file libE_hist
 
 Other libEnsemble files produced by default are:
 
-**libe_summary.txt**: This contains a one-line summary of all user calculations. During run-time
+**libE_stats.txt**: This contains a one-line summary of all user calculations. During run-time
 a summary file is produced for each worker in directory named *libe_stat_files*. At then end of 
-the run these are concatenated into *libe_summary.txt*. If a run aborts, the *libe_stat_files* directory
+the run these are concatenated into *libE_stats.txt*. If a run aborts, the *libe_stat_files* directory
 will remain.
 
 **ensemble.log**: This is the logging output from libEnsemble. The default logging is at DEBUG level, as
