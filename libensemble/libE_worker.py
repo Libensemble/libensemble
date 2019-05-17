@@ -48,7 +48,7 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
     workerID: manager assigned worker ID (if None, default is comm.rank)
     """
 
-    if sim_specs['profile']:
+    if sim_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -64,7 +64,7 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
     worker.run()
 
-    if sim_specs['profile']:
+    if sim_specs.get('profile'):
         pr.disable()
         profile_state_fname = 'worker_%d.prof' % (workerID)
 

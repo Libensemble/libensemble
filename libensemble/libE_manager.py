@@ -34,7 +34,7 @@ def manager_main(hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
     """Manager routine to coordinate the generation and simulation evaluations
     """
-    if sim_specs['profile']:
+    if sim_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -52,7 +52,7 @@ def manager_main(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
 
-    if sim_specs['profile']:
+    if sim_specs.get('profile'):
         pr.disable()
         profile_stats_fname = 'manager.prof'
 
