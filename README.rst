@@ -143,7 +143,7 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
+See the `user-guide <https://libensemble.readthedocs.io/en/latest/readme.html#basic-usage>`_ for more information.
 
 
 Documentation
