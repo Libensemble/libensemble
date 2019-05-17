@@ -154,8 +154,8 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-The user will create a python script to call libEnsemble. This must supply
-the :ref:`sim_specs<datastruct-sim-specs>`, :ref:`gen_specs<datastruct-gen-specs>` 
+The user will create a python script to call the libEnsemble :doc:`libE<libE_module>` function.
+This must supply the :ref:`sim_specs<datastruct-sim-specs>`, :ref:`gen_specs<datastruct-gen-specs>` 
 and optionally :ref:`libE_specs<datastruct-libe-specs>` and :ref:`alloc_specs<datastruct-alloc-specs>`.
 
 The default mode is to use MPI. The user script is launched as::
