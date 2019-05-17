@@ -11,19 +11,15 @@
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
 
-===========
-libEnsemble
-===========
-
 A library for managing ensemble-like collections of computations.
 
 A visual overview is given in the libEnsemble poster_
 
 .. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
-libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of com-
-putations. Designed with flexibility in mind, libEnsemble can utilize massively parallel resources
-to accelerate the solution of design, decision, and inference problems.
+libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of computations.
+Designed with flexibility in mind, libEnsemble can utilize massively parallel resources to accelerate
+the solution of design, decision, and inference problems.
 
 libEnsemble aims for:
 
@@ -67,8 +63,9 @@ Optional dependency:
 * Balsam_
  
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
-is required for running libEnsemble on compute nodes some supercomputing
+is required for running libEnsemble on the compute nodes of some supercomputing
 platforms (eg. Cray XC40); platforms which do not support launching jobs from compute nodes.
+Note that as of v0.5.0 libEnsemble can also be run on the launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
 
