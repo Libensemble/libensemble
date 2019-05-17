@@ -37,16 +37,9 @@ libEnsemble aims for:
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
-The user selects or supplies a generation function that produces simulation input as well as
-a simulation function that performs and monitors the simulations. The generation function
-may contain, for example, optimization to generate new simulation parameters
-on-the-fly, based on the results of previous simulations. Examples and templates of these
-functions are included in the library.
+A more detailed overview can be found in the docs_.
 
-libEnsemble employs a manager-worker scheme that can run on various communication mediums
-(including MPI, Multiprocessing, and TCP). Each worker can control and monitor any type
-of job from small sub-node jobs to huge many-node simulations. A simple job controller
-interface is provided to ensure scripts are portable, resilient and flexible.
+.. _docs:  https://libensemble.readthedocs.org/en/latest/
 
 
 Dependencies
