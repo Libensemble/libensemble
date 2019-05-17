@@ -1,7 +1,6 @@
-===========
-libEnsemble
-===========
-
+.. image::  docs/images/libE_logo.png
+  :alt: libEnsemble
+  
 .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
    :target: https://travis-ci.org/Libensemble/libensemble
 
@@ -12,10 +11,11 @@ libEnsemble
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
 
-A library for managing ensemble-like collections of computations.
+===========
+libEnsemble
+===========
 
-.. image::  docs/images/libE_logo.png
-  :alt: libE logo
+A library for managing ensemble-like collections of computations.
 
 A visual overview is given in the libEnsemble poster_
 
