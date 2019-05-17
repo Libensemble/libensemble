@@ -13,7 +13,29 @@ libEnsemble
    :alt: Documentation Status
 
 
-Library for managing ensemble-like collections of computations.
+A library for managing ensemble-like collections of computations.
+
+libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of com-
+putations. Designed with flexibility in mind, libEnsemble can utilize massively parallel resources
+to accelerate the solution of design, decision, and inference problems.
+
+libEnsemble aims for:
+
+• Extreme scaling
+• Fault tolerance
+• Monitoring/killing jobs (recovers resources)
+• Portability and flexibility
+• Exploitation of persistent data/control flow.
+
+The user selects or supplies a generation function that produces simulation input as well as
+a simulation function that performs and monitors the simulations. The generation function
+may contain, for example, optimization to generate new simulation parameters
+on-the-fly, based on the results of previous simulations. Examples and templates of these
+functions are included in the library.
+
+A visual overview is given i the libEnsemble poster_
+
+.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
 
 Dependencies
