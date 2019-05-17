@@ -15,6 +15,10 @@ libEnsemble
 
 A library for managing ensemble-like collections of computations.
 
+A visual overview is given in the libEnsemble poster_
+
+.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+
 libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of com-
 putations. Designed with flexibility in mind, libEnsemble can utilize massively parallel resources
 to accelerate the solution of design, decision, and inference problems.
@@ -33,30 +37,36 @@ may contain, for example, optimization to generate new simulation parameters
 on-the-fly, based on the results of previous simulations. Examples and templates of these
 functions are included in the library.
 
-A visual overview is given i the libEnsemble poster_
-
-.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+libEnsemble employs a manager-worker scheme that can run on various communication mediums
+(including MPI, Multiprocessing, and TCP). Each worker can control and monitor any type
+of job from small sub-node jobs to huge many-node simulations. A simple job controller
+interface is provided to ensure scripts are portable, resilient and flexible.
 
 
 Dependencies
 ------------
 
+Required dependencies:
+
 * Python_ 3.4 or above.
+
+* NumPy_
+
+For libEnsemble running with the mpi4py parallelism:
 
 * A functional MPI 1.x/2.x/3.x implementation such as `MPICH
   <http://www.mpich.org/>`_  built with shared/dynamic libraries.
 
 * mpi4py_ v2.0.0 or above
 
-* NumPy_
 
 Optional dependency:
 
 * Balsam_
  
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
-is required for running on some supercomputing platforms (eg. Cray XC40);
-platforms which do not support launching jobs on compute nodes.
+is required for running libEnsemble on compute nodes some supercomputing
+platforms (eg. Cray XC40); platforms which do not support launching jobs from compute nodes.
 
 The example sim and gen functions and tests require the following dependencies:
 
@@ -90,7 +100,8 @@ Libensemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
-The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository. A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
+The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository.
+A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
     
 
 Testing
