@@ -46,7 +46,9 @@ functions are included in the library.
 libEnsemble employs a manager-worker scheme that can run on various communication mediums
 (including MPI, Multiprocessing, and TCP). Each worker can control and monitor any type
 of job from small sub-node jobs to huge many-node simulations. A simple job controller
-interface is provided to ensure scripts are portable, resilient and flexible.
+interface is provided to ensure scripts are portable, resilient and flexible. It also
+enables automatic detection of the nodes and cores in your system and can split up
+jobs automatically if nodes/cores are not supplied.
 
 
 Dependencies
@@ -151,6 +153,26 @@ Basic Usage
 
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
+
+The user will create a python script to call libEnsemble. This must supply
+the :ref:`sim_specs<datastruct-sim-specs>`, :ref:`gen_specs<datastruct-gen-specs>` 
+and optionally :ref:`libE_specs<datastruct-libe-specs>` and :ref:`alloc_specs<datastruct-alloc-specs>`.
+
+The default mode is to use MPI. The user script is launched as::
+
+    mpiexec -np N python myscript.py
+ 
+where N is the number of processors. This will launch one manager and N-1 workers.
+
+If running in local mode which uses Python's multiprocessing module, the local
+comms option and number of workers must be specified in :ref:`libE_specs<datastruct-libe-specs>`.
+The script can then be run as a regular python script::
+
+    python myscript.py
+    
+If you would like to specify these via command line options you may use the parse_args function
+that is used in the regression tests, which can be found in common.py under that directory.
+
 
 See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
 
