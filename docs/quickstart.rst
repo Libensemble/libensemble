@@ -21,7 +21,7 @@ What is libEnsemble?
 
 A library for managing ensemble-like collections of computations.
 
-A visual overview is given in the libEnsemble poster_
+A visual overview is given in the libEnsemble poster_.
 
 .. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
@@ -39,15 +39,15 @@ libEnsemble aims for:
 
 The user selects or supplies a generation function that produces simulation input as well as
 a simulation function that performs and monitors the simulations. The generation function
-may contain, for example, optimization to generate new simulation parameters
-on-the-fly, based on the results of previous simulations. Examples and templates of these
+may contain, for example, an optimization method to generate new simulation parameters
+on-the-fly and based on the results of previous simulations. Examples and templates of these
 functions are included in the library.
 
-libEnsemble employs a manager-worker scheme that can run on various communication mediums
-(including MPI, Multiprocessing, and TCP). Each worker can control and monitor any type
-of job from small sub-node jobs to huge many-node simulations. A simple job controller
-interface is provided to ensure scripts are portable, resilient and flexible. It also
-enables automatic detection of the nodes and cores in your system and can split up
+libEnsemble employs a manager-worker scheme that can run on various communication media
+(including MPI, multiprocessing, and TCP). Each worker can control and monitor any type
+of job from small sub-node jobs to huge many-node simulations. A job controller
+interface is provided to ensure scripts are portable, resilient and flexible; it also
+enables automatic detection of the nodes and cores in a system and can split up
 jobs automatically if nodes/cores are not supplied.
 
 
@@ -74,7 +74,7 @@ Optional dependency:
  
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
-platforms (eg. Cray XC40); platforms which do not support launching jobs from compute nodes.
+platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
 Note that as of v0.5.0 libEnsemble can also be run on the launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
@@ -101,7 +101,7 @@ produce a file nlopt.py if Python is found on the system.
 Installation
 ------------
 
-You can use pip to install libEnsemble and its dependencies::
+Use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
@@ -164,13 +164,13 @@ The default mode is to use MPI. The user script is launched as::
  
 where N is the number of processors. This will launch one manager and N-1 workers.
 
-If running in local mode which uses Python's multiprocessing module, the local
+If running in local mode, which uses Python's multiprocessing module, the local
 comms option and number of workers must be specified in :ref:`libE_specs<datastruct-libe-specs>`.
 The script can then be run as a regular python script::
 
     python myscript.py
     
-If you would like to specify these via command line options you may use the parse_args function
+When specifying these via command line options, one may use the parse_args function
 that is used in the regression tests, which can be found in common.py under that directory.
 
 
@@ -201,7 +201,7 @@ Please use the following to cite libEnsemble in a publication:
 Support 
 -------
 
-You can join the libEnsemble mailing list at:
+Join the libEnsemble mailing list at:
 
 * https://lists.mcs.anl.gov/mailman/listinfo/libensemble 
 
@@ -209,4 +209,6 @@ or email questions to:
 
 * libensemble@lists.mcs.anl.gov
 
+or communicate (and establish a private channel, if desired) at:
 
+* https://libensemble.slack.com 
