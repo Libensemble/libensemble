@@ -63,8 +63,8 @@ Optional dependency:
  
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
-platforms (eg. Cray XC40); platforms which do not support launching jobs from compute nodes.
-Note that as of v0.5.0 libEnsemble can also be run on the launch nodes using multiprocessing.
+platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
+Note that as of v0.5.0, libEnsemble can also be run on the launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
 
@@ -90,11 +90,11 @@ produce a file nlopt.py if Python is found on the system.
 Installation
 ------------
 
-You can use pip to install libEnsemble and its dependencies::
+Use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
-Libensemble is also available in the Spack_ distribution.
+libensemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
@@ -170,7 +170,7 @@ Please use the following to cite libEnsemble in a publication:
 Support 
 -------
 
-You can join the libEnsemble mailing list at:
+Join the libEnsemble mailing list at:
 
 * https://lists.mcs.anl.gov/mailman/listinfo/libensemble 
 
@@ -178,3 +178,6 @@ or email questions to:
 
 * libensemble@lists.mcs.anl.gov
 
+or communicate (and establish a private channel, if desired) at:
+
+* https://libensemble.slack.com 
