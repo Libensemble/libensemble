@@ -17,19 +17,18 @@ Release 0.5.0
 * Added support for Summit/LSF schedular in job controller.
 * MPI Job controller detects and re-tries launches on failure; adding resilience (#143).
 * Job controller supports option to extract/print job times in libE_stats.txt (#136)
-  (Plotting script added to show resource utilization for launched jobs).
-
 * Default logging level changed to INFO (#164)
 * Logging interface added which allows user to change logging level and file (#110).
 * All worker logging and calculation stats are routed through manager.
-* Simple libE use cases should not require a gen_func (e.g. random sampling) (#122).
+* libEnsemble can be run with provided values in instead of a gen_func (e.g. random sampling) (#122).
+* Aborts dump persis_info as well as history.
 
 :Note:
 
 * **This version no longer supports Python 2.** From this version, libEnsemble requires Python 3.
 * Tested platforms include: Local Linux, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm).
 
-:Known limitations:
+:Known issues:
 
 * OpenMPI does work with direct MPI job launches in mpi4py comms mode, as it does not support nested MPI launches.
   (Either use local mode or Balsam job controller).
