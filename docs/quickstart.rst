@@ -105,7 +105,7 @@ Use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
-libensemble is also available in the Spack_ distribution.
+libEnsemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
