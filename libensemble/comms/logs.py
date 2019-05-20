@@ -22,7 +22,7 @@ class LogConfig:
         """Instantiate a new LogConfig instance."""
         LogConfig.config = self
         self.logger_set = False
-        self.log_level = logging.DEBUG
+        self.log_level = logging.INFO
         self.name = name
         self.stats_name = name + ".calc stats"
         self.filename = "ensemble.log"

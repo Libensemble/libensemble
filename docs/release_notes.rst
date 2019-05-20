@@ -25,7 +25,7 @@ Release 0.5.0
 
 :Note:
 
-* **This version no longer supports Python 2.** From this version, libEnsemble requires Python 3.
+* **This version no longer supports Python 2.**
 * Tested platforms include: Local Linux, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm).
 
 :Known issues:
