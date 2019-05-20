@@ -75,7 +75,7 @@ Optional dependency:
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
 platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
-Note that as of v0.5.0 libEnsemble can also be run on the launch nodes using multiprocessing.
+Note that as of v0.5.0, libEnsemble can also be run on the launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
 
@@ -105,7 +105,7 @@ Use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
-Libensemble is also available in the Spack_ distribution.
+libensemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
@@ -155,14 +155,14 @@ The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
 The user will create a python script to call the libEnsemble :doc:`libE<libE_module>` function.
-This must supply the :ref:`sim_specs<datastruct-sim-specs>`, :ref:`gen_specs<datastruct-gen-specs>` 
+This must supplythe :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`, 
 and optionally :ref:`libE_specs<datastruct-libe-specs>` and :ref:`alloc_specs<datastruct-alloc-specs>`.
 
 The default mode is to use MPI. The user script is launched as::
 
     mpiexec -np N python myscript.py
  
-where N is the number of processors. This will launch one manager and N-1 workers.
+where ``N`` is the number of processors. This will launch one manager and ``N-1`` workers.
 
 If running in local mode, which uses Python's multiprocessing module, the local
 comms option and number of workers must be specified in :ref:`libE_specs<datastruct-libe-specs>`.
@@ -170,8 +170,9 @@ The script can then be run as a regular python script::
 
     python myscript.py
     
-When specifying these via command line options, one may use the parse_args function
-that is used in the regression tests, which can be found in common.py under that directory.
+When specifying these via command line options, one may use the ``parse_args``
+function used in the regression tests, which can be found in
+``libensemble/tests/regression_tests/common.py``
 
 
 See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
