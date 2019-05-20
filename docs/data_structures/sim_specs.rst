@@ -42,8 +42,7 @@ From: ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
 
     sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
                  'in': ['x'],             # These keys will be given to the above function
-                 'out': [('f',float),     # This is the output from the function being minimized
-                        ],
+                 'out': [('f',float)],    # This is the output from the function being minimized
                  'save_every_k': 400  
                  }
 
