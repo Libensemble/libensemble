@@ -9,9 +9,9 @@ Release 0.5.0
 :Date: May 20, 2019
 
 * Added local(multiprocessing) and TCP options for manager/worker communications, in addition to mpi4py (#42).
-  E.g. libEnsemble can be run on MOM/launch nodes of (e.g. Theta/Summit) and can remotely detect compute resources.
-  E.g. libEnsemble can be run on a system without MPI.
-  E.g. libEnsemble can be run with a manager locally and remote TCP workers.
+  * E.g. libEnsemble can be run on MOM/launch nodes of (e.g. Theta/Summit) and can remotely detect compute resources.
+  * E.g. libEnsemble can be run on a system without MPI.
+  * E.g. libEnsemble can be run with a manager locally and remote TCP workers.
 
 * Added support for Summit/LSF schedular in job controller.
 * MPI Job controller detects and re-tries launches on failure; adding resilience (#143).
@@ -37,9 +37,6 @@ Release 0.5.0
 * Remote detection of logical cores via LSB_HOSTS (e.g. Summit) returns number of physical cores as SMT info not available.
 * TCP mode does not support the auto-resources option to the job controller.
 
-
-
-&*&*&*&*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 Release 0.4.1
 -------------
