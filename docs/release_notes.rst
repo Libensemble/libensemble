@@ -3,6 +3,44 @@ Release Notes
 =============
 
 
+Release 0.5.0
+-------------
+
+:Date: May 20, 2019
+
+* Added local(multiprocessing) and TCP options for manager/worker communications, in addition to mpi4py (#42).
+  E.g. libEnsemble can be run on MOM/launch nodes of (e.g. Theta/Summit) and can remotely detect compute resources.
+  E.g. libEnsemble can be run on a system without MPI.
+  E.g. libEnsemble can be run with a manager locally and remote TCP workers.
+
+* Added support for Summit/LSF schedular in job controller.
+* MPI Job controller detects and re-tries launches on failure; adding resilience (#143).
+* Job controller supports option to extract/print job times in libE_stats.txt (#136)
+  (Plotting script added to show resource utilization for launched jobs).
+
+* Default logging level changed to INFO (#164)
+* Logging interface added which allows user to change logging level and file (#110).
+* All worker logging and calculation stats are routed through manager.
+* Simple libE use cases should not require a gen_func (e.g. random sampling) (#122).
+
+:Note:
+
+* **This version no longer supports Python2.** From this version, libEnsemble requires Python 3.
+
+* Tested platforms include: Local Linux, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm).
+
+:Known limitations:
+
+* OpenMPI does work with direct MPI job launches in mpi4py comms mode, as it does not support nested MPI launches.
+  (Either use local mode or Balsam job controller).
+* Local comms mode (multiprocessing) may fail if MPI is initialized before forking processors. This is thought to be responsible for issues combining with PETSc.
+* Remote detection of logical cores via LSB_HOSTS (e.g. Summit) returns number of physical cores as SMT info not available.
+* TCP mode does not support the auto-resources option to the job controller.
+
+
+
+&*&*&*&*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 Release 0.4.1
 -------------
 
