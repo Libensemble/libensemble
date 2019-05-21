@@ -29,22 +29,22 @@ def test_set_log_level():
     assert level == 20, "Log level should be 20. Found: " + str(level)
 
 
-#def test_change_log_level():
-    #from libensemble.comms.logs import manager_logging_config
-    #manager_logging_config()
-    #level_from_config = libE_logger.get_level()
-    #assert level_from_config == 20, "Log level from config should be 20. Found: " + str(level)
-    #level_from_logger = logging.getLogger('libensemble').getEffectiveLevel()
-    #assert level_from_logger == 20, "Log level from logger should be 20. Found: " + str(level)
+# def test_change_log_level():
+#     from libensemble.comms.logs import manager_logging_config
+#     manager_logging_config()
+#     level_from_config = libE_logger.get_level()
+#     assert level_from_config == 20, "Log level from config should be 20. Found: " + str(level)
+#     level_from_logger = logging.getLogger('libensemble').getEffectiveLevel()
+#     assert level_from_logger == 20, "Log level from logger should be 20. Found: " + str(level)
 
-    ## Now test logger level after change
-    #libE_logger.set_level('DEBUG')
-    #level_from_logger = logging.getLogger('libensemble').getEffectiveLevel()
-    #assert level_from_logger == 10, "Log level from logger should be 10. Found: " + str(level)
+#     # Now test logger level after change
+#     libE_logger.set_level('DEBUG')
+#     level_from_logger = logging.getLogger('libensemble').getEffectiveLevel()
+#     assert level_from_logger == 10, "Log level from logger should be 10. Found: " + str(level)
 
-    ## Now test inherited logger
-    #level_from_child_logger = logging.getLogger('libensemble.libE').getEffectiveLevel()
-    #assert level_from_child_logger == 10, "Log level from child logger should be 10. Found: " + str(level)
+#     # Now test inherited logger
+#     level_from_child_logger = logging.getLogger('libensemble.libE').getEffectiveLevel()
+#     assert level_from_child_logger == 10, "Log level from child logger should be 10. Found: " + str(level)
 
 
 def test_set_filename():
