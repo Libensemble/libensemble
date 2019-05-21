@@ -45,7 +45,8 @@ sys.path.append(os.path.abspath('../libensemble'))
 sys.path.append(os.path.abspath('../libensemble/alloc_funcs'))
 sys.path.append(os.path.abspath('../libensemble/gen_funcs'))
 sys.path.append(os.path.abspath('../libensemble/sim_funcs'))
-
+sys.path.append(os.path.abspath('../libensemble/comms'))
+sys.path.append(os.path.abspath('../libensemble/util'))
 # print(sys.path)
 
 # -- General configuration ------------------------------------------------
