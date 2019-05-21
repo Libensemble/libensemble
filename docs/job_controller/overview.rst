@@ -1,9 +1,20 @@
 Job Controller Overview
 =======================
 
-The Job Controller module can be used by the worker or user-side code to issue and manage jobs using a portable interface. Various back-end mechanisms may be used to implement this interface on the system, either specified by the user at the top-level, or auto-detected. The job_controller manages jobs using the launch, poll and kill functions. Job attributes can then be queried to determine status. Functions are also provided to access and interrogate files in the job's working directory.
+The Job Controller module can be used by the worker or user-side code to issue
+and manage jobs using a portable interface. Various back-end mechanisms may be
+used to implement this interface on the system, either specified by the user at
+the top-level, or auto-detected. The job_controller manages jobs using the
+launch, poll and kill functions. Job attributes can then be queried to
+determine status. Functions are also provided to access and interrogate files
+in the job's working directory.
 
-At the top-level calling script, a job_controller is created and the executable gen or sim applications are registered to it (these are applications that will be runnable jobs). If an alternative job_controller, such as Balsam, is to be used, then these can be created as in the example. Once in the user-side worker code (sim/gen func), an MPI based job_controller can be retrieved without any need to specify the specific type.
+At the top-level calling script, a job_controller is created and the executable
+gen or sim applications are registered to it (these are applications that will
+be runnable jobs). If an alternative job_controller, such as Balsam, is to be
+used, then these can be created as in the example. Once in the user-side worker
+code (sim/gen func), an MPI based job_controller can be retrieved without any
+need to specify the specific type.
 
 **Example usage (code runnable with or without a Balsam backend):**
 
