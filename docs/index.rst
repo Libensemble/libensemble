@@ -12,7 +12,7 @@ Library for managing ensemble-like collections of computations.
    :maxdepth: 2
    :caption: libEnsemble:
    
-   Quickstart<readme>
+   Quickstart<quickstart>
    contributing
    release_notes
    

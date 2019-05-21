@@ -1,4 +1,4 @@
-.. image:: docs/images/libE_logo.png
+.. image:: images/libE_logo.png
   :alt: libEnsemble
 
 |
@@ -19,6 +19,12 @@
 What is libEnsemble?
 ====================
 
+A library for managing ensemble-like collections of computations.
+
+A visual overview is given in the libEnsemble poster_.
+
+.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+
 libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of computations.
 Designed with flexibility in mind, libEnsemble can utilize massively parallel resources to accelerate
 the solution of design, decision, and inference problems.
@@ -31,13 +37,18 @@ libEnsemble aims for:
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
-A more detailed overview can be found in the docs_.
+The user selects or supplies a generation function that produces simulation input as well as
+a simulation function that performs and monitors the simulations. The generation function
+may contain, for example, an optimization method to generate new simulation parameters
+on-the-fly and based on the results of previous simulations. Examples and templates of these
+functions are included in the library.
 
-.. _docs:  https://libensemble.readthedocs.org/en/latest/
-
-A visual overview is given in the libEnsemble poster_.
-
-.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+libEnsemble employs a manager-worker scheme that can run on various communication media
+(including MPI, multiprocessing, and TCP). Each worker can control and monitor any type
+of job from small sub-node jobs to huge many-node simulations. A job controller
+interface is provided to ensure scripts are portable, resilient and flexible; it also
+enables automatic detection of the nodes and cores in a system and can split up
+jobs automatically if nodes/cores are not supplied.
 
 
 Dependencies
@@ -63,7 +74,7 @@ Optional dependency:
  
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
-platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
+platforms (e.g., Cray XC40); platforms that do not support launching jobs from compute nodes.
 Note that as of v0.5.0, libEnsemble can also be run on the launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
@@ -74,7 +85,7 @@ The example sim and gen functions and tests require the following dependencies:
 * NLopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
 PETSc and NLopt must be built with shared libraries enabled and present in
-sys.path (eg. via setting the PYTHONPATH environment variable). NLopt should
+sys.path (e.g., via setting the PYTHONPATH environment variable). NLopt should
 produce a file nlopt.py if Python is found on the system.
 
 .. _PETSc:  http://www.mcs.anl.gov/petsc
@@ -143,7 +154,28 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-See the `user-guide <https://libensemble.readthedocs.io/en/latest/readme.html#basic-usage>`_ for more information.
+The user will create a python script to call the libEnsemble :doc:`libE<libE_module>` function.
+This must supplythe :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`, 
+and optionally :ref:`libE_specs<datastruct-libe-specs>` and :ref:`alloc_specs<datastruct-alloc-specs>`.
+
+The default mode is to use MPI. The user script is launched as::
+
+    mpiexec -np N python myscript.py
+ 
+where ``N`` is the number of processors. This will launch one manager and ``N-1`` workers.
+
+If running in local mode, which uses Python's multiprocessing module, the local
+comms option and number of workers must be specified in :ref:`libE_specs<datastruct-libe-specs>`.
+The script can then be run as a regular python script::
+
+    python myscript.py
+    
+When specifying these via command line options, one may use the ``parse_args``
+function used in the regression tests, which can be found in
+``libensemble/tests/regression_tests/common.py``
+
+
+See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
 
 
 Documentation
