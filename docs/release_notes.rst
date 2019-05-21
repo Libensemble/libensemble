@@ -12,7 +12,7 @@ Release 0.5.0
 
  * E.g., libEnsemble can be run on MOM/launch nodes (e.g., those of ALCF/Theta & OLCF/Summit) and can remotely detect compute resources.
  * E.g., libEnsemble can be run on a system without MPI.
- * E.g., libEnsemble can be run with a manager locally and remote TCP workers.
+ * E.g., libEnsemble can be run with a local manager and remote TCP workers.
 
 * Added support for Summit/LSF schedular in job controller.
 * MPI job controller detects and re-tries launches on failure; adding resilience (#143).
@@ -20,8 +20,8 @@ Release 0.5.0
 * Default logging level changed to INFO (#164).
 * Logging interface added, which allows user to change logging level and file (#110).
 * All worker logging and calculation stats are routed through manager.
-* libEnsemble can be run with provided values instead of a gen_func (e.g., random sampling) (#122).
-* Aborts dump persis_info as well as history.
+* libEnsemble can be run without a gen_func, for example, when using a previously computed random sample (#122).
+* Aborts dump persis_info with the history.
 
 :Note:
 
@@ -30,11 +30,11 @@ Release 0.5.0
 
 :Known issues:
 
-* OpenMPI does work with direct MPI job launches in mpi4py comms mode, as it does not support nested MPI launches
+* OpenMPI does not work with direct MPI job launches in mpi4py comms mode, as it does not support nested MPI launches
   (Either use local mode or Balsam job controller).
 * Local comms mode (multiprocessing) may fail if MPI is initialized before forking processors. This is thought to be responsible for issues combining with PETSc.
 * Remote detection of logical cores via LSB_HOSTS (e.g., Summit) returns number of physical cores as SMT info not available.
-* TCP mode does not support the auto-resources option to the job controller.
+* TCP mode does not support: 1) more than one libEnsemble call in a given script or 2) the auto-resources option to the job controller.
 
 
 Release 0.4.1
