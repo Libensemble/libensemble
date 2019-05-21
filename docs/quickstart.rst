@@ -74,7 +74,7 @@ Optional dependency:
  
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
-platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
+platforms (e.g., Cray XC40); platforms that do not support launching jobs from compute nodes.
 Note that as of v0.5.0, libEnsemble can also be run on the launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
@@ -85,7 +85,7 @@ The example sim and gen functions and tests require the following dependencies:
 * NLopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
 PETSc and NLopt must be built with shared libraries enabled and present in
-sys.path (eg. via setting the PYTHONPATH environment variable). NLopt should
+sys.path (e.g., via setting the PYTHONPATH environment variable). NLopt should
 produce a file nlopt.py if Python is found on the system.
 
 .. _PETSc:  http://www.mcs.anl.gov/petsc

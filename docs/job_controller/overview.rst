@@ -23,7 +23,7 @@ In calling function::
     
 In user sim func::
 
-    jobctl = MPIJobController.controller # This will work for inherited controllers also (eg. Balsam)
+    jobctl = MPIJobController.controller # This will work for inherited controllers also (e.g., Balsam)
     import time
     
     jobctl = MPIJobController.controller # Will return controller (whether Balsam or standard MPI).

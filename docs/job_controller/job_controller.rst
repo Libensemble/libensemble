@@ -41,10 +41,10 @@ Job Status attributes include:
 
 :job.state: (string) The job status. One of: ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
 
-:job.process: (process obj) The process object used by the underlying process manager (e.g. return value of subprocess.Popen)
+:job.process: (process obj) The process object used by the underlying process manager (e.g., return value of subprocess.Popen)
 :job.errcode: (int) The errorcode/return code used by the underlying process manager
 :job.finished: (Boolean) True means job has finished running - not whether was successful
-:job.success: (Boolean) Did job complete succesfully (e.g. returncode is zero)
+:job.success: (Boolean) Did job complete succesfully (e.g., returncode is zero)
 
 Run configuration attributes - Some will be auto-generated:
 
