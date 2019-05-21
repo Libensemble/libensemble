@@ -6,6 +6,7 @@ Module to launch and control running jobs with Balsam.
 import os
 import logging
 import time
+import datetime
 from mpi4py import MPI
 
 from libensemble.mpi_resources import MPIResources
@@ -48,11 +49,25 @@ class BalsamJob(Job):
     def read_stderr(self):
         return self.process.read_file_in_workdir(self.stderr)
 
+    def _get_time_since_balsam_launch(self):
+        """Return time since balam job entered RUNNING state"""
+        
+        # If wait_on_run then can could calculate runtime same a base controller
+        # but otherwise that will return time from job submission. Get from Balsam.
+        
+        #self.runtime = self.process.runtime_seconds # Only reports at end of run currently
+        balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
+        current_datetime = datetime.datetime.now()
+        if balsam_launch_datetime:
+            return (current_datetime - balsam_launch_datetime).total_seconds()
+        else:
+            return 0        
+
     def calc_job_timing(self):
         """Calculate timing information for this job"""
 
         # Get runtime from Balsam
-        self.runtime = self.process.runtime_seconds
+        self.runtime = self._get_time_since_balsam_launch()
 
         if self.launch_time is None:
             logger.warning("Cannot calc job total_time - launch time not set")
@@ -69,7 +84,7 @@ class BalsamJob(Job):
         # Get current state of jobs from Balsam database
         self.process.refresh_from_db()
         balsam_state = self.process.state
-        self.runtime = self.process.runtime_seconds
+        self.runtime = self._get_time_since_balsam_launch()
 
         if balsam_state in models.END_STATES:
             self.finished = True
@@ -268,7 +283,7 @@ class BalsamJobController(MPIJobController):
 
         # This is not used with Balsam for run-time as this would include wait time
         # Again considering changing launch to submit - or whatever I chose before.....
-        job.launch_time = time.time()  # Not good for timing job - as I dont know when it finishes - only poll/kill est.
+        #job.launch_time = time.time()  # Not good for timing job - as I dont know when it finishes - only poll/kill est.
 
         add_job_args = {'name': job.name,
                         'workflow': "libe_workflow",  # add arg for this
@@ -288,10 +303,14 @@ class BalsamJobController(MPIJobController):
 
         if (wait_on_run):
             self._wait_on_run(job)
-
+            
+        if not job.timer.timing:
+            job.timer.start()
+            job.launch_time = job.timer.tstart  # Time not date - may not need if using timer.
+                
         logger.info("Added job to Balsam database {}: "
-                    "Worker {} nodes {} ppn {}".
-                    format(job.name, self.workerID, num_nodes, ranks_per_node))
+                    "nodes {} ppn {}".
+                    format(job.name, num_nodes, ranks_per_node))
 
         # job.workdir = job.process.working_directory  # Might not be set yet!!!!
         self.list_of_jobs.append(job)
