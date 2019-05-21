@@ -43,6 +43,8 @@ setup(
               'libensemble.sim_funcs.branin',
               'libensemble.alloc_funcs',
               'libensemble.tests',
+              'libensemble.comms',
+              'libensemble.util',
               'libensemble.tests.unit_tests',
               'libensemble.tests.regression_tests'],
 
