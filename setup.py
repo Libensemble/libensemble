@@ -43,14 +43,14 @@ setup(
               'libensemble.sim_funcs.branin',
               'libensemble.alloc_funcs',
               'libensemble.tests',
+              'libensemble.comms',
+              'libensemble.util',
               'libensemble.tests.unit_tests',
               'libensemble.tests.regression_tests'],
 
     package_data={'libensemble.sim_funcs.branin': ['known_minima_and_func_values']},
 
-    install_requires=['mpi4py>=2.0',
-                      'numpy'
-                      ],
+    install_requires=['numpy'],
 
     # If run tests through setup.py - downloads these but does not install
     tests_require=['pytest>=3.1',
