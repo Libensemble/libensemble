@@ -133,16 +133,14 @@ class Worker:
     @staticmethod
     def _set_job_controller(workerID, comm):
         "Optional -- set worker ID in the job controller, return if set"
-        try:
-            jobctl = JobController.controller
-            # jobctl.set_workerID(workerID)
+        jobctl = JobController.controller
+        if isinstance(jobctl, JobController):
             jobctl.set_worker_info(comm, workerID)
-        # todo Need to differentiate no controller to actual exception
-        except Exception:
+            return True
+        else:
             logger.info("No job_controller set on worker {}".format(workerID))
             return False
-        else:
-            return True
+
 
     def _handle_calc(self, Work, calc_in):
         """Run a calculation on this worker object.
