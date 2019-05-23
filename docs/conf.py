@@ -185,7 +185,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'libEnsemble.tex', 'libEnsemble User Manual',
-     'Stephen Hudson', 'Jeffrey Larson', 'Stefan M. Wild', 'David Bindel', 'manual'),
+     'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, David Bindel', 'manual'),
 ]
 
 
