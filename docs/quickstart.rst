@@ -19,21 +19,19 @@
 What is libEnsemble?
 ====================
 
-A library for managing ensemble-like collections of computations.
-
 A visual overview is given in the libEnsemble poster_.
-
-.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
 libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of computations.
 Designed with flexibility in mind, libEnsemble can utilize massively parallel resources to accelerate
 the solution of design, decision, and inference problems.
 
+.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+
 libEnsemble aims for:
 
 • Extreme scaling
-• Fault tolerance
-• Monitoring/killing jobs (recovers resources)
+• Resilience/Fault tolerance
+• Monitoring/killing jobs (and recovering resources)
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
@@ -155,22 +153,22 @@ The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
 The user will create a python script to call the libEnsemble :doc:`libE<libE_module>` function.
-This must supplythe :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`, 
-and optionally :ref:`libE_specs<datastruct-libe-specs>` and :ref:`alloc_specs<datastruct-alloc-specs>`.
+This must supply the :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`, 
+and optionally :ref:`libE_specs<datastruct-libe-specs>`, :ref:`alloc_specs<datastruct-alloc-specs>` and :ref:`persis_info<datastruct-persis-info>`.
 
-The default mode is to use MPI. The user script is launched as::
+The default manager/worker communications mode is MPI. The user script is launched as::
 
     mpiexec -np N python myscript.py
  
 where ``N`` is the number of processors. This will launch one manager and ``N-1`` workers.
 
-If running in local mode, which uses Python's multiprocessing module, the local
-comms option and number of workers must be specified in :ref:`libE_specs<datastruct-libe-specs>`.
+If running in local mode, which uses Python's multiprocessing module, the 'local'
+comms option and the number of workers must be specified in :ref:`libE_specs<datastruct-libe-specs>`.
 The script can then be run as a regular python script::
 
     python myscript.py
     
-When specifying these via command line options, one may use the ``parse_args``
+When specifying these options via command line options, one may use the ``parse_args``
 function used in the regression tests, which can be found in
 ``libensemble/tests/regression_tests/common.py``
 
