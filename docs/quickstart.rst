@@ -19,11 +19,11 @@
 What is libEnsemble?
 ====================
 
-A visual overview is given in the libEnsemble poster_.
-
 libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of computations.
 Designed with flexibility in mind, libEnsemble can utilize massively parallel resources to accelerate
 the solution of design, decision, and inference problems.
+
+A visual overview is given in the libEnsemble poster_.
 
 .. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
