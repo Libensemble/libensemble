@@ -1,9 +1,6 @@
-from __future__ import division
-from __future__ import absolute_import
 import numpy as np
 
-from libensemble.alloc_funcs.support import \
-     avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -25,18 +22,18 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
         if np.all(H['returned'][gen_inds]):
-            last_time_pos = np.argmax(H['given_time'][gen_inds])
-            last_ind = np.nonzero(gen_inds)[0][last_time_pos]
+            last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
+            inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
-                     np.atleast_1d(last_ind), persis_info[i], persistent=True)
+                     np.atleast_1d(inds_of_last_batch_from_gen), persis_info[i], persistent=True)
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):
 
             # perform sim evaluations from existing runs (if they exist).
-            sim_ids_to_send = np.nonzero(task_avail)[0][0] # oldest point
+            sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
             sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
             task_avail[sim_ids_to_send] = False
 

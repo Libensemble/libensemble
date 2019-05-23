@@ -2,73 +2,52 @@
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
-# Execute via the following command:
+# Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_6-hump_camel_elapsed_time_abort.py
+#    python3 test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms local
+#    python3 test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms tcp
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 2 4
 
-from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
+# Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream, eprint
 
-# Import sim_func
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+nworkers, is_master, libE_specs, _ = parse_args()
 
-# Import gen_func
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample
+sim_specs = {'sim_f': sim_f,
+             'in': ['x'],
+             'out': [('f', float)],
+             'pause_time': 2}
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-script_name = os.path.splitext(os.path.basename(__file__))[0]
-
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float), # This is the output from the function being minimized
-                    ],
-             'pause_time': 2,
-             # 'save_every_k': 10
-             }
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_random_sample,
+gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
-             'out': [('x',float,2),
-                    ],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
              'gen_batch_size': 5,
              'num_active_gens': 1,
              'batch_mode': False,
-             # 'save_every_k': 10
-             }
+             'out': [('x', float, (2,))],
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2])}
 
-# Tell libEnsemble when to stop
+persis_info = per_worker_stream({}, nworkers + 1)
+
 exit_criteria = {'elapsed_wallclock_time': 1}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
-
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            libE_specs=libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     eprint(flag)
     eprint(H)
     assert flag == 2
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    # if flag == 2:
-    #     print("\n\n\nKilling COMM_WORLD")
-    #     MPI.COMM_WORLD.Abort()
+    save_libE_output(H, persis_info, __file__, nworkers)

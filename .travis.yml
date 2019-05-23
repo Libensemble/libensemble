@@ -2,7 +2,6 @@ language: python
 sudo: required
 dist: xenial
 python:
-  - 2.7
   - 3.4
   - 3.5
   - 3.6
@@ -18,9 +17,9 @@ env:
     - MPI=mpich
     #- MPI=openmpi
 
-matrix:
-  allow_failures:
-    - env: MPI=openmpi
+#matrix:
+#  allow_failures:
+#    - env: MPI=openmpi
     
 addons:
   apt:
@@ -56,7 +55,7 @@ install:
   - conda install $MPI
   - conda install --no-update-deps scipy # includes numpy
   - conda install --no-update-deps mpi4py
-  - conda install --no-update-deps petsc4py petsc
+  - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install pytest

@@ -1,30 +1,36 @@
 #!/usr/bin/env python
 
 #infile='testfile.txt'
-infile='libe_summary.txt'
+infile='libE_stats.txt'
 time_key='Time:'
 status_key='Status:'
 sim_only = True # Ignore generator times
+num_bins = 40
 
 #States - could add multiple lines - eg Failed.
 ran_ok = ['Completed'] # list of ok states
+
+#run_killed = ['killed', 'Exception'] # Currently searches for this word in string
 run_killed = ['killed'] # Currently searches for this word in string
+run_exception = ['Exception', 'Failed']
 
 import sys
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 #import csv
 
-#todo: Make general search for any word from keyword list in a list.
-def search_for_killed(sublist):
-    for i, val in enumerate(sublist):
+def search_for_keyword(in_list, kw_list):
+    for i, val in enumerate(in_list):
         if val.endswith(':'):
             break # New key word found
         else:
-            if val in run_killed:
+            if val in kw_list:
                 return True
     return False
-
 
 def append_to_list(mylst, glob_list, found_time):
     # Assumes Time comes first - else have to modify
@@ -38,6 +44,9 @@ active_line_count = 0
 in_times=[]
 in_times_ran=[]
 in_times_kill=[]
+in_times_exception=[]
+exceptions = False
+
 
 # Read straight from libEnsemble summary file.
 with open(infile) as f:
@@ -54,8 +63,11 @@ with open(infile) as f:
             if val == status_key:
                 if lst[i+1] in ran_ok:
                     append_to_list(in_times_ran,in_times,found_time) # Assumes Time comes first
-                elif search_for_killed(lst[i+1:len(lst)]):
+                elif search_for_keyword(lst[i+1:len(lst)], run_killed):
                     append_to_list(in_times_kill,in_times,found_time) # Assumes Time comes first
+                elif search_for_keyword(lst[i+1:len(lst)], run_exception):
+                    exceptions = True
+                    append_to_list(in_times_exception,in_times,found_time) # Assumes Time comes first                
                 else:
                     print('Error: Unkown status - rest of line: {}'.format(lst[i+1:len(lst)]))
                     sys.exit()
@@ -64,23 +76,12 @@ with open(infile) as f:
                 active_line_count += 1
                 break
 
-# Read from modified csv file.
-#with open('histo.csv', newline='') as csvfile:
-    #cin = csv.reader(csvfile, delimiter=',')
-    #for row in cin:
-        #in_times.append(row[0])
-        #if row[1] == 'killed':
-            #in_times_kill.append(row[0])
-        #else:
-            #in_times_ran.append(row[0])
-
 print('Processed {} calcs'.format(active_line_count))
 
 times = np.asarray(in_times, dtype=float)
 times_ran = np.asarray(in_times_ran, dtype=float)
 times_kill = np.asarray(in_times_kill, dtype=float)
 
-num_bins = 40
 binwidth = (times.max() - times.min()) / num_bins
 bins=np.arange(min(times), max(times) + binwidth, binwidth)
 
@@ -88,18 +89,23 @@ bins=np.arange(min(times), max(times) + binwidth, binwidth)
 p1 = plt.hist(times_ran, bins, label='Completed')
 p2 = plt.hist(times_kill, bins, label='Killed')
 
+if exceptions:
+    times_exc = np.asarray(in_times_exception, dtype=float)
+    p3 = plt.hist(times_exc, bins, label='Except/Failed', color='C3') # red
+
 #plt.title('Theta Opal/libEnsemble Times: 127 Workers - sim_max 508')
 if sim_only:
     calc_type = 'sim'
 else:
     calc_type = 'calc'
-title = 'libEnsemble histogram of ' + calc_type  + ' times' + ' (' + str(active_line_count) + ' user calcs)'   
+    
+title = 'libEnsemble histogram of ' + calc_type  + ' times' + ' (' + str(active_line_count) + ' user calcs)'  +  str(num_bins) + ' bins'   
 
 plt.title(title)
 plt.xlabel('Calc run-time (sec)')
 plt.ylabel('Count')
 plt.grid(True)
-plt.legend(loc='upper left')
+plt.legend(loc='best')
 
 #plt.show()
 plt.savefig('hist_completed_v_killed.png')

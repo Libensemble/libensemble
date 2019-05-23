@@ -41,10 +41,12 @@ Job Status attributes include:
 
 :job.state: (string) The job status. One of: ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
 
-:job.process: (process obj) The process object used by the underlying process manager (e.g. return value of subprocess.Popen)
+:job.process: (process obj) The process object used by the underlying process manager (e.g., return value of subprocess.Popen)
 :job.errcode: (int) The errorcode/return code used by the underlying process manager
 :job.finished: (Boolean) True means job has finished running - not whether was successful
-:job.success: (Boolean) Did job complete succesfully (e.g. returncode is zero)
+:job.success: (Boolean) Did job complete succesfully (e.g., returncode is zero)
+:job.runtime: (int) Time in seconds that job has been running.
+:job.total_time: (int) Total time from job submission to completion (only available when job is finished).
 
 Run configuration attributes - Some will be auto-generated:
 
@@ -52,12 +54,8 @@ Run configuration attributes - Some will be auto-generated:
 :job.name: (string) Name of job - auto-generated
 :job.app: (app obj) Use application/executable, registered using jobctl.register_calc
 :job.app_args: (string) Application arguments as a string  
-:job.num_procs: (int) Total number of processors for job
-:job.num_nodes: (int) Number of nodes for job
-:job.ranks_per_node: (int) Ranks per node for job
-:job.machinefile: (string) Name of machinefile is provided if one has been created.
-:job.hostlist: (string) List of nodes for job is provided if one has been created.
 :job.stdout: (string) Name of file where the standard output of the job is written (in job.workdir)
+:job.stderr: (string) Name of file where the standard error of the job is written (in job.workdir)
 
 A list of job_controller and job functions can be found under the Job Controller Module.
 

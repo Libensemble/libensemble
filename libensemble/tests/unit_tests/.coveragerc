@@ -4,6 +4,7 @@ source = ../..
 omit =
     */tests/*
     */unit_tests/*
+    */unit_tests_nompi/*
     */regression_tests/*
 
 branch = true

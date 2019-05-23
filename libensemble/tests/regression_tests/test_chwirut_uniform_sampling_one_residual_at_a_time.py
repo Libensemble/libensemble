@@ -1,98 +1,97 @@
 # """
-# Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. # Execute via the following command:
-
-# mpiexec -np 4 python3 test_chwirut_uniform_sampling_one_residual_at_a_time.py
-
+# Runs libEnsemble with uniform random sampling on the chwirut least squares
+# problem.  All 214 residual calculations for a given point are performed as a
+# single simulation evaluation. NaNs are injected probabilistically in order to
+# test the allocation function's ability to preempt future residual
+# calculations. Also, the allocation function tries to preempt calculations
+# corresponding to points with partial sum-squared error worse than the
+# best-evaluated point so far.
+#
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_chwirut_uniform_sampling_one_residual_at_a_time.py
+#
+# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 2 4
 
-from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
+import sys
 import numpy as np
+from copy import deepcopy
 
-# Import libEnsemble main
+# Import libEnsemble items
 from libensemble.libE import libE
-
-# Import sim_func
-from libensemble.sim_funcs.chwirut1 import chwirut_eval
-
-# Import gen_func
-from libensemble.gen_funcs.aposmm import aposmm_logic
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_obj_components
-
-# Import alloc_func
+from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
+from libensemble.gen_funcs.uniform_sampling import uniform_random_sample_obj_components as gen_f
 from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
+from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
-script_name = os.path.splitext(os.path.basename(__file__))[0]
+nworkers, is_master, libE_specs, _ = parse_args()
+if libE_specs['comms'] == 'tcp':
+    # Can't use the same interface for manager and worker if we want
+    # repeated calls to libE -- the manager sets up a different server
+    # each time, and the worker will not know what port to connect to.
+    sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-### Declare the run parameters/functions
+# Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 10*m
+budget = 10*m
 
-sim_specs = {'sim_f': chwirut_eval,
+sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component'],
-             'out': [('f_i',float),
-                     ],
-             'component_nan_frequency': 0.05,
-             }
+             'out': [('f_i', float)],
+             'component_nan_frequency': 0.01}
 
-gen_out = [('x',float,n),
-      ('priority',float),
-      ('paused',bool),
-      ('obj_component',int),
-      ('pt_id',int),
-      ]
-
-gen_specs = {'gen_f': uniform_random_sample_obj_components,
+# lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
+gen_specs = {'gen_f': gen_f,
              'in': ['pt_id'],
-             'out': gen_out,
-             'lb': -2*np.ones(3),
-             'ub':  2*np.ones(3),
+             'out': [('x', float, n),
+                     ('priority', float),
+                     ('paused', bool),
+                     ('obj_component', int),
+                     ('pt_id', int)],
              'gen_batch_size': 2,
              'single_component_at_a_time': True,
-             'components': m,
-             'combine_component_func': lambda x: np.sum(np.power(x,2)),
+             'combine_component_func': lambda x: np.sum(np.power(x, 2)),
              'num_active_gens': 1,
              'batch_mode': True,
-             }
+             'lb': (-2-np.pi/10)*np.ones(n),
+             'ub': 2*np.ones(n),
+             'components': m}
 
-exit_criteria = {'sim_max': max_sim_budget, # must be provided
-                 'elapsed_wallclock_time': 300
-                  }
-
-alloc_specs = {'out':[('allocated',bool)], 
-               'alloc_f':alloc_f,
+alloc_specs = {'alloc_f': alloc_f,
+               'out': [('allocated', bool)],
                'stop_on_NaNs': True,
-               'stop_partial_fvec_eval': True,
-               }
+               'stop_partial_fvec_eval': True}
 
-np.random.seed(1)
-persis_info = {}
-persis_info['need_to_give'] = set()
-persis_info['total_gen_calls'] = 0
-persis_info['complete'] = set()
-persis_info['has_nan'] = set()
-persis_info['already_paused'] = set()
-persis_info['H_len'] = 0
+persis_info = per_worker_stream(persis_info, nworkers + 1)
+persis_info_safe = deepcopy(persis_info)
 
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 
-persis_info['last_worker'] = 0
-persis_info[0] = {'run_order': {},
-                  'old_runs': {},
-                  'total_runs': 0,
-                  'rand_stream': np.random.RandomState(1)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
-
-if MPI.COMM_WORLD.Get_rank() == 0:
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
+if is_master:
     assert flag == 0
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
+    save_libE_output(H, persis_info, __file__, nworkers)
+
+# Perform the run but not stopping on NaNs
+alloc_specs.pop('stop_on_NaNs')
+persis_info = deepcopy(persis_info_safe)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
+if is_master:
+    assert flag == 0
+
+# Perform the run also not stopping on partial fvec evals
+alloc_specs.pop('stop_partial_fvec_eval')
+persis_info = deepcopy(persis_info_safe)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
+if is_master:
+    assert flag == 0

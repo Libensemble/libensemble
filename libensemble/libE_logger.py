@@ -1,14 +1,26 @@
 import logging
 
-logger = logging.getLogger(__package__ )
-logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler('ensemble.log')
-formatter = logging.Formatter('%(name)s (%(levelname)s): %(message)s')
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+from libensemble.comms.logs import LogConfig
+LogConfig(__package__)
 
-#logger.debug("Testing top level logger")
 
 def set_level(level):
-    numeric_level = getattr(logging, level.upper(), 10)
-    logger.setLevel(numeric_level)
+    """Set libEnsemble logging level"""
+    logs = LogConfig.config
+    logs.set_level(level)
+
+
+def get_level():
+    """Return libEnsemble logging level"""
+    logs = LogConfig.config
+    return logs.log_level
+
+
+def set_filename(filename):
+    """Sets logger filename if loggers not yet created, else None"""
+    logs = LogConfig.config
+    if logs.logger_set:
+        logger = logging.getLogger(logs.name)
+        logger.warning("Cannot set filename after loggers initialized")
+    else:
+        logs.filename = filename

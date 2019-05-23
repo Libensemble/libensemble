@@ -1,6 +1,7 @@
-===========
-libEnsemble
-===========
+.. image:: docs/images/libE_logo.png
+  :alt: libEnsemble
+
+|
 
 .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
    :target: https://travis-ci.org/Libensemble/libensemble
@@ -12,29 +13,58 @@ libEnsemble
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
 
+|
 
-Library for managing ensemble-like collections of computations.
+====================
+What is libEnsemble?
+====================
+
+libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of computations.
+Designed with flexibility in mind, libEnsemble can utilize massively parallel resources to accelerate
+the solution of design, decision, and inference problems.
+
+libEnsemble aims for:
+
+• Extreme scaling
+• Fault tolerance
+• Monitoring/killing jobs (recovers resources)
+• Portability and flexibility
+• Exploitation of persistent data/control flow.
+
+A more detailed overview can be found in the docs_.
+
+.. _docs:  https://libensemble.readthedocs.org/en/latest/
+
+A visual overview is given in the libEnsemble poster_.
+
+.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
 
 Dependencies
 ------------
 
-* Python_ 2.7, 3.4 or above.
+Required dependencies:
+
+* Python_ 3.4 or above.
+
+* NumPy_
+
+For libEnsemble running with the mpi4py parallelism:
 
 * A functional MPI 1.x/2.x/3.x implementation such as `MPICH
   <http://www.mpich.org/>`_  built with shared/dynamic libraries.
 
 * mpi4py_ v2.0.0 or above
 
-* NumPy_
 
 Optional dependency:
 
 * Balsam_
  
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
-is required for running on some supercomputing platforms (eg. Cray XC40);
-platforms which do not support launching jobs on compute nodes.
+is required for running libEnsemble on the compute nodes of some supercomputing
+platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
+Note that as of v0.5.0, libEnsemble can also be run on the launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
 
@@ -60,15 +90,16 @@ produce a file nlopt.py if Python is found on the system.
 Installation
 ------------
 
-You can use pip to install libEnsemble and its dependencies::
+Use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
-Libensemble is also available in the Spack_ distribution.
+libEnsemble is also available in the Spack_ distribution.
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
-The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository. A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
+The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository.
+A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
     
 
 Testing
@@ -112,7 +143,7 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
+See the `user-guide <https://libensemble.readthedocs.io/en/latest/readme.html#basic-usage>`_ for more information.
 
 
 Documentation
@@ -120,11 +151,26 @@ Documentation
 
 * http://libensemble.readthedocs.org/
 
+Citing libEnsemble
+------------------
+Please use the following to cite libEnsemble in a publication:
+
+.. code-block:: bibtex
+
+  @techreport{libEnsemble,
+    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel},
+    title       = {{libEnsemble} Users Manual},
+    institution = {Argonne National Laboratory},
+    number      = {Revision 0.5.0},
+    year        = {2019},
+    url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
+  }
+
 
 Support 
 -------
 
-You can join the libEnsemble mailing list at:
+Join the libEnsemble mailing list at:
 
 * https://lists.mcs.anl.gov/mailman/listinfo/libensemble 
 
@@ -132,3 +178,6 @@ or email questions to:
 
 * libensemble@lists.mcs.anl.gov
 
+or communicate (and establish a private channel, if desired) at:
+
+* https://libensemble.slack.com 

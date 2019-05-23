@@ -1,119 +1,76 @@
 # """
-# Runs libEnsemble with a simple uniform random sample on one instance of the GKLS
-# problem. # Execute via the following command:
-
-# mpiexec -np 4 python3 call_chwirut_aposmm_one_residual_at_a_time.py
-
+# Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
+# Each of the 214 residual calculation for a given point is performed as a
+# separate simulation evaluation.
+#
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_chwirut_aposmm_one_residual_at_a_time.py
+#
+# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 2 4
 
-from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
 import numpy as np
 
-# Import libEnsemble main
+# Import libEnsemble items for this test
 from libensemble.libE import libE
-
-# Import sim_func
-from libensemble.sim_funcs.chwirut1 import chwirut_eval
-
-# Import gen_func
-from libensemble.gen_funcs.aposmm import aposmm_logic
-
-# Import alloc_func
+from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
+from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.tests.regression_tests.support import persis_info_3 as persis_info, aposmm_gen_out as gen_out
 
-script_name = os.path.splitext(os.path.basename(__file__))[0]
+nworkers, is_master, libE_specs, _ = parse_args()
 
-### Declare the run parameters/functions
+# Declare the run parameters/functions
 m = 214
 n = 3
-max_sim_budget = 10*m
+budget = 50*m
 
-sim_specs = {'sim_f': chwirut_eval,
+sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component'],
-             'out': [('f_i',float),
-                     ],
-             }
+             'out': [('f_i', float)]}
 
-gen_out = [('x',float,n),
-      ('x_on_cube',float,n),
-      ('sim_id',int),
-      ('priority',float),
-      ('local_pt',bool),
-      ('paused',bool),
-      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
-      ('dist_to_unit_bounds',float),
-      ('dist_to_better_l',float),
-      ('dist_to_better_s',float),
-      ('ind_of_better_l',int),
-      ('ind_of_better_s',int),
-      ('started_run',bool),
-      ('num_active_runs',int), # Number of active runs point is involved in
-      ('local_min',bool),
-      ('obj_component',int),
-      ('f',float), # To store the point's combined objective function value (after all f_i are computed)
-      ('pt_id',int), # To be used by APOSMM to identify points evaluated by different simulations
-      ]
+gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int), ('f', float)]
 
-gen_specs = {'gen_f': aposmm_logic,
-             'in': [o[0] for o in gen_out] + ['f_i','returned'],
+# LB tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
+UB = 2*np.ones(n)
+LB = (-2-np.pi/10)*np.ones(n)
+gen_specs = {'gen_f': gen_f,
+             'in': [o[0] for o in gen_out] + ['f_i', 'returned'],
              'out': gen_out,
-             'lb': -2*np.ones(3),
-             'ub':  2*np.ones(3),
-             'initial_sample_size': 5, # All 214 residuals must be done
-             'localopt_method': 'pounders',
-             'dist_to_bound_multiple': 0.5,
-             'grtol': 1e-4,
-             'gatol': 1e-4,
-             'frtol': 1e-15,
-             'fatol': 1e-15,
-             'single_component_at_a_time': True,
-             'components': m,
-             'combine_component_func': lambda x: np.sum(np.power(x,2)),
+             'initial_sample_size': 5,
              'num_active_gens': 1,
              'batch_mode': True,
-             }
+             'lb': LB,
+             'ub': UB,
+             'localopt_method': 'pounders',
+             'dist_to_bound_multiple': 0.5,
+             'single_component_at_a_time': True,
+             'components': m,
+             'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+
+gen_specs.update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 
 np.random.RandomState(0)
-gen_specs['sample_points'] = np.random.uniform(0,1,(max_sim_budget,n))*(gen_specs['ub']-gen_specs['lb'])+gen_specs['lb']
-
-exit_criteria = {'sim_max': max_sim_budget, # must be provided
-                 'elapsed_wallclock_time': 300
-                  }
-
-alloc_specs = {'out':[('allocated',bool)], 
-               'alloc_f':alloc_f,
+gen_specs['sample_points'] = np.random.uniform(0, 1, (budget, n))*(UB-LB)+LB
+alloc_specs = {'alloc_f': alloc_f,
+               'out': [('allocated', bool)],
                'stop_on_NaNs': True,
-               'stop_partial_fvec_eval': True,
-               }
+               'stop_partial_fvec_eval': True}
 
-np.random.seed(1)
-persis_info = {}
-persis_info['need_to_give'] = set()
-persis_info['total_gen_calls'] = 0
-persis_info['complete'] = set()
-persis_info['has_nan'] = set()
-persis_info['already_paused'] = set()
-persis_info['H_len'] = 0
+persis_info = per_worker_stream(persis_info, nworkers + 1)
 
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 
-persis_info['last_worker'] = 0
-persis_info[0] = {'run_order': {},
-                  'old_runs': {},
-                  'total_runs': 0,
-                  'rand_stream': np.random.RandomState(1)}
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
-    assert len(H) >= max_sim_budget
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_after_evals=' + str(max_sim_budget) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
+    assert len(H) >= budget
+    save_libE_output(H, persis_info, __file__, nworkers)

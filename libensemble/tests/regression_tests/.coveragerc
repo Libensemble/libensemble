@@ -4,6 +4,7 @@ source = ../..
 omit =
     */tests/*
     */unit_tests/*
+    */unit_tests_nompi/*
     */regression_tests/*
     */branin_*/*
 
@@ -19,6 +20,7 @@ omit =
     */setup.py/*
     */tests/*
     */unit_tests/*
+    */unit_tests_nompi/*
     */regression_tests/*
 
 exclude_lines =

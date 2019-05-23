@@ -1,10 +1,7 @@
-from __future__ import division
-from __future__ import absolute_import
-
 import numpy as np
 
-from libensemble.alloc_funcs.support import \
-     avail_worker_ids, sim_work, gen_work, count_gens
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_gens
+
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
@@ -34,7 +31,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')
-            if len(H): 
+            if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
                 if (gen_specs.get('batch_mode')
                     and not all(np.logical_or(H['returned'][last_size:],
@@ -42,9 +39,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     break
                 # Don't call APOSMM if there are runs going but none need advancing
                 if len(persis_info[lw]['run_order']):
-                    runs_needing_to_advance = np.zeros(len(persis_info[lw]['run_order']),dtype=bool)
-                    for run,inds in enumerate(persis_info[lw]['run_order'].values()):
-                        runs_needing_to_advance[run] = np.all(H['returned'][inds])
+                    runs_needing_to_advance = np.zeros(len(persis_info[lw]['run_order']), dtype=bool)
+                    for run, inds in enumerate(persis_info[lw]['run_order'].values()):
+                        runs_needing_to_advance[run] = H['returned'][inds[-1]]
 
                     if not np.any(runs_needing_to_advance):
                         break

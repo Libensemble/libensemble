@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import absolute_import
-
 __all__ = ['uniform_or_localopt']
 
 import numpy as np
@@ -33,11 +30,11 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         b = gen_specs['gen_batch_size']
 
         O = np.zeros(b, dtype=gen_specs['out'])
-        for i in range(0,b):
-            x = persis_info['rand_stream'].uniform(lb,ub,(1,n))
+        for i in range(0, b):
+            x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
             O = add_to_O(O, x, i, ub, lb)
 
-        persis_info_updates = persis_info # Send this back so it is overwritten.
+        persis_info_updates = persis_info  # Send this back so it is overwritten.
         return O, persis_info_updates
 
 
@@ -77,13 +74,13 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     ub = gen_specs['ub']
     n = len(ub)
 
-    opt = nlopt.opt(getattr(nlopt,gen_specs['localopt_method']), n)
+    opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
     opt.set_lower_bounds(lb)
     opt.set_upper_bounds(ub)
 
     # Care must be taken with NLopt because a too-large initial step causes
     # nlopt to move the starting point!
-    dist_to_bound = min(min(ub-x0),min(x0-lb))
+    dist_to_bound = min(min(ub-x0), min(x0-lb))
     init_step = dist_to_bound*gen_specs.get('dist_to_bound_multiple', 1)
     opt.set_initial_step(init_step)
 

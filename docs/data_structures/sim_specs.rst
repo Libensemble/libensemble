@@ -3,7 +3,7 @@
 sim_specs
 =========
 
-Simulation function specifications to be set in user calling script and passed to libE.libE()::
+Simulation function specifications to be set in user calling script and passed to ``libE.libE()``::
 
 
     sim_specs: [dict]:
@@ -32,21 +32,20 @@ Simulation function specifications to be set in user calling script and passed t
 :Notes:
 
 * The user may define other fields to be passed to the simulator function.
-* The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
+* The tuples defined in the ``'out'`` list are entered into the master :ref:`history array<datastruct-history-array>`
 
 :Examples:
 
 .. _sim-specs-exmple1:
 
-From: libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py::
+From: ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py``
 
     sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
                  'in': ['x'],             # These keys will be given to the above function
-                 'out': [('f',float),     # This is the output from the function being minimized
-                        ],
+                 'out': [('f',float)],    # This is the output from the function being minimized
                  'save_every_k': 400  
                  }
 
-Note that the dimensions and type of the 'in' field variable 'x' is specified by the corresponding
-generator 'out' field 'x' (see :ref:`gen_specs example<gen-specs-exmple1>`).
-Only the variable name is then required in the sim_specs.
+Note that the dimensions and type of the ``'in'`` field variable ``'x'`` is specified by the corresponding
+generator ``'out'`` field ``'x'`` (see :ref:`gen_specs example<gen-specs-exmple1>`).
+Only the variable name is then required in sim_specs.

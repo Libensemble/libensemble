@@ -6,13 +6,13 @@
 Welcome to libEnsemble's documentation!
 =======================================
 
-Library for managing ensemble-like collections of computations.
+A library for managing ensemble-like collections of computations.
 
 .. toctree::
    :maxdepth: 2
    :caption: libEnsemble:
    
-   Quickstart<readme>
+   Quickstart<quickstart>
    contributing
    release_notes
    

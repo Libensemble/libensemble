@@ -3,57 +3,58 @@
 # ********************* NOT YET IMPLEMENTED ***********************
 # ********************* Interface demo: see jobctl.manager_poll(job)
 
-#Test of job controller module for libensemble:
+# Test of job controller module for libensemble:
 #  Detecting manager kill signal
 #  This keeps MPI out of user code and is portable across different
 #  worker concurrency schemes (MPI/threading/multiprocessing)
 
-#Test does not require running full libensemble
+# Test does not require running full libensemble
 
 import os
+from libensemble.controller import JobController
+
 
 def build_simfunc():
     import subprocess
 
-    #Build simfunc
-    #buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
+    # Build simfunc
+    # buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
     buildstring = 'mpicc -o my_simjob.x simdir/my_simjob.c'
-    #subprocess.run(buildstring.split(),check=True) #Python3.5+
+    # subprocess.run(buildstring.split(),check=True) # Python3.5+
     subprocess.check_call(buildstring.split())
 
-#--------------- Calling script ------------------------------------------
 
-from libensemble.controller import *
+# --------------- Calling script ------------------------------------------
 
-#sim_app = 'simdir/my_simjob.x'
-#gen_app = 'gendir/my_genjob.x'
+# sim_app = 'simdir/my_simjob.x'
+# gen_app = 'gendir/my_genjob.x'
 
-#temp
+# temp
 sim_app = './my_simjob.x'
 
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-USE_BALSAM = False #Take as arg
-#USE_BALSAM = True #Take as arg
+USE_BALSAM = False  # Take as arg
+# USE_BALSAM = True # Take as arg
 
-#Create and add exes to registry
+# Create and add exes to registry
 if USE_BALSAM:
-    from libensemble.balsam_controller import *
+    from libensemble.balsam_controller import BalsamJobController
     jobctrl = BalsamJobController()
 else:
-    from libensemble.mpi_controller import *
+    from libensemble.mpi_controller import MPIJobController
     jobctrl = MPIJobController()
 
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
-#Alternative to IF could be using eg. fstring to specify: e.g:
-#JOB_CONTROLLER = 'Balsam'
-#registry = f"{JOB_CONTROLLER}Register()"
+# Alternative to IF could be using eg. fstring to specify: e.g:
+# JOB_CONTROLLER = 'Balsam'
+# registry = f"{JOB_CONTROLLER}Register()"
 
 
-#--------------- Worker: sim func ----------------------------------------
-#Should work with Balsam or not
+# --------------- Worker: sim func ----------------------------------------
+# Should work with Balsam or not
 
 def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
     import time
@@ -69,16 +70,18 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
 
         # In future might support other manager signals eg:
         elif job.manager_signal == 'pause':
-            #checkpoint_job()
+            # checkpoint_job()
             pass
 
         time.sleep(delay)
         print('Polling at time', time.time() - start)
         job.poll()
-        if job.finished: break
-        elif job.state == 'WAITING': print('Job waiting to launch')
-        elif job.state == 'RUNNING': print('Job still running ....')
-
+        if job.finished:
+            break
+        elif job.state == 'WAITING':
+            print('Job waiting to launch')
+        elif job.state == 'RUNNING':
+            print('Job still running ....')
 
     if job.finished:
         if job.state == 'FINISHED':
@@ -94,7 +97,7 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
         jobctl.kill(job)
         if job.finished:
             print('Now killed')
-            #double check
+            # double check
             job.poll()
             print('Job state is', job.state)
 
@@ -102,7 +105,7 @@ def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
 # Tests
 # ********************* NOT YET IMPLEMENTED ***********************
 
-#From worker call JobController by different name to ensure getting registered app from JobController
+# From worker call JobController by different name to ensure getting registered app from JobController
 jobctl = JobController.controller
 
 print('\nTest 1 - should complete succesfully with status FINISHED :\n')

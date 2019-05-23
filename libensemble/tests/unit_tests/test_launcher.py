@@ -5,16 +5,13 @@ Unit test of launcher helpers for libensemble.
 """
 
 import sys
-import libensemble.launcher as launcher
+import libensemble.util.launcher as launcher
 
 
 def test_form_command():
     "Test the command templating."
 
-    run_specs = {'mpirun' : 'mpirun',
-                 'nproc'  : 10,
-                 'nrank'  : 5,
-                 'mf'     : None}
+    run_specs = {'mpirun': 'mpirun', 'nproc': 10, 'nrank': 5, 'mf': None}
 
     cmd = ['{mpirun}', '-n {nproc}', '-nper {nrank}', '-machinefile {mf}',
            'more arguments "ho hum"']
@@ -24,35 +21,31 @@ def test_form_command():
     assert args == aref, "Command templating test failed."
 
 
-def test_launch():
+def xtest_launch():
     "Test simple launch."
 
     py_exe = sys.executable or "python"
 
     # Launch infinite loop, pay attention to term
     process = launcher.launch([py_exe, "launch_busy.py"])
-    assert not launcher.process_is_stopped(process, 0.1), \
-      "Process stopped early."
+    assert not launcher.process_is_stopped(process, 0.1), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, ignore term
     process = launcher.launch([py_exe, "launch_busy.py", "1"])
-    assert not launcher.process_is_stopped(process, 0.5), \
-      "Process stopped early."
+    assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, pay attention to term
     process = launcher.launch([py_exe, "launch_busy.py"],
                               start_new_session=True)
-    assert not launcher.process_is_stopped(process, 0.1), \
-      "Process stopped early."
+    assert not launcher.process_is_stopped(process, 0.1), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, ignore term
     process = launcher.launch([py_exe, "launch_busy.py", "1"],
                               start_new_session=True)
-    assert not launcher.process_is_stopped(process, 0.5), \
-      "Process stopped early."
+    assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Check proper handling of ProcessLookupError
@@ -61,11 +54,23 @@ def test_launch():
 
     # Launch finite loop, wait for termination
     process = launcher.launch([py_exe, "launch_busy.py", "0", "0.1"])
-    assert launcher.process_is_stopped(process, 0.5), \
-      "Process should have stopped earlier."
+    assert launcher.process_is_stopped(process, 0.5), "Process should have stopped earlier."
 
     # Try simple kill
     process = launcher.launch([py_exe, "launch_busy.py", "1"])
-    assert not launcher.process_is_stopped(process, 0.5), \
-      "Process stopped early."
+    assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0)
+
+
+def test_launch32():
+    "If we are in Python > 3.2, still check that 3.2 wait func works"
+    saved_wait = launcher.wait
+    launcher.wait = launcher.wait_py32
+    xtest_launch()
+    launcher.wait = saved_wait
+
+
+def test_launch33():
+    "If we are in Python > 3.2, also check the new-style wait func"
+    if launcher.wait == launcher.wait_py33:
+        xtest_launch()

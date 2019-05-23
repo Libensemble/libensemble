@@ -4,13 +4,15 @@ import sys
 import time
 import signal
 
-#Does not kill, even on laptop
-#kill 1
+
+# Does not kill, even on laptop
+# kill 1
 def kill_job_1(process):
     process.kill()
     process.wait()
 
-#kill 2 - with  preexec_fn=os.setsid in subprocess
+
+# kill 2 - with  preexec_fn=os.setsid in subprocess
 def kill_job_2(process):
     os.killpg(os.getpgid(process.pid), signal.SIGKILL)
     process.wait()
@@ -19,26 +21,26 @@ def kill_job_2(process):
 if len(sys.argv) != 4:
     raise Exception("Usage: python killtest.py <kill_type> <num_nodes> <num_procs_per_node>")
 
-#user_code = "./burn_time.x"
+# user_code = "./burn_time.x"
 user_code = "./sleep_and_print.x"
 
 # sys.argv[0] is python exe.
-kill_type = int(sys.argv[1]) # 1, 2
+kill_type = int(sys.argv[1])  # 1, 2
 num_nodes = int(sys.argv[2])
 num_procs_per_node = int(sys.argv[3])
 num_procs = num_nodes * num_procs_per_node
 
 print("Running Kill test with program", user_code)
-print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type,num_nodes,num_procs_per_node))
+print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type, num_nodes, num_procs_per_node))
 
 
 # Create common components of launch line (currently all of it)
 
 # Am I in an aprun environment
-launcher = 'mpich' #Includes mpich based - eg. intelmpi
+launcher = 'mpich'  # Includes mpich based - eg. intelmpi
 try:
-    subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
-except:
+    subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+except OSError:
     launcher = 'mpich'
 else:
     launcher = 'aprun'
@@ -53,34 +55,34 @@ elif launcher == 'aprun':
     mpicmd_ppn = '-N'
 
 # As runline common to jobs currently - construct here.
-runline = []                            # E.g: 2 nodes run
-runline.append(mpicmd_launcher)         # mpirun
-runline.append(mpicmd_numprocs)         # mpirun -np
-runline.append(str(num_procs))          # mpirun -np 8
-runline.append(mpicmd_ppn)              # mpirun -np 8 --ppn
-runline.append(str(num_procs_per_node)) # mpirun -np 8 --ppn 4
-runline.append(user_code)               # mpirun -np 8 --ppn 4 ./burn_time.x
+runline = []                             # E.g: 2 nodes run
+runline.append(mpicmd_launcher)          # mpirun
+runline.append(mpicmd_numprocs)          # mpirun -np
+runline.append(str(num_procs))           # mpirun -np 8
+runline.append(mpicmd_ppn)               # mpirun -np 8 --ppn
+runline.append(str(num_procs_per_node))  # mpirun -np 8 --ppn 4
+runline.append(user_code)                # mpirun -np 8 --ppn 4 ./burn_time.x
 
 
-#print("Running killtest.py with job size {} procs".format(num_procs))
+# print("Running killtest.py with job size {} procs".format(num_procs))
 total_start_time = time.time()
 
 for run_num in range(2):
-    time.sleep(4) #Show gap where none should be running
+    time.sleep(4)  # Show gap where none should be running
     stdout = "out_" + str(run_num) + ".txt"
-    #runline = ['mpirun', '-np', str(num_procs), user_code]
+    # runline = ['mpirun', '-np', str(num_procs), user_code]
     print('---------------------------------------------------------------')
-    print('\nRun num: {}   Runline: {}\n'.format(run_num," ".join(runline)))
+    print('\nRun num: {}   Runline: {}\n'.format(run_num, " ".join(runline)))
 
     if kill_type == 1:
-        process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False) #with kill 1
+        process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False)  # with kill 1
     elif kill_type == 2:
-        process = subprocess.Popen(runline, cwd='./', stdout = open(stdout,'w'), shell=False, preexec_fn=os.setsid)#kill 2
+        process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False, preexec_fn=os.setsid)  # kill 2
     else:
         raise Exception("kill_type not recognized")
 
     time_limit = 4
-    start_time  = time.time()
+    start_time = time.time()
     finished = False
     state = "Not started"
     while(not finished):
@@ -100,7 +102,7 @@ for run_num in range(2):
 
         if(time.time() - start_time > time_limit):
             print('Killing job', run_num)
-            #kill_job(process, user_code)
+            # kill_job(process, user_code)
 
             if kill_type == 1:
                 kill_job_1(process)
@@ -113,11 +115,11 @@ for run_num in range(2):
     assert state == 'KILLED', "Job not registering as killed. State is: " + state
 
     # Checking if processes still running and producing output
-    grace_period = 1   # Seconds after kill when first read last line
-    recheck_period = 2 # Recheck last line after this many seconds
-    num_rechecks = 2   # Number of times to check for new output
+    grace_period = 1    # Seconds after kill when first read last line
+    recheck_period = 2  # Recheck last line after this many seconds
+    num_rechecks = 2    # Number of times to check for new output
 
-    time.sleep(grace_period) # Give chance to kill
+    time.sleep(grace_period)  # Give chance to kill
 
     # Test if job is still producing output
     with open(stdout, 'rb') as fh:
@@ -127,7 +129,7 @@ for run_num in range(2):
     if 'has finished' in line_on_kill:
         raise Exception('Job may have already finished - test invalid')
 
-    for recheck in range(1,num_rechecks+1):
+    for recheck in range(1, num_rechecks+1):
         time.sleep(recheck_period)
         with open(stdout, 'rb') as fh:
             lastline = fh.readlines()[-1].decode().rstrip()
@@ -135,11 +137,10 @@ for run_num in range(2):
 
         if lastline != line_on_kill:
             print("Job {} still producing output".format(run_num))
-            #print("Last line check 1:", line_on_kill)
-            #print("Last line check 2:", lastline)
+            # print("Last line check 1:", line_on_kill)
+            # print("Last line check 2:", lastline)
             assert 0
 
 total_end_time = time.time()
 total_time = total_end_time - total_start_time
 print("\nJob kill test completed in {} seconds\n".format(total_time))
-

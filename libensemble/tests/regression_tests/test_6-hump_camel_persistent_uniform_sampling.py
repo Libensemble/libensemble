@@ -2,63 +2,56 @@
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
-# Execute via the following command:
-#    mpiexec -np 4 python3 {FILENAME}.py
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py
+#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms local
+#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms tcp
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 3 4
 
-from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
+import sys
 import numpy as np
 
-# Import libEnsemble main
+# Import libEnsemble items for this test
 from libensemble.libE import libE
-
-
-# Import sim_func
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-
-# Import gen_func
 from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
-
-# Import alloc_func
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': sim_f, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float), ('grad',float,2) # This is the output from the function being minimized
-                    ],
-             }
+nworkers, is_master, libE_specs, _ = parse_args()
 
-# State the generating function, its arguments, output, and necessary parameters.
+if nworkers < 2:
+    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+
+n = 2
+sim_specs = {'sim_f': sim_f,
+             'in': ['x'],
+             'out': [('f', float), ('grad', float, n)]}
+
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'out': [('x',float,2)],
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
              'gen_batch_size': 20,
-             }
+             'out': [('x', float, (n,))],
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2])}
 
-# Tell libEnsemble when to stop
+alloc_specs = {'alloc_f': alloc_f, 'out': []}
+
+persis_info = per_worker_stream({}, nworkers + 1)
+
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
-np.random.seed(1)
-persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
-
-alloc_specs = {'out':[], 'alloc_f':alloc_f}
-
-if MPI.COMM_WORLD.Get_size()==2:
-    # Can't do a "persistent worker run" if only one worker
-    quit()
-
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
-    assert flag == 0
+if is_master:
+    assert len(np.unique(H['gen_time'])) == 2
+
+    save_libE_output(H, persis_info, __file__, nworkers)

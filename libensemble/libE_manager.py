@@ -3,42 +3,49 @@ libEnsemble manager routines
 ====================================================
 """
 
-from __future__ import division
-from __future__ import absolute_import
-
 import sys
 import os
 import logging
 import socket
-import pickle
-
-from mpi4py import MPI
 import numpy as np
 
-from libensemble.timer import Timer
+from libensemble.util.timer import Timer
 from libensemble.message_numbers import \
-     EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
-     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
-     STOP_TAG, UNSET_TAG, \
-     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
-     JOB_FAILED, WORKER_DONE, \
-     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL, \
-     MAN_SIGNAL_REQ_RESEND, MAN_SIGNAL_REQ_PICKLE_DUMP, \
-     ABORT_ENSEMBLE
+    EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
+    EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
+    STOP_TAG, UNSET_TAG, \
+    WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
+    JOB_FAILED, WORKER_DONE, \
+    MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+from libensemble.comms.comms import CommFinishedException
+from libensemble.libE_worker import WorkerErrMsg
 
 logger = logging.getLogger(__name__)
-#For debug messages - uncomment
+# For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
 
-class ManagerException(Exception): pass
+
+class ManagerException(Exception):
+    "Exception at manager, raised on abort signal from worker"
 
 
 def manager_main(hist, libE_specs, alloc_specs,
-                 sim_specs, gen_specs, exit_criteria, persis_info):
+                 sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
     """Manager routine to coordinate the generation and simulation evaluations
     """
+
+    if 'in' not in gen_specs:
+        gen_specs['in'] = []
+
+    # Send dtypes to workers
+    dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
+              EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
+    for wcomm in wcomms:
+        wcomm.send(0, dtypes)
+
+    # Set up and run manager
     mgr = Manager(hist, libE_specs, alloc_specs,
-                  sim_specs, gen_specs, exit_criteria)
+                  sim_specs, gen_specs, exit_criteria, wcomms)
     return mgr.run(persis_info)
 
 
@@ -63,7 +70,8 @@ class Manager:
                     ('blocked', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
-                 sim_specs, gen_specs, exit_criteria):
+                 sim_specs, gen_specs, exit_criteria,
+                 wcomms=[]):
         """Initialize the manager."""
         timer = Timer()
         timer.start()
@@ -74,21 +82,14 @@ class Manager:
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
-        self.comm = libE_specs['comm']
-        self.W = self._make_worker_pool(self.comm)
+        self.wcomms = wcomms
+        self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
+        self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
-          [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
-           (1, 'sim_max', self.term_test_sim_max),
-           (1, 'gen_max', self.term_test_gen_max),
-           (1, 'stop_val', self.term_test_stop_val)]
-
-    @staticmethod
-    def _make_worker_pool(comm):
-        """Set up an array of worker states."""
-        num_workers = comm.Get_size()-1
-        W = np.zeros(num_workers, dtype=Manager.worker_dtype)
-        W['worker_id'] = np.arange(num_workers) + 1
-        return W
+            [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
+             (1, 'sim_max', self.term_test_sim_max),
+             (1, 'gen_max', self.term_test_gen_max),
+             (1, 'stop_val', self.term_test_stop_val)]
 
     # --- Termination logic routines
 
@@ -121,42 +122,12 @@ class Manager:
                     return retval
         return 0
 
-    # --- Low-level communication routines (use MPI directly)
-
-    def Iprobe(self, w, status=None):
-        "Check whether there is a message from a worker."
-        return self.comm.Iprobe(source=w, tag=MPI.ANY_TAG, status=status)
-
-    def recv(self, w, status=None):
-        "Receive from a worker."
-        return self.comm.recv(source=w, tag=MPI.ANY_TAG, status=status)
-
-    def send(self, obj, w, tag=0):
-        "Send to a worker."
-        return self.comm.send(obj=obj, dest=w, tag=tag)
-
-    def _send_dtypes_to_workers(self):
-        "Broadcast sim_spec/gen_spec input dtypes to workers."
-        self.comm.bcast(obj=self.hist.H[self.sim_specs['in']].dtype)
-        self.comm.bcast(obj=self.hist.H[self.gen_specs['in']].dtype)
+    # --- Low-level communication routines
 
     def _kill_workers(self):
         """Kill the workers"""
         for w in self.W['worker_id']:
-            self.send(MAN_SIGNAL_FINISH, w, tag=STOP_TAG)
-
-    def _man_request_resend_on_error(self, w):
-        "Request the worker resend data on error."
-        self.send(MAN_SIGNAL_REQ_RESEND, w, tag=STOP_TAG)
-        return self.recv(w)
-
-    def _man_request_pkl_dump_on_error(self, w):
-        "Request the worker dump a pickle on error."
-        self.send(MAN_SIGNAL_REQ_PICKLE_DUMP, w, tag=STOP_TAG)
-        pkl_recv = self.recv(w)
-        D_recv = pickle.load(open(pkl_recv, "rb"))
-        os.remove(pkl_recv) #If want to delete file
-        return D_recv
+            self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_FINISH)
 
     # --- Checkpointing logic
 
@@ -186,24 +157,24 @@ class Manager:
         """
         assert w != 0, "Can't send to worker 0; this is the manager."
         assert self.W[w-1]['active'] == 0, \
-          "Allocation function requested work to an already active worker."
+            "Allocation function requested work to an already active worker."
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
             hist_fields = self.hist.H.dtype.names
             diff_fields = list(work_fields.difference(hist_fields))
             assert not diff_fields, \
-              "Allocation function requested invalid fields {}" \
-              "be sent to worker={}.".format(diff_fields, w)
+                "Allocation function requested invalid fields {}" \
+                "be sent to worker={}.".format(diff_fields, w)
 
     def _send_work_order(self, Work, w):
         """Send an allocation function order to a worker.
         """
         logger.debug("Manager sending work unit to worker {}".format(w))
-        self.send(Work, w, tag=Work['tag'])
+        self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            self.send(self.hist.H[Work['H_fields']][work_rows], w)
+            self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
     def _update_state_on_alloc(self, Work, w):
         """Update worker active/idle status following an allocation order."""
@@ -215,7 +186,7 @@ class Manager:
         if 'blocking' in Work['libE_info']:
             for w_i in Work['libE_info']['blocking']:
                 assert self.W[w_i-1]['active'] == 0, \
-                  "Active worker being blocked; aborting"
+                    "Active worker being blocked; aborting"
                 self.W[w_i-1]['blocked'] = 1
                 self.W[w_i-1]['active'] = 1
 
@@ -231,8 +202,8 @@ class Manager:
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-          "Aborting, Unknown calculation type received. " \
-          "Received type: {}".format(calc_type)
+            "Aborting, Unknown calculation type received. " \
+            "Received type: {}".format(calc_type)
         assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                                FINISHED_PERSISTENT_GEN_TAG,
                                UNSET_TAG,
@@ -243,8 +214,8 @@ class Manager:
                                WORKER_KILL,
                                JOB_FAILED,
                                WORKER_DONE], \
-          "Aborting: Unknown calculation status received. " \
-          "Received status: {}".format(calc_status)
+            "Aborting: Unknown calculation status received. " \
+            "Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
         """Receive calculation output from workers. Loops over all
@@ -252,15 +223,13 @@ class Manager:
         communticate. If any output is received, all other workers are
         looped back over.
         """
-        status = MPI.Status()
-
         new_stuff = True
         while new_stuff and any(self.W['active']):
             new_stuff = False
             for w in self.W['worker_id'][self.W['active'] > 0]:
-                if self.Iprobe(w, status):
+                if self.wcomms[w-1].mail_flag():
                     new_stuff = True
-                    self._handle_msg_from_worker(persis_info, w, status)
+                    self._handle_msg_from_worker(persis_info, w)
 
         if 'save_every_k' in self.sim_specs:
             self._save_every_k_sims()
@@ -296,40 +265,31 @@ class Manager:
                 self.W[w_i-1]['blocked'] = 0
                 self.W[w_i-1]['active'] = 0
 
-        if 'persis_info' in D_recv:
+        if 'persis_info' in D_recv and len(D_recv['persis_info']):
             persis_info[w].update(D_recv['persis_info'])
 
-    def _handle_msg_from_worker(self, persis_info, w, status):
+    def _handle_msg_from_worker(self, persis_info, w):
         """Handle a message from worker w.
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
         try:
-            D_recv = self.recv(w)
-            logger.debug("Message size {}".format(status.Get_count()))
-        except Exception as e:
-            logger.error("Exception caught on Manager receive: {}".format(e))
-            logger.error("From worker: {}".format(w))
-            logger.error("Message size of errored message {}". \
-                         format(status.Get_count()))
-            logger.error("Message status error code {}". \
-                         format(status.Get_error()))
+            msg = self.wcomms[w-1].recv()
+            tag, D_recv = msg
+        except CommFinishedException:
+            logger.debug("Finalizing message from Worker {}".format(w))
+            return
 
-            # Check on working with peristent data - curently only use one
-            #D_recv = _man_request_resend_on_error(w)
-            D_recv = self._man_request_pkl_dump_on_error(w)
-
-        if status.Get_tag() == ABORT_ENSEMBLE:
-            raise ManagerException('Received abort signal from worker')
-
-        self._update_state_on_worker_msg(persis_info, D_recv, w)
+        if isinstance(D_recv, WorkerErrMsg):
+            self.W[w-1]['active'] = 0
+            self._kill_workers()
+            raise ManagerException('Received error message from {}'.format(w),
+                                   D_recv.msg, D_recv.exc)
+        elif isinstance(D_recv, logging.LogRecord):
+            logging.getLogger(D_recv.name).handle(D_recv)
+        else:
+            self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     # --- Handle termination
-
-    def _read_final_messages(self):
-        """Read final messages from any active workers"""
-        for w in self.W['worker_id'][self.W['active'] > 0]:
-            if self.Iprobe(w):
-                self.recv(w)
 
     def _final_receive_and_kill(self, persis_info):
         """
@@ -346,7 +306,6 @@ class Manager:
                 print(_WALLCLOCK_MSG)
                 sys.stdout.flush()
                 sys.stderr.flush()
-                self._read_final_messages()
                 exit_flag = 2
 
         self._kill_workers()
@@ -362,27 +321,26 @@ class Manager:
 
     def run(self, persis_info):
         "Run the manager."
-        logger.info("Manager initiated on MPI rank {} on node {}". \
-                    format(self.comm.Get_rank(), socket.gethostname()))
+        logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
-        # Send initial info to workers
-        self._send_dtypes_to_workers()
+        # Continue receiving and giving until termination test is satisfied
+        try:
+            while not self.term_test():
+                persis_info = self._receive_from_workers(persis_info)
+                if any(self.W['active'] == 0):
+                    Work, persis_info = self._alloc_work(self.hist.trim_H(),
+                                                         persis_info)
+                    for w in Work:
+                        if self.term_test():
+                            break
+                        self._check_work_order(Work[w], w)
+                        self._send_work_order(Work[w], w)
+                        self._update_state_on_alloc(Work[w], w)
+                assert self.term_test() or any(self.W['active'] != 0), \
+                    "Should not wait for workers when all workers are idle."
 
-        ### Continue receiving and giving until termination test is satisfied
-        while not self.term_test():
-            persis_info = self._receive_from_workers(persis_info)
-            if any(self.W['active'] == 0):
-                Work, persis_info = self._alloc_work(self.hist.trim_H(),
-                                                     persis_info)
-                for w in Work:
-                    if self.term_test():
-                        break
-                    self._check_work_order(Work[w], w)
-                    self._send_work_order(Work[w], w)
-                    self._update_state_on_alloc(Work[w], w)
-            assert self.term_test() or any(self.W['active'] != 0), \
-              "Should not wait for workers when all workers are idle."
-
-        # Return persis_info, exit_flag
-        return self._final_receive_and_kill(persis_info)
+        finally:
+            # Return persis_info, exit_flag
+            result = self._final_receive_and_kill(persis_info)
+        return result

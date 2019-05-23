@@ -2,6 +2,6 @@ conda:
     file: conda/environment.yml
     
 python:
-    version: 3.5
+    version: 3.6
     pip_install: true
-
+    setup_py_install: true

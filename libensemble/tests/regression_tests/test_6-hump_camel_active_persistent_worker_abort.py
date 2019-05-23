@@ -2,91 +2,61 @@
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
-# Execute via the following command:
-#    mpiexec -np 4 python3 {FILENAME}.py
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_6-hump_camel_active_persistent_worker_abort.py
+#    python3 test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms local
+#    python3 test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms tcp
+#
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-from __future__ import division
-from __future__ import absolute_import
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 3 4
 
-from mpi4py import MPI # for libE communicator
-import sys, os             # for adding to path
+import sys
 import numpy as np
 
-# Import libEnsemble main
+# Import libEnsemble requirements
 from libensemble.libE import libE
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt as gen_f
+from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens as alloc_f
+from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 
-# Import sim_func
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+nworkers, is_master, libE_specs, _ = parse_args()
 
-# Import gen_func
-from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-# Import alloc_func
-from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens
-
-
-script_name = os.path.splitext(os.path.basename(__file__))[0]
-
-#State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
-             'in': ['x'], # These keys will be given to the above function
-             'out': [('f',float), # This is the output from the function being minimized
-                    ],
-             }
-
-gen_out = [('x',float,2),
-      ('x_on_cube',float,2),
-      ('priority',float),
-      ('local_pt',bool),
-      ('known_to_aposmm',bool), # Mark known points so fewer updates are needed.
-      ('dist_to_unit_bounds',float),
-      ('dist_to_better_l',float),
-      ('dist_to_better_s',float),
-      ('ind_of_better_l',int),
-      ('ind_of_better_s',int),
-      ('started_run',bool),
-      ('num_active_runs',int),
-      ('local_min',bool),
-      ]
-
-# State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_or_localopt,
+gen_out += [('x', float, 2), ('x_on_cube', float, 2)]
+gen_specs = {'gen_f': gen_f,
              'in': [],
-             'localopt_method':'LN_BOBYQA',
-             'xtol_rel':1e-4,
+             'localopt_method': 'LN_BOBYQA',
+             'xtol_rel': 1e-4,
              'out': gen_out,
-             'lb': np.array([-3,-2]),
-             'ub': np.array([ 3, 2]),
+             'lb': np.array([-3, -2]),
+             'ub': np.array([3, 2]),
              'gen_batch_size': 2,
              'batch_mode': True,
+             'num_active_gens': 1,
              'dist_to_bound_multiple': 0.5,
-             'localopt_maxeval': 4,
-             'num_active_gens':1,
-             }
+             'localopt_maxeval': 4}
 
+alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
 
-# Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300} # Intentially set low so as to test that a worker in persistent mode can be terminated correctly
+persis_info = per_worker_stream({}, nworkers + 1)
 
-np.random.seed(1)
-persis_info = {}
-for i in range(MPI.COMM_WORLD.Get_size()):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+# Set sim_max small so persistent worker is quickly terminated
+exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 
-alloc_specs = {'out':gen_out, 'alloc_f':start_persistent_local_opt_gens}
-if MPI.COMM_WORLD.Get_size() == 2:
-    # Can't do a "persistent worker run" if only one worker
-    quit()
+if nworkers < 2:
+    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
 
-if MPI.COMM_WORLD.Get_rank() == 0:
+if is_master:
     assert flag == 0
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned'])) + '_ranks=' + str(MPI.COMM_WORLD.Get_size())
-    print("\n\n\nRun completed.\nSaving results to file: " + filename)
-    # if flag == 2:
-    #     print("\n\n\nKilling COMM_WORLD")
-    #     MPI.COMM_WORLD.Abort()
+    save_libE_output(H, persis_info, __file__, nworkers)

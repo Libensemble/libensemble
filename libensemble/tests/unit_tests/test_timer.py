@@ -5,7 +5,8 @@ Unit test of timers for libensemble.
 """
 
 import time
-from libensemble.timer import Timer
+from libensemble.util.timer import Timer
+
 
 def test_timer():
     "Test timer."
@@ -31,13 +32,13 @@ def test_timer():
 
     s3 = "{}".format(timer)
     assert s3 == "Time: {0:.2f} Start: {1} End: {2}".format(e3, s1, s2), \
-      "Check string formatting."
+        "Check string formatting."
 
     with timer:
         time.sleep(0.5)
         total1 = timer.total
 
     assert total1 >= 1 and total1 <= 1.1, \
-      "Check cumulative timing (active)."
+        "Check cumulative timing (active)."
     assert timer.total >= 1 and timer.total <= 1.1, \
-      "Check cumulative timing (not active)."
+        "Check cumulative timing (not active)."
