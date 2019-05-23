@@ -6,7 +6,7 @@ Release Notes
 Release 0.5.0
 -------------
 
-:Date: May 20, 2019
+:Date: May 22, 2019
 
 * Added local (multiprocessing) and TCP options for manager/worker communications, in addition to mpi4py (#42).
 
