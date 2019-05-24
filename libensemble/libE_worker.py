@@ -141,7 +141,6 @@ class Worker:
             logger.info("No job_controller set on worker {}".format(workerID))
             return False
 
-
     def _handle_calc(self, Work, calc_in):
         """Run a calculation on this worker object.
 
