@@ -35,7 +35,7 @@ setup(
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, and David Bindel',
     author_email='libensemble@lists.mcs.anl.gov',
-    license='BSD 2-clause',
+    license='BSD 3-clause',
 
     packages=['libensemble',
               'libensemble.gen_funcs',
