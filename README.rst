@@ -3,6 +3,9 @@
 
 |
 
+.. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
+   :target: https://pypi.org/project/libensemble
+
 .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
    :target: https://travis-ci.org/Libensemble/libensemble
 
