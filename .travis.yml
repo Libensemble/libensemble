@@ -69,9 +69,9 @@ install:
   - mpiexec --version #Show MPI library details
   - pip install -e .
 
-
 before_script:
-  - flake8 libensemble --per-file-ignores='libensemble/libensemble/__init__.py:F401 libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402' 
+  - flake8 libensemble 
+
 # Run test (-z show output)
 script:
   - libensemble/tests/run-tests.sh -z
