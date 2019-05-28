@@ -58,6 +58,7 @@ install:
   - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
+  - pip install flake8
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout
@@ -68,9 +69,11 @@ install:
   - mpiexec --version #Show MPI library details
   - pip install -e .
 
+
+before_script:
+  - flake8 libensemble --per-file-ignores='libensemble/libensemble/__init__.py:F401 libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402' 
 # Run test (-z show output)
 script:
-  - flake8 libensemble --per-file-ignores='libensemble/libensemble/__init__.py:F401 libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402' 
   - libensemble/tests/run-tests.sh -z
 
 # Coverage
