@@ -58,6 +58,7 @@ install:
   - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
+  - pip install flake8
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout
@@ -67,6 +68,9 @@ install:
   - python conda/find_mpi.py #locate compilers
   - mpiexec --version #Show MPI library details
   - pip install -e .
+
+before_script:
+  - flake8 libensemble 
 
 # Run test (-z show output)
 script:
