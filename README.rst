@@ -11,7 +11,7 @@
 
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=master
    :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
-   
+
 .. image::  https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
@@ -63,7 +63,7 @@ For libEnsemble running with the mpi4py parallelism:
 Optional dependency:
 
 * Balsam_
- 
+
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
 platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
@@ -103,7 +103,7 @@ libEnsemble is also available in the Spack_ distribution.
 
 The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository.
 A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
-    
+
 
 Testing
 ---------
@@ -122,7 +122,7 @@ the source distribution by running::
 To clean the test repositories run::
 
     ./run-tests.sh -c
-    
+
 Further options are available. To see a complete list of options run::
 
     ./run-tests.sh -h
@@ -133,7 +133,7 @@ is taken. Furthermore, a combined coverage report is created at the top level,
 which can be viewed after running the tests via the html file
 libensemble/tests/cov_merge/index.html. The Travis CI coverage results are
 given online at
-`Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_. 
+`Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
 
 Note: The job_controller tests can be run using the direct-launch or
 Balsam job controllers. However, currently only the direct-launch versions can
@@ -146,7 +146,7 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-See the `user-guide <https://libensemble.readthedocs.io/en/latest/readme.html#basic-usage>`_ for more information.
+See the `user-guide <https://libensemble.readthedocs.io/en/latest/quickstart.html#basic-usage>`_ for more information.
 
 
 Documentation
@@ -170,12 +170,12 @@ Please use the following to cite libEnsemble in a publication:
   }
 
 
-Support 
+Support
 -------
 
 Join the libEnsemble mailing list at:
 
-* https://lists.mcs.anl.gov/mailman/listinfo/libensemble 
+* https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 
 or email questions to:
 
@@ -183,4 +183,4 @@ or email questions to:
 
 or communicate (and establish a private channel, if desired) at:
 
-* https://libensemble.slack.com 
+* https://libensemble.slack.com
