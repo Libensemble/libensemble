@@ -21,8 +21,6 @@ A library for managing ensemble-like collections of computations.
    :caption: Tutorials:
 
    tutorials/local_sin_tutorial
-   tutorials/mpi_forces_tutorial
-
 
 .. toctree::
    :maxdepth: 2

@@ -197,13 +197,12 @@ If you want to try this yourself, install Matplotlib and include this code at th
   :linenos:
 
   import matplotlib.pyplot as plt
-
   colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
   for i in range(1, nworkers + 1):
-      wxy = np.extract(H['sim_worker']==i, H)
-      x = [i.tolist()[0] for i in wxy['x']]
-      y = [i for i in wxy['y']]
+      worker_xy = np.extract(H['sim_worker'] == i, H)
+      x = [entry.tolist()[0] for entry in worker_xy['x']]
+      y = [entry for entry in worker_xy['y']]
       plt.plot(x, y, '.', color = colors[i])
 
   plt.show()
@@ -211,4 +210,4 @@ If you want to try this yourself, install Matplotlib and include this code at th
 FAQ
 ---
 
-Coming soon!
+Coming soon
