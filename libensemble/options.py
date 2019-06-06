@@ -25,7 +25,14 @@ class Options:
         return str(self.options)
 
     def set_logging_level(self, level):
-        """FROM libensemble.comms.logs. NEEDS TESTING"""
+    """
+    From libensemble.comms.logs. NEEDS TESTING
+
+    Parameters
+    ----------
+    level: string
+        Logging level to set.
+    """
         numeric_level = getattr(logging, level.upper(), 10)
         self.log_level = numeric_level
         if self.logger_set:
@@ -33,6 +40,11 @@ class Options:
             logger.setLevel(self.log_level)
 
     def get_options(self, *opts):
+        """
+        No arguments: all Options dictionary entries.
+        1 argument: corresponding dictionary value matching argument key
+        2+ arguments: dictionary with entries matching arguments
+        """
         if not opts:
             return self.options
         elif len(opts) == 1:
