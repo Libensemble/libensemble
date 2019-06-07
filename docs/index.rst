@@ -20,7 +20,7 @@ A library for managing ensemble-like collections of computations.
    :maxdepth: 2
    :caption: Tutorials:
 
-   tutorials/local_sin_tutorial
+   tutorials/local_sine_tutorial
 
 .. toctree::
    :maxdepth: 2
