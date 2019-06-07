@@ -53,9 +53,6 @@ class Options:
             self.options.update(arg)
         self.options.update(kwargs)
 
-    def set_logging_level(self, level):
-        pass
-
     def as_libE_specs():
         pass
 
