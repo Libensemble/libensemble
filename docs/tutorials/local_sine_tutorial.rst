@@ -69,50 +69,52 @@ of gen_f and sim_f functions. The manager communicates with the workers via the 
 
 We store this information in libE_specs, which we later pass to libEnsemble on execution.
 
-Our calling script is a perfect place to outline some settings and specifications
-for our generator and simulator functions. Recall that our generator function will
-create random numbers and our simulator function will find the sine of those numbers.
-``gen_specs`` and ``sim_specs`` are used to describe to libEnsemble what inputs and
-outputs from those functions to expect. ``gen_specs`` and ``sim_specs`` are also
-passed to libEnsemble alongside ``libE_specs``.
+Our calling script is the right spot to outline some settings and specifications
+for our generator and simulator functions that libEnsemble needs to run. Recall
+that our generator function will create random numbers and our simulator function
+will find the sine of those numbers. ``gen_specs`` and ``sim_specs`` are used to
+describe to libEnsemble what inputs and outputs from those functions to expect.
+``gen_specs`` and ``sim_specs`` are also passed to libEnsemble alongside ``libE_specs``.
 
 .. code-block:: python
   :linenos:
   :lineno-start: 9
 
   gen_specs = {'gen_f': gen_uniform_random_sample,  # Our generator function
-               'in': ['sim_id'],                    # Input field names for 'gen_f'. 'sim_id' good default.
-               'out': [('x', float, (1,))],         # Generator output (name, type, size) saved in H
-               'lower': np.array([-3]),             # (Optional) boundary for random sampling. Necessary for our work
-               'upper': np.array([3]),              # "         "
-               'gen_batch_size': 5}                 # (Optional) number of values each worker receives from gen_f
+               'in': ['sim_id'],                    # Input field names for 'gen_f'. 'sim_id' necessary default
+               'out': [('x', float, (1,))],         # Gen output (name, type, size) saved in H. Sent by worker to sim_f
+               'lower': np.array([-3]),             # (Optional) lower boundary for random sampling.
+               'upper': np.array([3]),              # (Optional) upper boundary for random sampling.
+               'gen_batch_size': 5}                 # (Optional) number of values gen_f will generate and pass to worker
 
-  sim_specs = {'sim_f': sim_find_sine,               # Our simulator function
+  sim_specs = {'sim_f': sim_find_sine,              # Our simulator function
                'in': ['x'],                         # Input field names for sim_f. 'x' from generator output
                'out': [('y', float)]}               # 'y' = sine('x') . Simulator output saved in H
 
+See the docs for more exact gen_specs and sim_specs information.
 
-Each worker is assigned a ``persis_info`` dictionary that contains it's ``RandomState()``
-stream for uniform random sampling. This data remains consistent, and (hopefully)
-prevents unique workers from receiving identical results from generator calls. Finally,
-we specify the circumstances where libEnsemble should stop execution in ``exit_criteria``.
+Each worker is assigned a ``persis_info`` dictionary that contains additional state
+information. In our case, each worker receives a ``RandomState()`` stream for uniform
+random sampling. This data remains consistent, and (hopefully) prevents unique workers
+from receiving identical results from generator calls. Finally, we specify the circumstances
+where libEnsemble should stop execution in ``exit_criteria``.
 
 .. code-block:: python
   :linenos:
   :lineno-start: 20
 
-  persis_info = {}
+  persis_info = {}                                  # Dictionary of dictionaries
 
-  for i in range(nworkers+1):                       # Worker numbers start start at 1.
+  for i in range(nworkers+1):                       # Worker numbers start at 1.
       persis_info[i] = {
           'rand_stream': np.random.RandomState(i),
           'worker_num': i}
 
   exit_criteria = {'sim_max': 80}                   # Stop libEnsemble after 80 simulations
 
-Now we're (almost) ready to call libEnsemble! H refers to the History array populated
-throughout execution and returned at the end. It includes helpful information like
-which workers accessed gen_f and sim_f at what times, and with what data. 'flag'
+Now we're ready to write our libEnsemble function call. ``H`` refers to the History
+array populated throughout execution and returned at the end. It includes information
+like which workers accessed gen_f and sim_f at what times, and with what data. 'flag'
 should be zero if no errors occur.
 
 .. code-block:: python
@@ -122,7 +124,7 @@ should be zero if no errors occur.
   H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                               libE_specs=libE_specs)
 
-  print([i for i in H.dtype.fields])  # Some statements to visualize our results
+  print([i for i in H.dtype.fields])  # Some (optional) statements to visualize our History array
   print(H)
 
 Before we run the above code, lets finish our generation and simulation functions.
@@ -148,10 +150,10 @@ Create a new Python file named ``generator.py``. Write the following:
       lower = gen_specs['lower']
       upper = gen_specs['upper']
 
-      num = len(lower)                                # Should be 1
-      batch = gen_specs['gen_batch_size']             # How many numbers to generate each call by a worker
+      num = len(lower)                                # Should be 1, due to one-dimensional array being passed
+      batch = gen_specs['gen_batch_size']             # How many values to generate each call by a worker
 
-      out = np.zeros(batch, dtype=gen_specs['out'])   # Output array, with gen_specs specified data type
+      out = np.zeros(batch, dtype=gen_specs['out'])   # Output array of 'batch' slots, with gen_specs specified data type
       out['x'] = persis_info['rand_stream'].uniform(lower, upper, (batch, num))
 
       return out, persis_info
