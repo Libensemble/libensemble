@@ -1,11 +1,15 @@
-import os
-import logging
-from libensemble.comms.logs import LogConfig
+# import os
+# import logging
+# from libensemble.comms.logs import LogConfig
+# from libensemble.tests.regression_tests.common import parse_args
+# ^^^ might be useful eventually
+
 
 class Options:
     """The Options Class provides methods for managing the global options dictionary.
-    Also contains method for returning relevant attributes in the form of libE_specs for compatibility.
-    Can receive new options as keyword arguments, a single dictionary, or multiple dictionaries.
+    Also contains method for returning relevant attributes in the form of libE_specs
+    for compatibility. Can receive new options as keyword arguments, a single
+    dictionary, or multiple dictionaries.
 
 
     Attributes
@@ -16,32 +20,18 @@ class Options:
 
     def __init__(self, *args, **kwargs):
         """ Initializes options to any combination of dictionaries or keywords """
+        # self.nworkers, self.is_master, self.libE_specs, _ = parse_args()
         self.options = {}
-        for arg in args:
+        for arg in args:        # Duplicate of code in set_options()
             self.options.update(arg)
         self.options.update(kwargs)
 
     def __str__(self):
         return str(self.options)
 
-    def set_logging_level(self, level):
-    """
-    From libensemble.comms.logs. NEEDS TESTING
-
-    Parameters
-    ----------
-    level: string
-        Logging level to set.
-    """
-        numeric_level = getattr(logging, level.upper(), 10)
-        self.log_level = numeric_level
-        if self.logger_set:
-            logger = logging.getLogger(self.name)
-            logger.setLevel(self.log_level)
-
     def get_options(self, *opts):
         """
-        No arguments: all Options dictionary entries.
+        No arguments: all dictionary entries.
         1 argument: corresponding dictionary value matching argument key
         2+ arguments: dictionary with entries matching arguments
         """
@@ -58,13 +48,16 @@ class Options:
             assert None not in self.ret_opts.values(), 'Requested option not found'
             return self.ret_opts
 
-    def set_options(self, new, **kwargs):
-        assert type(new) == 'dict'
-        self.options.update(new) if new \
-        else self.options.update(**kwargs)
+    def set_options(self, *args, **kwargs):
+        for arg in args:
+            self.options.update(arg)
+        self.options.update(kwargs)
+
+    def set_logging_level(self, level):
+        pass
 
     def as_libE_specs():
         pass
 
-    def to_python():
+    def to_python_config():
         pass
