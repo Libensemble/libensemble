@@ -98,7 +98,8 @@ current_time() {
   USE_BC=f
   bc --version >> /dev/null && USE_BC=t
   if [ $USE_BC = 't' ]; then
-    time=$(date +%s.%N)
+    #time=$(date +%s.%N)
+    time=$(date +%s)
   else
     time=$SECONDS
   fi;
