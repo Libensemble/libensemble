@@ -42,27 +42,21 @@ def test_set_1():
     assert topt.get() == {'comms': 'mpi', 'logging': 'info'}
 
 
-def test_get_libE_specs():
-    pass
+def test_parse_args(): # also tests get_libE_specs()
+    topt = Options()
+    is_master = topt.parse_args()
+    topt.get_libE_specs()
+    assert is_master
+    assert topt.get_libE_specs().get('comms') == 'mpi'
 
 
-def test_set_logging():  # TODO: What logging? Normal logging or libEnsemble logging?
-    pass
-
-
-def test_local_parse_args():
-    pass
-
-
-def test_mpi_parse_args():
+def test_set_logging(): # TODO: Might need dedicated regression test
     pass
 
 
 def test_to_output():  # TODO: What format will this be?
     pass
 
-
-# TODO: Begin theorizing MPI testing for Options class
 
 if __name__ == '__main__':
     test_init()         # Maybe these basic tests aren't necessary
@@ -71,3 +65,4 @@ if __name__ == '__main__':
     test_get_2()
     test_get_3()
     test_set_1()
+    test_parse_args()

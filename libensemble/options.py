@@ -1,4 +1,5 @@
 from libensemble.tests.regression_tests.common import parse_args
+from libensemble import libE_logger
 
 
 class Options:
@@ -33,8 +34,6 @@ class Options:
     def parse_args(self):
         """ Include functionality of regression_tests.common parse_args in a more
         natural spot. Adds this information to global options
-
-
         """
         self.nworkers, is_master, self.libE_specs, _ = parse_args()
         self.set({'nworkers': self.nworkers},
@@ -68,6 +67,18 @@ class Options:
             self.options.update(arg)
         self.options.update(kwargs)
 
-    def get_libe_specs(self):
+    def get_libE_specs(self):
         """ Get traditional libE_specs subset """
         return self.libE_specs
+
+    def log_get_level(self):
+        """ Get libEnsemble logger level """
+        return libE_logger.get_level()
+
+    def log_set_filename(self, filename):
+        """ Set output filename for libEnsemble's logger """
+        libE_logger.set_filename(filename)
+
+    def log_set_level(self, level):
+        """ Set libEnsemble logger level """
+        libE_logger.set_level(level)
