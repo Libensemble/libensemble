@@ -1,5 +1,8 @@
 from libensemble.tests.regression_tests.common import parse_args
 from libensemble import libE_logger
+import datetime
+
+# Maybe __init__ should automatically call parse_args() ?
 
 
 class Options:
@@ -10,9 +13,6 @@ class Options:
     ----------
     options: dictionary
         options dictionary storing global options for libEnsemble
-
-    nworkers: integer
-        number of workers initialized to perform work
 
     libE_specs: dictionary
         a subset of the global options dictionary currently expected by most
@@ -25,8 +25,8 @@ class Options:
             Eventually should also initialize to preexisting settings stored somewhere """
         self.options = {}
         for arg in args:
-            self.options.update(arg)
-        self.options.update(kwargs)
+            self.set(arg)
+        self.set(kwargs)
 
     def __str__(self):
         return str(self.options)
@@ -35,8 +35,8 @@ class Options:
         """ Include functionality of regression_tests.common parse_args in a more
         natural spot. Adds this information to global options
         """
-        self.nworkers, is_master, self.libE_specs, _ = parse_args()
-        self.set({'nworkers': self.nworkers},
+        nworkers, is_master, self.libE_specs, _ = parse_args()
+        self.set({'nworkers': nworkers},
                  self.libE_specs)
         return is_master
 
@@ -64,6 +64,7 @@ class Options:
     def set(self, *args, **kwargs):
         """ Set any number of new options entries """
         for arg in args:
+            assert isinstance(arg, dict), "Argument isn't a dictionary"
             self.options.update(arg)
         self.options.update(kwargs)
 
@@ -71,14 +72,33 @@ class Options:
         """ Get traditional libE_specs subset """
         return self.libE_specs
 
-    def log_get_level(self):
+    def to_file(self, filename=None):
+        """ Save the currently set options to a file. """
+        if not filename:
+            filename = self.get('comms') + \
+                '_' + datetime.datetime.today().strftime('%d-%m-%Y-%H:%M') \
+                + '_options.conf'
+        with open(filename, 'w') as f:
+            f.write(str(self.options))
+        f.close()
+        return filename
+
+    @staticmethod
+    def get_logger():
+        """ Return the logger object to the user"""
+        return libE_logger
+
+    @staticmethod
+    def log_get_level():
         """ Get libEnsemble logger level """
         return libE_logger.get_level()
 
-    def log_set_filename(self, filename):
-        """ Set output filename for libEnsemble's logger """
+    @staticmethod
+    def log_set_filename(filename):
+        """ Set output filename for libEnsemble's logger"""
         libE_logger.set_filename(filename)
 
-    def log_set_level(self, level):
+    @staticmethod
+    def log_set_level(level):
         """ Set libEnsemble logger level """
         libE_logger.set_level(level)

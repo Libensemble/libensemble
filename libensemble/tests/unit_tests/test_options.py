@@ -42,20 +42,28 @@ def test_set_1():
     assert topt.get() == {'comms': 'mpi', 'logging': 'info'}
 
 
-def test_parse_args(): # also tests get_libE_specs()
+def test_parse_args():  # also tests get_libE_specs()
     topt = Options()
     is_master = topt.parse_args()
-    topt.get_libE_specs()
     assert is_master
     assert topt.get_libE_specs().get('comms') == 'mpi'
 
 
-def test_set_logging(): # TODO: Might need dedicated regression test
+def test_get_logger():
+    topt = Options()
+    assert topt.get_logger()
+    # The logger is already tested by test_logger.py in /unit_tests_logger
+
+
+def test_set_logging():  # TODO: Might need dedicated regression test
     pass
 
 
-def test_to_output():  # TODO: What format will this be?
-    pass
+def test_to_file():  # TODO: What format will this be?
+    topt = Options({'comms': 'mpi'}, logging='info')
+    file = topt.to_file()
+    with open(file, 'r') as f:
+        assert f.readline() == str(topt.get())
 
 
 if __name__ == '__main__':
@@ -66,3 +74,5 @@ if __name__ == '__main__':
     test_get_3()
     test_set_1()
     test_parse_args()
+    test_get_logger()
+    test_to_file()
