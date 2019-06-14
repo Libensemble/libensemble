@@ -3,10 +3,18 @@ from libensemble import libE_logger
 import datetime
 
 # Maybe __init__ should automatically call parse_args() ?
+# TODO: Provide interface to return Options class instances to all
+#   parts of a libEnsemble program. (Similar to logger.getlogger())
 
 
-class Options:
-    """The Options Class provides methods for managing a global options dictionary.
+class GlobalOptions():
+    """The GlobalOptions Class provides methods for managing a global options dictionary.
+
+    Class Attributes:
+    -----------------
+
+    current_options: Current GlobalOptions object. Modules throughout libEnsemble
+    can access the same GlobalOptions object.
 
 
     Attributes
@@ -20,10 +28,13 @@ class Options:
         function
     """
 
+    current_options = None
+
     def __init__(self, *args, **kwargs):
         """ Initializes options to any combination of dictionaries or keywords
             Eventually should also initialize to preexisting settings stored somewhere """
         self.options = {}
+        GlobalOptions.current_options = self
         for arg in args:
             self.set(arg)
         self.set(kwargs)
@@ -31,9 +42,13 @@ class Options:
     def __str__(self):
         return str(self.options)
 
+    @staticmethod
+    def get_current_options():
+        return GlobalOptions.current_options
+
     def parse_args(self):
         """ Include functionality of regression_tests.common parse_args in a more
-        natural spot. Adds this information to global options
+        natural spot.
         """
         nworkers, is_master, self.libE_specs, _ = parse_args()
         self.set({'nworkers': nworkers},
@@ -82,6 +97,10 @@ class Options:
             f.write(str(self.options))
         f.close()
         return filename
+
+    # -----
+    # Maybe this isn't the right approach, or the intended approach. for logging.
+    #   we can already get logger instances from the logger module, whenever we want.
 
     @staticmethod
     def get_logger():
