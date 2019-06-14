@@ -5,7 +5,7 @@ Simple Local Sine Tutorial
 This introductory tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using *libEnsemble* with Python's Multiprocessing.
 
-The foundation of writing libEnsemble experiments is accounting for four major
+The foundation of writing libEnsemble calculations is accounting for four major
 components:
 
     * The *Generator Function* ``gen_f``, which produces values for simulations.
@@ -19,10 +19,9 @@ varying sizes and capabilities, including calling gen_f and sim_f functions, and
 passing values between them.
 
 For this tutorial, our ``gen_f`` will produce uniform randomly-sampled values,
-and our ``sim_f`` will be simply tasked with finding the sine of each. We will
-allow libEnsemble to use the default allocation function. By default, all generated
-and simulated values alongside other parameters are stored in ``H``, the History
-array.
+and our ``sim_f`` will be simply tasked with finding the sine of each. By default,
+we don't need to specify a new allocation function. All generated and simulated
+values alongside other parameters are stored in ``H``, the History array.
 
 
 Getting started
@@ -197,12 +196,12 @@ might be rearranged.
   (-0.45982062, 1.55968252e+09, 2, 2,  True,  True, [-0.47779319],  True,  4, 1.55968252e+09)
   ...
 
-In this arrangement, our output values are on the far-left with the generated values
-being the fourth-column from the right. Again, your columns might be rearranged.
+In this arrangement, our output-values are listed on the far-left with the generated
+values being the fourth column from the right. Again, your columns might be rearranged.
 
 Two additional log files should also have been created.
-``ensemble.log`` contains logging output from libEnsemble, while ``libE_stats.txt``
-contains a quick summary of all calculations performed.
+``ensemble.log`` contains debugging or informational logging output from libEnsemble,
+while ``libE_stats.txt`` contains a quick summary of all calculations performed.
 
 I graphed my output using Matplotlib, coloring entries by which worker performed
 the simulation:
@@ -210,7 +209,7 @@ the simulation:
 .. image:: ../images/sinex.png
   :alt: sine
 
-If you want to try this plotting yourself, install Matplotlib, and paste the
+If you want to try plotting this yourself, install Matplotlib and paste the
 following code into another python file:
 
 .. code-block:: python
@@ -237,8 +236,3 @@ In your calling script, include this function then call it beneath the libEnsemb
 .. code-block:: python
 
     plot(H, nworkers)
-
-FAQ
----
-
-Coming soon
