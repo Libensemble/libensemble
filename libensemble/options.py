@@ -3,18 +3,18 @@ from libensemble import libE_logger
 import datetime
 
 # Maybe __init__ should automatically call parse_args() ?
-# TODO: Provide interface to return Options class instances to all
-#   parts of a libEnsemble program. (Similar to logger.getlogger())
 
 
-class GlobalOptions():
+class GlobalOptions:
     """The GlobalOptions Class provides methods for managing a global options dictionary.
 
     Class Attributes:
     -----------------
 
-    current_options: Current GlobalOptions object. Modules throughout libEnsemble
-    can access the same GlobalOptions object.
+    current_options_object: object
+        Reference to current GlobalOptions object. Modules
+        throughout libEnsemble can access the same GlobalOptions object by calling
+        the class method current_options()
 
 
     Attributes
@@ -28,13 +28,13 @@ class GlobalOptions():
         function
     """
 
-    current_options = None
+    current_options_object = None
 
     def __init__(self, *args, **kwargs):
         """ Initializes options to any combination of dictionaries or keywords
             Eventually should also initialize to preexisting settings stored somewhere """
         self.options = {}
-        GlobalOptions.current_options = self
+        GlobalOptions.current_options_object = self
         for arg in args:
             self.set(arg)
         self.set(kwargs)
@@ -42,22 +42,12 @@ class GlobalOptions():
     def __str__(self):
         return str(self.options)
 
-    @staticmethod
-    def get_current_options():
-        return GlobalOptions.current_options
-
-    def parse_args(self):
-        """ Include functionality of regression_tests.common parse_args in a more
-        natural spot.
-        """
-        nworkers, is_master, self.libE_specs, _ = parse_args()
-        self.set({'nworkers': nworkers},
-                 self.libE_specs)
-        return is_master
-
     def get(self, *opts):
         """
         Returns any number of matching option entries based on arguments
+
+        Parameters
+        ----------
 
         No arguments: all dictionary entries.
         1 argument: corresponding dictionary value matching argument
@@ -83,12 +73,38 @@ class GlobalOptions():
             self.options.update(arg)
         self.options.update(kwargs)
 
+    def parse_args(self):
+        """
+        Include functionality of regression_tests.common parse_args in a more
+        natural spot.
+
+        Returns
+        -------
+
+        is_master: bool
+            Informs current process if it is the master process.
+
+        """
+        nworkers, is_master, self.libE_specs, _ = parse_args()
+        self.set({'nworkers': nworkers},
+                 self.libE_specs)
+        return is_master
+
     def get_libE_specs(self):
         """ Get traditional libE_specs subset """
+        # TODO: Investigate method of parsing out typical libE_specs subsets without
+        #   using parse_args()
         return self.libE_specs
 
     def to_file(self, filename=None):
-        """ Save the currently set options to a file. """
+        """ Save the currently set options to a file.
+
+        Parameters
+        ----------
+        filename: string
+            Requested filename.
+        """
+
         if not filename:
             filename = self.get('comms') + \
                 '_' + datetime.datetime.today().strftime('%d-%m-%Y-%H:%M') \
@@ -98,26 +114,32 @@ class GlobalOptions():
         f.close()
         return filename
 
+    def current_options():
+        """ Class method for other modules to access the most recently defined
+        options class instance. """
+
+        return GlobalOptions.current_options_object
+
     # -----
-    # Maybe this isn't the right approach, or the intended approach. for logging.
+    # Maybe this isn't the right approach, or the intended approach for logging.
     #   we can already get logger instances from the logger module, whenever we want.
 
     @staticmethod
-    def get_logger():
+    def get_libE_logger():
         """ Return the logger object to the user"""
         return libE_logger
 
-    @staticmethod
-    def log_get_level():
-        """ Get libEnsemble logger level """
-        return libE_logger.get_level()
-
-    @staticmethod
-    def log_set_filename(filename):
-        """ Set output filename for libEnsemble's logger"""
-        libE_logger.set_filename(filename)
-
-    @staticmethod
-    def log_set_level(level):
-        """ Set libEnsemble logger level """
-        libE_logger.set_level(level)
+    # @staticmethod
+    # def log_get_level():
+    #     """ Get libEnsemble logger level """
+    #     return libE_logger.get_level()
+    #
+    # @staticmethod
+    # def log_set_filename(filename):
+    #     """ Set output filename for libEnsemble's logger"""
+    #     libE_logger.set_filename(filename)
+    #
+    # @staticmethod
+    # def log_set_level(level):
+    #     """ Set libEnsemble logger level """
+    #     libE_logger.set_level(level)
