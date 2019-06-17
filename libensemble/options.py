@@ -31,8 +31,7 @@ class GlobalOptions:
     current_options_object = None
 
     def __init__(self, *args, **kwargs):
-        """ Initializes options to any combination of dictionaries or keywords
-            Eventually should also initialize to preexisting settings stored somewhere """
+        """ Initializes options to any combination of dictionaries or keywords """
         self.options = {}
         GlobalOptions.current_options_object = self
         for arg in args:
@@ -75,7 +74,7 @@ class GlobalOptions:
 
     def parse_args(self):
         """
-        Include functionality of regression_tests.common parse_args in a more
+        Functionality of regression_tests.common parse_args in a more
         natural spot.
 
         Returns
@@ -92,7 +91,7 @@ class GlobalOptions:
 
     def get_libE_specs(self):
         """ Get traditional libE_specs subset """
-        # TODO: Investigate method of parsing out typical libE_specs subsets without
+        # TODO: Investigate methods of parsing out typical libE_specs subsets without
         #   using parse_args()
         return self.libE_specs
 
@@ -102,23 +101,44 @@ class GlobalOptions:
         Parameters
         ----------
         filename: string
-            Requested filename.
+            Requested filename for saved options.
         """
 
         if not filename:
             filename = self.get('comms') + \
                 '_' + datetime.datetime.today().strftime('%d-%m-%Y-%H:%M') \
                 + '_options.conf'
+        outd = self.options.copy()
+        if 'comm' in self.options:
+            outd.pop('comm')  # Dealing with comm object reference in from_file() huge pain
         with open(filename, 'w') as f:
-            f.write(str(self.options))
+            f.write(str(outd))
         f.close()
         return filename
+
+    def from_file(self, filename):
+        """ Populates options (except comm) from saved options file.
+
+        Parameters
+        ----------
+        filename: string
+            filename for previously saved options
+        """
+        import ast
+        with open(filename, 'r') as f:
+            self.set(ast.literal_eval(f.readline()))
+        f.close()
+
 
     def current_options():
         """ Class method for other modules to access the most recently defined
         options class instance. """
 
         return GlobalOptions.current_options_object
+
+    def _check_options():
+        """ Check case and consistency of options dictionary """
+        pass
 
     # -----
     # Maybe this isn't the right approach, or the intended approach for logging.

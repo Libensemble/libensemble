@@ -36,12 +36,20 @@ def test_parse_args():  # also tests get_libE_specs()
     assert opts.get_libE_specs()['comms'] == 'mpi'
 
 
-def test_to_file():
-    file = go.current_options().to_file()
-    with open(file, 'r') as f:
-        assert f.readline() == str(go.current_options().get())
+def test_to_from_file():
+    filename = go.current_options().to_file()
+    with open(filename, 'r') as f:
+        lines = f.readline()
+        options_no_comm = go.current_options().get().copy()
+        options_no_comm.pop('comm')
+        assert lines == str(options_no_comm)
+        f.close()
+    opts = go()
+    opts.from_file(filename)
+    assert str(opts.get()) == lines
+
     import os
-    os.remove(file)
+    os.remove(filename)
 
 
 def test_current_options():
@@ -58,6 +66,7 @@ def test_get_logger():
 #     pass
 
 
+
 if __name__ == '__main__':
     test_init()
     test_to_str()
@@ -66,5 +75,5 @@ if __name__ == '__main__':
     test_get_3()
     test_set()
     test_parse_args()
-    test_to_file()
+    test_to_from_file()
     test_current_options()
