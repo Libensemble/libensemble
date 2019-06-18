@@ -20,6 +20,7 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
 
     if libE_info.get('persistent'):
+        import ipdb; ipdb.set_trace()
         x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs, libE_info)
         O = []
         return O, persis_info_updates, tag_out

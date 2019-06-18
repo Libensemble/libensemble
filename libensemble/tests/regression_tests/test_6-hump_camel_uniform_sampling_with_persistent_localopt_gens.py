@@ -53,7 +53,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 1000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
