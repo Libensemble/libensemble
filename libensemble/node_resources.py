@@ -89,9 +89,11 @@ def _get_cpu_resources_from_env():
         found_count = True
     elif 'LSB_MCPU_HOSTS' in os.environ:
         full_list = os.environ['LSB_MCPU_HOSTS'].split()
-        nodes = [n for n in full_list if 'batch' not in n]
-        #counter = nodes[::2] #this gets nodelist.
-        counter = nodes[1::2]
+        iter_list = iter(full_list)
+        zipped_list = list(zip(iter_list, iter_list))
+        nodes_with_count = [n for n in zipped_list if 'batch' not in n[0]]
+        #nodes = [n[0] for n in nodes_with_count] # For nodelist
+        counter = [int(n[1]) for n in nodes_with_count] # For list of core counts
         found_count = True
 
     if found_count:
