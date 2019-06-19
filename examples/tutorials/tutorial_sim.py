@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def sim_find_sine(H, persis_info, sim_specs, _):
     # underscore for internal/testing arguments
 

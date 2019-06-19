@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def gen_random_sample(H, persis_info, gen_specs, _):
     # underscore parameter for internal/testing arguments
 
