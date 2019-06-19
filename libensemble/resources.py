@@ -100,7 +100,7 @@ class Resources:
         if self.central_mode:
             logger.debug('Running in central mode')
 
-        # These presence of these env vars will be used to detect scheduler
+        # The presence of these env vars will be used to detect scheduler
         self.nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
         self.nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
