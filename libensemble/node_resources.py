@@ -81,7 +81,7 @@ def _get_remote_cpu_resources(launcher):
 
 def _get_cpu_resources_from_env():
     # May create env resources module to share between other resources modules or send arg.
-    if os.environ['LSB_HOSTS']:
+    if 'LSB_HOSTS' in os.environ:
         full_list = os.environ['LSB_HOSTS'].split()
         nodes = [n for n in full_list if 'batch' not in n]
         counter = list(collections.Counter(nodes).values())
