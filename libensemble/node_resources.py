@@ -81,11 +81,20 @@ def _get_remote_cpu_resources(launcher):
 
 def _get_cpu_resources_from_env():
     # May create env resources module to share between other resources modules or send arg.
+    found_count = False
     if 'LSB_HOSTS' in os.environ:
         full_list = os.environ['LSB_HOSTS'].split()
         nodes = [n for n in full_list if 'batch' not in n]
         counter = list(collections.Counter(nodes).values())
+        found_count = True
+    elif 'LSB_MCPU_HOSTS' in os.environ:
+        full_list = os.environ['LSB_MCPU_HOSTS'].split()
+        nodes = [n for n in full_list if 'batch' not in n]
+        #counter = nodes[::2] #this gets nodelist.
+        counter = nodes[1::2]
+        found_count = True
 
+    if found_count:
         # Check all nodes have equal cores -  Not doing for other methods currently.
         if len(set(counter)) != 1:
             logger.warning("Detected compute nodes have different core counts: {}".format(set(counter)))
