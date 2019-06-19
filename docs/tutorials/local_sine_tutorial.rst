@@ -3,31 +3,33 @@ Simple Local Sine Tutorial
 ==========================
 
 This introductory tutorial demonstrates the capability to perform ensembles of
-calculations in parallel using *libEnsemble* with Python's Multiprocessing.
+calculations in parallel using :doc:`libEnsemble<../quickstart>` with Python's Multiprocessing.
 
-The foundation of writing libEnsemble calculations is accounting for four major
-components:
+The foundation of writing libEnsemble routines is accounting for four components:
 
-    * The *Generator Function* ``gen_f``, which produces values for simulations.
-    * The *Simulator Function* ``sim_f``, which performs simulations based on values from ``gen_f``.
-    * The *Allocation Function* ``alloc_f``, which decides which of the previous two functions should be called, when.
-    * The *Calling Script*, which defines parameters and information about these functions and the libEnsemble task, then begins execution.
+    1. The *Generator Function* :ref:`gen_f<api_gen_f>`, which produces values for simulations.
+    2. The *Simulator Function* :ref:`sim_f<api_sim_f>`, which performs simulations based on values from ``gen_f``.
+    3. The *Allocation Function* :ref:`alloc_f<api_alloc_f>`, which decides which of the previous two functions should be called, when.
+    4. The *Calling Script*, which defines parameters and information about these functions and the libEnsemble task, then begins execution.
 
-Each libEnsemble instance initializes a *manager* process and as many *worker*
+libEnsemble initializes a *manager* process and as many *worker*
 processes as the user requests. These workers control and monitor jobs of widely
-varying sizes and capabilities, including calling gen_f and sim_f functions, and
+varying sizes and capabilities, including calling ``gen_f`` and ``sim_f`` functions, and
 passing values between them.
 
 For this tutorial, our ``gen_f`` will produce uniform randomly-sampled values,
-and our ``sim_f`` will be simply tasked with finding the sine of each. By default,
-we don't need to specify a new allocation function. All generated and simulated
-values alongside other parameters are stored in ``H``, the History array.
+and our ``sim_f`` will be tasked with finding the sine of each. Thankfully,
+we don't need to specify a new allocation function by default. All generated and simulated
+values alongside other parameters are stored in :ref:`H<datastruct-history-array>`,
+the History array.
 
+
+.. _libEnsemble: https://libensemble.readthedocs.io/en/latest/quickstart.html
 
 Getting started
 ---------------
 
-First, create an empty directory to store our code. Also make sure Python 3 is
+First, create an empty directory to store our code. Make sure Python 3 is
 installed.
 
 .. code-block:: bash
@@ -35,134 +37,80 @@ installed.
     $ mkdir libe_tutorial
     $ cd libe_tutorial
     $ python3 --version
-    Python 3.6.0            # This should be > 3.4
+    Python 3.6.0            # This should be >= 3.4
 
-For this tutorial, you need NumPy to perform the calculations and (optionally)
-Matplotlib to visualize your results. Install these with:
+For this tutorial, you need NumPy_ to perform the calculations and (optionally)
+Matplotlib_ to visualize your results. Install libEnsemble and these other libraries
+with:
 
 .. code-block:: bash
 
-    $ pip install numpy
-    $ pip install matplotlib  # Optional
+    $ pip3 install numpy
+    $ pip3 install libensemble
+    $ pip3 install matplotlib # Optional
 
+.. _NumPy: https://www.numpy.org/
+.. _Matplotlib: https://matplotlib.org/
 
-Calling Script
---------------
+Generator function
+------------------
 
-Create a new Python file. Start by importing NumPy, libEnsemble, and our generator
-and simulator functions ahead of time. Let's specify the number of workers and the
-type of manager/worker communication libEnsemble will use. In our case, it's 'local'
-because we're using Python's multiprocessing.
+We'll start the coding portion of this tutorial by writing our :ref:`gen_f<api_gen_f>`, or generator
+function.
 
-.. code-block:: python
-    :linenos:
+An available libEnsemble worker will call this generator function with the following parameters:
 
-    import numpy as np
-    from libensemble.libE import libE
-    from generator import gen_uniform_random_sample
-    from simulator import sim_find_sine
+* :ref:`H<datastruct-history-array>`: The History array. Updated by the workers with ``gen_f`` and ``sim_f`` inputs and outputs, then returned to the user. libEnsemble passes ``H`` to the generator function for users who may want to generate new values based on previous values.
 
-    nworkers = 4
-    libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+* :ref:`persis_info<datastruct-persis-info>`: Dictionary with worker-specific information. In our case this dictionary contains random streams for generating random numbers.
 
-This information in libE_specs is later passed to libEnsemble on execution.
+* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with entries like simulation IDs, inputs and outputs, data-types, and other specifications for the generator function.
 
-Our calling script is the right spot to outline settings and specifications
-for our generator and simulator functions that libEnsemble needs to run, stored
-in ``gen_specs`` and ``sim_specs`` respectively. These dictionaries are used to
-describe to libEnsemble what inputs and outputs from those functions to expect.
-They are also passed to libEnsemble alongside ``libE_specs``.
+Later on we'll write ``gen_specs`` and ``persis_info`` explicitly in our calling script.
 
-.. code-block:: python
-    :linenos:
-
-    gen_specs = {'gen_f': gen_uniform_random_sample,  # Our generator function
-               'in': ['sim_id'],                    # Input field names for 'gen_f'. 'sim_id' necessary default
-               'out': [('x', float, (1,))],         # Gen output (name, type, size) saved in H. Sent by worker to sim_f
-               'lower': np.array([-3]),             # (Optional) lower boundary for random sampling.
-               'upper': np.array([3]),              # (Optional) upper boundary for random sampling.
-               'gen_batch_size': 5}                 # (Optional) number of values gen_f will generate and pass to worker
-
-    sim_specs = {'sim_f': sim_find_sine,              # Our simulator function
-               'in': ['x'],                         # Input field names for sim_f. 'x' from generator output
-               'out': [('y', float)]}               # 'y' = sine('x') . Simulator output saved in H
-
-See the docs for more exact gen_specs and sim_specs information.
-
-Each worker is assigned a ``persis_info`` dictionary that contains additional
-persistent state information. In our case, each worker receives a ``RandomState()``
-stream for uniform random sampling, which should hopefully prevent different workers
-from receiving identical values from separate generator calls. Finally, we specify
-the circumstances where libEnsemble should stop execution in ``exit_criteria``.
-
-.. code-block:: python
-    :linenos:
-
-    persis_info = {}                                  # Dictionary of dictionaries
-
-    for i in range(nworkers+1):                       # Worker numbers start at 1.
-      persis_info[i] = {
-          'rand_stream': np.random.RandomState(i),
-          'worker_num': i}
-
-    exit_criteria = {'sim_max': 80}                   # Stop libEnsemble after 80 simulations
-
-Now we're ready to write our libEnsemble function call. ``H`` refers to the History
-array populated throughout execution and returned at the end. It includes information
-like which workers accessed gen_f and sim_f at what times, and with what data.
-'flag' should be zero if no errors occur.
-
-.. code-block:: python
-    :linenos:
-
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                              libE_specs=libE_specs)
-
-    print([i for i in H.dtype.fields])  # Some (optional) statements to visualize our History array
-    print(H)
-
-Before we run the above code, lets finish our generation and simulation functions.
-
-Gen function
-------------
-
-An available worker will call our generator function, which creates ``batch``
-random numbers uniformly distributed between the ``lower`` and ``upper`` bounds
-from ``gen_specs``. The random state from ``persis_info`` is used to generate
-these numbers, which are placed into a NumPy array with field-names and datatypes
-that match those specified in ``gen_specs``.
-
-Create a new Python file named ``generator.py``. Write the following:
+For now, create a new Python file named 'generator.py'. Write the following:
 
 .. code-block:: python
     :linenos:
 
     import numpy as np
 
-    def gen_uniform_random_sample(H, persis_info, gen_specs, _):  # underscore for internal/testing arguments
+    def gen_random_sample(H, persis_info, gen_specs, _):
+        # underscore parameter for internal/testing arguments
 
+        # Get lower and upper bounds from gen_specs
         lower = gen_specs['lower']
         upper = gen_specs['upper']
 
-        num = len(lower)                                # Should be 1, due to one-dimensional array being passed
-        batch = gen_specs['gen_batch_size']             # How many values to generate each call by a worker
+        # Determine how many values to generate
+        num = len(lower)
+        batch_size = gen_specs['gen_batch_size']
 
-        out = np.zeros(batch, dtype=gen_specs['out'])   # Output array of 'batch' slots, with gen_specs specified data type
-        out['x'] = persis_info['rand_stream'].uniform(lower, upper, (batch, num))
+        # Create array of 'batch_size' zeros
+        out = np.zeros(batch_size, dtype=gen_specs['out'])
 
+        # Replace those zeros with the random numbers
+        out['x'] = persis_info['rand_stream'].uniform(lower, upper, (batch_size, num))
+
+        # Send back our output and persis_info
         return out, persis_info
 
-Notice that H is included as a function argument. A user may want to build on previous
-simulated or generated values (stored in H) to generate new values.
 
-Sim function
-------------
+Our function creates 'batch_size' random numbers uniformly distributed
+between the 'lower' and 'upper' bounds. A random stream
+from ``persis_info`` is used to generate these values. Finally, the values are placed
+into a NumPy array that meets the specifications from ``gen_specs['out']``.
 
-Our simulator function is called by a worker for every value in a batch from gen_f.
-This function finds the sine of the passed value, then returns it so a worker
-can log it into H.
 
-Create a new Python file named ``simulator.py``. Write the following:
+Simulator function
+------------------
+
+Next, we'll write our :ref:`sim_f<api_sim_f>` or simulator function. Simulator
+functions perform calculations based on the values output by the generator function.
+The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which serves
+a similar purpose to ``gen_specs``.
+
+Create a new Python file named 'simulator.py'. Write the following:
 
 .. code-block:: python
     :linenos:
@@ -170,21 +118,107 @@ Create a new Python file named ``simulator.py``. Write the following:
     import numpy as np
 
     def sim_find_sine(H, persis_info, sim_specs, _):
+        # underscore for internal/testing arguments
 
-        out = np.zeros(1, dtype=sim_specs['out'])   # Similar output array
+        # Create an output array of a single zero
+        out = np.zeros(1, dtype=sim_specs['out'])
+
+        # Set the zero to the sine of the input value stored in H
         out['y'] = np.sin(H['x'])
+
+        # Send back our output and persis_info
         return out, persis_info
+
+Our simulator function is called by a worker for every value in it's batch from the
+generator function. This function calculates the sine of the passed value, then returns
+it so a worker can log it into ``H``.
+
+
+Calling Script
+--------------
+
+Now we can write the calling script that configures our generator and simulator
+functions and calls libEnsemble.
+
+Create an empty Python file named 'calling_script.py'.
+In this file, we'll start by importing NumPy, libEnsemble, and the generator and
+simulator functions we just created.
+
+Next, in a dictionary called :ref:`libE_specs<datastruct-libe-specs>` we'll specify
+the number of workers and the type of manager/worker communication libEnsemble will
+use. Our communication method, referred to by 'comms', is 'local' because we're
+using Python's multiprocessing.
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble.libE import libE
+    from generator import gen_random_sample
+    from simulator import sim_find_sine
+
+    nworkers = 4
+    libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+
+Our calling script is where we outline the settings and specifications
+for our generator and simulator functions in the :ref:`gen_specs<datastruct-gen-specs>`
+and :ref:`sim_specs<datastruct-sim-specs>` dictionaries that we saw previously.
+These dictionaries also describe to libEnsemble what inputs and outputs from those
+functions to expect.
+
+.. code-block:: python
+    :linenos:
+
+    gen_specs = {'gen_f': gen_random_sample,      # Our generator function
+               'in': ['sim_id'],                  # Input field names. 'sim_id' necessary default
+               'out': [('x', float, (1,))],       # gen_f output (name, type, size).
+               'lower': np.array([-3]),           # lower boundary for random sampling.
+               'upper': np.array([3]),            # upper boundary for random sampling.
+               'gen_batch_size': 5}               # number of values gen_f will generate per call
+
+    sim_specs = {'sim_f': sim_find_sine,          # Our simulator function
+               'in': ['x'],                       # Input field names. 'x' from gen_f output
+               'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
+
+
+Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>` dictionary that, in our case, contains  a ``RandomState()``
+stream for uniform random sampling. We populate that dictionary here. Finally, we specify
+the circumstances where libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
+
+.. code-block:: python
+    :linenos:
+
+    persis_info = {}
+
+    for i in range(1, nworkers+1):                # Worker numbers start at 1.
+      persis_info[i] = {
+          'rand_stream': np.random.RandomState(i),
+          'worker_num': i}
+
+    exit_criteria = {'sim_max': 80}               # Stop libEnsemble after 80 simulations
+
+Now we're ready to write our libEnsemble :doc:`libE<../libE_module>` function call.
+This :ref:`H<datastruct-history-array>` is the final version of the History array. 'flag' should be zero if no
+errors occur.
+
+.. code-block:: python
+    :linenos:
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                              libE_specs=libE_specs)
+
+    print([i for i in H.dtype.fields])            # Some (optional) statements to visualize our History array
+    print(H)
+
 
 Now that all these files are completed, we can run our simulation.
 
 .. code-block:: bash
 
-  $ python3 [calling script name].py
+  $ python3 calling_script.py
 
-If everything ran perfectly, no errors should be output and libEnsemble shouldn't
-produce any .pickle or .npy files (which contain a dump of H in the event of an
-error). You should get something similar to the following output for H. The columns
-might be rearranged.
+If everything ran perfectly, You should get something similar to the following output
+for ``H``. The columns might be rearranged.
 
 .. code-block::
 
@@ -196,12 +230,12 @@ might be rearranged.
   (-0.45982062, 1.55968252e+09, 2, 2,  True,  True, [-0.47779319],  True,  4, 1.55968252e+09)
   ...
 
-In this arrangement, our output-values are listed on the far-left with the generated
+In this arrangement, our output values are listed on the far-left with the generated
 values being the fourth column from the right. Again, your columns might be rearranged.
 
 Two additional log files should also have been created.
-``ensemble.log`` contains debugging or informational logging output from libEnsemble,
-while ``libE_stats.txt`` contains a quick summary of all calculations performed.
+'ensemble.log' contains debugging or informational logging output from libEnsemble,
+while 'libE_stats.txt' contains a quick summary of all calculations performed.
 
 I graphed my output using Matplotlib, coloring entries by which worker performed
 the simulation:
@@ -209,13 +243,14 @@ the simulation:
 .. image:: ../images/sinex.png
   :alt: sine
 
-If you want to try plotting this yourself, install Matplotlib and paste the
-following code into another python file:
+If you want to verify your results through plotting and you installed Matplotlib
+earlier, copy and paste the following code into the bottom of your calling script
+and run ``python3 calling_script.py`` again
 
 .. code-block:: python
   :linenos:
 
-  def plot(H, nworkers):
+  def plot():
       import matplotlib.pyplot as plt
       colors = ['b', 'g', 'r', 'y', 'm', 'c', 'k', 'w']
 
@@ -231,8 +266,16 @@ following code into another python file:
       plt.legend(loc = 'lower right')
       plt.show()
 
-In your calling script, include this function then call it beneath the libEnsemble call:
+  plot()
 
-.. code-block:: python
 
-    plot(H, nworkers)
+Next Steps
+----------
+
+Coming soon
+
+
+FAQ
+---
+
+Coming soon
