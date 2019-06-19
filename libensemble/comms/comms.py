@@ -126,7 +126,7 @@ class QComm(Comm):
 
     def get_num_workers(self):
         # global _ncomms
-        print('In get function', QComm._ncomms.value)
+        #print('In get function', QComm._ncomms.value)
         return QComm._ncomms.value
 
     def send(self, *args):
