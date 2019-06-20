@@ -290,7 +290,7 @@ modifying the above code to use MPI instead of Python's local multiprocessing.
 
 We recommend MPICH_ for this tutorial, which can be found for a variety of systems
 here_. You also need mpi4py which can be downloaded via ``pip3 install mpi4py``.
-Again, if this doesn't work try appending `` --user`` to the end of the command.
+Again, if this doesn't work try appending ``--user`` to the end of the command.
 
 Verify that MPI has installed correctly with ``mpirun --version``,
 
