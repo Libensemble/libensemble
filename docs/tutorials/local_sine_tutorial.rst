@@ -284,9 +284,10 @@ These are some optional additional learning exercises based on the above code.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 MPI_ is a standard interface for parallel computing, implemented in libraries
-like MPICH_ and used at extreme scales. It is the preferred parallelization method
-for libEnsemble, over Python's local multiprocessing. In this section, we'll explore
-modifying the above code to use MPI instead of Python's local multiprocessing.
+like MPICH_ and used at extreme scales. MPI potentially allows libEnsemble's manager
+and workers to be distributed over multiple nodes and works in some circumstances
+where multiprocessing does not. In this section, we'll explore modifying the above
+code to use MPI instead of Python's local multiprocessing.
 
 We recommend MPICH_ for this tutorial, which can be found for a variety of systems
 here_. You also need mpi4py which can be downloaded via ``pip3 install mpi4py``.
