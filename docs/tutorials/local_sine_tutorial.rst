@@ -49,6 +49,9 @@ with:
     $ pip3 install libensemble
     $ pip3 install matplotlib # Optional
 
+If your system doesn't allow you to perform the above installations, try adding
+``--user`` to the end of each command.
+
 .. _NumPy: https://www.numpy.org/
 .. _Matplotlib: https://matplotlib.org/
 
@@ -269,12 +272,96 @@ and run ``python3 calling_script.py`` again
   plt.show()
 
 
+---
 
 
 Next Steps
 ----------
 
-Coming soon
+These are some optional additional learning exercises based on the above code.
+
+--- libEnsemble with MPI ---
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MPI_ is a standard interface for parallel computing, implemented in libraries
+like MPICH_ and used at extreme scales. It is the preferred parallelization method
+for libEnsemble, over Python's local multiprocessing. In this section, we'll explore
+modifying the above code to use MPI instead of Python's local multiprocessing.
+
+We recommend MPICH_ for this tutorial, which can be found for a variety of systems
+here_. You also need mpi4py which can be downloaded via ``pip3 install mpi4py``.
+Again, if this doesn't work try appending `` --user`` to the end of the command.
+
+Verify that MPI has installed correctly with ``mpirun --version``,
+
+Modifying the Calling Script
+""""""""""""""""""""""""""""
+
+Only a few changes are necessary to make our code MPI-compatible. Modify the top
+of the Calling Script as follows:
+
+.. code-block:: python
+    :linenos:
+    :emphasize-lines: 5,7,8,10,11
+
+    import numpy as np
+    from libensemble.libE import libE
+    from generator import gen_random_sample
+    from simulator import sim_find_sine
+    from mpi4py import MPI
+
+    # nworkers = 4                                  # nworkers will come from MPI
+    libE_specs = {'comms': 'mpi'}                   # 'nworkers' removed, 'comms' now 'mpi'
+
+    nworkers = MPI.COMM_WORLD.Get_size() - 1
+    is_master = (MPI.COMM_WORLD.Get_rank() == 0)    # master process has MPI rank 0
+
+So that only one process executes the graphing and printing portion of our code,
+modify the bottom of the Calling Script like this:
+
+.. code-block:: python
+  :linenos:
+  :emphasize-lines: 4
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            libE_specs=libE_specs)
+
+    if is_master:
+
+        print([i for i in H.dtype.fields])            # Some (optional) statements to visualize our History array
+        print(H)
+
+        import matplotlib.pyplot as plt
+        colors = ['b', 'g', 'r', 'y', 'm', 'c', 'k', 'w']
+
+        for i in range(1, nworkers + 1):
+          worker_xy = np.extract(H['sim_worker'] == i, H)
+          x = [entry.tolist()[0] for entry in worker_xy['x']]
+          y = [entry for entry in worker_xy['y']]
+          plt.scatter(x, y, label='Worker {}'.format(i), c=colors[i-1])
+
+        plt.title('Sine calculations for a uniformly sampled random distribution')
+        plt.xlabel('x')
+        plt.ylabel('sine(x)')
+        plt.legend(loc = 'lower right')
+        plt.show()
+
+With these changes in place, our libEnsemble code can be run with MPI by:
+
+.. code-block:: bash
+
+  $ mpirun -n 5 python3 calling_script.py
+
+Where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
+the master process with the libEnsemble manager, and the other four will run libEnsemble
+workers.
+
+.. _MPI: https://en.wikipedia.org/wiki/Message_Passing_Interface
+.. _MPICH: https://www.mpich.org/
+.. _here: https://www.mpich.org/downloads/
+
+
+
 
 
 FAQ
