@@ -61,7 +61,7 @@ class Resources:
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
                  nodelist_env_lsf_shortform=None):
-        
+
         """Initialise new Resources instance
 
         Works out the compute resources available for current allocation, including

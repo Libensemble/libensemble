@@ -68,7 +68,7 @@ def _get_local_cpu_resources():
 
 
 def _print_local_cpu_resources():
-    """Print logical and physical cores on the local node"""    
+    """Print logical and physical cores on the local node"""
     import sys
     cores_info = _get_local_cpu_resources()
     print(cores_info[0], cores_info[1])
@@ -95,8 +95,7 @@ def _get_cpu_resources_from_env():
         iter_list = iter(full_list)
         zipped_list = list(zip(iter_list, iter_list))
         nodes_with_count = [n for n in zipped_list if 'batch' not in n[0]]
-        #nodes = [n[0] for n in nodes_with_count] # For nodelist
-        counter = [int(n[1]) for n in nodes_with_count] # For list of core counts
+        counter = [int(n[1]) for n in nodes_with_count]
         found_count = True
 
     if found_count:
