@@ -54,11 +54,14 @@ class Resources:
     default_nodelist_env_slurm = 'SLURM_NODELIST'
     default_nodelist_env_cobalt = 'COBALT_PARTNAME'
     default_nodelist_env_lsf = 'LSB_HOSTS'
+    default_nodelist_env_lsf_shortform = 'LSB_MCPU_HOSTS'
 
     def __init__(self, top_level_dir=None, central_mode=False, launcher=None,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None):
+                 nodelist_env_lsf=None,
+                 nodelist_env_lsf_shortform=None):
+        
         """Initialise new Resources instance
 
         Works out the compute resources available for current allocation, including
@@ -93,6 +96,10 @@ class Resources:
             The environment variable giving a node list in LSF format (Default: Uses LSB_HOSTS)
             Note: This is only queried if a worker_list file is not provided and auto_resources=True.
 
+        nodelist_env_lsf_shortform: String, optional
+            The environment variable giving a node list in LSF short-form format (Default: Uses LSB_MCPU_HOSTS)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+
         """
 
         self.top_level_dir = top_level_dir or os.getcwd()
@@ -104,12 +111,14 @@ class Resources:
         self.nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
         self.nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
+        self.nodelist_env_lsf_shortform = nodelist_env_lsf_shortform or Resources.default_nodelist_env_lsf_shortform
 
         # This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir,
                                                              nodelist_env_slurm=self.nodelist_env_slurm,
                                                              nodelist_env_cobalt=self.nodelist_env_cobalt,
-                                                             nodelist_env_lsf=self.nodelist_env_lsf)
+                                                             nodelist_env_lsf=self.nodelist_env_lsf,
+                                                             nodelist_env_lsf_shortform=self.nodelist_env_lsf_shortform)
 
         remote_detect = False
         self.libE_nodes = Resources.get_libE_nodes()
@@ -237,6 +246,17 @@ class Resources:
         nodes = [n for n in unique_entries if 'batch' not in n]
         return nodes
 
+    @staticmethod
+    def get_lsf_nodelist_frm_shortform(node_list_env):
+        """Get global libEnsemble nodelist from the LSF environment from short-form version"""
+        full_list = os.environ[node_list_env]
+        entries = full_list.split()
+        iter_list = iter(entries)
+        zipped_list = list(zip(iter_list, iter_list))
+        nodes_with_count = [n for n in zipped_list if 'batch' not in n[0]]
+        nodes = [n[0] for n in nodes_with_count] # For nodelist
+        return nodes
+
     # This is for central mode where libE nodes will not share with app nodes
     @staticmethod
     def remove_nodes(global_nodelist_in, remove_list):
@@ -254,7 +274,8 @@ class Resources:
     def get_global_nodelist(rundir=None,
                             nodelist_env_slurm=None,
                             nodelist_env_cobalt=None,
-                            nodelist_env_lsf=None):
+                            nodelist_env_lsf=None,
+                            nodelist_env_lsf_shortform=None):
         """
         Return the list of nodes available to all libEnsemble workers
 
@@ -268,6 +289,7 @@ class Resources:
         nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
         nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
         nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
+        nodelist_env_lsf_shortform = nodelist_env_lsf_shortform or Resources.default_nodelist_env_lsf_shortform
 
         worker_list_file = os.path.join(top_level_dir, 'worker_list')
         global_nodelist = []
@@ -287,6 +309,9 @@ class Resources:
             elif os.environ.get(nodelist_env_lsf):
                 logger.debug("LSF env found - getting nodelist from LSF")
                 global_nodelist = Resources.get_lsf_nodelist(nodelist_env_lsf)
+            elif os.environ.get(nodelist_env_lsf_shortform):
+                logger.debug("LSF env found - getting nodelist from LSF")
+                global_nodelist = Resources.get_lsf_nodelist_frm_shortform(nodelist_env_lsf_shortform)
             else:
                 # Assume a standalone machine if all workers on same node - though give warning.
                 if len(set(Resources.get_libE_nodes())) == 1:
