@@ -141,7 +141,8 @@ class BalsamJobController(MPIJobController):
 
     """
     def __init__(self, auto_resources=True, central_mode=True,
-                 nodelist_env_slurm=None, nodelist_env_cobalt=None):
+                 nodelist_env_slurm=None, nodelist_env_cobalt=None,
+                 nodelist_env_lsf=None, nodelist_env_lsf_shortform=None):
         """Instantiate a new BalsamJobController instance.
 
         A new BalsamJobController object is created with an application
@@ -153,7 +154,10 @@ class BalsamJobController(MPIJobController):
             central_mode = True
 
         super().__init__(auto_resources, central_mode,
-                         nodelist_env_slurm, nodelist_env_cobalt)
+                         nodelist_env_slurm,
+                         nodelist_env_cobalt,
+                         nodelist_env_lsf,
+                         nodelist_env_lsf_shortform)
         self.mpi_launcher = None
         if MPI.COMM_WORLD.Get_rank() == 0:
             BalsamJobController.del_apps()
