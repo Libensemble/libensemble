@@ -254,7 +254,7 @@ class Resources:
         iter_list = iter(entries)
         zipped_list = list(zip(iter_list, iter_list))
         nodes_with_count = [n for n in zipped_list if 'batch' not in n[0]]
-        nodes = [n[0] for n in nodes_with_count] # For nodelist
+        nodes = [n[0] for n in nodes_with_count]
         return nodes
 
     # This is for central mode where libE nodes will not share with app nodes

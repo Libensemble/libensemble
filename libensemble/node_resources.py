@@ -61,12 +61,14 @@ def get_cpu_cores(hyperthreads=False):
 
 
 def _get_local_cpu_resources():
+    """Return logical and physical cores on the local node"""
     logical_cores_avail_per_node = get_cpu_cores(hyperthreads=True)
     physical_cores_avail_per_node = get_cpu_cores(hyperthreads=False)
     return (logical_cores_avail_per_node, physical_cores_avail_per_node)
 
 
 def _print_local_cpu_resources():
+    """Print logical and physical cores on the local node"""    
     import sys
     cores_info = _get_local_cpu_resources()
     print(cores_info[0], cores_info[1])
@@ -74,13 +76,14 @@ def _print_local_cpu_resources():
 
 
 def _get_remote_cpu_resources(launcher):
+    """Launch a probe job to obtain logical and physical cores on remote node"""
     import subprocess
     output = subprocess.check_output([launcher, 'python', __file__])
     return output.decode()
 
 
 def _get_cpu_resources_from_env():
-    # May create env resources module to share between other resources modules or send arg.
+    """Return logical and physical cores per node by querying environment or None"""
     found_count = False
     if 'LSB_HOSTS' in os.environ:
         full_list = os.environ['LSB_HOSTS'].split()
@@ -110,7 +113,7 @@ def _get_cpu_resources_from_env():
 
 
 def get_sub_node_resources(launcher=None, remote_mode=False):
-    """Retruns logical and physical cores per node as a tuple"""
+    """Returns logical and physical cores per node as a tuple"""
     remote_detection = False
     if remote_mode:
         # May be unnecessary condition
