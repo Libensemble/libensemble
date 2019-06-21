@@ -150,6 +150,25 @@ def test_lsf_nodelist_seq():
 # def test_lsf_nodelist_groups():
 # def test_lsf_nodelist_reverse_grp():
 
+def test_lsf_nodelist_shortform_empty():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
+    exp_out = []  # empty
+    nodelist = Resources.get_lsf_nodelist_frm_shortform(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
+def test_lsf_nodelist_shortform_single():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = 'batch5 1 g06n02 42'
+    exp_out = ["g06n02"]
+    nodelist = Resources.get_lsf_nodelist_frm_shortform(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
+def test_lsf_nodelist_shortform_seq():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = 'batch5 1 g06n02 42 h21n18 42'
+    exp_out = ['g06n02', 'h21n18']
+    nodelist = Resources.get_lsf_nodelist_frm_shortform(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
 
 # Tests Resources.get_global_nodelist (This requires above tests to work)
 def test_get_global_nodelist_frm_slurm():
@@ -495,7 +514,11 @@ if __name__ == "__main__":
     test_lsf_nodelist_empty()
     test_lsf_nodelist_single()
     test_lsf_nodelist_seq()
-
+    
+    test_lsf_nodelist_shortform_empty()
+    test_lsf_nodelist_shortform_single()
+    test_lsf_nodelist_shortform_seq()
+    
     test_get_global_nodelist_frm_slurm()
     test_get_global_nodelist_frm_cobalt()
     test_get_global_nodelist_frm_lsf()
@@ -510,4 +533,5 @@ if __name__ == "__main__":
     test_get_local_nodelist_distrib_mode_uneven_split()
 
     test_worker_resources()
+    
     teardown_standalone_run()
