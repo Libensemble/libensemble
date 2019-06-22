@@ -23,7 +23,8 @@ class MPIJobController(JobController):
     def __init__(self, auto_resources=True, central_mode=False,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None):
+                 nodelist_env_lsf=None,
+                 nodelist_env_lsf_shortform=None):
         """Instantiate a new JobController instance.
 
         A new JobController object is created with an application
@@ -42,9 +43,9 @@ class MPIJobController(JobController):
 
         central_mode, optional: boolean:
             If true, then running in central mode, else distributed.
-            Central mode means libE processes (manager and workers) are grouped together and
-            do not share nodes with applications. Distributed mode means Workers share nodes
-            with applications.
+            Central mode means libE processes (manager and workers) are
+            grouped together and do not share nodes with applications.
+            Distributed mode means Workers share nodes with applications.
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format
@@ -62,6 +63,11 @@ class MPIJobController(JobController):
             (Default: Uses LSB_HOSTS) Note: This is only queried
             if a worker_list file is not provided and
             auto_resources=True.
+
+        nodelist_env_lsf_shortform: String, optional
+            The environment variable giving a node list in LSF short-form
+            format (Default: Uses LSB_MCPU_HOSTS) Note: This is only queried
+            if a worker_list file is not provided and auto_resources=True.
         """
 
         JobController.__init__(self)
@@ -91,7 +97,8 @@ class MPIJobController(JobController):
                              launcher=self.mpi_command[0],
                              nodelist_env_slurm=nodelist_env_slurm,
                              nodelist_env_cobalt=nodelist_env_cobalt,
-                             nodelist_env_lsf=nodelist_env_lsf)
+                             nodelist_env_lsf=nodelist_env_lsf,
+                             nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
     def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
                        machinefile, hyperthreads):
@@ -176,7 +183,8 @@ class MPIJobController(JobController):
             runline is printed to logger (At INFO level).
 
         wait_on_run: boolean, optional
-            Whether to wait for job to be polled as RUNNING (or other active/end state) before continuing.
+            Whether to wait for job to be polled as RUNNING (or other
+            active/end state) before continuing.
 
 
         Returns

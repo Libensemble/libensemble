@@ -151,13 +151,36 @@ def test_lsf_nodelist_seq():
 # def test_lsf_nodelist_reverse_grp():
 
 
+def test_lsf_nodelist_shortform_empty():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
+    exp_out = []  # empty
+    nodelist = Resources.get_lsf_nodelist_frm_shortform(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
+def test_lsf_nodelist_shortform_single():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = 'batch5 1 g06n02 42'
+    exp_out = ["g06n02"]
+    nodelist = Resources.get_lsf_nodelist_frm_shortform(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
+def test_lsf_nodelist_shortform_seq():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = 'batch5 1 g06n02 42 h21n18 42'
+    exp_out = ['g06n02', 'h21n18']
+    nodelist = Resources.get_lsf_nodelist_frm_shortform(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
 # Tests Resources.get_global_nodelist (This requires above tests to work)
 def test_get_global_nodelist_frm_slurm():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0137-0139,1234]"
     exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
     global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(),
                                                     nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST",
-                                                    nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
+                                                    nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
+                                                    nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
+                                                    nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
     assert global_nodelist == exp_out, "global_nodelist returned does not match expected"
 
 
@@ -166,7 +189,9 @@ def test_get_global_nodelist_frm_cobalt():
     exp_out = ['20', '21', '22', '137', '138', '139', '1234']
     global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(),
                                                     nodelist_env_slurm="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
-                                                    nodelist_env_cobalt="LIBE_RESOURCES_TEST_NODE_LIST")
+                                                    nodelist_env_cobalt="LIBE_RESOURCES_TEST_NODE_LIST",
+                                                    nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
+                                                    nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
     assert global_nodelist == exp_out, "global_nodelist returned does not match expected"
 
 
@@ -176,7 +201,19 @@ def test_get_global_nodelist_frm_lsf():
     global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(),
                                                     nodelist_env_slurm="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                                     nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
-                                                    nodelist_env_lsf="LIBE_RESOURCES_TEST_NODE_LIST")
+                                                    nodelist_env_lsf="LIBE_RESOURCES_TEST_NODE_LIST",
+                                                    nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
+    assert global_nodelist == exp_out, "global_nodelist returned does not match expected"
+
+
+def test_get_global_nodelist_frm_lsf_shortform():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = 'batch5 1 g06n02 42 h21n18 42'
+    exp_out = ['g06n02', 'h21n18']
+    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(),
+                                                    nodelist_env_slurm="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
+                                                    nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
+                                                    nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
+                                                    nodelist_env_lsf_shortform="LIBE_RESOURCES_TEST_NODE_LIST")
     assert global_nodelist == exp_out, "global_nodelist returned does not match expected"
 
 
@@ -185,7 +222,8 @@ def test_get_global_nodelist_standalone():
     global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(),
                                                     nodelist_env_slurm="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                                     nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
-                                                    nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
+                                                    nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
+                                                    nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
     assert global_nodelist == [mynode], "global_nodelist returned does not match expected"
 
 
@@ -496,9 +534,14 @@ if __name__ == "__main__":
     test_lsf_nodelist_single()
     test_lsf_nodelist_seq()
 
+    test_lsf_nodelist_shortform_empty()
+    test_lsf_nodelist_shortform_single()
+    test_lsf_nodelist_shortform_seq()
+
     test_get_global_nodelist_frm_slurm()
     test_get_global_nodelist_frm_cobalt()
     test_get_global_nodelist_frm_lsf()
+    test_get_global_nodelist_frm_lsf_shortform()
     test_get_global_nodelist_standalone()
 
     test_get_global_nodelist_frm_wrklst_file()
@@ -510,4 +553,5 @@ if __name__ == "__main__":
     test_get_local_nodelist_distrib_mode_uneven_split()
 
     test_worker_resources()
+
     teardown_standalone_run()
