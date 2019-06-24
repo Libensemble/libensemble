@@ -28,8 +28,8 @@ These attributes can be set directly to alter behaviour of the MPI job controlle
 Example. To increase resilience against launch failures::
 
     jobctrl = MPIJobController()
-    jobctl.max_launch_attempts = 10
-    jobctl.fail_time = 5
+    jobctrl.max_launch_attempts = 10
+    jobctrl.fail_time = 5
 
 Note that an the re-try delay on launches starts at 5 seconds and increments by 5 seconds for each retry. So the 4th re-try will wait for 20 seconds before re-launching.
 
