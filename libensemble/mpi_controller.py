@@ -227,7 +227,7 @@ class MPIJobController(JobController):
             while retry_count < self.max_launch_attempts:
                 retry = False
                 try:
-                    retry_string = " (Re-try {})".format(retry_count) if retry_count > 0 else ""
+                    retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
                     logger.info("Launching job {}{}: {}".
                                 format(job.name, retry_string, " ".join(runline)))
 
@@ -244,7 +244,7 @@ class MPIJobController(JobController):
                         self._wait_on_run(job, self.fail_time)
 
                     if job.state == 'FAILED':
-                        logger.warning('job {} failed immediately on try {} with err code {}'.format(job.name, retry_count, job.errcode))
+                        logger.warning('job {} failed within fail_time on try {} with err code {}'.format(job.name, retry_count, job.errcode))
                         retry = True
                         retry_count += 1
 
