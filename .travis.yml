@@ -1,3 +1,5 @@
+
+
 language: python
 sudo: required
 dist: xenial
@@ -6,37 +8,53 @@ python:
   - 3.5
   - 3.6
   - 3.7
-  
+
 os: linux
 
 env:
   global:
     - HYDRA_LAUNCHER=fork
-    - OMPI_MCA_rmaps_base_oversubscribe=yes  
+    - OMPI_MCA_rmaps_base_oversubscribe=yes
   matrix:
     - MPI=mpich
     #- MPI=openmpi
 
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode10
+      env: MPI=mpich PY=3
+      language: generic
+      python: 3
+
 #matrix:
 #  allow_failures:
 #    - env: MPI=openmpi
-    
+
 addons:
   apt:
     packages:
       - gfortran
       - libblas-dev
       - liblapack-dev
-    
-cache: 
+
+
+cache:
   pip: true
   apt: true
 
 # Setup Miniconda
 before_install:
   # Do this conditionally because it saves some downloading if the version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+
+  # Maybe change this to external script, to get correct version of miniconda for platform
+  # - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+  #     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+  #   else
+  #     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  #   fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
@@ -46,12 +64,16 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q -y conda
   - conda info -a # For debugging any issues with conda
-  - conda config --add channels conda-forge  
-  - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION 
+  - conda config --add channels conda-forge
+  - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
   - source activate condaenv
 
 install:
-  - conda install gcc_linux-64
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      conda install clang_osx-64
+    else
+      conda install gcc_linux-64
+    fi
   - conda install $MPI
   - conda install --no-update-deps scipy # includes numpy
   - conda install --no-update-deps mpi4py
@@ -70,7 +92,7 @@ install:
   - pip install -e .
 
 before_script:
-  - flake8 libensemble 
+  - flake8 libensemble
 
 # Run test (-z show output)
 script:
@@ -78,7 +100,7 @@ script:
 
 # Coverage
 after_success:
-  - mv libensemble/tests/.cov* . 
+  - mv libensemble/tests/.cov* .
   - coveralls
 
 after_failure:
