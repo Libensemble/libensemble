@@ -43,6 +43,7 @@ USER_KILLED
 FAILED
 '''.split()
 
+
 class JobControllerException(Exception):
     "Raised for any exception in the JobController"
 
@@ -240,7 +241,7 @@ class JobController:
 
     def _wait_on_run(self, job, fail_time=None):
         '''Called by launch when wait_on_run is True.
-        
+
         Blocks until job polls as having started.
         If fail_time is supplied, will also block until either job is in an
         end state or fail_time has expired.
@@ -260,9 +261,8 @@ class JobController:
                 while job.state not in END_STATES and remaining > 0:
                     time.sleep(min(1.0, remaining))
                     job.poll()
-                    remaining = fail_time - job.timer.elapsed                    
+                    remaining = fail_time - job.timer.elapsed
                 logger.debug("After {} seconds: job {} polled as {}".format(job.timer.elapsed, job.name, job.state))
-
 
     def __init__(self):
         """Instantiate a new JobController instance.

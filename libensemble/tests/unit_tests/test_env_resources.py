@@ -1,6 +1,6 @@
 import os
-import socket
 from libensemble.env_resources import EnvResources
+
 
 def setup_standalone_run():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
@@ -22,6 +22,7 @@ def teardown_function(function):
 # Tests ========================================================================================
 
 # Tests for obtaining nodelist from environment variables
+
 
 def test_slurm_nodelist_empty():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
