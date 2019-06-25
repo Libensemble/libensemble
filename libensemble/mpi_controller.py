@@ -219,9 +219,6 @@ class MPIJobController(JobController):
             logger.info('Test selected: Not launching job')
             logger.info('runline args are {}'.format(runline))
         else:
-            logger.info("Launching job {}: {}".
-                        format(job.name, " ".join(runline)))  # One line
-
             subgroup_launch = True
             if self.mpi_launch_type in ['aprun']:
                 subgroup_launch = False
@@ -230,6 +227,10 @@ class MPIJobController(JobController):
             while retry_count < self.max_launch_attempts:
                 retry = False
                 try:
+                    retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
+                    logger.info("Launching job {}{}: {}".
+                                format(job.name, retry_string, " ".join(runline)))
+
                     job.process = launcher.launch(runline, cwd='./',
                                                   stdout=open(job.stdout, 'w'),
                                                   stderr=open(job.stderr, 'w'),
@@ -243,12 +244,13 @@ class MPIJobController(JobController):
                         self._wait_on_run(job, self.fail_time)
 
                     if job.state == 'FAILED':
-                        logger.warning('job {} failed immediately on try {} with err code {}'.format(job.name, retry_count, job.errcode))
+                        logger.warning('job {} failed within fail_time on try {} with err code {}'.format(job.name, retry_count, job.errcode))
                         retry = True
                         retry_count += 1
 
                 if retry and retry_count < self.max_launch_attempts:
                     # retry_count += 1 # Do not want to reset job if not going to retry.
+                    logger.debug('Retry number {} for job {}')
                     time.sleep(retry_count*5)
                     job.reset()  # Note: Some cases may require user cleanup - currently not supported (could use callback)
                 else:
