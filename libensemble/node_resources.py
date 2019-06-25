@@ -126,7 +126,7 @@ def get_sub_node_resources(launcher=None, remote_mode=False, env_resources=None)
     if remote_mode:
         # May be unnecessary condition
         if launcher in REMOTE_LAUNCH_LIST:
-            cores_info = _get_cpu_resources_from_env(env_resources)
+            cores_info = _get_cpu_resources_from_env(env_resources=env_resources)
             if cores_info:
                 return (cores_info)
             remote_detection = True  # Cannot obtain from environment
