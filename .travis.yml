@@ -71,7 +71,7 @@ before_install:
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       conda install clang_osx-64;
-      alias clang='x86_64-apple-darwin13.4.0-clang'
+      alias clang='x86_64-apple-darwin13.4.0-clang';
     else
       conda install gcc_linux-64;
     fi
