@@ -226,13 +226,13 @@ class Resources:
             if env_resources:
                 global_nodelist = env_resources.get_nodelist()
 
-        if not global_nodelist:
-            # Assume a standalone machine if all workers on same node - though give warning.
-            if len(set(Resources.get_libE_nodes())) == 1:
-                logger.info("Can not find nodelist from environment. Assuming standalone")
-                global_nodelist.append(socket.gethostname())
-            else:
-                raise ResourcesException("Error. Can not find nodelist from environment")
+            if not global_nodelist:
+                # Assume a standalone machine if all workers on same node - though give warning.
+                if len(set(Resources.get_libE_nodes())) == 1:
+                    logger.info("Can not find nodelist from environment. Assuming standalone")
+                    global_nodelist.append(socket.gethostname())
+                else:
+                    raise ResourcesException("Error. Can not find nodelist from environment")
 
         if global_nodelist:
             return global_nodelist
