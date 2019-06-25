@@ -22,7 +22,7 @@ env:
 matrix:
   include:
     - os: osx
-      osx_image: xcode10
+      osx_image: xcode10.2
       env: MPI=mpich PY=3
       language: generic
       python: 3
@@ -69,13 +69,9 @@ before_install:
   - source activate condaenv
 
 install:
-  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  #     # conda install clang_osx-64;
-  #     xcode-select --install
-  #   else
-  #     conda install gcc_linux-64;
-  #   fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      conda install clang_osx-64;
+    else
       conda install gcc_linux-64;
     fi
   - conda install $MPI
