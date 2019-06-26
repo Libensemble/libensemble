@@ -66,7 +66,6 @@ def test_get_logger():
 #     pass
 
 
-
 if __name__ == '__main__':
     test_init()
     test_to_str()

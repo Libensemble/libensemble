@@ -129,7 +129,6 @@ class GlobalOptions:
             self.set(ast.literal_eval(f.readline()))
         f.close()
 
-
     def current_options():
         """ Class method for other modules to access the most recently defined
         options class instance. """
