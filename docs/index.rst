@@ -10,11 +10,12 @@ A library for managing ensemble-like collections of computations.
 
 .. toctree::
    :maxdepth: 2
-   :caption: libEnsemble:
+   :caption: Getting Started:
 
    Quickstart<quickstart>
    contributing
    release_notes
+   FAQ
 
 .. toctree::
    :maxdepth: 2
