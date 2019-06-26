@@ -1,0 +1,2 @@
+conda_build:
+  config_file: ~/.conda/conda_build_config.yaml
