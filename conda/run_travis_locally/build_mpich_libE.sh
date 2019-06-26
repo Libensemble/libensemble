@@ -63,7 +63,7 @@ source activate condaenv || return
 wait
 
 # Test to see if this works on MacOS Travis testing environment
-if [[ "$SYSTEM" == "MacOSX" ]] then
+if [[ "$SYSTEM" == "MacOSX" ]]; then
   conda install clang_osx-64 || return
 else
   conda install gcc_linux-64 || return
@@ -72,7 +72,9 @@ conda install $MPI || return
 #conda install numpy || return #scipy includes numpy
 conda install --no-update-deps scipy || return
 conda install --no-update-deps  mpi4py || return
-conda install --no-update-deps petsc4py petsc || return
+pip install petsc || return
+pip install petsc4py || return
+#conda install --no-update-deps petsc4py petsc || return
 conda install --no-update-deps nlopt || return
 
 # pip install these as the conda installs downgrade pytest on python3.4
