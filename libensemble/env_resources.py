@@ -12,13 +12,13 @@ logger = logging.getLogger(__name__)
 
 class EnvResources:
     """Store environment variables to query for system resource information
-    
+
     **Class Attributes:**
 
     :cvar string default_nodelist_env_slurm: Default SLRUM nodelist environment variable
-    :cvar string default_nodelist_env_cobalt: Default Cobal nodelist environment variable    
-    :cvar string default_nodelist_env_lsf: Default LSF nodelist environment variable    
-    :cvar string default_nodelist_env_lsf_shortform: Default LSF short-form nodelist environment variable    
+    :cvar string default_nodelist_env_cobalt: Default Cobal nodelist environment variable
+    :cvar string default_nodelist_env_lsf: Default LSF nodelist environment variable
+    :cvar string default_nodelist_env_lsf_shortform: Default LSF short-form nodelist environment variable
 
     **Object Attributes:**
 
@@ -45,7 +45,7 @@ class EnvResources:
         information. These are either provided or given defaults.
 
         Parameters
-        
+
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format (Default: Uses SLURM_NODELIST)
             Note: This is only queried if a worker_list file is not provided and auto_resources=True.
@@ -60,9 +60,9 @@ class EnvResources:
 
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form format (Default: Uses LSB_MCPU_HOSTS)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.        
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
         """
-        
+
         self.nodelists = {}
         self.nodelists['Slurm'] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm
         self.nodelists['Cobalt'] = nodelist_env_cobalt or EnvResources.default_nodelist_env_cobalt

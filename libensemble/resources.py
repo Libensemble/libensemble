@@ -239,7 +239,7 @@ class WorkerResources:
     :ivar int workerID: workerID
     :ivar list local_nodelist: A list of all nodes assigned to this worker
     :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number)
-    :ivar int workers_per_node: The number of workers per node (if using sub-node workers)    
+    :ivar int workers_per_node: The number of workers per node (if using sub-node workers)
     """
 
     def __init__(self, workerID, comm, resources):
@@ -261,13 +261,11 @@ class WorkerResources:
             A Resources object containing global nodelist and intra-node information.
 
         """
-
         self.num_workers = comm.get_num_workers()
         self.workerID = workerID
         self.local_nodelist = WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
         self.local_node_count = len(self.local_nodelist)
         self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers, resources)
-
 
     @staticmethod
     def get_workers_on_a_node(num_workers, resources):
