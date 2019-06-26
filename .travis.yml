@@ -36,7 +36,6 @@ addons:
       - libblas-dev
       - liblapack-dev
 
-
 cache:
   pip: true
   apt: true
