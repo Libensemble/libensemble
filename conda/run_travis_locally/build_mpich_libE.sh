@@ -72,8 +72,7 @@ conda install $MPI || return
 #conda install numpy || return #scipy includes numpy
 conda install --no-update-deps scipy || return
 conda install --no-update-deps  mpi4py || return
-export PETSC_CONFIGURE_OPTIONS='--with-fc=0' pip install petsc || return
-pip install petsc4py || return
+pip install petsc petsc4py || return
 #conda install --no-update-deps petsc4py petsc || return
 conda install --no-update-deps nlopt || return
 
