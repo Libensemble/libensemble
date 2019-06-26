@@ -11,3 +11,4 @@ Internal modules of libEnsemble.
    manager_module
    worker_module
    resources_module
+   env_resources_module
