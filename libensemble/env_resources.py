@@ -11,7 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class EnvResources:
-    """Store environment variables to query for system resource information"""
+    """Store environment variables to query for system resource information
+    
+    **Class Attributes:**
+
+    :cvar string default_nodelist_env_slurm: Default SLRUM nodelist environment variable
+    :cvar string default_nodelist_env_cobalt: Default Cobal nodelist environment variable    
+    :cvar string default_nodelist_env_lsf: Default LSF nodelist environment variable    
+    :cvar string default_nodelist_env_lsf_shortform: Default LSF short-form nodelist environment variable    
+
+    """
 
     default_nodelist_env_slurm = 'SLURM_NODELIST'
     default_nodelist_env_cobalt = 'COBALT_PARTNAME'

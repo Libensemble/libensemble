@@ -27,28 +27,17 @@ class Resources:
 
     This is intialised when the job_controller is created with auto_resources set to True.
 
-    **Class Attributes:**
-
-    :cvar string default_nodelist_env_slurm: Default SLRUM nodelist environment variable
-    :cvar string default_nodelist_env_cobalt: Default Cobal nodelist environment variable
-
     **Object Attributes:**
 
     These are set on initialisation.
 
     :ivar string top_level_dir: Directory where searches for worker_list file.
     :ivar boolean central_mode: If true, then running in central mode, else distributed.
-    :ivar string nodelist_env_slurm: Slurm environment variable giving node-list.
-    :ivar string nodelist_env_cobalt: Cobalt environment variable giving node-list.
+    :ivar EnvResources env_resources: An object storing environment variables used by resources.
     :ivar list global_nodelist: A list of all nodes available for running user applications
-    :ivar int num_workers: Total number of workers
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node.
     :ivar int physical_cores_avail_per_node: Physical cores available on a node.
-    :ivar int workerID: workerID
-    :ivar list local_nodelist: A list of all nodes assigned to this worker
-    :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number)
-    :ivar int workers_per_node: The number of workers per node (if using sub-node workers)
-
+    :ivar WorkerResources worker_resources: An object that can contain worker specific resources.
     """
 
     def __init__(self, top_level_dir=None, central_mode=False, launcher=None,
@@ -65,10 +54,10 @@ class Resources:
         Parameters
         ----------
 
-        top_level_dir: string, optional:
+        top_level_dir: string, optional
             Directory libEnsemble runs in (default is current working directory)
 
-        central_mode, optional: boolean:
+        central_mode: boolean, optional
             If true, then running in central mode, else distributed.
             Central mode means libE processes (manager and workers) are grouped together and
             do not share nodes with applications. Distributed mode means Workers share nodes
@@ -240,14 +229,45 @@ class Resources:
 
 
 class WorkerResources:
-    """Provide system resources per worker to libEnsemble and job controller."""
+    """Provide system resources per worker to libEnsemble and job controller.
+
+    **Object Attributes:**
+
+    These are set on initialisation.
+
+    :ivar int num_workers: Total number of workers
+    :ivar int workerID: workerID
+    :ivar list local_nodelist: A list of all nodes assigned to this worker
+    :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number)
+    :ivar int workers_per_node: The number of workers per node (if using sub-node workers)    
+    """
 
     def __init__(self, workerID, comm, resources):
+        """Initialise new WorkerResources instance
+
+        Works out the compute resources available for current worker, including
+        node list and cores/hardware threads available within nodes.
+
+        Parameters
+        ----------
+
+        workerID: int
+            workerID of current process
+
+        comm: Comm
+            The Comm object for Manager/Worker communications.
+
+        resources: Resources
+            A Resources object containing global nodelist and intra-node information.
+
+        """
+
         self.num_workers = comm.get_num_workers()
         self.workerID = workerID
         self.local_nodelist = WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
         self.local_node_count = len(self.local_nodelist)
         self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers, resources)
+
 
     @staticmethod
     def get_workers_on_a_node(num_workers, resources):
