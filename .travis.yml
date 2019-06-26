@@ -55,8 +55,8 @@ install:
   - conda install $MPI
   - conda install --no-update-deps scipy # includes numpy
   - conda install --no-update-deps mpi4py
-  - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
+  - conda install --no-deps petsc4py petsc  
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
   - pip install pytest

@@ -62,8 +62,8 @@ conda install $MPI || return
 #conda install numpy || return #scipy includes numpy
 conda install --no-update-deps scipy || return
 conda install --no-update-deps  mpi4py || return
-conda install --no-update-deps petsc4py petsc || return
 conda install --no-update-deps nlopt || return
+conda install --no-deps petsc4py petsc || return
 
 # pip install these as the conda installs downgrade pytest on python3.4
 pip install pytest || return
