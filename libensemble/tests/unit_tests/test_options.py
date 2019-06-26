@@ -28,7 +28,8 @@ def test_set():
     go.current_options().set({'gen_f': 'urs'}, logging='debug')
     assert go.current_options().get('gen_f', 'logging') == {'gen_f': 'urs', 'logging': 'debug'}
 
-
+# Can this even be tested on Travis? Need to rearrange parse_args() in any case
+# Is this even something that Options should do?
 def test_parse_args():  # also tests get_libE_specs()
     opts = go()
     is_master = opts.parse_args()
@@ -41,7 +42,7 @@ def test_to_from_file():
     with open(filename, 'r') as f:
         lines = f.readline()
         options_no_comm = go.current_options().get().copy()
-        options_no_comm.pop('comm')
+        options_no_comm.pop('comm') # 'comm' objects don't convert from strings nicely
         assert lines == str(options_no_comm)
         f.close()
     opts = go()
@@ -50,11 +51,6 @@ def test_to_from_file():
 
     import os
     os.remove(filename)
-
-
-def test_current_options():
-    opts = go()
-    assert opts is go.current_options()
 
 
 def test_get_logger():
@@ -75,4 +71,3 @@ if __name__ == '__main__':
     test_set()
     test_parse_args()
     test_to_from_file()
-    test_current_options()

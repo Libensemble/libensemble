@@ -3,6 +3,7 @@ from libensemble import libE_logger
 import datetime
 
 # Maybe __init__ should automatically call parse_args() ?
+# TODO: Move parse_args functionality, revise for general use
 
 
 class GlobalOptions:
