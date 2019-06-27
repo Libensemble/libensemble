@@ -1,9 +1,13 @@
-from libensemble.tests.regression_tests.common import parse_args
-from libensemble import libE_logger
+# from libensemble import libE_logger
 import datetime
+import argparse
 
-# Maybe __init__ should automatically call parse_args() ?
-# TODO: Move parse_args functionality, revise for general use
+parser = argparse.ArgumentParser()
+parser.add_argument('--comms', type=str, nargs='?',
+                    choices=['local', 'tcp', 'ssh', 'client', 'mpi'],
+                    default='local', help='Type of communicator')
+parser.add_argument('--nworkers', type=int, nargs='?',
+                    help='Number of local forked processes')
 
 
 class GlobalOptions:
@@ -57,13 +61,11 @@ class GlobalOptions:
             return self.options
         elif len(opts) == 1:
             value = self.options.get(opts[0])
-            assert value is not None, 'Requested option not found'
             return value
         else:
             self.ret_opts = {}
             for arg in opts:
                 self.ret_opts.update({arg: self.options.get(arg)})
-            assert None not in self.ret_opts.values(), 'Requested option not found'
             return self.ret_opts
 
     def set(self, *args, **kwargs):
@@ -72,29 +74,25 @@ class GlobalOptions:
             assert isinstance(arg, dict), "Argument isn't a dictionary"
             self.options.update(arg)
         self.options.update(kwargs)
+        self._check_options()
 
     def parse_args(self):
         """
-        Functionality of regression_tests.common parse_args in a more
-        natural spot.
-
-        Returns
-        -------
-
-        is_master: bool
-            Informs current process if it is the master process.
-
+        Parse some options from the command-line into options
         """
-        nworkers, is_master, self.libE_specs, _ = parse_args()
-        self.set({'nworkers': nworkers},
-                 self.libE_specs)
-        return is_master
+        args = parser.parse_args()
+        self.set(args)
 
     def get_libE_specs(self):
         """ Get traditional libE_specs subset """
-        # TODO: Investigate methods of parsing out typical libE_specs subsets without
-        #   using parse_args()
-        return self.libE_specs
+        # TODO: Add support for more libE_specs communication formats
+        # There has to be a better way of doing this
+        comms = self.get('comms')
+        assert comms in ['mpi', 'local'], "Unsupported comms type"
+        if comms == 'mpi':
+            return self.get('comms', 'comm', 'color')
+        elif comms == 'local':
+            return self.get('comms', 'nprocesses')
 
     def to_file(self, filename=None):
         """ Save the currently set options to a file.
@@ -110,7 +108,7 @@ class GlobalOptions:
                 '_' + datetime.datetime.today().strftime('%d-%m-%Y-%H:%M') \
                 + '_options.conf'
         outd = self.options.copy()
-        if 'comm' in self.options:
+        if 'comm' in self.get():
             outd.pop('comm')  # Dealing with comm object reference in from_file() huge pain
         with open(filename, 'w') as f:
             f.write(str(outd))
@@ -118,7 +116,7 @@ class GlobalOptions:
         return filename
 
     def from_file(self, filename):
-        """ Populates options (except comm) from saved options file.
+        """ Populates options from saved options file.
 
         Parameters
         ----------
@@ -127,27 +125,50 @@ class GlobalOptions:
         """
         import ast
         with open(filename, 'r') as f:
-            self.set(ast.literal_eval(f.readline()))
+            self.set(ast.literal_eval(f.readline()))  # Safer way of doing this?
         f.close()
 
+    @staticmethod
     def current_options():
         """ Class method for other modules to access the most recently defined
         options class instance. """
 
         return GlobalOptions.current_options_object
 
-    def _check_options():
-        """ Check case and consistency of options dictionary """
-        pass
+    def _check_options(self):
+        """ Check consistency, MPI settings, logging, and other factors """
+        assert isinstance(self.options, dict), "The options aren't a dictionary"
+        if len(self.get()):
+            self._check_format()
+            comms = self.get('comms')
+            if comms == 'local':
+                self._check_local()
+            elif comms == 'mpi':
+                self._check_MPI()
 
-    # -----
-    # Maybe this isn't the right approach, or the intended approach for logging.
-    #   we can already get logger instances from the logger module, whenever we want.
+    def _check_format(self):
+        """ Avoid nested or weirdly formatted settings """
+        for i in self.get().items():
+            assert len(i) == 2
 
-    @staticmethod
-    def get_libE_logger():
-        """ Return the logger object to the user"""
-        return libE_logger
+    def _check_local(self):
+        """ Ensure 'local' defaults are set """
+        if self.get('nprocesses') is None:
+            self.set(nprocesses=4)
+
+    def _check_MPI(self):
+        """ Checks MPI options components, populates defaults if necessary"""
+        assert self.get('comm') is not None, "MPI Communicator not specified in options"
+        if self.get('color') is None:
+            self.set(color=0)
+
+    # def _check_logging(self):
+    #     pass
+
+    # @staticmethod
+    # def get_libE_logger():
+    #     """ Return the logger object to the user"""
+    #     return libE_logger
 
     # @staticmethod
     # def log_get_level():

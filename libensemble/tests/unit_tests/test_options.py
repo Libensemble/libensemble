@@ -3,25 +3,25 @@ from libensemble.options import GlobalOptions as go
 
 
 def test_init():
-    opts = go({'comm': 'mpi'}, {'nworkers': 4}, logging='info')
+    opts = go({'comms': 'local'}, {'nprocesses': 4}, logging='info')
     assert opts
 
 
 def test_to_str():
-    assert str(go.current_options()) == "{'comm': 'mpi', 'nworkers': 4, 'logging': 'info'}"
+    assert str(go.current_options()) == "{'comms': 'local', 'nprocesses': 4, 'logging': 'info'}"
 
 
 def test_get_1():
-    assert go.current_options().get() == {'comm': 'mpi', 'nworkers': 4, 'logging': 'info'}
+    assert go.current_options().get() == {'comms': 'local', 'nprocesses': 4, 'logging': 'info'}
 
 
 def test_get_2():
-    assert go.current_options().get('comm') == 'mpi'
+    assert go.current_options().get('comms') == 'local'
 
 
 def test_get_3():
-    assert go.current_options().get('comm', 'logging') == {'comm': 'mpi',
-                                                           'logging': 'info'}
+    assert go.current_options().get('comms', 'logging') == {'comms': 'local',
+                                                            'logging': 'info'}
 
 
 def test_set():
@@ -30,20 +30,27 @@ def test_set():
 
 # Can this even be tested on Travis? Need to rearrange parse_args() in any case
 # Is this even something that Options should do?
-def test_parse_args():  # also tests get_libE_specs()
-    opts = go()
-    is_master = opts.parse_args()
-    assert is_master
-    assert opts.get_libE_specs()['comms'] == 'mpi'
+# def test_parse_args():  # also tests get_libE_specs()
+#     opts = go()
+#     is_master = opts.parse_args()
+#     assert is_master
+#     assert opts.get_libE_specs()['comms'] == 'mpi'
+
+
+def test_get_libE_specs():
+    comm = 'FAKE COMM'
+    opts = go(comms='local', nprocesses=4)
+    assert opts.get_libE_specs() == {'comms': 'local', 'nprocesses': 4}
+    opts = go(comms='mpi', comm=comm, color=0)
+    assert opts.get_libE_specs() == {'comms': 'mpi', 'comm': 'FAKE COMM', 'color': 0}
 
 
 def test_to_from_file():
     filename = go.current_options().to_file()
     with open(filename, 'r') as f:
         lines = f.readline()
-        options_no_comm = go.current_options().get().copy()
-        options_no_comm.pop('comm') # 'comm' objects don't convert from strings nicely
-        assert lines == str(options_no_comm)
+        options = go.current_options().get().copy()
+        assert lines == str(options)
         f.close()
     opts = go()
     opts.from_file(filename)
@@ -53,9 +60,9 @@ def test_to_from_file():
     os.remove(filename)
 
 
-def test_get_logger():
-    assert go.current_options().get_logger()
-    # The logger is already tested by test_logger.py in /unit_tests_logger
+# def test_get_logger():
+#     assert go.current_options().get_logger()
+# The logger is already tested by test_logger.py in /unit_tests_logger
 
 
 # def test_set_logging():  # Might need dedicated regression test?
@@ -69,5 +76,5 @@ if __name__ == '__main__':
     test_get_2()
     test_get_3()
     test_set()
-    test_parse_args()
+    # test_parse_args()
     test_to_from_file()
