@@ -500,11 +500,8 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
                 fields_to_pass = ['x_on_cube', 'f']
 
             try:
-                import ipdb; ipdb.set_trace()
                 x_opt, exit_code = set_up_and_run_nlopt(H[fields_to_pass][sorted_run_inds], gen_specs)
-                import ipdb; ipdb.set_trace()
             except Exception as e:
-                import ipdb; ipdb.set_trace()
                 x_opt = 0
                 exit_code = 0
                 display_exception(e)
@@ -521,11 +518,8 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
                 Run_H = H[['x_on_cube', 'fvec']][sorted_run_inds]
 
             try:
-                import ipdb; ipdb.set_trace()
                 x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
-                import ipdb; ipdb.set_trace()
             except Exception as e:
-                import ipdb; ipdb.set_trace()
                 x_opt = 0
                 exit_code = 0
                 display_exception(e)
@@ -535,11 +529,8 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
             fields_to_pass = ['x_on_cube', 'f']
 
             try:
-                import ipdb; ipdb.set_trace()
                 x_opt, exit_code = set_up_and_run_scipy_minimize(H[fields_to_pass][sorted_run_inds], gen_specs)
-                import ipdb; ipdb.set_trace()
             except Exception as e:
-                import ipdb; ipdb.set_trace()
                 x_opt = 0
                 exit_code = 0
                 display_exception(e)
