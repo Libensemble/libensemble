@@ -85,6 +85,8 @@ class GlobalOptions:
     def get_libE_specs(self):
         """ Get traditional libE_specs subset """
         # TODO: Add support for more libE_specs communication formats
+        # OR TODO: Restructure libEnsemble to not depend on libE_specs (Options instead)
+        #  in which case, this function will no longer be needed
         comms = self.get('comms')
         if comms == 'mpi':
             return self.get('comms', 'comm', 'color')
