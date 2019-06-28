@@ -62,7 +62,7 @@ conda install $MPI || return
 #conda install numpy || return #scipy includes numpy
 conda install --no-update-deps scipy || return
 conda install --no-update-deps  mpi4py || return
-conda install mumps-mpi=5.1.2=h5bebb2f_1007y || return # Force this version
+conda install mumps-mpi=5.1.2=h5bebb2f_1007 || return # Force this version
 conda install petsc4py petsc || return
 conda install --no-update-deps nlopt || return
 

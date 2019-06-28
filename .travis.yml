@@ -53,8 +53,8 @@ before_install:
 install:
   - conda install gcc_linux-64
   - conda install $MPI
-  - conda install --no-update-deps scipy # includes numpy
-  - conda install --no-update-deps mpi4py
+  - conda install scipy # includes numpy
+  - conda install mpi4py
   - conda install mumps-mpi=5.1.2=h5bebb2f_1007 # Force this version
   - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
