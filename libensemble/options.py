@@ -1,6 +1,9 @@
-# from libensemble import libE_logger
 import datetime
 import argparse
+import logging
+import ast
+
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--comms', type=str, nargs='?',
@@ -26,11 +29,6 @@ class GlobalOptions:
     ----------
     options: dictionary
         options dictionary storing global options for libEnsemble
-
-    libE_specs: dictionary
-        a subset of the global options dictionary currently expected by most
-        libEnsemble modules. Largely populated through the regression_tests.common parse_args()
-        function
     """
 
     current_options_object = None
@@ -71,7 +69,7 @@ class GlobalOptions:
     def set(self, *args, **kwargs):
         """ Set any number of new options entries """
         for arg in args:
-            assert isinstance(arg, dict), "Argument isn't a dictionary"
+            assert isinstance(arg, dict), "Argument isn't a dictionary or keyword"
             self.options.update(arg)
         self.options.update(kwargs)
         self._check_options()
@@ -80,22 +78,24 @@ class GlobalOptions:
         """
         Parse some options from the command-line into options
         """
+        # TODO: How to test this?
         args = parser.parse_args()
         self.set(args)
 
     def get_libE_specs(self):
         """ Get traditional libE_specs subset """
         # TODO: Add support for more libE_specs communication formats
-        # There has to be a better way of doing this
         comms = self.get('comms')
-        assert comms in ['mpi', 'local'], "Unsupported comms type"
         if comms == 'mpi':
             return self.get('comms', 'comm', 'color')
         elif comms == 'local':
             return self.get('comms', 'nprocesses')
+        else:
+            logger.warning("Unsupported comms type for libE_specs subset. Returning all options.")
+            return self.get()
 
     def to_file(self, filename=None):
-        """ Save the currently set options to a file.
+        """ Save the currently set options (except COMM) to a file.
 
         Parameters
         ----------
@@ -109,7 +109,7 @@ class GlobalOptions:
                 + '_options.conf'
         outd = self.options.copy()
         if 'comm' in self.get():
-            outd.pop('comm')  # Dealing with comm object reference in from_file() huge pain
+            outd.pop('comm')
         with open(filename, 'w') as f:
             f.write(str(outd))
         f.close()
@@ -123,7 +123,6 @@ class GlobalOptions:
         filename: string
             filename for previously saved options
         """
-        import ast
         with open(filename, 'r') as f:
             self.set(ast.literal_eval(f.readline()))  # Safer way of doing this?
         f.close()
@@ -158,7 +157,8 @@ class GlobalOptions:
 
     def _check_MPI(self):
         """ Checks MPI options components, populates defaults if necessary"""
-        assert self.get('comm') is not None, "MPI Communicator not specified in options"
+        if self.get('comm') is None:
+            logger.warning("MPI COMM not detected. Were the options just loaded?")
         if self.get('color') is None:
             self.set(color=0)
 

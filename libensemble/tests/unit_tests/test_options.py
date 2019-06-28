@@ -39,9 +39,9 @@ def test_set():
 
 def test_get_libE_specs():
     comm = 'FAKE COMM'
-    opts = go(comms='local', nprocesses=4)
+    opts = go(comms='local', nprocesses=4, logging='info')
     assert opts.get_libE_specs() == {'comms': 'local', 'nprocesses': 4}
-    opts = go(comms='mpi', comm=comm, color=0)
+    opts = go(comms='mpi', comm=comm, color=0, logging='info')
     assert opts.get_libE_specs() == {'comms': 'mpi', 'comm': 'FAKE COMM', 'color': 0}
 
 
@@ -50,6 +50,7 @@ def test_to_from_file():
     with open(filename, 'r') as f:
         lines = f.readline()
         options = go.current_options().get().copy()
+        options.pop('comm')
         assert lines == str(options)
         f.close()
     opts = go()
@@ -76,5 +77,6 @@ if __name__ == '__main__':
     test_get_2()
     test_get_3()
     test_set()
+    test_get_libE_specs()
     # test_parse_args()
     test_to_from_file()
