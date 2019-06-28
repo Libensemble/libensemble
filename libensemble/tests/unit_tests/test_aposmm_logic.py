@@ -96,7 +96,7 @@ def test_localopt_error_saving():
     _, sim_specs_0, gen_specs_0, _, _ = setup.hist_setup1()
 
     H = np.zeros(4, dtype=gen_out + [('f', float), ('fvec', float, 2), ('returned', bool)])
-    H['x'] = np.random.uniform(0, 1, (4, 2))
+    H['x_on_cube'] = np.random.uniform(0, 1, (4, 2))
     H['f'] = np.random.uniform(0, 1, 4)
     H['returned'] = True
     H['local_pt'][1:] = True
@@ -112,7 +112,9 @@ def test_localopt_error_saving():
                      'rand_stream': np.random.RandomState(1)}
 
     try:
+        import ipdb; ipdb.set_trace()
         al.aposmm_logic(H, persis_info_1, gen_specs_0, _)
+        import ipdb; ipdb.set_trace()
     except Exception as e:
         assert e.args[0] == 'Exit code is 0, but x_new was not updated in local opt run 0 after 3 evaluations.\nSaving run information to: run_0_abort.pickle\nWorker crashing!'
     else:
@@ -125,7 +127,9 @@ def test_localopt_error_saving():
     gen_specs_0['grtol'] = 0.1
     gen_specs_0['dist_to_bound_multiple'] = 0.1
     try:
+        import ipdb; ipdb.set_trace()
         al.aposmm_logic(H, persis_info_1, gen_specs_0, _)
+        import ipdb; ipdb.set_trace()
     except Exception as e:
         assert e.args[0] == 'Exit code is 0, but x_new was not updated in local opt run 0 after 3 evaluations.\nSaving run information to: run_0_abort.pickle\nWorker crashing!'
     else:
