@@ -21,12 +21,12 @@ env:
 #  allow_failures:
 #    - env: MPI=openmpi
     
-addons:
-  apt:
-    packages:
-      - gfortran
-      - libblas-dev
-      - liblapack-dev
+#addons:
+  #apt:
+    #packages:
+      #- gfortran
+      #- libblas-dev
+      #- liblapack-dev
     
 cache: 
   pip: true
