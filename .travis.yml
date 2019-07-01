@@ -72,7 +72,11 @@ install:
   - conda install $MPI
   - conda install scipy # includes numpy
   - conda install mpi4py
-  - conda install mumps-mpi=5.1.2=h5bebb2f_1007 # Force this version
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      conda install mumps-mpi=5.1.2=haf446c3_1007; # Force this version
+    else
+      conda install mumps-mpi=5.1.2=h5bebb2f_1007; # Force this version
+    fi
   - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
