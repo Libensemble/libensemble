@@ -98,7 +98,8 @@ current_time() {
   USE_BC=f
   bc --version >> /dev/null && USE_BC=t
   if [ $USE_BC = 't' ]; then
-    time=$(date +%s.%N)
+    #time=$(date +%s.%N)
+    time=$(python -c 'import time; print(time.time())')
   else
     time=$SECONDS
   fi;
@@ -182,11 +183,11 @@ usage() {
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
-  echo "  -c              Clean up test directories and exit"  
-  echo "  -s              Print stdout and stderr to screen when running pytest (unit tests)" 
-  echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"   
-  echo "  -u              Run only the unit tests" 
-  echo "  -r              Run only the regression tests"   
+  echo "  -c              Clean up test directories and exit"
+  echo "  -s              Print stdout and stderr to screen when running pytest (unit tests)"
+  echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"
+  echo "  -u              Run only the unit tests"
+  echo "  -r              Run only the regression tests"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -n {name}       Supply a name to this test run"
@@ -194,7 +195,7 @@ usage() {
   echo ""
   exit 1
 }
-  
+
 while getopts ":p:n:a:hcszur" opt; do
   case $opt in
     p)
@@ -345,7 +346,7 @@ if [ "$root_found" = true ]; then
     else
       $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
     fi;
-    
+
     code=$?
     if [ "$code" -eq "0" ]; then
       echo
@@ -404,19 +405,19 @@ if [ "$root_found" = true ]; then
     reg_pass=0
     reg_fail=0
     test_num=0
-    
+
     for TEST_SCRIPT in $REG_TEST_LIST
     do
-      COMMS_LIST=$(grep -Po '# TESTSUITE_COMMS: \K.*' $TEST_SCRIPT)
+      COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
       for LAUNCHER in $COMMS_LIST
       do
         #Need proc count here for now - still stop on failure etc.
-        NPROCS_LIST=$(grep -Po '# TESTSUITE_NPROCS: \K.*' $TEST_SCRIPT)
+        NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
         for NPROCS in $NPROCS_LIST
         do
           test_num=$((test_num+1))
-          NWORKERS=$((NPROCS-1))  
-        
+          NWORKERS=$((NPROCS-1))
+
           RUN_TEST=true
           if [ $REG_STOP_ON_FAILURE = "true" ]; then
             #Before Each Test check code is 0 (passed so far) - or skip to test summary
@@ -425,9 +426,9 @@ if [ "$root_found" = true ]; then
               break
             fi
           fi
-        
+
           if [ "$RUN_TEST" = "true" ]; then
-        
+
              if [ "$REG_USE_PYTEST" = true ]; then
                if [ "$LAUNCHER" = mpi ]; then
                  mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
@@ -443,19 +444,19 @@ if [ "$root_found" = true ]; then
                  else
                    mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                    test_code=$?
-                 fi               
+                 fi
                else
                  if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
                    $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
                    test_code=$?
-                 else      
+                 else
                    $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
                    test_code=$?
                  fi
                fi
              fi
              reg_count_runs=$((reg_count_runs+1))
-        
+
              if [ "$test_code" -eq "0" ]; then
                echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed ${textreset}"
                reg_pass=$((reg_pass+1))
@@ -470,12 +471,12 @@ if [ "$root_found" = true ]; then
                fi;
                reg_fail=$((reg_fail+1))
              fi;
-        
+
              #If use sub-dirs - move this test's coverage files to regression dir where they can be merged with other tests
              #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
-        
+
           fi; #if [ "$RUN_TEST" = "true" ];
-        
+
         done #nprocs
       done #launcher
 

@@ -37,6 +37,12 @@ CREATED
 WAITING
 '''.split()
 
+END_STATES = '''
+FINISHED
+USER_KILLED
+FAILED
+'''.split()
+
 
 class JobControllerException(Exception):
     "Raised for any exception in the JobController"
@@ -187,7 +193,7 @@ class Job:
         self.errcode = self.process.returncode
         self.success = (self.errcode == 0)
         self.state = 'FINISHED' if self.success else 'FAILED'
-        logger.info("Job {} completed with errcode {} ({})".
+        logger.info("Job {} finished with errcode {} ({})".
                     format(self.name, self.errcode, self.state))
 
     def kill(self, wait_time=60):
@@ -234,7 +240,12 @@ class JobController:
     controller = None
 
     def _wait_on_run(self, job, fail_time=None):
-        '''Called by launch when wait_on_run is True'''
+        '''Called by launch when wait_on_run is True.
+
+        Blocks until job polls as having started.
+        If fail_time is supplied, will also block until either job is in an
+        end state or fail_time has expired.
+        '''
         start = time.time()
         job.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
         job.launch_time = job.timer.tstart
@@ -246,9 +257,12 @@ class JobController:
             job.timer.start()
             job.launch_time = job.timer.tstart
             if fail_time:
-                time.sleep(fail_time)
-                job.poll()
-                logger.debug("After {} seconds: job {} polled as {}".format(fail_time, job.name, job.state))
+                remaining = fail_time - job.timer.elapsed
+                while job.state not in END_STATES and remaining > 0:
+                    time.sleep(min(1.0, remaining))
+                    job.poll()
+                    remaining = fail_time - job.timer.elapsed
+                logger.debug("After {} seconds: job {} polled as {}".format(job.timer.elapsed, job.name, job.state))
 
     def __init__(self):
         """Instantiate a new JobController instance.
