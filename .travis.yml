@@ -28,15 +28,20 @@ matrix:
 #matrix:
 #  allow_failures:
 #    - env: MPI=openmpi
+<<<<<<< HEAD
 
-addons:
-  apt:
-    packages:
-      - gfortran
-      - libblas-dev
-      - liblapack-dev
+
+=======
+
+#addons:
+  #apt:
+    #packages:
+      #- gfortran
+      #- libblas-dev
+      #- liblapack-dev
 
 cache:
+>>>>>>> develop
   pip: true
   apt: true
 
@@ -70,8 +75,9 @@ install:
       conda install gcc_linux-64;
     fi
   - conda install $MPI
-  - conda install --no-update-deps scipy # includes numpy
-  - conda install --no-update-deps mpi4py
+  - conda install scipy # includes numpy
+  - conda install mpi4py
+  - conda install mumps-mpi=5.1.2=h5bebb2f_1007 # Force this version
   - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4

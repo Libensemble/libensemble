@@ -9,8 +9,9 @@ import socket
 import logging
 import itertools
 import subprocess
-from collections import OrderedDict
+# from collections import OrderedDict
 from libensemble import node_resources
+from libensemble.env_resources import EnvResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -50,15 +51,12 @@ class Resources:
 
     """
 
-    # These can be overridden by passing in (e.g. nodelist_env_slurm) on init.
-    default_nodelist_env_slurm = 'SLURM_NODELIST'
-    default_nodelist_env_cobalt = 'COBALT_PARTNAME'
-    default_nodelist_env_lsf = 'LSB_HOSTS'
-
     def __init__(self, top_level_dir=None, central_mode=False, launcher=None,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None):
+                 nodelist_env_lsf=None,
+                 nodelist_env_lsf_shortform=None):
+
         """Initialise new Resources instance
 
         Works out the compute resources available for current allocation, including
@@ -93,6 +91,10 @@ class Resources:
             The environment variable giving a node list in LSF format (Default: Uses LSB_HOSTS)
             Note: This is only queried if a worker_list file is not provided and auto_resources=True.
 
+        nodelist_env_lsf_shortform: String, optional
+            The environment variable giving a node list in LSF short-form format (Default: Uses LSB_MCPU_HOSTS)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+
         """
 
         self.top_level_dir = top_level_dir or os.getcwd()
@@ -100,16 +102,14 @@ class Resources:
         if self.central_mode:
             logger.debug('Running in central mode')
 
-        # These presence of these env vars will be used to detect scheduler
-        self.nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
-        self.nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
-        self.nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
+        self.env_resources = EnvResources(nodelist_env_slurm=nodelist_env_slurm,
+                                          nodelist_env_cobalt=nodelist_env_cobalt,
+                                          nodelist_env_lsf=nodelist_env_lsf,
+                                          nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
         # This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir,
-                                                             nodelist_env_slurm=self.nodelist_env_slurm,
-                                                             nodelist_env_cobalt=self.nodelist_env_cobalt,
-                                                             nodelist_env_lsf=self.nodelist_env_lsf)
+                                                             env_resources=self.env_resources)
 
         remote_detect = False
         self.libE_nodes = Resources.get_libE_nodes()
@@ -120,7 +120,9 @@ class Resources:
         else:
             remote_detect = True
 
-        cores_info = node_resources.get_sub_node_resources(launcher=launcher, remote_mode=remote_detect)
+        cores_info = node_resources.get_sub_node_resources(launcher=launcher,
+                                                           remote_mode=remote_detect,
+                                                           env_resources=self.env_resources)
         self.logical_cores_avail_per_node = cores_info[0]
         self.physical_cores_avail_per_node = cores_info[1]
 
@@ -186,57 +188,6 @@ class Resources:
 
     # ---------------------------------------------------------------------------
 
-    @staticmethod
-    def _range_split(s):
-        """Split ID range string."""
-        ab = s.split("-", 1)
-        nnum_len = len(ab[0])
-        a = int(ab[0])
-        b = int(ab[-1])
-        if a > b:
-            a, b = b, a
-        b = b + 1
-        return a, b, nnum_len
-
-    @staticmethod
-    def get_slurm_nodelist(node_list_env):
-        """Get global libEnsemble nodelist from the Slurm environment"""
-        nidlst = []
-        fullstr = os.environ[node_list_env]
-        if not fullstr:
-            return []
-        splitstr = fullstr.split('-', 1)
-        prefix = splitstr[0]
-        nidstr = splitstr[1].strip("[]")
-        for nidgroup in nidstr.split(','):
-            a, b, nnum_len = Resources._range_split(nidgroup)
-            for nid in range(a, b):
-                nidlst.append(prefix + '-' + str(nid).zfill(nnum_len))
-        return sorted(nidlst)
-
-    @staticmethod
-    def get_cobalt_nodelist(node_list_env):
-        """Get global libEnsemble nodelist from the Cobalt environment"""
-        nidlst = []
-        nidstr = os.environ[node_list_env]
-        if not nidstr:
-            return []
-        for nidgroup in nidstr.split(','):
-            a, b, _ = Resources._range_split(nidgroup)
-            for nid in range(a, b):
-                nidlst.append(str(nid))
-        return sorted(nidlst, key=int)
-
-    @staticmethod
-    def get_lsf_nodelist(node_list_env):
-        """Get global libEnsemble nodelist from the LSF environment"""
-        full_list = os.environ[node_list_env]
-        entries = full_list.split()
-        # unique_entries = list(set(entries)) # This will not retain order
-        unique_entries = list(OrderedDict.fromkeys(entries))
-        nodes = [n for n in unique_entries if 'batch' not in n]
-        return nodes
-
     # This is for central mode where libE nodes will not share with app nodes
     @staticmethod
     def remove_nodes(global_nodelist_in, remove_list):
@@ -252,9 +203,7 @@ class Resources:
 
     @staticmethod
     def get_global_nodelist(rundir=None,
-                            nodelist_env_slurm=None,
-                            nodelist_env_cobalt=None,
-                            nodelist_env_lsf=None):
+                            env_resources=None):
         """
         Return the list of nodes available to all libEnsemble workers
 
@@ -265,10 +214,6 @@ class Resources:
         In central mode, any node with a libE worker is removed from the list.
         """
         top_level_dir = rundir or os.getcwd()
-        nodelist_env_slurm = nodelist_env_slurm or Resources.default_nodelist_env_slurm
-        nodelist_env_cobalt = nodelist_env_cobalt or Resources.default_nodelist_env_cobalt
-        nodelist_env_lsf = nodelist_env_lsf or Resources.default_nodelist_env_lsf
-
         worker_list_file = os.path.join(top_level_dir, 'worker_list')
         global_nodelist = []
         if os.path.isfile(worker_list_file):
@@ -278,25 +223,16 @@ class Resources:
                     global_nodelist.append(line.rstrip())
         else:
             logger.debug("No worker_list found - searching for nodelist in environment")
-            if os.environ.get(nodelist_env_slurm):
-                logger.debug("Slurm env found - getting nodelist from Slurm")
-                global_nodelist = Resources.get_slurm_nodelist(nodelist_env_slurm)
-            elif os.environ.get(nodelist_env_cobalt):
-                logger.debug("Cobalt env found - getting nodelist from Cobalt")
-                global_nodelist = Resources.get_cobalt_nodelist(nodelist_env_cobalt)
-            elif os.environ.get(nodelist_env_lsf):
-                logger.debug("LSF env found - getting nodelist from LSF")
-                global_nodelist = Resources.get_lsf_nodelist(nodelist_env_lsf)
-            else:
+            if env_resources:
+                global_nodelist = env_resources.get_nodelist()
+
+            if not global_nodelist:
                 # Assume a standalone machine if all workers on same node - though give warning.
                 if len(set(Resources.get_libE_nodes())) == 1:
                     logger.info("Can not find nodelist from environment. Assuming standalone")
                     global_nodelist.append(socket.gethostname())
                 else:
                     raise ResourcesException("Error. Can not find nodelist from environment")
-
-        # if central_mode:
-        #     global_nodelist = Resources.remove_libE_nodes(global_nodelist)
 
         if global_nodelist:
             return global_nodelist
