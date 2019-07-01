@@ -12,6 +12,7 @@ def test_to_str():
     assert ast.literal_eval(str(go.current_options())) == ast.literal_eval("{'comms': 'local', 'nprocesses': 4, 'logging': 'info'}")
     # Prevent errors based on elements becoming unordered when becoming string
 
+
 def test_get_1():
     assert go.current_options().get() == {'comms': 'local', 'nprocesses': 4, 'logging': 'info'}
 
