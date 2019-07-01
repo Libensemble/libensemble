@@ -28,10 +28,6 @@ matrix:
 #matrix:
 #  allow_failures:
 #    - env: MPI=openmpi
-<<<<<<< HEAD
-
-
-=======
 
 #addons:
   #apt:
@@ -41,7 +37,6 @@ matrix:
       #- liblapack-dev
 
 cache:
->>>>>>> develop
   pip: true
   apt: true
 
