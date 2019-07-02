@@ -1,7 +1,7 @@
 Manager Module
 ==============
 .. automodule:: libE_manager
-  :members: manager_main, Manager
+  :members: manager_main
   :undoc-members:
   
 .. autoclass:: Manager
