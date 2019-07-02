@@ -1,5 +1,11 @@
 Manager Module
 ==============
 .. automodule:: libE_manager
-  :members:
+  :members: manager_main, Manager
   :undoc-members:
+  
+.. autoclass:: Manager
+  :member-order: bysource
+  :members:
+  
+  .. automethod:: __init__
