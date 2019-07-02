@@ -67,8 +67,12 @@ install:
   - conda install scipy # includes numpy
   - conda install mpi4py
   # force this version
+  # Travis-included MacOSX SDK not built for x86_64 - Need to resolve this
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         conda install mumps-mpi=5.1.2=haf446c3_1007;
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.9.sdk.tar.xz;
+        sudo tar xf MacOSX10.9.sdk.tar.xz -C /opt;
+        export CONDA_BUILD_SYSROOT=/opt/MacOSX10.9.sdk;
     else
         conda install mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
