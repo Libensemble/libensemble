@@ -72,7 +72,6 @@ install:
         conda install mumps-mpi=5.1.2=haf446c3_1007;
         wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.9.sdk.tar.xz;
         sudo tar xf MacOSX10.9.sdk.tar.xz -C /opt;
-        export CONDA_BUILD_SYSROOT=/opt/MacOSX10.9.sdk;
     else
         conda install mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
@@ -90,8 +89,13 @@ install:
   - mpiexec --version #Show MPI library details
   - pip install -e .
 
+
 before_script:
   - flake8 libensemble
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        echo "export CONDA_BUILD_SYSROOT=/opt/MacOSX10.9.sdk" > setenv.sh;
+        source setenv.sh;
+    fi
 
 # Run test (-z show output)
 script:
