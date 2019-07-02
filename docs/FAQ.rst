@@ -6,20 +6,24 @@ If you have any further questions, feel free to contact us through Support_
 
 .. _Support: https://libensemble.readthedocs.io/en/latest/quickstart.html#support
 
+Parallel Debugging
+------------------
 
-How can I perform parallel debugging on libEnsemble, or debug specific processes?
----------------------------------------------------------------------------------
+**How can I perform parallel debugging on libEnsemble, or debug specific processes?**
+
 
 Try the following: ``mpiexec -np [num processes] xterm -e 'python [calling script].py'``
 
 This will launch an xterm terminal window specific to each process. Mac users will
-need to install xQuartz_
+need to install xQuartz_.
 
-.. _xQuartx: https://www.xquartz.org/
+.. _xQuartz: https://www.xquartz.org/
 
 
-"AssertionError: Should not wait for workers when all workers are idle."
-------------------------------------------------------------------------
+AssertionError
+--------------
+
+**"AssertionError: Should not wait for workers when all workers are idle."**
 
 with ``mpiexec -np 1 python myscript.py``
 
@@ -31,8 +35,10 @@ Note: this may also occur with two processes if you are using a persistent gener
 This will tie up the one worker, leaving none to run simulation functions.
 
 
-PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"
----------------------------------------------------------------------------------------
+PETSc and MPI errors
+--------------------
+
+**PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
 with ``python test_chwirut_pounders.py --comms local --nworkers 4``
 
@@ -46,8 +52,11 @@ Note: This error does not occur on all platforms and may depend on how multiproc
 handles an existing MPI communicator in a particular platform.
 
 
-"Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"
-----------------------------------------------------------------------------------------
+Fatal error in MPI_Init_thread
+------------------------------
+
+**"Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
+
 
 This error may be a macOS specific issue. MPI uses TCP to initiate connections,
 and needs the local hostname to function. MPI checks /etc/hosts for this information,
@@ -57,8 +66,11 @@ Resolve this by appending ``127.0.0.1   [your hostname]`` to /etc/hosts.
 Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this error.
 
 
-macOS - System constantly prompts Firewall Security Permission windows throughout execution
--------------------------------------------------------------------------------------------
+macOS - Firewall Windows
+------------------------
+
+**macOS - System constantly prompts Firewall Security Permission windows throughout execution**
+
 
 This is a gigantic nuisance, and unfortunately the only known way around this is
 temporarily disabling the Firewall through System Preferences -> Security & Privacy
