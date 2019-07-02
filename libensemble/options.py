@@ -16,19 +16,16 @@ parser.add_argument('--nworkers', type=int, nargs='?',
 class GlobalOptions:
     """The GlobalOptions Class provides methods for managing a global options dictionary.
 
-    Class Attributes:
-    -----------------
+    **Class Attributes:**
 
-    current_options_object: object
-        Reference to current GlobalOptions object. Modules
-        throughout libEnsemble can access the same GlobalOptions object by calling
-        the class method current_options()
+    current_options_object: :obj: `GlobalOptions`
+        Currently initiated GlobalOptions object
 
+    **Object Attributes:**
 
-    Attributes
-    ----------
-    options: dictionary
-        options dictionary storing global options for libEnsemble
+    options: :obj: `dict`
+        dictionary storing global options
+
     """
 
     current_options_object = None
@@ -45,16 +42,7 @@ class GlobalOptions:
         return str(self.options)
 
     def get(self, *opts):
-        """
-        Returns any number of matching option entries based on arguments
-
-        Parameters
-        ----------
-
-        No arguments: all dictionary entries.
-        1 argument: corresponding dictionary value matching argument
-        2+ arguments: dictionary with entries matching arguments
-        """
+        """ Returns any number of matching option entries based on arguments """
         if not opts:
             return self.options
         elif len(opts) == 1:
@@ -75,9 +63,7 @@ class GlobalOptions:
         self._check_options()
 
     def parse_args(self):
-        """
-        Parse some options from the command-line into options
-        """
+        """ Parse some options from the command-line into options """
         # TODO: How to test this?
         args = parser.parse_args()
         self.set(args)
