@@ -38,13 +38,20 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
 
     Parameters
     ----------
-    comm: comm object for manager communications
+    comm: comm
+        Comm object for manager communications
 
-    sim_specs: dict with parameters/information for simulation calculations
+    sim_specs: dict
+        Parameters/information for simulation calculations
 
-    gen_specs: dict with parameters/information for generation calculations
+    gen_specs: dict
+        Parameters/information for generation calculations
 
-    workerID: manager assigned worker ID (if None, default is comm.rank)
+    workerID: int
+        Manager assigned worker ID (if None, default is comm.rank)
+
+    log_comm: boolean
+        Whether to send logging over comm
     """
 
     # Receive dtypes from manager
@@ -74,17 +81,33 @@ class WorkerErrMsg:
 
 class Worker:
 
-    """The Worker Class provides methods for controlling sim and gen funcs"""
+    """The Worker Class provides methods for controlling sim and gen funcs
 
-    # Worker Object methods
+    **Object Attributes:**
+
+    These are public object attributes.
+
+    :ivar comm comm:
+        Comm object for manager communications
+
+    :ivar dict dtypes:
+        Dictionary containing type information for sim and gen inputs
+
+    :ivar int workerID:
+        The libensemble Worker ID
+
+    :ivar dict sim_specs:
+        Parameters/information for simulation calculations
+
+    :ivar dict calc_iter:
+        Dictionary containing counts for each type of calc (e.g. sim or gen)
+
+    :ivar LocationStack loc_stack:
+        Stack holding directory structure of this Worker
+    """
+    
     def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs):
         """Initialise new worker object.
-
-        Parameters
-        ----------
-
-        workerID: int:
-            The ID for this worker
 
         """
         self.comm = comm
