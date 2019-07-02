@@ -105,7 +105,7 @@ class Worker:
     :ivar LocationStack loc_stack:
         Stack holding directory structure of this Worker
     """
-    
+
     def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs):
         """Initialise new worker object.
 
