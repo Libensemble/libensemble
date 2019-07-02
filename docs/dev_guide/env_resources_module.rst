@@ -1,5 +1,5 @@
-EnvResources Module
-===================
+Environment Resources Module
+============================
 .. automodule:: env_resources
 ..   :members: EnvResources
 

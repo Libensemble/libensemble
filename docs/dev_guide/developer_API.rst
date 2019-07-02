@@ -14,3 +14,4 @@ Internal modules of libEnsemble.
    resources_module
    mpi_resources_module
    env_resources_module
+   node_resources_module
