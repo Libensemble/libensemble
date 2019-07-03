@@ -25,14 +25,14 @@ AssertionError
 
 **"AssertionError: Should not wait for workers when all workers are idle."**
 
-with ``mpiexec -np 1 python myscript.py``
+with ``mpiexec -np 1 python [calling script].py``
 
-This error occurs when the manager is waiting, even though no workers are busy.
+This error occurs when the manager is waiting, although no workers are busy.
 In the above case, this occurs because an MPI libEnsemble run was initiated with
 only one process, resulting in one manager but no workers.
 
 Note: this may also occur with two processes if you are using a persistent generator.
-This will tie up the one worker, leaving none to run simulation functions.
+The generator will occupy the one worker, leaving none to run simulation functions.
 
 
 PETSc and MPI errors
@@ -40,12 +40,12 @@ PETSc and MPI errors
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
-with ``python test_chwirut_pounders.py --comms local --nworkers 4``
+with ``python [test with PETSc].py --comms local --nworkers 4``
 
 This error occurs on some platforms, including Travis, when using PETSc with libEnsemble
 in 'local' (multiprocessing) mode. We believe this is due to PETSc initializing MPI
 before libEnsemble forks processes using multiprocessing. The recommended solution
-is to run libEnsemble in MPI mode. An alternative solution may be to use a serial
+is running libEnsemble in MPI mode. An alternative solution may be using a serial
 build of PETSc.
 
 Note: This error does not occur on all platforms and may depend on how multiprocessing
@@ -58,22 +58,27 @@ Fatal error in MPI_Init_thread
 **"Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
 
 
-This error may be a macOS specific issue. MPI uses TCP to initiate connections,
+This error may be macOS specific. MPI uses TCP to initiate connections,
 and needs the local hostname to function. MPI checks /etc/hosts for this information,
 and causes the above error if it can't find the correct entry.
 
 Resolve this by appending ``127.0.0.1   [your hostname]`` to /etc/hosts.
-Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this error.
+Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this
+error.
 
 
-macOS - Firewall Windows
+macOS - Firewall prompts
 ------------------------
 
 **macOS - System constantly prompts Firewall Security Permission windows throughout execution**
 
 
-This is a gigantic nuisance, and unfortunately the only known way around this is
+There are several ways to address this nuisance. One easy (but insecure) solution is
 temporarily disabling the Firewall through System Preferences -> Security & Privacy
--> Firewall -> Turn Off Firewall. A Firewall "Allow incoming connections" rule can
-be added for the offending Python executables and installations, but this doesn't
-appear to prevent the prompts; it only clears them shortly after they appear.
+-> Firewall -> Turn Off Firewall. Alternatively, adding a Firewall "Allow incoming
+connections" rule can be tried for the offending Python installations,
+but this may not prevent the prompts and only clear them shortly after appearing.
+Finally, `Signing your Python installation with a self-signed certificate`_ may
+be effective.
+
+.. _`Signing your Python installation with a self-signed certificate`: https://coderwall.com/p/5b_apq/stop-mac-os-x-firewall-from-prompting-with-python-in-virtualenv

@@ -31,8 +31,8 @@ libEnsemble is a library for managing ensemble-like collections of computations.
 
 * Completely new to libEnsemble? Start :doc:`here<quickstart>`.
 * Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.
-* Ready to go more in-depth? :doc:`This<user_guide>` is your next step.
-* Check the :doc:`FAQ<FAQ>` for common questions and answers, errors and resolutions.
+* Ready to go more in-depth? Read the :doc:`User Guide<user_guide>`.
+* Check the :doc:`FAQ<FAQ>` for common questions, answers, errors, and resolutions.
 
 
 .. toctree::
