@@ -20,8 +20,8 @@ need to install xQuartz_.
 .. _xQuartz: https://www.xquartz.org/
 
 
-AssertionError
---------------
+AssertionError - Idle workers
+-----------------------------
 
 **"AssertionError: Should not wait for workers when all workers are idle."**
 
