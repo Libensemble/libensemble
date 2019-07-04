@@ -10,4 +10,8 @@ Internal modules of libEnsemble.
 
    manager_module
    worker_module
+   history_module
    resources_module
+   mpi_resources_module
+   env_resources_module
+   node_resources_module
