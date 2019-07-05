@@ -83,7 +83,7 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 15}
+exit_criteria = {'elapsed_wallclock_time': 18}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
