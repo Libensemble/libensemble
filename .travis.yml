@@ -71,7 +71,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         conda install mumps-mpi=5.1.2=haf446c3_1007;
         wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
-        sudo tar xf MacOSX10.13.sdk.tar.xz -C /opt;
+        mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
     else
         conda install mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
@@ -94,7 +94,7 @@ before_script:
   - flake8 libensemble
   # Set conda compilers to use new SDK instead of Travis default.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        echo "export CONDA_BUILD_SYSROOT=/opt/MacOSX10.13.sdk" > setenv.sh;
+        echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
         source setenv.sh;
     fi
 
