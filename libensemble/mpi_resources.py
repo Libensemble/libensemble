@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class MPIResources(Resources):
+    """Manage resources provided to MPI jobs launched from workers."""
 
     @staticmethod
     def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
