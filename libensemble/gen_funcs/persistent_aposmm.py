@@ -23,6 +23,10 @@ from math import log, gamma, pi, sqrt
 
 import nlopt
 
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
+from libensemble.gen_funcs.support import send_mgr_worker_msg
+from libensemble.gen_funcs.support import get_mgr_worker_msg
+
 
 class APOSMMException(Exception):
     "Raised for any exception in APOSMM"
@@ -179,119 +183,108 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-    import ipdb; ipdb.set_trace()
 
-    n, n_s, c_flag, rk_const, mu, nu, comm = initialize_APOSMM(H, gen_specs, libE_info)
+    n, n_s, c_flag, rk_const, mu, nu, total_runs, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
+
+    send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H)
 
     tag = None
+    while 1:
+        # Receive from manager
+        tag, Work, calc_in = get_mgr_worker_msg(comm)
 
-    while tag not in [STOP_TAG, PERSIS_STOP]:
-        n_s = count_samples(H,gen_specs)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            continue
 
-        if n_s >= gen_specs['initial_sample_size']:
-            update_history_dist(H, n, gen_specs, c_flag)
+        n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
-            starting_inds = decide_where_to_start_localopt(H, n_s, rk_const, mu, nu)
+        # If manager returned function values for an existing local opt run,
+        # contact child process to get another x_new and send back to manager
+        import ipdb; ipdb.set_trace()
 
+        # Decide if there are any new points to start a localopt run
+        starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
+
+        if len(starting_inds): 
+            O = np.empty(0, dtype=gen_specs['out'])
             for ind in starting_inds:
+                # Start localopt child processes
+
                 # Mark point as having started a run
                 new_run_num = total_runs
                 total_runs += 1
-                H['started_run'][ind] = 1
+                local_H['started_run'][ind] = 1
                 run_order[new_run_num] = [ind]
 
                 # Initialize child process for new localopt run
-                x_new = start_localopt(H, gen_specs, c_flag)
+                x_new = start_localopt(local_H, gen_specs, c_flag)
 
-                # Send x_new to manager for evaluation
-                O = np.zeros(1, dtype=gen_specs['out'])
-                add_to_O(O, x_new, H, gen_specs, c_flag, persis_info, local_flag=1)
-                tag, Work, calc_in = send_mgr_worker_msg(comm, O)
+                # Add x_new to O (which will be sent to the manager for evaluation)
+                add_to_O(O, x_new, local_H, gen_specs, c_flag, persis_info, local_flag=1)
 
-            # Receive from manager (if possible), contact child process to get
-            # x_new, and send back to manager
-            get_mgr_worker_msg(comm, status)
-
-        else:
-            O = np.zeros(gen_specs['initial_sample_size'], dtype=gen_specs['out'])
-            sampled_points = persis_info['rand_stream'].uniform(0, 1, (len(O), n))
-            on_cube = True
-            add_to_O(O, sampled_points, H, gen_specs, c_flag, persis_info, on_cube=on_cube)
-
-            tag, Work, calc_in = send_mgr_worker_msg(comm, O)
+            send_mgr_worker_msg(comm, O)
 
     return O, persis_info, tag
 
+def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
 
-def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
-             sorted_run_inds=[], run=[], on_cube=True):
+    for name in calc_in.dtype.names: 
+        local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
+
+    local_H['returned'][Work['libE_info']['H_rows']] = True
+    n_s += np.sum(~local_H[Work['libE_info']['H_rows']]['local_pt'])
+
+    update_history_dist(local_H, n, gen_specs, c_flag)
+
+    return n_s
+
+
+def add_to_local_H(local_H, pts, gen_specs, c_flag, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
 
     assert not local_flag or len(pts) == 1, "Can't > 1 local points"
 
-    original_len_O = len(O)
+    len_local_H = len(local_H)
 
-    len_H = len(H)
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     if c_flag:
         m = gen_specs['components']
 
-        assert len_H % m == 0, "Number of points in len_H not congruent to 0 mod 'components'"
-        pt_ids = np.sort(np.tile(np.arange((len_H+original_len_O)/m, (len_H+original_len_O)/m+len(pts)), (1, m)))
+        assert len_local_H % m == 0, "Number of points in local_H not congruent to 0 mod 'components'"
+        pt_ids = np.sort(np.tile(np.arange((len_local_H)/m, (len_local_H)/m+len(pts)), (1, m)))
         pts = np.tile(pts, (m, 1))
 
     num_pts = len(pts)
 
-    O.resize(len(O)+num_pts, refcheck=False)  # Adds num_pts rows of zeros to O
+    local_H.resize(len(local_H)+num_pts, refcheck=False)  # Adds num_pts rows of zeros to O
 
     if on_cube:
-        O['x_on_cube'][-num_pts:] = pts
-        O['x'][-num_pts:] = pts*(ub-lb)+lb
+        local_H['x_on_cube'][-num_pts:] = pts
+        local_H['x'][-num_pts:] = pts*(ub-lb)+lb
     else:
-        O['x_on_cube'][-num_pts:] = (pts-lb)/(ub-lb)
-        O['x'][-num_pts:] = pts
+        local_H['x_on_cube'][-num_pts:] = (pts-lb)/(ub-lb)
+        local_H['x'][-num_pts:] = pts
 
-    O['sim_id'][-num_pts:] = np.arange(len_H+original_len_O, len_H+original_len_O+num_pts)
-    O['local_pt'][-num_pts:] = local_flag
+    local_H['sim_id'][-num_pts:] = np.arange(len_local_H, len_local_H+num_pts)
+    local_H['local_pt'][-num_pts:] = local_flag
 
-    O['dist_to_unit_bounds'][-num_pts:] = np.inf
-    O['dist_to_better_l'][-num_pts:] = np.inf
-    O['dist_to_better_s'][-num_pts:] = np.inf
-    O['ind_of_better_l'][-num_pts:] = -1
-    O['ind_of_better_s'][-num_pts:] = -1
+    local_H['dist_to_unit_bounds'][-num_pts:] = np.inf
+    local_H['dist_to_better_l'][-num_pts:] = np.inf
+    local_H['dist_to_better_s'][-num_pts:] = np.inf
+    local_H['ind_of_better_l'][-num_pts:] = -1
+    local_H['ind_of_better_s'][-num_pts:] = -1
 
     if c_flag:
-        O['obj_component'][-num_pts:] = np.tile(range(0, m), (1, num_pts//m))
-        O['pt_id'][-num_pts:] = pt_ids
+        local_H['obj_component'][-num_pts:] = np.tile(range(0, m), (1, num_pts//m))
+        local_H['pt_id'][-num_pts:] = pt_ids
 
     if local_flag:
-        O['num_active_runs'][-num_pts] += 1
-        # O['priority'][-num_pts:] = 1
-        # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
-        if 'high_priority_to_best_localopt_runs' in gen_specs and gen_specs['high_priority_to_best_localopt_runs']:
-            O['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
-        else:
-            O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0, 1, num_pts)
-        persis_info['run_order'][run].append(O[-num_pts]['sim_id'])
+        local_H['num_active_runs'][-num_pts] += 1
     else:
-        if c_flag:
-            # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
-            # p_tmp = np.random.uniform(0,1,num_pts)
-            p_tmp = persis_info['rand_stream'].uniform(0, 1, num_pts)
-        else:
-            # p_tmp = np.random.uniform(0,1,num_pts)
-            # persis_info['rand_stream'].uniform(lb,ub,(1,n))
-            if 'high_priority_to_best_localopt_runs' in gen_specs and gen_specs['high_priority_to_best_localopt_runs']:
-                p_tmp = -np.inf*np.ones(num_pts)
-            else:
-                p_tmp = persis_info['rand_stream'].uniform(0, 1, num_pts)
-        O['priority'][-num_pts:] = p_tmp
-        # O['priority'][-num_pts:] = 1
-
-    return persis_info
+        local_H['priority'][-num_pts:] = 1
 
 
 def update_history_dist(H, n, gen_specs, c_flag):
@@ -646,7 +639,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
     return x_opt, exit_code
 
 
-def decide_where_to_start_localopt(H, n_s, rk_const, mu=0, nu=0):
+def decide_where_to_start_localopt(H, n, n_s, rk_const, mu=0, nu=0):
     """
     Finds points in the history that satisfy the conditions (S1-S5 and L1-L8) in
     Table 1 of the `APOSMM paper <https://doi.org/10.1007/s12532-017-0131-4>`_
@@ -712,7 +705,7 @@ def decide_where_to_start_localopt(H, n_s, rk_const, mu=0, nu=0):
             mu,  # have all components at least mu away from bounds (L4)
         ))  # (L5) is always true when nu = 0
 
-    assert gamma_quantile == 1, "This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?"
+    # assert gamma_quantile == 1, "This is not supported yet. What is the best way to decide this when there are NaNs present in H['f']?"
     # if gamma_quantile < 1:
     #     cut_off_value = np.sort(H['f'][~H['local_pt']])[np.floor(gamma_quantile*(sum(~H['local_pt'])-1)).astype(int)]
     # else:
@@ -861,8 +854,35 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 
     comm = libE_info['comm']
 
+    local_H_fields = [('f',float),
+                      ('grad',float,n),
+                      ('x', float, n),
+                      ('x_on_cube', float, n),
+                      ('priority', float),
+                      ('local_pt', bool),
+                      ('known_to_aposmm', bool),
+                      ('dist_to_unit_bounds', float),
+                      ('dist_to_better_l', float),
+                      ('dist_to_better_s', float),
+                      ('ind_of_better_l', int),
+                      ('ind_of_better_s', int),
+                      ('started_run', bool),
+                      ('num_active_runs', int),
+                      ('local_min', bool),
+                      ('sim_id', int),
+                      ('paused', bool),
+                      ('returned', bool),
+                      ('pt_id', int), # Identify the same point evaluated by different sim_f's or components
+                      ]
 
-    return n, n_s, c_flag, rk_c, mu, nu, total_runs, comm
+    local_H = np.empty(0,dtype=local_H_fields);
+
+    return n, n_s, c_flag, rk_c, mu, nu, total_runs, comm, local_H
+
+def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H):
+    sampled_points = persis_info['rand_stream'].uniform(0, 1, (gen_specs['initial_sample_size'], n))
+    add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
+    send_mgr_worker_msg(comm, local_H[['x','sim_id']])
 
 
 def display_exception(e):

@@ -34,10 +34,14 @@ sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('grad', float, n)]}
 
+gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int)]
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'gen_batch_size': 20,
-             'out': [('x', float, (n,))],
+             'out': gen_out,
+             'batch_mode': True,
+             'initial_sample_size': 5,
+             'localopt_method': 'LD_MMA',
+             'xtol_rel': 1e-3,
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2])}
 

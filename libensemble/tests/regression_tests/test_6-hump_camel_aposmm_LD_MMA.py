@@ -36,7 +36,6 @@ gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
              'out': gen_out,
-             'num_active_gens': 1,
              'batch_mode': True,
              'initial_sample_size': 100,
              'sample_points': np.round(minima, 1),
