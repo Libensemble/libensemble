@@ -12,6 +12,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     :See:
         ``libensemble/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
     """
+    import ipdb; ipdb.set_trace()
     ub = gen_specs['ub']
     lb = gen_specs['lb']
     n = len(lb)

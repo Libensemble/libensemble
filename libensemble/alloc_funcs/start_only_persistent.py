@@ -13,11 +13,12 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     :See:
         ``/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
     """
+    import ipdb; ipdb.set_trace()
 
     Work = {}
     gen_count = count_persis_gens(W)
 
-    # If i is idle, but in persistent mode, and its calculated values have
+    # If i is in persistent mode, and any of its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
@@ -31,14 +32,13 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):
-
-            # perform sim evaluations from existing runs (if they exist).
+            # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
             sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
-            # Finally, generate points since there is nothing else to do.
+            # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
             gen_work(Work, i, gen_specs['in'], [], persis_info[i],
                      persistent=True)

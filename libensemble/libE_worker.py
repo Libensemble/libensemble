@@ -170,11 +170,7 @@ class Worker:
             with timer:
                 with self.loc_stack.loc(calc_type):
                     logger.debug("Calling calc {}".format(calc_type))
-                    # this would be stuck here.
-                    # I would fork here.
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-                    # when do I join.
-                    # So every time I get an inpt.
                     logger.debug("Return from calc call")
 
             assert isinstance(out, tuple), \
@@ -255,55 +251,17 @@ class Worker:
             logger.info("Worker {} initiated on node {}".
                         format(self.workerID, socket.gethostname()))
 
-            rank = self.comm.get_Rank()
-            from multiprocessing import Process
-
             for worker_iter in count(start=1):
-                # This 'for' loop is like a while loop.
                 logger.debug("Iteration {}".format(worker_iter))
 
-                if rank == 1:
-                    #FIXME: this will not work always, we need to 
-                    # persistent mode operation
-                    mtag, Work = self.comm.recv()
-                    if mtag == STOP_TAG:
-                        break
+                mtag, Work = self.comm.recv()
+                if mtag == STOP_TAG:
+                    break
 
-                    # what does this repsonse stand for?
-                    # this is where we fork?
-                    # yep
-
-                    p = Process(target=self._handle, args=(Work,))
-                    p.start()
-                    # Ok..
-                    # Things to do: append the result of the run to one of our
-                    # variables
-
-                    # response = self._handle(Work)
-                    if response is None:
-                        break
-
-                    # this is where we send.
-                    self.comm.send(0, response)
-                    p.join()
-                else:
-                    mtag, Work = self.comm.recv()
-                    if mtag == STOP_TAG:
-                        break
-
-                    # what does this repsonse stand for?
-                    # this is where we fork?
-                    # yep
-
-                    response = self._handle(Work)
-                    if response is None:
-                        break
-
-                    print(response)
-                    1/0
-
-                    # this is where we send.
-                    self.comm.send(0, response)
+                response = self._handle(Work)
+                if response is None:
+                    break
+                self.comm.send(0, response)
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))

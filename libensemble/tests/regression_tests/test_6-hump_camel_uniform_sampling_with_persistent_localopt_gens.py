@@ -14,8 +14,7 @@
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 
-import sys
-import numpy as np
+import sys import numpy as np
 
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
 from libensemble.libE import libE
@@ -53,7 +52,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

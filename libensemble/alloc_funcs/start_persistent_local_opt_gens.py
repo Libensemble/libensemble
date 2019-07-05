@@ -63,7 +63,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         # Start persistent generator for local opt run unless it would use all workers
         if starting_inds and gen_count + 1 < len(W):
             # Start at the best possible starting point
-            ind = np.array([0,1])
+            ind = starting_inds[np.argmin(H['f'][starting_inds])]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
                      np.atleast_1d(ind), persis_info[i], persistent=True)
