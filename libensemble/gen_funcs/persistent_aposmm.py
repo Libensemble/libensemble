@@ -194,18 +194,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
         if tag in [STOP_TAG, PERSIS_STOP]:
-            continue
+            break
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
-
-        # If manager returned function values for an existing local opt run,
-        # contact child process to get another x_new and send back to manager
-        import ipdb; ipdb.set_trace()
 
         # Decide if there are any new points to start a localopt run
         starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
 
-        if len(starting_inds): 
+        if len(starting_inds):
             O = np.empty(0, dtype=gen_specs['out'])
             for ind in starting_inds:
                 # Start localopt child processes
@@ -217,6 +213,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 run_order[new_run_num] = [ind]
 
                 # Initialize child process for new localopt run
+                #FIXME: Instead of rading the first value, poll for values from
+                # child processes later.
                 x_new = start_localopt(local_H, gen_specs, c_flag)
 
                 # Add x_new to O (which will be sent to the manager for evaluation)
@@ -224,7 +222,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
             send_mgr_worker_msg(comm, O)
 
+    raise NotImplementedError("Persistent APOSMM is not fully supported, yet.")
+
     return O, persis_info, tag
+
 
 def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
 
