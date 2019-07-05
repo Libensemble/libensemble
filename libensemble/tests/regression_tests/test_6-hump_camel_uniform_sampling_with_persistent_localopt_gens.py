@@ -14,7 +14,8 @@
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 
-import sys import numpy as np
+import sys
+import numpy as np
 
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
 from libensemble.libE import libE

@@ -13,7 +13,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     :See:
         ``/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
     """
-    import ipdb; ipdb.set_trace()
 
     Work = {}
     gen_count = count_persis_gens(W)
