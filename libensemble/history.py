@@ -14,22 +14,24 @@ class History:
 
     """The History Class provides methods for managing the history array.
 
-    Attributes
-    ----------
-    H: numpy structured array
+    **Object Attributes:**
+
+    These are set on initialisation.
+
+    :ivar numpy_structured_array H:
         History array storing rows for each point. Field names are in
         libensemble/libE_fields.py
 
-    offset: integer
+    :ivar int offset:
         Starting index for this ensemble (after H0 read in)
 
-    index: integer
+    :ivar int index:
         Where libEnsemble should start filling in H
 
-    given_count: integer
+    :ivar int given_count:
         Number of points given to sim fuctions (according to H)
 
-    sim_count: integer
+    :ivar int sim_count:
         Number of points evaluated  (according to H)
 
     Note that index, given_count and sim_count reflect the total number of points

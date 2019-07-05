@@ -280,8 +280,8 @@ Next Steps
 
 These are some optional additional learning exercises based on the above code.
 
---- libEnsemble with MPI ---
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+libEnsemble with MPI
+""""""""""""""""""""
 
 MPI_ is a standard interface for parallel computing, implemented in libraries
 like MPICH_ and used at extreme scales. MPI potentially allows libEnsemble's manager
@@ -360,12 +360,3 @@ workers.
 .. _MPI: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _MPICH: https://www.mpich.org/
 .. _here: https://www.mpich.org/downloads/
-
-
-
-
-
-FAQ
----
-
-Coming soon

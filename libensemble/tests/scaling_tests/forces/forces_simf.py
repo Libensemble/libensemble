@@ -37,7 +37,7 @@ def make_unique_simdir(simdir, count=0):
         return make_unique_simdir(".".join([simdir.split('.')[0], str(count)]), count)
 
 
-def run_forces(x, gen_specs, sim_specs, libE_info):
+def run_forces(x, persis_info, sim_specs, libE_info):
     # Setting up variables needed for input and output
     # keys              = variable names
     # x                 = variable values
@@ -138,4 +138,4 @@ def run_forces(x, gen_specs, sim_specs, libE_info):
     output = np.zeros(1, dtype=outspecs)
     output['energy'][0] = final_energy
 
-    return output, gen_specs, calc_status
+    return output, persis_info, calc_status

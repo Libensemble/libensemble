@@ -11,7 +11,22 @@ logger = logging.getLogger(__name__)
 
 
 class EnvResources:
-    """Store environment variables to query for system resource information"""
+    """Store environment variables to query for system resource information
+
+    **Class Attributes:**
+
+    :cvar string default_nodelist_env_slurm: Default SLRUM nodelist environment variable
+    :cvar string default_nodelist_env_cobalt: Default Cobal nodelist environment variable
+    :cvar string default_nodelist_env_lsf: Default LSF nodelist environment variable
+    :cvar string default_nodelist_env_lsf_shortform: Default LSF short-form nodelist environment variable
+
+    **Object Attributes:**
+
+    These are set on initialisation.
+
+    :ivar dict nodelists: Env. variable names to query for nodelists by schedular.
+    :ivar dict ndlist_funcs: Functions to extract nodelists from environment by schedular.
+    """
 
     default_nodelist_env_slurm = 'SLURM_NODELIST'
     default_nodelist_env_cobalt = 'COBALT_PARTNAME'
@@ -23,6 +38,30 @@ class EnvResources:
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
                  nodelist_env_lsf_shortform=None):
+
+        """Initialise new EnvResources instance
+
+        Determines the environment variables to query for resource
+        information. These are either provided or given defaults.
+
+        Parameters
+
+        nodelist_env_slurm: String, optional
+            The environment variable giving a node list in Slurm format (Default: Uses SLURM_NODELIST)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+
+        nodelist_env_cobalt: String, optional
+            The environment variable giving a node list in Cobalt format (Default: Uses COBALT_PARTNAME)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+
+        nodelist_env_lsf: String, optional
+            The environment variable giving a node list in LSF format (Default: Uses LSB_HOSTS)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+
+        nodelist_env_lsf_shortform: String, optional
+            The environment variable giving a node list in LSF short-form format (Default: Uses LSB_MCPU_HOSTS)
+            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+        """
 
         self.nodelists = {}
         self.nodelists['Slurm'] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm
@@ -37,6 +76,7 @@ class EnvResources:
         self.ndlist_funcs['LSF_shortform'] = EnvResources.get_lsf_nodelist_frm_shortform
 
     def get_nodelist(self):
+        """Return nodelist from environment or an empty list"""
         for env, env_var in self.nodelists.items():
             if os.environ.get(env_var):
                 logger.debug("{0} env found - getting nodelist from {0}".format(env))
