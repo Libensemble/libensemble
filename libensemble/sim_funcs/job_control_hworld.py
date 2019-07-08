@@ -36,7 +36,7 @@ def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
         # print('Checking output file for error at time:', time.time() - start)
         if job.stdout_exists():
             if 'Error' in job.read_stdout():
-                print("Found (deliberate) Error in ouput file - cancelling job")
+                print("Found (deliberate) Error in ouput file - cancelling job {} on worker {}".format(job.id, jobctl.workerID))
                 jobctl.kill(job)
                 calc_status = WORKER_KILL_ON_ERR
                 break
