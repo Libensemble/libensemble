@@ -1,4 +1,0 @@
-travis_run_before_install
-travis_run_install
-travis_run_before_script
-python debug_test_jobcontroller_hworld.py

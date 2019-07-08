@@ -2,7 +2,7 @@ import subprocess
 
 comms = ['mpi', 'local', 'tcp']
 nprocs = [2, 3, 4]
-test = './libensemble/tests/regression_tests/test_jobcontroller_hworld.py'
+test = 'test_jobcontroller_hworld.py'
 
 for comm in comms:
     for nproc in nprocs:
