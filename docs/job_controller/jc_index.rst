@@ -1,3 +1,5 @@
+.. _jobcontroller_index:
+
 Job Controller
 ==============
 
