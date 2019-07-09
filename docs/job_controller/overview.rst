@@ -1,20 +1,22 @@
 Job Controller Overview
 =======================
 
-Many users' will wish to launch an application to the system from a sim_f (or gen_f).
-An MPI job, for example, could be initialized with a subprocess call to mpirun, or
-an alternative launcher such as aprun or jsrun. The sim_f may then monitor this job,
+Many users' will wish to launch an application to the system from a :ref:`sim_f<api_sim_f>`
+(or :ref:`gen_f<api_gen_f>`), running on a worker.
+
+An MPI job, for example, could be initialized with a subprocess call to ``mpirun``, or
+an alternative launcher such as ``aprun`` or ``jsrun``. The sim_f may then monitor this job,
 check output, and possibly kill the job. The word ``job`` is used here to represent
 a launch of an application to the system, where the system could be a supercomputer,
 cluster, or any other provision of compute resources. 
 
 In order to remove the burden of system interaction from the user, and enable sim_f
 scripts that are portable between systems, a job_controller interface is provided by
-libEnsemble. The job_controller provides the key functions: ``launch``, ``poll`` and
-``kill``. libEnsemble auto-detects a number of system criteria, such as the MPI launcher, 
+libEnsemble. The job_controller provides the key functions: ``launch()``, ``poll()`` and
+``kill()``. libEnsemble auto-detects a number of system criteria, such as the MPI launcher, 
 along with correct mechanisms for polling and killing jobs, on supported systems. It also
 contains built in resilience, such as re-launching jobs that fail due to system factors.
-User scripts that employ the job_controller interface should be portable between supported
+User scripts that employ the job_controller interface will be portable between supported
 systems. Job attributes can be queried to determine status after each poll. Functions are 
 also provided to access and interrogate files in the job's working directory.
 
