@@ -8,7 +8,7 @@ An MPI job, for example, could be initialized with a subprocess call to ``mpirun
 an alternative launcher such as ``aprun`` or ``jsrun``. The sim_f may then monitor this job,
 check output, and possibly kill the job. The word ``job`` is used here to represent
 a launch of an application to the system, where the system could be a supercomputer,
-cluster, or any other provision of compute resources. 
+cluster, or any other provision of compute resources.
 
 In order to remove the burden of system interaction from the user, and enable sim_f
 scripts that are portable between systems, a job_controller interface is provided by
@@ -32,7 +32,7 @@ gen or sim applications are registered to it (these are applications that will
 be runnable jobs). If an alternative job_controller, such as Balsam, is to be
 used, then these can be created as in the example. Once in the user-side worker
 code (sim/gen func), an MPI based job_controller can be retrieved without any
-need to specify the specific type.
+need to specify the type.
 
 **Example usage (code runnable with or without a Balsam backend):**
 
@@ -40,38 +40,40 @@ In calling function::
 
     sim_app = '/path/to/my/exe'
     USE_BALSAM = False
-    
+
     if USE_BALSAM:
         from libensemble.balsam_controller import BalsamJobController
-        jobctrl = BalsamJobController()    
+        jobctrl = BalsamJobController()
     else:
         from libensemble.mpi_controller import MPIJobController
-        jobctrl = MPIJobController()    
-        
+        jobctrl = MPIJobController()
+
     jobctrl.register_calc(full_path=sim_app, calc_type='sim')
-    
+
 In user sim func::
 
-    jobctl = MPIJobController.controller # This will work for inherited controllers also (e.g., Balsam)
     import time
-    
-    jobctl = MPIJobController.controller # Will return controller (whether Balsam or standard MPI).
-    job = jobctl.launch(calc_type='sim', num_procs=8, app_args='input.txt', stdout='out.txt', stderr='err.txt') 
-    
+
+    # Will return controller (whether MPI or inherited such as Balsam).
+    jobctl = MPIJobController.controller
+
+    job = jobctl.launch(calc_type='sim', num_procs=8, app_args='input.txt',
+                        stdout='out.txt', stderr='err.txt')
+
     while time.time() - start < timeout_sec:
         time.sleep(delay)
-        
+
         # Has manager sent a finish signal
         jobctl.manager_poll()
         if jobctl.manager_signal == 'finish':
-            job.kill()        
-        
+            job.kill()
+
         # Poll job to see if completed
         job.poll()
         if job.finished:
             print(job.state)
             break
-            
+
         # Check output file for error and kill job
         if job.stdout_exists():
             if 'Error' in job.read_stdout():
