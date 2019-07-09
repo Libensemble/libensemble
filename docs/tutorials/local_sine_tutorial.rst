@@ -12,34 +12,34 @@ The foundation of writing libEnsemble routines is accounting for four components
     3. The *Allocation Function* :ref:`alloc_f<api_alloc_f>`, which decides which of the previous two functions should be called, when.
     4. The *Calling Script*, which defines parameters and information about these functions and the libEnsemble task, then begins execution.
 
-libEnsemble initializes a *manager* process and as many *worker*
-processes as the user requests. These workers control and monitor jobs of widely
-varying sizes and capabilities, including calling ``gen_f`` and ``sim_f`` functions, and
-passing values between them.
+libEnsemble initializes a *manager* process and as many *worker* processes as the
+user requests. The manager coordinates data-transfer between workers and assigns each
+units of work, consisting of a ``gen_f`` or ``sim_f`` function to run and
+accompanying data. These functions can perform their work in-line with Python or by
+launching and controlling user-applications with a job-controller. Finally, workers
+pass results back to the manager.
 
-For this tutorial, our ``gen_f`` will produce uniform randomly-sampled values,
-and our ``sim_f`` will be tasked with finding the sine of each. Thankfully,
-we don't need to specify a new allocation function by default. All generated and simulated
-values alongside other parameters are stored in :ref:`H<datastruct-history-array>`,
-the History array.
-
+For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python without
+other applications. our ``gen_f`` will produce uniform randomly-sampled
+values, and our ``sim_f`` will find the sine of each. By default we don't need to
+write a new allocation function. All generated and simulated values alongside other
+parameters are stored in :ref:`H<datastruct-history-array>`, the History array.
 
 .. _libEnsemble: https://libensemble.readthedocs.io/en/latest/quickstart.html
 
 Getting started
 ---------------
 
-First, create an empty directory to store our code. Make sure Python 3 is
-installed.
+libEnsemble and it's functions are written entirely in Python_. Let's make sure Python 3 is installed.
 
 .. code-block:: bash
 
-    $ mkdir libe_tutorial
-    $ cd libe_tutorial
     $ python3 --version
     Python 3.6.0            # This should be >= 3.4
 
-For this tutorial, you need NumPy_ to perform the calculations and (optionally)
+.. _Python: https://www.python.org/
+
+For this tutorial, you need NumPy_ to perform calculations and (optionally)
 Matplotlib_ to visualize your results. Install libEnsemble and these other libraries
 with:
 
@@ -58,18 +58,18 @@ If your system doesn't allow you to perform the above installations, try adding
 Generator function
 ------------------
 
-We'll start the coding portion of this tutorial by writing our :ref:`gen_f<api_gen_f>`, or generator
+Let's begin the coding portion of this tutorial by writing our :ref:`gen_f<api_gen_f>`, or generator
 function.
 
 An available libEnsemble worker will call this generator function with the following parameters:
 
-* :ref:`H<datastruct-history-array>`: The History array. Updated by the workers with ``gen_f`` and ``sim_f`` inputs and outputs, then returned to the user. libEnsemble passes ``H`` to the generator function for users who may want to generate new values based on previous values.
+* :ref:`H<datastruct-history-array>`: The History array. Updated by the workers with ``gen_f`` and ``sim_f`` inputs and outputs, then returned to the user. libEnsemble passes ``H`` to the generator function in case the user wants to generate new values based on previous data.
 
-* :ref:`persis_info<datastruct-persis-info>`: Dictionary with worker-specific information. In our case this dictionary contains random streams for generating random numbers.
+* :ref:`persis_info<datastruct-persis-info>`: Dictionary with worker-specific information. In our case this dictionary contains mechanisms called random streams for generating random numbers.
 
-* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with entries like simulation IDs, inputs and outputs, data-types, and other specifications for the generator function.
+* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with ``gen_f`` specifications like simulation IDs, inputs and outputs, data-types, and other fields.
 
-Later on we'll write ``gen_specs`` and ``persis_info`` explicitly in our calling script.
+Later on, we'll populate ``gen_specs`` and ``persis_info`` in our calling script.
 
 For now, create a new Python file named 'generator.py'. Write the following:
 
@@ -110,7 +110,7 @@ Simulator function
 ------------------
 
 Next, we'll write our :ref:`sim_f<api_sim_f>` or simulator function. Simulator
-functions perform calculations based on the values output by the generator function.
+functions perform calculations based on values from the generator function.
 The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which serves
 a similar purpose to ``gen_specs``.
 
@@ -151,8 +151,7 @@ simulator functions we just created.
 
 Next, in a dictionary called :ref:`libE_specs<datastruct-libe-specs>` we'll specify
 the number of workers and the type of manager/worker communication libEnsemble will
-use. Our communication method, referred to by 'comms', is 'local' because we're
-using Python's multiprocessing.
+use. Our communication method, 'local', refers to Python's Multiprocessing.
 
 .. code-block:: python
     :linenos:
@@ -165,11 +164,11 @@ using Python's multiprocessing.
     nworkers = 4
     libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
 
-Our calling script is where we outline the settings and specifications
-for our generator and simulator functions in the :ref:`gen_specs<datastruct-gen-specs>`
-and :ref:`sim_specs<datastruct-sim-specs>` dictionaries that we saw previously.
-These dictionaries also describe to libEnsemble what inputs and outputs from those
-functions to expect.
+We configure the settings and specifications for our ``sim_f`` and ``gen_f``
+functions in the :ref:`gen_specs<datastruct-gen-specs>` and
+:ref:`sim_specs<datastruct-sim-specs>` dictionaries, which we saw previously being
+passed to our functions. These dictionaries also describe to libEnsemble what
+inputs and outputs from those functions to expect.
 
 .. code-block:: python
     :linenos:
@@ -186,9 +185,10 @@ functions to expect.
                  'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
 
 
-Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>` dictionary that, in our case, contains  a ``RandomState()``
-stream for uniform random sampling. We populate that dictionary here. Finally, we specify
-the circumstances where libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
+Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
+dictionary that, in this tutorial, contains  a ``RandomState()`` random stream for
+uniform random sampling. We populate that dictionary here. Finally, we specify the
+circumstances where libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
 
 .. code-block:: python
     :linenos:
@@ -203,8 +203,8 @@ the circumstances where libEnsemble should stop execution in :ref:`exit_criteria
     exit_criteria = {'sim_max': 80}               # Stop libEnsemble after 80 simulations
 
 Now we're ready to write our libEnsemble :doc:`libE<../libE_module>` function call.
-This :ref:`H<datastruct-history-array>` is the final version of the History array. 'flag' should be zero if no
-errors occur.
+This :ref:`H<datastruct-history-array>` is the final version of the History array.
+'flag' should be zero if no errors occur.
 
 .. code-block:: python
     :linenos:
@@ -215,15 +215,15 @@ errors occur.
     print([i for i in H.dtype.fields])            # Some (optional) statements to visualize our History array
     print(H)
 
-
-Now that all these files are completed, we can run our simulation.
+That's it! Now that these files are complete, we can run our simulation.
 
 .. code-block:: bash
 
   $ python3 calling_script.py
 
-If everything ran perfectly, You should get something similar to the following output
-for ``H``. The columns might be rearranged.
+If everything ran perfectly and you included the above print-statements, You
+should get something similar to the following output for ``H``. The columns might
+be rearranged.
 
 .. code-block::
 
@@ -236,7 +236,7 @@ for ``H``. The columns might be rearranged.
   ...
 
 In this arrangement, our output values are listed on the far-left with the generated
-values being the fourth column from the right. Again, your columns might be rearranged.
+values being the fourth column from the right.
 
 Two additional log files should also have been created.
 'ensemble.log' contains debugging or informational logging output from libEnsemble,
@@ -248,7 +248,7 @@ the simulation:
 .. image:: ../images/sinex.png
   :alt: sine
 
-If you want to verify your results through plotting and you installed Matplotlib
+If you want to verify your results through plotting and installed Matplotlib
 earlier, copy and paste the following code into the bottom of your calling script
 and run ``python3 calling_script.py`` again
 
@@ -278,7 +278,7 @@ and run ``python3 calling_script.py`` again
 Next Steps
 ----------
 
-These are some optional additional learning exercises based on the above code.
+This is another learning exercise based on the above code.
 
 libEnsemble with MPI
 """"""""""""""""""""
@@ -286,8 +286,8 @@ libEnsemble with MPI
 MPI_ is a standard interface for parallel computing, implemented in libraries
 like MPICH_ and used at extreme scales. MPI potentially allows libEnsemble's manager
 and workers to be distributed over multiple nodes and works in some circumstances
-where multiprocessing does not. In this section, we'll explore modifying the above
-code to use MPI instead of Python's local multiprocessing.
+where python's multiprocessing does not. In this section, we'll explore modifying the above
+code to use MPI instead of multiprocessing.
 
 We recommend MPICH_ for this tutorial, which can be found for a variety of systems
 here_. You also need mpi4py which can be downloaded via ``pip3 install mpi4py``.
