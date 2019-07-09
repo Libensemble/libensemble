@@ -14,8 +14,8 @@ The foundation of writing libEnsemble routines is accounting for four components
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
 user requests. The manager coordinates data-transfer between workers and assigns
-units of work to each. Alongside accompanying data, these units of work consist of the
-``gen_f`` or ``sim_f`` function to be run. These functions can control and monitor jobs
+units of work to each. These units of work consist of the ``gen_f`` or ``sim_f``
+function to be run and accompanying data. These functions can control and monitor jobs
 of widely varying sizes and capabilities, then pass results back to the manager.
 
 For this tutorial, our ``gen_f`` will produce uniform randomly-sampled values,
