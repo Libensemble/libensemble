@@ -13,14 +13,16 @@ The foundation of writing libEnsemble routines is accounting for four components
     4. The *Calling Script*, which defines parameters and information about these functions and the libEnsemble task, then begins execution.
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
-user requests. The manager coordinates data-transfer between workers and assigns
-units of work to each. These units of work consist of the ``gen_f`` or ``sim_f``
-function to be run and accompanying data. These functions can control and monitor jobs
-of widely varying sizes and capabilities, then pass results back to the manager.
+user requests. The manager coordinates data-transfer between workers and assigns each
+units of work, consisting of a ``gen_f`` or ``sim_f`` function to run and
+accompanying data. These functions can perform their work in-line with Python or by
+launching and controlling user-applications with a job-controller. Finally, workers
+pass results back to the manager.
 
-For this tutorial, our ``gen_f`` will produce uniform randomly-sampled values,
-and our ``sim_f`` will find the sine of each. By default we don't need to write
-a new allocation function. All generated and simulated values alongside other
+For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python without
+other applications. our ``gen_f`` will produce uniform randomly-sampled
+values, and our ``sim_f`` will find the sine of each. By default we don't need to
+write a new allocation function. All generated and simulated values alongside other
 parameters are stored in :ref:`H<datastruct-history-array>`, the History array.
 
 .. _libEnsemble: https://libensemble.readthedocs.io/en/latest/quickstart.html
