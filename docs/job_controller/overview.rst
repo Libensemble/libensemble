@@ -82,7 +82,7 @@ In user sim func::
 
 See the :doc:`job_controller<job_controller>` interface for API.  
 
-For a more slightly more detailed working example see:
+For a slightly more detailed working example see:
 
 - libensemble/tests/regression_tests/test_jobcontroller_hworld.py
 
