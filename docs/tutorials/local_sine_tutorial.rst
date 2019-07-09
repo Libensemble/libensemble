@@ -32,6 +32,9 @@ Getting started
 
 libEnsemble and it's functions are written entirely in Python_. Let's make sure Python 3 is installed.
 
+Note: If you have a Python version-specific virtual environment set up (e.g. Conda),
+then ``python`` and ``pip`` will work in place of ``python3`` and ``pip3``.
+
 .. code-block:: bash
 
     $ python3 --version
