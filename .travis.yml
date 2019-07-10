@@ -1,5 +1,4 @@
 language: python
-compiler: gcc
 sudo: required
 dist: xenial
 python:
@@ -43,53 +42,41 @@ cache:
 
 # Setup Miniconda
 before_install:
-  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  #     wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-  #   else
-  #     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  #   fi
-  # - bash miniconda.sh -b -p $HOME/miniconda
-  # - export PATH="$HOME/miniconda/bin:$PATH"
-  # - hash -r
-  # - conda config --set always_yes yes --set changeps1 no
-  # - conda update -q -y conda
-  # - conda info -a # For debugging any issues with conda
-  # - conda config --add channels conda-forge
-  # - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
-  # - source activate condaenv
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        brew install gcc mpich;
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     else
-        sudo apt-get install -y -q mpich libmpich-dev;
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q -y conda
+  - conda info -a # For debugging any issues with conda
+  - conda config --add channels conda-forge
+  - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
+  - source activate condaenv
 
 install:
-  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  #       conda install clang_osx-64;
-  #   else
-  #       conda install gcc_linux-64;
-  #   fi
-  # - conda install $MPI
-  - pip install numpy
-  - pip install mpi4py
-  - pip install Cython --install-option="--no-cython-compile"
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        conda install clang_osx-64;
+    else
+        conda install gcc_linux-64;
+    fi
+  - conda install $MPI
+  - conda install scipy # includes numpy
+  - conda install mpi4py
   # Forcing mumps-mpi version
   # Travis-included MacOSX SDK not built for x86_64 - Downloading one that is
-  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  #       conda install mumps-mpi=5.1.2=haf446c3_1007;
-  #       wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
-  #       mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
-  #   else
-  #       conda install mumps-mpi=5.1.2=h5bebb2f_1007;
-  #   fi
-  - git clone -b master https://bitbucket.org/petsc/petsc petsc
-  - cd petsc
-  #- ./configure --download-petsc4py --with-python-exec=python --download-fblaslapack; cd ..
-  - ./configure --download-fblaslapack; cd ..
-  - export PETSC_DIR=/petsc
-  - pip install petsc4py
-  - pip install nlopt
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        conda install mumps-mpi=5.1.2=haf446c3_1007;
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
+        mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
+    else
+        conda install mumps-mpi=5.1.2=h5bebb2f_1007;
+    fi
+  - conda install petsc4py petsc
+  - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
   - pip install pytest
@@ -106,10 +93,10 @@ install:
 before_script:
   - flake8 libensemble
   # Set conda compilers to use new SDK instead of Travis default.
-  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  #       echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
-  #       source setenv.sh;
-  #   fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
+        source setenv.sh;
+    fi
 
 # Run test (-z show output)
 script:
