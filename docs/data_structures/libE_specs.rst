@@ -15,3 +15,6 @@ Specifications for libEnsemble::
             libEnsemble communicator. Default: MPI.COMM_WORLD
         'color' [int] :
             Communicator color. Default: 0
+        'abort_on_exception' [boolean] :
+            In MPI mode, whether to call MPI_ABORT on an exception. Default: True
+            IF False, an exception will be raised by the manager.
