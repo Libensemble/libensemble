@@ -85,7 +85,9 @@ install:
   #   fi
   - git clone -b master https://bitbucket.org/petsc/petsc petsc
   - cd petsc
-  - ./configure --download-petsc4py --with-python-exec=python --download-fblaslapack; cd ..
+  #- ./configure --download-petsc4py --with-python-exec=python --download-fblaslapack; cd ..
+  - ./configure --download-fblaslapack; cd ..
+  - pip install petsc4py
   - pip install nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
