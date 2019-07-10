@@ -73,6 +73,7 @@ install:
   # - conda install $MPI
   - pip install scipy
   - pip install mpi4py
+  - pip install Cython --install-option="--no-cython-compile"
   # Forcing mumps-mpi version
   # Travis-included MacOSX SDK not built for x86_64 - Downloading one that is
   # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
