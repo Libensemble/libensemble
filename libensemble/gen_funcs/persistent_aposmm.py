@@ -270,7 +270,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 # Start localopt child processes
 
                 # Mark point as having started a run
-                # Why does it help to mark the total number of runs?
+                # Why does it help to mark the total number of runs? JL: it's
+                # useful to assign a unique ID to each run that is started.
+                # Such information is one way (but not the only way) to give
+                # funciton values to the correct child process.
                 total_runs += 1
                 local_H['started_run'][ind] = 1
 
