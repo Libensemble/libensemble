@@ -71,7 +71,7 @@ install:
   #       conda install gcc_linux-64;
   #   fi
   # - conda install $MPI
-  - pip install scipy
+  - pip install numpy
   - pip install mpi4py
   - pip install Cython --install-option="--no-cython-compile"
   # Forcing mumps-mpi version
@@ -87,6 +87,7 @@ install:
   - cd petsc
   #- ./configure --download-petsc4py --with-python-exec=python --download-fblaslapack; cd ..
   - ./configure --download-fblaslapack; cd ..
+  - export PETSC_DIR=/petsc
   - pip install petsc4py
   - pip install nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
