@@ -28,6 +28,9 @@ from libensemble.gen_funcs.support import send_mgr_worker_msg
 from libensemble.gen_funcs.support import get_mgr_worker_msg
 
 
+from multiprocessing import Event, Process, Queue
+
+
 class APOSMMException(Exception):
     "Raised for any exception in APOSMM"
 
@@ -184,57 +187,133 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     """
 
+    # {{{ multiprocessing initialization
+
+    child_can_read_evts = []
+    processes = []
+    parent_can_read_from_queue = Event()
+    comm_queue = Queue()
+
+    # }}}
+
     n, n_s, c_flag, rk_const, mu, nu, total_runs, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
+
+    if gen_specs['initial_sample_size'] != 1:
+        raise RuntimeError("sample size > not supported for now.")
 
     send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H)
 
+    # Separate the logic of filling local_H and sending it.
+    # Reason: To a new developer this doesn't look like local_H will get
+    # edited.
+
+    print('local_H =', local_H)
+
     tag = None
+    O = np.empty(0, dtype=gen_specs['out'])  # noqa: E741
     while 1:
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
+        # KK: tag: what tag is it?(need helpful naming)
+        # KK: 'tag' is present in 'Work' as well.(repitition accounts for
+        # more confusion and increases scope for human error)
+        # Aah ok, looking further tag seems one of the enums in libEnsemble.
+        # Anyways just the name 'tag' is not desciptive enough, something more
+        # descriptive would be better.
+
+        # persis_info contains something called H_rows
+
+        # print('Tag =', tag)
+        # print('Work =', Work)
+        print('calc_in =', calc_in)
+
         if tag in [STOP_TAG, PERSIS_STOP]:
+            # FIXME: We need to kill all the child processes here.
+            raise NotImplementedError("Killing of child processes in not"
+                    " implmeneted by the devs.")
             break
+
+        # Look at the message here. Is it a message for a point from which
+        # local optimization has to be started or does it have to be supplied
+        # to a currently running local optimization run.
+        # local_H contains a ton of information.
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
-        # Decide if there are any new points to start a localopt run
-        starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
 
-        if len(starting_inds):
-            O = np.empty(0, dtype=gen_specs['out'])
+        if current_eval_received_for_a_run(tag, Work, calc_in):
+
+            child_idx = get_child_idx_for_the_received_evaluation(calc_in)
+
+            comm_queue.push(f_x)
+
+            parent_can_read_from_queue.unset()
+
+            child_can_read_evts[child_idx].set()
+            parent_can_read_from_queue.wait()
+
+            x_new = comm_queue.get()
+
+            add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+
+            #FIXME: Be very careful about the sim_id.
+            # Once we have set the sim_id correctly our job
+            send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+        else:
+            n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
+
+            # Decide if there are any new points to start a localopt run
+            starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
+
             for ind in starting_inds:
                 # Start localopt child processes
 
                 # Mark point as having started a run
-                new_run_num = total_runs
+                # Why does it help to mark the total number of runs?
                 total_runs += 1
                 local_H['started_run'][ind] = 1
-                run_order[new_run_num] = [ind]
 
-                # Initialize child process for new localopt run
-                #FIXME: Instead of rading the first value, poll for values from
-                # child processes later.
-                x_new = start_localopt(local_H, gen_specs, c_flag)
+                child_can_read_evts.append(Event())
 
-                # Add x_new to O (which will be sent to the manager for evaluation)
-                add_to_O(O, x_new, local_H, gen_specs, c_flag, persis_info, local_flag=1)
+                # FIXME: f_x must be read from local_H.
 
-            send_mgr_worker_msg(comm, O)
+                p = Process(run_local_opt, args=(comm_queue, x_start,
+                    child_can_read, parent_can_read))
+                processes.append(p)
+                p.start()
+
+                comm_queue.push(f_x)
+                parent_can_read_from_queue.unset()
+
+                child_can_read_evts[-1].set()
+                parent_can_read_from_queue.wait()
+
+                x_new = comm_queue.get()
+
+                add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+
+                #FIXME: Be very careful about the sim_id.
+                # That is all what we have.
+                send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
 
     raise NotImplementedError("Persistent APOSMM is not fully supported, yet.")
+
+    for p in processes:
+        p.join()
 
     return O, persis_info, tag
 
 
 def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
 
-    for name in calc_in.dtype.names: 
+    for name in calc_in.dtype.names:
         local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
 
     local_H['returned'][Work['libE_info']['H_rows']] = True
     n_s += np.sum(~local_H[Work['libE_info']['H_rows']]['local_pt'])
 
+    # dist -> distance
     update_history_dist(local_H, n, gen_specs, c_flag)
 
     return n_s
