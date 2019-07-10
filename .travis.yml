@@ -82,7 +82,9 @@ install:
   #   else
   #       conda install mumps-mpi=5.1.2=h5bebb2f_1007;
   #   fi
-  - pip install petsc petsc4py
+  - git clone -b master https://bitbucket.org/petsc/petsc petsc
+  - cd petsc
+  - ./configure --download-petsc4py --with-python-exec=python --download-fblaslapack; cd ..
   - pip install nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
