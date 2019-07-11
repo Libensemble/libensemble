@@ -84,7 +84,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'libEnsemble'
 copyright = '2019, Jeffrey Larson'
-author = 'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, and David Bindel'
+author = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -185,7 +185,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'libEnsemble.tex', 'libEnsemble User Manual',
-     'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, David Bindel', 'manual'),
+     'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, David Bindel, John-Luke Navarro', 'manual'),
 ]
 
 
