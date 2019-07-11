@@ -118,18 +118,18 @@ def test_localopt_error_saving():
     else:
         assert 0
 
-    gen_specs_0.pop('tol')
+    # gen_specs_0.pop('tol')
 
-    gen_specs_0['localopt_method'] = 'pounders'
-    gen_specs_0['gatol'] = 0.1
-    gen_specs_0['grtol'] = 0.1
-    gen_specs_0['dist_to_bound_multiple'] = 0.1
-    try:
-        al.aposmm_logic(H, persis_info_1, gen_specs_0, _)
-    except Exception as e:
-        assert e.args[0] == 'Exit code is 0, but x_new was not updated in local opt run 0 after 3 evaluations.\nSaving run information to: run_0_abort.pickle\nWorker crashing!'
-    else:
-        assert 0
+    # gen_specs_0['localopt_method'] = 'pounders'
+    # gen_specs_0['gatol'] = 0.1
+    # gen_specs_0['grtol'] = 0.1
+    # gen_specs_0['dist_to_bound_multiple'] = 0.1
+    # try:
+    #     al.aposmm_logic(H, persis_info_1, gen_specs_0, _)
+    # except Exception as e:
+    #     assert e.args[0] == 'Exit code is 0, but x_new was not updated in local opt run 0 after 3 evaluations.\nSaving run information to: run_0_abort.pickle\nWorker crashing!'
+    # else:
+    #     assert 0
 
 
 if __name__ == "__main__":

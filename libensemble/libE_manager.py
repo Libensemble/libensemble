@@ -32,6 +32,33 @@ class ManagerException(Exception):
 def manager_main(hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
     """Manager routine to coordinate the generation and simulation evaluations
+
+    Parameters
+    ----------
+
+    hist: :obj:`History`
+        A libEnsemble History type object.
+
+    libE_specs: :obj:`dict`
+        Specifications for libEnsemble
+
+    alloc_specs: :obj:`dict`
+        Specifications for the allocation function
+
+    sim_specs: :obj:`dict`
+        Specifications for the simulation function
+
+    gen_specs: :obj:`dict`
+        Specifications for the generator function
+
+    exit_criteria: :obj:`dict`
+        Criteria for libEnsemble to stop a run
+
+    persis_info: :obj:`dict`
+        Persistent information to be passed between user functions
+
+    wcomms: :obj:`list`, optional
+        A list of comm type objects for each worker. Default is an empty list.
     """
 
     if 'in' not in gen_specs:

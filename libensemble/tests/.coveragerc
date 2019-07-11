@@ -14,11 +14,13 @@ omit =
     */__init__.py
     */.tox/*
     */setup.py
-    */unit_tests/*    
-    */unit_tests_nompi/*    
+    */forkpdb.py
+    */unit_tests/*
+    */unit_tests_nompi/*
+    */unit_tests_logger/*
     */regression_tests/*
     */sim_funcs/helloworld.py
 #    */sim_funcs/*
-#    */gen_funcs/*    
-exclude_lines =    
+#    */gen_funcs/*
+exclude_lines =
     if __name__ == .__main__.:
