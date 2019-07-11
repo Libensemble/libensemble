@@ -207,8 +207,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     # Reason: To a new developer this doesn't look like local_H will get
     # edited.
 
-    print('local_H =', local_H)
-
     tag = None
     O = np.empty(0, dtype=gen_specs['out'])  # noqa: E741
     while 1:
@@ -224,9 +222,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         # persis_info contains something called H_rows
 
+        # calc_in contains the tuple (x, f, grad_f).
+        # So one can theoretically read the local_H and do some operations to
+        # figure out the origin of this 'x'.
+
         # print('Tag =', tag)
         # print('Work =', Work)
-        print('calc_in =', calc_in)
+        # print('calc_in =', calc_in)
 
         if tag in [STOP_TAG, PERSIS_STOP]:
             # FIXME: We need to kill all the child processes here.
@@ -240,6 +242,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         # local_H contains a ton of information.
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
+
+        print(local_H)
+        1/0
 
 
         if current_eval_received_for_a_run(tag, Work, calc_in):
@@ -278,12 +283,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 # FIXME: f_x must be read from local_H.
 
-                p = Process(run_local_opt, args=(comm_queue, x_start,
+                p = Process(run_local_opt, args=(local_opt_type, comm_queue, x_start,
                     child_can_read, parent_can_read))
                 processes.append(p)
                 p.start()
 
-                comm_queue.push(f_x)
+                comm_queue.push((f_x, grad_f_x))
                 parent_can_read_from_queue.unset()
 
                 child_can_read_evts[-1].set()
@@ -303,6 +308,30 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         p.join()
 
     return O, persis_info, tag
+
+
+def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
+    comm_queue.put(x)
+    parent_can_read.set()
+    child_can_read.wait()
+    result = comm_queue.get()
+    child_can_read.unset()
+    if gen_specs['localopt_method'] in ['LD_MMA']:
+        grad[:] = result[1]
+
+    return result[0]
+
+
+def run_local_opt(gen_specs, comm_queue, x0, child_can_read,
+        parent_can_read):
+
+    opt = nlopt.opt(nlopt.LN_BOBYQA, 2)
+    opt.set_min_objective(lambda x, grad: callback_function(x, grad,
+        comm_queue, child_can_read, parent_can_read, gen_specs))
+
+    opt.set_lower_bounds(-np.array([3, 2]))
+    opt.set_upper_bounds(np.array([3, 2]))
+    opt.set_ftol_rel(1e-4)
 
 
 def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
@@ -962,6 +991,7 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H):
     sampled_points = persis_info['rand_stream'].uniform(0, 1, (gen_specs['initial_sample_size'], n))
     add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
+    print('Sent =', local_H[['x','sim_id']])
     send_mgr_worker_msg(comm, local_H[['x','sim_id']])
 
 
