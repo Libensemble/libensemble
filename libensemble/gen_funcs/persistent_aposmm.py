@@ -198,6 +198,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     n, n_s, c_flag, rk_const, mu, nu, total_runs, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
 
+    sim_id_to_child_indices = {}
+
     if gen_specs['initial_sample_size'] != 1:
         raise RuntimeError("sample size > not supported for now.")
 
@@ -212,6 +214,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     while 1:
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
+        x_recv, f_x_recv, grad_f_recv, sim_id_recv = calc_in[0]
+        print(calc_in)
+        1/0
 
         # KK: tag: what tag is it?(need helpful naming)
         # KK: 'tag' is present in 'Work' as well.(repitition accounts for
@@ -246,25 +251,19 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         print(local_H)
         1/0
 
+        if sim_id_to_child_indices.get(sim_id):
+            for child_idx in sim_id_to_child_indices[sim_id_recv]:
+                comm_queue.push((f_x_recv, grad_f_recv))
 
-        if current_eval_received_for_a_run(tag, Work, calc_in):
+                parent_can_read_from_queue.unset()
 
-            child_idx = get_child_idx_for_the_received_evaluation(calc_in)
+                child_can_read_evts[child_idx].set()
+                parent_can_read_from_queue.wait()
 
-            comm_queue.push(f_x)
+                x_new = comm_queue.get()
 
-            parent_can_read_from_queue.unset()
-
-            child_can_read_evts[child_idx].set()
-            parent_can_read_from_queue.wait()
-
-            x_new = comm_queue.get()
-
-            add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
-
-            #FIXME: Be very careful about the sim_id.
-            # Once we have set the sim_id correctly our job
-            send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+                add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
         else:
             n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
