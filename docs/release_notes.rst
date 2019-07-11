@@ -14,7 +14,7 @@ Release 0.5.1
 :Note:
 
 * Tested platforms include: Local Linux, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm).
-* Test Python versions: 3.4, 3.5, 3.6, 3.7
+* Tested Python versions: (Cpython) 3.4, 3.5, 3.6, 3.7
 
 :Known issues:
 
