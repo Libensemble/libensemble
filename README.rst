@@ -163,10 +163,10 @@ Please use the following to cite libEnsemble in a publication:
 .. code-block:: bibtex
 
   @techreport{libEnsemble,
-    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel},
+    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel and John-Luke Navarro},
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
-    number      = {Revision 0.5.0},
+    number      = {Revision 0.5.1},
     year        = {2019},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
