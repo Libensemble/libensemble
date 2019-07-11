@@ -49,3 +49,9 @@ An administrator will take the following steps.
 
 
 - If the merge was made from a release branch (instead of develop), merge this branch into develop.
+
+
+After release
+-------------
+
+- Ensure all relevant github issues are closed and moved to the *Done* column on the kanban project board (inc. the release checklist).
