@@ -5,7 +5,7 @@ Release Notes
 Release 0.5.1
 -------------
 
-:Date: July 09, 2019
+:Date: July 11, 2019
 
 * Fixed LSF resource detection for large jobs on LSF systems (e.g. Summit) #184 
 * Added support for macOS #182
