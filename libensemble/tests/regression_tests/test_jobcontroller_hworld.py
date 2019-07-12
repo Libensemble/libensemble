@@ -76,7 +76,7 @@ gen_specs = {'gen_f': gen_f,
              'out': [('x', float, (2,))],
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2]),
-             'gen_batch_size': 5*nworkers,
+             'gen_batch_size': nworkers,
              'batch_mode': True,
              'num_active_gens': 1,
              'save_every_k': 20}
