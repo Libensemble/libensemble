@@ -21,7 +21,7 @@ def test_timer():
     time.sleep(0.1)
     e3 = timer.elapsed
 
-    assert (e1 >= 0.5) and (e1 <= 0.6), "Check timed sleep seems correct"
+    assert (e1 >= 0.5) and (e1 <= 0.7), "Check timed sleep seems correct"
     assert e2 >= e1, "Check timer order."
     assert e2 == e3, "Check elapsed time stable when timer inactive."
 
