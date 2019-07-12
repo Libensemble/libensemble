@@ -203,7 +203,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     if gen_specs['initial_sample_size'] != 1:
         raise RuntimeError("sample size > not supported for now.")
 
-    send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H)
+    send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
+            sim_id_to_child_indices)
 
     # Separate the logic of filling local_H and sending it.
     # Reason: To a new developer this doesn't look like local_H will get
@@ -214,7 +215,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     while 1:
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
-        x_recv, f_x_recv, grad_f_recv, sim_id_recv = calc_in[0]
+        x_recv, f_x_recv, grad_f_x_recv, sim_id_recv = calc_in[0]
         print(calc_in)
         1/0
 
@@ -251,9 +252,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         print(local_H)
         1/0
 
-        if sim_id_to_child_indices.get(sim_id):
+        if sim_id_to_child_indices.get(sim_id_recv):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
-                comm_queue.push((f_x_recv, grad_f_recv))
+                comm_queue.push((f_x_recv, grad_f_x_recv))
 
                 parent_can_read_from_queue.unset()
 
@@ -263,7 +264,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 x_new = comm_queue.get()
 
                 add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                # TODO:[KK]: Would it be true that the local_H[-1] would be our
+                # new point?
                 send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+                if local_H[-1]['sim_id'] in sim_id_to_child_indices:
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
+                else:
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
         else:
             n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
@@ -285,12 +292,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 # FIXME: f_x must be read from local_H.
 
-                p = Process(run_local_opt, args=(local_opt_type, comm_queue, x_start,
-                    child_can_read, parent_can_read))
+                p = Process(run_local_opt, args=(gen_specs, comm_queue, x_recv,
+                    child_can_read_evts[-1], parent_can_read_from_queue))
                 processes.append(p)
                 p.start()
 
-                comm_queue.push((f_x, grad_f_x))
+                comm_queue.push((f_x_recv, grad_f_x_recv))
                 parent_can_read_from_queue.unset()
 
                 child_can_read_evts[-1].set()
@@ -299,6 +306,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 x_new = comm_queue.get()
 
                 add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+
+                if local_H[-1]['sim_id'] in sim_id_to_child_indices:
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(processes), )
+                else:
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(processes), )
 
                 #FIXME: Be very careful about the sim_id.
                 # That is all what we have.
@@ -990,11 +1002,16 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 
     return n, n_s, c_flag, rk_c, mu, nu, total_runs, comm, local_H
 
-def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H):
+def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
+        sim_id_to_child_indices):
     sampled_points = persis_info['rand_stream'].uniform(0, 1, (gen_specs['initial_sample_size'], n))
     add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
-    print('Sent =', local_H[['x','sim_id']])
-    send_mgr_worker_msg(comm, local_H[['x','sim_id']])
+    for sim_id in local_H['sim_id'][-gen_specs['initial_sample_size']:]:
+        assert sim_id not in sim_id_to_child_indices
+        sim_id_to_child_indices[sim_id] = None
+
+    print('Sent =', local_H[['x', 'sim_id']])
+    send_mgr_worker_msg(comm, local_H[['x', 'sim_id']])
 
 
 def display_exception(e):
