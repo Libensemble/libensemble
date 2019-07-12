@@ -38,7 +38,7 @@ def test_timer():
         time.sleep(0.5)
         total1 = timer.total
 
-    assert total1 >= 1 and total1 <= 1.1, \
+    assert total1 >= 1 and total1 <= 1.2, \
         "Check cumulative timing (active)."
-    assert timer.total >= 1 and timer.total <= 1.1, \
+    assert timer.total >= 1 and timer.total <= 1.2, \
         "Check cumulative timing (not active)."
