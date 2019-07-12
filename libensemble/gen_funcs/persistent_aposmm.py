@@ -216,25 +216,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
         x_recv, f_x_recv, grad_f_x_recv, sim_id_recv = calc_in[0]
-        print(calc_in)
-        1/0
-
-        # KK: tag: what tag is it?(need helpful naming)
-        # KK: 'tag' is present in 'Work' as well.(repitition accounts for
-        # more confusion and increases scope for human error)
-        # Aah ok, looking further tag seems one of the enums in libEnsemble.
-        # Anyways just the name 'tag' is not desciptive enough, something more
-        # descriptive would be better.
-
-        # persis_info contains something called H_rows
-
-        # calc_in contains the tuple (x, f, grad_f).
-        # So one can theoretically read the local_H and do some operations to
-        # figure out the origin of this 'x'.
-
-        # print('Tag =', tag)
-        # print('Work =', Work)
-        # print('calc_in =', calc_in)
 
         if tag in [STOP_TAG, PERSIS_STOP]:
             # FIXME: We need to kill all the child processes here.
@@ -242,15 +223,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     " implmeneted by the devs.")
             break
 
-        # Look at the message here. Is it a message for a point from which
-        # local optimization has to be started or does it have to be supplied
-        # to a currently running local optimization run.
-        # local_H contains a ton of information.
-
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
-
-        print(local_H)
-        1/0
 
         if sim_id_to_child_indices.get(sim_id_recv):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
@@ -274,17 +247,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         else:
             n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
-            # Decide if there are any new points to start a localopt run
             starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
 
             for ind in starting_inds:
-                # Start localopt child processes
-
-                # Mark point as having started a run
-                # Why does it help to mark the total number of runs? JL: it's
-                # useful to assign a unique ID to each run that is started.
-                # Such information is one way (but not the only way) to give
-                # funciton values to the correct child process.
                 total_runs += 1
                 local_H['started_run'][ind] = 1
 
@@ -312,8 +277,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 else:
                     sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(processes), )
 
-                #FIXME: Be very careful about the sim_id.
-                # That is all what we have.
                 send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
 
     raise NotImplementedError("Persistent APOSMM is not fully supported, yet.")
