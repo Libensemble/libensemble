@@ -211,7 +211,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     while 1:
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
-        (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in[0]
+        (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
 
         if tag in [STOP_TAG, PERSIS_STOP]:
             # FIXME: If there is any indication that all child processes are
@@ -230,7 +230,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
                 comm_queue.push((f_x_recv, grad_f_x_recv))
 
-                parent_can_read_from_queue.unset()
+                parent_can_read_from_queue.clear()
 
                 child_can_read_evts[child_idx].set()
                 parent_can_read_from_queue.wait()
@@ -255,11 +255,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 local_H['started_run'][ind] = 1
 
                 child_can_read_evts.append(Event())
-                child_can_read_evts[-1].unset()
 
-                parent_can_read_from_queue.unset()
-                p = Process(run_local_opt, args=(gen_specs, comm_queue, local_H[ind]['x'],
-                    child_can_read_evts[-1], parent_can_read_from_queue))
+                parent_can_read_from_queue.clear()
+                p = Process(target=run_local_opt, args=(gen_specs, comm_queue, local_H[ind]['x'],
+                    child_can_read_evts[-1],
+                    parent_can_read_from_queue))
                 processes.append(p)
                 p.start()
 
@@ -267,7 +267,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 assert comm_queue.get() == local_H[ind]['x']
 
                 comm_queue.push(local_H[ind][['f', 'grad']])
-                parent_can_read_from_queue.unset()
+                parent_can_read_from_queue.clear()
 
                 child_can_read_evts[-1].set()
                 parent_can_read_from_queue.wait()
@@ -289,8 +289,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     comm_queue.close()
     comm_queue.join_thread()
 
-    raise NotImplementedError("Persistent APOSMM is not fully supported, yet.")
-
     for p in processes:
         if p.is_alive():
             raise RuntimeError("Atleast one child process is still active, even after"
@@ -304,7 +302,7 @@ def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_
     parent_can_read.set()
     child_can_read.wait()
     result = comm_queue.get()
-    child_can_read.unset()
+    child_can_read.clear()
     if gen_specs['localopt_method'] in ['LD_MMA']:
         grad[:] = result[1]
 
@@ -985,7 +983,6 @@ def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
         assert sim_id not in sim_id_to_child_indices
         sim_id_to_child_indices[sim_id] = None
 
-    print('Sent =', local_H[['x', 'sim_id']])
     send_mgr_worker_msg(comm, local_H[['x', 'sim_id']])
 
 
