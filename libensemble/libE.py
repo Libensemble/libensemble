@@ -159,7 +159,8 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         raise
     else:
         logger.debug("Manager exiting")
-        logger.info("{} {}".format(len(wcomms), exit_criteria))
+        logger.debug("Exiting with {} workers.".format(len(wcomms)))
+        logger.debug("Exiting with exit criteria: {}".format(exit_criteria))
         sys.stdout.flush()
     finally:
         if on_cleanup is not None:
