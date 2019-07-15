@@ -8,7 +8,7 @@ __all__ = ['job_control_hworld']
 sim_count = 0
 
 
-def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
+def polling_loop(comm, jobctl, job, timeout_sec=3.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
@@ -68,18 +68,18 @@ def job_control_hworld(H, persis_info, sim_specs, libE_specs):
     cores = sim_specs['cores']
     comm = libE_specs['comm']
 
-    args_for_sim = 'sleep 3'
+    args_for_sim = 'sleep 1'
     # pref send this in X as a sim_in from calling script
     global sim_count
     sim_count += 1
-    timeout = 6.0
+    timeout = 3.0
     if sim_count == 1:
-        args_for_sim = 'sleep 3'  # Should finish
+        args_for_sim = 'sleep 1'  # Should finish
     elif sim_count == 2:
-        args_for_sim = 'sleep 3 Error'  # Worker kill on error
+        args_for_sim = 'sleep 1 Error'  # Worker kill on error
     elif sim_count == 3:
-        args_for_sim = 'sleep 5'  # Worker kill on timeout
-        timeout = 3.0
+        args_for_sim = 'sleep 3'  # Worker kill on timeout
+        timeout = 1.0
     elif sim_count == 4:
         args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
     elif sim_count == 5:
