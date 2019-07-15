@@ -10,14 +10,13 @@ sim_count = 0
 
 def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
     import time
-    start = time.time()
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
 
-    while time.time() - start < timeout_sec:
+    while job.runtime < timeout_sec:
         time.sleep(delay)
 
-        # print('Probing manager at time: ', time.time() - start)
+        # print('Probing manager at time: ', job.runtime)
         jobctl.manager_poll(comm)
         if jobctl.manager_signal == 'finish':
             jobctl.kill(job)
@@ -25,7 +24,7 @@ def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
             print('Job {} killed by manager on worker {}'.format(job.id, jobctl.workerID))
             break
 
-        # print('Polling job at time', time.time() - start)
+        # print('Polling job at time', job.runtime)
         job.poll()
         if job.finished:
             break
@@ -33,7 +32,7 @@ def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
             print('Job {} still running on worker {} ....'.format(job.id, jobctl.workerID))
 
         # Check output file for error
-        # print('Checking output file for error at time:', time.time() - start)
+        # print('Checking output file for error at time:', job.runtime)
         if job.stdout_exists():
             if 'Error' in job.read_stdout():
                 print("Found (deliberate) Error in ouput file - cancelling job {} on worker {}".format(job.id, jobctl.workerID))
