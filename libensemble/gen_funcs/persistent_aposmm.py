@@ -209,6 +209,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     tag = None
     O = np.empty(0, dtype=gen_specs['out'])  # noqa: E741
     while 1:
+        print('Here now!')
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
         (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
@@ -228,7 +229,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         if sim_id_to_child_indices.get(sim_id_recv):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
-                comm_queue.push((f_x_recv, grad_f_x_recv))
+                comm_queue.put((f_x_recv, grad_f_x_recv))
 
                 parent_can_read_from_queue.clear()
 
@@ -256,21 +257,25 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 child_can_read_evts.append(Event())
 
+                print('Initing process')
+
                 parent_can_read_from_queue.clear()
-                p = Process(target=run_local_opt, args=(gen_specs, comm_queue, local_H[ind]['x'],
+                p = Process(target=run_local_nlopt, args=(gen_specs, comm_queue, local_H[ind]['x'],
                     child_can_read_evts[-1],
                     parent_can_read_from_queue))
                 processes.append(p)
                 p.start()
+                print('[Master]: Started a process')
 
                 parent_can_read_from_queue.wait()
-                assert comm_queue.get() == local_H[ind]['x']
+                assert np.allclose(comm_queue.get(), local_H[ind]['x'])
 
-                comm_queue.push(local_H[ind][['f', 'grad']])
+                comm_queue.put(local_H[ind][['f', 'grad']])
                 parent_can_read_from_queue.clear()
 
                 child_can_read_evts[-1].set()
                 parent_can_read_from_queue.wait()
+                print('[Master]: Getting a new x_new.')
 
                 x_new = comm_queue.get()
 
@@ -298,27 +303,61 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
 
 def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
+    print('[Child]: Hello, here I am ')
     comm_queue.put(x)
     parent_can_read.set()
     child_can_read.wait()
     result = comm_queue.get()
     child_can_read.clear()
     if gen_specs['localopt_method'] in ['LD_MMA']:
+        print('Result =', result[1])
+        print('Grad.shape =', grad.shape)
+        1/0
         grad[:] = result[1]
 
     return result[0]
 
 
-def run_local_opt(gen_specs, comm_queue, x0, child_can_read,
+def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
         parent_can_read):
+    print('[Child]: Whats up')
 
-    opt = nlopt.opt(nlopt.LN_BOBYQA, 2)
+    n = len(gen_specs['ub'])
+
+    opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
+
+    lb = gen_specs['lb']
+    ub = gen_specs['ub']
+    opt.set_lower_bounds(lb)
+    opt.set_upper_bounds(ub)
+
+    # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
+    dist_to_bound = min(min(ub-x0), min(x0-lb))
+    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small for NLopt to handle"
+
+    if 'dist_to_bound_multiple' in gen_specs:
+        opt.set_initial_step(dist_to_bound*gen_specs['dist_to_bound_multiple'])
+    else:
+        opt.set_initial_step(dist_to_bound)
+
+    # FIXME: Setting max evaluations = 100
+    opt.set_maxeval(100)
+
     opt.set_min_objective(lambda x, grad: callback_function(x, grad,
         comm_queue, child_can_read, parent_can_read, gen_specs))
 
-    opt.set_lower_bounds(-np.array([3, 2]))
-    opt.set_upper_bounds(np.array([3, 2]))
-    opt.set_ftol_rel(1e-4)
+    if 'xtol_rel' in gen_specs:
+        opt.set_xtol_rel(gen_specs['xtol_rel'])
+    if 'ftol_rel' in gen_specs:
+        opt.set_ftol_rel(gen_specs['ftol_rel'])
+    if 'xtol_abs' in gen_specs:
+        opt.set_xtol_abs(gen_specs['xtol_abs'])
+    if 'ftol_abs' in gen_specs:
+        opt.set_ftol_abs(gen_specs['ftol_abs'])
+
+    x_opt = opt.optimize(x0)
+
+    #FIXME: Do we need to do of the final 'x_opt'?
 
 
 def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
