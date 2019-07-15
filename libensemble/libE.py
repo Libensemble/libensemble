@@ -30,32 +30,23 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-def eprint(*args, **kwargs):
-    """Print to stderr."""
-    print(*args, file=sys.stderr, **kwargs)
-
-
 def report_manager_exception(hist, persis_info, mgr_exc=None):
-    "Write out exception manager exception to stderr and flush streams."
+    "Write out exception manager exception to log."
     if mgr_exc is not None:
         from_line, msg, exc = mgr_exc.args
-        eprint("\n---- {} ----".format(from_line))
-        eprint("Message: {}".format(msg))
-        eprint(exc)
-        eprint("--------\n")
+        logger.error("---- {} ----".format(from_line))
+        logger.error("Message: {}".format(msg))
+        logger.error(exc)
     else:
-        eprint(traceback.format_exc())
-    eprint("\nManager exception raised .. aborting ensemble:\n")
-    eprint("\nDumping ensemble history with {} sims evaluated:\n".
-           format(hist.sim_count))
+        logger.error(traceback.format_exc())
+        logger.error("\nManager exception raised .. aborting ensemble:\n")
+        logger.error("\nDumping ensemble history with {} sims evaluated:\n".
+                     format(hist.sim_count))
 
     filename = 'libE_history_at_abort_' + str(hist.sim_count)
     np.save(filename + '.npy', hist.trim_H())
     with open(filename + '.pickle', "wb") as f:
         pickle.dump(persis_info, f)
-
-    sys.stdout.flush()
-    sys.stderr.flush()
 
 
 def libE(sim_specs, gen_specs, exit_criteria,
@@ -149,7 +140,7 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     "Generic manager routine run."
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
-        print(_USER_SIM_ID_WARNING)
+        logger.warning(_USER_SIM_ID_WARNING)
         sys.stdout.flush()
 
     try:
@@ -168,7 +159,7 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         raise
     else:
         logger.debug("Manager exiting")
-        print(len(wcomms), exit_criteria)
+        logger.info("{} {}".format(len(wcomms), exit_criteria))
         sys.stdout.flush()
     finally:
         if on_cleanup is not None:
