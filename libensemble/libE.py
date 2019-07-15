@@ -39,8 +39,8 @@ def report_manager_exception(hist, persis_info, mgr_exc=None):
         logger.error(exc)
     else:
         logger.error(traceback.format_exc())
-    logger.error("\nManager exception raised .. aborting ensemble:\n")
-    logger.error("\nDumping ensemble history with {} sims evaluated:\n".
+    logger.error("Manager exception raised .. aborting ensemble:")
+    logger.error("Dumping ensemble history with {} sims evaluated:".
                  format(hist.sim_count))
 
     filename = 'libE_history_at_abort_' + str(hist.sim_count)
