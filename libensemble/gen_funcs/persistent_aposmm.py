@@ -206,21 +206,22 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
             sim_id_to_child_indices)
 
-    # Separate the logic of filling local_H and sending it.
-    # Reason: To a new developer this doesn't look like local_H will get
-    # edited.
-
     tag = None
     O = np.empty(0, dtype=gen_specs['out'])  # noqa: E741
     while 1:
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
-        x_recv, f_x_recv, grad_f_x_recv, sim_id_recv = calc_in[0]
+        (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in[0]
 
         if tag in [STOP_TAG, PERSIS_STOP]:
-            # FIXME: We need to kill all the child processes here.
-            raise NotImplementedError("Killing of child processes in not"
-                    " implmeneted by the devs.")
+            # FIXME: If there is any indication that all child processes are
+            # done with their work, we can do this a bit more cleanly i.e.
+            # first join and check if they are still alive, only then kill.
+
+            # sending SIGKILL to the processes.
+            # TODO: should we use SIGTERM instead?
+            for p in processes:
+                p.kill()
             break
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
@@ -237,7 +238,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 x_new = comm_queue.get()
 
                 add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
-                # TODO:[KK]: Would it be true that the local_H[-1] would be our
+                # FIXME:[KK]: Would it be true that the local_H[-1] would be our
                 # new point?
                 send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
                 if local_H[-1]['sim_id'] in sim_id_to_child_indices:
@@ -254,15 +255,18 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 local_H['started_run'][ind] = 1
 
                 child_can_read_evts.append(Event())
+                child_can_read_evts[-1].unset()
 
-                # FIXME: f_x must be read from local_H.
-
-                p = Process(run_local_opt, args=(gen_specs, comm_queue, x_recv,
+                parent_can_read_from_queue.unset()
+                p = Process(run_local_opt, args=(gen_specs, comm_queue, local_H[ind]['x'],
                     child_can_read_evts[-1], parent_can_read_from_queue))
                 processes.append(p)
                 p.start()
 
-                comm_queue.push((f_x_recv, grad_f_x_recv))
+                parent_can_read_from_queue.wait()
+                assert comm_queue.get() == local_H[ind]['x']
+
+                comm_queue.push(local_H[ind][['f', 'grad']])
                 parent_can_read_from_queue.unset()
 
                 child_can_read_evts[-1].set()
@@ -272,17 +276,25 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
 
+                # FIXME: again makes the assumption that the the newly added
+                # point comes in local_H[-1]
+
                 if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(processes), )
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(processes)-1, )
                 else:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(processes), )
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(processes)-1, )
 
                 send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+
+    comm_queue.close()
+    comm_queue.join_thread()
 
     raise NotImplementedError("Persistent APOSMM is not fully supported, yet.")
 
     for p in processes:
-        p.join()
+        if p.is_alive():
+            raise RuntimeError("Atleast one child process is still active, even after"
+                    " killing all the children.")
 
     return O, persis_info, tag
 
