@@ -24,6 +24,8 @@ matrix:
       env: MPI=mpich PY=3
       language: generic
       python: 3
+  allow_failures:
+    - os: osx
 
 # matrix:
 #  allow_failures:
