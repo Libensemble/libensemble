@@ -213,6 +213,17 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = get_mgr_worker_msg(comm)
         if calc_in:
             (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
+        # Kaushik, I have concerns about the above approach for processing calc_in
+        # 1. I'm not sure that the contents of calc_in will always be in the order, x, f, grad, sim_id. 
+        # 2. Note that grad might not be available for some objectives. 
+        # Perhaps it's better to use something like
+        # x_recv = calc_in['x']
+        # f_x_recv = calc_in['f']
+        # sim_id_recv = calc_in['sim_id']
+        # if 'grad' in calc_in.dtype.names:
+        #     grad_f_x_recv = calc_in['grad']
+
+>>>>>>> 75e1b29f18f5ba95be57fd2f3089455d19179977
 
         if tag in [STOP_TAG, PERSIS_STOP]:
             print('[Parent]: Received a stop tag, killing all children.')
