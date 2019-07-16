@@ -209,12 +209,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     tag = None
     O = np.empty(0, dtype=gen_specs['out'])  # noqa: E741
     while 1:
-        print('Here now!')
         # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
-        (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
+        if calc_in:
+            (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
 
         if tag in [STOP_TAG, PERSIS_STOP]:
+            print('[Parent]: Received a stop tag, killing all children.')
             # FIXME: If there is any indication that all child processes are
             # done with their work, we can do this a bit more cleanly i.e.
             # first join and check if they are still alive, only then kill.
@@ -229,6 +230,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         if sim_id_to_child_indices.get(sim_id_recv):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
+                print('[Parent]: Received the eval for {}, giving it to the'
+                    ' child_idx: {}.'.format(x_recv, child_idx))
                 comm_queue.put((f_x_recv, grad_f_x_recv))
 
                 parent_can_read_from_queue.clear()
@@ -237,8 +240,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 parent_can_read_from_queue.wait()
 
                 x_new = comm_queue.get()
+                print('[Parent]: The child returned {}.'.format(x_new))
 
-                add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
+                assert np.allclose(x_new, local_H[-1]['x_on_cube'])
+
                 # FIXME:[KK]: Would it be true that the local_H[-1] would be our
                 # new point?
                 send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
@@ -260,15 +266,18 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 print('Initing process')
 
                 parent_can_read_from_queue.clear()
-                p = Process(target=run_local_nlopt, args=(gen_specs, comm_queue, local_H[ind]['x'],
+                p = Process(target=run_local_nlopt, args=(gen_specs,
+                    comm_queue, local_H[ind]['x_on_cube'],
                     child_can_read_evts[-1],
                     parent_can_read_from_queue))
                 processes.append(p)
                 p.start()
-                print('[Master]: Started a process')
+                print('[Parent]: Started a child process')
 
                 parent_can_read_from_queue.wait()
-                assert np.allclose(comm_queue.get(), local_H[ind]['x'])
+                print('[Parent]: Done waiting.')
+
+                assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
 
                 comm_queue.put(local_H[ind][['f', 'grad']])
                 parent_can_read_from_queue.clear()
@@ -279,7 +288,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 x_new = comm_queue.get()
 
-                add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
 
                 # FIXME: again makes the assumption that the the newly added
                 # point comes in local_H[-1]
@@ -294,25 +303,24 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     comm_queue.close()
     comm_queue.join_thread()
 
+    print('Done with everything')
+
     for p in processes:
         if p.is_alive():
-            raise RuntimeError("Atleast one child process is still active, even after"
+            raise RuntimeError("[Parent]: Atleast one child process is still active, even after"
                     " killing all the children.")
 
     return O, persis_info, tag
 
 
 def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
-    print('[Child]: Hello, here I am ')
     comm_queue.put(x)
+    print('[Child]: Parent should no longer wait.')
     parent_can_read.set()
     child_can_read.wait()
     result = comm_queue.get()
     child_can_read.clear()
     if gen_specs['localopt_method'] in ['LD_MMA']:
-        print('Result =', result[1])
-        print('Grad.shape =', grad.shape)
-        1/0
         grad[:] = result[1]
 
     return result[0]
@@ -320,14 +328,13 @@ def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_
 
 def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
         parent_can_read):
-    print('[Child]: Whats up')
-
+    print('[Child]: Started local opt at {}.'.format(x0))
     n = len(gen_specs['ub'])
 
     opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
 
-    lb = gen_specs['lb']
-    ub = gen_specs['ub']
+    lb = np.zeros(n)
+    ub = np.ones(n)
     opt.set_lower_bounds(lb)
     opt.set_upper_bounds(ub)
 
@@ -355,9 +362,9 @@ def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
     if 'ftol_abs' in gen_specs:
         opt.set_ftol_abs(gen_specs['ftol_abs'])
 
+    #FIXME: Do we need to do something of the final 'x_opt'?
+    print('[Child]: Started my optimization')
     x_opt = opt.optimize(x0)
-
-    #FIXME: Do we need to do of the final 'x_opt'?
 
 
 def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
@@ -378,7 +385,6 @@ def add_to_local_H(local_H, pts, gen_specs, c_flag, local_flag=0, sorted_run_ind
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
-
     assert not local_flag or len(pts) == 1, "Can't > 1 local points"
 
     len_local_H = len(local_H)
@@ -985,7 +991,6 @@ def initialize_APOSMM(H, gen_specs, libE_info):
         nu = 0
 
     total_runs = 0
-
 
     comm = libE_info['comm']
 
