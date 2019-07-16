@@ -6,37 +6,45 @@ python:
   - 3.5
   - 3.6
   - 3.7
-  
+
 os: linux
 
 env:
   global:
     - HYDRA_LAUNCHER=fork
-    - OMPI_MCA_rmaps_base_oversubscribe=yes  
+    - OMPI_MCA_rmaps_base_oversubscribe=yes
   matrix:
     - MPI=mpich
     #- MPI=openmpi
 
-#matrix:
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode11
+      env: MPI=mpich PY=3
+      language: generic
+      python: 3
+
+
+# matrix:
 #  allow_failures:
 #    - env: MPI=openmpi
-    
-#addons:
-  #apt:
-    #packages:
-      #- gfortran
-      #- libblas-dev
-      #- liblapack-dev
-    
-cache: 
+
+# addons:
+#   apt:
+#     packages:
+#       - gfortran
+#       - libblas-dev
+#       - liblapack-dev
+
+cache:
   pip: true
   apt: true
 
 # Setup Miniconda
 before_install:
-  # Do this conditionally because it saves some downloading if the version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
@@ -46,16 +54,28 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q -y conda
   - conda info -a # For debugging any issues with conda
-  - conda config --add channels conda-forge  
-  - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION 
+  - conda config --add channels conda-forge
+  - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
   - source activate condaenv
 
 install:
-  - conda install gcc_linux-64
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        conda install clang_osx-64;
+    else
+        conda install gcc_linux-64;
+    fi
   - conda install $MPI
   - conda install scipy # includes numpy
   - conda install mpi4py
-  - conda install mumps-mpi=5.1.2=h5bebb2f_1007 # Force this version
+  # Forcing mumps-mpi version
+  # Travis-included MacOSX SDK not built for x86_64 - Downloading one that is
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        conda install mumps-mpi=5.1.2=haf446c3_1007;
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
+        mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
+    else
+        conda install mumps-mpi=5.1.2=h5bebb2f_1007;
+    fi
   - conda install petsc4py petsc
   - conda install --no-update-deps nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
@@ -66,12 +86,18 @@ install:
   - pip install mock
   - pip install coveralls
   # For confirmation of MPI library being used.
-  - python conda/find_mpi.py #locate compilers
-  - mpiexec --version #Show MPI library details
+  - python conda/find_mpi.py # locate compilers
+  - mpiexec --version # Show MPI library details
   - pip install -e .
 
+
 before_script:
-  - flake8 libensemble 
+  - flake8 libensemble
+  # Set conda compilers to use new SDK instead of Travis default.
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
+        source setenv.sh;
+    fi
 
 # Run test (-z show output)
 script:
@@ -79,7 +105,7 @@ script:
 
 # Coverage
 after_success:
-  - mv libensemble/tests/.cov* . 
+  - mv libensemble/tests/.cov* .
   - coveralls
 
 after_failure:
