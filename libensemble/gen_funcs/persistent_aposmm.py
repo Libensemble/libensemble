@@ -201,7 +201,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     sim_id_to_child_indices = {}
 
     if gen_specs['initial_sample_size'] != 1:
-        raise RuntimeError("sample size > not supported for now.")
+        raise RuntimeError("sample size > 1 not supported for now.")
+
+    # We just sampled a single point.
 
     send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
             sim_id_to_child_indices)
@@ -214,8 +216,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         if calc_in:
             (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
         # JL: Kaushik, I have concerns about the above approach for processing calc_in
-        # 1. I'm not sure that the contents of calc_in will always be in the order, x, f, grad, sim_id. 
-        # 2. Note that grad might not be available for some objectives. 
+        # 1. I'm not sure that the contents of calc_in will always be in the order, x, f, grad, sim_id.
+        # 2. Note that grad might not be available for some objectives.
         # Perhaps it's better to use something like
         # x_recv = calc_in['x']
         # f_x_recv = calc_in['f']
@@ -246,9 +248,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 parent_can_read_from_queue.clear()
 
                 child_can_read_evts[child_idx].set()
+                print('[Parent]: I am waiting')
                 parent_can_read_from_queue.wait()
+                print('[Parent]: Wohoo I am free again')
 
                 x_new = comm_queue.get()
+                if x_new == 'Converged':
+                    raise NotImplementedError("We don't know what to do yet.")
                 print('[Parent]: The child returned {}.'.format(x_new))
 
                 add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
@@ -283,6 +289,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 p.start()
                 print('[Parent]: Started a child process')
 
+                print('[Parent]: I am waiting')
                 parent_can_read_from_queue.wait()
                 print('[Parent]: Done waiting.')
 
@@ -326,7 +333,9 @@ def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_
     comm_queue.put(x)
     print('[Child]: Parent should no longer wait.')
     parent_can_read.set()
+    print('[Child]: I have started waiting')
     child_can_read.wait()
+    print('[Child]: Wohooo.. I am free folks')
     result = comm_queue.get()
     child_can_read.clear()
     if gen_specs['localopt_method'] in ['LD_MMA']:
@@ -374,6 +383,9 @@ def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
     #FIXME: Do we need to do something of the final 'x_opt'?
     print('[Child]: Started my optimization')
     x_opt = opt.optimize(x0)
+    print('[Child]: I have converged.')
+    comm_queue.put('Converged')
+    parent_can_read.set()
 
 
 def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
@@ -1062,3 +1074,5 @@ def display_exception(e):
 #     persis_info = persis_info.item()
 #     import ipdb; ipdb.set_trace()
 #     aposmm_logic(H,persis_info,gen_specs,{})
+
+# vim:fdm=marker
