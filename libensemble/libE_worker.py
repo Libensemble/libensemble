@@ -191,21 +191,23 @@ class Worker:
             logger.debug("Running {}".format(calc_type_strings[calc_type]))
             calc = self._run_calc[calc_type]
             with timer:
+                logger.debug("Calling calc {}".format(calc_type))
+
+
+                if calc_type == EVAL_SIM_TAG and self.loc_stack:
+                    with self.loc_stack.loc(calc_type):
+                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+
                 if calc_type == EVAL_SIM_TAG and not self.loc_stack:
                     self.loc_stack = Worker._make_sim_worker_dir(self.sim_specs, self.workerID)
                     with self.loc_stack.loc(calc_type):
-                        logger.debug("Calling calc {}".format(calc_type))
                         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-                        logger.debug("Return from calc call")
-                elif calc_type == EVAL_SIM_TAG and self.loc_stack:
-                    with self.loc_stack.loc(calc_type):
-                        logger.debug("Calling calc {}".format(calc_type))
-                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-                        logger.debug("Return from calc call")
+
                 else:
-                    logger.debug("Calling calc {}".format(calc_type))
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-                    logger.debug("Return from calc call")
+
+                logger.debug("Return from calc call")
 
             assert isinstance(out, tuple), \
                 "Calculation output must be a tuple."
@@ -302,5 +304,5 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            if self.sim_specs.get('clean_jobs'):
+            if self.sim_specs.get('clean_jobs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()
