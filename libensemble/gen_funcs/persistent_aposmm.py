@@ -200,9 +200,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     sim_id_to_child_indices = {}
 
-    if gen_specs['initial_sample_size'] != 1:
-        raise RuntimeError("sample size > 1 not supported for now.")
-
     # We just sampled a single point.
 
     send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
@@ -253,20 +250,26 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 print('[Parent]: Wohoo I am free again')
 
                 x_new = comm_queue.get()
-                if x_new == 'Converged':
-                    raise NotImplementedError("We don't know what to do yet.")
                 print('[Parent]: The child returned {}.'.format(x_new))
-
-                add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
-                assert np.allclose(x_new, local_H[-1]['x_on_cube'])
-
-                # FIXME:[KK]: Would it be true that the local_H[-1] would be our
-                # new point?
-                send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
-                if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
+                if isinstance(x_new, tuple):
+                    # FIXME: [KK]: This is ugly and every bit of it happens in
+                    # my mind, this should be cleaned up duing the cleanup
+                    # phase.
+                    x_opt = x_new[1]
+                    # Need to figure out what are run_ids.
+                    update_history_optimal(x_opt, H, 1/0)
+                    raise NotImplementedError("We don't know what to do yet.")
                 else:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
+                    add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
+                    assert np.allclose(x_new, local_H[-1]['x_on_cube'])
+
+                    # FIXME:[KK]: Would it be true that the local_H[-1] would be our
+                    # new point?
+                    send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+                    if local_H[-1]['sim_id'] in sim_id_to_child_indices:
+                        sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
+                    else:
+                        sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
         else:
             n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
@@ -384,7 +387,7 @@ def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
     print('[Child]: Started my optimization')
     x_opt = opt.optimize(x0)
     print('[Child]: I have converged.')
-    comm_queue.put('Converged')
+    comm_queue.put(('Converged', x_opt))
     parent_can_read.set()
 
 
@@ -1048,7 +1051,8 @@ def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
         assert sim_id not in sim_id_to_child_indices
         sim_id_to_child_indices[sim_id] = None
 
-    send_mgr_worker_msg(comm, local_H[['x', 'sim_id']])
+    for i in range(len(local_H)):
+        send_mgr_worker_msg(comm, local_H[i][['x', 'sim_id']])
 
 
 def display_exception(e):
