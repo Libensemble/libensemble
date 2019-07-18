@@ -115,7 +115,7 @@ class Worker:
         self.workerID = workerID
         self.sim_specs = sim_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self.loc_stack = None #Worker._make_sim_worker_dir(sim_specs, workerID)
+        self.loc_stack = None  # Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
         Worker._set_job_controller(self.workerID, self.comm)
@@ -193,13 +193,12 @@ class Worker:
             with timer:
                 logger.debug("Calling calc {}".format(calc_type))
 
-
+                # Worker creates own sim_dir only if sim work performed.
                 if calc_type == EVAL_SIM_TAG and self.loc_stack:
                     with self.loc_stack.loc(calc_type):
                         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
-
-                if calc_type == EVAL_SIM_TAG and not self.loc_stack:
+                elif calc_type == EVAL_SIM_TAG and not self.loc_stack:
                     self.loc_stack = Worker._make_sim_worker_dir(self.sim_specs, self.workerID)
                     with self.loc_stack.loc(calc_type):
                         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
