@@ -199,6 +199,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     n, n_s, c_flag, rk_const, mu, nu, total_runs, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
 
     sim_id_to_child_indices = {}
+    child_id_to_run_id = {}
 
     # We just sampled a single point.
 
@@ -266,6 +267,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     # FIXME:[KK]: Would it be true that the local_H[-1] would be our
                     # new point?
                     send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+                    persis_info['run_order'][child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
                     if local_H[-1]['sim_id'] in sim_id_to_child_indices:
                         sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
                     else:
@@ -311,6 +313,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 # FIXME: again makes the assumption that the the newly added
                 # point comes in local_H[-1]
+                persis_info['run_order'][total_runs] = [local_H[-1]['sim_id']]
+                child_id_to_run_id[len(processes)-1] = total_runs
+                # Need to figure out the child number from the run number.
 
                 if local_H[-1]['sim_id'] in sim_id_to_child_indices:
                     sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(processes)-1, )
