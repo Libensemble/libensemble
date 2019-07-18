@@ -5,14 +5,6 @@ import ast
 
 logger = logging.getLogger(__name__)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--comms', type=str, nargs='?',
-                    choices=['local', 'tcp', 'ssh', 'client', 'mpi'],
-                    default='local', help='Type of communicator')
-parser.add_argument('--nworkers', type=int, nargs='?',
-                    help='Number of local forked processes')
-
-
 class GlobalOptions:
     """The GlobalOptions Class provides methods for managing a global options dictionary.
 
@@ -49,10 +41,10 @@ class GlobalOptions:
             value = self.options.get(opts[0])
             return value
         else:
-            self.ret_opts = {}
+            ret_opts = {}
             for arg in opts:
-                self.ret_opts.update({arg: self.options.get(arg)})
-            return self.ret_opts
+                ret_opts.update({arg: self.options.get(arg)})
+            return ret_opts
 
     def set(self, *args, **kwargs):
         """ Set any number of new options entries """
@@ -61,12 +53,6 @@ class GlobalOptions:
             self.options.update(arg)
         self.options.update(kwargs)
         self._check_options()
-
-    def parse_args(self):
-        """ Parse some options from the command-line into options """
-        # TODO: How to test this?
-        args = parser.parse_args()
-        self.set(args)
 
     def get_libE_specs(self):
         """ Get traditional libE_specs subset """
@@ -99,7 +85,9 @@ class GlobalOptions:
         if 'comm' in self.get():
             outd.pop('comm')
         with open(filename, 'w') as f:
-            f.write(str(outd))
+            for opt in outd:
+                outstr = '{} = {}\n'.format(opt.upper(), outd[opt])
+                f.write(outstr)
         f.close()
         return filename
 
@@ -112,7 +100,13 @@ class GlobalOptions:
             filename for previously saved options
         """
         with open(filename, 'r') as f:
-            self.set(ast.literal_eval(f.readline()))  # Safer way of doing this?
+            for line in f.readlines():
+                entry_pair = line[:-1].split(' = ')
+                lower_pair = [ent.lower() for ent in entry_pair]
+                if lower_pair[1].isnumeric():
+                    lower_pair[1] = int(lower_pair[1])
+                entry_dict = {lower_pair[0]: lower_pair[1]}
+                self.set(entry_dict)
         f.close()
 
     @staticmethod
