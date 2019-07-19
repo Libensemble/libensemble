@@ -11,7 +11,7 @@
 
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=master
    :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
-   
+
 .. image::  https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
@@ -72,7 +72,7 @@ For libEnsemble running with the mpi4py parallelism:
 Optional dependency:
 
 * Balsam_
- 
+
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
 platforms (e.g., Cray XC40); platforms that do not support launching jobs from compute nodes.
@@ -114,7 +114,7 @@ libEnsemble is also available in the Spack_ distribution. It can be installed fr
 
 The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository.
 A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
-    
+
 
 Testing
 ---------
@@ -133,7 +133,7 @@ the source distribution by running::
 To clean the test repositories run::
 
     ./run-tests.sh -c
-    
+
 Further options are available. To see a complete list of options run::
 
     ./run-tests.sh -h
@@ -144,7 +144,7 @@ is taken. Furthermore, a combined coverage report is created at the top level,
 which can be viewed after running the tests via the html file
 libensemble/tests/cov_merge/index.html. The Travis CI coverage results are
 given online at
-`Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_. 
+`Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
 
 Note: The job_controller tests can be run using the direct-launch or
 Balsam job controllers. However, currently only the direct-launch versions can
@@ -158,13 +158,13 @@ The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
 The user will create a python script to call the libEnsemble :doc:`libE<libE_module>` function.
-This must supply the :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`, 
+This must supply the :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`,
 and optionally :ref:`libE_specs<datastruct-libe-specs>`, :ref:`alloc_specs<datastruct-alloc-specs>` and :ref:`persis_info<datastruct-persis-info>`.
 
 The default manager/worker communications mode is MPI. The user script is launched as::
 
     mpiexec -np N python myscript.py
- 
+
 where ``N`` is the number of processors. This will launch one manager and ``N-1`` workers.
 
 If running in local mode, which uses Python's multiprocessing module, the 'local'
@@ -172,7 +172,7 @@ comms option and the number of workers must be specified in :ref:`libE_specs<dat
 The script can then be run as a regular python script::
 
     python myscript.py
-    
+
 When specifying these options via command line options, one may use the ``parse_args``
 function used in the regression tests, which can be found in
 ``libensemble/tests/regression_tests/common.py``
@@ -180,39 +180,5 @@ function used in the regression tests, which can be found in
 
 See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
 
-
-Documentation
--------------
-
-* http://libensemble.readthedocs.org/
-
-Citing libEnsemble
-------------------
-Please use the following to cite libEnsemble in a publication:
-
-.. code-block:: bibtex
-
-  @techreport{libEnsemble,
-    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel and John-Luke Navarro},
-    title       = {{libEnsemble} Users Manual},
-    institution = {Argonne National Laboratory},
-    number      = {Revision 0.5.1},
-    year        = {2019},
-    url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
-  }
-
-
-Support 
--------
-
-Join the libEnsemble mailing list at:
-
-* https://lists.mcs.anl.gov/mailman/listinfo/libensemble 
-
-or email questions to:
-
-* libensemble@lists.mcs.anl.gov
-
-or communicate (and establish a private channel, if desired) at:
-
-* https://libensemble.slack.com 
+.. include:: ../README.rst
+    :start-after: docs-include-tag
