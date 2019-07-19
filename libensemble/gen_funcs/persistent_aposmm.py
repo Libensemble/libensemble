@@ -186,7 +186,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-
     # {{{ multiprocessing initialization
 
     child_can_read_evts = []
@@ -200,6 +199,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     sim_id_to_child_indices = {}
     child_id_to_run_id = {}
+    run_order = {}
 
     # We just sampled a single point.
 
@@ -258,16 +258,17 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     # phase.
                     x_opt = x_new[1]
                     # Need to figure out what are run_ids.
-                    update_history_optimal(x_opt, H, 1/0)
-                    raise NotImplementedError("We don't know what to do yet.")
+                    add_to_local_H(local_H, (x_opt, ), gen_specs, c_flag, local_flag=1, on_cube=True)
+                    update_history_optimal(x_opt, local_H,
+                            run_order[child_id_to_run_id[child_idx]])
                 else:
                     add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
-                    assert np.allclose(x_new, local_H[-1]['x_on_cube'])
+                    assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
                     # FIXME:[KK]: Would it be true that the local_H[-1] would be our
                     # new point?
                     send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
-                    persis_info['run_order'][child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
+                    run_order[child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
                     if local_H[-1]['sim_id'] in sim_id_to_child_indices:
                         sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
                     else:
@@ -278,7 +279,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
 
             for ind in starting_inds:
-                total_runs += 1
                 local_H['started_run'][ind] = 1
 
                 child_can_read_evts.append(Event())
@@ -310,11 +310,17 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 x_new = comm_queue.get()
 
                 add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
+                assert np.allclose(local_H[-1]['x_on_cube'], x_new)
+
+                print('Index:', ind)
+                print('Sim_ids:', local_H[:]['sim_id'])
+                assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
                 # FIXME: again makes the assumption that the the newly added
                 # point comes in local_H[-1]
-                persis_info['run_order'][total_runs] = [local_H[-1]['sim_id']]
+                run_order[total_runs] = [local_H[-1]['sim_id']]
                 child_id_to_run_id[len(processes)-1] = total_runs
+                total_runs += 1
                 # Need to figure out the child number from the run number.
 
                 if local_H[-1]['sim_id'] in sim_id_to_child_indices:
