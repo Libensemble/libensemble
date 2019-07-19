@@ -9,7 +9,7 @@ Release 0.5.1
 
 * Fixed LSF resource detection for large jobs on LSF systems (e.g. Summit) #184
 * Added support for macOS #182
-* Documenation has been improved (inc. addition of beginner's tutorial and FAQ).
+* Documentation has been improved (including addition of beginner's tutorial and FAQ).
 
 :Note:
 
@@ -32,7 +32,7 @@ Release 0.5.0
  * E.g., libEnsemble can be run on a system without MPI.
  * E.g., libEnsemble can be run with a local manager and remote TCP workers.
 
-* Added support for Summit/LSF schedular in job controller.
+* Added support for Summit/LSF scheduler in job controller.
 * MPI job controller detects and re-tries launches on failure; adding resilience (#143).
 * Job controller supports option to extract/print job times in libE_stats.txt (#136).
 * Default logging level changed to INFO (#164).
