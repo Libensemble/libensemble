@@ -1,9 +1,8 @@
 import datetime
-import argparse
 import logging
-import ast
 
 logger = logging.getLogger(__name__)
+
 
 class GlobalOptions:
     """The GlobalOptions Class provides methods for managing a global options dictionary.

@@ -30,7 +30,6 @@ def test_set():
     assert go.current_options().get('gen_f', 'logging') == {'gen_f': 'urs', 'logging': 'debug'}
 
 
-
 def test_get_libE_specs():
     comm = 'FAKE COMM'
     opts = go(comms='local', nprocesses=4, logging='info')
@@ -46,8 +45,6 @@ def test_to_from_file():
     assert opts.get() == {'comms': 'mpi', 'color': 0, 'logging': 'info'}
     import os
     os.remove(filename)
-    TODO: reimplement exact testing
-
 
 
 if __name__ == '__main__':
