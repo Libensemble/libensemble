@@ -39,7 +39,7 @@ gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
              'batch_mode': True,
-             'initial_sample_size': 1,
+             'initial_sample_size': 50,
              'localopt_method': 'LD_MMA',
              'xtol_rel': 1e-3,
              'lb': np.array([-3, -2]),
@@ -49,7 +49,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 40}
+exit_criteria = {'sim_max': 400}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
