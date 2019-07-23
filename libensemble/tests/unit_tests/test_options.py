@@ -1,4 +1,3 @@
-# Tests ==============
 from libensemble.options import GlobalOptions as go
 import ast
 
@@ -30,13 +29,6 @@ def test_set():
     go.current_options().set({'gen_f': 'urs'}, logging='debug')
     assert go.current_options().get('gen_f', 'logging') == {'gen_f': 'urs', 'logging': 'debug'}
 
-# Can this even be tested on Travis? Need to rearrange parse_args() in any case
-# Is this even something that Options should do?
-# def test_parse_args():  # also tests get_libE_specs()
-#     opts = go()
-#     is_master = opts.parse_args()
-#     assert is_master
-#     assert opts.get_libE_specs()['comms'] == 'mpi'
 
 
 def test_get_libE_specs():
@@ -51,19 +43,11 @@ def test_to_from_file():
     filename = go.current_options().to_file()
     opts = go()
     opts.from_file(filename)
-    assert str(opts.get())
+    assert opts.get() == {'comms': 'mpi', 'color': 0, 'logging': 'info'}
     import os
     os.remove(filename)
-    # TODO: reimplement exact testing
+    TODO: reimplement exact testing
 
-
-# def test_get_logger():
-#     assert go.current_options().get_logger()
-# The logger is already tested by test_logger.py in /unit_tests_logger
-
-
-# def test_set_logging():  # Might need dedicated regression test?
-#     pass
 
 
 if __name__ == '__main__':
@@ -74,5 +58,4 @@ if __name__ == '__main__':
     test_get_3()
     test_set()
     test_get_libE_specs()
-    # test_parse_args()
     test_to_from_file()

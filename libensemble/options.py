@@ -99,14 +99,13 @@ class GlobalOptions:
         filename: string
             filename for previously saved options
         """
+        indict = {}
         with open(filename, 'r') as f:
             for line in f.readlines():
                 entry_pair = line[:-1].split(' = ')
-                lower_pair = [ent.lower() for ent in entry_pair]
-                if lower_pair[1].isnumeric():
-                    lower_pair[1] = int(lower_pair[1])
-                entry_dict = {lower_pair[0]: lower_pair[1]}
-                self.set(entry_dict)
+                [key, value] = [ent.lower() for ent in entry_pair]
+                indict[key] = int(value) if value.isnumeric() else value
+        self.set(indict)
         f.close()
 
     @staticmethod
@@ -140,29 +139,6 @@ class GlobalOptions:
     def _check_MPI(self):
         """ Checks MPI options components, populates defaults if necessary"""
         if self.get('comm') is None:
-            logger.warning("MPI COMM not detected. Were the options just loaded?")
+            logger.warning("MPI COMM not detected. Were options just loaded?")
         if self.get('color') is None:
             self.set(color=0)
-
-    # def _check_logging(self):
-    #     pass
-
-    # @staticmethod
-    # def get_libE_logger():
-    #     """ Return the logger object to the user"""
-    #     return libE_logger
-
-    # @staticmethod
-    # def log_get_level():
-    #     """ Get libEnsemble logger level """
-    #     return libE_logger.get_level()
-    #
-    # @staticmethod
-    # def log_set_filename(filename):
-    #     """ Set output filename for libEnsemble's logger"""
-    #     libE_logger.set_filename(filename)
-    #
-    # @staticmethod
-    # def log_set_level(level):
-    #     """ Set libEnsemble logger level """
-    #     libE_logger.set_level(level)
