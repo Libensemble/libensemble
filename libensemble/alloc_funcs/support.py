@@ -25,6 +25,7 @@ def count_persis_gens(W):
 
 def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
     "Add sim work record to work array."
+    print('[Allocator]: Calling sim_work for {}.'.format(H_rows), flush=True)
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
@@ -34,6 +35,8 @@ def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
 
 def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
     "Add gen work record to work array."
+    print('[Allocator]: Calling gen_work for {}.'.format(H_rows), flush=True)
+
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,

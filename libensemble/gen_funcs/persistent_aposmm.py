@@ -222,8 +222,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     flush=True)
             if tuple(x_recv) in received_values:
                 #FIXME:: This should never be the case.
-                print("DANGER!! Re-received a value ignoring it for now, but"
-                        " need to fix it in manager, I guess?", flush=True)
+                print("DANGER!! Re-received a value(SimID = {}) ignoring it for now, but"
+                        " need to fix it in manager, I guess?".format(sim_id_recv), flush=True)
                 send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
                         sim_id_to_child_indices)
                 continue
@@ -360,7 +360,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     comm_queue.close()
     comm_queue.join_thread()
 
-    print('Done with everything')
+    print('Done with everything', flush=True)
 
     for p in processes:
         if p.is_alive():
@@ -369,6 +369,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     #TODO: Figure out what do we need to do from here.
     1/0
+    print('This line should not appear', flush=True)
 
     return O, persis_info, tag
 
