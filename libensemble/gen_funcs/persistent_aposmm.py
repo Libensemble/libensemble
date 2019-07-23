@@ -197,14 +197,17 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     n, n_s, c_flag, rk_const, mu, nu, total_runs, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
 
+    received_values = set()
+
     sim_id_to_child_indices = {}
     child_id_to_run_id = {}
     run_order = {}
 
     # We just sampled a single point.
 
-    send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
-            sim_id_to_child_indices)
+    for _ in range(gen_specs['initial_sample_size']):
+        send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
+                sim_id_to_child_indices)
 
     tag = None
     O = np.empty(0, dtype=gen_specs['out'])  # noqa: E741
@@ -217,6 +220,15 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
             print(23*"-", "Received f({})".format(x_recv), 24*"-",
                     flush=True)
+            if tuple(x_recv) in received_values:
+                #FIXME:: This should never be the case.
+                print("DANGER!! Re-received a value ignoring it for now, but"
+                        " need to fix it in manager, I guess?", flush=True)
+                send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
+                        sim_id_to_child_indices)
+                continue
+
+            received_values.add(tuple(x_recv))
         # JL: Kaushik, I have concerns about the above approach for processing calc_in
         # 1. I'm not sure that the contents of calc_in will always be in the order, x, f, grad, sim_id.
         # 2. Note that grad might not be available for some objectives.
@@ -244,8 +256,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         if sim_id_to_child_indices.get(sim_id_recv):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
-                print('[Parent]: Received the eval for {}, giving it to the'
-                    ' child_idx: {}.'.format(x_recv, child_idx), flush=True)
+                print('[Parent]:Giving f = {} it to the'
+                    ' child_idx: {}.'.format(f_x_recv, child_idx), flush=True)
                 comm_queue.put((f_x_recv, grad_f_x_recv))
 
                 parent_can_read_from_queue.clear()
@@ -269,22 +281,26 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     print("[Parent]: Child {} has converged, miss you :'(".format(child_idx), flush=True)
                     processes[child_idx].join()
                     print("[Parent]: Child {} has been joined.".format(child_idx), flush=True)
+
+                    # TODO: send a sample point on converging..
+                    # This one still sends the number of points equal to the 
+                    send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
+                            sim_id_to_child_indices)
                 else:
                     add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                     assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
-                    # FIXME:[KK]: Would it be true that the local_H[-1] would be our
-                    # new point?
                     send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
                     run_order[child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
                     if local_H[-1]['sim_id'] in sim_id_to_child_indices:
                         sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
                     else:
                         sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
-
         else:
             print('[Parent]: Did not find any local opt run to associate with.',
                     flush=True)
+            if n_s < gen_specs['initial_sample_size']:
+                continue
             n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
             starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
@@ -323,12 +339,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                 assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
-                print('Index:', ind)
-                print('Sim_ids:', local_H[:]['sim_id'])
                 assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
-                # FIXME: again makes the assumption that the the newly added
-                # point comes in local_H[-1]
                 run_order[total_runs] = [local_H[-1]['sim_id']]
                 child_id_to_run_id[len(processes)-1] = total_runs
                 total_runs += 1
@@ -340,6 +352,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(processes)-1, )
 
                 send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+            if len(starting_inds) == 0:
+                send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
+                        sim_id_to_child_indices)
         print('[Parent]: Heading to next iteration', flush=True)
 
     comm_queue.close()
@@ -352,16 +367,19 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             raise RuntimeError("[Parent]: Atleast one child process is still active, even after"
                     " killing all the children.")
 
+    #TODO: Figure out what do we need to do from here.
+    1/0
+
     return O, persis_info, tag
 
 
 def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
     comm_queue.put(x)
-    print('[Child]: Parent should no longer wait.')
+    print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
-    print('[Child]: I have started waiting')
+    print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
-    print('[Child]: Wohooo.. I am free folks')
+    print('[Child]: Wohooo.. I am free folks', flush=True)
     result = comm_queue.get()
     child_can_read.clear()
     if gen_specs['localopt_method'] in ['LD_MMA']:
@@ -372,7 +390,7 @@ def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_
 
 def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
         parent_can_read):
-    print('[Child]: Started local opt at {}.'.format(x0))
+    print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(gen_specs['ub'])
 
     opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
@@ -407,9 +425,9 @@ def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
         opt.set_ftol_abs(gen_specs['ftol_abs'])
 
     #FIXME: Do we need to do something of the final 'x_opt'?
-    print('[Child]: Started my optimization')
+    print('[Child]: Started my optimization', flush=True)
     x_opt = opt.optimize(x0)
-    print('[Child]: I have converged.')
+    print('[Child]: I have converged.', flush=True)
     comm_queue.put(('Converged', x_opt))
     parent_can_read.set()
 
@@ -1066,8 +1084,20 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 
     return n, n_s, c_flag, rk_c, mu, nu, total_runs, comm, local_H
 
+
+def send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
+        sim_id_to_child_indices):
+    sampled_points = persis_info['rand_stream'].uniform(0, 1, (1, n))
+    add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
+    assert local_H['sim_id'][-1] not in sim_id_to_child_indices
+    sim_id_to_child_indices[local_H['sim_id'][-1]] = None
+
+    send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+
+
 def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
         sim_id_to_child_indices):
+    1/0
     sampled_points = persis_info['rand_stream'].uniform(0, 1, (gen_specs['initial_sample_size'], n))
     add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
     for sim_id in local_H['sim_id'][-gen_specs['initial_sample_size']:]:
