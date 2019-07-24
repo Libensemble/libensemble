@@ -45,7 +45,7 @@ gen_specs = {'gen_f': gen_f,
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2])}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': []}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back',bool)]}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
