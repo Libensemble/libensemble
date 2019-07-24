@@ -11,7 +11,7 @@ def sendrecv_mgr_worker_msg(comm, O, status=None):
 def send_mgr_worker_msg(comm, O):
     """Send message from worker to manager.
     """
-    print('About to send: ', O['sim_id'])
+    print('About to send: ', O['sim_id'],flush=True)
     D = {'calc_out': O,
          'libE_info': {'persistent': True},
          'calc_status': UNSET_TAG,
