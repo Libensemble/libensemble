@@ -275,15 +275,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     # phase.
                     x_opt = x_new[1]
                     # Need to figure out what are run_ids.
-                    add_to_local_H(local_H, (x_opt, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                     update_history_optimal(x_opt, local_H,
                             run_order[child_id_to_run_id[child_idx]])
                     print("[Parent]: Child {} has converged, miss you :'(".format(child_idx), flush=True)
                     processes[child_idx].join()
                     print("[Parent]: Child {} has been joined.".format(child_idx), flush=True)
 
-                    # TODO: send a sample point on converging..
-                    # This one still sends the number of points equal to the 
                     send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
                             sim_id_to_child_indices)
                 else:
