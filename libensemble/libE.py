@@ -526,5 +526,5 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
     if exit_criteria and sim_specs and gen_specs:
         check_exit_criteria(exit_criteria, sim_specs, gen_specs)
 
-    if H0 and sim_specs and alloc_specs and gen_specs:
+    if isinstance(H0, np.ndarray) and sim_specs and alloc_specs and gen_specs:
         check_H(H0, sim_specs, alloc_specs, gen_specs)
