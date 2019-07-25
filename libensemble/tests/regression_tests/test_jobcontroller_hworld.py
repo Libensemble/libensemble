@@ -76,14 +76,14 @@ gen_specs = {'gen_f': gen_f,
              'out': [('x', float, (2,))],
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2]),
-             'gen_batch_size': 5*nworkers,
+             'gen_batch_size': nworkers,
              'batch_mode': True,
              'num_active_gens': 1,
              'save_every_k': 20}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 15}
+exit_criteria = {'elapsed_wallclock_time': 10}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

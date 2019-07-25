@@ -20,22 +20,26 @@ def _cpu_count_physical():
     """Returns the number of physical cores on the node."""
     mapping = {}
     current_info = {}
-    with _open_binary('/proc/cpuinfo') as f:
-        for line in f:
-            line = line.strip().lower()
-            if not line:
-                # new section
-                if (b'physical id' in current_info and
-                        b'cpu cores' in current_info):
-                    mapping[current_info[b'physical id']] = current_info[b'cpu cores']
-                current_info = {}
-            else:
-                if (line.startswith(b'physical id') or
-                        line.startswith(b'cpu cores')):
-                    key, value = line.split(b'\t:', 1)
-                    current_info[key] = int(value)
+    # macOS method for physical cpus
+    if os.uname().sysname == 'Darwin':
+        return int(os.popen('sysctl -n hw.physicalcpu').read().strip())
+    else:
+        with _open_binary('/proc/cpuinfo') as f:
+            for line in f:
+                line = line.strip().lower()
+                if not line:
+                    # new section
+                    if (b'physical id' in current_info and
+                            b'cpu cores' in current_info):
+                        mapping[current_info[b'physical id']] = current_info[b'cpu cores']
+                    current_info = {}
+                else:
+                    if (line.startswith(b'physical id') or
+                            line.startswith(b'cpu cores')):
+                        key, value = line.split(b'\t:', 1)
+                        current_info[key] = int(value)
 
-    return sum(mapping.values()) or None
+        return sum(mapping.values()) or None
 
 
 def get_cpu_cores(hyperthreads=False):

@@ -150,6 +150,7 @@ functions, gen functions, alloc functions and job submission scripts.
 
 See the `user-guide <https://libensemble.readthedocs.io/en/latest/quickstart.html#basic-usage>`_ for more information.
 
+.. docs-include-tag
 
 Documentation
 -------------
@@ -170,7 +171,6 @@ Please use the following to cite libEnsemble in a publication:
     year        = {2019},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
-
 
 Support
 -------
