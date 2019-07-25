@@ -75,7 +75,7 @@ class WorkerIDFilter(logging.Filter):
 class ErrorFilter(logging.Filter):
     """ Filter to send WARNING+ messages to stderr"""
     def filter(self, record):
-        return record.levelno in [logging.WARNING, logging.DEBUG, logging.ERROR]
+        return record.levelno >= logging.WARNING
 
 
 def worker_logging_config(comm, worker_id=None):
