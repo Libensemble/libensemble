@@ -523,8 +523,8 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
     if gen_specs is not None:
         check_gen_specs(gen_specs)
 
-    if None not in (exit_criteria, sim_specs, gen_specs):
+    if all(d is not None for d in [exit_criteria, sim_specs, gen_specs]):
         check_exit_criteria(exit_criteria, sim_specs, gen_specs)
 
-    if None not in (H0, sim_specs, alloc_specs, gen_specs):
+    if all(d is not None for d in [H0, sim_specs, alloc_specs, gen_specs]):
         check_H(H0, sim_specs, alloc_specs, gen_specs)
