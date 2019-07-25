@@ -24,3 +24,15 @@ def set_filename(filename):
         logger.warning("Cannot set filename after loggers initialized")
     else:
         logs.filename = filename
+
+
+def enable_stderr():
+    """ Sets logger to mirror certain messages to stderr"""
+    logs = LogConfig.config
+    logs.copy_stderr = True
+
+
+def disable_stderr():
+    """ Disables mirroring certain messages to stderr"""
+    logs = LogConfig.config
+    logs.copy_stderr = False
