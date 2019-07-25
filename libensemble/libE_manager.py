@@ -336,8 +336,7 @@ class Manager:
                 exit_flag = 2
 
         self._kill_workers()
-        logger.info("Manager total time: {}".format(self.elapsed()))
-        return persis_info, exit_flag
+        return persis_info, exit_flag, self.elapsed()
 
     # --- Main loop
 
@@ -368,6 +367,6 @@ class Manager:
                     "Should not wait for workers when all workers are idle."
 
         finally:
-            # Return persis_info, exit_flag
+            # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
         return result

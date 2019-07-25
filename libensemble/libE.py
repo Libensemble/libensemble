@@ -143,9 +143,11 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         logger.warning(_USER_SIM_ID_WARNING)
 
     try:
-        persis_info, exit_flag = \
+        persis_info, exit_flag, elapsed_time = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                          exit_criteria, persis_info, wcomms)
+        logger.info("libE_manager total time: {}".format(elapsed_time))
+
     except ManagerException as e:
         report_manager_exception(hist, persis_info, e)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:

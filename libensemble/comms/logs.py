@@ -14,6 +14,7 @@ a given log message (manager or worker ID).
 import logging
 import sys
 
+
 class LogConfig:
     """Class for storing logging configuration info"""
     config = None
@@ -80,6 +81,7 @@ class ErrorFilter(logging.Filter):
     """ Filter to send WARNING+ messages to stderr"""
     def filter(self, record):
         return record.levelno in [logging.WARNING, logging.DEBUG, logging.ERROR]
+
 
 def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger.
