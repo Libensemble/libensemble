@@ -511,20 +511,20 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
     sufficient information to perform a run.
     """
 
-    if libE_specs:
+    if libE_specs is not None:
         check_libE_specs(libE_specs)
 
-    if alloc_specs:
+    if alloc_specs is not None:
         check_alloc_specs(alloc_specs)
 
-    if sim_specs:
+    if sim_specs is not None:
         check_sim_specs(sim_specs)
 
-    if gen_specs:
+    if gen_specs is not None:
         check_gen_specs(gen_specs)
 
-    if exit_criteria and sim_specs and gen_specs:
+    if None not in (exit_criteria, sim_specs, gen_specs):
         check_exit_criteria(exit_criteria, sim_specs, gen_specs)
 
-    if isinstance(H0, np.ndarray) and sim_specs and alloc_specs and gen_specs:
+    if None not in (H0, sim_specs, alloc_specs, gen_specs):
         check_H(H0, sim_specs, alloc_specs, gen_specs)
