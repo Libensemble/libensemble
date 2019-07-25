@@ -42,6 +42,7 @@ gen_specs = {'gen_f': gen_f,
              'initial_sample_size': 50,
              'localopt_method': 'LD_MMA',
              'xtol_rel': 1e-3,
+             'max_active_runs': 1,
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2])}
 
