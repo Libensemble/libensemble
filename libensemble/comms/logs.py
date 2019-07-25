@@ -39,11 +39,6 @@ class LogConfig:
             logger = logging.getLogger(self.name)
             logger.setLevel(self.log_level)
 
-    def set_copy_stderr(self, enable):
-        """ Set logger to copy WARNING+ messages to stderr"""
-        if self.logger_set:
-            self.copy_stderr = enable
-
 
 class CommLogHandler(logging.Handler):
     """Logging handler class that forwards LogRecords to a Comm.
