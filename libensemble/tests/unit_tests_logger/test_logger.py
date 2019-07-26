@@ -5,6 +5,7 @@ Unit test of libensemble log functions.
 """
 import os
 from libensemble import libE_logger
+from libensemble.comms.logs import LogConfig
 
 
 def test_set_log_level():
@@ -48,7 +49,6 @@ def test_set_log_level():
 
 
 def test_set_filename():
-    from libensemble.comms.logs import LogConfig
     from libensemble.comms.logs import manager_logging_config
     alt_name = "alt_name.log"
 
@@ -81,10 +81,10 @@ def test_enable_disable_stderr():
     logs = LogConfig.config
 
     libE_logger.disable_stderr()
-    assert logs.copy_stderr == False, "stderr message copying not disabled"
+    assert logs.copy_stderr is False, "stderr message copying not disabled"
 
     libE_logger.enable_stderr()
-    assert logs.copy_stderr == True, "stderr message copying not reenabled"
+    assert logs.copy_stderr is True, "stderr message copying not reenabled"
 
 
 # Need setup/teardown here to kill loggers if running file without pytest
