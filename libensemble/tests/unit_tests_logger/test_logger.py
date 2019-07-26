@@ -77,6 +77,16 @@ def test_set_filename():
     logs.set_level('DEBUG')
 
 
+def test_enable_disable_stderr():
+    logs = LogConfig.config
+
+    libE_logger.disable_stderr()
+    assert logs.copy_stderr == False, "stderr message copying not disabled"
+
+    libE_logger.enable_stderr()
+    assert logs.copy_stderr == True, "stderr message copying not reenabled"
+
+
 # Need setup/teardown here to kill loggers if running file without pytest
 # Issue: cannot destroy loggers and they are set up in other unit tests.
 # Partial solution: either rename the file so it is the first unit test, or
@@ -85,3 +95,4 @@ if __name__ == "__main__":
     test_set_log_level()
     # test_change_log_level()
     test_set_filename()
+    test_enable_disable_stderr()
