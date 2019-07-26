@@ -26,13 +26,13 @@ def set_filename(filename):
         logs.filename = filename
 
 
-def enable_stderr():
+def set_stderr_level(level):
     """ Sets logger to mirror certain messages to stderr"""
     logs = LogConfig.config
-    logs.copy_stderr = True
+    logs.set_stderr_level(level)
 
 
-def disable_stderr():
-    """ Disables mirroring certain messages to stderr"""
+def get_stderr_level():
+    """ Return libEnsemble stderr logging level """
     logs = LogConfig.config
-    logs.copy_stderr = False
+    return logs.stderr_level
