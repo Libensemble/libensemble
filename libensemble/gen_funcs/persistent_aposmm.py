@@ -203,18 +203,34 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     child_id_to_run_id = {}
     run_order = {}
 
+    # {{{ setting the local optimization method
+
     if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
             'LN_NELDERMEAD', 'LD_MMA']:
         run_local_opt = run_local_nlopt
-        pass
     elif gen_specs['localopt_method'] in ['pounders']:
         run_local_opt = run_local_tao
     elif gen_specs['localopt_method'] in ['scipy_COBYLA']:
-        run_local_opt = run_local_scipy
-        pass
+        run_local_opt = run_local_scipy_opt
     else:
         raise NotImplementedError("Unknown local optimization method "
                 "'{}'.".format(gen_specs['localopt_method']))
+
+    # }}}
+
+    # {{{ setting the data needed by the local optimization method
+
+    if gen_specs['localopt_method'] in ['LD_MMA']:
+        fields_to_pass = ['f', 'grad']
+    elif gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
+            'LN_NELDERMEAD', 'pounders', 'scipy_COBYLA']:
+        fields_to_pass = ['f']
+    else:
+        raise NotImplementedError("Unknown local optimization method "
+                "'{}'.".format(gen_specs['localopt_method']))
+
+    # }}}
+
 
     for _ in range(gen_specs['initial_sample_size']):
         send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
@@ -230,7 +246,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
         if calc_in:
-            (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
+            if fields_to_pass == ['f', 'grad']:
+                (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
+                data_to_give_processes = (f_x_recv, grad_f_x_recv)
+            else:
+                assert(fields_to_pass == ['f'])
+                (x_recv, f_x_recv, sim_id_recv),  = calc_in
+                data_to_give_processes = (f_x_recv, )
+
             print(23*"-", "Received f({})".format(x_recv), 24*"-",
                     flush=True)
             if tuple(x_recv) in received_values:
@@ -242,15 +265,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 continue
 
             received_values.add(tuple(x_recv))
-        # JL: Kaushik, I have concerns about the above approach for processing calc_in
-        # 1. I'm not sure that the contents of calc_in will always be in the order, x, f, grad, sim_id.
-        # 2. Note that grad might not be available for some objectives.
-        # Perhaps it's better to use something like
-        # x_recv = calc_in['x']
-        # f_x_recv = calc_in['f']
-        # sim_id_recv = calc_in['sim_id']
-        # if 'grad' in calc_in.dtype.names:
-        #     grad_f_x_recv = calc_in['grad']
 
         if tag in [STOP_TAG, PERSIS_STOP]:
 
@@ -271,7 +285,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
                 print('[Parent]:Giving f = {} it to the'
                     ' child_idx: {}.'.format(f_x_recv, child_idx), flush=True)
-                comm_queue.put((f_x_recv, grad_f_x_recv))
+                comm_queue.put(data_to_give_processes)
 
                 parent_can_read_from_queue.clear()
 
@@ -316,7 +330,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                         assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
 
-                        comm_queue.put(local_H[ind][['f', 'grad']])
+                        comm_queue.put(local_H[ind][[*fields_to_pass]])
                         parent_can_read_from_queue.clear()
 
                         child_can_read_evts[-1].set()
@@ -389,7 +403,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                     assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
 
-                    comm_queue.put(local_H[ind][['f', 'grad']])
+                    comm_queue.put(local_H[ind][[*fields_to_pass]])
                     parent_can_read_from_queue.clear()
 
                     child_can_read_evts[-1].set()
