@@ -197,8 +197,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     n, n_s, c_flag, rk_const, mu, nu, total_runs, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
 
-    received_values = set()
-
     sim_id_to_child_indices = {}
     child_id_to_run_id = {}
     run_order = {}
@@ -261,15 +259,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
             print(23*"-", "Received f({})".format(x_recv), 24*"-",
                     flush=True)
-            if tuple(x_recv) in received_values:
-                #FIXME:: This should never be the case.
-                print("DANGER!! Re-received a value(SimID = {}) ignoring it for now, but"
-                        " need to fix it in manager, I guess?".format(sim_id_recv), flush=True)
-                send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
-                        sim_id_to_child_indices)
-                continue
-
-            received_values.add(tuple(x_recv))
 
         if tag in [STOP_TAG, PERSIS_STOP]:
 
@@ -335,6 +324,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         print('[Parent]: Done waiting.', flush=True)
 
                         assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
+
+                        print('[Parent]: Assertion holds.', flush=True)
+
 
                         comm_queue.put(local_H[ind][[*fields_to_pass]])
                         parent_can_read_from_queue.clear()
