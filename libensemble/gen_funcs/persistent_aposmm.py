@@ -408,7 +408,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     parent_can_read_from_queue.wait()
                     print('[Parent]: Done waiting.', flush=True)
 
+                    print('[Parent]: Starting with assertion checking', flush=True)
                     assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
+                    print('[Parent]: Assertion holds.', flush=True)
 
                     comm_queue.put(local_H[ind][[*fields_to_pass]])
                     parent_can_read_from_queue.clear()
@@ -584,7 +586,8 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
 # {{{ TAO routines for local opt
 
 def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs):
-    comm_queue.put(x)
+    comm_queue.put(x.array)
+    print('[Child]: I just put x_on_cube =', x.array, flush=True)
     print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
     print('[Child]: I have started waiting', flush=True)
