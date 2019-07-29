@@ -203,7 +203,18 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     child_id_to_run_id = {}
     run_order = {}
 
-    # We just sampled a single point.
+    if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
+            'LN_NELDERMEAD', 'LD_MMA']:
+        run_local_opt = run_local_nlopt
+        pass
+    elif gen_specs['localopt_method'] in ['pounders']:
+        run_local_opt = run_local_tao
+    elif gen_specs['localopt_method'] in ['scipy_COBYLA']:
+        run_local_opt = run_local_scipy
+        pass
+    else:
+        raise NotImplementedError("Unknown local optimization method "
+                "'{}'.".format(gen_specs['localopt_method']))
 
     for _ in range(gen_specs['initial_sample_size']):
         send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
@@ -364,7 +375,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 parent_can_read_from_queue.clear()
 
                 if len([p for p in processes if p.is_alive()]) < max_active_runs:
-                    p = Process(target=run_local_nlopt, args=(gen_specs,
+                    p = Process(target=run_local_opt, args=(gen_specs,
                         comm_queue, local_H[ind]['x_on_cube'],
                         child_can_read_evts[-1],
                         parent_can_read_from_queue))
@@ -412,6 +423,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         sim_id_to_child_indices)
         print('[Parent]: Heading to next iteration', flush=True)
 
+    print('[Parent]: The optimal points are:\n',
+            local_H[np.where(local_H['local_min'])]['x'], flush=True)
+
     comm_queue.close()
     comm_queue.join_thread()
 
@@ -427,7 +441,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     return local_H, persis_info, tag
 
 
-def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
+# {{{ NLOPT for local opt..
+
+def nlopt_callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
     comm_queue.put(x)
     print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
@@ -442,7 +458,7 @@ def callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_
     return result[0]
 
 
-def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
+def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read,
         parent_can_read):
     print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(gen_specs['ub'])
@@ -466,7 +482,7 @@ def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
     # FIXME: Setting max evaluations = 100
     opt.set_maxeval(100)
 
-    opt.set_min_objective(lambda x, grad: callback_function(x, grad,
+    opt.set_min_objective(lambda x, grad: nlopt_callback_function(x, grad,
         comm_queue, child_can_read, parent_can_read, gen_specs))
 
     if 'xtol_rel' in gen_specs:
@@ -484,6 +500,147 @@ def run_local_nlopt(gen_specs, comm_queue, x0, child_can_read,
     print('[Child]: I have converged.', flush=True)
     comm_queue.put(('Converged', x_opt))
     parent_can_read.set()
+
+# }}}
+
+
+# {{{ SciPy optimization
+
+def scipy_callback_function(x, comm_queue, child_can_read, parent_can_read, gen_specs):
+    comm_queue.put(x)
+    print('[Child]: Parent should no longer wait.', flush=True)
+    parent_can_read.set()
+    print('[Child]: I have started waiting', flush=True)
+    child_can_read.wait()
+    print('[Child]: Wohooo.. I am free folks', flush=True)
+    result, = comm_queue.get()
+    child_can_read.clear()
+    return result
+
+
+def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
+        parent_can_read):
+
+    # Construct the bounds in the form of constraints
+    cons = []
+    for factor in range(len(x0)):
+        lo = {'type': 'ineq',
+              'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i]-lb}
+        up = {'type': 'ineq',
+              'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub-x[i]}
+        cons.append(lo)
+        cons.append(up)
+
+    method = gen_specs['localopt_method'][6:]
+    print('[Child]: Started my optimization', flush=True)
+    res = scipy_optimize.minimize(lambda x: scipy_callback_function(x,
+        comm_queue, child_can_read, parent_can_read, gen_specs), x0,
+        method=method, options={'maxiter': 100, 'tol': gen_specs['tol']})
+
+    if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
+        exit_code = 0
+    else:
+        if method == 'COBYLA':
+            assert res['status'] == 1, "Unknown status for COBYLA"
+            exit_code = 1
+
+    x_opt = res['x']
+
+    # FIXME: Need to do something with the exit codes.
+
+    print('[Child]: I have converged.', flush=True)
+    comm_queue.put(('Converged', x_opt))
+    parent_can_read.set()
+
+# }}}
+
+
+# {{{ TAO routines for local opt
+
+
+def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs):
+    comm_queue.put(x)
+    print('[Child]: Parent should no longer wait.', flush=True)
+    parent_can_read.set()
+    print('[Child]: I have started waiting', flush=True)
+    child_can_read.wait()
+    print('[Child]: Wohooo.. I am free folks', flush=True)
+    result = comm_queue.get()
+    child_can_read.clear()
+    f.array[:] = result[0]
+    return f
+
+
+def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
+        parent_can_read):
+    assert isinstance(x0, np.array)
+
+    tao_comm = MPI.COMM_SELF
+    n, = x0.shape
+    m, = f0.shape
+
+    # Create starting point, bounds, and tao object
+    x = PETSc.Vec().create(tao_comm)
+    x.setSizes(n)
+    x.setFromOptions()
+    x.array = x0
+    lb = x.duplicate()
+    ub = x.duplicate()
+    lb.array = 0*np.ones(n)
+    ub.array = 1*np.ones(n)
+    tao = PETSc.TAO().create(tao_comm)
+    tao.setType(gen_specs['localopt_method'])
+
+    f = PETSc.Vec().create(tao_comm)
+    f.setSizes(m)
+    f.setFromOptions()
+
+    delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+
+    PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
+    # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
+
+    tao.setResidual(lambda tao, x, f: tao_callback_function(tao, x, f,
+        comm_queue, child_can_read, parent_can_read, gen_specs), f)
+
+    # Set everything for tao before solving
+    # FIXME: Hard-coding 100 as the max funcs as couldn't find any other
+    # sensible value.
+    PETSc.Options().setValue('-tao_max_funcs', '100')
+    tao.setFromOptions()
+    tao.setVariableBounds((lb, ub))
+    # tao.setObjectiveTolerances(fatol=gen_specs['fatol'], frtol=gen_specs['frtol'])
+    # tao.setGradientTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
+    tao.setTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
+    tao.setInitial(x)
+
+    print('[Child]: Started my optimization', flush=True)
+    tao.solve(x)
+
+    x_opt = tao.getSolution().getArray()
+    exit_code = tao.getConvergedReason()
+    # print(exit_code)
+    # print(tao.view())
+    # print(x_opt)
+
+    # if gen_specs['localopt_method'] == 'pounders':
+    f.destroy()
+    # elif gen_specs['localopt_method'] == 'blmvm':
+    #     g.destroy()
+
+    lb.destroy()
+    ub.destroy()
+    x.destroy()
+    tao.destroy()
+
+    #FIXME: Do we need to do something of the final 'x_opt'?
+    print('[Child]: I have converged.', flush=True)
+    comm_queue.put(('Converged', x_opt))
+    parent_can_read.set()
+
+    # FIXME: What do we do about the exit_code?
+
+# }}}
 
 
 def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
