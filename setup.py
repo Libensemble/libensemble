@@ -13,7 +13,7 @@ class Run_TestSuite(TestCommand):
         import sys
         py_version = sys.version_info[0]
         print('Python version from setup.py is', py_version)
-        run_string = "code/tests/run-tests.sh -p " + str(py_version)
+        run_string = "libensemble/tests/run-tests.sh -p " + str(py_version)
         os.system(run_string)
 
 
@@ -60,8 +60,7 @@ setup(
                    ],
 
     extras_require = {
-           'extras': ['scipy', 'nlopt', 'mpi4py'],
-           'tests': tests_require},
+           'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
 
     classifiers=[
         'Development Status :: 3 - Alpha',
