@@ -251,7 +251,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 data_to_give_processes = (f_x_recv, grad_f_x_recv)
             else:
                 assert(fields_to_pass == ['f'])
-                (x_recv, f_x_recv, sim_id_recv),  = calc_in
+                if len(calc_in[0]) == 3:
+                    (x_recv, f_x_recv, sim_id_recv),  = calc_in
+                else:
+                    # FIXME: *BIG BIG!*, even if we are passing grad_f even
+                    # though we are not using it.
+                    (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
                 data_to_give_processes = (f_x_recv, )
 
             print(23*"-", "Received f({})".format(x_recv), 24*"-",
@@ -318,6 +323,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                         p = Process(target=run_local_opt, args=(gen_specs,
                             comm_queue, local_H[ind]['x_on_cube'],
+                            local_H[ind]['f'],
                             child_can_read_evts[-1],
                             parent_can_read_from_queue))
                         processes.append(p)
@@ -391,6 +397,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 if len([p for p in processes if p.is_alive()]) < max_active_runs:
                     p = Process(target=run_local_opt, args=(gen_specs,
                         comm_queue, local_H[ind]['x_on_cube'],
+                        local_H[ind]['f'],
                         child_can_read_evts[-1],
                         parent_can_read_from_queue))
                     processes.append(p)
@@ -591,11 +598,14 @@ def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read
 
 def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
         parent_can_read):
-    assert isinstance(x0, np.array)
+    assert isinstance(x0, np.ndarray)
 
     tao_comm = MPI.COMM_SELF
     n, = x0.shape
-    m, = f0.shape
+    if f0.shape == ():
+        m = 1
+    else:
+        m, = f0.shape
 
     # Create starting point, bounds, and tao object
     x = PETSc.Vec().create(tao_comm)
