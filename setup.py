@@ -59,6 +59,10 @@ setup(
                    'pytest-timeout',
                    ],
 
+    extras_require = {
+           'extras': ['scipy', 'nlopt', 'mpi4py'],
+           'tests': tests_require},
+
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
