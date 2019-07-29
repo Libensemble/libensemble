@@ -34,19 +34,24 @@ sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('grad', float, n)]}
 
-gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int)]
+gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
+        ('local_min', bool)]
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
              'batch_mode': True,
              'initial_sample_size': 50,
-             'localopt_method': 'LD_MMA',
+             'localopt_method': 'pounders',
              'xtol_rel': 1e-3,
-             'max_active_runs': 1,
+             'local_min': True,
+             'dist_to_bound_multiple': 0.5,
+             'grtol': 1e-4,
+             'gatol': 1e-4,
+             'tol': 1e-5,
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2])}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back',bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
@@ -57,4 +62,5 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_master:
-    save_libE_output(H, persis_info, __file__, nworkers)
+    print('[Manager]:', H[np.where(H['local_min'])]['x'])
+    # save_libE_output(H, persis_info, __file__, nworkers)
