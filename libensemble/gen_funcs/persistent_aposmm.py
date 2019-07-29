@@ -316,7 +316,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                         # {{{ logic duplication(need to get rid of it)
 
-                        p = Process(target=run_local_nlopt, args=(gen_specs,
+                        p = Process(target=run_local_opt, args=(gen_specs,
                             comm_queue, local_H[ind]['x_on_cube'],
                             child_can_read_evts[-1],
                             parent_can_read_from_queue))
@@ -464,12 +464,17 @@ def nlopt_callback_function(x, grad, comm_queue, child_can_read, parent_can_read
     print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
     print('[Child]: Wohooo.. I am free folks', flush=True)
-    result = comm_queue.get()
-    child_can_read.clear()
     if gen_specs['localopt_method'] in ['LD_MMA']:
-        grad[:] = result[1]
+        f_recv, grad_recv = comm_queue.get()
+        grad[:] = grad_recv
+    else:
+        assert gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
+                'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
+        f_recv, = comm_queue.get()
 
-    return result[0]
+    child_can_read.clear()
+
+    return f_recv
 
 
 def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read,
@@ -527,9 +532,9 @@ def scipy_callback_function(x, comm_queue, child_can_read, parent_can_read, gen_
     print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
     print('[Child]: Wohooo.. I am free folks', flush=True)
-    result, = comm_queue.get()
+    f_x_recv, = comm_queue.get()
     child_can_read.clear()
-    return result
+    return f_x_recv
 
 
 def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
@@ -571,7 +576,6 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
 
 # {{{ TAO routines for local opt
 
-
 def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs):
     comm_queue.put(x)
     print('[Child]: Parent should no longer wait.', flush=True)
@@ -579,9 +583,9 @@ def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read
     print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
     print('[Child]: Wohooo.. I am free folks', flush=True)
-    result = comm_queue.get()
+    f_recv,  = comm_queue.get()
     child_can_read.clear()
-    f.array[:] = result[0]
+    f.array[:] = f_recv
     return f
 
 
