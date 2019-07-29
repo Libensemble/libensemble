@@ -57,6 +57,7 @@ setup(
                    'pytest-cov>=2.5',
                    'pytest-pep8>=1.0',
                    'pytest-timeout',
+                   'mock'
                    ],
 
     extras_require = {
