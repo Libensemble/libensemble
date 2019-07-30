@@ -38,7 +38,7 @@ The generator will occupy the one worker, leaving none to run simulation functio
 libEnsemble hangs when using mpi4py
 -----------------------------------
 
-One cause of this could be that the communications fabric does not support matching 
+One cause of this could be that the communications fabric does not support matching
 probes (part of the MPI 3.0 standard), which mpi4py uses by default. This has been
 observed with Intels Truescale (TMI) fabric at time of writing. This can be solved
 either by switch fabric or turning off matching probes before the MPI module is first
@@ -127,10 +127,10 @@ The error message may be similar to below:
 **"can't open hfi unit: -1 (err=23)"**
 **"[13] MPI startup(): tmi fabric is not available and fallback fabric is not enabled"**
 
-This may occur on TMI when libEnsemble Python processes have been launched to a node and these, 
+This may occur on TMI when libEnsemble Python processes have been launched to a node and these,
 in turn, launch jobs on the node; creating too many processes for the available contexts. Note that
 while processes can share contexts, the system is confused by the fact that there are two
-phases, first libEnsemble processes and then sub-processes to run user jobs. The solution is to 
+phases, first libEnsemble processes and then sub-processes to run user jobs. The solution is to
 either reduce the number processes running or to specify a fallback fabric through environment
 variables::
 
@@ -140,3 +140,15 @@ variables::
 
 Another alternative is to run libEnsemble in central mode, in which libEnsemble runs on dedicated
 nodes, while launching all sub-jobs to other nodes.
+
+
+macOS - PETSc Installation issues
+---------------------------------
+
+**Frozen PETSc installation following a failed wheel build with** ``pip install petsc petsc4py``
+
+Following a failed wheel build for PETSc, the installation process may freeze when
+attempting to configure PETSc with the local Fortran compiler if it doesn't exist.
+Run the above command again after disabling Fortran configuring with ``export PETSC_CONFIGURE_OPTIONS='--with-fc=0'``
+The wheel build will still fail, but PETSc and petsc4py should still install
+successfully via setup.py after some time.
