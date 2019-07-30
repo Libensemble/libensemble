@@ -19,10 +19,12 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from math import gamma, pi, sqrt
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -40,11 +42,15 @@ gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
              'batch_mode': True,
-             'initial_sample_size': 50,
-             'localopt_method': 'pounders',
+             'initial_sample_size': 100,
+             'sample_points': np.round(minima, 1),
+             'localopt_method': 'LD_MMA',
+             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-3,
+             'num_active_gens': 1,
              'local_min': True,
              'dist_to_bound_multiple': 0.5,
+             'max_active_runs': 6,
              'grtol': 1e-4,
              'gatol': 1e-4,
              'tol': 1e-5,
@@ -55,7 +61,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 400}
+exit_criteria = {'sim_max': 1000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

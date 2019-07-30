@@ -229,7 +229,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     # }}}
 
-
     for _ in range(gen_specs['initial_sample_size']):
         send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
                 sim_id_to_child_indices)
@@ -257,7 +256,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
                 data_to_give_processes = (f_x_recv, )
 
-            print(23*"-", "Received f({})".format(x_recv), 24*"-",
+            print(23*"-", "Received f({})(SimID: {})".format(x_recv,
+                sim_id_recv), 24*"-",
                     flush=True)
 
         if tag in [STOP_TAG, PERSIS_STOP]:
@@ -308,6 +308,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         ind = waiting_starting_inds[0]
                         waiting_starting_inds = waiting_starting_inds[1:]
 
+                        child_can_read_evts.append(Event())
+
+                        print('[Parent]: Initing process', flush=True)
+
+                        parent_can_read_from_queue.clear()
+
                         # {{{ logic duplication(need to get rid of it)
 
                         p = Process(target=run_local_opt, args=(gen_specs,
@@ -326,7 +332,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
 
                         print('[Parent]: Assertion holds.', flush=True)
-
 
                         comm_queue.put(local_H[ind][[*fields_to_pass]])
                         parent_can_read_from_queue.clear()
@@ -378,20 +383,22 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, mu, nu)
 
             for ind in starting_inds:
+
                 local_H['started_run'][ind] = 1
 
-                child_can_read_evts.append(Event())
-
-                print('[Parent]: Initing process', flush=True)
-
-                parent_can_read_from_queue.clear()
-
                 if len([p for p in processes if p.is_alive()]) < max_active_runs:
+
+                    child_can_read_evts.append(Event())
+
+                    print('[Parent]: Initing process', flush=True)
+
+                    parent_can_read_from_queue.clear()
+
                     p = Process(target=run_local_opt, args=(gen_specs,
                         comm_queue, local_H[ind]['x_on_cube'],
                         local_H[ind]['f'],
                         child_can_read_evts[-1],
-                        parent_can_read_from_queue))
+                        parent_can_read_from_queue, len(processes)))
                     processes.append(p)
                     p.start()
                     print('[Parent]: Started a child process', flush=True)
