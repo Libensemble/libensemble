@@ -101,6 +101,13 @@ def test_checking_inputs():
     else:
         assert 0
 
+    # Other individual tests
+    check_inputs(libE_specs)
+    check_inputs(alloc_specs)
+    check_inputs(sim_specs)
+    check_inputs(gen_specs)
+    check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
+
 
 def rmfield(a, *fieldnames_to_remove):
     return a[[name for name in a.dtype.names if name not in fieldnames_to_remove]]
