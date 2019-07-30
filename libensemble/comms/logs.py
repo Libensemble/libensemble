@@ -12,6 +12,7 @@ a given log message (manager or worker ID).
 """
 
 import logging
+import sys
 
 
 class LogConfig:
@@ -28,6 +29,7 @@ class LogConfig:
         self.filename = "ensemble.log"
         self.stat_filename = 'libE_stats.txt'
         self.fmt = '[%(worker)s] %(name)s (%(levelname)s): %(message)s'
+        self.stderr_level = logging.WARNING
 
     def set_level(self, level):
         """Set logger level either before or after creating loggers"""
@@ -36,6 +38,11 @@ class LogConfig:
         if self.logger_set:
             logger = logging.getLogger(self.name)
             logger.setLevel(self.log_level)
+
+    def set_stderr_level(self, level):
+        """ Set logger level for copying messages to stderr"""
+        numeric_level = getattr(logging, level.upper(), 30)
+        self.stderr_level = numeric_level
 
 
 class CommLogHandler(logging.Handler):
@@ -68,6 +75,18 @@ class WorkerIDFilter(logging.Filter):
         "Add worker ID to a LogRecord"
         record.worker = getattr(record, 'worker', self.worker_id)
         return True
+
+
+class ErrorFilter(logging.Filter):
+    """ Filter to choose messages for stderr of user-defined level"""
+
+    def __init__(self, level):
+        super().__init__()
+        self.level = level
+
+    def filter(self, record):
+        """ Confirm messages that exceed specified level """
+        return record.levelno >= self.level
 
 
 def worker_logging_config(comm, worker_id=None):
@@ -111,3 +130,11 @@ def manager_logging_config():
         stat_logger.propagate = False
         stat_logger.setLevel(logging.DEBUG)
         stat_logger.addHandler(fh)
+
+        # Mirror error-logging to stderr of user-specified level
+        fhe = logging.StreamHandler(stream=sys.stderr)
+        fhe.addFilter(wfilter)
+        efilter = ErrorFilter(logconfig.stderr_level)
+        fhe.addFilter(efilter)
+        fhe.setFormatter(formatter)
+        logger.addHandler(fhe)

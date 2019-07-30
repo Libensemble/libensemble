@@ -112,7 +112,10 @@ libEnsemble is also available in the Spack_ distribution. It can be installed fr
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
-The tests and examples can be accessed in the `github <https://github.com/Libensemble/libensemble>`_ repository.
+The tests and examples can be accessed in the `GitHub <https://github.com/Libensemble/libensemble>`_ repository. If necessary, you may install all optional dependencies (listed above) at once with::
+
+    pip install libensemble[extras]
+
 A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
 
 
@@ -137,6 +140,13 @@ To clean the test repositories run::
 Further options are available. To see a complete list of options run::
 
     ./run-tests.sh -h
+
+If you have the source distribution, you can download (but not install) the testing
+prerequisites and run the tests with::
+
+    python setup.py test
+
+in the top-level directory containing the setup script.
 
 Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors

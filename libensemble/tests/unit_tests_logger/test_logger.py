@@ -5,6 +5,7 @@ Unit test of libensemble log functions.
 """
 import os
 from libensemble import libE_logger
+from libensemble.comms.logs import LogConfig
 
 
 def test_set_log_level():
@@ -48,7 +49,6 @@ def test_set_log_level():
 
 
 def test_set_filename():
-    from libensemble.comms.logs import LogConfig
     from libensemble.comms.logs import manager_logging_config
     alt_name = "alt_name.log"
 
@@ -77,6 +77,29 @@ def test_set_filename():
     logs.set_level('DEBUG')
 
 
+def test_set_stderr_level():
+
+    stderr_level = libE_logger.get_stderr_level()
+    assert stderr_level == 30, "Default stderr copying level is 30, found " + \
+        str(stderr_level)
+
+    libE_logger.set_stderr_level('DEBUG')
+    stderr_level = libE_logger.get_stderr_level()
+    assert stderr_level == 10, "Log level should be 10. Found: " + str(stderr_level)
+
+    libE_logger.set_stderr_level('INFO')
+    stderr_level = libE_logger.get_stderr_level()
+    assert stderr_level == 20, "Log level should be 20. Found: " + str(stderr_level)
+
+    libE_logger.set_stderr_level('WARNING')
+    stderr_level = libE_logger.get_stderr_level()
+    assert stderr_level == 30, "Log level should be 30. Found: " + str(stderr_level)
+
+    libE_logger.set_stderr_level('ERROR')
+    stderr_level = libE_logger.get_stderr_level()
+    assert stderr_level == 40, "Log level should be 40. Found: " + str(stderr_level)
+
+
 # Need setup/teardown here to kill loggers if running file without pytest
 # Issue: cannot destroy loggers and they are set up in other unit tests.
 # Partial solution: either rename the file so it is the first unit test, or
@@ -85,3 +108,4 @@ if __name__ == "__main__":
     test_set_log_level()
     # test_change_log_level()
     test_set_filename()
+    test_set_stderr_level()
