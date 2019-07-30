@@ -398,7 +398,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         comm_queue, local_H[ind]['x_on_cube'],
                         local_H[ind]['f'],
                         child_can_read_evts[-1],
-                        parent_can_read_from_queue, len(processes)))
+                        parent_can_read_from_queue))
                     processes.append(p)
                     p.start()
                     print('[Parent]: Started a child process', flush=True)
