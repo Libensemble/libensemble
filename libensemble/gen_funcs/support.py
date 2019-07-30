@@ -13,8 +13,8 @@ def send_mgr_worker_msg(comm, O):
     """Send message from worker to manager.
     """
     assert len(O) == 1
-    print(25*"-", "Sending {}(SimID: {})".format(O[0][0], O['sim_id']), 25*"-",
-        flush=True)
+    # print(25*"-", "Sending {}(SimID: {})".format(O[0][0], O['sim_id']), 25*"-",
+    #     flush=True)
     D = {'calc_out': O,
          'libE_info': {'persistent': True},
          'calc_status': UNSET_TAG,
@@ -26,14 +26,14 @@ def send_mgr_worker_msg(comm, O):
 def get_mgr_worker_msg(comm, status=None):
     """Get message to worker from manager.
     """
-    print('[Parent]: Expecting a message from Manager...', flush=True)
+    # print('[Parent]: Expecting a message from Manager...', flush=True)
     tag, Work = comm.recv()
-    print('[Parent]: Received a tag {}'.format(tag), flush=True)
+    # print('[Parent]: Received a tag {}'.format(tag), flush=True)
     sys.stdout.flush()
     if tag in [STOP_TAG, PERSIS_STOP]:
         comm.push_back(tag, Work)
         return tag, None, None
-    print('[Parent]: Expecting a message from Manager...', flush=True)
+    # print('[Parent]: Expecting a message from Manager...', flush=True)
     _, calc_in = comm.recv()
-    print('[Parent]: Received some message.', flush=True)
+    # print('[Parent]: Received some message.', flush=True)
     return tag, Work, calc_in
