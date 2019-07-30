@@ -25,8 +25,12 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+from time import time
 
 nworkers, is_master, libE_specs, _ = parse_args()
+
+if is_master:
+    start_time = time()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -69,4 +73,5 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 
 if is_master:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
+    print('[Manager]: Time taken =', time() - start_time, flush=True)
     # save_libE_output(H, persis_info, __file__, nworkers)

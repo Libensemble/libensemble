@@ -186,6 +186,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
+    np.random.seed(10)
+
+
     # {{{ multiprocessing initialization
 
     child_can_read_evts = []
@@ -256,13 +259,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
                 data_to_give_processes = (f_x_recv, )
 
-            print(23*"-", "Received f({})(SimID: {})".format(x_recv,
-                sim_id_recv), 24*"-",
-                    flush=True)
+            # print(23*"-", "Received f({})(SimID: {})".format(x_recv,
+            #     sim_id_recv), 24*"-",
+            #         flush=True)
 
         if tag in [STOP_TAG, PERSIS_STOP]:
 
-            print('[Parent]: Received a stop tag, killing all children.', flush=True)
+            # print('[Parent]: Received a stop tag, killing all children.', flush=True)
             # FIXME: If there is any indication that all child processes are
             # done with their work, we can do this a bit more cleanly i.e.
             # first join and check if they are still alive, only then kill.
@@ -277,19 +280,19 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         if sim_id_to_child_indices.get(sim_id_recv):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
-                print('[Parent]:Giving f = {} it to the'
-                    ' child_idx: {}.'.format(f_x_recv, child_idx), flush=True)
+                # print('[Parent]:Giving f = {} it to the'
+                #     ' child_idx: {}.'.format(f_x_recv, child_idx), flush=True)
                 comm_queue.put(data_to_give_processes)
 
                 parent_can_read_from_queue.clear()
 
                 child_can_read_evts[child_idx].set()
-                print('[Parent]: I am waiting for child idx {}'.format(child_idx), flush=True)
+                # print('[Parent]: I am waiting for child idx {}'.format(child_idx), flush=True)
                 parent_can_read_from_queue.wait()
-                print('[Parent]: Wohoo I am free again', flush=True)
+                # print('[Parent]: Wohoo I am free again', flush=True)
 
                 x_new = comm_queue.get()
-                print('[Parent]: The child returned {}.'.format(x_new), flush=True)
+                # print('[Parent]: The child returned {}.'.format(x_new), flush=True)
                 if isinstance(x_new, tuple):
                     # FIXME: [KK]: This is ugly and every bit of it happens in
                     # my mind, this should be cleaned up duing the cleanup
@@ -298,19 +301,19 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     # Need to figure out what are run_ids.
                     update_history_optimal(x_opt, local_H,
                             run_order[child_id_to_run_id[child_idx]])
-                    print("[Parent]: Child {} has converged, miss you :'(".format(child_idx), flush=True)
+                    # print("[Parent]: Child {} has converged, miss you :'(".format(child_idx), flush=True)
                     processes[child_idx].join()
-                    print("[Parent]: Child {} has been joined.".format(child_idx), flush=True)
+                    # print("[Parent]: Child {} has been joined.".format(child_idx), flush=True)
 
                     if waiting_starting_inds:
-                        print('[Parent]: There was a waiting starting index'
-                                ' and started a run from there.', flush=True)
+                        # print('[Parent]: There was a waiting starting index'
+                        #        ' and started a run from there.', flush=True)
                         ind = waiting_starting_inds[0]
                         waiting_starting_inds = waiting_starting_inds[1:]
 
                         child_can_read_evts.append(Event())
 
-                        print('[Parent]: Initing process', flush=True)
+                        # print('[Parent]: Initing process', flush=True)
 
                         parent_can_read_from_queue.clear()
 
@@ -323,22 +326,22 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                             parent_can_read_from_queue))
                         processes.append(p)
                         p.start()
-                        print('[Parent]: Started a child process', flush=True)
+                        # print('[Parent]: Started a child process', flush=True)
 
-                        print('[Parent]: I am waiting', flush=True)
+                        # print('[Parent]: I am waiting', flush=True)
                         parent_can_read_from_queue.wait()
-                        print('[Parent]: Done waiting.', flush=True)
+                        # print('[Parent]: Done waiting.', flush=True)
 
                         assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
 
-                        print('[Parent]: Assertion holds.', flush=True)
+                        # print('[Parent]: Assertion holds.', flush=True)
 
                         comm_queue.put(local_H[ind][[*fields_to_pass]])
                         parent_can_read_from_queue.clear()
 
                         child_can_read_evts[-1].set()
                         parent_can_read_from_queue.wait()
-                        print('[Master]: Getting a new x_new.', flush=True)
+                        # print('[Master]: Getting a new x_new.', flush=True)
 
                         x_new = comm_queue.get()
 
@@ -374,8 +377,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     else:
                         sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
         else:
-            print('[Parent]: Did not find any local opt run to associate with.',
-                    flush=True)
+            # print('[Parent]: Did not find any local opt run to associate with.',
+            #         flush=True)
             if n_s < gen_specs['initial_sample_size']:
                 continue
             n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
@@ -390,7 +393,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                     child_can_read_evts.append(Event())
 
-                    print('[Parent]: Initing process', flush=True)
+                    # print('[Parent]: Initing process', flush=True)
 
                     parent_can_read_from_queue.clear()
 
@@ -401,22 +404,22 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         parent_can_read_from_queue))
                     processes.append(p)
                     p.start()
-                    print('[Parent]: Started a child process', flush=True)
+                    # print('[Parent]: Started a child process', flush=True)
 
-                    print('[Parent]: I am waiting', flush=True)
+                    # print('[Parent]: I am waiting', flush=True)
                     parent_can_read_from_queue.wait()
-                    print('[Parent]: Done waiting.', flush=True)
+                    # print('[Parent]: Done waiting.', flush=True)
 
-                    print('[Parent]: Starting with assertion checking', flush=True)
+                    # print('[Parent]: Starting with assertion checking', flush=True)
                     assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
-                    print('[Parent]: Assertion holds.', flush=True)
+                    # print('[Parent]: Assertion holds.', flush=True)
 
                     comm_queue.put(local_H[ind][[*fields_to_pass]])
                     parent_can_read_from_queue.clear()
 
                     child_can_read_evts[-1].set()
                     parent_can_read_from_queue.wait()
-                    print('[Master]: Getting a new x_new.', flush=True)
+                    # print('[Master]: Getting a new x_new.', flush=True)
 
                     x_new = comm_queue.get()
 
@@ -437,13 +440,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                     send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
                 else:
-                    print('[Parent]: Not exceeding max active runs, putting it'
-                                ' in our stash', flush=True)
+                    # print('[Parent]: Not exceeding max active runs, putting it'
+                    #             ' in our stash', flush=True)
                     waiting_starting_inds.append(ind)
             if len(starting_inds) == 0 and len(waiting_starting_inds) == 0:
                 send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
                         sim_id_to_child_indices)
-        print('[Parent]: Heading to next iteration', flush=True)
+        # print('[Parent]: Heading to next iteration', flush=True)
 
     print('[Parent]: The optimal points are:\n',
             local_H[np.where(local_H['local_min'])]['x'], flush=True)
@@ -451,7 +454,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     comm_queue.close()
     comm_queue.join_thread()
 
-    print('Done with everything', flush=True)
+    # print('Done with everything', flush=True)
 
     for p in processes:
         if p.is_alive():
@@ -467,11 +470,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
 def nlopt_callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
     comm_queue.put(x)
-    print('[Child]: Parent should no longer wait.', flush=True)
+    # print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
-    print('[Child]: I have started waiting', flush=True)
+    # print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
-    print('[Child]: Wohooo.. I am free folks', flush=True)
+    # print('[Child]: Wohooo.. I am free folks', flush=True)
     if gen_specs['localopt_method'] in ['LD_MMA']:
         f_recv, grad_recv = comm_queue.get()
         grad[:] = grad_recv
@@ -487,7 +490,7 @@ def nlopt_callback_function(x, grad, comm_queue, child_can_read, parent_can_read
 
 def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read,
         parent_can_read):
-    print('[Child]: Started local opt at {}.'.format(x0), flush=True)
+    # print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(gen_specs['ub'])
 
     opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
@@ -522,9 +525,9 @@ def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read,
         opt.set_ftol_abs(gen_specs['ftol_abs'])
 
     #FIXME: Do we need to do something of the final 'x_opt'?
-    print('[Child]: Started my optimization', flush=True)
+    # print('[Child]: Started my optimization', flush=True)
     x_opt = opt.optimize(x0)
-    print('[Child]: I have converged.', flush=True)
+    # print('[Child]: I have converged.', flush=True)
     comm_queue.put(('Converged', x_opt))
     parent_can_read.set()
 
@@ -535,11 +538,11 @@ def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read,
 
 def scipy_callback_function(x, comm_queue, child_can_read, parent_can_read, gen_specs):
     comm_queue.put(x)
-    print('[Child]: Parent should no longer wait.', flush=True)
+    # print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
-    print('[Child]: I have started waiting', flush=True)
+    # print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
-    print('[Child]: Wohooo.. I am free folks', flush=True)
+    # print('[Child]: Wohooo.. I am free folks', flush=True)
     f_x_recv, = comm_queue.get()
     child_can_read.clear()
     return f_x_recv
@@ -559,7 +562,7 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
         cons.append(up)
 
     method = gen_specs['localopt_method'][6:]
-    print('[Child]: Started my optimization', flush=True)
+    # print('[Child]: Started my optimization', flush=True)
     res = scipy_optimize.minimize(lambda x: scipy_callback_function(x,
         comm_queue, child_can_read, parent_can_read, gen_specs), x0,
         method=method, options={'maxiter': 100, 'tol': gen_specs['tol']})
@@ -575,7 +578,7 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
 
     # FIXME: Need to do something with the exit codes.
 
-    print('[Child]: I have converged.', flush=True)
+    # print('[Child]: I have converged.', flush=True)
     comm_queue.put(('Converged', x_opt))
     parent_can_read.set()
 
@@ -586,12 +589,12 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
 
 def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs):
     comm_queue.put(x.array)
-    print('[Child]: I just put x_on_cube =', x.array, flush=True)
-    print('[Child]: Parent should no longer wait.', flush=True)
+    # print('[Child]: I just put x_on_cube =', x.array, flush=True)
+    # print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
-    print('[Child]: I have started waiting', flush=True)
+    # print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
-    print('[Child]: Wohooo.. I am free folks', flush=True)
+    # print('[Child]: Wohooo.. I am free folks', flush=True)
     f_recv,  = comm_queue.get()
     child_can_read.clear()
     f.array[:] = f_recv
@@ -644,7 +647,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
     tao.setTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
     tao.setInitial(x)
 
-    print('[Child]: Started my optimization', flush=True)
+    # print('[Child]: Started my optimization', flush=True)
     tao.solve(x)
 
     x_opt = tao.getSolution().getArray()
@@ -664,7 +667,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
     tao.destroy()
 
     #FIXME: Do we need to do something of the final 'x_opt'?
-    print('[Child]: I have converged.', flush=True)
+    # print('[Child]: I have converged.', flush=True)
     comm_queue.put(('Converged', x_opt))
     parent_can_read.set()
 
