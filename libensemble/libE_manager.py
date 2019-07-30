@@ -330,14 +330,13 @@ class Manager:
         while any(self.W['active']) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
-                print(_WALLCLOCK_MSG)
+                logger.warning(_WALLCLOCK_MSG)
                 sys.stdout.flush()
                 sys.stderr.flush()
                 exit_flag = 2
 
         self._kill_workers()
-        print("\nlibEnsemble manager total time:", self.elapsed())
-        return persis_info, exit_flag
+        return persis_info, exit_flag, self.elapsed()
 
     # --- Main loop
 
@@ -368,6 +367,6 @@ class Manager:
                     "Should not wait for workers when all workers are idle."
 
         finally:
-            # Return persis_info, exit_flag
+            # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
         return result

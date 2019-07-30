@@ -7,7 +7,7 @@ Main libEnsemble routine
 __all__ = ['libE']
 
 import os
-import sys
+# import sys
 import logging
 import traceback
 import random
@@ -30,32 +30,23 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-def eprint(*args, **kwargs):
-    """Print to stderr."""
-    print(*args, file=sys.stderr, **kwargs)
-
-
 def report_manager_exception(hist, persis_info, mgr_exc=None):
-    "Write out exception manager exception to stderr and flush streams."
+    "Write out exception manager exception to log."
     if mgr_exc is not None:
         from_line, msg, exc = mgr_exc.args
-        eprint("\n---- {} ----".format(from_line))
-        eprint("Message: {}".format(msg))
-        eprint(exc)
-        eprint("--------\n")
+        logger.error("---- {} ----".format(from_line))
+        logger.error("Message: {}".format(msg))
+        logger.error(exc)
     else:
-        eprint(traceback.format_exc())
-    eprint("\nManager exception raised .. aborting ensemble:\n")
-    eprint("\nDumping ensemble history with {} sims evaluated:\n".
-           format(hist.sim_count))
+        logger.error(traceback.format_exc())
+    logger.error("Manager exception raised .. aborting ensemble:")
+    logger.error("Dumping ensemble history with {} sims evaluated:".
+                 format(hist.sim_count))
 
     filename = 'libE_history_at_abort_' + str(hist.sim_count)
     np.save(filename + '.npy', hist.trim_H())
     with open(filename + '.pickle', "wb") as f:
         pickle.dump(persis_info, f)
-
-    sys.stdout.flush()
-    sys.stderr.flush()
 
 
 def libE(sim_specs, gen_specs, exit_criteria,
@@ -149,13 +140,14 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     "Generic manager routine run."
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
-        print(_USER_SIM_ID_WARNING)
-        sys.stdout.flush()
+        logger.warning(_USER_SIM_ID_WARNING)
 
     try:
-        persis_info, exit_flag = \
+        persis_info, exit_flag, elapsed_time = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                          exit_criteria, persis_info, wcomms)
+        logger.info("libE_manager total time: {}".format(elapsed_time))
+
     except ManagerException as e:
         report_manager_exception(hist, persis_info, e)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
@@ -168,8 +160,8 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         raise
     else:
         logger.debug("Manager exiting")
-        print(len(wcomms), exit_criteria)
-        sys.stdout.flush()
+        logger.debug("Exiting with {} workers.".format(len(wcomms)))
+        logger.debug("Exiting with exit criteria: {}".format(exit_criteria))
     finally:
         if on_cleanup is not None:
             on_cleanup()
