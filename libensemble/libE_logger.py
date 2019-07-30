@@ -24,3 +24,15 @@ def set_filename(filename):
         logger.warning("Cannot set filename after loggers initialized")
     else:
         logs.filename = filename
+
+
+def set_stderr_level(level):
+    """ Sets logger to mirror certain messages to stderr"""
+    logs = LogConfig.config
+    logs.set_stderr_level(level)
+
+
+def get_stderr_level():
+    """ Return libEnsemble stderr logging level """
+    logs = LogConfig.config
+    return logs.stderr_level
