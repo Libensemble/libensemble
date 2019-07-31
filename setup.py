@@ -60,7 +60,7 @@ setup(
                    'mock'
                    ],
 
-    extras_require = {
+    extras_require={
            'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
 
     classifiers=[

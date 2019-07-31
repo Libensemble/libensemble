@@ -490,7 +490,6 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
             "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
 
 
-
 def check_H(H0, sim_specs, alloc_specs, gen_specs):
     logger.debug('Checking previous History array')
     if len(H0):
@@ -535,7 +534,6 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
     if gen_specs is not None:
         check_gen_specs(gen_specs)
 
-    #if all([d is not None for d in [exit_criteria, sim_specs, gen_specs]]):
     if exit_criteria is not None:
         assert sim_specs is not None and gen_specs is not None, \
             "Can't check exit_criteria without sim_specs and gen_specs"
