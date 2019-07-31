@@ -4,7 +4,6 @@ Module for detecting and returning system resources
 """
 
 import os
-import sys
 import socket
 import logging
 import itertools
@@ -99,14 +98,8 @@ class Resources:
         # This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir,
                                                              env_resources=self.env_resources)
-
         remote_detect = False
-        self.libE_nodes = Resources.get_libE_nodes()
-        libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
-        if libE_nodes_in_list:
-            if central_mode and len(self.global_nodelist) > 1:
-                self.global_nodelist = Resources.remove_nodes(self.global_nodelist, self.libE_nodes)
-        else:
+        if socket.gethostname() not in self.global_nodelist:
             remote_detect = True
 
         cores_info = node_resources.get_sub_node_resources(launcher=launcher,
@@ -115,34 +108,23 @@ class Resources:
         self.logical_cores_avail_per_node = cores_info[0]
         self.physical_cores_avail_per_node = cores_info[1]
 
-        # self.comm = None
+        self.libE_nodes = None
         self.worker_resources = None
+
+    def add_comm_info(self, libE_nodes):
+        """Add comms specific information to resources
+
+        Removes libEnsemble nodes from nodelist if in central_mode.
+        """
+        self.libE_nodes = libE_nodes
+        libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
+        if libE_nodes_in_list:
+            if self.central_mode and len(self.global_nodelist) > 1:
+                self.global_nodelist = Resources.remove_nodes(self.global_nodelist, self.libE_nodes)
+                logger.warning("Warning. Node-list for sub-jobs is empty. Remove central_mode or add nodes")
 
     def set_worker_resources(self, workerid, comm):
         self.worker_resources = WorkerResources(workerid, comm, self)
-
-    @staticmethod
-    def am_I_mpi4py():
-        # Not ideal, but can be used before comms set up.
-        if 'mpi4py' in sys.modules.keys():
-            return True
-        return False
-
-    @staticmethod
-    def get_libE_nodes():
-        """Returns a list of nodes running libE workers"""
-
-        # This is a libE node
-        local_host = socket.gethostname()
-        if Resources.am_I_mpi4py():
-            from mpi4py import MPI
-            comm = MPI.COMM_WORLD
-            all_hosts = comm.allgather(local_host)
-        else:
-            all_hosts = [local_host]
-        unique_hosts = list(set(all_hosts))
-        # unique_hosts = list(OrderedDict.fromkeys(all_hosts))
-        return unique_hosts
 
     @staticmethod
     def get_MPI_variant():
@@ -216,16 +198,11 @@ class Resources:
                 global_nodelist = env_resources.get_nodelist()
 
             if not global_nodelist:
-                # Assume a standalone machine if all workers on same node - though give warning.
-                if len(set(Resources.get_libE_nodes())) == 1:
-                    logger.info("Can not find nodelist from environment. Assuming standalone")
-                    global_nodelist.append(socket.gethostname())
-                else:
-                    raise ResourcesException("Error. Can not find nodelist from environment")
+                # Assume a standalone machine
+                logger.info("Can not find nodelist from environment. Assuming standalone")
+                global_nodelist.append(socket.gethostname())
 
-        if global_nodelist:
-            return global_nodelist
-        raise ResourcesException("Error. global_nodelist is empty")
+        return global_nodelist
 
 
 class WorkerResources:

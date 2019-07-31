@@ -24,6 +24,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
+from libensemble.controller import JobController
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -125,10 +126,16 @@ def libE(sim_specs, gen_specs, exit_criteria,
         2 = Manager timed out and ended simulation
     """
 
-    comms_type = libE_specs.get('comms', 'mpi')
+    # Set default comms
+    if 'comms' not in libE_specs:
+        libE_specs['comms'] = 'mpi'
+
     libE_funcs = {'mpi': libE_mpi,
                   'tcp': libE_tcp,
                   'local': libE_local}
+
+    comms_type = libE_specs.get('comms')
+
     assert comms_type in libE_funcs, "Unknown comms type: {}".format(comms_type)
     return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria,
                                   persis_info, alloc_specs, libE_specs, H0)
@@ -201,6 +208,12 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
+    jobctl = JobController.controller
+    if jobctl is not None:
+        local_host = socket.gethostname()
+        libE_nodes = comm.allgather(local_host)
+        jobctl.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+
     # Run manager or worker code, depending
     if is_master:
         return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
@@ -270,6 +283,11 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     nworkers = libE_specs['nprocesses']
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
+    jobctl = JobController.controller
+    if jobctl is not None:
+        local_host = socket.gethostname()
+        jobctl.add_comm_info(libE_nodes=local_host, serial_setup=True)
+
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Launch worker team and set up logger
@@ -314,6 +332,15 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
     "Main routine for TCP multiprocessing launch of libE."
 
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    is_worker = True if 'workerID' in libE_specs else False
+
+    jobctl = JobController.controller
+    if jobctl is not None:
+        local_host = socket.gethostname()
+        # TCP does not currently support auto_resources but when does, assume
+        # each TCP worker is in a different resource pool (only knowing local_host)
+        jobctl.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)
 
     if 'workerID' in libE_specs:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)
