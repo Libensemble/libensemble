@@ -106,7 +106,7 @@ class MPIJobController(JobController):
         Updates resources information if auto_resources is True.
         """
         if self.auto_resources:
-            self.resource.add_comm_info(libE_nodes=libE_nodes)
+            self.resources.add_comm_info(libE_nodes=libE_nodes)
         if serial_setup:
             self._serial_setup()
 
