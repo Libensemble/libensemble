@@ -434,26 +434,43 @@ def check_consistent_field(name, field0, field1):
 
 
 def check_libE_specs(libE_specs):
+    logger.debug('Checking libE_specs')
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
-    if libE_specs.get('comms', 'undefined') in ['mpi']:
+    comms_type = libE_specs.get('comms', 'undefined')
+    if comms_type in ['mpi']:
         assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+    elif comms_type in ['local']:
+        assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
+    elif comms_type in ['tcp']:
+        # TODO, differentiate and test SSH/Client
+        assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
+        assert libE_specs['worker_cmd'], "Must specify TCP command"
 
 
 def check_alloc_specs(alloc_specs):
+    logger.debug('Checking alloc_specs')
     assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
+    assert alloc_specs['alloc_f'], "Allocation function must be specified"
 
 
 def check_sim_specs(sim_specs):
+    logger.debug('Checking sim_specs')
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
+    assert all([term_field in ['sim_f', 'in', 'out'] for term_field in sim_specs]), \
+        "sim_specs must contain 'sim_f', 'in', 'out'"
+
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
+    assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
 
 
 def check_gen_specs(gen_specs):
+    logger.debug('Checking gen_specs')
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
 
 def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
+    logger.debug('Checking exit_criteria')
     assert isinstance(exit_criteria, dict), "exit_criteria must be a dictionary"
 
     assert len(exit_criteria) > 0, "Must have some exit criterion"
@@ -474,6 +491,7 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 
 
 def check_H(H0, sim_specs, alloc_specs, gen_specs):
+    logger.debug('Checking previous History array')
     if len(H0):
         # Handle if gen outputs sim IDs
         from libensemble.libE_fields import libE_fields
@@ -502,6 +520,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run.
     """
+    # Detailed checking based on Required Keys in docs for each specs
 
     if libE_specs is not None:
         check_libE_specs(libE_specs)
