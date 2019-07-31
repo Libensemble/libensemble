@@ -508,8 +508,8 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
             format(set(fields).difference(set(Dummy_H.dtype.names)))
 
         # Prior history cannot contain unreturned points
-        assert 'returned' not in fields or np.all(H0['returned']), \
-            "H0 contains unreturned points."
+        # assert 'returned' not in fields or np.all(H0['returned']), \
+        #     "H0 contains unreturned points."
 
         # Check dimensional compatibility of fields
         for field in fields:
