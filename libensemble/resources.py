@@ -121,7 +121,8 @@ class Resources:
         if libE_nodes_in_list:
             if self.central_mode and len(self.global_nodelist) > 1:
                 self.global_nodelist = Resources.remove_nodes(self.global_nodelist, self.libE_nodes)
-                logger.warning("Warning. Node-list for sub-jobs is empty. Remove central_mode or add nodes")
+                if not self.global_nodelist:
+                    logger.warning("Warning. Node-list for sub-jobs is empty. Remove central_mode or add nodes")
 
     def set_worker_resources(self, workerid, comm):
         self.worker_resources = WorkerResources(workerid, comm, self)
@@ -202,7 +203,9 @@ class Resources:
                 logger.info("Can not find nodelist from environment. Assuming standalone")
                 global_nodelist.append(socket.gethostname())
 
-        return global_nodelist
+        if global_nodelist:
+            return global_nodelist
+        raise ResourcesException("Error. global_nodelist is empty")
 
 
 class WorkerResources:
