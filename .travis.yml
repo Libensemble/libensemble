@@ -67,15 +67,6 @@ install:
   - conda install $MPI
   - conda install scipy # includes numpy
   - conda install mpi4py
-  # Forcing mumps-mpi version
-  # Travis-included MacOSX SDK not built for x86_64 - Downloading one that is
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        conda install mumps-mpi=5.1.2=haf446c3_1007;
-        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
-        mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
-    else
-        conda install mumps-mpi=5.1.2=h5bebb2f_1007;
-    fi
   - conda install petsc4py petsc
   - conda install nlopt
   # pip install these as the conda installs downgrade pytest on python3.4
