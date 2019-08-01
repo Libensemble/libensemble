@@ -28,6 +28,9 @@ fname_abort = 'libE_history_at_abort_0.npy'
 
 
 def test_manager_exception():
+
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+
     try:
         os.remove(fname_abort)
     except OSError:
@@ -38,7 +41,8 @@ def test_manager_exception():
             abortMock.side_effect = Exception
             with pytest.raises(Exception):
                 # libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': MPI.COMM_WORLD})
-                libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': fake_mpi})
+                # libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': fake_mpi})
+                libE(sim_specs, gen_specs, exit_criteria, libE_specs={'comm': fake_mpi})
                 pytest.fail('Expected exception')
             # Check npy file dumped
             assert os.path.isfile(fname_abort), "History file not dumped"
