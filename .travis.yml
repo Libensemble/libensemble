@@ -60,15 +60,16 @@ before_install:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        conda install clang_osx-64;
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
+        mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
+        COMPILERS=clang_osx-64;
+        MUMPS=mumps-mpi=5.1.2=haf446c3_1007; # Version with shared libraries (mumps-mpi 5.1.2 issue)
     else
-        conda install gcc_linux-64;
+        COMPILERS=gcc_linux-64;
+        MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
-  - conda install $MPI
-  - conda install scipy # includes numpy
-  - conda install mpi4py
-  - conda install petsc4py petsc
-  - conda install nlopt
+  - conda install $COMPILERS
+  - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
   - pip install pytest

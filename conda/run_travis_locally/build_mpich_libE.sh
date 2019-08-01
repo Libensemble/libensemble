@@ -41,14 +41,14 @@ done
 
 echo -e "\nBuilding libE on ${SYSTEM} with python $PYTHON_VERSION and branch ${LIBE_BRANCH}\n"
 
-sudo apt-get update
+# sudo apt-get update
 
 # This works if not sourced but if sourced its no good.
 # set -e
 
-sudo apt install gfortran || return
-sudo apt install libblas-dev || return
-sudo apt-get install liblapack-dev || return
+# sudo apt install gfortran || return
+# sudo apt install libblas-dev || return
+# sudo apt-get install liblapack-dev || return
 
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-${SYSTEM}-x86_64.sh -O miniconda.sh || return
 bash miniconda.sh -b -p $HOME/miniconda || return
@@ -68,13 +68,12 @@ if [[ "$SYSTEM" == "MacOSX" ]]; then
 else
   conda install gcc_linux-64 || return
 fi
-conda install $MPI || return
+conda install nlopt petsc4py petsc mumps-mpi=5.1.2=h5bebb2f_1007 mpi4py scipy $MPI
 #conda install numpy || return #scipy includes numpy
-conda install --no-update-deps scipy || return
-conda install --no-update-deps  mpi4py || return
-conda install mumps-mpi=5.1.2=h5bebb2f_1007 || return # Force this version
-conda install petsc4py petsc || return
-conda install nlopt || return
+# conda install scipy || return
+# conda install mpi4py || return
+# conda install petsc4py petsc || return
+# conda install nlopt || return
 
 # pip install these as the conda installs downgrade pytest on python3.4
 pip install pytest || return
