@@ -63,7 +63,7 @@ install:
         wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
         mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
         COMPILERS=clang_osx-64;
-        MUMPS=mumps-mpi=5.1.2=haf446c3_1007; # Version with shared libraries (mumps-mpi 5.1.2 issue)
+        MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
     else
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
