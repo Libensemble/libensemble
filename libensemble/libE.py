@@ -444,7 +444,6 @@ def check_libE_specs(libE_specs):
     elif comms_type in ['tcp']:
         # TODO, differentiate and test SSH/Client
         assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
-        assert libE_specs['worker_cmd'], "Must specify TCP command"
 
 
 def check_alloc_specs(alloc_specs):
