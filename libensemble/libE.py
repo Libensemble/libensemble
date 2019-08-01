@@ -455,7 +455,7 @@ def check_alloc_specs(alloc_specs):
 def check_sim_specs(sim_specs):
     logger.debug('Checking sim_specs')
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
-    assert all([term_field in ['sim_f', 'in', 'out'] for term_field in sim_specs]), \
+    assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'out']]), \
         "sim_specs must contain 'sim_f', 'in', 'out'"
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
