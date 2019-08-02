@@ -205,8 +205,9 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     comm = libE_specs['comm']
     try:
         rank = comm.Get_rank()
-    except Exception as e:
-        logger.warning("Rank {} not in libEnsemble communicator. Exiting".format(MPI.COMM_WORLD.Get_rank()))
+    except Exception:
+        # logger.warning("Rank {} not in libEnsemble communicator. Exiting".format(MPI.COMM_WORLD.Get_rank()))
+        logger.warning("Process not in libEnsemble communicator. Exiting")
         # raise
         return [], persis_info, []
 

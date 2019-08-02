@@ -39,8 +39,7 @@ def worker_main(mpi_comm):
 def manager_main(mpi_comm):
     "Manager main routine"
     worker_comms = [
-        MPIComm(mpi_comm, r)
-        for r in range(1, mpi_comm.Get_size())]
+        MPIComm(mpi_comm, r) for r in range(1, mpi_comm.Get_size())]
     for comm in worker_comms:
         try:
             okay_flag = True
@@ -62,22 +61,20 @@ def mpi_comm_excl(exc=[0]):
     world_group = MPI.COMM_WORLD.Get_group()
     new_group = world_group.Excl(exc)
     mpi_comm = MPI.COMM_WORLD.Create(new_group)
-    #if MPI.COMM_WORLD.Get_rank() in exc:
-        #print('Removing world ranks {} from communicator'.format(exc))
-        #sys.exit()
     return mpi_comm
 
 
 def check_ranks(mpi_comm, test_exp, test_num):
     try:
         rank = mpi_comm.Get_rank()
-    except Exception as e:
+    except Exception:
         rank = -1
     comm_ranks_in_world = MPI.COMM_WORLD.allgather(rank)
-    print('got {},  exp {} '.format(comm_ranks_in_world, test_exp[test_num])); sys.stdout.flush()
+    print('got {},  exp {} '.format(comm_ranks_in_world, test_exp[test_num]))
+    sys.stdout.flush()
     # This is really testing the test is testing what is it supposed to test
     assert comm_ranks_in_world == test_exp[test_num], "comm_ranks_in_world are: " \
-                + str(comm_ranks_in_world) + " Expected: " + str(test_exp[test_num])
+        + str(comm_ranks_in_world) + " Expected: " + str(test_exp[test_num])
     if rank == -1:
         return False
     return True
