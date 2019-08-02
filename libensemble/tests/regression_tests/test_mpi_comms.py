@@ -26,9 +26,9 @@ def check_recv(comm, expected_msg):
     assert msg == expected_msg, "Expected {}, received {}".format(expected_msg, msg)
 
 
-def worker_main():
+def worker_main(mpi_comm):
     "Worker main routine"
-    comm = MPIComm()
+    comm = MPIComm(mpi_comm)
     check_recv(comm, "Hello")
     check_recv(comm, "World")
     check_recv(comm, comm.rank)
@@ -36,11 +36,11 @@ def worker_main():
     check_recv(comm, "Goodbye")
 
 
-def manager_main():
+def manager_main(mpi_comm):
     "Manager main routine"
     worker_comms = [
         MPIComm(MPI.COMM_WORLD, r)
-        for r in range(1, MPI.COMM_WORLD.Get_size())]
+        for r in range(1, mpi_comm.Get_size())]
     for comm in worker_comms:
         try:
             okay_flag = True
@@ -57,8 +57,8 @@ def manager_main():
         check_recv(comm, comm.remote_rank)
         comm.send("Goodbye")
 
-
+mpi_comm = MPI.COMM_WORLD
 if is_master:
-    manager_main()
+    manager_main(mpi_comm)
 else:
-    worker_main()
+    worker_main(mpi_comm)
