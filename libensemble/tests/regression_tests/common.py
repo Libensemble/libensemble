@@ -40,6 +40,15 @@ def mpi_parse_args(args):
     return nworkers, is_master, libE_specs, args.tester_args
 
 
+def mpi_comm_excl(exc=[0]):
+    "Exlude ranks from a communicator for MPI comms."
+    from mpi4py import MPI
+    world_group = MPI.COMM_WORLD.Get_group()
+    new_group = world_group.Excl(exc)
+    mpi_comm = MPI.COMM_WORLD.Create(new_group)
+    return mpi_comm, MPI.COMM_NULL
+
+
 def local_parse_args(args):
     "Parse arguments for forked processes using multiprocessing."
     nworkers = args.nworkers or 4
