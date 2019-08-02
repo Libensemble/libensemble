@@ -80,7 +80,11 @@ def test_checking_inputs():
 
     libE_specs['comm'] = fake_mpi
 
-    # H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + alloc_specs['out'] + [('returned', bool)])
+    # Test warning for unreturned points
+    H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + \
+        alloc_specs['out'] + [('returned', bool)])
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
     # # Should fail because H0 has points with 'return'==False
     # try:
     #     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
