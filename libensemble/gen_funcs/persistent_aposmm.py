@@ -263,7 +263,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         if tag in [STOP_TAG, PERSIS_STOP]:
             # FIXME: This has to be a clean exit.
             for p in local_opters:
-                p.terminate()
+                p.destroy()
             break
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
@@ -287,7 +287,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                                 parent_can_read_from_queue, comm_queue,
                                 local_H[ind]['f'])
                         local_opters.append(local_opter)
-                        x_new = local_opter.iterate(local_H[ind][fields_to_pass])
+                        x_new = local_opter.iterate(*local_H[ind][fields_to_pass])
                         add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                         assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
@@ -331,7 +331,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                             parent_can_read_from_queue, comm_queue,
                             local_H[ind]['f'])
                     local_opters.append(local_opter)
-                    x_new = local_opter.iterate(local_H[ind][fields_to_pass])
+                    x_new = local_opter.iterate(*local_H[ind][fields_to_pass])
 
                     add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                     assert np.allclose(local_H[-1]['x_on_cube'], x_new)
@@ -401,7 +401,7 @@ class LocalOptInterfacer(object):
 
         # }}}
 
-        self.parent_can_read_from_queue.clear()
+        self.parent_can_read.clear()
         self.process = Process(target=run_local_opt, args=(gen_specs,
             comm_queue,
             x0, f0,
@@ -421,12 +421,12 @@ class LocalOptInterfacer(object):
         :param f: A numpy array of the function evaluation.
         :param grad: A numpy array of the function's gradient.
         """
-        if grad is not None:
-            self.comm_queue.put((f, grad))
-        else:
-            self.comm_queue.put((f, ))
-
         self.parent_can_read.clear()
+        if grad is None:
+            self.comm_queue.put((f, ))
+        else:
+            self.comm_queue.put((f, grad))
+
         self.child_can_read.set()
         self.parent_can_read.wait()
 
@@ -437,7 +437,10 @@ class LocalOptInterfacer(object):
 
         return x_new
 
-    def clean_exit(self):
+    def destroy(self):
+        # FIXME: This isn't a clean exit yet, need to handle it.
+        self.process.terminate()
+        return
         self.comm_queue.put((np.nan*np.ones_like(self.f0), ))
         self.parent_can_read.clear()
         self.child_can_read.set()
@@ -512,7 +515,7 @@ def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read,
     # print('[Child]: Started my optimization', flush=True)
     x_opt = opt.optimize(x0)
     # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(('Converged', x_opt))
+    comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
 
 # }}}
@@ -654,7 +657,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
 
     #FIXME: Do we need to do something of the final 'x_opt'?
     # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(('Converged', x_opt))
+    comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
 
     # FIXME: What do we do about the exit_code?
