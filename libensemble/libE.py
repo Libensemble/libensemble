@@ -203,7 +203,13 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
     libE_specs = libE_mpi_defaults(libE_specs)
     comm = libE_specs['comm']
-    rank = comm.Get_rank()
+    try:
+        rank = comm.Get_rank()
+    except Exception as e:
+        logger.warning("Rank {} not in libEnsemble communicator. Exiting".format(MPI.COMM_WORLD.Get_rank()))
+        # raise
+        return [], persis_info, []
+
     is_master = (rank == 0)
 
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
