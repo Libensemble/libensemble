@@ -13,6 +13,7 @@ import traceback
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
 from scipy import optimize as scipy_optimize
+from petsc4py import PETSc
 
 from mpi4py import MPI
 
@@ -589,7 +590,6 @@ def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read
 def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
         parent_can_read):
 
-    from petsc4py import PETSc
     assert isinstance(x0, np.ndarray)
 
     tao_comm = MPI.COMM_SELF
