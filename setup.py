@@ -61,7 +61,7 @@ setup(
                    ],
 
     extras_require={
-           'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
+        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
 
     classifiers=[
         'Development Status :: 3 - Alpha',

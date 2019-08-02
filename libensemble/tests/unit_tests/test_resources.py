@@ -195,6 +195,7 @@ def test_get_local_nodelist_central_mode_remove_libE_proc():
                 f.write(mynode + '\n')
 
     resources = Resources(central_mode=True)
+    resources.add_comm_info(libE_nodes=mynode)
 
     # Now mock up some more stuff - so consistent
 
