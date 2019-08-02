@@ -58,8 +58,45 @@ def manager_main(mpi_comm):
         comm.send("Goodbye")
 
 
-mpi_comm = MPI.COMM_WORLD
-if is_master:
-    manager_main(mpi_comm)
-else:
-    worker_main(mpi_comm)
+def mpi_comm_excl(exc=[0]):
+    world_group = MPI.COMM_WORLD.Get_group()
+    new_group = world_group.Excl(exc)
+    mpi_comm = MPI.COMM_WORLD.Create(new_group)
+    #if MPI.COMM_WORLD.Get_rank() in exc:
+        #print('Removing world ranks {} from communicator'.format(exc))
+        #sys.exit()
+    return mpi_comm
+
+
+def check_ranks(mpi_comm, test_exp, test_num):
+    try:
+        rank = mpi_comm.Get_rank()
+    except Exception as e:
+        rank = -1
+    comm_ranks_in_world = MPI.COMM_WORLD.allgather(rank)
+    print('got {},  exp {} '.format(comm_ranks_in_world, test_exp[test_num])); sys.stdout.flush()
+    # This is really testing the test is testing what is it supposed to test
+    assert comm_ranks_in_world == test_exp[test_num], "comm_ranks_in_world are: " \
+                + str(comm_ranks_in_world) + " Expected: " + str(test_exp[test_num])
+    if rank == -1:
+        return False
+    return True
+
+
+# Run Tests
+all_ranks = list(range(MPI.COMM_WORLD.Get_size()))
+
+tests = {1: MPI.COMM_WORLD.Dup,
+         2: mpi_comm_excl}
+
+test_exp = {1: all_ranks,
+            2: [-1] + all_ranks[:-1]}
+
+for test_num in range(1, len(tests)+1):
+    mpi_comm = tests[test_num]()
+    if check_ranks(mpi_comm, test_exp, test_num):
+        is_master = (mpi_comm.Get_rank() == 0)
+        if is_master:
+            manager_main(mpi_comm)
+        else:
+            worker_main(mpi_comm)
