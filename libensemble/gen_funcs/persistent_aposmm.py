@@ -232,7 +232,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
         if calc_in:
-            grad_f_x_recv = None
             if fields_to_pass == ['f', 'grad']:
                 (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
                 data_to_give_processes = (f_x_recv, grad_f_x_recv)
@@ -276,7 +275,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         local_opter = LocalOptInterfacer(gen_specs,
                                 local_H[ind]['x_on_cube'],
                                 parent_can_read_from_queue, comm_queue,
-                                local_H[ind]['f'], grad_f_x_recv)
+                                local_H[ind]['f'], grad_f_x_recv if 'grad' in fields_to_pass else None)
                         local_opters.append(local_opter)
                         x_new = local_opter.iterate(*local_H[ind][fields_to_pass])
                         add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
@@ -325,7 +324,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     local_opter = LocalOptInterfacer(gen_specs,
                             local_H[ind]['x_on_cube'],
                             parent_can_read_from_queue, comm_queue,
-                            local_H[ind]['f'], grad_f_x_recv)
+                            local_H[ind]['f'], grad_f_x_recv if 'grad' in fields_to_pass else None)
                     local_opters.append(local_opter)
                     x_new = local_opter.iterate(*local_H[ind][fields_to_pass])
 
@@ -431,8 +430,8 @@ class LocalOptInterfacer(object):
 
         x_new = self.comm_queue.get()
         if isinstance(x_new, ConvergedMsg):
-            self.is_running = False
             self.process.join()
+            self.is_running = False
 
         return x_new
 
@@ -441,9 +440,9 @@ class LocalOptInterfacer(object):
         while not isinstance(x_new, ConvergedMsg):
             self.parent_can_read.clear()
             if self.grad0 is None:
-                self.comm_queue.put((-np.inf*np.ones_like(self.f0),))
+                self.comm_queue.put((0*np.ones_like(self.f0),))
             else:
-                self.comm_queue.put((-np.inf*np.ones_like(self.f0),
+                self.comm_queue.put((0*np.ones_like(self.f0),
                     np.zeros_like(self.grad0)))
 
             self.child_can_read.set()
@@ -451,8 +450,8 @@ class LocalOptInterfacer(object):
 
             x_new = self.comm_queue.get()
         assert isinstance(x_new, ConvergedMsg)
-        self.is_running = False
         self.process.join()
+        self.is_running = False
 
 
 # {{{ NLOPT for local opt
@@ -565,7 +564,7 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read,
     # FIXME: Need to do something with the exit codes.
 
     # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(('Converged', x_opt))
+    comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
 
 # }}}
