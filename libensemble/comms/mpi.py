@@ -24,7 +24,7 @@ class MPIComm(Comm):
     are still pending, we cancel those requests.
     """
 
-    def __init__(self, mpi_comm=MPI.COMM_WORLD, remote_rank=0):
+    def __init__(self, mpi_comm, remote_rank=0):
         "Initialize with a given MPI communicator and rank for the other end"
         self.mpi_comm = mpi_comm
         self.remote_rank = remote_rank
