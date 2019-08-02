@@ -57,6 +57,7 @@ def manager_main(mpi_comm):
         check_recv(comm, comm.remote_rank)
         comm.send("Goodbye")
 
+
 mpi_comm = MPI.COMM_WORLD
 if is_master:
     manager_main(mpi_comm)
