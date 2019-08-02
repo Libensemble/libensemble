@@ -69,8 +69,8 @@ install:
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
   - conda install $COMPILERS
-  - conda install nlopt petsc4py petsc mpi4py scipy $MPI
-  #- conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
+  #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
+  - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
   - pip install pytest
