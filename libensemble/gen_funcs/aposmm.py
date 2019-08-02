@@ -506,7 +506,7 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
                 exit_code = 0
                 display_exception(e)
 
-        elif gen_specs['localopt_method'] in ['pounders','blmvm']:
+        elif gen_specs['localopt_method'] in ['pounders', 'blmvm']:
 
             if c_flag:
                 Run_H_F = np.zeros(len(sorted_run_inds), dtype=[('fvec', float, gen_specs['components'])])
@@ -686,7 +686,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
         delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
 
         PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
-        
+
         # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
         if hasattr(tao, 'setResidual'):
             tao.setResidual(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
