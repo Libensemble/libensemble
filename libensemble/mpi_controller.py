@@ -100,6 +100,16 @@ class MPIJobController(JobController):
                              nodelist_env_lsf=nodelist_env_lsf,
                              nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
+    def add_comm_info(self, libE_nodes, serial_setup):
+        """Add comms specific information to controller
+
+        Updates resources information if auto_resources is True.
+        """
+        if self.auto_resources:
+            self.resources.add_comm_info(libE_nodes=libE_nodes)
+        if serial_setup:
+            self._serial_setup()
+
     def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
                        machinefile, hyperthreads):
         "Form the mpi_specs dictionary."
