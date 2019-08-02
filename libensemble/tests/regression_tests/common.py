@@ -54,9 +54,10 @@ def mpi_comm_split(num_colors, comm=None):
     "Split COMM_WORLD into sub-communicators for MPI comms."
     from mpi4py import MPI
     parent_comm = comm or MPI.COMM_WORLD
+    parent_size = parent_comm.Get_size()
     key = parent_comm.Get_rank()
-    color = key // num_colors
-    print('Rank {}: color {}'.format(key, color))
+    row_size = parent_size // num_colors
+    color = key // row_size
     sub_comm = parent_comm.Split(color, key)
     return sub_comm, color
 
