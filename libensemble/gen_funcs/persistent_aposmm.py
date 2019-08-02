@@ -15,7 +15,6 @@ from scipy.spatial.distance import cdist, pdist, squareform
 from scipy import optimize as scipy_optimize
 
 from mpi4py import MPI
-from petsc4py import PETSc
 
 from numpy.lib.recfunctions import merge_arrays
 
@@ -33,6 +32,14 @@ from multiprocessing import Event, Process, Queue
 
 class APOSMMException(Exception):
     "Raised for any exception in APOSMM"
+
+
+class ConvergedMsg(object):
+    """
+    Message communicated when a local optimization is converged.
+    """
+    def __init__(self, x):
+        self.x = x
 
 
 def aposmm(H, persis_info, gen_specs, libE_info):
@@ -186,13 +193,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-    np.random.seed(10)
-
-
     # {{{ multiprocessing initialization
 
-    child_can_read_evts = []
-    processes = []
+    local_opters = []
     parent_can_read_from_queue = Event()
     comm_queue = Queue()
 
@@ -239,10 +242,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     tag = None
     max_active_runs = gen_specs.get('max_active_runs', np.inf)
     waiting_starting_inds = []
-    O = np.empty(0, dtype=gen_specs['out'])  # noqa: E741
+    O = np.empty(0, dtype=gen_specs['out'])
     while 1:
-
-        # Receive from manager
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
         if calc_in:
@@ -259,21 +260,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv),  = calc_in
                 data_to_give_processes = (f_x_recv, )
 
-            # print(23*"-", "Received f({})(SimID: {})".format(x_recv,
-            #     sim_id_recv), 24*"-",
-            #         flush=True)
-
         if tag in [STOP_TAG, PERSIS_STOP]:
-
-            # print('[Parent]: Received a stop tag, killing all children.', flush=True)
-            # FIXME: If there is any indication that all child processes are
-            # done with their work, we can do this a bit more cleanly i.e.
-            # first join and check if they are still alive, only then kill.
-
-            # sending SIGKILL to the processes.
-            # TODO: should we use SIGTERM instead?
-            for p in processes:
-                p.kill()
+            # FIXME: This has to be a clean exit.
+            for p in local_opters:
+                p.terminate()
             break
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
@@ -282,87 +272,35 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
                 # print('[Parent]:Giving f = {} it to the'
                 #     ' child_idx: {}.'.format(f_x_recv, child_idx), flush=True)
-                comm_queue.put(data_to_give_processes)
-
-                parent_can_read_from_queue.clear()
-
-                child_can_read_evts[child_idx].set()
-                # print('[Parent]: I am waiting for child idx {}'.format(child_idx), flush=True)
-                parent_can_read_from_queue.wait()
-                # print('[Parent]: Wohoo I am free again', flush=True)
-
-                x_new = comm_queue.get()
+                x_new = local_opters.iterate(*data_to_give_processes)
                 # print('[Parent]: The child returned {}.'.format(x_new), flush=True)
-                if isinstance(x_new, tuple):
-                    # FIXME: [KK]: This is ugly and every bit of it happens in
-                    # my mind, this should be cleaned up duing the cleanup
-                    # phase.
-                    x_opt = x_new[1]
-                    # Need to figure out what are run_ids.
+                if isinstance(x_new, ConvergedMsg):
+                    x_opt = x_new.x
                     update_history_optimal(x_opt, local_H,
                             run_order[child_id_to_run_id[child_idx]])
-                    # print("[Parent]: Child {} has converged, miss you :'(".format(child_idx), flush=True)
-                    processes[child_idx].join()
-                    # print("[Parent]: Child {} has been joined.".format(child_idx), flush=True)
 
                     if waiting_starting_inds:
-                        # print('[Parent]: There was a waiting starting index'
-                        #        ' and started a run from there.', flush=True)
                         ind = waiting_starting_inds[0]
                         waiting_starting_inds = waiting_starting_inds[1:]
-
-                        child_can_read_evts.append(Event())
-
-                        # print('[Parent]: Initing process', flush=True)
-
-                        parent_can_read_from_queue.clear()
-
-                        # {{{ logic duplication(need to get rid of it)
-
-                        p = Process(target=run_local_opt, args=(gen_specs,
-                            comm_queue, local_H[ind]['x_on_cube'],
-                            local_H[ind]['f'],
-                            child_can_read_evts[-1],
-                            parent_can_read_from_queue))
-                        processes.append(p)
-                        p.start()
-                        # print('[Parent]: Started a child process', flush=True)
-
-                        # print('[Parent]: I am waiting', flush=True)
-                        parent_can_read_from_queue.wait()
-                        # print('[Parent]: Done waiting.', flush=True)
-
-                        assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
-
-                        # print('[Parent]: Assertion holds.', flush=True)
-
-                        comm_queue.put(local_H[ind][[*fields_to_pass]])
-                        parent_can_read_from_queue.clear()
-
-                        child_can_read_evts[-1].set()
-                        parent_can_read_from_queue.wait()
-                        # print('[Master]: Getting a new x_new.', flush=True)
-
-                        x_new = comm_queue.get()
-
+                        local_opter = LocalOptInterfacer(gen_specs,
+                                local_H[ind]['x_on_cube'],
+                                parent_can_read_from_queue, comm_queue,
+                                local_H[ind]['f'])
+                        local_opters.append(local_opter)
+                        x_new = local_opter.iterate(local_H[ind][fields_to_pass])
                         add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                         assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
-                        assert np.allclose(local_H[-1]['x_on_cube'], x_new)
-
                         run_order[total_runs] = [local_H[-1]['sim_id']]
-                        child_id_to_run_id[len(processes)-1] = total_runs
+                        child_id_to_run_id[len(local_opters)-1] = total_runs
                         total_runs += 1
-                        # Need to figure out the child number from the run number.
 
                         if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                            sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(processes)-1, )
+                            sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(local_opters)-1, )
                         else:
-                            sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(processes)-1, )
+                            sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(local_opters)-1, )
 
                         send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
-
-                        # }}}
                     else:
                         send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
                             sim_id_to_child_indices)
@@ -370,15 +308,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                     assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
-                    send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
                     run_order[child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
                     if local_H[-1]['sim_id'] in sim_id_to_child_indices:
                         sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
                     else:
                         sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
+                    send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
         else:
-            # print('[Parent]: Did not find any local opt run to associate with.',
-            #         flush=True)
             if n_s < gen_specs['initial_sample_size']:
                 continue
             n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
@@ -389,64 +325,33 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 local_H['started_run'][ind] = 1
 
-                if len([p for p in processes if p.is_alive()]) < max_active_runs:
-
-                    child_can_read_evts.append(Event())
-
-                    # print('[Parent]: Initing process', flush=True)
-
-                    parent_can_read_from_queue.clear()
-
-                    p = Process(target=run_local_opt, args=(gen_specs,
-                        comm_queue, local_H[ind]['x_on_cube'],
-                        local_H[ind]['f'],
-                        child_can_read_evts[-1],
-                        parent_can_read_from_queue))
-                    processes.append(p)
-                    p.start()
-                    # print('[Parent]: Started a child process', flush=True)
-
-                    # print('[Parent]: I am waiting', flush=True)
-                    parent_can_read_from_queue.wait()
-                    # print('[Parent]: Done waiting.', flush=True)
-
-                    # print('[Parent]: Starting with assertion checking', flush=True)
-                    assert np.allclose(comm_queue.get(), local_H[ind]['x_on_cube'])
-                    # print('[Parent]: Assertion holds.', flush=True)
-
-                    comm_queue.put(local_H[ind][[*fields_to_pass]])
-                    parent_can_read_from_queue.clear()
-
-                    child_can_read_evts[-1].set()
-                    parent_can_read_from_queue.wait()
-                    # print('[Master]: Getting a new x_new.', flush=True)
-
-                    x_new = comm_queue.get()
+                if len([p for p in local_opters if p.is_running]) < max_active_runs:
+                    local_opter = LocalOptInterfacer(gen_specs,
+                            local_H[ind]['x_on_cube'],
+                            parent_can_read_from_queue, comm_queue,
+                            local_H[ind]['f'])
+                    local_opters.append(local_opter)
+                    x_new = local_opter.iterate(local_H[ind][fields_to_pass])
 
                     add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
                     assert np.allclose(local_H[-1]['x_on_cube'], x_new)
 
-                    assert np.allclose(local_H[-1]['x_on_cube'], x_new)
-
                     run_order[total_runs] = [local_H[-1]['sim_id']]
-                    child_id_to_run_id[len(processes)-1] = total_runs
+                    child_id_to_run_id[len(local_opters)-1] = total_runs
                     total_runs += 1
-                    # Need to figure out the child number from the run number.
 
                     if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                        sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(processes)-1, )
+                        sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(local_opters)-1, )
                     else:
-                        sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(processes)-1, )
+                        sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(local_opters)-1, )
 
                     send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
                 else:
-                    # print('[Parent]: Not exceeding max active runs, putting it'
-                    #             ' in our stash', flush=True)
                     waiting_starting_inds.append(ind)
+
             if len(starting_inds) == 0 and len(waiting_starting_inds) == 0:
                 send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
                         sim_id_to_child_indices)
-        # print('[Parent]: Heading to next iteration', flush=True)
 
     print('[Parent]: The optimal points are:\n',
             local_H[np.where(local_H['local_min'])]['x'], flush=True)
@@ -454,19 +359,98 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     comm_queue.close()
     comm_queue.join_thread()
 
-    # print('Done with everything', flush=True)
-
-    for p in processes:
-        if p.is_alive():
+    for local_opter in local_opters:
+        if local_opter.is_running:
             raise RuntimeError("[Parent]: Atleast one child process is still active, even after"
                     " killing all the children.")
-
-    #TODO: Figure out what do we need to do from here.
 
     return local_H, persis_info, tag
 
 
-# {{{ NLOPT for local opt..
+class LocalOptInterfacer(object):
+    def __init__(self, gen_specs, x0, parent_can_read, comm_queue, f0,
+            grad0=None):
+        """
+        :param x0: A numpy array of the initial guess solution. This guess
+            should be scaled to a unit cube.
+        :param f0: A numpy array of the initial function value.
+
+
+        .. warning:: In order to have correct functioning of the local
+            optimization child processes. ~self.iterate~ should be called
+            immediately after creating the class.
+
+        """
+        self.parent_can_read = parent_can_read
+
+        self.comm_queue = comm_queue
+        self.child_can_read = Event()
+
+        # {{{ setting the local optimization method
+
+        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
+                'LN_NELDERMEAD', 'LD_MMA']:
+            run_local_opt = run_local_nlopt
+        elif gen_specs['localopt_method'] in ['pounders']:
+            run_local_opt = run_local_tao
+        elif gen_specs['localopt_method'] in ['scipy_COBYLA']:
+            run_local_opt = run_local_scipy_opt
+        else:
+            raise NotImplementedError("Unknown local optimization method "
+                    "'{}'.".format(gen_specs['localopt_method']))
+
+        # }}}
+
+        self.parent_can_read_from_queue.clear()
+        self.process = Process(target=run_local_opt, args=(gen_specs,
+            comm_queue,
+            x0, f0,
+            self.child_can_read,
+            parent_can_read))
+
+        self.process.start()
+        self.is_running = True
+        self.parent_can_read.wait()
+        assert np.allclose(comm_queue.get(), x0)
+
+    def iterate(self, f, grad=None):
+        """
+        Returns an instance of either :class:`numpy.ndarray` corresponding to the next
+        iterative guess or :class:`ConvergedMsg` when the solver is converged.
+
+        :param f: A numpy array of the function evaluation.
+        :param grad: A numpy array of the function's gradient.
+        """
+        if grad is not None:
+            self.comm_queue.put((f, grad))
+        else:
+            self.comm_queue.put((f, ))
+
+        self.parent_can_read.clear()
+        self.child_can_read.set()
+        self.parent_can_read.wait()
+
+        x_new = self.comm_queue.get()
+        if isinstance(x_new, ConvergedMsg):
+            self.is_running = False
+            self.process.join()
+
+        return x_new
+
+    def clean_exit(self):
+        self.comm_queue.put((np.nan*np.ones_like(self.f0), ))
+        self.parent_can_read.clear()
+        self.child_can_read.set()
+        self.parent_can_read.wait()
+
+        x_new = self.comm_queue.get()
+        assert isinstance(x_new, ConvergedMsg)
+        self.is_running = False
+        self.process.join()
+
+
+
+# {{{ NLOPT for local opt
 
 def nlopt_callback_function(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
     comm_queue.put(x)
@@ -603,6 +587,8 @@ def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read
 
 def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
         parent_can_read):
+
+    from petsc4py import PETSc
     assert isinstance(x0, np.ndarray)
 
     tao_comm = MPI.COMM_SELF
@@ -1337,19 +1323,6 @@ def send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm
     sim_id_to_child_indices[local_H['sim_id'][-1]] = None
 
     send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
-
-
-def send_initial_sample(gen_specs, persis_info, n, c_flag, comm, local_H,
-        sim_id_to_child_indices):
-    1/0
-    sampled_points = persis_info['rand_stream'].uniform(0, 1, (gen_specs['initial_sample_size'], n))
-    add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
-    for sim_id in local_H['sim_id'][-gen_specs['initial_sample_size']:]:
-        assert sim_id not in sim_id_to_child_indices
-        sim_id_to_child_indices[sim_id] = None
-
-    for i in range(len(local_H)):
-        send_mgr_worker_msg(comm, local_H[i:i+1][['x', 'sim_id']])
 
 
 def display_exception(e):
