@@ -191,7 +191,7 @@ def libE_mpi_defaults(libE_specs):
     from mpi4py import MPI
 
     if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD
+        libE_specs['comm'] = MPI.COMM_WORLD.Dup()
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
     return libE_specs
