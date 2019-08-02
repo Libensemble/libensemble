@@ -39,7 +39,7 @@ def worker_main(mpi_comm):
 def manager_main(mpi_comm):
     "Manager main routine"
     worker_comms = [
-        MPIComm(MPI.COMM_WORLD, r)
+        MPIComm(mpi_comm, r)
         for r in range(1, mpi_comm.Get_size())]
     for comm in worker_comms:
         try:
