@@ -272,7 +272,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
                 # print('[Parent]:Giving f = {} it to the'
                 #     ' child_idx: {}.'.format(f_x_recv, child_idx), flush=True)
-                x_new = local_opters.iterate(*data_to_give_processes)
+                x_new = local_opters[child_idx].iterate(*data_to_give_processes)
                 # print('[Parent]: The child returned {}.'.format(x_new), flush=True)
                 if isinstance(x_new, ConvergedMsg):
                     x_opt = x_new.x
