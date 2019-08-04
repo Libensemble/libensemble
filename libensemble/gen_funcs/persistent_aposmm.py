@@ -210,7 +210,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     # {{{ setting the data needed by the local optimization method
 
-    if gen_specs['localopt_method'] in ['LD_MMA']:
+    if gen_specs['localopt_method'] in ['LD_MMA','blmvm']:
         fields_to_pass = ['f', 'grad']
     elif gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
             'LN_NELDERMEAD', 'pounders', 'scipy_COBYLA']:
@@ -390,7 +390,7 @@ class LocalOptInterfacer(object):
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
                 'LN_NELDERMEAD', 'LD_MMA']:
             run_local_opt = run_local_nlopt
-        elif gen_specs['localopt_method'] in ['pounders']:
+        elif gen_specs['localopt_method'] in ['pounders','blmvm']:
             run_local_opt = run_local_tao
         elif gen_specs['localopt_method'] in ['scipy_COBYLA']:
             run_local_opt = run_local_scipy_opt
@@ -586,6 +586,24 @@ def tao_callback_function(tao, x, f, comm_queue, child_can_read, parent_can_read
     f.array[:] = f_recv
     return f
 
+def tao_callback_function_grad(tao, x, f, g, comm_queue, child_can_read, parent_can_read, gen_specs):
+    import ipdb; ipdb.set_trace()
+    comm_queue.put(x.array)
+    # print('[Child]: I just put x_on_cube =', x.array, flush=True)
+    # print('[Child]: Parent should no longer wait.', flush=True)
+    parent_can_read.set()
+    # print('[Child]: I have started waiting', flush=True)
+    child_can_read.wait()
+    # print('[Child]: Wohooo.. I am free folks', flush=True)
+    if gen_specs['localopt_method'] in ['blmvm']:
+        f_recv, grad_recv = comm_queue.get()
+        g.array[:] = grad_recv
+    else:
+        assert gen_specs['localopt_method'] in ['pounders']
+        f_recv, = comm_queue.get()
+    child_can_read.clear()
+    f.array[:] = f_recv
+    return f
 
 def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
         parent_can_read):
@@ -611,17 +629,22 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
     tao = PETSc.TAO().create(tao_comm)
     tao.setType(gen_specs['localopt_method'])
 
-    f = PETSc.Vec().create(tao_comm)
-    f.setSizes(m)
-    f.setFromOptions()
+    if gen_specs['localopt_method'] == 'pounders':
+        f = PETSc.Vec().create(tao_comm)
+        f.setSizes(m)
+        f.setFromOptions()
+
+        tao.setResidual(lambda tao, x, f: tao_callback_function(tao, x, f,
+            comm_queue, child_can_read, parent_can_read, gen_specs), f)
+
+    elif gen_specs['localopt_method'] == 'blmvm':
+        g = PETSc.Vec().create(tao_comm)
+        g.setSizes(n)
+        g.setFromOptions()
+        tao.setObjectiveGradient(lambda tao, x, f, g: tao_callback_function_grad(tao, x, f, g, comm_queue, child_can_read, parent_can_read, gen_specs))
 
     delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
-
     PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
-    # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
-
-    tao.setResidual(lambda tao, x, f: tao_callback_function(tao, x, f,
-        comm_queue, child_can_read, parent_can_read, gen_specs), f)
 
     # Set everything for tao before solving
     # FIXME: Hard-coding 100 as the max funcs as couldn't find any other
@@ -643,10 +666,10 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read,
     # print(tao.view())
     # print(x_opt)
 
-    # if gen_specs['localopt_method'] == 'pounders':
-    f.destroy()
-    # elif gen_specs['localopt_method'] == 'blmvm':
-    #     g.destroy()
+    if gen_specs['localopt_method'] == 'pounders':
+        f.destroy()
+    elif gen_specs['localopt_method'] == 'blmvm':
+        g.destroy()
 
     lb.destroy()
     ub.destroy()
