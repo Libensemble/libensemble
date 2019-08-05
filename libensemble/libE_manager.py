@@ -330,7 +330,7 @@ class Manager:
         while any(self.W['active']) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
-                logger.warning(_WALLCLOCK_MSG)
+                logger.manager_warning(_WALLCLOCK_MSG)
                 sys.stdout.flush()
                 sys.stderr.flush()
                 exit_flag = 2
