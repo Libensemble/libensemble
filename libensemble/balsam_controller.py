@@ -7,7 +7,6 @@ import os
 import logging
 import time
 import datetime
-from mpi4py import MPI
 
 from libensemble.mpi_resources import MPIResources
 from libensemble.controller import \
@@ -159,9 +158,18 @@ class BalsamJobController(MPIJobController):
                          nodelist_env_lsf,
                          nodelist_env_lsf_shortform)
         self.mpi_launcher = None
-        if MPI.COMM_WORLD.Get_rank() == 0:
-            BalsamJobController.del_apps()
-            BalsamJobController.del_jobs()
+
+    def _serial_setup(self):
+        """Balsam serial setup includes empyting database and adding applications"""
+        BalsamJobController.del_apps()
+        BalsamJobController.del_jobs()
+
+        for calc_type in self.default_apps:
+            if calc_type is not None:
+                calc_name = self.default_apps[calc_type].name
+                desc = self.default_apps[calc_type].desc
+                full_path = self.default_apps[calc_type].full_path
+                self.add_app(calc_name, full_path, desc)
 
     @staticmethod
     def del_apps():
@@ -205,33 +213,6 @@ class BalsamJobController(MPIJobController):
         # app.default_postprocess = '' # optional
         app.save()
         logger.debug("Added App {}".format(app.name))
-
-    def register_calc(self, full_path, calc_type='sim', desc=None):
-        """Registers a user applications to libEnsemble and Balsam
-
-        Parameters
-        ----------
-
-        full_path: String
-            The full path of the user application to be registered.
-
-        calc_type: String
-            Calculation type: Is this application part of a 'sim'
-            or 'gen' function.
-
-        desc: String, optional
-            Description of this application.
-
-        """
-        # OK to use Python 3 syntax (Balsam requires 3.6+)
-        super().register_calc(full_path, calc_type, desc)
-
-        # Get from one place - so always matches
-        calc_name = self.default_apps[calc_type].name
-        desc = self.default_apps[calc_type].desc
-
-        if MPI.COMM_WORLD.Get_rank() == 0:
-            self.add_app(calc_name, full_path, desc)
 
     def launch(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,

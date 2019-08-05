@@ -87,7 +87,8 @@ The example sim and gen functions and tests require the following dependencies:
 
 PETSc and NLopt must be built with shared libraries enabled and present in
 sys.path (e.g., via setting the PYTHONPATH environment variable). NLopt should
-produce a file nlopt.py if Python is found on the system.
+produce a file nlopt.py if Python is found on the system. NLopt may also require SWIG_
+to be installed on certain systems.
 
 .. _PETSc:  http://www.mcs.anl.gov/petsc
 .. _Python: http://www.python.org
@@ -97,6 +98,7 @@ produce a file nlopt.py if Python is found on the system.
 .. _mpi4py:  https://bitbucket.org/mpi4py/mpi4py
 .. _petsc4py:  https://bitbucket.org/petsc/petsc4py
 .. _Balsam: https://www.alcf.anl.gov/balsam
+.. _SWIG: http://swig.org/
 
 
 Installation

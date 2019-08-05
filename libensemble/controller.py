@@ -283,6 +283,9 @@ class JobController:
         self.workerID = None
         JobController.controller = self
 
+    def _serial_setup(self):
+        pass  # To be overloaded
+
     @property
     def sim_default_app(self):
         """Return the default simulation app."""
