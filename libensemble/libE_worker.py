@@ -22,7 +22,8 @@ from libensemble.util.timer import Timer
 from libensemble.controller import JobController
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
-import cProfile, pstats
+import cProfile
+import pstats
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

@@ -19,7 +19,8 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
-import cProfile, pstats
+import cProfile
+import pstats
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
