@@ -463,34 +463,54 @@ def check_consistent_field(name, field0, field1):
         "H too small to receive all components of H0 in field {}".format(name)
 
 
-def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
-    """
-    Check if the libEnsemble arguments are of the correct data type contain
-    sufficient information to perform a run.
-    """
-
-    if libE_specs.get('comms', 'undefined') in ['mpi']:
-        assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
-
-    # Check all the input fields are dicts
-    assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
-    assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
+def check_libE_specs(libE_specs):
+    logger.debug('Checking libE_specs')
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
+    comms_type = libE_specs.get('comms', 'undefined')
+    if comms_type in ['mpi']:
+        assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+    elif comms_type in ['local']:
+        assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
+    elif comms_type in ['tcp']:
+        # TODO, differentiate and test SSH/Client
+        assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
+
+
+def check_alloc_specs(alloc_specs):
+    logger.debug('Checking alloc_specs')
     assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
+    assert alloc_specs['alloc_f'], "Allocation function must be specified"
+
+
+def check_sim_specs(sim_specs):
+    logger.debug('Checking sim_specs')
+    assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
+    assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'out']]), \
+        "sim_specs must contain 'sim_f', 'in', 'out'"
+
+    assert len(sim_specs['out']), "sim_specs must have 'out' entries"
+    assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
+
+
+def check_gen_specs(gen_specs):
+    logger.debug('Checking gen_specs')
+    assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
+    assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
+
+
+def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
+    logger.debug('Checking exit_criteria')
     assert isinstance(exit_criteria, dict), "exit_criteria must be a dictionary"
 
-    # Check for at least one valid exit criterion
     assert len(exit_criteria) > 0, "Must have some exit criterion"
+
+    # Ensure termination criteria are valid
     valid_term_fields = ['sim_max', 'gen_max',
                          'elapsed_wallclock_time', 'stop_val']
     assert all([term_field in valid_term_fields for term_field in exit_criteria]), \
         "Valid termination options: " + str(valid_term_fields)
 
-    # Check that sim/gen have 'out' entries
-    assert len(sim_specs['out']), "sim_specs must have 'out' entries"
-    assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
-
-    # If exit on stop, make sure it is something that a sim/gen outputs
+    # Make sure stop-values match parameters in gen_specs or sim_specs
     if 'stop_val' in exit_criteria:
         stop_name = exit_criteria['stop_val'][0]
         sim_out_names = [e[0] for e in sim_specs['out']]
@@ -498,7 +518,9 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
         assert stop_name in sim_out_names + gen_out_names, \
             "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
 
-    # Sanity check prior history
+
+def check_H(H0, sim_specs, alloc_specs, gen_specs):
+    logger.debug('Checking previous History array')
     if len(H0):
         # Handle if gen outputs sim IDs
         from libensemble.libE_fields import libE_fields
@@ -514,9 +536,43 @@ def check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H
             format(set(fields).difference(set(Dummy_H.dtype.names)))
 
         # Prior history cannot contain unreturned points
-        assert 'returned' not in fields or np.all(H0['returned']), \
-            "H0 contains unreturned points."
+        # assert 'returned' not in fields or np.all(H0['returned']), \
+        #     "H0 contains unreturned points."
+
+        # Warn user if prior history contains unreturned points.
+        if not ('returned' not in fields or np.all(H0['returned'])):
+            logger.warning('H0 contains unreturned points')
 
         # Check dimensional compatibility of fields
         for field in fields:
             check_consistent_field(field, H0[field], Dummy_H[field])
+
+
+def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None):
+    """
+    Check if the libEnsemble arguments are of the correct data type contain
+    sufficient information to perform a run.
+    """
+    # Detailed checking based on Required Keys in docs for each specs
+
+    if libE_specs is not None:
+        check_libE_specs(libE_specs)
+
+    if alloc_specs is not None:
+        check_alloc_specs(alloc_specs)
+
+    if sim_specs is not None:
+        check_sim_specs(sim_specs)
+
+    if gen_specs is not None:
+        check_gen_specs(gen_specs)
+
+    if exit_criteria is not None:
+        assert sim_specs is not None and gen_specs is not None, \
+            "Can't check exit_criteria without sim_specs and gen_specs"
+        check_exit_criteria(exit_criteria, sim_specs, gen_specs)
+
+    if H0 is not None:
+        assert sim_specs is not None and alloc_specs is not None and gen_specs is not None, \
+            "Can't check H0 without sim_specs, alloc_specs, gen_specs"
+        check_H(H0, sim_specs, alloc_specs, gen_specs)
