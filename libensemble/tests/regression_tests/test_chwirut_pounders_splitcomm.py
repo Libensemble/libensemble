@@ -1,7 +1,7 @@
 # """
 # Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
 # All 214 residual calculations for a given point are performed as a single
-# simulation evaluation. This version uses sub-communicator
+# simulation evaluation. This version uses a split communicator.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_chwirut_pounders.py
@@ -23,7 +23,7 @@ from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream, mpi_comm_split
 
-num_comms = 2
+num_comms = 2  # Must have atleast num_comms*2 processors
 nworkers, is_master, libE_specs, _ = parse_args()
 libE_specs['comm'], color = mpi_comm_split(num_comms)
 is_master = (libE_specs['comm'].Get_rank() == 0)
