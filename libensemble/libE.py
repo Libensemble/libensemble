@@ -537,7 +537,8 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         #     "H0 contains unreturned points."
 
         # Warn user if prior history contains unreturned points.
-        if np.all(H0['returned']): logger.warning('H0 contains unreturned points')
+        if np.all(H0['returned']):
+            logger.warning('H0 contains unreturned points')
 
         # Check dimensional compatibility of fields
         for field in fields:
