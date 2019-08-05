@@ -191,21 +191,24 @@ def libE_mpi_defaults(libE_specs):
     from mpi4py import MPI
 
     if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD
+        libE_specs['comm'] = MPI.COMM_WORLD.Dup()
     if 'color' not in libE_specs:
         libE_specs['color'] = 0
-    return libE_specs
+    return libE_specs, MPI.COMM_NULL
 
 
 def libE_mpi(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "MPI version of the libE main routine"
 
-    libE_specs = libE_mpi_defaults(libE_specs)
+    libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
     comm = libE_specs['comm']
+
+    if libE_specs['comm'] == mpi_comm_null:
+        return [], persis_info, 3  # Process not in comm
+
     rank = comm.Get_rank()
     is_master = (rank == 0)
-
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     jobctl = JobController.controller
