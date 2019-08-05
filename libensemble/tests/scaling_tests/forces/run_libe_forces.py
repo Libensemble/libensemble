@@ -76,7 +76,8 @@ sim_specs = {'sim_f': run_forces,             # This is the function whose outpu
              'sim_timesteps': 5,              # User attribute for number of timesteps in simulations
              'sim_kill_minutes': 10.0,        # User attribute for max time for simulations
              'kill_rate': 0.5,                # Between 0 and 1 for proportion of jobs that go bad (for testing kills)
-             'particle_variance': 0.2         # Range over which particle count varies (for testing load imbalance)
+             'particle_variance': 0.2,        # Range over which particle count varies (for testing load imbalance)
+             'profile': False
              }
 
 # State the generating function, its arguments, output, and necessary parameters.

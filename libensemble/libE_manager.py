@@ -19,6 +19,8 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
+import cProfile
+import pstats
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -60,6 +62,9 @@ def manager_main(hist, libE_specs, alloc_specs,
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
+    if sim_specs.get('profile'):
+        pr = cProfile.Profile()
+        pr.enable()
 
     if 'in' not in gen_specs:
         gen_specs['in'] = []
@@ -73,7 +78,17 @@ def manager_main(hist, libE_specs, alloc_specs,
     # Set up and run manager
     mgr = Manager(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
-    return mgr.run(persis_info)
+    result = mgr.run(persis_info)
+
+    if sim_specs.get('profile'):
+        pr.disable()
+        profile_stats_fname = 'manager.prof'
+
+        with open(profile_stats_fname, 'w') as f:
+            ps = pstats.Stats(pr, stream=f).sort_stats('cumulative')
+            ps.print_stats()
+
+    return result
 
 
 def filter_nans(array):
