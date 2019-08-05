@@ -7,6 +7,7 @@ from libensemble.libE import check_inputs, libE
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from mpi4py import MPI
+from libensemble.tests.regression_tests.common import mpi_comm_excl
 
 
 class Fake_MPI:
@@ -24,38 +25,51 @@ fake_mpi = Fake_MPI()
 
 libE_specs = {'comm': MPI.COMM_WORLD}
 alloc_specs = {'alloc_f': give_sim_work_first, 'out': [('allocated', bool)]}
-fname_abort = 'libE_history_at_abort_0.npy'
+hfile_abort = 'libE_history_at_abort_0.npy'
+pfile_abort = 'libE_history_at_abort_0.pickle'
+
+
+def remove_file_if_exists(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
 
 
 def test_manager_exception():
-
+    """Checking dump of history and pickle file on abort"""
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    remove_file_if_exists(hfile_abort)
+    remove_file_if_exists(pfile_abort)
 
-    try:
-        os.remove(fname_abort)
-    except OSError:
-        pass
     with mock.patch('libensemble.libE.manager_main') as managerMock:
         managerMock.side_effect = Exception
         with mock.patch('libensemble.libE.comms_abort') as abortMock:
             abortMock.side_effect = Exception
+            # Need fake MPI to get past the Manager only check and dump history
             with pytest.raises(Exception):
-                # libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': MPI.COMM_WORLD})
-                # libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': fake_mpi})
                 libE(sim_specs, gen_specs, exit_criteria, libE_specs={'comm': fake_mpi})
                 pytest.fail('Expected exception')
-            # Check npy file dumped
-            assert os.path.isfile(fname_abort), "History file not dumped"
-            os.remove(fname_abort)
+            assert os.path.isfile(hfile_abort), "History file not dumped"
+            assert os.path.isfile(pfile_abort), "Pickle file not dumped"
+            os.remove(hfile_abort)
+            os.remove(pfile_abort)
 
 
 def test_exception_raising_manager():
-    # Intentionally running without sim_specs['in'] to test exception raising (Fails)
+    """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
     with mock.patch('libensemble.libE.comms_abort') as abortMock:
         abortMock.side_effect = Exception
-        with pytest.raises(Exception):
-            H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': MPI.COMM_WORLD})
-            pytest.fail('Expected exception')
+        with pytest.raises(KeyError):
+            H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': fake_mpi})
+            pytest.fail('Expected KeyError exception')
+
+
+def test_proc_not_in_communicator():
+    """Checking proc not in communicator returns exit status of 3"""
+    libE_specs['comm'], mpi_comm_null = mpi_comm_excl()
+    H, _, flag = libE({'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs=libE_specs)
+    assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
 
 
 # def test_exception_raising_worker():
@@ -125,4 +139,5 @@ def rmfield(a, *fieldnames_to_remove):
 if __name__ == "__main__":
     test_manager_exception()
     test_exception_raising_manager()
+    test_proc_not_in_communicator()
     test_checking_inputs()
