@@ -6,8 +6,8 @@ LogConfig(__package__)
 # From https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility/35804945
 
 MANAGER_WARNING = 35
-
 logging.addLevelName(MANAGER_WARNING, 'MANAGER_WARNING')
+logging.MANAGER_WARNING = MANAGER_WARNING
 
 
 def manager_warning(self, message, *args, **kwargs):

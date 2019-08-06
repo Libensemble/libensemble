@@ -4,6 +4,7 @@
 Unit test of libensemble log functions.
 """
 import os
+import logging
 from libensemble import libE_logger
 from libensemble.comms.logs import LogConfig
 
@@ -28,9 +29,6 @@ def test_set_log_level():
     libE_logger.set_level('ERROR')
     level = libE_logger.get_level()
     assert level == 40, "Log level should be 40. Found: " + str(level)
-
-    # Determine if self.isEnabledFor() works
-    libE_logger.manager_warning('This test message should not log')
 
     libE_logger.set_level('INFO')
     level = libE_logger.get_level()
@@ -109,6 +107,11 @@ def test_set_stderr_level():
     libE_logger.set_stderr_level('ERROR')
     stderr_level = libE_logger.get_stderr_level()
     assert stderr_level == 40, "Log level should be 40. Found: " + str(stderr_level)
+
+    libE_logger.set_level('ERROR')
+    logger = logging.getLogger('libensemble')
+    logger.manager_warning('This test message should not log')
+
 
 
 # Need setup/teardown here to kill loggers if running file without pytest
