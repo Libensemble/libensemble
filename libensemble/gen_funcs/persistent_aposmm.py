@@ -11,7 +11,7 @@ import traceback
 import numpy as np
 from scipy.spatial.distance import cdist
 from scipy import optimize as sp_opt
-from petsc5py import PETSc
+from petsc4py import PETSc
 
 from mpi4py import MPI
 
