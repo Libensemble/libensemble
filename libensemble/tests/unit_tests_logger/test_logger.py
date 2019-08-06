@@ -113,7 +113,6 @@ def test_set_stderr_level():
     logger.manager_warning('This test message should not log')
 
 
-
 # Need setup/teardown here to kill loggers if running file without pytest
 # Issue: cannot destroy loggers and they are set up in other unit tests.
 # Partial solution: either rename the file so it is the first unit test, or
