@@ -10,7 +10,17 @@ from mpi4py import MPI
 from libensemble.tests.regression_tests.common import mpi_comm_excl
 
 
+class MPIAbortException(Exception):
+    "Raised when mock mpi abort is called"
+
+
+class MPISendException(Exception):
+    "Raised when mock mpi abort is called"
+
+
 class Fake_MPI:
+    """Explicit mocking of MPI communicator"""
+
     def Get_size(self):
         return 2
 
@@ -19,6 +29,13 @@ class Fake_MPI:
 
     def Barrier(self):
         return 0
+
+    def isend(self, msg, dest, tag):
+        raise MPISendException()
+
+    def Abort(self, flag):
+        assert flag == 1, 'Aborting without exit code of 1'
+        raise MPIAbortException()
 
 
 fake_mpi = Fake_MPI()
@@ -56,13 +73,38 @@ def test_manager_exception():
             os.remove(pfile_abort)
 
 
-def test_exception_raising_manager():
+# Note - this could be combined now with above tests as fake_MPI prevents need for use of mock module
+# Only way that is better is that this will simply hit first code exception - (when fake_MPI tries to isend)
+# While first test triggers on call to manager
+def test_exception_raising_manager_with_abort():
+    """Running until fake_MPI tries to send msg to test (mocked) comm.Abort is called
+
+    Manager should raise MPISendException when fakeMPI tries to send message, which
+    will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
+    with pytest.raises(MPIAbortException):
+        sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+        libE(sim_specs, gen_specs, exit_criteria, libE_specs={'comm': fake_mpi})
+        pytest.fail('Expected MPIAbortException exception')
+
+
+def test_exception_raising_manager_no_abort():
+    """Running until fake_MPI tries to send msg to test (mocked) comm.Abort is called
+
+    Manager should raise MPISendException when fakeMPI tries to send message, which
+    will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
+    libE_specs['abort_on_exception'] = False
+    libE_specs['comm'] = fake_mpi
+    with pytest.raises(MPISendException):
+        sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+        libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
+        pytest.fail('Expected MPISendException exception')
+
+
+def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
-    with mock.patch('libensemble.libE.comms_abort') as abortMock:
-        abortMock.side_effect = Exception
-        with pytest.raises(KeyError):
-            H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': fake_mpi})
-            pytest.fail('Expected KeyError exception')
+    with pytest.raises(KeyError):
+        H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': fake_mpi})
+        pytest.fail('Expected KeyError exception')
 
 
 def test_proc_not_in_communicator():
@@ -138,6 +180,8 @@ def rmfield(a, *fieldnames_to_remove):
 
 if __name__ == "__main__":
     test_manager_exception()
-    test_exception_raising_manager()
+    test_exception_raising_manager_with_abort()
+    test_exception_raising_manager_no_abort()
+    test_exception_raising_check_inputs()
     test_proc_not_in_communicator()
     test_checking_inputs()
