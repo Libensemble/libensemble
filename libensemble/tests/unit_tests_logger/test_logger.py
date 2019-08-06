@@ -29,6 +29,7 @@ def test_set_log_level():
     level = libE_logger.get_level()
     assert level == 40, "Log level should be 40. Found: " + str(level)
 
+    # Determine if self.isEnabledFor() works
     libE_logger.manager_warning('This test message should not log')
 
     libE_logger.set_level('INFO')
