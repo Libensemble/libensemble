@@ -21,9 +21,15 @@ def test_set_log_level():
     level = libE_logger.get_level()
     assert level == 30, "Log level should be 30. Found: " + str(level)
 
+    libE_logger.set_level('MANAGER_WARNING')
+    level = libE_logger.get_level()
+    assert level == 35, "Log level should be 35. Found: " + str(level)
+
     libE_logger.set_level('ERROR')
     level = libE_logger.get_level()
     assert level == 40, "Log level should be 40. Found: " + str(level)
+
+    libE_logger.manager_warning('This test message should not log')
 
     libE_logger.set_level('INFO')
     level = libE_logger.get_level()
@@ -94,6 +100,10 @@ def test_set_stderr_level():
     libE_logger.set_stderr_level('WARNING')
     stderr_level = libE_logger.get_stderr_level()
     assert stderr_level == 30, "Log level should be 30. Found: " + str(stderr_level)
+
+    libE_logger.set_stderr_level('MANAGER_WARNING')
+    stderr_level = libE_logger.get_stderr_level()
+    assert stderr_level == 35, "Log level should be 35. Found: " + str(stderr_level)
 
     libE_logger.set_stderr_level('ERROR')
     stderr_level = libE_logger.get_stderr_level()
