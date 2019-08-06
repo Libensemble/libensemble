@@ -21,7 +21,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
-        if np.any(np.logical_and(H['returned'][gen_inds],~H['given_back'][gen_inds])):
+        if np.any(np.logical_and(H['returned'][gen_inds], ~H['given_back'][gen_inds])):
             last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
             inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
             gen_work(Work, i,

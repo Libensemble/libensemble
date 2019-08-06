@@ -41,7 +41,8 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float), ('grad', float, n)]}
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-        ('local_min', bool)]
+           ('local_min', bool)]
+
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
@@ -74,4 +75,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_master:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
     print('[Manager]: Time taken =', time() - start_time, flush=True)
-    # save_libE_output(H, persis_info, __file__, nworkers)
+    save_libE_output(H, persis_info, __file__, nworkers)
