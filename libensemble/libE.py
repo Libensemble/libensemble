@@ -147,7 +147,7 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     "Generic manager routine run."
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
-        logger.warning(_USER_SIM_ID_WARNING)
+        logger.manager_warning(_USER_SIM_ID_WARNING)
 
     try:
         persis_info, exit_flag, elapsed_time = \
