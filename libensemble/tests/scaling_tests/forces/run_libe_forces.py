@@ -32,7 +32,8 @@ else:
     is_master = True  # processes are forked in libE
     libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
 
-print('\nRunning with {} workers\n'.format(nworkers))
+if is_master:
+    print('\nRunning with {} workers\n'.format(nworkers))
 
 # Get this script name (for output at end)
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -54,10 +55,10 @@ if not os.path.isdir('./sim'):
 # Create job_controller and register sim to it.
 if USE_BALSAM:
     from libensemble.balsam_controller import BalsamJobController
-    jobctrl = BalsamJobController()
+    jobctrl = BalsamJobController()  # Use auto_resources=False to oversubscribe
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=True)
+    jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 

@@ -165,7 +165,7 @@ class BalsamJobController(MPIJobController):
         BalsamJobController.del_jobs()
 
         for calc_type in self.default_apps:
-            if calc_type is not None:
+            if self.default_apps[calc_type] is not None:
                 calc_name = self.default_apps[calc_type].name
                 desc = self.default_apps[calc_type].desc
                 full_path = self.default_apps[calc_type].full_path
