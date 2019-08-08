@@ -57,10 +57,6 @@ def test_set_filename():
     from libensemble.comms.logs import manager_logging_config
     alt_name = "alt_name.log"
 
-    # Test
-    logs = LogConfig.config
-    print('logger set:', logs.logger_set)
-
     logs = LogConfig.config
     assert logs.filename == "ensemble.log", "Log filename expected ensemble.log. Found: " + logs.filename
 
@@ -85,7 +81,7 @@ def test_set_filename():
 def test_set_stderr_level():
 
     stderr_level = libE_logger.get_stderr_level()
-    assert stderr_level == 30, "Default stderr copying level is 30, found " + \
+    assert stderr_level == 35, "Default stderr copying level is 35, found " + \
         str(stderr_level)
 
     libE_logger.set_stderr_level('DEBUG')
