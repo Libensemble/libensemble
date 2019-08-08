@@ -5,8 +5,8 @@
 # -x echo commands
 set -x # problem with this - loads of conda internal commands shown - overwhelming.
 
-export PYTHON_VERSION=3.7       # default - override with -p <version>
-export LIBE_BRANCH="develop"    # default - override with -b <branchname>
+export PYTHON_VERSION=3.6       # default - override with -p <version>
+export LIBE_BRANCH="experimental/balsam-on-travis"    # default - override with -b <branchname>
 export SYSTEM="Linux"         # default - override with -s <OS>
                                 # Options for miniconda - Linux, MacOSX, Windows
 export MPI=MPICH
@@ -76,6 +76,7 @@ conda install nlopt petsc4py petsc mumps-mpi=5.1.2=h5bebb2f_1007 mpi4py scipy $M
 # conda install nlopt || return
 
 # pip install these as the conda installs downgrade pytest on python3.4
+pip install balsam-flow || return
 pip install pytest || return
 pip install pytest-cov || return
 pip install pytest-timeout || return
@@ -87,6 +88,7 @@ git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || retu
 cd libensemble/ || return
 pip install -e . || return
 
+conda/balsam-setup.sh
 libensemble/tests/run-tests.sh
 
 echo -e "\n\nScript completed...\n\n"
