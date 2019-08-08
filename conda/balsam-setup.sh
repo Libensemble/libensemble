@@ -1,4 +1,6 @@
-balsam init ~/test-balsam
+psql -c 'create database ../test-balsam;' -U postgres
+balsam init ../test-balsam
+sudo chown -R postgres:postgres /var/run/postgresql
 source balsamactivate test-balsam
 
 export EXE=script_test_jobcontroller_hworld_balsam.py
