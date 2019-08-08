@@ -1,16 +1,20 @@
-# This script is meant to be launched by Balsam
+# This script is meant to be submitted to Balsam for execution
 
 import os
 import numpy as np
 import multiprocessing
 
+from libensemble.balsam_controller import BalsamJobController
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import build_simfunc, parse_args, per_worker_stream
+from libensemble.tests.regression_tests.common import build_simfunc, per_worker_stream
 
 from mpi4py import MPI
+
+# This script is meant to be launched by Balsam
+
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_master = MPI.COMM_WORLD.Get_rank() == 0
@@ -34,7 +38,6 @@ sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-from libensemble.balsam_controller import BalsamJobController
 jobctrl = BalsamJobController(auto_resources=use_auto_resources)
 
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')

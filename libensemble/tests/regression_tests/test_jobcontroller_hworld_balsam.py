@@ -9,7 +9,7 @@ import balsam
 #   For our purposes, we append ten workers to Balsam's WorkerGroup
 
 
-### MODIFY BALSAM WORKERGROUP ###
+# MODIFY BALSAM WORKERGROUP
 
 home = os.getcwd()
 balsam_worker_path = os.path.dirname(balsam.__file__) + '/launcher'
@@ -19,7 +19,7 @@ with open('worker.py', 'r') as f:
     lines = f.readlines()
 
 if lines[-3] != "        for idx in range(10):\n":
-    lines = lines[:-2] # Will re-add these lines
+    lines = lines[:-2]  # Will re-add these lines
     lines.extend(["        for idx in range(10):\n",
                   "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
                   "            self.workers.append(w)\n"])
@@ -30,7 +30,7 @@ with open('testworker.py', 'w') as f:
 
 os.chdir(home)
 
-### EXECUTE BALSAM JOB ###
+# EXECUTE BALSAM JOB
 
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 subprocess.check_call(runstr.split(' '))
