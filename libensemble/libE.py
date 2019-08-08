@@ -535,7 +535,7 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         #     "H0 contains unreturned points."
 
         # Fail if prior history contains unreturned points.
-        assert('returned' not in fields or np.all(H0['returned']))
+        assert('returned' not in fields or np.all(H0['returned'])), 'H0 contains unreturned points'
 
         # Check dimensional compatibility of fields
         for field in fields:
@@ -548,7 +548,6 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
     sufficient information to perform a run.
     """
     # Detailed checking based on Required Keys in docs for each specs
-
     if libE_specs is not None:
         check_libE_specs(libE_specs, serial_check)
 
