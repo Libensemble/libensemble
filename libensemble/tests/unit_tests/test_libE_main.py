@@ -139,23 +139,23 @@ def test_checking_inputs():
     # Test warning for unreturned points
     H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] +
                   alloc_specs['out'] + [('returned', bool)])
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # # Should fail because H0 has points with 'return'==False
-    # try:
-    #     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    # except AssertionError:
-    #     assert 1
-    # else:
-    #     assert 0
+    try:
+        check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    except AssertionError:
+        assert 1
+    else:
+        assert 0
 
-    # # Should not fail
-    # H0['returned'] = True
-    # check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    # #
-    # # Removing 'returned' and then testing again.
-    # H0 = rmfield(H0, 'returned')
-    # check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    # Should not fail
+    H0['returned'] = True
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    #
+    # Removing 'returned' and then testing again.
+    H0 = rmfield(H0, 'returned')
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Should fail because H0 has fields not in H
     H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + alloc_specs['out'] + [('bad_name', bool), ('bad_name2', bool)])
