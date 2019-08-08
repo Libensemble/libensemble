@@ -25,6 +25,8 @@ matrix:
       language: generic
       python: 3
 
+services:
+    - postgresql
 
 # matrix:
 #  allow_failures:
@@ -72,6 +74,7 @@ install:
   #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
+  - pip install balsam-flow
   - pip install flake8
   - pip install pytest
   - pip install pytest-cov
@@ -86,6 +89,7 @@ install:
 
 before_script:
   - flake8 libensemble
+  - ./conda/balsam-setup.sh
   # Set conda compilers to use new SDK instead of Travis default.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
