@@ -8,6 +8,7 @@ import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from mpi4py import MPI
 from libensemble.tests.regression_tests.common import mpi_comm_excl
+from numpy import inf
 
 
 class MPIAbortException(Exception):
@@ -149,17 +150,34 @@ def test_checking_inputs_H0():
     libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
 
     # Should fail because H0 has points with 'return'==False
-    H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] +
-                  alloc_specs['out'] + [('returned', bool)])
+    H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
+                   (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
+                   (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3),
+                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
+                  dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'),
+                         ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'),
+                         ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)),
+                         ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
 
-    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert 'H0 contains unreturned points' in errstr, 'Incorrect assertion error: ' + errstr
-
-    H0['returned'] = True
-    # Should now be ok - if now will trip assertion in check_inputs
+    # This should work
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # Removing 'returned' and then testing again.
+    # A value has not been returned
+    H0['returned'][2] = False
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
+
+    # Ungiven points shown as returned
+    H0['returned'] = True
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
+
+    # Return to correct state
+    H0['returned'][3:len(H0)] = False
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # Removing 'returned' and then testing again. Should be successful as 'returned' does not exist
     H0 = rmfield(H0, 'returned')
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
