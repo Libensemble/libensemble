@@ -463,11 +463,12 @@ def check_consistent_field(name, field0, field1):
         "H too small to receive all components of H0 in field {}".format(name)
 
 
-def check_libE_specs(libE_specs):
+def check_libE_specs(libE_specs, serial_check=False):
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
-    comms_type = libE_specs.get('comms', 'undefined')
+    comms_type = libE_specs.get('comms', 'mpi')
     if comms_type in ['mpi']:
-        assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+        if not serial_check:
+            assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
     elif comms_type in ['local']:
         assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
     elif comms_type in ['tcp']:
@@ -534,7 +535,6 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         #     "H0 contains unreturned points."
 
         # Fail if prior history contains unreturned points.
-
         assert('returned' not in fields or np.all(H0['returned']))
 
         # Check dimensional compatibility of fields
@@ -542,7 +542,7 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
             check_consistent_field(field, H0[field], Dummy_H[field])
 
 
-def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None):
+def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
     """
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run.
@@ -550,7 +550,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
     # Detailed checking based on Required Keys in docs for each specs
 
     if libE_specs is not None:
-        check_libE_specs(libE_specs)
+        check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:
         check_alloc_specs(alloc_specs)
