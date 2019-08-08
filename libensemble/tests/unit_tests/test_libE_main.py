@@ -166,26 +166,25 @@ def test_checking_inputs_H0():
     # Should fail because H0 has fields not in H
     H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + alloc_specs['out'] + [('bad_name', bool), ('bad_name2', bool)])
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert 'not in the History' in errstr, 'Incorrect assertion error: ' + errstr    
+    assert 'not in the History' in errstr, 'Incorrect assertion error: ' + errstr
 
 
 def test_checking_inputs_exit_crit():
     sim_specs, gen_specs, _ = setup.make_criteria_and_specs_0()
     libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
-    H0 = {}    
-    
+    H0 = {}
+
     exit_criteria = {}
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'Must have some exit criterion' in errstr, 'Incorrect assertion error: ' + errstr
-        
-    exit_criteria = {'swim_max':10}
+
+    exit_criteria = {'swim_max': 10}
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert 'Valid termination options' in errstr, 'Incorrect assertion error: ' + errstr        
+    assert 'Valid termination options' in errstr, 'Incorrect assertion error: ' + errstr
 
 
 def test_checking_inputs_single():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    libE_specs = {}
     libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
 
     # Other individual tests
