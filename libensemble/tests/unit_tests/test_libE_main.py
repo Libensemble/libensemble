@@ -8,6 +8,7 @@ import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from mpi4py import MPI
 from libensemble.tests.regression_tests.common import mpi_comm_excl
+from numpy import inf
 
 
 class MPIAbortException(Exception):
@@ -100,6 +101,8 @@ def test_exception_raising_manager_no_abort():
         pytest.fail('Expected MPISendException exception')
 
 
+# So it's a key error rather than assertion error as does not test if 'in' is
+# missing, only that its a list - needs updating in future.
 def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
     with pytest.raises(KeyError):
@@ -119,63 +122,94 @@ def test_proc_not_in_communicator():
 #     H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': MPI.COMM_WORLD})
 #     assert H==[]
 
-def test_checking_inputs():
-
-    # Don't take more points than there is space in history.
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-
-    # Should fail because only got a manager
-    H0 = {}
-    libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
-    try:
-        check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    except AssertionError:
-        assert 1
-    else:
-        assert 0
-
-    libE_specs['comm'] = fake_mpi
-
-    # Test warning for unreturned points
-    H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] +
-                  alloc_specs['out'] + [('returned', bool)])
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
-    # # Should fail because H0 has points with 'return'==False
-    # try:
-    #     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    # except AssertionError:
-    #     assert 1
-    # else:
-    #     assert 0
-
-    # # Should not fail
-    # H0['returned'] = True
-    # check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    # #
-    # # Removing 'returned' and then testing again.
-    # H0 = rmfield(H0, 'returned')
-    # check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
-    # Should fail because H0 has fields not in H
-    H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + alloc_specs['out'] + [('bad_name', bool), ('bad_name2', bool)])
-    try:
-        check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    except AssertionError:
-        assert 1
-    else:
-        assert 0
-
-    # Other individual tests
-    check_inputs(libE_specs)
-    check_inputs(alloc_specs)
-    check_inputs(sim_specs)
-    check_inputs(gen_specs)
-    check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
-
 
 def rmfield(a, *fieldnames_to_remove):
     return a[[name for name in a.dtype.names if name not in fieldnames_to_remove]]
+
+
+def check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
+    with pytest.raises(AssertionError) as excinfo:
+        check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+        pytest.fail('Expected AssertionError exception')
+    return str(excinfo.value)
+
+
+def test_checking_inputs_noworkers():
+    # Don't take more points than there is space in history.
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    H0 = {}
+
+    # Should fail because only got a manager
+    libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'must be at least one worker' in errstr, 'Incorrect assertion error: ' + errstr
+
+
+def test_checking_inputs_H0():
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
+
+    # Should fail because H0 has points with 'return'==False
+    H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
+                   (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
+                   (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3),
+                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
+                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
+                  dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'),
+                         ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'),
+                         ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)),
+                         ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+
+    # This should work
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # A value has not been returned
+    H0['returned'][2] = False
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
+
+    # Ungiven points shown as returned
+    H0['returned'] = True
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
+
+    # Return to correct state
+    H0['returned'][3:len(H0)] = False
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # Removing 'returned' and then testing again. Should be successful as 'returned' does not exist
+    H0 = rmfield(H0, 'returned')
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # Should fail because H0 has fields not in H
+    H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + alloc_specs['out'] + [('bad_name', bool), ('bad_name2', bool)])
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'not in the History' in errstr, 'Incorrect assertion error: ' + errstr
+
+
+def test_checking_inputs_exit_crit():
+    sim_specs, gen_specs, _ = setup.make_criteria_and_specs_0()
+    libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
+    H0 = {}
+
+    exit_criteria = {}
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'Must have some exit criterion' in errstr, 'Incorrect assertion error: ' + errstr
+
+    exit_criteria = {'swim_max': 10}
+    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    assert 'Valid termination options' in errstr, 'Incorrect assertion error: ' + errstr
+
+
+def test_checking_inputs_single():
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
+
+    check_inputs(libE_specs=libE_specs)
+    check_inputs(alloc_specs=alloc_specs)
+    check_inputs(sim_specs=sim_specs)
+    check_inputs(gen_specs=gen_specs)
+    check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
 
 
 if __name__ == "__main__":
@@ -184,4 +218,7 @@ if __name__ == "__main__":
     test_exception_raising_manager_no_abort()
     test_exception_raising_check_inputs()
     test_proc_not_in_communicator()
-    test_checking_inputs()
+    test_checking_inputs_noworkers()
+    test_checking_inputs_H0()
+    test_checking_inputs_exit_crit()
+    test_checking_inputs_single()
