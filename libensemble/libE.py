@@ -99,7 +99,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs>`
 
-    H0: :obj:`dict`, optional
+    H0: :obj:`numpy structured array`, optional
 
         A previous libEnsemble history to be prepended to the history in the
         current libEnsemble run
@@ -108,11 +108,10 @@ def libE(sim_specs, gen_specs, exit_criteria,
     Returns
     -------
 
-    H: :obj:`dict`
+    H: :obj:`numpy structured array`
 
         History array storing rows for each point.
         :doc:`(example)<data_structures/history_array>`
-        Dictionary containing persistent info
 
     persis_info: :obj:`dict`
 
@@ -124,6 +123,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         Flag containing job status: 0 = No errors,
         1 = Exception occured
         2 = Manager timed out and ended simulation
+        3 = Current process is not in libEnsemble MPI communicator
     """
 
     # Set default comms
