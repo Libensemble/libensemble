@@ -187,11 +187,10 @@ def test_checking_inputs_single():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
 
-    # Other individual tests
-    check_inputs(libE_specs)
-    check_inputs(alloc_specs)
-    check_inputs(sim_specs)
-    check_inputs(gen_specs)
+    check_inputs(libE_specs=libE_specs)
+    check_inputs(alloc_specs=alloc_specs)
+    check_inputs(sim_specs=sim_specs)
+    check_inputs(gen_specs=gen_specs)
     check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
 
 
