@@ -147,7 +147,7 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     "Generic manager routine run."
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
-        logger.warning(_USER_SIM_ID_WARNING)
+        logger.manager_warning(_USER_SIM_ID_WARNING)
 
     try:
         persis_info, exit_flag, elapsed_time = \
@@ -463,12 +463,12 @@ def check_consistent_field(name, field0, field1):
         "H too small to receive all components of H0 in field {}".format(name)
 
 
-def check_libE_specs(libE_specs):
-    logger.debug('Checking libE_specs')
+def check_libE_specs(libE_specs, serial_check=False):
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
-    comms_type = libE_specs.get('comms', 'undefined')
+    comms_type = libE_specs.get('comms', 'mpi')
     if comms_type in ['mpi']:
-        assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+        if not serial_check:
+            assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
     elif comms_type in ['local']:
         assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
     elif comms_type in ['tcp']:
@@ -477,13 +477,11 @@ def check_libE_specs(libE_specs):
 
 
 def check_alloc_specs(alloc_specs):
-    logger.debug('Checking alloc_specs')
     assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
     assert alloc_specs['alloc_f'], "Allocation function must be specified"
 
 
 def check_sim_specs(sim_specs):
-    logger.debug('Checking sim_specs')
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
     assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'out']]), \
         "sim_specs must contain 'sim_f', 'in', 'out'"
@@ -493,13 +491,11 @@ def check_sim_specs(sim_specs):
 
 
 def check_gen_specs(gen_specs):
-    logger.debug('Checking gen_specs')
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
 
 def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
-    logger.debug('Checking exit_criteria')
     assert isinstance(exit_criteria, dict), "exit_criteria must be a dictionary"
 
     assert len(exit_criteria) > 0, "Must have some exit criterion"
@@ -520,7 +516,6 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 
 
 def check_H(H0, sim_specs, alloc_specs, gen_specs):
-    logger.debug('Checking previous History array')
     if len(H0):
         # Handle if gen outputs sim IDs
         from libensemble.libE_fields import libE_fields
@@ -539,24 +534,23 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         # assert 'returned' not in fields or np.all(H0['returned']), \
         #     "H0 contains unreturned points."
 
-        # Warn user if prior history contains unreturned points.
-        if not ('returned' not in fields or np.all(H0['returned'])):
-            logger.warning('H0 contains unreturned points')
+        # Fail if prior history contains unreturned points (or returned but not given).
+        assert('returned' not in fields or np.all(H0['given'] == H0['returned'])), \
+            'H0 contains unreturned or invalid points'
 
         # Check dimensional compatibility of fields
         for field in fields:
             check_consistent_field(field, H0[field], Dummy_H[field])
 
 
-def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None):
+def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
     """
     Check if the libEnsemble arguments are of the correct data type contain
     sufficient information to perform a run.
     """
     # Detailed checking based on Required Keys in docs for each specs
-
     if libE_specs is not None:
-        check_libE_specs(libE_specs)
+        check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:
         check_alloc_specs(alloc_specs)
