@@ -98,8 +98,8 @@ git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || retu
 cd libensemble/ || return
 pip install -e . || return
 
-if [[ "$TESTBALSAM" == true]]; then
-    source /conda/balsam-setup.sh;
+if [[ "$TESTBALSAM" == true ]]; then
+    source ./conda/balsam-setup.sh;
     MYHOME=$PWD;
     cd libensemble/tests/regression_tests;
     python test_balsam.py;
