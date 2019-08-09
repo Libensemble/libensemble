@@ -6,6 +6,7 @@ If you have any further questions, feel free to contact us through Support_
 
 .. _Support: https://libensemble.readthedocs.io/en/latest/quickstart.html#support
 
+
 Parallel Debugging
 ------------------
 
@@ -18,6 +19,13 @@ This will launch an xterm terminal window specific to each process. Mac users wi
 need to install xQuartz_.
 
 .. _xQuartz: https://www.xquartz.org/
+
+If running in ``'local'`` comms mode try using one of the ``ForkablePdb``
+routines in ``libensemble/util/forkpdb.py`` to set breakpoints. How well these
+work may depend on the system. Usage::
+
+    from libensemble.util.forkpdb import ForkablePdb
+    ForkablePdb().set_trace()
 
 
 AssertionError - Idle workers
@@ -33,6 +41,35 @@ only one process, resulting in one manager but no workers.
 
 Note: this may also occur with two processes if you are using a persistent generator.
 The generator will occupy the one worker, leaving none to run simulation functions.
+
+
+Not enough processors per worker to honour arguments
+----------------------------------------------------
+
+**"libensemble.resources.ResourcesException: Not enough processors per worker to honour arguments."**
+
+This is likely when using the job_controller, when there are not enough
+cores/nodes available to launch jobs. This can be disabled if you want
+to oversubscribe (often if testing on a local machine). Set up the
+job_controller with ``auto_resources=False``. E.g.::
+
+    jobctrl = MPIJobController(auto_resources=False)
+
+Also, note that the job_controller launch command has the argument
+hyperthreads, which is set to True, will attempt to use all
+hyperthreads/SMT threads available.
+
+
+FileExistsError
+---------------
+
+**"FileExistsError: [Errno 17] File exists: './sim_worker1'"**
+
+This can happen when libEnsemble tries to create sim directories that already exist. If
+the directory does not already exist, a possible cause is that you are trying
+to run using ``mpiexec``, when the ``libE_specs['comms']`` option is set to ``'local'``.
+Note that to run with differently named sub-directories you can use the
+``'sim_dir_suffix'`` option to :ref:`sim_specs<datastruct-sim-specs>`.
 
 
 libEnsemble hangs when using mpi4py

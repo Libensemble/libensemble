@@ -4,7 +4,7 @@ Main libEnsemble routine
 
 """
 
-__all__ = ['libE']
+__all__ = ['libE', 'check_inputs']
 
 import os
 # import sys
@@ -192,8 +192,6 @@ def libE_mpi_defaults(libE_specs):
 
     if 'comm' not in libE_specs:
         libE_specs['comm'] = MPI.COMM_WORLD.Dup()
-    if 'color' not in libE_specs:
-        libE_specs['color'] = 0
     return libE_specs, MPI.COMM_NULL
 
 
@@ -545,8 +543,29 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
 
 def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
     """
-    Check if the libEnsemble arguments are of the correct data type contain
-    sufficient information to perform a run.
+    Check if the libEnsemble arguments are of the correct data type and contain
+    sufficient information to perform a run. There is no return value. An
+    exception is raised if any of the checks fail.
+
+    Parameters
+    ----------
+
+    libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria: :obj:`dict`, optional
+
+        libEnsemble data structures
+
+    H0: :obj:`numpy structured array`, optional
+
+        A previous libEnsemble history to be prepended to the history in the
+        current libEnsemble run
+        :doc:`(example)<data_structures/history_array>`
+
+    serial_check : :obj:`boolean`
+
+        If True, assumes running a serial check. This means, for example,
+        the details of current MPI communicator are not checked (can be
+        run with libE_specs{'comm': 'mpi'} without running through mpiexec.
+
     """
     # Detailed checking based on Required Keys in docs for each specs
     if libE_specs is not None:

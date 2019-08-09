@@ -71,6 +71,7 @@ sim_specs = {'sim_f': run_forces,             # This is the function whose outpu
              'out': [('energy', float)],      # Output from sim func
              'keys': ['seed'],                # Key/keys for input data
              'sim_dir': './sim',              # Simulation input dir to be copied for each worker (*currently empty)
+             'sim_dir_suffix': 'test',        # Suffix for copied sim dirs to indentify run (in case multiple)
              'simdir_basename': 'forces',     # User attribute to name sim directories (forces_***)
              'cores': 2,                      # User attribute to set number of cores for sim func runs (optional)
              'sim_particles': 1e3,            # User attribute for number of particles in simulations
