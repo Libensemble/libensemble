@@ -11,6 +11,7 @@ export SYSTEM="Linux"         # default - override with -s <OS>
                                 # Options for miniconda - Linux, MacOSX, Windows
 export MPI=MPICH
 export HYDRA_LAUNCHER=fork
+export TESTBALSAM=true
 
 # Allow user to optionally set python version and branch
 # E.g: ". ./build_mpich_libE.sh -p 3.4 -b feature/myfeature"
@@ -97,35 +98,14 @@ git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || retu
 cd libensemble/ || return
 pip install -e . || return
 
-export BALSAM_DB_PATH='~/test-balsam'
-sudo chown -R postgres:postgres /var/run/postgresql
-sudo chmod a+w /var/run/postgresql
-balsam init ~/test-balsam
-sudo chmod -R 700 ~/test-balsam/balsamdb
-source balsamactivate test-balsam
+if [[ "$TESTBALSAM" == true]]; then
+    source /conda/balsam-setup.sh
+    MYHOME=$PWD
+    cd libensemble/tests/regression_tests
+    python test_balsam.py
+    cd $MYHOME
+fi
 
-export EXE=$PWD/libensemble/tests/regression_tests/script_test_balsam.py
-export NUM_WORKERS=2
-export WORKFLOW_NAME=libe_test-balsam
-#export SCRIPT_ARGS=$NUM_WORKERS
-export LIBE_WALLCLOCK=3
-export THIS_DIR=$PWD
-#export SCRIPT_BASENAME=${EXE%.*}
-export SCRIPT_BASENAME=script_test_balsam
-
-balsam rm apps --all --force
-balsam rm jobs --all --force
-
-balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
-
-# balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
-
-balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
-
-MYHOME=$PWD
-cd libensemble/tests/regression_tests
-python test_balsam.py
-cd $MYHOME
 #libensemble/tests/run-tests.sh
 
 echo -e "\n\nScript completed...\n\n"
