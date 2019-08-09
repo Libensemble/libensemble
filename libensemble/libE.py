@@ -192,8 +192,6 @@ def libE_mpi_defaults(libE_specs):
 
     if 'comm' not in libE_specs:
         libE_specs['comm'] = MPI.COMM_WORLD.Dup()
-    if 'color' not in libE_specs:
-        libE_specs['color'] = 0
     return libE_specs, MPI.COMM_NULL
 
 
