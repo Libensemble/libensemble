@@ -11,14 +11,14 @@ from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
 from libensemble.tests.regression_tests.common import build_simfunc, per_worker_stream
 
+import mpi4py
 from mpi4py import MPI
 
 # This script is meant to be launched by Balsam
 
-
+mpi4py.rc.recv_mprobe = False
 nworkers = MPI.COMM_WORLD.Get_size() - 1
-is_master = MPI.COMM_WORLD.Get_rank() == 0
-libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
+is_master = (MPI.COMM_WORLD.Get_rank() == 0)
 
 cores_per_job = 1
 logical_cores = multiprocessing.cpu_count()
