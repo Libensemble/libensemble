@@ -99,11 +99,11 @@ cd libensemble/ || return
 pip install -e . || return
 
 if [[ "$TESTBALSAM" == true]]; then
-    source /conda/balsam-setup.sh
-    MYHOME=$PWD
-    cd libensemble/tests/regression_tests
-    python test_balsam.py
-    cd $MYHOME
+    source /conda/balsam-setup.sh;
+    MYHOME=$PWD;
+    cd libensemble/tests/regression_tests;
+    python test_balsam.py;
+    cd $MYHOME;
 fi
 
 #libensemble/tests/run-tests.sh
