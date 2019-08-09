@@ -34,6 +34,8 @@ Simulation function specifications to be set in user calling script and passed t
 
 * The user may define other fields to be passed to the simulator function.
 * The tuples defined in the ``'out'`` list are entered into the master :ref:`history array<datastruct-history-array>`
+* The ``sim_dir_prefix`` option may be used to create simulation working directories in node local/scratch storage when workers are distributed. This may have a performance benefit with I/O heavy sim funcs.
+
 
 :Examples:
 
