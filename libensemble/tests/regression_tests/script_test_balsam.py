@@ -16,15 +16,15 @@ from mpi4py import MPI
 
 def build_simfunc():
     import subprocess
-    print(os.getcwd())
-
     # Build simfunc
     # buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
-    buildstring = 'mpicc -o my_simjob.x ../unit_tests/simdir/my_simjob.c'
+    buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
     # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
 
 # This script is meant to be launched by Balsam
+
+libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
 
 mpi4py.rc.recv_mprobe = False
 nworkers = MPI.COMM_WORLD.Get_size() - 1
@@ -49,7 +49,6 @@ if not os.path.isfile(sim_app):
     build_simfunc()
 
 jobctrl = BalsamJobController(auto_resources=use_auto_resources)
-
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 sim_specs = {'sim_f': sim_f,
