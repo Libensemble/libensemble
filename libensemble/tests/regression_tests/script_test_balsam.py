@@ -9,10 +9,20 @@ from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import build_simfunc, per_worker_stream
+from libensemble.tests.regression_tests.common import per_worker_stream
 
 import mpi4py
 from mpi4py import MPI
+
+def build_simfunc():
+    import subprocess
+    print(os.getcwd())
+
+    # Build simfunc
+    # buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
+    buildstring = 'mpicc -o my_simjob.x ../unit_tests/simdir/my_simjob.c'
+    # subprocess.run(buildstring.split(),check=True) #Python3.5+
+    subprocess.check_call(buildstring.split())
 
 # This script is meant to be launched by Balsam
 

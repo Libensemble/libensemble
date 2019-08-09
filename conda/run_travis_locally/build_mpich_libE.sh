@@ -110,7 +110,8 @@ export WORKFLOW_NAME=libe_test-balsam
 #export SCRIPT_ARGS=$NUM_WORKERS
 export LIBE_WALLCLOCK=3
 export THIS_DIR=$PWD
-export SCRIPT_BASENAME=${EXE%.*}
+#export SCRIPT_BASENAME=${EXE%.*}
+export SCRIPT_BASENAME=script_test_balsam
 
 balsam rm apps --all --force
 balsam rm jobs --all --force
