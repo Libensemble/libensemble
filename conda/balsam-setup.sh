@@ -1,10 +1,11 @@
 export BALSAM_DB_PATH='~/test-balsam'
 sudo chown -R postgres:postgres /var/run/postgresql
+sudo chmod a+w /var/run/postgresql
 balsam init ~/test-balsam
 sudo chmod -R 700 ~/test-balsam/balsamdb
 source balsamactivate test-balsam
 
-export EXE=script_test_jobcontroller_hworld_balsam.py
+export EXE=$PWD/libensemble/tests/regression_tests/script_test_balsam.py
 export NUM_WORKERS=2
 export WORKFLOW_NAME=libe_test-balsam
 export SCRIPT_ARGS=$NUM_WORKERS

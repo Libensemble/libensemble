@@ -41,7 +41,16 @@ done
 
 echo -e "\nBuilding libE on ${SYSTEM} with python $PYTHON_VERSION and branch ${LIBE_BRANCH}\n"
 
-# sudo apt-get update
+# mkdir pg; cd pg;
+# wget http://sbp.enterprisedb.com/getfile.jsp?fileid=11966
+# tar xf getfile.jsp?fileid=11966
+# export PATH="$PATH:/home/travis/pg/pgsql/bin"
+# cd ~
+
+sudo pip install --upgrade pip
+sudo /etc/init.d/postgresql stop 9.2
+sudo /etc/init.d/postgresql start 9.6
+export PATH=$PATH:/usr/lib/postgresql/9.6/bin
 
 # This works if not sourced but if sourced its no good.
 # set -e
@@ -88,8 +97,33 @@ git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || retu
 cd libensemble/ || return
 pip install -e . || return
 
-conda/balsam-setup.sh
-libensemble/tests/run-tests.sh
+export BALSAM_DB_PATH='~/test-balsam'
+sudo chown -R postgres:postgres /var/run/postgresql
+sudo chmod a+w /var/run/postgresql
+balsam init ~/test-balsam
+sudo chmod -R 700 ~/test-balsam/balsamdb
+source balsamactivate test-balsam
+
+export EXE=$PWD/libensemble/tests/regression_tests/script_test_balsam.py
+export NUM_WORKERS=2
+export WORKFLOW_NAME=libe_test-balsam
+export SCRIPT_ARGS=$NUM_WORKERS
+export LIBE_WALLCLOCK=3
+export THIS_DIR=$PWD
+export SCRIPT_BASENAME=${EXE%.*}
+
+balsam rm apps --all --force
+balsam rm jobs --all --force
+
+balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
+
+balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
+
+MYHOME=$PWD
+cd libensemble/tests/regression_tests
+mpiexec -n 3 python test_balsam.py
+cd $MYHOME
+#libensemble/tests/run-tests.sh
 
 echo -e "\n\nScript completed...\n\n"
 set +ex
