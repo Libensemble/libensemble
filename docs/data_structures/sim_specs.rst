@@ -27,7 +27,10 @@ Simulation function specifications to be set in user calling script and passed t
         'sim_dir_prefix' [str] :
             A prefix path specifying where to create sim directories
         'sim_dir_suffix' [str] :
-            A suffix to add to worker copies of sim_dir to distinguish runs.       
+            A suffix to add to worker copies of sim_dir to distinguish runs.
+         'profile' [Boolean] :
+            Profile using cProfile. Default: False
+
         Additional entires in sim_specs will be given to sim_f
         
 :Notes:
