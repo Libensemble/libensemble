@@ -26,7 +26,8 @@ Simulation function specifications to be set in user calling script and passed t
             Name of simulation directory which will be copied for each worker
         'sim_dir_prefix' [str] :
             A prefix path specifying where to create sim directories
-        
+        'sim_dir_suffix' [str] :
+            A suffix to add to worker copies of sim_dir to distinguish runs.       
         Additional entires in sim_specs will be given to sim_f
         
 :Notes:

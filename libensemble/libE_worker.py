@@ -141,7 +141,10 @@ class Worker:
         if 'sim_dir' in sim_specs:
             sim_dir = sim_specs['sim_dir'].rstrip('/')
             prefix = sim_specs.get('sim_dir_prefix')
-            worker_dir = "{}_worker{}".format(sim_dir, workerID)
+            suffix = sim_specs.get('sim_dir_suffix', '')
+            if suffix != '':
+                suffix = '_' + suffix
+            worker_dir = "{}{}_worker{}".format(sim_dir, suffix, workerID)
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
                               prefix=prefix, srcdir=sim_dir)
         return locs
