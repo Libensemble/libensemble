@@ -100,13 +100,9 @@ pip install -e . || return
 
 if [[ "$TESTBALSAM" == true ]]; then
     source ./conda/balsam-setup.sh;
-    MYHOME=$PWD;
-    cd libensemble/tests/regression_tests;
-    python test_balsam.py;
-    cd $MYHOME;
 fi
 
-#libensemble/tests/run-tests.sh
+libensemble/tests/run-tests.sh
 
 echo -e "\n\nScript completed...\n\n"
 set +ex
