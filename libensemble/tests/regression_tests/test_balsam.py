@@ -9,24 +9,26 @@ import balsam
 #   For our purposes, we append ten workers to Balsam's WorkerGroup
 
 # TESTSUITE_COMMS: local
-# TESTSUITE_NPROCS: 2
+# TESTSUITE_NPROCS: 3
 
 # MODIFY BALSAM WORKERGROUP
+
+workerfile = 'worker.py'
 
 home = os.getcwd()
 balsam_worker_path = os.path.dirname(balsam.__file__) + '/launcher'
 os.chdir(balsam_worker_path)
 
-with open('worker.py', 'r') as f:
+with open(workerfile, 'r') as f:
     lines = f.readlines()
 
-if lines[-3] != "        for idx in range(10):\n":
+if lines[-3] != "        for idx in range(3):\n":
     lines = lines[:-2]  # Will re-add these lines
-    lines.extend(["        for idx in range(10):\n",
+    lines.extend(["        for idx in range(3):\n",
                   "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
                   "            self.workers.append(w)\n"])
 
-with open('testworker.py', 'w') as f:
+with open(workerfile, 'w') as f:
     for line in lines:
         f.write(line)
 
@@ -35,4 +37,4 @@ os.chdir(home)
 # EXECUTE BALSAM JOB
 
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
-subprocess.check_call(runstr.split(' '))
+subprocess.check_call(runstr.split())
