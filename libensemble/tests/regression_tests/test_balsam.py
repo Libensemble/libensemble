@@ -8,6 +8,8 @@ import balsam
 #   so multiple workers can be run on a single node (until this feature is [hopefully] added!).
 #   For our purposes, we append ten workers to Balsam's WorkerGroup
 
+# TESTSUITE_COMMS: local
+# TESTSUITE_NPROCS: 2
 
 # MODIFY BALSAM WORKERGROUP
 
