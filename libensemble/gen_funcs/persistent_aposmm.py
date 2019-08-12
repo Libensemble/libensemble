@@ -564,7 +564,7 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read, parent_ca
 # {{{ TAO routines for local opt
 
 def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs):
-    comm_queue.put(x.array)
+    comm_queue.put(x.array_r)
     # print('[Child]: I just put x_on_cube =', x.array, flush=True)
     # print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
@@ -579,7 +579,7 @@ def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen
 
 def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, gen_specs):
 
-    comm_queue.put(x.array)
+    comm_queue.put(x.array_r)
     # print('[Child]: I just put x_on_cube =', x.array, flush=True)
     # print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
