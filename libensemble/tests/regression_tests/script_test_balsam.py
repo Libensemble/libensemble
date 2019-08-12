@@ -36,12 +36,12 @@ cores_per_job = 1
 logical_cores = multiprocessing.cpu_count()
 cores_all_jobs = nworkers*cores_per_job
 
-# if cores_all_jobs > logical_cores:
-#     use_auto_resources = False
-#     mess_resources = 'Oversubscribing - auto_resources set to False'
-# else:
-#     use_auto_resources = True
-#     mess_resources = 'Auto_resources set to True'
+if cores_all_jobs > logical_cores:
+    use_auto_resources = False
+    mess_resources = 'Oversubscribing - auto_resources set to False'
+else:
+    use_auto_resources = True
+    mess_resources = 'Auto_resources set to True'
 
 if is_master:
     print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_jobs, logical_cores, mess_resources))
@@ -50,7 +50,7 @@ sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-jobctrl = BalsamJobController(auto_resources=False)
+jobctrl = BalsamJobController()
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 sim_specs = {'sim_f': sim_f,
