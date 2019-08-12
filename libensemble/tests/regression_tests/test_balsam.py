@@ -22,9 +22,9 @@ os.chdir(balsam_worker_path)
 with open(workerfile, 'r') as f:
     lines = f.readlines()
 
-if lines[-3] != "        for idx in range(3):\n":
+if lines[-3] != "        for idx in range(10):\n":
     lines = lines[:-2]  # Will re-add these lines
-    lines.extend(["        for idx in range(3):\n",
+    lines.extend(["        for idx in range(10):\n",
                   "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
                   "            self.workers.append(w)\n"])
 

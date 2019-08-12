@@ -6,7 +6,7 @@ sudo chmod -R 700 ~/test-balsam/balsamdb
 source balsamactivate test-balsam
 
 export EXE=$PWD/libensemble/tests/regression_tests/script_test_balsam.py
-export NUM_WORKERS=1
+export NUM_WORKERS=2
 export WORKFLOW_NAME=libe_test-balsam
 export LIBE_WALLCLOCK=3
 export THIS_DIR=$PWD

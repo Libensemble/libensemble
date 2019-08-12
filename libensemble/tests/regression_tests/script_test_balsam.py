@@ -29,9 +29,8 @@ def build_simfunc():
 
 libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
 
-mpi4py.rc.recv_mprobe = False
 nworkers = MPI.COMM_WORLD.Get_size() - 1
-is_master = (MPI.COMM_WORLD.Get_rank() == 0)
+is_master = MPI.COMM_WORLD.Get_rank() == 0
 
 cores_per_job = 1
 logical_cores = multiprocessing.cpu_count()
@@ -72,7 +71,7 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 15}
+exit_criteria = {'elapsed_wallclock_time': 10}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
