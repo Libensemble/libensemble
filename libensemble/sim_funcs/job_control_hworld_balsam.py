@@ -1,5 +1,4 @@
 from libensemble.balsam_controller import BalsamJobController
-from libensemble.controller import JobController
 from libensemble.message_numbers import UNSET_TAG, WORKER_KILL_ON_ERR, MAN_SIGNAL_FINISH, WORKER_DONE, JOB_FAILED, WORKER_KILL_ON_TIMEOUT
 import numpy as np
 
@@ -65,8 +64,7 @@ def polling_loop(comm, jobctl, job, timeout_sec=3.0, delay=0.3):
 
 def job_control_hworld(H, persis_info, sim_specs, libE_specs):
     """ Test of launching and polling job and exiting on job finish"""
-    #jobctl = BalsamJobController.controller
-    jobctl = JobController.controller
+    jobctl = BalsamJobController.controller
     cores = sim_specs['cores']
     comm = libE_specs['comm']
 

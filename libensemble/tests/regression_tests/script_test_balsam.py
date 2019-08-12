@@ -3,6 +3,8 @@
 import os
 import numpy as np
 import multiprocessing
+import mpi4py
+from mpi4py import MPI
 
 from libensemble.balsam_controller import BalsamJobController
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
@@ -11,9 +13,7 @@ from libensemble.sim_funcs.job_control_hworld_balsam import job_control_hworld a
 from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
 from libensemble.tests.regression_tests.common import per_worker_stream
 
-import mpi4py
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
-from mpi4py import MPI
 
 
 def build_simfunc():
