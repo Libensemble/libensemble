@@ -14,6 +14,7 @@ from libensemble.tests.regression_tests.common import per_worker_stream
 import mpi4py
 from mpi4py import MPI
 
+
 def build_simfunc():
     import subprocess
     # Build simfunc
@@ -21,6 +22,7 @@ def build_simfunc():
     buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
     # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
+
 
 # This script is meant to be launched by Balsam
 
