@@ -74,7 +74,7 @@ def job_control_hworld(H, persis_info, sim_specs, libE_specs):
     # pref send this in X as a sim_in from calling script
     global sim_count
     sim_count += 1
-    timeout = 3.0
+    timeout = 6.0
     if sim_count == 1:
         args_for_sim = 'sleep 1'  # Should finish
     elif sim_count == 2:
@@ -88,7 +88,7 @@ def job_control_hworld(H, persis_info, sim_specs, libE_specs):
         args_for_sim = 'sleep 18'  # Manager kill - if signal received else completes
         timeout = 20.0
 
-    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
+    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True, wait_on_run=True)
     job, calc_status = polling_loop(comm, jobctl, job, timeout)
 
     # assert job.finished, "job.finished should be True. Returned " + str(job.finished)
