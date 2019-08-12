@@ -50,7 +50,7 @@ sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-jobctrl = BalsamJobController()
+jobctrl = BalsamJobController(use_auto_resources=False)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 sim_specs = {'sim_f': sim_f,
