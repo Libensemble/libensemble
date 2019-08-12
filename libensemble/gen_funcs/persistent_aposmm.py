@@ -577,7 +577,7 @@ def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen
     return f
 
 
-def tao_callback_fun_grad(tao, x, f, g, comm_queue, child_can_read, parent_can_read, gen_specs):
+def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, gen_specs):
 
     comm_queue.put(x.array)
     # print('[Child]: I just put x_on_cube =', x.array, flush=True)
@@ -586,15 +586,10 @@ def tao_callback_fun_grad(tao, x, f, g, comm_queue, child_can_read, parent_can_r
     # print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
     # print('[Child]: Wohooo.. I am free folks', flush=True)
-    if gen_specs['localopt_method'] in ['blmvm']:
-        f_recv, grad_recv = comm_queue.get()
-        g.array[:] = grad_recv
-    else:
-        assert gen_specs['localopt_method'] in ['pounders']
-        f_recv, = comm_queue.get()
+    f_recv, grad_recv = comm_queue.get()
+    g.array[:] = grad_recv
     child_can_read.clear()
-    f.array[:] = f_recv
-    return f
+    return f_recv
 
 
 def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -631,7 +626,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
         g = PETSc.Vec().create(tao_comm)
         g.setSizes(n)
         g.setFromOptions()
-        tao.setObjectiveGradient(lambda tao, x, f, g: tao_callback_fun_grad(tao, x, f, g, comm_queue, child_can_read, parent_can_read, gen_specs))
+        tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, gen_specs))
 
     delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
     PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
