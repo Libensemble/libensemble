@@ -11,7 +11,6 @@ export SYSTEM="Linux"         # default - override with -s <OS>
                                 # Options for miniconda - Linux, MacOSX, Windows
 export MPI=MPICH
 export HYDRA_LAUNCHER=fork
-export TESTBALSAM=true
 
 # Allow user to optionally set python version and branch
 # E.g: ". ./build_mpich_libE.sh -p 3.4 -b feature/myfeature"
@@ -86,7 +85,6 @@ conda install nlopt petsc4py petsc mumps-mpi=5.1.2=h5bebb2f_1007 mpi4py scipy $M
 # conda install nlopt || return
 
 # pip install these as the conda installs downgrade pytest on python3.4
-pip install balsam-flow || return
 pip install pytest || return
 pip install pytest-cov || return
 pip install pytest-timeout || return
@@ -97,10 +95,7 @@ pip install coveralls || return
 git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || return
 cd libensemble/ || return
 pip install -e . || return
-
-if [[ "$TESTBALSAM" == true ]]; then
-    source ./conda/balsam-setup.sh;
-fi
+python conda/install-balsam.py
 
 libensemble/tests/run-tests.sh
 
