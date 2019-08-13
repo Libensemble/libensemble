@@ -95,6 +95,8 @@ install:
 
 before_script:
   - flake8 libensemble
+  - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
+  - source setbalsampath.sh
   # Set conda compilers to use new SDK instead of Travis default.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
