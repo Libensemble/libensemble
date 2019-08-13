@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export BALSAM_DB_PATH='~/test-balsam'
 sudo chown -R postgres:postgres /var/run/postgresql
 sudo chmod a+w /var/run/postgresql
