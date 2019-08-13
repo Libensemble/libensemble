@@ -192,6 +192,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     """
     # {{{ multiprocessing initialization
 
+    # from libensemble.util.forkpdb import ForkablePdb
+    # ForkablePdb().set_trace()
+
     local_opters = []
     parent_can_read_from_queue = Event()
     comm_queue = Queue()
