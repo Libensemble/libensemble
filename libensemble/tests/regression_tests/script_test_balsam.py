@@ -18,6 +18,7 @@ mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
 def build_simfunc():
     import subprocess
+    print('Balsam job launched in: {}'.format(os.getcwd()))
     # Build simfunc
     # buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
     # buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'

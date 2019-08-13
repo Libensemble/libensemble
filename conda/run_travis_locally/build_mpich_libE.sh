@@ -98,7 +98,7 @@ pip install -e . || return
 python conda/install-balsam.py
 export BALSAM_DB_PATH=~/test-balsam
 
-libensemble/tests/run-tests.sh
+libensemble/tests/run-tests.sh -z
 
 echo -e "\n\nScript completed...\n\n"
 set +ex
