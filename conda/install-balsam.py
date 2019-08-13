@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import sys
 import os
 import subprocess
@@ -11,4 +13,4 @@ if int(sys.version[2]) >= 6:
     os.chdir('../libensemble')
     os.rename('./conda/test_balsam.py',
               './libensemble/tests/regression_tests/test_balsam.py')
-    subprocess.check_call(['./conda/configure-balsam-test.sh'])
+    os.system('./conda/configure-balsam-test.sh')
