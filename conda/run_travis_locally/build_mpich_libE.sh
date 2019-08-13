@@ -96,6 +96,7 @@ git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || retu
 cd libensemble/ || return
 pip install -e . || return
 python conda/install-balsam.py
+export BALSAM_DB_PATH=~/test-balsam
 
 libensemble/tests/run-tests.sh
 
