@@ -42,7 +42,7 @@ def run_Balsam_job():
     # By this point, script_test_balsam.py has been submitted as an app and job to Balsam
     # This line launches the queued job in the Balsam database
     runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
-    subprocess.check_output(runstr.split())
+    subprocess.call(runstr.split())
 
 
 if __name__ == '__main__':
