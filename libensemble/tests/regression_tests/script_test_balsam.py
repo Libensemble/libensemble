@@ -1,4 +1,6 @@
-# This script is meant to be submitted to Balsam for execution
+# This script is submitted as an app to Balsam, and jobs are launched
+#   based on this app. This submission is via 'balsam launch' executed
+#   in the test_balsam.py script.
 
 import os
 import numpy as np

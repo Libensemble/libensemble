@@ -2,6 +2,7 @@ import subprocess
 import os
 import balsam
 from libensemble.tests.regression_tests.common import parse_args
+
 # Balsam is meant for HPC systems that commonly distribute jobs across many
 #   nodes. Due to the nature of testing Balsam on local or CI systems which usually
 #   only contain a single node, we need to change Balsam's default worker setup
@@ -13,7 +14,7 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # MODIFY BALSAM WORKERGROUP
 
-nworkers, is_master, libE_specs, _ = parse_args() # None of these will be used here
+nworkers, is_master, libE_specs, _ = parse_args()  # None of these will be used here
 
 workerfile = 'worker.py'
 
@@ -37,6 +38,8 @@ with open(workerfile, 'w') as f:
 os.chdir(home)
 
 # EXECUTE BALSAM JOB
+# By this point, script_test_balsam.py has been submitted as an app and job to Balsam
+# This line launches the queued job in the Balsam database
 
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 subprocess.check_call(runstr.split())
