@@ -14,7 +14,8 @@ from libensemble.tests.regression_tests.common import parse_args
 
 # MODIFY BALSAM WORKERGROUP
 
-nworkers, is_master, libE_specs, _ = parse_args()  # None of these will be used here
+# None of these will be used here. Preventative measure against run-tests bugs
+nworkers, is_master, libE_specs, _ = parse_args()
 
 workerfile = 'worker.py'
 
@@ -42,4 +43,4 @@ os.chdir(home)
 # This line launches the queued job in the Balsam database
 
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
-subprocess.check_call(runstr.split())
+subprocess.check_output(runstr.split())
