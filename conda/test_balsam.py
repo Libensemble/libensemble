@@ -1,7 +1,7 @@
 import subprocess
 import os
 import balsam
-
+from libensemble.tests.regression_tests.common import parse_args
 # Balsam is meant for HPC systems that commonly distribute jobs across many
 #   nodes. Due to the nature of testing Balsam on local or CI systems which usually
 #   only contain a single node, we need to change Balsam's default worker setup
@@ -12,6 +12,8 @@ import balsam
 # TESTSUITE_NPROCS: 3
 
 # MODIFY BALSAM WORKERGROUP
+
+nworkers, is_master, libE_specs, _ = parse_args() # None of these will be used here
 
 workerfile = 'worker.py'
 
