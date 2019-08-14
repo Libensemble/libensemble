@@ -85,13 +85,6 @@ install:
   - mpiexec --version # Show MPI library details
   - pip install -e .
   - python conda/install-balsam.py
-  # - if [[ "{ $TRAVIS_PYTHON_VERSION | cut -c 3 } -ge 6" ]]; then
-  #       git clone https://github.com/balsam-alcf/balsam.git ../balsam;
-  #       cd ../balsam; pip install -e .; cd ../libensemble;
-  #       mv ./conda/test_balsam.py ./libensemble/tests/regression_tests;
-  #       ./conda/balsam-setup.sh;
-  #   fi
-
 
 before_script:
   - flake8 libensemble

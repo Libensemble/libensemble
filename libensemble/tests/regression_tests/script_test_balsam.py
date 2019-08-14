@@ -21,11 +21,7 @@ mpi4py.rc.recv_mprobe = False  # Disable matching probes
 def build_simfunc():
     import subprocess
     print('Balsam job launched in: {}'.format(os.getcwd()))
-    # Build simfunc
-    # buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
     buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
-    # buildstring = 'mpicc -o my_simjob.x ../unit_tests/simdir/my_simjob.c'
-    # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
 
 
@@ -40,15 +36,8 @@ cores_per_job = 1
 logical_cores = multiprocessing.cpu_count()
 cores_all_jobs = nworkers*cores_per_job
 
-if cores_all_jobs > logical_cores:
-    use_auto_resources = False
-    mess_resources = 'Oversubscribing - auto_resources set to False'
-else:
-    use_auto_resources = True
-    mess_resources = 'Auto_resources set to True'
-
 if is_master:
-    print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_jobs, logical_cores, mess_resources))
+    print('\nCores req: {} Cores avail: {}\n'.format(cores_all_jobs, logical_cores))
 
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
@@ -106,16 +95,5 @@ if is_master:
 
     # Repeat N times for N workers and insert Completed at start for generator
     calc_desc_list = ['Completed'] + calc_desc_list_in*nworkers
-    # script_name = os.path.splitext(os.path.basename(__file__))[0]
-    # short_name = script_name.split("test_", 1).pop()
-    # summary_file_name = short_name + '.libe_summary.txt'
-    # with open(summary_file_name,'r') as f:
-    #     i=0
-    #     for line in f:
-    #         if "Status:" in line:
-    #             _, file_status = line.partition("Status:")[::2]
-    #             print("Expected: {}   Filestatus: {}".format(calc_desc_list[i], file_status.strip()))
-    #             assert calc_desc_list[i] == file_status.strip(), "Status does not match file"
-    #             i+=1
 
     print("\n\n\nRun completed.")

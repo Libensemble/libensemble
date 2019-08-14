@@ -3,44 +3,49 @@ import os
 import balsam
 from libensemble.tests.regression_tests.common import parse_args
 
-# Balsam is meant for HPC systems that commonly distribute jobs across many
-#   nodes. Due to the nature of testing Balsam on local or CI systems which usually
-#   only contain a single node, we need to change Balsam's default worker setup
-#   so multiple workers can be run on a single node (until this feature is [hopefully] added!).
-#   For our purposes, we append ten workers to Balsam's WorkerGroup
-
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 3
 
-# MODIFY BALSAM WORKERGROUP
+new_lines = ["        for idx in range(10):\n",
+             "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
+             "            self.workers.append(w)\n"]
 
-# None of these will be used here. Preventative measure against run-tests bugs
-nworkers, is_master, libE_specs, _ = parse_args()
 
-workerfile = 'worker.py'
+def modify_Balsam_worker():
+    # Balsam is meant for HPC systems that commonly distribute jobs across many
+    #   nodes. Due to the nature of testing Balsam on local or CI systems which usually
+    #   only contain a single node, we need to change Balsam's default worker setup
+    #   so multiple workers can be run on a single node (until this feature is [hopefully] added!).
+    #   For our purposes, we append ten workers to Balsam's WorkerGroup
 
-home = os.getcwd()
-balsam_worker_path = os.path.dirname(balsam.__file__) + '/launcher'
-os.chdir(balsam_worker_path)
+    workerfile = 'worker.py'
+    home = os.getcwd()
+    balsam_worker_path = os.path.dirname(balsam.__file__) + '/launcher'
+    os.chdir(balsam_worker_path)
 
-with open(workerfile, 'r') as f:
-    lines = f.readlines()
+    with open(workerfile, 'r') as f:
+        lines = f.readlines()
 
-if lines[-3] != "        for idx in range(10):\n":
-    lines = lines[:-2]  # Will re-add these lines
-    lines.extend(["        for idx in range(10):\n",
-                  "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
-                  "            self.workers.append(w)\n"])
+    if lines[-3] != new_lines[0]:
+        lines = lines[:-2]  # effectively inserting new_lines[0] above
+        lines.extend(new_lines)
 
-with open(workerfile, 'w') as f:
-    for line in lines:
-        f.write(line)
+    with open(workerfile, 'w') as f:
+        for line in lines:
+            f.write(line)
 
-os.chdir(home)
+    os.chdir(home)
 
-# EXECUTE BALSAM JOB
-# By this point, script_test_balsam.py has been submitted as an app and job to Balsam
-# This line launches the queued job in the Balsam database
 
-runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
-subprocess.check_output(runstr.split())
+def run_Balsam_job():
+    # Executes Balsam Job
+    # By this point, script_test_balsam.py has been submitted as an app and job to Balsam
+    # This line launches the queued job in the Balsam database
+    runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
+    subprocess.check_output(runstr.split())
+
+
+if __name__ == '__main__':
+    nworkers, is_master, libE_specs, _ = parse_args()  # None used. Bug-prevention
+    modify_Balsam_worker()
+    run_Balsam_job()
