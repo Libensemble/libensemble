@@ -24,10 +24,17 @@ modify_Balsam_worker()
 # This line launches the queued job in the Balsam database
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
-subprocess.call(runstr.split())
+try:
+    subprocess.check_output(runstr.split())
+except subprocess.CalledProcessError as e:
+    print e.output
+
+curdir = os.getcwd()
 
 os.chdir('~/test-balsam/data/libe_test-balsam/job_script_test_balsam_*')
 with open('job_script_test_balsam.out', 'r') as f:
     lines = f.readlines()
 for line in lines:
     print(line)
+
+os.chdir(curdir)
