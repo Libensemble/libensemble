@@ -8,9 +8,6 @@ from libensemble.tests.regression_tests.common import parse_args, modify_Balsam_
 
 nworkers, is_master, libE_specs, _ = parse_args()  # None used. Bug-prevention
 
-print('Sleeping for a couple seconds (just in case)')
-time.sleep(5)
-
 # Balsam is meant for HPC systems that commonly distribute jobs across many
 #   nodes. Due to the nature of testing Balsam on local or CI systems which usually
 #   only contain a single node, we need to change Balsam's default worker setup
@@ -29,12 +26,8 @@ try:
 except subprocess.CalledProcessError as e:
     print(e.output)
 
-curdir = os.getcwd()
-
-os.chdir('~/test-balsam/data/libe_test-balsam/job_script_test_balsam_*')
-with open('job_script_test_balsam.out', 'r') as f:
+print('Attempting to print Balsam job output')
+with open('../../../job_script_test_balsam.out', 'r') as f:
     lines = f.readlines()
 for line in lines:
     print(line)
-
-os.chdir(curdir)
