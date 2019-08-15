@@ -1,6 +1,5 @@
 import subprocess
 import os
-import time
 from libensemble.tests.regression_tests.common import parse_args, modify_Balsam_worker
 
 # TESTSUITE_COMMS: local
