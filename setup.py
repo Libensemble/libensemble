@@ -64,13 +64,14 @@ setup(
         'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Unix',
+        'Operating System :: MacOS',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
