@@ -27,7 +27,7 @@ print('Executing Balsam job with command: {}'.format(runstr))
 try:
     subprocess.check_output(runstr.split())
 except subprocess.CalledProcessError as e:
-    print e.output
+    print(e.output)
 
 curdir = os.getcwd()
 
