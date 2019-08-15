@@ -2,14 +2,10 @@ import subprocess
 import os
 import balsam
 import time
-from libensemble.tests.regression_tests.common import parse_args
+from libensemble.tests.regression_tests.common import parse_args, modify_Balsam_worker
 
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 3
-
-new_lines = ["        for idx in range(10):\n",
-             "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
-             "            self.workers.append(w)\n"]
 
 nworkers, is_master, libE_specs, _ = parse_args()  # None used. Bug-prevention
 
@@ -22,25 +18,7 @@ time.sleep(5)
 #   so multiple workers can be run on a single node (until this feature is [hopefully] added!).
 #   For our purposes, we append ten workers to Balsam's WorkerGroup
 print("Currently in {}. Beginning Balsam worker modification".format(os.getcwd()))
-workerfile = 'worker.py'
-home = os.getcwd()
-balsam_worker_path = os.path.dirname(balsam.__file__) + '/launcher'
-os.chdir(balsam_worker_path)
-
-with open(workerfile, 'r') as f:
-    lines = f.readlines()
-
-if lines[-3] != new_lines[0]:
-    lines = lines[:-2]  # effectively inserting new_lines[0] above
-    lines.extend(new_lines)
-
-with open(workerfile, 'w') as f:
-    for line in lines:
-        f.write(line)
-
-print("Modified worker file in {}".format(os.getcwd()))
-os.chdir(home)
-
+modify_Balsam_worker()
 
 # Executes Balsam Job
 # By this point, script_test_balsam.py has been submitted as an app and job to Balsam
@@ -49,4 +27,8 @@ runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=
 print('Executing Balsam job with command: {}'.format(runstr))
 subprocess.call(runstr.split())
 
-os.chdir('~/test-balsam/data/')
+os.chdir('~/test-balsam/data/libe_test-balsam/job_script_test_balsam_*')
+with open('job_script_test_balsam.out', 'r') as f:
+    lines = f.readlines()
+for line in lines:
+    print(line)
