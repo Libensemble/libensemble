@@ -6,7 +6,7 @@
 set -x # problem with this - loads of conda internal commands shown - overwhelming.
 
 export PYTHON_VERSION=3.7       # default - override with -p <version>
-export LIBE_BRANCH="develop"    # default - override with -b <branchname>
+export LIBE_BRANCH="experimental/balsam-on-travis"    # default - override with -b <branchname>
 export SYSTEM="Linux"         # default - override with -s <OS>
                                 # Options for miniconda - Linux, MacOSX, Windows
 export MPI=MPICH
