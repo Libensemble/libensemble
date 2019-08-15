@@ -1,6 +1,7 @@
 import subprocess
 import os
 import balsam
+import time
 from libensemble.tests.regression_tests.common import parse_args
 
 # TESTSUITE_COMMS: local
@@ -12,6 +13,8 @@ new_lines = ["        for idx in range(10):\n",
 
 nworkers, is_master, libE_specs, _ = parse_args()  # None used. Bug-prevention
 
+print('Sleeping for a couple seconds (just in case)')
+time.sleep(5)
 
 # Balsam is meant for HPC systems that commonly distribute jobs across many
 #   nodes. Due to the nature of testing Balsam on local or CI systems which usually
@@ -45,3 +48,5 @@ os.chdir(home)
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
 subprocess.call(runstr.split())
+
+os.chdir('~/test-balsam/data/')
