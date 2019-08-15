@@ -378,7 +378,7 @@ if [ "$root_found" = true ]; then
 
     TIMEOUT=""
     if [ -x "$(command -v timeout)" ] ; then
-        TIMEOUT="timeout --preserve-status --verbose 60s"
+        TIMEOUT="timeout --preserve-status 60s"
     fi
     #Build any sim/gen source code dependencies here .....
 
