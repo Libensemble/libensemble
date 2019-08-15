@@ -14,4 +14,5 @@ if int(sys.version[2]) >= 6:
     if not os.path.isfile('./libensemble/tests/regression_tests/test_balsam.py'):
         os.rename('./conda/test_balsam.py',
                   './libensemble/tests/regression_tests/test_balsam.py')
-    os.system('./conda/configure-balsam-test.sh')
+    # os.system('./conda/configure-balsam-test.sh')
+    subprocess.run('./conda/configure-balsam-test.sh'.split())
