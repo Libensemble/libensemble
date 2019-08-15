@@ -24,9 +24,14 @@ try:
     subprocess.run(runstr.split(), check=True)
 except subprocess.CalledProcessError as cpe:
     print(cpe.output)
-else:
-    print('Attempting to print Balsam job output')
-    with open('../../../job_script_test_balsam.out', 'r') as f:
+
+print('Attempting to print Balsam job output')
+outfile = '../../../job_script_test_balsam.out'
+if os.path.isfile(outfile):
+    print('Balsam job output found!')
+    with open(outfile, 'r') as f:
         lines = f.readlines()
     for line in lines:
         print(line)
+else:
+    print('No job output found! Check the Balsam DB?')
