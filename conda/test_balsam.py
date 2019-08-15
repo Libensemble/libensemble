@@ -21,7 +21,7 @@ modify_Balsam_worker()
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
 try:
-    subprocess.check_output(runstr.split())
+    subprocess.run(runstr.split(), check=True)
 except subprocess.CalledProcessError as e:
     print(e.output)
 
