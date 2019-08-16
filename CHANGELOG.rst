@@ -15,6 +15,7 @@ Release 0.5.2
 * New user function libE.check_inputs() can be used to check valid configuration of inputs. Can be called in serial or under MPI (See libE API). #65
 * Installation option added to install dependencies used in tests ``pip install libensemble[extras]``
 * A profiling option has been added to sim_specs. #170
+* Results comparison scripts have been included for convenience.
 
 :Note:
 
