@@ -52,15 +52,17 @@ while sleeptime < 58:
         time.sleep(2)
 
 fileout = []
-with open(outscript, 'r') as f:
-    lastline = None
-    while True:
+lastline = None
+while True:
+    with open(outscript, 'r') as f:
         line = f.readline()
         if line != lastline:
             lastline = line
             fileout.append(line)
-        if not line:
+            continue
+        if not line and len(fileout) > 20:
             break
+        continue
 
 for line in fileout:
     print(line)
