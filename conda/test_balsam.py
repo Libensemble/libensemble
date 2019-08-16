@@ -40,6 +40,6 @@ while sleeptime != 60:
     else:
         print('{}: No job output found. Checking again and checking possible stdout or stderr.'.format(sleeptime))
         outs, errs = bp.communicate()
-        print('{} {}'.format(out, errs))
+        print('{} {}'.format(outs, errs))
         sleeptime += 2
         time.sleep(2)
