@@ -1,6 +1,7 @@
 import subprocess
 import os
 import time
+import sys
 from libensemble.tests.regression_tests.common import parse_args, modify_Balsam_worker
 
 # TESTSUITE_COMMS: local
@@ -51,20 +52,16 @@ while sleeptime < 58:
         sleeptime += 2
         time.sleep(2)
 
-fileout = []
-lastline = None
+print('Writing output file to terminal')
+last = 0
 while True:
     with open(outscript, 'r') as f:
-        line = f.readline()
-        if line != lastline:
-            lastline = line
-            fileout.append(line)
-            continue
-        if not line and len(fileout) > 20:
-            break
-        continue
-
-for line in fileout:
-    print(line)
+        f.seek(last)
+        new = f.read()
+        last = f.tell()
+    print(new)
+    sys.stdout.flush()
+    if new == 'Job 4 done on worker 1':
+        break
 
 print('Test completed.')
