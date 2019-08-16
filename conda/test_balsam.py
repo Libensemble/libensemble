@@ -22,7 +22,7 @@ modify_Balsam_worker()
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
 
-subprocess.Popen(runstr.split(), stderr=stdout, stdout=subprocess.PIPE)
+subprocess.Popen(runstr.split(), stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 
 print('Beginning cycle of checking for Balsam output')
 
