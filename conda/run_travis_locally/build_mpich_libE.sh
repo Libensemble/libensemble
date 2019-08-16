@@ -3,7 +3,7 @@
 # Note for other MPIs may need to install some packages from source (eg. petsc)
 
 # -x echo commands
-set -x # problem with this - loads of conda internal commands shown - overwhelming.
+# set -x # problem with this - loads of conda internal commands shown - overwhelming.
 
 export PYTHON_VERSION=3.7       # default - override with -p <version>
 export LIBE_BRANCH="experimental/balsam-on-travis"    # default - override with -b <branchname>

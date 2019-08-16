@@ -27,17 +27,21 @@ basedb = os.path.expanduser('~/test-balsam/data/libe_test-balsam')
 
 sleeptime = 0
 
-while len(os.listdir(basedb)) == 0 and sleeptime != 58:
-    print('{}: Waiting for Job directory'.format(sleeptime))
+while not os.path.isdir(basedb) and sleeptime != 58:
+    print('{}: Waiting for Workflow directory'.format(sleeptime))
     sleeptime += 1
     time.sleep(1)
 
-# Find output script in Balsam DB
+while len(os.listdir(basedb)) == 0 and sleeptime != 58:
+    print('{}: Waiting for Job Directory'.format(sleeptime))
+    sleeptime += 1
+    time.sleep(1)
+
 jobdirname = os.listdir(basedb)[0]
 jobdir = os.path.join(basedb, jobdirname)
 outscript = os.path.join(jobdir, 'job_script_test_balsam.out')
 
-print('Beginning cycle of checking for Balsam output')
+print('Beginning cycle of checking for Balsam output: {}'.format(outscript))
 while sleeptime != 58:
     if os.path.isfile(outscript):
         print('{}: Balsam job output found!'.format(sleeptime))
