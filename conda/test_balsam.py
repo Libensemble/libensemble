@@ -19,16 +19,16 @@ modify_Balsam_worker()
 # Executes Balsam Job
 # By this point, script_test_balsam.py has been submitted as an app and job to Balsam
 # This line launches the queued job in the Balsam database
-runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1 &'
+runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
 # try:
 #     subprocess.run(runstr.split(), check=True)
 # except subprocess.CalledProcessError as cpe:
 #     print(cpe.output)
 
-subprocess.run(runstr.split())
+subprocess.Popen(runstr.split())
 
-print('Sleeping until the job should complete')
+print('Sleeping until job should complete')
 time.sleep(31)
 
 print('Attempting to print Balsam job output')
