@@ -22,7 +22,7 @@ modify_Balsam_worker()
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
 
-bp = subprocess.Popen(runstr.split(), stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+bp = subprocess.Popen(runstr.split())
 
 print('Beginning cycle of checking for Balsam output')
 
@@ -38,8 +38,6 @@ while sleeptime != 60:
             print(line)
         break
     else:
-        print('{}: No job output found. Checking again and checking possible stdout or stderr.'.format(sleeptime))
-        outs, errs = bp.communicate()
-        print('{} {}'.format(outs, errs))
+        print('{}: No job output found. Checking again.'.format(sleeptime))
         sleeptime += 2
         time.sleep(2)
