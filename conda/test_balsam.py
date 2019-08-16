@@ -45,11 +45,12 @@ print('Beginning cycle of checking for Balsam output: {}'.format(outscript))
 while sleeptime != 58:
     if os.path.isfile(outscript):
         print('{}: Balsam job output found!'.format(sleeptime))
-        with open(outscript, 'r') as f:
-            lines = f.readlines()
-        for line in lines:
-            print(line)
-        break
+        with open(outscript, 'r') as f
+            while True:
+                line = f.readline()
+                if not line:
+                    break
+                print(line)
     else:
         print('{}: No job output found. Checking again.'.format(sleeptime))
         sleeptime += 2
