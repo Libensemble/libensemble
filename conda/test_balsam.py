@@ -44,20 +44,25 @@ outscript = os.path.join(jobdir, 'job_script_test_balsam.out')
 print('Beginning cycle of checking for Balsam output: {}'.format(outscript))
 while sleeptime < 58:
     if os.path.isfile(outscript):
-        sleeptime = 58
         print('{}: Balsam job output found!'.format(sleeptime))
-        with open(outscript, 'r') as f:
-            lastline = None
-            while True:
-                line = f.readline()
-                if line != lastline:
-                    lastline = line
-                    print(line)
-                if not line:
-                    break
+        break
     else:
         print('{}: No job output found. Checking again.'.format(sleeptime))
         sleeptime += 2
         time.sleep(2)
+
+fileout = []
+with open(outscript, 'r') as f:
+    lastline = None
+    while True:
+        line = f.readline()
+        if line != lastline:
+            lastline = line
+            fileout.append(line)
+        if not line:
+            break
+
+for line in fileout:
+    print(line)
 
 print('Test completed.')
