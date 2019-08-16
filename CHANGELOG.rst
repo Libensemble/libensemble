@@ -8,7 +8,7 @@ Release 0.5.2
 
 :Date: August 16, 2019
 
-* Code restructured to meet xSDK guidelines for interoperable ECP software. #208
+* Code restructured to meet xSDK package policies for interoperable ECP software (version 0.5.0). #208
 * Removed use of MPI.COMM_WORLD. Uses a duplicate of COMM_WORLD if no communicator passed (any process not in communicator returns with an exit code of 3). #108
 * All output from libEnsemble goes via logger. MANAGER_WARNING level added. This level and above are echoed to stderr by default. API option to change echo level.
 * Simulation directories are only created as required and are suffixed by _worker. #146
