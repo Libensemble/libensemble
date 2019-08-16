@@ -22,14 +22,14 @@ modify_Balsam_worker()
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
 
-bp = subprocess.Popen(runstr.split())
+subprocess.Popen(runstr.split())
 
 print('Beginning cycle of checking for Balsam output')
 
 sleeptime = 0
 
 outfile = '../../../job_script_test_balsam.out'
-while sleeptime != 60:
+while sleeptime != 58:
     if os.path.isfile(outfile):
         print('{}: Balsam job output found!'.format(sleeptime))
         with open(outfile, 'r') as f:
@@ -39,5 +39,5 @@ while sleeptime != 60:
         break
     else:
         print('{}: No job output found. Checking again.'.format(sleeptime))
-        sleeptime += 2
-        time.sleep(2)
+        sleeptime += 1
+        time.sleep(1)
