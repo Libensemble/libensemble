@@ -21,23 +21,23 @@ modify_Balsam_worker()
 # This line launches the queued job in the Balsam database
 runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
 print('Executing Balsam job with command: {}'.format(runstr))
-# try:
-#     subprocess.run(runstr.split(), check=True)
-# except subprocess.CalledProcessError as cpe:
-#     print(cpe.output)
 
 subprocess.Popen(runstr.split())
 
-print('Sleeping until job should complete')
-time.sleep(31)
+print('Beginning cycle of checking for Balsam output')
 
-print('Attempting to print Balsam job output')
+sleeptime = 0
+
 outfile = '../../../job_script_test_balsam.out'
-if os.path.isfile(outfile):
-    print('Balsam job output found!')
-    with open(outfile, 'r') as f:
-        lines = f.readlines()
-    for line in lines:
-        print(line)
-else:
-    print('No job output found! Check the Balsam DB?')
+while sleeptime != 56:
+    if os.path.isfile(outfile):
+        print('{}: Balsam job output found!'.format(sleeptime))
+        with open(outfile, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
+            print(line)
+        break
+    else:
+        print('{}: No job output found. Checking again.'.format(sleeptime))
+        sleeptime += 1
+        time.sleep(1)
