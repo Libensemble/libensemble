@@ -116,7 +116,7 @@ class Resources:
 
         Removes libEnsemble nodes from nodelist if in central_mode.
         """
-        self.libE_nodes = libE_nodes
+        self.libE_nodes = self.env_resources.abbrev_nodenames(libE_nodes)
         libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
         if libE_nodes_in_list:
             if self.central_mode and len(self.global_nodelist) > 1:

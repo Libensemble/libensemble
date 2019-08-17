@@ -212,7 +212,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     jobctl = JobController.controller
     if jobctl is not None:
         local_host = socket.gethostname()
-        libE_nodes = comm.allgather(local_host)
+        libE_nodes = set(comm.allgather(local_host))
         jobctl.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
 
     # Run manager or worker code, depending
