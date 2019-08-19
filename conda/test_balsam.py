@@ -69,7 +69,7 @@ while sleeptime < 58:
 #         break
 
 
-lastline = 'Job 4 done on worker 1'
+lastline = 'Job 4 done on worker 1\n'
 while True:
     with open(outscript, 'r') as f:
         new = f.read()
