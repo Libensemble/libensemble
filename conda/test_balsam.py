@@ -35,11 +35,13 @@ sleeptime = 0
 print('{}: Waiting for Workflow directory'.format(sleeptime))
 while not os.path.isdir(basedb) and sleeptime < 58:
     sleeptime += 1
+    print('{}'.format(sleeptime), end=" ")
     time.sleep(1)
 
 print('{}: Waiting for Job Directory'.format(sleeptime))
 while len(os.listdir(basedb)) == 0 and sleeptime < 58:
     sleeptime += 1
+    print('{}'.format(sleeptime), end=" ")
     time.sleep(1)
 
 # Periodically check for Balsam general output
@@ -51,6 +53,7 @@ outscript = os.path.join(jobdir, 'job_script_test_balsam.out')
 print('{}: Beginning cycle of checking for Balsam output: {}'.format(sleeptime, outscript))
 while not os.path.isfile(outscript) and sleeptime < 58:
     sleeptime += 2
+    print('{}'.format(sleeptime), end=" ")
     time.sleep(2)
 
 # Print sections of Balsam output to screen every second until complete
