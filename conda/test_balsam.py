@@ -54,33 +54,20 @@ while sleeptime < 58:
         sleeptime += 2
         time.sleep(2)
 
-# Output from Balsam Job (script_test_balsam.py)
-# print('Writing output file to terminal')
-# last = 0
-# lastline = 'Job 4 done on worker 1'
-# while True:
-#     with open(outscript, 'r') as f:
-#         f.seek(last)
-#         new = f.read()
-#         last = f.tell()
-#     print(new)
-#     sys.stdout.flush()
-#     if new[-len(lastline):] == lastline:
-#         break
-
 lastposition = 0
 lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n']
 while sleeptime < 58:
     with open(outscript, 'r') as f:
         f.seek(lastposition)
         new = f.read()
-        last = f.tell()
+        lastposition = f.tell()
     if len(new) > 0:
         print(new)
         sys.stdout.flush()
     if new[-len(lastlines[0]):] in lastlines:
         break
     time.sleep(1)
+    sleeptime += 1
 
 
 print('Test completed.')
