@@ -1,6 +1,6 @@
-# This script is submitted as an app to Balsam, and jobs are launched
-#   based on this app. This submission is via 'balsam launch' executed
-#   in the test_balsam.py script.
+# This script is submitted as an app and job to Balsam, and jobs
+#   are launched based on this app. This submission is via '
+#   balsam launch' executed in the test_balsam.py script.
 
 import os
 import numpy as np
@@ -17,15 +17,12 @@ from libensemble.tests.regression_tests.common import per_worker_stream
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
-
+# Slighty different due to not executing in /regression_tests
 def build_simfunc():
     import subprocess
     print('Balsam job launched in: {}'.format(os.getcwd()))
     buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
     subprocess.check_call(buildstring.split())
-
-
-# This script is meant to be launched by Balsam
 
 libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
 
@@ -37,7 +34,8 @@ logical_cores = multiprocessing.cpu_count()
 cores_all_jobs = nworkers*cores_per_job
 
 if is_master:
-    print('\nCores req: {} Cores avail: {}\n'.format(cores_all_jobs, logical_cores))
+    print('\nCores req: {} Cores avail: {}\n'.format(cores_all_jobs,
+                                                     logical_cores))
 
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
@@ -67,8 +65,8 @@ persis_info = per_worker_stream({}, nworkers + 1)
 exit_criteria = {'elapsed_wallclock_time': 30}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                            persis_info, libE_specs=libE_specs)
 
 if is_master:
     print('\nChecking expected job status against Workers ...\n')
@@ -77,7 +75,9 @@ if is_master:
     # manager kill - but should show in the summary file.
     # Repeat expected lists nworkers times and compare with list of status's
     # received from workers
-    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED, 0])
+    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR,
+                                      WORKER_KILL_ON_TIMEOUT,
+                                      JOB_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     # For debug

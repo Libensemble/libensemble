@@ -6,7 +6,7 @@
 # set -x # problem with this - loads of conda internal commands shown - overwhelming.
 
 export PYTHON_VERSION=3.6       # default - override with -p <version>
-export LIBE_BRANCH="experimental/balsam-on-travis"    # default - override with -b <branchname>
+export LIBE_BRANCH="develop"    # default - override with -b <branchname>
 export SYSTEM="Linux"         # default - override with -s <OS>
                                 # Options for miniconda - Linux, MacOSX, Windows
 export MPI=MPICH
@@ -41,12 +41,6 @@ done
 
 echo -e "\nBuilding libE on ${SYSTEM} with python $PYTHON_VERSION and branch ${LIBE_BRANCH}\n"
 
-# mkdir pg; cd pg;
-# wget http://sbp.enterprisedb.com/getfile.jsp?fileid=11966
-# tar xf getfile.jsp?fileid=11966
-# export PATH="$PATH:/home/travis/pg/pgsql/bin"
-# cd ~
-
 sudo pip install --upgrade pip
 sudo /etc/init.d/postgresql stop 9.2
 sudo /etc/init.d/postgresql start 9.6
@@ -78,11 +72,6 @@ else
   conda install gcc_linux-64 || return
 fi
 conda install nlopt petsc4py petsc mumps-mpi=5.1.2=h5bebb2f_1007 mpi4py scipy $MPI
-#conda install numpy || return #scipy includes numpy
-# conda install scipy || return
-# conda install mpi4py || return
-# conda install petsc4py petsc || return
-# conda install nlopt || return
 
 # pip install these as the conda installs downgrade pytest on python3.4
 pip install pytest || return
