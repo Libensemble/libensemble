@@ -29,13 +29,13 @@ basedb = os.path.expanduser('~/test-balsam/data/libe_test-balsam')
 
 # Periodically wait for Workflow and Job directory within Balsam DB
 sleeptime = 0
+print('{}: Waiting for Workflow directory'.format(sleeptime))
 while not os.path.isdir(basedb) and sleeptime < 58:
-    print('{}: Waiting for Workflow directory'.format(sleeptime))
     sleeptime += 1
     time.sleep(1)
 
+print('{}: Waiting for Job Directory'.format(sleeptime))
 while len(os.listdir(basedb)) == 0 and sleeptime < 58:
-    print('{}: Waiting for Job Directory'.format(sleeptime))
     sleeptime += 1
     time.sleep(1)
 
@@ -68,18 +68,19 @@ while sleeptime < 58:
 #     if new[-len(lastline):] == lastline:
 #         break
 
-
-lastline = 'Job 4 done on worker 1\n'
-while True:
+lastposition = 0
+lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n']
+while sleeptime < 58:
     with open(outscript, 'r') as f:
+        f.seek(lastposition)
         new = f.read()
-        time.sleep(0.5)
-        if new[-len(lastline):] == lastline:
-            break
+        last = f.tell()
+    if len(new) > 0:
+        print(new)
+        sys.stdout.flush()
+    if new[-len(lastline):] in lastlines:
+        break
+    time.sleep(1)
 
-with open(outscript, 'r') as f:
-    lines = f.read()
-    print(lines)
-    sys.stdout.flush()
 
 print('Test completed.')
