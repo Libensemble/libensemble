@@ -6,7 +6,7 @@ Release Notes
 Release 0.5.2
 -------------
 
-:Date: August 16, 2019
+:Date: August 19, 2019
 
 * Code restructured to meet xSDK package policies for interoperable ECP software (version 0.5.0). #208
 * Removed use of MPI.COMM_WORLD. Uses a duplicate of COMM_WORLD if no communicator passed (any process not in communicator returns with an exit code of 3). #108
@@ -20,7 +20,8 @@ Release 0.5.2
 :Note:
 
 * Tested platforms include: Linux, MacOS (**New**), Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm).
-* Tested Python versions: (Cpython) 3.4, 3.5, 3.6, 3.7
+* Tested Python versions: (Cpython) 3.5, 3.6, 3.7
+* **Note** Support has been removed for Python 3.4 as it is officially retired. Also NumPy has removed support.
 
 :Known issues:
 

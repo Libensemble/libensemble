@@ -2,7 +2,6 @@ language: python
 sudo: required
 dist: xenial
 python:
-  - 3.4
   - 3.5
   - 3.6
   - 3.7
@@ -24,7 +23,6 @@ matrix:
       env: MPI=mpich PY=3
       language: generic
       python: 3
-
 
 # matrix:
 #  allow_failures:
