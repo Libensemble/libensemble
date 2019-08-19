@@ -17,12 +17,14 @@ from libensemble.tests.regression_tests.common import per_worker_stream
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
+
 # Slighty different due to not executing in /regression_tests
 def build_simfunc():
     import subprocess
     print('Balsam job launched in: {}'.format(os.getcwd()))
     buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
     subprocess.check_call(buildstring.split())
+
 
 libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
 

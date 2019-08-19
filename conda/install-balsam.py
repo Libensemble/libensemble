@@ -11,7 +11,7 @@ import subprocess
 
 balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
 
-if int(sys.version[2]) >= 6: # Balsam only supports Python 3.6+
+if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
     subprocess.check_call(balsamclone.split())
     os.chdir('../balsam')
     subprocess.check_call('pip install -e .'.split())
