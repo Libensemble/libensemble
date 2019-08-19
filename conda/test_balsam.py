@@ -54,6 +54,7 @@ while sleeptime < 58:
 
 print('Writing output file to terminal')
 last = 0
+lastline = 'Job 4 done on worker 1'
 while True:
     with open(outscript, 'r') as f:
         f.seek(last)
@@ -61,7 +62,7 @@ while True:
         last = f.tell()
     print(new)
     sys.stdout.flush()
-    if new == 'Job 4 done on worker 1':
+    if new[-len(lastline):] == lastline:
         break
 
 print('Test completed.')
