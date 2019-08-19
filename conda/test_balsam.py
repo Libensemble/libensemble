@@ -24,10 +24,11 @@ runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=
 print('Executing Balsam job with command: {}'.format(runstr))
 subprocess.Popen(runstr.split())
 
+# Location of Balsam DB location defined in configure-balsam-test.sh
 basedb = os.path.expanduser('~/test-balsam/data/libe_test-balsam')
 
+# Periodically wait for Workflow and Job directory within Balsam DB
 sleeptime = 0
-
 while not os.path.isdir(basedb) and sleeptime < 58:
     print('{}: Waiting for Workflow directory'.format(sleeptime))
     sleeptime += 1
@@ -38,6 +39,7 @@ while len(os.listdir(basedb)) == 0 and sleeptime < 58:
     sleeptime += 1
     time.sleep(1)
 
+# Periodically check for Balsam general output
 jobdirname = os.listdir(basedb)[0]
 jobdir = os.path.join(basedb, jobdirname)
 outscript = os.path.join(jobdir, 'job_script_test_balsam.out')
@@ -52,17 +54,32 @@ while sleeptime < 58:
         sleeptime += 2
         time.sleep(2)
 
-print('Writing output file to terminal')
-last = 0
+# Output from Balsam Job (script_test_balsam.py)
+# print('Writing output file to terminal')
+# last = 0
+# lastline = 'Job 4 done on worker 1'
+# while True:
+#     with open(outscript, 'r') as f:
+#         f.seek(last)
+#         new = f.read()
+#         last = f.tell()
+#     print(new)
+#     sys.stdout.flush()
+#     if new[-len(lastline):] == lastline:
+#         break
+
+
 lastline = 'Job 4 done on worker 1'
 while True:
     with open(outscript, 'r') as f:
-        f.seek(last)
         new = f.read()
-        last = f.tell()
-    print(new)
+        time.sleep(0.5)
+        if new[-len(lastline):] == lastline:
+            break
+
+with open(outscript, 'r') as f:
+    lines = f.read()
+    print(lines)
     sys.stdout.flush()
-    if new[-len(lastline):] == lastline:
-        break
 
 print('Test completed.')
