@@ -37,11 +37,12 @@ class MPIJobController(JobController):
 
         Parameters
         ----------
-        auto_resources: Boolean, optional
+
+        auto_resources: boolean, optional
             Auto-detect available processor resources and assign to jobs
             if not explicitly provided on launch.
 
-        central_mode, optional: boolean:
+        central_mode, boolean, optional
             If true, then running in central mode, else distributed.
             Central mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
@@ -68,6 +69,7 @@ class MPIJobController(JobController):
             The environment variable giving a node list in LSF short-form
             format (Default: Uses LSB_MCPU_HOSTS) Note: This is only queried
             if a worker_list file is not provided and auto_resources=True.
+
         """
 
         JobController.__init__(self)

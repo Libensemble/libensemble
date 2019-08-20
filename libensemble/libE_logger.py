@@ -1,7 +1,6 @@
 import logging
 
 from libensemble.comms.logs import LogConfig
-LogConfig(__package__)
 
 # From https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility/35804945
 
@@ -16,6 +15,7 @@ def manager_warning(self, message, *args, **kwargs):
 
 
 logging.Logger.manager_warning = manager_warning
+LogConfig(__package__)
 
 
 def set_level(level):

@@ -57,7 +57,7 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.4 or above.
+* Python_ 3.5 or above.
 
 * NumPy_
 

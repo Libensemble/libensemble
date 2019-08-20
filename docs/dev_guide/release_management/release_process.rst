@@ -12,7 +12,9 @@ Before release
 
 - Release notes for this version are added to the documentation with release date, including a list of supported (tested) platforms.
 
-- Version number is updated wherever it appears (in `setup.py`, `libensemble/__init__.py` and `docs/conf.py`)
+- Version number is updated wherever it appears (in `setup.py`, `libensemble/__init__.py`, `README.rst` and twice in `docs/conf.py`)
+
+- Check year is correct in README.rst under `Citing libEnsemble` and in `docs/conf.py`.
 
 - setup.py and `libensemble/__init__.py` are checked to ensure all information is up to date.
 

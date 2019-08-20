@@ -30,7 +30,7 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.5.1',
+    version='0.5.2',
     description='Library for managing ensemble-like collections of computations',
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
@@ -64,15 +64,15 @@ setup(
         'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Unix',
+        'Operating System :: MacOS',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
