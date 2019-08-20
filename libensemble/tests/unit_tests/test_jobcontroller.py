@@ -103,6 +103,15 @@ def polling_loop(jobctl, job, timeout_sec=0.5, delay=0.05):
 
     while time.time() - start < timeout_sec:
         time.sleep(delay)
+
+        # Check output file for error
+        if job.stdout_exists():
+            if 'Error' in job.read_stdout():
+                print("Found(deliberate) Error in ouput file - cancelling job")
+                jobctl.kill(job)
+                time.sleep(delay)  # Give time for kill
+                break
+
         print('Polling at time', time.time() - start)
         job.poll()
         if job.finished:
@@ -112,13 +121,6 @@ def polling_loop(jobctl, job, timeout_sec=0.5, delay=0.05):
         elif job.state == 'RUNNING':
             print('Job still running ....')
 
-        # Check output file for error
-        if job.stdout_exists():
-            if 'Error' in job.read_stdout():
-                print("Found(deliberate) Error in ouput file - cancelling job")
-                jobctl.kill(job)
-                time.sleep(delay)  # Give time for kill
-                break
     if not job.finished:
         assert job.state == 'RUNNING', "job.state expected to be RUNNING. Returned: " + str(job.state)
         print("Job timed out - killing")
