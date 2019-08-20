@@ -5,10 +5,10 @@
 # -x echo commands
 set -x # problem with this - loads of conda internal commands shown - overwhelming.
 
-export PYTHON_VERSION=3.7       # default - override with -p <version>
-export LIBE_BRANCH="develop"    # default - override with -b <branchname>
-export SYSTEM="Linux"         # default - override with -s <OS>
-                                # Options for miniconda - Linux, MacOSX, Windows
+export PYTHON_VERSION=3.7       # override with -p <version>
+export LIBE_BRANCH="develop"    # override with -b <branchname>
+export SYSTEM="Linux"           # override with -s <Linux, MacOSX, Windows>
+
 export MPI=MPICH
 export HYDRA_LAUNCHER=fork
 
