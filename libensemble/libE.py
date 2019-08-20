@@ -7,7 +7,6 @@ Main libEnsemble routine
 __all__ = ['libE', 'check_inputs']
 
 import os
-# import sys
 import logging
 import traceback
 import random
