@@ -19,6 +19,8 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
+import cProfile
+import pstats
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -60,6 +62,9 @@ def manager_main(hist, libE_specs, alloc_specs,
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
+    if sim_specs.get('profile'):
+        pr = cProfile.Profile()
+        pr.enable()
 
     if 'in' not in gen_specs:
         gen_specs['in'] = []
@@ -73,7 +78,17 @@ def manager_main(hist, libE_specs, alloc_specs,
     # Set up and run manager
     mgr = Manager(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
-    return mgr.run(persis_info)
+    result = mgr.run(persis_info)
+
+    if sim_specs.get('profile'):
+        pr.disable()
+        profile_stats_fname = 'manager.prof'
+
+        with open(profile_stats_fname, 'w') as f:
+            ps = pstats.Stats(pr, stream=f).sort_stats('cumulative')
+            ps.print_stats()
+
+    return result
 
 
 def filter_nans(array):
@@ -330,14 +345,13 @@ class Manager:
         while any(self.W['active']) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
-                print(_WALLCLOCK_MSG)
+                logger.manager_warning(_WALLCLOCK_MSG)
                 sys.stdout.flush()
                 sys.stderr.flush()
                 exit_flag = 2
 
         self._kill_workers()
-        print("\nlibEnsemble manager total time:", self.elapsed())
-        return persis_info, exit_flag
+        return persis_info, exit_flag, self.elapsed()
 
     # --- Main loop
 
@@ -368,6 +382,6 @@ class Manager:
                     "Should not wait for workers when all workers are idle."
 
         finally:
-            # Return persis_info, exit_flag
+            # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
         return result

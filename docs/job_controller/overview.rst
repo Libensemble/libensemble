@@ -60,35 +60,32 @@ In user sim func::
     job = jobctl.launch(calc_type='sim', num_procs=8, app_args='input.txt',
                         stdout='out.txt', stderr='err.txt')
 
-    while time.time() - start < timeout_sec:
-        time.sleep(delay)
+    timeout_sec = 600
+    poll_delay_sec = 1
+    
+    while(not job.finished):
 
         # Has manager sent a finish signal
         jobctl.manager_poll()
         if jobctl.manager_signal == 'finish':
             job.kill()
-
-        # Poll job to see if completed
-        job.poll()
-        if job.finished:
-            print(job.state)
-            break
+            my_cleanup()
 
         # Check output file for error and kill job
-        if job.stdout_exists():
+        elif job.stdout_exists():
             if 'Error' in job.read_stdout():
                 job.kill()
-                break
+
+        elif job.runtime > timeout_sec:
+            job.kill()  # Timeout
+
+        else:
+            time.sleep(poll_delay_sec)
+            job.poll()
+    
+    print(job.state)  # state may be finished/failed/killed
 
 See the :doc:`job_controller<job_controller>` interface for API.  
-
-For a slightly more detailed working example see:
-
-- libensemble/tests/regression_tests/test_jobcontroller_hworld.py
-
-which uses sim function:
-
-- libensemble/sim_funcs/job_control_hworld.py
 
 For a more realistic example see:
 

@@ -38,7 +38,7 @@ then ``python`` and ``pip`` will work in place of ``python3`` and ``pip3``.
 .. code-block:: bash
 
     $ python3 --version
-    Python 3.6.0            # This should be >= 3.4
+    Python 3.6.0            # This should be >= 3.5
 
 .. _Python: https://www.python.org/
 

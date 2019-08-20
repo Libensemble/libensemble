@@ -40,6 +40,28 @@ def mpi_parse_args(args):
     return nworkers, is_master, libE_specs, args.tester_args
 
 
+def mpi_comm_excl(exc=[0], comm=None):
+    "Exlude ranks from a communicator for MPI comms."
+    from mpi4py import MPI
+    parent_comm = comm or MPI.COMM_WORLD
+    parent_group = parent_comm.Get_group()
+    new_group = parent_group.Excl(exc)
+    mpi_comm = parent_comm.Create(new_group)
+    return mpi_comm, MPI.COMM_NULL
+
+
+def mpi_comm_split(num_colors, comm=None):
+    "Split COMM_WORLD into sub-communicators for MPI comms."
+    from mpi4py import MPI
+    parent_comm = comm or MPI.COMM_WORLD
+    parent_size = parent_comm.Get_size()
+    key = parent_comm.Get_rank()
+    row_size = parent_size // num_colors
+    color = key // row_size
+    sub_comm = parent_comm.Split(color, key)
+    return sub_comm, color
+
+
 def local_parse_args(args):
     "Parse arguments for forked processes using multiprocessing."
     nworkers = args.nworkers or 4

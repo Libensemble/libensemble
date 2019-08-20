@@ -13,6 +13,9 @@ See the controller API below for optional arguments.
 .. autoclass:: MPIJobController
   :show-inheritance:
   :inherited-members:
+
+  .. automethod:: __init__
+  
 ..  :member-order: bysource
 ..  :members: __init__, register_calc, launch, manager_poll
 

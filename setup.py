@@ -13,7 +13,7 @@ class Run_TestSuite(TestCommand):
         import sys
         py_version = sys.version_info[0]
         print('Python version from setup.py is', py_version)
-        run_string = "code/tests/run-tests.sh -p " + str(py_version)
+        run_string = "libensemble/tests/run-tests.sh -p " + str(py_version)
         os.system(run_string)
 
 
@@ -30,7 +30,7 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.5.1',
+    version='0.5.2',
     description='Library for managing ensemble-like collections of computations',
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
@@ -57,18 +57,22 @@ setup(
                    'pytest-cov>=2.5',
                    'pytest-pep8>=1.0',
                    'pytest-timeout',
+                   'mock'
                    ],
 
+    extras_require={
+        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
+
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Unix',
+        'Operating System :: MacOS',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',

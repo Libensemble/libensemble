@@ -26,21 +26,42 @@ To run forces as a standalone executable on N procs:
 
 A random sample of seeds is taken and used as imput to the sim func (forces miniapp).
 
-Modify build_forces.sh for target platform and run to build forces.x
+Modify build_forces.sh for target platform and run to build forces.x:
 
     ./build_forces.sh
 
-To run with one manager and N-1 workers:
+Then to run with default local comms (multiprocessing) with one manager and `N` workers:
+
+    python run_libe_forces.py N
+
+To run with MPI, set `USE_MPI = True` in `run_libe_forces.py`.
+Then to run with one manager and `N-1` workers:
 
     mpirun -np N python run_libe_forces.py
-    
-Application parameters can be adjusted in the file run_libe_forces.py.
+
+Application parameters can be adjusted in the file `run_libe_forces.py`.
 
 To remove output before the next run:
 
     ./cleanup.sh
 
 
+### Running with Balsam
+
+To run with balsam, set `USE_MPI = True` and `USE_BALSAM = True` in `run_libe_forces.py`.
+You need to have followed the instructions to install `balsam` and set-up/activate a database.
+(See https://github.com/balsam-alcf/balsam).
+
+Then to test locally, run the `balsam_local.sh` script. The default runs with 2 workers.
+
+    ./balsam_local.sh
+
+The running jobs can be seen inside the balsam database dir `<DIR>/data/libe_workflow/`.
+While the key output files will be copied back to the run dir at completion. Also see
+the log in `<DIR>/log` if there are any issues. To run on batch systems, see the example
+scripts such as `theta_submit_balsam.sh`.
+
+    
 ### Using batch scripts
 
 The scripts are set up assuming a conda environment. To use script directly you will need to replace the following templated values:
@@ -78,7 +99,3 @@ If either of the plotting options in the submission scripts are set to true, the
 #### Note on theta_submit_balsam.sh
 
 Adjusting the node/core/worker count.: The NUM_WORKERS variable is only currently used if libEnsemble is running on one node, in which case it should be one less than the number of nodes in the job allocation (leaving one dedicated node to run libEnsemble). If more workers are used then the variables NUM_NODES and RANKS_PER_NODE need to be explicitly set (these are for libensemble which will require one task for the manager and the rest will be workers). The total node allocation (in the COBALT -n directive) will need to be the number of nodes for libEnsemble + number of nodes for each worker to launch jobs to.
-
-
-
-
