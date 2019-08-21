@@ -8,6 +8,7 @@
 import sys
 import os
 import subprocess
+from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage
 
 balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
 
@@ -19,5 +20,5 @@ if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
     if not os.path.isfile('./libensemble/tests/regression_tests/test_balsam.py'):
         os.rename('./conda/test_balsam.py',
                   './libensemble/tests/regression_tests/test_balsam.py')
-    # os.system('./conda/configure-balsam-test.sh')
+    modify_Balsam_pyCoverage() # Need to add "coverage" before jobs added
     subprocess.run('./conda/configure-balsam-test.sh'.split())

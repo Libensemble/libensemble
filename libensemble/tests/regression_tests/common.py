@@ -202,3 +202,33 @@ def modify_Balsam_worker():
 
     print("Modified worker file in {}".format(os.getcwd()))
     os.chdir(home)
+
+def modify_Balsam_pyCoverage():
+    # Tracking line coverage of our code through our tests requires running a test
+    #   with the format 'python -m coverage run test.py args'. Balsam explicitely
+    #   configures Python executable runs with 'python test.py args' with no current
+    #   capability for specifying runtime Python options. This hack attempts to resolve
+    #   this for our purposes only.
+    import balsam
+
+    old_line = "            path = ' '.join((exe, script_path, args))"
+    new_line = "            path = ' '.join((exe, '-m coverage run --parallel-mode', script_path, args))"
+
+    commandfile = 'cli_commands.py'
+    home = os.getcwd()
+    balsam_scripts_path = os.path.dirname(balsam.__file__) + '/scripts'
+    os.chdir(balsam_scripts_path)
+
+    with open(commandfile, 'r') as f:
+        lines = f.readlines()
+
+    for i in range(len(lines)):
+        if lines[i] == old_line:
+            lines[i] = new_line
+
+    with open(commandfile, 'w') as f:
+        for line in lines:
+            f.write(line)
+
+    print("Modified cli_commands file in {}".format(os.getcwd()))
+    os.chdir(home)
