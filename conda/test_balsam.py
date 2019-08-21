@@ -81,8 +81,9 @@ print('Test completed. Importing any coverage from Balsam.')
 here = os.getcwd()
 
 # Move coverage files from Balsam DB to ./regression_tests (for concatenation)
+covname = '.cov_reg_out.'
 for file in os.listdir(jobdir):
-    if file[:10] == '.coverage.':
+    if file[:len(covname)] == covname: # Filename starts with...
         print('Coverage found: {}'.format(file))
         balsam_cov = os.path.join(jobdir, file)
         here_cov = os.path.join(here, file)
