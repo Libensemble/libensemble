@@ -203,6 +203,7 @@ def modify_Balsam_worker():
     print("Modified worker file in {}".format(os.getcwd()))
     os.chdir(home)
 
+
 def modify_Balsam_pyCoverage():
     # Tracking line coverage of our code through our tests requires running a test
     #   with the format 'python -m coverage run test.py args'. Balsam explicitely

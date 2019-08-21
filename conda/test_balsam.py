@@ -71,7 +71,7 @@ while sleeptime < 58:
     if len(new) > 0:
         print(new)
         sys.stdout.flush()
-    #if new[-len(lastlines[0]):] in lastlines:
+    # if new[-len(lastlines[0]):] in lastlines:
     if any(new.endswith(line) for line in lastlines):
         break
     time.sleep(1)
