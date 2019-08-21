@@ -84,7 +84,8 @@ here = os.getcwd()
 for file in os.listdir(jobdir):
     if file[:10] == '.coverage.':
         print('Coverage found: {}'.format(file))
-        coveragefile = os.path.join(jobdir, file)
-        os.rename(coveragefile, here)
+        balsam_cov = os.path.join(jobdir, file)
+        here_cov = os.path.join(here, file)
+        os.rename(balsam_cov, here_cov)
 
 print('test_balsam processing complete.')
