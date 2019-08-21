@@ -60,7 +60,7 @@ while not os.path.isfile(outscript) and sleeptime < 58:
     time.sleep(2)
 
 # Print sections of Balsam output to screen every second until complete
-print('{}: Balsam job output found! Printing to screen.'.format(sleeptime))
+print('{}: Attempting to print output.'.format(sleeptime))
 lastposition = 0
 lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n']
 while sleeptime < 58:
@@ -77,5 +77,14 @@ while sleeptime < 58:
     time.sleep(1)
     sleeptime += 1
 
-print('Test completed. Importing coverage into local directory.')
-# Coming soon!
+print('Test completed. Importing any coverage from Balsam.')
+here = os.getcwd()
+
+# Move coverage files from Balsam DB to ./regression_tests (for concatenation)
+for file in os.listdir(jobdir):
+    if file[:10] == '.coverage.':
+        print('Coverage found: {}'.format(file))
+        coveragefile = os.path.join(jobdir, file)
+        os.rename(coveragefile, here)
+
+print('test_balsam processing complete.')
