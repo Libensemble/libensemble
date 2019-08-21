@@ -211,8 +211,8 @@ def modify_Balsam_pyCoverage():
     #   this for our purposes only.
     import balsam
 
-    old_line = "            path = ' '.join((exe, script_path, args))"
-    new_line = "            path = ' '.join((exe, '-m coverage run --parallel-mode', script_path, args))"
+    old_line = "            path = ' '.join((exe, script_path, args))\n"
+    new_line = "            path = ' '.join((exe, '-m coverage run --parallel-mode', script_path, args))\n"
 
     commandfile = 'cli_commands.py'
     home = os.getcwd()
