@@ -86,7 +86,7 @@ for file in os.listdir(jobdir):
     if file[:len(covname)] == covname:  # Filename starts with...
         balsam_cov = os.path.join(jobdir, file)
         here_cov = os.path.join(here, file)
-        print('Moved {} from {} to {}.'.format(file, jobdir, here))
+        print('Moved {} from {} to {}'.format(file, jobdir, here))
         os.rename(balsam_cov, here_cov)
 
 print('test_balsam processing complete.')
