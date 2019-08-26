@@ -1,5 +1,5 @@
 [run]
-source = .
+source = /home/travis/libensemble/
 
 omit =
     */tests/*
