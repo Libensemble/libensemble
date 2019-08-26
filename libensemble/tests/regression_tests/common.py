@@ -229,4 +229,4 @@ def modify_Balsam_pyCoverage():
         for line in lines:
             f.write(line)
 
-    print("Modified cli_commands file in {}".format(balsam_scripts_path))
+    print("Modified cli_commands file in {}".format(balsam_path))
