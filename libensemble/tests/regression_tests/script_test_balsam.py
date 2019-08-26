@@ -1,6 +1,5 @@
-# This script is submitted as an app and job to Balsam, and jobs
-#   are launched based on this app. This submission is via '
-#   balsam launch' executed in the test_balsam.py script.
+# This script is submitted as an app and job to Balsam. The job submission is
+#   via 'balsam launch' executed in the test_balsam.py script.
 
 import os
 import numpy as np
@@ -18,7 +17,7 @@ from libensemble.tests.regression_tests.common import per_worker_stream
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
 
-# Slighty different due to not executing in /regression_tests
+# Slighty different due to working directory not being /regression_tests
 def build_simfunc():
     import subprocess
     print('Balsam job launched in: {}'.format(os.getcwd()))

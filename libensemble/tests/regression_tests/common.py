@@ -174,10 +174,11 @@ def build_simfunc():
 
 def modify_Balsam_worker():
     # Balsam is meant for HPC systems that commonly distribute jobs across many
-    #   nodes. Due to the nature of testing Balsam on local or CI systems which usually
-    #   only contain a single node, we need to change Balsam's default worker setup
-    #   so multiple workers can be run on a single node (until this feature is [hopefully] added!).
-    #   For our purposes, we append ten workers to Balsam's WorkerGroup
+    #   nodes. Due to the nature of testing Balsam on local or CI systems which
+    #   usually only contain a single node, we need to change Balsam's default
+    #   worker setup so multiple workers can be run on a single node (until this
+    #   feature is [hopefully] added!).For our purposes, we append ten workers
+    #   to Balsam's WorkerGroup
     import balsam
 
     new_lines = ["        for idx in range(10):\n",
@@ -185,51 +186,47 @@ def modify_Balsam_worker():
                  "            self.workers.append(w)\n"]
 
     workerfile = 'worker.py'
-    home = os.getcwd()
-    balsam_worker_path = os.path.dirname(balsam.__file__) + '/launcher'
-    os.chdir(balsam_worker_path)
+    balsam_path = os.path.dirname(balsam.__file__) + '/launcher'
+    balsam_worker_path = os.path.join(balsam_path, workerfile)
 
-    with open(workerfile, 'r') as f:
+    with open(balsam_worker_path, 'r') as f:
         lines = f.readlines()
 
     if lines[-3] != new_lines[0]:
         lines = lines[:-2]  # effectively inserting new_lines[0] above
         lines.extend(new_lines)
 
-    with open(workerfile, 'w') as f:
+    with open(balsam_worker_path, 'w') as f:
         for line in lines:
             f.write(line)
 
-    print("Modified worker file in {}".format(os.getcwd()))
-    os.chdir(home)
+    print("Modified worker file in {}".format(balsam_path))
 
 
 def modify_Balsam_pyCoverage():
     # Tracking line coverage of our code through our tests requires running a test
     #   with the format 'python -m coverage run test.py args'. Balsam explicitely
-    #   configures Python executable runs with 'python test.py args' with no current
-    #   capability for specifying runtime Python options. This hack attempts to resolve
-    #   this for our purposes only.
+    #   configures Python runs with 'python test.py args' with no current
+    #   capability for specifying runtime Python options. This hack attempts to
+    #   resolve this for our purposes only.
     import balsam
 
     old_line = "            path = ' '.join((exe, script_path, args))\n"
     new_line = "            path = ' '.join((exe, '-m coverage run --parallel-mode --rcfile=./libensemble/tests/regression_tests/.bal_coveragerc', script_path, args))\n"
 
     commandfile = 'cli_commands.py'
-    home = os.getcwd()
-    balsam_scripts_path = os.path.dirname(balsam.__file__) + '/scripts'
-    os.chdir(balsam_scripts_path)
+    balsam_path = os.path.dirname(balsam.__file__) + '/scripts'
+    balsam_commands_path = os.path.join(balsam_path, commandfile)
 
-    with open(commandfile, 'r') as f:
+    with open(balsam_commands_path, 'r') as f:
         lines = f.readlines()
 
     for i in range(len(lines)):
         if lines[i] == old_line:
             lines[i] = new_line
 
-    with open(commandfile, 'w') as f:
+    with open(balsam_commands_path, 'w') as f:
         for line in lines:
             f.write(line)
 
-    print("Modified cli_commands file in {}".format(os.getcwd()))
-    os.chdir(home)
+    print("Modified cli_commands file in {}".format(balsam_scripts_path))

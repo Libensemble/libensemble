@@ -1,5 +1,5 @@
 [run]
-source = /home/travis/build/Libensemble/libensemble
+source = $LIBE_PATH
 
 omit =
     */tests/*
