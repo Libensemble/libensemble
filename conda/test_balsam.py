@@ -79,13 +79,13 @@ while sleeptime < 58:
 print('{}: Importing any coverage from Balsam.'.format(sleeptime))
 here = os.getcwd()
 
-# Move coverage files from Balsam DB to ./regression_tests (for concatenation)
-# covname = '.cov_reg_out.'
-# for file in os.listdir(jobdir):
-#     if file.startswith(covname):
-#         balsam_cov = os.path.join(jobdir, file)
-#         here_cov = os.path.join(here, file)
-#         print('Moved {} from {} to {}'.format(file, jobdir, here))
-#         os.rename(balsam_cov, here_cov)
+Move coverage files from Balsam DB to ./regression_tests (for concatenation)
+covname = '.cov_reg_out.'
+for file in os.listdir(jobdir):
+    if file.startswith(covname):
+        balsam_cov = os.path.join(jobdir, file)
+        here_cov = os.path.join(here, file)
+        print('Moved {} from {} to {}'.format(file, jobdir, here))
+        os.rename(balsam_cov, here_cov)
 
 print('Test complete.')
