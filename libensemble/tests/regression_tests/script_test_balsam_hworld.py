@@ -1,5 +1,5 @@
 # This script is submitted as an app and job to Balsam. The job submission is
-#   via 'balsam launch' executed in the test_balsam.py script.
+#   via 'balsam launch' executed in the test_balsam_hworld.py script.
 
 import os
 import numpy as np
@@ -71,17 +71,11 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 
 if is_master:
     print('\nChecking expected job status against Workers ...\n')
-
-    # Expected list: Last is zero as will not be entered into H array on
-    # manager kill - but should show in the summary file.
-    # Repeat expected lists nworkers times and compare with list of status's
-    # received from workers
     calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR,
                                       WORKER_KILL_ON_TIMEOUT,
                                       JOB_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
-    # For debug
     print("Expecting: {}".format(calc_status_list))
     print("Received:  {}\n".format(H['cstat']))
 

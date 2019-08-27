@@ -176,9 +176,7 @@ def modify_Balsam_worker():
     # Balsam is meant for HPC systems that commonly distribute jobs across many
     #   nodes. Due to the nature of testing Balsam on local or CI systems which
     #   usually only contain a single node, we need to change Balsam's default
-    #   worker setup so multiple workers can be run on a single node (until this
-    #   feature is [hopefully] added!).For our purposes, we append ten workers
-    #   to Balsam's WorkerGroup
+    #   worker setup so multiple workers can be run on a single node.
     import balsam
 
     new_lines = ["        for idx in range(10):\n",
@@ -200,19 +198,18 @@ def modify_Balsam_worker():
         for line in lines:
             f.write(line)
 
-    print("Modified worker file in {}".format(balsam_path))
-
 
 def modify_Balsam_pyCoverage():
-    # Tracking line coverage of our code through our tests requires running a test
-    #   with the format 'python -m coverage run test.py args'. Balsam explicitely
-    #   configures Python runs with 'python test.py args' with no current
-    #   capability for specifying runtime Python options. This hack attempts to
-    #   resolve this for our purposes only.
+    # Tracking line coverage through our tests requires running the Python module
+    #   'coverage' directly. Balsam explicitely configures Python runs with
+    #   'python [script].py args' with no current capability for specifying
+    #   modules. This hack specifies the coverage module and some options.
     import balsam
 
     old_line = "            path = ' '.join((exe, script_path, args))\n"
-    new_line = "            path = ' '.join((exe, '-m coverage run --parallel-mode --rcfile=./libensemble/tests/regression_tests/.bal_coveragerc', script_path, args))\n"
+    new_line = "            path = ' '.join((exe, '-m coverage run " + \
+               "--parallel-mode --rcfile=./libensemble/tests/regression_tests/" + \
+               ".bal_coveragerc', script_path, args))\n"
 
     commandfile = 'cli_commands.py'
     balsam_path = os.path.dirname(balsam.__file__) + '/scripts'
@@ -228,5 +225,3 @@ def modify_Balsam_pyCoverage():
     with open(balsam_commands_path, 'w') as f:
         for line in lines:
             f.write(line)
-
-    print("Modified cli_commands file in {}".format(balsam_path))
