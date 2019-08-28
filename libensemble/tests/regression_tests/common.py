@@ -170,3 +170,58 @@ def build_simfunc():
     buildstring = 'mpicc -o my_simjob.x ../unit_tests/simdir/my_simjob.c'
     # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
+
+
+def modify_Balsam_worker():
+    # Balsam is meant for HPC systems that commonly distribute jobs across many
+    #   nodes. Due to the nature of testing Balsam on local or CI systems which
+    #   usually only contain a single node, we need to change Balsam's default
+    #   worker setup so multiple workers can be run on a single node.
+    import balsam
+
+    new_lines = ["        for idx in range(10):\n",
+                 "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
+                 "            self.workers.append(w)\n"]
+
+    workerfile = 'worker.py'
+    balsam_path = os.path.dirname(balsam.__file__) + '/launcher'
+    balsam_worker_path = os.path.join(balsam_path, workerfile)
+
+    with open(balsam_worker_path, 'r') as f:
+        lines = f.readlines()
+
+    if lines[-3] != new_lines[0]:
+        lines = lines[:-2]  # effectively inserting new_lines[0] above
+        lines.extend(new_lines)
+
+    with open(balsam_worker_path, 'w') as f:
+        for line in lines:
+            f.write(line)
+
+
+def modify_Balsam_pyCoverage():
+    # Tracking line coverage through our tests requires running the Python module
+    #   'coverage' directly. Balsam explicitely configures Python runs with
+    #   'python [script].py args' with no current capability for specifying
+    #   modules. This hack specifies the coverage module and some options.
+    import balsam
+
+    old_line = "            path = ' '.join((exe, script_path, args))\n"
+    new_line = "            path = ' '.join((exe, '-m coverage run " + \
+               "--parallel-mode --rcfile=./libensemble/tests/regression_tests/" + \
+               ".bal_coveragerc', script_path, args))\n"
+
+    commandfile = 'cli_commands.py'
+    balsam_path = os.path.dirname(balsam.__file__) + '/scripts'
+    balsam_commands_path = os.path.join(balsam_path, commandfile)
+
+    with open(balsam_commands_path, 'r') as f:
+        lines = f.readlines()
+
+    for i in range(len(lines)):
+        if lines[i] == old_line:
+            lines[i] = new_line
+
+    with open(balsam_commands_path, 'w') as f:
+        for line in lines:
+            f.write(line)
