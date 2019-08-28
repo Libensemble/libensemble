@@ -11,7 +11,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi tcp
 # TESTSUITE_NPROCS: 3 4
 
 import sys
