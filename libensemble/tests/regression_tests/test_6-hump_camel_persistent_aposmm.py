@@ -11,7 +11,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi tcp
+# TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 
 import sys
@@ -66,7 +66,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 200}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
