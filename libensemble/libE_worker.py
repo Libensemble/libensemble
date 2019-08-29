@@ -22,6 +22,8 @@ from libensemble.util.timer import Timer
 from libensemble.controller import JobController
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
+import cProfile
+import pstats
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -38,14 +40,25 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
 
     Parameters
     ----------
-    comm: comm object for manager communications
+    comm: comm
+        Comm object for manager communications
 
-    sim_specs: dict with parameters/information for simulation calculations
+    sim_specs: dict
+        Parameters/information for simulation calculations
 
-    gen_specs: dict with parameters/information for generation calculations
+    gen_specs: dict
+        Parameters/information for generation calculations
 
-    workerID: manager assigned worker ID (if None, default is comm.rank)
+    workerID: int
+        Manager assigned worker ID (if None, default is comm.rank)
+
+    log_comm: boolean
+        Whether to send logging over comm
     """
+
+    if sim_specs.get('profile'):
+        pr = cProfile.Profile()
+        pr.enable()
 
     # Receive dtypes from manager
     _, dtypes = comm.recv()
@@ -58,6 +71,14 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
     worker.run()
+
+    if sim_specs.get('profile'):
+        pr.disable()
+        profile_state_fname = 'worker_%d.prof' % (workerID)
+
+        with open(profile_state_fname, 'w') as f:
+            ps = pstats.Stats(pr, stream=f).sort_stats('cumulative')
+            ps.print_stats()
 
 
 ######################################################################
@@ -74,17 +95,33 @@ class WorkerErrMsg:
 
 class Worker:
 
-    """The Worker Class provides methods for controlling sim and gen funcs"""
+    """The Worker Class provides methods for controlling sim and gen funcs
 
-    # Worker Object methods
+    **Object Attributes:**
+
+    These are public object attributes.
+
+    :ivar comm comm:
+        Comm object for manager communications
+
+    :ivar dict dtypes:
+        Dictionary containing type information for sim and gen inputs
+
+    :ivar int workerID:
+        The libensemble Worker ID
+
+    :ivar dict sim_specs:
+        Parameters/information for simulation calculations
+
+    :ivar dict calc_iter:
+        Dictionary containing counts for each type of calc (e.g. sim or gen)
+
+    :ivar LocationStack loc_stack:
+        Stack holding directory structure of this Worker
+    """
+
     def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs):
         """Initialise new worker object.
-
-        Parameters
-        ----------
-
-        workerID: int:
-            The ID for this worker
 
         """
         self.comm = comm
@@ -92,7 +129,7 @@ class Worker:
         self.workerID = workerID
         self.sim_specs = sim_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self.loc_stack = Worker._make_sim_worker_dir(sim_specs, workerID)
+        self.loc_stack = None  # Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
         Worker._set_job_controller(self.workerID, self.comm)
@@ -104,7 +141,10 @@ class Worker:
         if 'sim_dir' in sim_specs:
             sim_dir = sim_specs['sim_dir'].rstrip('/')
             prefix = sim_specs.get('sim_dir_prefix')
-            worker_dir = "{}_{}".format(sim_dir, workerID)
+            suffix = sim_specs.get('sim_dir_suffix', '')
+            if suffix != '':
+                suffix = '_' + suffix
+            worker_dir = "{}{}_worker{}".format(sim_dir, suffix, workerID)
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
                               prefix=prefix, srcdir=sim_dir)
         return locs
@@ -168,10 +208,22 @@ class Worker:
             logger.debug("Running {}".format(calc_type_strings[calc_type]))
             calc = self._run_calc[calc_type]
             with timer:
-                with self.loc_stack.loc(calc_type):
-                    logger.debug("Calling calc {}".format(calc_type))
+                logger.debug("Calling calc {}".format(calc_type))
+
+                # Worker creates own sim_dir only if sim work performed.
+                if calc_type == EVAL_SIM_TAG and self.loc_stack:
+                    with self.loc_stack.loc(calc_type):
+                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+                elif calc_type == EVAL_SIM_TAG and not self.loc_stack:
+                    self.loc_stack = Worker._make_sim_worker_dir(self.sim_specs, self.workerID)
+                    with self.loc_stack.loc(calc_type):
+                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+                else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-                    logger.debug("Return from calc call")
+
+                logger.debug("Return from calc call")
 
             assert isinstance(out, tuple), \
                 "Calculation output must be a tuple."
@@ -268,5 +320,5 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            if self.sim_specs.get('clean_jobs'):
+            if self.sim_specs.get('clean_jobs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()

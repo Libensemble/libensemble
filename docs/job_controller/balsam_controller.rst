@@ -1,6 +1,8 @@
 Balsam Job Controller
 =====================
 
+.. note:: Balsam is only supported when using ``mpi`` comms and requires Python 3.6 or higher.
+
 To create a Balsam job controller, the calling script should contain::
 
     jobctr = BalsamJobController()

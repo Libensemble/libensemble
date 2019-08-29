@@ -36,15 +36,19 @@ Add user name to docker group so dont need sudo before docker:
     
 ### Install Travis Image for Python and create a container
 
+Name your new travis container:
+
+    export CONTAINER=travis-debug-3.7-v1
+
 Install the Travis Docker image for Python and run the container (server):
 
-    sudo docker run --name travis-debug-3.7-v1 -dit travisci/ci-garnet:packer-1512502276-986baf0 /sbin/init
+    sudo docker run --name $CONTAINER -dit travisci/ci-garnet:packer-1512502276-986baf0 /sbin/init
 
 This might take a while if image is not downloaded. Once image is downloaded it will be run from cache.
 
 Note: 
-travisci/ci-garnet:packer-1512502276-986baf0 is the Travis Python image.
-travis-debug-3.7-v1 is the name you are assigning to the new container made from the image.
+travisci/ci-garnet:packer-1512502276-986baf0 is the Travis Python image. The name in
+$CONTAINER is the name you are assigning to the new container made from the image.
 
 Alternative travisCI docker images can be found [here](https://hub.docker.com/r/travisci/ci-garnet/tags/).
 
@@ -53,7 +57,7 @@ Alternative travisCI docker images can be found [here](https://hub.docker.com/r/
 
 Then open a shell in running container:
 
-    sudo docker exec -it travis-debug-3.7-v1 bash -l
+    sudo docker exec -it $CONTAINER bash -l
     
 Prompt should say travis@ rather than root@:
 
@@ -69,10 +73,10 @@ the installs against .travis.yml in the top level libEnsemble package directory.
 #### Copy build script from host system to the running container
 
 Run the following **from your host machine environment**. This copies the given file into an existing 
-container named travis-debug-3.7-v1. Where /home/travis is target location in container
+container named $CONTAINER. Where /home/travis is target location in container
 filesystem.
 
-    docker cp build_mpich_libE.sh travis-debug-3.7-v1:/home/travis
+    docker cp build_mpich_libE.sh $CONTAINER:/home/travis
 
 On the docker side you may need to set ownership of the script:
 
@@ -107,7 +111,7 @@ To exit the container session (client).
     
 Re-enter while background container still running:
 
-    sudo docker exec -it travis-debug-3.7-v1 bash -l
+    sudo docker exec -it $CONTAINER bash -l
     su - travis
     
 Note that environment variables are not saved.
@@ -139,9 +143,9 @@ Now it should show if you do:
 
 If it is saved you can stop the container (server) thats running and restart eg.
 
-    docker stop travis-debug-3.7-v1
+    docker stop $CONTAINER
     
-where travis-debug-3.7-v1 is the name you gave the container on the docker run command.
+where $CONTAINER is the name you gave the container on the docker run command.
 
 You can restart from your new image with docker run and docker exec or to run server and run session in one:
 

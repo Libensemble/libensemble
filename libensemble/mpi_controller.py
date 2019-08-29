@@ -23,7 +23,8 @@ class MPIJobController(JobController):
     def __init__(self, auto_resources=True, central_mode=False,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None):
+                 nodelist_env_lsf=None,
+                 nodelist_env_lsf_shortform=None):
         """Instantiate a new JobController instance.
 
         A new JobController object is created with an application
@@ -36,15 +37,16 @@ class MPIJobController(JobController):
 
         Parameters
         ----------
-        auto_resources: Boolean, optional
+
+        auto_resources: boolean, optional
             Auto-detect available processor resources and assign to jobs
             if not explicitly provided on launch.
 
-        central_mode, optional: boolean:
+        central_mode, boolean, optional
             If true, then running in central mode, else distributed.
-            Central mode means libE processes (manager and workers) are grouped together and
-            do not share nodes with applications. Distributed mode means Workers share nodes
-            with applications.
+            Central mode means libE processes (manager and workers) are
+            grouped together and do not share nodes with applications.
+            Distributed mode means Workers share nodes with applications.
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format
@@ -62,6 +64,12 @@ class MPIJobController(JobController):
             (Default: Uses LSB_HOSTS) Note: This is only queried
             if a worker_list file is not provided and
             auto_resources=True.
+
+        nodelist_env_lsf_shortform: String, optional
+            The environment variable giving a node list in LSF short-form
+            format (Default: Uses LSB_MCPU_HOSTS) Note: This is only queried
+            if a worker_list file is not provided and auto_resources=True.
+
         """
 
         JobController.__init__(self)
@@ -91,7 +99,18 @@ class MPIJobController(JobController):
                              launcher=self.mpi_command[0],
                              nodelist_env_slurm=nodelist_env_slurm,
                              nodelist_env_cobalt=nodelist_env_cobalt,
-                             nodelist_env_lsf=nodelist_env_lsf)
+                             nodelist_env_lsf=nodelist_env_lsf,
+                             nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
+
+    def add_comm_info(self, libE_nodes, serial_setup):
+        """Add comms specific information to controller
+
+        Updates resources information if auto_resources is True.
+        """
+        if self.auto_resources:
+            self.resources.add_comm_info(libE_nodes=libE_nodes)
+        if serial_setup:
+            self._serial_setup()
 
     def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
                        machinefile, hyperthreads):
@@ -176,7 +195,8 @@ class MPIJobController(JobController):
             runline is printed to logger (At INFO level).
 
         wait_on_run: boolean, optional
-            Whether to wait for job to be polled as RUNNING (or other active/end state) before continuing.
+            Whether to wait for job to be polled as RUNNING (or other
+            active/end state) before continuing.
 
 
         Returns
@@ -211,9 +231,6 @@ class MPIJobController(JobController):
             logger.info('Test selected: Not launching job')
             logger.info('runline args are {}'.format(runline))
         else:
-            logger.info("Launching job {}: {}".
-                        format(job.name, " ".join(runline)))  # One line
-
             subgroup_launch = True
             if self.mpi_launch_type in ['aprun']:
                 subgroup_launch = False
@@ -222,6 +239,10 @@ class MPIJobController(JobController):
             while retry_count < self.max_launch_attempts:
                 retry = False
                 try:
+                    retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
+                    logger.info("Launching job {}{}: {}".
+                                format(job.name, retry_string, " ".join(runline)))
+
                     job.process = launcher.launch(runline, cwd='./',
                                                   stdout=open(job.stdout, 'w'),
                                                   stderr=open(job.stderr, 'w'),
@@ -235,12 +256,13 @@ class MPIJobController(JobController):
                         self._wait_on_run(job, self.fail_time)
 
                     if job.state == 'FAILED':
-                        logger.warning('job {} failed immediately on try {} with err code {}'.format(job.name, retry_count, job.errcode))
+                        logger.warning('job {} failed within fail_time on try {} with err code {}'.format(job.name, retry_count, job.errcode))
                         retry = True
                         retry_count += 1
 
                 if retry and retry_count < self.max_launch_attempts:
                     # retry_count += 1 # Do not want to reset job if not going to retry.
+                    logger.debug('Retry number {} for job {}')
                     time.sleep(retry_count*5)
                     job.reset()  # Note: Some cases may require user cleanup - currently not supported (could use callback)
                 else:

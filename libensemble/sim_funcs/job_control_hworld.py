@@ -8,16 +8,15 @@ __all__ = ['job_control_hworld']
 sim_count = 0
 
 
-def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
+def polling_loop(comm, jobctl, job, timeout_sec=3.0, delay=0.3):
     import time
-    start = time.time()
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
 
-    while time.time() - start < timeout_sec:
+    while job.runtime < timeout_sec:
         time.sleep(delay)
 
-        # print('Probing manager at time: ', time.time() - start)
+        # print('Probing manager at time: ', job.runtime)
         jobctl.manager_poll(comm)
         if jobctl.manager_signal == 'finish':
             jobctl.kill(job)
@@ -25,7 +24,7 @@ def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
             print('Job {} killed by manager on worker {}'.format(job.id, jobctl.workerID))
             break
 
-        # print('Polling job at time', time.time() - start)
+        # print('Polling job at time', job.runtime)
         job.poll()
         if job.finished:
             break
@@ -33,10 +32,10 @@ def polling_loop(comm, jobctl, job, timeout_sec=6.0, delay=1.0):
             print('Job {} still running on worker {} ....'.format(job.id, jobctl.workerID))
 
         # Check output file for error
-        # print('Checking output file for error at time:', time.time() - start)
+        # print('Checking output file for error at time:', job.runtime)
         if job.stdout_exists():
             if 'Error' in job.read_stdout():
-                print("Found (deliberate) Error in ouput file - cancelling job")
+                print("Found (deliberate) Error in ouput file - cancelling job {} on worker {}".format(job.id, jobctl.workerID))
                 jobctl.kill(job)
                 calc_status = WORKER_KILL_ON_ERR
                 break
@@ -69,18 +68,18 @@ def job_control_hworld(H, persis_info, sim_specs, libE_specs):
     cores = sim_specs['cores']
     comm = libE_specs['comm']
 
-    args_for_sim = 'sleep 3'
+    args_for_sim = 'sleep 1'
     # pref send this in X as a sim_in from calling script
     global sim_count
     sim_count += 1
     timeout = 6.0
     if sim_count == 1:
-        args_for_sim = 'sleep 3'  # Should finish
+        args_for_sim = 'sleep 1'  # Should finish
     elif sim_count == 2:
-        args_for_sim = 'sleep 3 Error'  # Worker kill on error
+        args_for_sim = 'sleep 1 Error'  # Worker kill on error
     elif sim_count == 3:
-        args_for_sim = 'sleep 5'  # Worker kill on timeout
-        timeout = 3.0
+        args_for_sim = 'sleep 3'  # Worker kill on timeout
+        timeout = 1.0
     elif sim_count == 4:
         args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
     elif sim_count == 5:

@@ -31,6 +31,9 @@ the phrase "Closes #N" where N is the issue number. This will automatically
 close out the issues when they are pulled into the default branch (currently
 master).
 
+The release process for libEnsemble can be found in the Developer Guide
+section of the documentation.
+
 libEnsemble is distributed under a 3-clause BSD license (see LICENSE).  The
 act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
