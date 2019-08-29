@@ -223,6 +223,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag,
                                              comm, local_H, sim_id_to_child_indices)
 
+    time.sleep(5)
     tag = None
     max_active_runs = gen_specs.get('max_active_runs', np.inf)
     waiting_starting_inds = []

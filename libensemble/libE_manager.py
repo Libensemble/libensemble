@@ -253,9 +253,9 @@ class Manager:
                 self.hist.update_history_f(D_recv)
             if calc_type == EVAL_GEN_TAG:
                 print('Outside_recieve:', D_recv['calc_out']['sim_id'],flush=True)
-                if (D_recv['calc_out']['sim_id'] > 200) or (D_recv['calc_out']['sim_id'] < 0):
+                if D_recv['calc_out']['sim_id'] != self.hist.index:
                     import ipdb; ipdb.set_trace()
-                    print("HA", D_recv['calc_out']['sim_id'], self.index)
+                    print("HA", D_recv['calc_out']['sim_id'], self.hist.index)
 
                 self.hist.update_history_x_in(w, D_recv['calc_out'])
                 assert len(D_recv['calc_out']) or np.any(self.W['active']), \
