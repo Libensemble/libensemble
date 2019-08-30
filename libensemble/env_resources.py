@@ -113,6 +113,8 @@ class EnvResources:
         if not fullstr:
             return []
         splitstr = fullstr.split('[', 1)
+        if len(splitstr) == 1:
+            return splitstr
         prefix = splitstr[0]
         nidstr = splitstr[1].strip("]")
         for nidgroup in nidstr.split(','):
