@@ -1,5 +1,4 @@
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG
-
 import time
 
 
@@ -18,12 +17,13 @@ def send_mgr_worker_msg(comm, O):
          'calc_status': UNSET_TAG,
          'calc_type': EVAL_GEN_TAG
          }
-    if O['sim_id'] > 200 or O['sim_id'] < 0 :
-        import sys
-        sys.exit('Bad send')
+    # if O['sim_id'] > 200 or O['sim_id'] < 0:
+    #     import sys
+    #     sys.exit('Bad send')
 
     comm.send(EVAL_GEN_TAG, D)
     time.sleep(0.01)  # May prevent queue corruption. Investigate
+
 
 def get_mgr_worker_msg(comm, status=None):
     """Get message to worker from manager.
@@ -33,5 +33,5 @@ def get_mgr_worker_msg(comm, status=None):
         comm.push_back(tag, Work)
         return tag, None, None
     _, calc_in = comm.recv()
-    print("Next to receive:", calc_in['sim_id'],flush=True)
+    # print("Next to receive:", calc_in['sim_id'], flush=True)
     return tag, Work, calc_in
