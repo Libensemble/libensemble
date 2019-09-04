@@ -1,5 +1,7 @@
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG
 
+import time
+
 
 def sendrecv_mgr_worker_msg(comm, O, status=None):
     """Send message from worker to manager and receive response.
@@ -16,11 +18,12 @@ def send_mgr_worker_msg(comm, O):
          'calc_status': UNSET_TAG,
          'calc_type': EVAL_GEN_TAG
          }
-    if O['sim_id'] > 200 or O['sim_id'] < 0 : 
+    if O['sim_id'] > 200 or O['sim_id'] < 0 :
         import sys
         sys.exit('Bad send')
 
     comm.send(EVAL_GEN_TAG, D)
+    time.sleep(0.01)
 
 
 def get_mgr_worker_msg(comm, status=None):
