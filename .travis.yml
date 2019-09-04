@@ -24,6 +24,9 @@ matrix:
       language: generic
       python: 3
 
+services:
+    - postgresql
+
 # matrix:
 #  allow_failures:
 #    - env: MPI=openmpi
@@ -80,10 +83,12 @@ install:
   - python conda/find_mpi.py # locate compilers
   - mpiexec --version # Show MPI library details
   - pip install -e .
-
+  - python conda/install-balsam.py
 
 before_script:
   - flake8 libensemble
+  - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
+  - source setbalsampath.sh
   # Set conda compilers to use new SDK instead of Travis default.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
@@ -92,7 +97,7 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - libensemble/tests/run-tests.sh -z
+  - ./libensemble/tests/run-tests.sh -z
 
 # Coverage
 after_success:

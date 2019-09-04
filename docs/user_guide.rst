@@ -16,7 +16,7 @@ three routines:
 Example sim_f, gen_f, and alloc_f routines can be found in the
 ``examples/sim_funcs/``, ``examples/gen_funcs/``, and ``examples/alloc_funcs/`` directories,
 respectively. Examples of scripts used for calling libEnsemble can be found in
-``examples/calling_scripts/``. To enable portability, a :doc:`job_controller<job_controller/overview>` 
+``examples/calling_scripts/``. To enable portability, a :doc:`job_controller<job_controller/overview>`
 interface is supplied for users to launch and monitor jobs in their user-provided sim_f and
 gen_f routines.
 
@@ -104,15 +104,22 @@ will include the following fields:
   work?
 
 
-LibEnsemble Output
+libEnsemble Output
 ------------------
 
-The history array is returned to the user by libEnsemble. In the case that libEnsemble
-aborts on an exception, the existing history array is dumped to a file libE_history_at_abort_<sim_count>.npy, where sim_count is the number of points evaluated.
+The history array and persis_info dictionary are returned to the user by libEnsemble.
+In the case that libEnsemble aborts on an exception, these are dumped to files. The
+existing history array is dumped to a file named ``libE_history_at_abort_<sim_count>.npy``,
+and the persis_info to ``libE_history_at_abort_<sim_count>.pickle``, where sim_count is
+the number of points evaluated.
 
 Other libEnsemble files produced by default are:
 
-**libE_stats.txt**: This contains a one-line summary of all user calculations. Each calculation summary is sent by workers to the manager and printed as the run progresses.
+**libE_stats.txt**: This contains a one-line summary of all user calculations. Each
+calculation summary is sent by workers to the manager and printed as the run progresses.
 
-**ensemble.log**: This is the logging output from libEnsemble. The default logging is at INFO level. To gain additional diagnostics logging level can be set to DEBUG. If this file is not removed, multiple runs will append output.
+**ensemble.log**: This is the logging output from libEnsemble. The default logging
+is at INFO level. To gain additional diagnostics logging level can be set to DEBUG.
+If this file is not removed, multiple runs will append output. Messages at or above
+level MANAGER_WARNING are also copied to stderr to alert the user promptly.
 For more info, see :doc:`Logging<logging>`.

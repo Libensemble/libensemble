@@ -48,7 +48,7 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.4 or above.
+* Python_ 3.5 or above.
 
 * NumPy_
 
@@ -97,7 +97,9 @@ Use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
-libEnsemble is also available in the Spack_ distribution.
+libEnsemble is also available in the Spack_ distribution. It can be installed from Spack with::
+
+    spack install py-libensemble
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
@@ -148,6 +150,7 @@ functions, gen functions, alloc functions and job submission scripts.
 
 See the `user-guide <https://libensemble.readthedocs.io/en/latest/quickstart.html#basic-usage>`_ for more information.
 
+.. docs-include-tag
 
 Documentation
 -------------
@@ -161,14 +164,13 @@ Please use the following to cite libEnsemble in a publication:
 .. code-block:: bibtex
 
   @techreport{libEnsemble,
-    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel},
+    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel and John-Luke Navarro},
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
-    number      = {Revision 0.5.0},
+    number      = {Revision 0.5.2},
     year        = {2019},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
-
 
 Support
 -------
