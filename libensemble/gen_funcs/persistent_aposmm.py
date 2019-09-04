@@ -427,7 +427,6 @@ class LocalOptInterfacer(object):
         x_new = self.comm_queue.get()
         if isinstance(x_new, ConvergedMsg):
             self.process.join()
-            self.process.terminate()
             self.is_running = False
 
         return x_new
