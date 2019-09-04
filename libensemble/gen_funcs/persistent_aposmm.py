@@ -259,6 +259,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         if sim_id_to_child_indices.get(sim_id_recv):
             for child_idx in sim_id_to_child_indices[sim_id_recv]:
+                print(np.sum([i.is_running for i in local_opters]))
                 x_new = local_opters[child_idx].iterate(*data_to_give_processes)
                 if isinstance(x_new, ConvergedMsg):
                     x_opt = x_new.x
