@@ -23,8 +23,7 @@ def send_mgr_worker_msg(comm, O):
         sys.exit('Bad send')
 
     comm.send(EVAL_GEN_TAG, D)
-    time.sleep(0.01)
-
+    time.sleep(0.01)  # May prevent queue corruption. Investigate
 
 def get_mgr_worker_msg(comm, status=None):
     """Get message to worker from manager.
