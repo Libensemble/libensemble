@@ -31,7 +31,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
             if np.all(H[inds_of_last_batch_from_gen]['returned']):
                 gen_work(Work, i,
-                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
+                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id'),('x_on_cube')],
                          np.atleast_1d(inds_of_last_batch_from_gen), persis_info[i], persistent=True)
 
                 H['given_back'][inds_of_last_batch_from_gen] = True

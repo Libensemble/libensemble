@@ -201,10 +201,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     run_order = {}
     total_runs = 0
     if gen_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
-        fields_to_pass = ['f', 'grad']
+        fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
                                           'LN_NELDERMEAD', 'pounders', 'scipy_COBYLA']:
-        fields_to_pass = ['f']
+        fields_to_pass = ['x_on_cube', 'f']
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(gen_specs['localopt_method']))
 
@@ -251,7 +251,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 local_H['started_run'][ind] = 1
 
                 # Initialize a local opt run
-                local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'], parent_can_read_from_queue, comm_queue,
+                local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'], 
                                                  local_H[ind]['f'], local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
 
                 local_opters.append(local_opter)
@@ -275,7 +275,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             send_k_sample_points_for_evaluation(1, gen_specs, persis_info, n, c_flag, comm, local_H,
                                                  sim_id_to_child_indices)
         else: 
-            send_mgr_worker_msg(comm, local_H[-counter:][['x', 'sim_id']])
+            send_mgr_worker_msg(comm, local_H[-counter:][['x', 'x_on_cube', 'sim_id']])
 
     comm_queue.close()
     comm_queue.join_thread()
@@ -289,7 +289,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
 
 class LocalOptInterfacer(object):
-    def __init__(self, gen_specs, x0, parent_can_read, comm_queue, f0, grad0=None):
+    def __init__(self, gen_specs, x0, parent_can_read, f0, grad0=None):
         """
         :param x0: A numpy array of the initial guess solution. This guess
             should be scaled to a unit cube.
@@ -301,9 +301,9 @@ class LocalOptInterfacer(object):
             immediately after creating the class.
 
         """
-        self.parent_can_read = parent_can_read
+        self.parent_can_read = Event()
 
-        self.comm_queue = comm_queue
+        self.comm_queue = Queue()
         self.child_can_read = Event()
 
         self.x0 = x0
@@ -326,13 +326,13 @@ class LocalOptInterfacer(object):
 
         self.parent_can_read.clear()
         self.process = Process(target=run_local_opt, args=(gen_specs,
-                               comm_queue, x0, f0, self.child_can_read,
-                               parent_can_read))
+                               self.comm_queue, x0, f0, self.child_can_read,
+                               self.parent_can_read))
 
         self.process.start()
         self.is_running = True
         self.parent_can_read.wait()
-        assert np.allclose(comm_queue.get(), x0)
+        assert np.allclose(self.comm_queue.get(), x0)
 
     def iterate(self, data):
         """
@@ -345,9 +345,9 @@ class LocalOptInterfacer(object):
         self.parent_can_read.clear()
 
         if 'grad' in data.dtype.names:
-            self.comm_queue.put((data['f'], data['grad']))
+            self.comm_queue.put((data['x_on_cube'], data['f'], data['grad']))
         else:
-            self.comm_queue.put((data['f'], ))
+            self.comm_queue.put((data['x_on_cube'], data['f'], ))
 
         self.child_can_read.set()
         self.parent_can_read.wait()
@@ -386,12 +386,14 @@ def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, gen
     parent_can_read.set()
     child_can_read.wait()
     if gen_specs['localopt_method'] in ['LD_MMA']:
-        f_recv, grad_recv = comm_queue.get()
+        x_recv, f_recv, grad_recv = comm_queue.get()
         grad[:] = grad_recv
     else:
         assert gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
                                                 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
-        f_recv, = comm_queue.get()
+        x_recv, f_recv = comm_queue.get()
+
+    assert np.array_equal(x,x_recv), "The point I gave is not the point I got back!"
 
     child_can_read.clear()
 
@@ -970,7 +972,7 @@ def send_k_sample_points_for_evaluation(k, gen_specs, persis_info, n, c_flag, co
     assert local_H['sim_id'][-k] not in sim_id_to_child_indices
     # sim_id_to_child_indices[local_H['sim_id'][-k:]] = None
 
-    send_mgr_worker_msg(comm, local_H[-k:][['x', 'sim_id']])
+    send_mgr_worker_msg(comm, local_H[-k:][['x', 'x_on_cube', 'sim_id']])
 
 def clean_up_and_stop(local_H, local_opters):
     # FIXME: This has to be a clean exit.
