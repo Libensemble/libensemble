@@ -190,25 +190,16 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-    # {{{ multiprocessing initialization
+    n, n_s, c_flag, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
 
-    # from libensemble.util.forkpdb import ForkablePdb
-    # ForkablePdb().set_trace()
-
+    # Initialize stuff for localopt children
     local_opters = []
     parent_can_read_from_queue = Event()
     comm_queue = Queue()
-
-    # }}}
-
-    n, n_s, c_flag, rk_const, ld, mu, nu, total_runs, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
-
     sim_id_to_child_indices = {}
     child_id_to_run_id = {}
     run_order = {}
-
-    # {{{ setting the data needed by the local optimization method
-
+    total_runs = 0
     if gen_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['f', 'grad']
     elif gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
@@ -217,137 +208,74 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(gen_specs['localopt_method']))
 
-    # }}}
 
-    for _ in range(gen_specs['initial_sample_size']):
-        send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag,
-                                             comm, local_H, sim_id_to_child_indices)
+    # Send our initial sample.W e don't need to check that n_s is large enough:
+    # the alloc_func only returns when the initial sample has function values.
+    send_k_sample_points_for_evaluation(gen_specs['initial_sample_size'],gen_specs,
+                                        persis_info, n, c_flag, comm, local_H,
+                                        sim_id_to_child_indices)
 
     tag = None
-    max_active_runs = gen_specs.get('max_active_runs', np.inf)
-    waiting_starting_inds = []
-
     while 1:
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
-        if calc_in:
-            if fields_to_pass == ['f', 'grad']:
-                (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv), = calc_in
-                data_to_give_processes = (f_x_recv, grad_f_x_recv)
-            else:
-                assert(fields_to_pass == ['f'])
-                if len(calc_in[0]) == 3:
-                    (x_recv, f_x_recv, sim_id_recv), = calc_in
-                else:
-                    # FIXME: *BIG BIG!*, even if we are passing grad_f even
-                    # though we are not using it.
-                    (x_recv, f_x_recv, grad_f_x_recv, sim_id_recv), = calc_in
-                data_to_give_processes = (f_x_recv, )
-
         if tag in [STOP_TAG, PERSIS_STOP]:
-            # FIXME: This has to be a clean exit.
-
-            print('[Parent]: The optimal points are:\n',
-                  local_H[np.where(local_H['local_min'])]['x'], flush=True)
-
-            for p in local_opters:
-                if p.is_running:
-                    p.destroy()
+            clean_up_and_stop(local_H, local_opters) 
             break
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
-        if sim_id_to_child_indices.get(sim_id_recv):
-            for child_idx in sim_id_to_child_indices[sim_id_recv]:
-                x_new = local_opters[child_idx].iterate(*data_to_give_processes)
-                if isinstance(x_new, ConvergedMsg):
-                    x_opt = x_new.x
-                    update_history_optimal(x_opt, local_H, run_order[child_id_to_run_id[child_idx]])
+        counter = 0
+        for row in calc_in:
+            if sim_id_to_child_indices.get(row['sim_id']):
+                # Point came from a child local opt run
+                for child_idx in sim_id_to_child_indices[row['sim_id']]:
+                    x_new = local_opters[child_idx].iterate(row[fields_to_pass])
+                    if isinstance(x_new, ConvergedMsg):
+                        x_opt = x_new.x
+                        update_history_optimal(x_opt, local_H, run_order[child_id_to_run_id[child_idx]])
+                    else:
+                        add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                        counter += 1
 
-                    if waiting_starting_inds:
-                        ind = waiting_starting_inds[0]
-                        waiting_starting_inds = waiting_starting_inds[1:]
-
-                        # {{{ initing a local opt run
-
-                        local_opter = LocalOptInterfacer(gen_specs,
-                                                         local_H[ind]['x_on_cube'],
-                                                         parent_can_read_from_queue, comm_queue,
-                                                         local_H[ind]['f'], grad_f_x_recv if 'grad' in
-                                                         fields_to_pass else None)
-                        local_opters.append(local_opter)
-                        x_new = local_opter.iterate(*local_H[ind][fields_to_pass])
-                        add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
-                        assert np.allclose(local_H[-1]['x_on_cube'], x_new)
-
-                        run_order[total_runs] = [local_H[-1]['sim_id']]
-                        child_id_to_run_id[len(local_opters)-1] = total_runs
-                        total_runs += 1
-
+                        run_order[child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
                         if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                            sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(local_opters)-1, )
+                            sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
                         else:
-                            sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(local_opters)-1, )
+                            sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
 
-                        # }}}
+        starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
 
-                        send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
-                    else:
-                        send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
-                                                             sim_id_to_child_indices)
-                else:
-                    add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
-                    assert np.allclose(local_H[-1]['x_on_cube'], x_new)
-
-                    run_order[child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
-                    if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                        sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
-                    else:
-                        sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
-                    send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
-        else:
-            if n_s < gen_specs['initial_sample_size']:
-                continue
-            n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
-
-            starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
-
-            for ind in starting_inds:
-
+        for ind in starting_inds:
+            if len([p for p in local_opters if p.is_running]) < gen_specs.get('max_active_runs', np.inf):
                 local_H['started_run'][ind] = 1
 
-                if len([p for p in local_opters if p.is_running]) < max_active_runs:
+                # Initialize a local opt run
+                local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'], parent_can_read_from_queue, comm_queue,
+                                                 local_H[ind]['f'], local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
 
-                    # {{{ initing a local opt run
+                local_opters.append(local_opter)
 
-                    local_opter = LocalOptInterfacer(gen_specs,
-                                                     local_H[ind]['x_on_cube'],
-                                                     parent_can_read_from_queue, comm_queue,
-                                                     local_H[ind]['f'], grad_f_x_recv if 'grad' in fields_to_pass else None)
-                    local_opters.append(local_opter)
-                    x_new = local_opter.iterate(*local_H[ind][fields_to_pass])
+                x_new = local_opter.iterate(local_H[ind][fields_to_pass]) # Assuming the second point can't be ruled optimal 
 
-                    add_to_local_H(local_H, (x_new, ), gen_specs, c_flag, local_flag=1, on_cube=True)
-                    assert np.allclose(local_H[-1]['x_on_cube'], x_new)
+                add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                counter += 1
 
-                    run_order[total_runs] = [local_H[-1]['sim_id']]
-                    child_id_to_run_id[len(local_opters)-1] = total_runs
-                    total_runs += 1
+                run_order[total_runs] = [ind, local_H[-1]['sim_id']]
+                child_id_to_run_id[len(local_opters)-1] = total_runs
+                total_runs += 1
 
-                    if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                        sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(local_opters)-1, )
-                    else:
-                        sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(local_opters)-1, )
-
-                    # }}}
-
-                    send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+                if local_H[-1]['sim_id'] in sim_id_to_child_indices:
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(local_opters)-1, )
                 else:
-                    waiting_starting_inds.append(ind)
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(local_opters)-1, )
 
-            if len(starting_inds) == 0 and len(waiting_starting_inds) == 0:
-                send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H,
-                                                     sim_id_to_child_indices)
+
+        if counter == 0:
+            send_k_sample_points_for_evaluation(1, gen_specs, persis_info, n, c_flag, comm, local_H,
+                                                 sim_id_to_child_indices)
+        else: 
+            send_mgr_worker_msg(comm, local_H[-counter:][['x', 'sim_id']])
 
     comm_queue.close()
     comm_queue.join_thread()
@@ -406,7 +334,7 @@ class LocalOptInterfacer(object):
         self.parent_can_read.wait()
         assert np.allclose(comm_queue.get(), x0)
 
-    def iterate(self, f, grad=None):
+    def iterate(self, data):
         """
         Returns an instance of either :class:`numpy.ndarray` corresponding to the next
         iterative guess or :class:`ConvergedMsg` when the solver is converged.
@@ -415,10 +343,11 @@ class LocalOptInterfacer(object):
         :param grad: A numpy array of the function's gradient.
         """
         self.parent_can_read.clear()
-        if grad is None:
-            self.comm_queue.put((f, ))
+
+        if 'grad' in data.dtype.names:
+            self.comm_queue.put((data['f'], data['grad']))
         else:
-            self.comm_queue.put((f, grad))
+            self.comm_queue.put((data['f'], ))
 
         self.child_can_read.set()
         self.parent_can_read.wait()
@@ -427,6 +356,8 @@ class LocalOptInterfacer(object):
         if isinstance(x_new, ConvergedMsg):
             self.process.join()
             self.is_running = False
+        else: 
+            x_new = np.atleast_2d(x_new)
 
         return x_new
 
@@ -1005,8 +936,6 @@ def initialize_APOSMM(H, gen_specs, libE_info):
     else:
         nu = 0
 
-    total_runs = 0
-
     comm = libE_info['comm']
 
     local_H_fields = [('f', float),
@@ -1032,17 +961,26 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 
     local_H = np.empty(0, dtype=local_H_fields)
 
-    return n, n_s, c_flag, rk_c, ld, mu, nu, total_runs, comm, local_H
+    return n, n_s, c_flag, rk_c, ld, mu, nu, comm, local_H
 
 
-def send_one_sample_point_for_evaluation(gen_specs, persis_info, n, c_flag, comm, local_H, sim_id_to_child_indices):
-    sampled_points = persis_info['rand_stream'].uniform(0, 1, (1, n))
+def send_k_sample_points_for_evaluation(k, gen_specs, persis_info, n, c_flag, comm, local_H, sim_id_to_child_indices):
+    sampled_points = persis_info['rand_stream'].uniform(0, 1, (k, n))
     add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
-    assert local_H['sim_id'][-1] not in sim_id_to_child_indices
-    sim_id_to_child_indices[local_H['sim_id'][-1]] = None
+    assert local_H['sim_id'][-k] not in sim_id_to_child_indices
+    # sim_id_to_child_indices[local_H['sim_id'][-k:]] = None
 
-    send_mgr_worker_msg(comm, local_H[-1:][['x', 'sim_id']])
+    send_mgr_worker_msg(comm, local_H[-k:][['x', 'sim_id']])
 
+def clean_up_and_stop(local_H, local_opters):
+    # FIXME: This has to be a clean exit.
+
+    print('[Parent]: The optimal points are:\n',
+          local_H[np.where(local_H['local_min'])]['x'], flush=True)
+
+    for p in local_opters:
+        if p.is_running:
+            p.destroy()
 
 def display_exception(e):
     print(e.__doc__)
