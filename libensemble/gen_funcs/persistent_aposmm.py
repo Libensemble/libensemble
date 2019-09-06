@@ -194,8 +194,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     # Initialize stuff for localopt children
     local_opters = []
-    parent_can_read_from_queue = Event()
-    comm_queue = Queue()
     sim_id_to_child_indices = {}
     child_id_to_run_id = {}
     run_order = {}
@@ -208,10 +206,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(gen_specs['localopt_method']))
 
-
-    # Send our initial sample.W e don't need to check that n_s is large enough:
+    # Send our initial sample. We don't need to check that n_s is large enough:
     # the alloc_func only returns when the initial sample has function values.
-    send_k_sample_points_for_evaluation(gen_specs['initial_sample_size'],gen_specs,
+    send_k_sample_points_for_evaluation(gen_specs['initial_sample_size'], gen_specs,
                                         persis_info, n, c_flag, comm, local_H,
                                         sim_id_to_child_indices)
 
@@ -220,7 +217,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
         if tag in [STOP_TAG, PERSIS_STOP]:
-            clean_up_and_stop(local_H, local_opters) 
+            clean_up_and_stop(local_H, local_opters)
             break
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
@@ -251,12 +248,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 local_H['started_run'][ind] = 1
 
                 # Initialize a local opt run
-                local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'], 
+                local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'],
                                                  local_H[ind]['f'], local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
 
                 local_opters.append(local_opter)
 
-                x_new = local_opter.iterate(local_H[ind][fields_to_pass]) # Assuming the second point can't be ruled optimal 
+                x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second point can't be ruled optimal
 
                 add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
                 counter += 1
@@ -270,15 +267,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 else:
                     sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(local_opters)-1, )
 
-
         if counter == 0:
             send_k_sample_points_for_evaluation(1, gen_specs, persis_info, n, c_flag, comm, local_H,
-                                                 sim_id_to_child_indices)
-        else: 
+                                                sim_id_to_child_indices)
+        else:
             send_mgr_worker_msg(comm, local_H[-counter:][['x', 'x_on_cube', 'sim_id']])
 
-    comm_queue.close()
-    comm_queue.join_thread()
+    # comm_queue.close()
+    # comm_queue.join_thread()
 
     for local_opter in local_opters:
         if local_opter.is_running:
@@ -356,7 +352,7 @@ class LocalOptInterfacer(object):
         if isinstance(x_new, ConvergedMsg):
             self.process.join()
             self.is_running = False
-        else: 
+        else:
             x_new = np.atleast_2d(x_new)
 
         return x_new
@@ -393,7 +389,7 @@ def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, gen
                                                 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
         x_recv, f_recv = comm_queue.get()
 
-    assert np.array_equal(x,x_recv), "The point I gave is not the point I got back!"
+    assert np.array_equal(x, x_recv), "The point I gave is not the point I got back!"
 
     child_can_read.clear()
 
@@ -974,6 +970,7 @@ def send_k_sample_points_for_evaluation(k, gen_specs, persis_info, n, c_flag, co
 
     send_mgr_worker_msg(comm, local_H[-k:][['x', 'x_on_cube', 'sim_id']])
 
+
 def clean_up_and_stop(local_H, local_opters):
     # FIXME: This has to be a clean exit.
 
@@ -983,6 +980,7 @@ def clean_up_and_stop(local_H, local_opters):
     for p in local_opters:
         if p.is_running:
             p.destroy()
+
 
 def display_exception(e):
     print(e.__doc__)

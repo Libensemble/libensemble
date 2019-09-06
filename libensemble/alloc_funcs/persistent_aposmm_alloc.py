@@ -24,14 +24,14 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         returned_but_not_given = np.logical_and(H['returned'][gen_inds], ~H['given_back'][gen_inds])
         if np.any(returned_but_not_given):
             # If a point is a sample point, only return it if all other sample
-            # points requested at the same time are returned. 
+            # points requested at the same time are returned.
             last_time_gen_gave_batch = np.unique(H['gen_time'][returned_but_not_given])
             assert(len(last_time_gen_gave_batch)) == 1, "It shouldn't be possible for persistent aposmm to give two batches."
             inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
 
             if np.all(H[inds_of_last_batch_from_gen]['returned']):
                 gen_work(Work, i,
-                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id'),('x_on_cube')],
+                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id'), ('x_on_cube')],
                          np.atleast_1d(inds_of_last_batch_from_gen), persis_info[i], persistent=True)
 
                 H['given_back'][inds_of_last_batch_from_gen] = True
