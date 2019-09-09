@@ -193,7 +193,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     n, n_s, c_flag, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
 
     # Initialize stuff for localopt children
-    local_opters = []
+    local_opters = {}
     sim_id_to_child_indices = {}
     child_id_to_run_id = {}
     run_order = {}
@@ -231,6 +231,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     if isinstance(x_new, ConvergedMsg):
                         x_opt = x_new.x
                         update_history_optimal(x_opt, local_H, run_order[child_id_to_run_id[child_idx]])
+                        local_opters.pop(child_id_to_run_id[child_idx])
                     else:
                         add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
                         counter += 1
@@ -244,14 +245,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
 
         for ind in starting_inds:
-            if len([p for p in local_opters if p.is_running]) < gen_specs.get('max_active_runs', np.inf):
+            if len([p for p in local_opters.values() if p.is_running]) < gen_specs.get('max_active_runs', np.inf):
                 local_H['started_run'][ind] = 1
 
                 # Initialize a local opt run
                 local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'],
                                                  local_H[ind]['f'], local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
 
-                local_opters.append(local_opter)
+                local_opters[total_runs] = local_opter
 
                 x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second point can't be ruled optimal
 
@@ -259,13 +260,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 counter += 1
 
                 run_order[total_runs] = [ind, local_H[-1]['sim_id']]
-                child_id_to_run_id[len(local_opters)-1] = total_runs
-                total_runs += 1
+                child_id_to_run_id[total_runs] = total_runs
 
                 if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (len(local_opters)-1, )
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (total_runs, )
                 else:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (len(local_opters)-1, )
+                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (total_runs, )
+
+                total_runs += 1
 
         if counter == 0:
             send_k_sample_points_for_evaluation(1, gen_specs, persis_info, n, c_flag, comm, local_H,
@@ -273,10 +275,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         else:
             send_mgr_worker_msg(comm, local_H[-counter:][['x', 'x_on_cube', 'sim_id']])
 
-    for local_opter in local_opters:
-        if local_opter.is_running:
-            raise RuntimeError("[Parent]: Atleast one child process is still active, even after"
-                               " killing all the children.")
+    # for local_opter in local_opters:
+    #     if local_opter.is_running:
+    #         raise RuntimeError("[Parent]: Atleast one child process is still active, even after"
+    #                            " killing all the children.")
 
     return local_H, persis_info, tag
 
@@ -977,7 +979,7 @@ def clean_up_and_stop(local_H, local_opters, run_order):
     print('[Parent]: The optimal points are:\n',
           local_H[np.where(local_H['local_min'])]['x'], flush=True)
 
-    for i, p in enumerate(local_opters):
+    for i, p in local_opters.items():
         if p.is_running:
             p.destroy(local_H['x_on_cube'][run_order[i][-1]])
 
