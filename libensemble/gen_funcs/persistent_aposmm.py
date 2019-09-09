@@ -217,7 +217,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
         if tag in [STOP_TAG, PERSIS_STOP]:
-            clean_up_and_stop(local_H, local_opters)
+            clean_up_and_stop(local_H, local_opters, run_order)
             break
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
@@ -273,9 +273,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         else:
             send_mgr_worker_msg(comm, local_H[-counter:][['x', 'x_on_cube', 'sim_id']])
 
-    # comm_queue.close()
-    # comm_queue.join_thread()
-
     for local_opter in local_opters:
         if local_opter.is_running:
             raise RuntimeError("[Parent]: Atleast one child process is still active, even after"
@@ -285,7 +282,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
 
 class LocalOptInterfacer(object):
-    def __init__(self, gen_specs, x0, parent_can_read, f0, grad0=None):
+    def __init__(self, gen_specs, x0, f0, grad0=None):
         """
         :param x0: A numpy array of the initial guess solution. This guess
             should be scaled to a unit cube.
@@ -302,9 +299,9 @@ class LocalOptInterfacer(object):
         self.comm_queue = Queue()
         self.child_can_read = Event()
 
-        self.x0 = x0
-        self.f0 = f0
-        self.grad0 = grad0
+        self.x0 = x0.copy()
+        self.f0 = f0.copy()
+        self.grad0 = grad0.copy()
 
         # {{{ setting the local optimization method
 
@@ -351,27 +348,30 @@ class LocalOptInterfacer(object):
         x_new = self.comm_queue.get()
         if isinstance(x_new, ConvergedMsg):
             self.process.join()
+            self.comm_queue.close()
+            self.comm_queue.join_thread()
             self.is_running = False
         else:
             x_new = np.atleast_2d(x_new)
 
         return x_new
 
-    def destroy(self):
-        x_new = None
-        while not isinstance(x_new, ConvergedMsg):
+    def destroy(self,previous_x):
+        while not isinstance(previous_x, ConvergedMsg):
             self.parent_can_read.clear()
             if self.grad0 is None:
-                self.comm_queue.put((0*np.ones_like(self.f0),))
+                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
             else:
-                self.comm_queue.put((0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
+                self.comm_queue.put((previous_x,0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
 
             self.child_can_read.set()
             self.parent_can_read.wait()
 
-            x_new = self.comm_queue.get()
-        assert isinstance(x_new, ConvergedMsg)
+            previous_x = self.comm_queue.get()
+        assert isinstance(previous_x, ConvergedMsg)
         self.process.join()
+        self.comm_queue.close()
+        self.comm_queue.join_thread()
         self.is_running = False
 
 
@@ -971,15 +971,15 @@ def send_k_sample_points_for_evaluation(k, gen_specs, persis_info, n, c_flag, co
     send_mgr_worker_msg(comm, local_H[-k:][['x', 'x_on_cube', 'sim_id']])
 
 
-def clean_up_and_stop(local_H, local_opters):
+def clean_up_and_stop(local_H, local_opters, run_order):
     # FIXME: This has to be a clean exit.
 
     print('[Parent]: The optimal points are:\n',
           local_H[np.where(local_H['local_min'])]['x'], flush=True)
 
-    for p in local_opters:
+    for i,p in enumerate(local_opters):
         if p.is_running:
-            p.destroy()
+            p.destroy(local_H['x_on_cube'][run_order[i][-1]])
 
 
 def display_exception(e):
