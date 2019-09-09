@@ -195,7 +195,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     # Initialize stuff for localopt children
     local_opters = {}
     sim_id_to_child_indices = {}
-    child_id_to_run_id = {}
     run_order = {}
     total_runs = 0
     if gen_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
@@ -230,13 +229,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     x_new = local_opters[child_idx].iterate(row[fields_to_pass])
                     if isinstance(x_new, ConvergedMsg):
                         x_opt = x_new.x
-                        update_history_optimal(x_opt, local_H, run_order[child_id_to_run_id[child_idx]])
-                        local_opters.pop(child_id_to_run_id[child_idx])
+                        update_history_optimal(x_opt, local_H, run_order[child_idx])
+                        local_opters.pop(child_idx)
                     else:
                         add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
                         counter += 1
 
-                        run_order[child_id_to_run_id[child_idx]].append(local_H[-1]['sim_id'])
+                        run_order[child_idx].append(local_H[-1]['sim_id'])
                         if local_H[-1]['sim_id'] in sim_id_to_child_indices:
                             sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
                         else:
@@ -260,7 +259,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 counter += 1
 
                 run_order[total_runs] = [ind, local_H[-1]['sim_id']]
-                child_id_to_run_id[total_runs] = total_runs
 
                 if local_H[-1]['sim_id'] in sim_id_to_child_indices:
                     sim_id_to_child_indices[local_H[-1]['sim_id']] += (total_runs, )
