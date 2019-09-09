@@ -356,13 +356,13 @@ class LocalOptInterfacer(object):
 
         return x_new
 
-    def destroy(self,previous_x):
+    def destroy(self, previous_x):
         while not isinstance(previous_x, ConvergedMsg):
             self.parent_can_read.clear()
             if self.grad0 is None:
                 self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
             else:
-                self.comm_queue.put((previous_x,0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
+                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
 
             self.child_can_read.set()
             self.parent_can_read.wait()
@@ -977,7 +977,7 @@ def clean_up_and_stop(local_H, local_opters, run_order):
     print('[Parent]: The optimal points are:\n',
           local_H[np.where(local_H['local_min'])]['x'], flush=True)
 
-    for i,p in enumerate(local_opters):
+    for i, p in enumerate(local_opters):
         if p.is_running:
             p.destroy(local_H['x_on_cube'][run_order[i][-1]])
 

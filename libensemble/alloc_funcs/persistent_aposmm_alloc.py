@@ -21,7 +21,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         if sum(H['returned']) < gen_specs['initial_sample_size']:
-            # Don't return if the initial sample is not complete   
+            # Don't return if the initial sample is not complete
             continue
 
         gen_inds = (H['gen_worker'] == i)
