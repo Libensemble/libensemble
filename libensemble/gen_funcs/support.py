@@ -16,7 +16,6 @@ def send_mgr_worker_msg(comm, O):
          'calc_status': UNSET_TAG,
          'calc_type': EVAL_GEN_TAG
          }
-
     comm.send(EVAL_GEN_TAG, D)
 
 
