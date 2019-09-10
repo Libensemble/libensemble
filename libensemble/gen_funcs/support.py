@@ -1,5 +1,4 @@
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG
-import time
 
 
 def sendrecv_mgr_worker_msg(comm, O, status=None):
@@ -19,7 +18,6 @@ def send_mgr_worker_msg(comm, O):
          }
 
     comm.send(EVAL_GEN_TAG, D)
-    time.sleep(0.01)  # May prevent queue corruption. Investigate
 
 
 def get_mgr_worker_msg(comm, status=None):
@@ -30,5 +28,4 @@ def get_mgr_worker_msg(comm, status=None):
         comm.push_back(tag, Work)
         return tag, None, None
     _, calc_in = comm.recv()
- 
     return tag, Work, calc_in
