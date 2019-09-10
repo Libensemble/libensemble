@@ -72,11 +72,18 @@ if libE_specs['comms'] == 'tcp' and not is_master:
     quit()
 
 # Perform the run
-for run in range(2):
+for run in range(3):
     if libE_specs['comms'] == 'tcp' and is_master:
         libE_specs['worker_cmd'].append(str(run))
 
     if run == 1:
+        gen_specs['localopt_method'] = 'blmvm'
+        gen_specs['grtol'] = 1e-5
+        gen_specs['gatol'] = 1e-5
+        persis_info = deepcopy(persis_info_safe)
+
+    if run == 2:
+        gen_specs['localopt_method'] = 'LD_MMA'
         # Change the bounds to put a local min at a corner point (to test that
         # APOSMM handles the same point being in multiple runs) ability to
         # give back a previously evaluated point)
@@ -94,7 +101,7 @@ for run in range(2):
         exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
         minima = np.array([[-2.9, -1.9]])
 
-        persis_info = persis_info_safe
+        persis_info = deepcopy(persis_info_safe)
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                 persis_info, alloc_specs, libE_specs)
