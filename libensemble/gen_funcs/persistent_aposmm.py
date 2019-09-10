@@ -207,9 +207,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     # Send our initial sample. We don't need to check that n_s is large enough:
     # the alloc_func only returns when the initial sample has function values.
-    send_k_sample_points_for_evaluation(gen_specs['initial_sample_size'], gen_specs,
-                                        persis_info, n, c_flag, comm, local_H,
-                                        sim_id_to_child_indices)
+    persis_info = add_k_sample_points_to_local_H(gen_specs['initial_sample_size'], gen_specs,
+                                                 persis_info, n, c_flag, comm, local_H,
+                                                  sim_id_to_child_indices)
+    send_mgr_worker_msg(comm, local_H[:gen_specs['initial_sample_size']][[i[0] for i in gen_specs['out']]])
 
     tag = None
     while 1:
@@ -221,7 +222,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
-        counter = 0
+        new_opt_inds_to_send_mgr = []
+        new_inds_to_send_mgr = [] 
         for row in calc_in:
             if sim_id_to_child_indices.get(row['sim_id']):
                 # Point came from a child local opt run
@@ -229,11 +231,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     x_new = local_opters[child_idx].iterate(row[fields_to_pass])
                     if isinstance(x_new, ConvergedMsg):
                         x_opt = x_new.x
-                        update_history_optimal(x_opt, local_H, run_order[child_idx])
+                        opt_ind = update_history_optimal(x_opt, local_H, run_order[child_idx])
+                        new_opt_inds_to_send_mgr.append(opt_ind)
                         local_opters.pop(child_idx)
                     else:
                         add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
-                        counter += 1
+                        new_inds_to_send_mgr.append(len(local_H)-1)
 
                         run_order[child_idx].append(local_H[-1]['sim_id'])
                         if local_H[-1]['sim_id'] in sim_id_to_child_indices:
@@ -256,7 +259,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second point can't be ruled optimal
 
                 add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
-                counter += 1
+                new_inds_to_send_mgr.append(len(local_H)-1)
 
                 run_order[total_runs] = [ind, local_H[-1]['sim_id']]
 
@@ -267,11 +270,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 total_runs += 1
 
-        if counter == 0:
-            send_k_sample_points_for_evaluation(1, gen_specs, persis_info, n, c_flag, comm, local_H,
-                                                sim_id_to_child_indices)
-        else:
-            send_mgr_worker_msg(comm, local_H[-counter:][[i[0] for i in gen_specs['out']]])
+        if len(new_inds_to_send_mgr) == 0:
+            persis_info = add_k_sample_points_to_local_H(1, gen_specs, persis_info, n,
+                                                         c_flag, comm, local_H, sim_id_to_child_indices)
+            new_inds_to_send_mgr.append(len(local_H)-1)
+
+        send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
 
     # for local_opter in local_opters:
     #     if local_opter.is_running:
@@ -769,6 +773,8 @@ def update_history_optimal(x_opt, H, run_inds):
     H['local_min'][opt_ind] = 1
     H['num_active_runs'][run_inds] -= 1
 
+    return opt_ind
+
 
 def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
     """
@@ -962,13 +968,21 @@ def initialize_APOSMM(H, gen_specs, libE_info):
     return n, n_s, c_flag, rk_c, ld, mu, nu, comm, local_H
 
 
-def send_k_sample_points_for_evaluation(k, gen_specs, persis_info, n, c_flag, comm, local_H, sim_id_to_child_indices):
-    sampled_points = persis_info['rand_stream'].uniform(0, 1, (k, n))
-    add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
-    assert local_H['sim_id'][-k] not in sim_id_to_child_indices
-    # sim_id_to_child_indices[local_H['sim_id'][-k:]] = None
+def add_k_sample_points_to_local_H(k, gen_specs, persis_info, n, c_flag, comm, local_H, sim_id_to_child_indices):
 
-    send_mgr_worker_msg(comm, local_H[-k:][[i[0] for i in gen_specs['out']]])
+    if 'sample_points' in gen_specs:
+        v = np.sum(~local_H['local_pt'])  # Number of sample points so far
+        sampled_points = gen_specs['sample_points'][v:v+k]
+        on_cube = False  # Assume points are on original domain, not unit cube
+        if len(sampled_points):
+            add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=on_cube)
+        k = k-len(sampled_points)
+
+    if k > 0:
+        sampled_points = persis_info['rand_stream'].uniform(0, 1, (k, n))
+        add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
+
+    return persis_info
 
 
 def clean_up_and_stop(local_H, local_opters, run_order):
