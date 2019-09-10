@@ -27,7 +27,7 @@ def wait_for_job_dir(basedb):
 
     print('Waiting for Job Directory'.format(sleeptime))
     while len(os.listdir(basedb)) == 0 and sleeptime < 15:
-        print('{}'.format(sleeptime), end=" ", flush=True)
+        print(sleeptime, end=" ", flush=True)
         time.sleep(1)
         sleeptime += 1
 
@@ -43,9 +43,9 @@ def wait_for_job_output(jobdir):
     print('Checking for Balsam output file: {}'.format(output))
 
     while not os.path.isfile(output) and sleeptime < 30:
-        print('{}'.format(sleeptime), end=" ", flush=True)
-        time.sleep(2)
-        sleeptime += 2
+        print(sleeptime, end=" ", flush=True)
+        time.sleep(1)
+        sleeptime += 1
 
     return output
 
@@ -54,7 +54,9 @@ def print_job_output(outscript):
     sleeptime = 0
 
     print('Output file found. Waiting for complete Balsam Job Output.')
-    lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n']
+    lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n',
+                 'Run completed.\n']
+
     lastposition = 0
 
     while sleeptime < 60:
@@ -66,7 +68,7 @@ def print_job_output(outscript):
         if len(new) > 0:
             print(new, flush=True)
         else:
-            print('{}'.format(sleeptime), end=" ", flush=True)
+            print(sleeptime, end=" ", flush=True)
 
         if any(new.endswith(line) for line in lastlines):
             break
