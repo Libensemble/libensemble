@@ -209,7 +209,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     # the alloc_func only returns when the initial sample has function values.
     persis_info = add_k_sample_points_to_local_H(gen_specs['initial_sample_size'], gen_specs,
                                                  persis_info, n, c_flag, comm, local_H,
-                                                  sim_id_to_child_indices)
+                                                 sim_id_to_child_indices)
     send_mgr_worker_msg(comm, local_H[:gen_specs['initial_sample_size']][[i[0] for i in gen_specs['out']]])
 
     tag = None
@@ -223,7 +223,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
 
         new_opt_inds_to_send_mgr = []
-        new_inds_to_send_mgr = [] 
+        new_inds_to_send_mgr = []
         for row in calc_in:
             if sim_id_to_child_indices.get(row['sim_id']):
                 # Point came from a child local opt run

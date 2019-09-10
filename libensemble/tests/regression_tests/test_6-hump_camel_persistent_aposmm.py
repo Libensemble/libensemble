@@ -41,7 +41,7 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float), ('grad', float, n)]}
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool), ('local_pt',bool)]
+           ('local_min', bool), ('local_pt', bool)]
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
@@ -77,8 +77,7 @@ if is_master:
     for m in minima:
         # The minima are known on this test problem.
         # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)),flush=True)
-        if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) > tol:
-            libE_abort()
+        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
+        assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
 
     save_libE_output(H, persis_info, __file__, nworkers)

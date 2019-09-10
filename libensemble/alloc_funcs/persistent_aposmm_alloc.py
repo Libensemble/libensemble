@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
 
 
 def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -20,7 +20,6 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     Work = {}
     if 'next_to_give' not in persis_info:
         persis_info['next_to_give'] = 0
-
 
     # If any persistent worker's calculated values have returned, give them back.
     for i in avail_worker_ids(W, persistent=True):
