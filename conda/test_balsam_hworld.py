@@ -95,8 +95,9 @@ if __name__ == '__main__':
     # For Balsam-specific Coverage config file, to not evaluate Balsam data dir
     libepath = os.path.dirname(libensemble.__file__)
     os.environ['LIBE_PATH'] = libepath
+    home = os.environ['HOME']
 
-    basedb = os.path.expanduser('~/test-balsam/data/libe_test-balsam')
+    basedb = home + '/test-balsam/data/libe_test-balsam'
 
     modify_Balsam_worker()
     run_Balsam_job()

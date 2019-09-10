@@ -19,11 +19,11 @@ export THIS_DIR=$PWD
 export SCRIPT_BASENAME=script_test_balsam_hworld
 
 # Set proper permissions, initialize Balsam DB, activate DB
-export BALSAM_DB_PATH='~/test-balsam'
+export BALSAM_DB_PATH=$HOME/test-balsam
 sudo chown -R postgres:postgres /var/run/postgresql
 sudo chmod a+w /var/run/postgresql
-balsam init ~/test-balsam
-sudo chmod -R 700 ~/test-balsam/balsamdb
+balsam init $HOME/test-balsam
+sudo chmod -R 700 $HOME/test-balsam/balsamdb
 source balsamactivate test-balsam
 
 # Refresh DB
