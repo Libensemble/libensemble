@@ -32,7 +32,8 @@ else:
     is_master = True  # processes are forked in libE
     libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
 
-print('\nRunning with {} workers\n'.format(nworkers))
+if is_master:
+    print('\nRunning with {} workers\n'.format(nworkers))
 
 # Get this script name (for output at end)
 script_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -54,10 +55,10 @@ if not os.path.isdir('./sim'):
 # Create job_controller and register sim to it.
 if USE_BALSAM:
     from libensemble.balsam_controller import BalsamJobController
-    jobctrl = BalsamJobController()
+    jobctrl = BalsamJobController()  # Use auto_resources=False to oversubscribe
 else:
     from libensemble.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=True)
+    jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 
@@ -70,13 +71,15 @@ sim_specs = {'sim_f': run_forces,             # This is the function whose outpu
              'out': [('energy', float)],      # Output from sim func
              'keys': ['seed'],                # Key/keys for input data
              'sim_dir': './sim',              # Simulation input dir to be copied for each worker (*currently empty)
+             'sim_dir_suffix': 'test',        # Suffix for copied sim dirs to indentify run (in case multiple)
              'simdir_basename': 'forces',     # User attribute to name sim directories (forces_***)
              'cores': 2,                      # User attribute to set number of cores for sim func runs (optional)
              'sim_particles': 1e3,            # User attribute for number of particles in simulations
              'sim_timesteps': 5,              # User attribute for number of timesteps in simulations
              'sim_kill_minutes': 10.0,        # User attribute for max time for simulations
              'kill_rate': 0.5,                # Between 0 and 1 for proportion of jobs that go bad (for testing kills)
-             'particle_variance': 0.2         # Range over which particle count varies (for testing load imbalance)
+             'particle_variance': 0.2,        # Range over which particle count varies (for testing load imbalance)
+             'profile': False
              }
 
 # State the generating function, its arguments, output, and necessary parameters.

@@ -22,6 +22,8 @@ from libensemble.util.timer import Timer
 from libensemble.controller import JobController
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
+import cProfile
+import pstats
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -54,6 +56,10 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
         Whether to send logging over comm
     """
 
+    if sim_specs.get('profile'):
+        pr = cProfile.Profile()
+        pr.enable()
+
     # Receive dtypes from manager
     _, dtypes = comm.recv()
     workerID = workerID or comm.rank
@@ -65,6 +71,14 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
     worker.run()
+
+    if sim_specs.get('profile'):
+        pr.disable()
+        profile_state_fname = 'worker_%d.prof' % (workerID)
+
+        with open(profile_state_fname, 'w') as f:
+            ps = pstats.Stats(pr, stream=f).sort_stats('cumulative')
+            ps.print_stats()
 
 
 ######################################################################
@@ -127,7 +141,10 @@ class Worker:
         if 'sim_dir' in sim_specs:
             sim_dir = sim_specs['sim_dir'].rstrip('/')
             prefix = sim_specs.get('sim_dir_prefix')
-            worker_dir = "{}_worker{}".format(sim_dir, workerID)
+            suffix = sim_specs.get('sim_dir_suffix', '')
+            if suffix != '':
+                suffix = '_' + suffix
+            worker_dir = "{}{}_worker{}".format(sim_dir, suffix, workerID)
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
                               prefix=prefix, srcdir=sim_dir)
         return locs

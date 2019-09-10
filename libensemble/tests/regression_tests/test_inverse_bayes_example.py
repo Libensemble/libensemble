@@ -37,7 +37,7 @@ sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('like', float)]}
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, 2), ('batch', int), ('subbatch', int),
-                     ('prior', float, 1), ('prop', float, 1), ('weight', float, 1)],
+                     ('prior', float), ('prop', float), ('weight', float)],
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2]),
              'subbatch_size': 3,

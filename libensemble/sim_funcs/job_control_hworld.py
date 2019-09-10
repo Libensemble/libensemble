@@ -72,7 +72,7 @@ def job_control_hworld(H, persis_info, sim_specs, libE_specs):
     # pref send this in X as a sim_in from calling script
     global sim_count
     sim_count += 1
-    timeout = 3.0
+    timeout = 6.0
     if sim_count == 1:
         args_for_sim = 'sleep 1'  # Should finish
     elif sim_count == 2:

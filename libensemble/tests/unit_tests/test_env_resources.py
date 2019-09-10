@@ -155,6 +155,37 @@ def test_lsf_nodelist_shortform_seq():
     assert nodelist == exp_out, "Nodelist returned does not match expected"
 
 
+def test_abbrev_nodenames_nochange_slurm():
+    env_resources = EnvResources()
+    # Test Cobalt abbrev
+    exp_names = ['knl-0019', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-2345']
+    env_resources.schedular = 'Cobalt'
+    abbrev_names = env_resources.abbrev_nodenames(exp_names)
+    assert abbrev_names == exp_names, "Abbreviated names returned do not match expected"
+    del env_resources
+
+
+def test_abbrev_nodenames_nochange_cobalt():
+    env_resources = EnvResources()
+    # Test Cobalt abbrev
+    exp_names = ['21', '22', '137', '138', '1234', '11234']
+    env_resources.schedular = 'Cobalt'
+    abbrev_names = env_resources.abbrev_nodenames(exp_names)
+    assert abbrev_names == exp_names, "Abbreviated names returned do not match expected"
+    del env_resources
+
+
+def test_abbrev_nodenames_cobalt():
+    env_resources = EnvResources()
+    # Test Cobalt abbrev
+    exp_names = ['20', '21', '22', '137', '138', '1234', '11234']
+    full_names = ['nid00020', 'nid00021', 'nid00022', 'nid00137', 'nid00138', 'nid01234', 'nid11234']
+    env_resources.schedular = 'Cobalt'
+    abbrev_names = env_resources.abbrev_nodenames(full_names)
+    assert abbrev_names == exp_names, "Abbreviated names returned do not match expected"
+    del env_resources
+
+
 if __name__ == "__main__":
     setup_standalone_run()
 
@@ -179,5 +210,9 @@ if __name__ == "__main__":
     test_lsf_nodelist_shortform_empty()
     test_lsf_nodelist_shortform_single()
     test_lsf_nodelist_shortform_seq()
+
+    test_abbrev_nodenames_nochange_slurm()
+    test_abbrev_nodenames_nochange_cobalt()
+    test_abbrev_nodenames_cobalt()
 
     teardown_standalone_run()

@@ -2,6 +2,32 @@
 Release Notes
 =============
 
+
+Release 0.5.2
+-------------
+
+:Date: August 19, 2019
+
+* Code restructured to meet xSDK package policies for interoperable ECP software (version 0.5.0). #208
+* Removed use of MPI.COMM_WORLD. Uses a duplicate of COMM_WORLD if no communicator passed (any process not in communicator returns with an exit code of 3). #108
+* All output from libEnsemble goes via logger. MANAGER_WARNING level added. This level and above are echoed to stderr by default. API option to change echo level.
+* Simulation directories are only created as required and are suffixed by _worker. #146
+* New user function libE.check_inputs() can be used to check valid configuration of inputs. Can be called in serial or under MPI (See libE API). #65
+* Installation option added to install dependencies used in tests ``pip install libensemble[extras]``
+* A profiling option has been added to sim_specs. #170
+* Results comparison scripts have been included for convenience.
+
+:Note:
+
+* Tested platforms include: Linux, MacOS (**New**), Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm).
+* Tested Python versions: (Cpython) 3.5, 3.6, 3.7
+* **Note** Support has been removed for Python 3.4 as it is officially retired. Also NumPy has removed support.
+
+:Known issues:
+
+* These are unchanged from v0.5.0
+
+
 Release 0.5.1
 -------------
 

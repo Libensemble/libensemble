@@ -2,7 +2,6 @@ language: python
 sudo: required
 dist: xenial
 python:
-  - 3.4
   - 3.5
   - 3.6
   - 3.7
@@ -25,6 +24,8 @@ matrix:
       language: generic
       python: 3
 
+services:
+    - postgresql
 
 # matrix:
 #  allow_failures:
@@ -44,15 +45,15 @@ cache:
 # Setup Miniconda
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-MacOSX-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda update -q -y conda
+  #- conda update -q -y conda
   - conda info -a # For debugging any issues with conda
   - conda config --add channels conda-forge
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
@@ -60,24 +61,17 @@ before_install:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        conda install clang_osx-64;
-    else
-        conda install gcc_linux-64;
-    fi
-  - conda install $MPI
-  - conda install scipy # includes numpy
-  - conda install mpi4py
-  # Forcing mumps-mpi version
-  # Travis-included MacOSX SDK not built for x86_64 - Downloading one that is
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        conda install mumps-mpi=5.1.2=haf446c3_1007;
         wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
         mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
+        COMPILERS=clang_osx-64;
+        MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
     else
-        conda install mumps-mpi=5.1.2=h5bebb2f_1007;
+        COMPILERS=gcc_linux-64;
+        MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
-  - conda install petsc4py petsc
-  - conda install nlopt
+  - conda install $COMPILERS
+  #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
+  - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
   - pip install pytest
@@ -89,10 +83,12 @@ install:
   - python conda/find_mpi.py # locate compilers
   - mpiexec --version # Show MPI library details
   - pip install -e .
-
+  - python conda/install-balsam.py
 
 before_script:
   - flake8 libensemble
+  - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
+  - source setbalsampath.sh
   # Set conda compilers to use new SDK instead of Travis default.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
@@ -101,7 +97,7 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - libensemble/tests/run-tests.sh -z
+  - ./libensemble/tests/run-tests.sh -z
 
 # Coverage
 after_success:
