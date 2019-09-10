@@ -11,7 +11,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi tcp
+# TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 
 import sys
@@ -22,7 +22,7 @@ from libensemble.libE import libE
 from math import gamma, pi, sqrt
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
@@ -41,7 +41,7 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float), ('grad', float, n)]}
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool)]
+           ('local_min', bool), ('local_pt', bool)]
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
@@ -51,14 +51,11 @@ gen_specs = {'gen_f': gen_f,
              'sample_points': np.round(minima, 1),
              'localopt_method': 'LD_MMA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-             'xtol_rel': 1e-3,
+             'xtol_rel': 1e-6,
              'num_active_gens': 1,
              'local_min': True,
              'dist_to_bound_multiple': 0.5,
              'max_active_runs': 6,
-             'grtol': 1e-4,
-             'gatol': 1e-4,
-             'tol': 1e-5,
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2])}
 
@@ -75,4 +72,12 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_master:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
     print('[Manager]: Time taken =', time() - start_time, flush=True)
+
+    tol = 1e-5
+    for m in minima:
+        # The minima are known on this test problem.
+        # We use their values to test APOSMM has identified all minima
+        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
+        assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
+
     save_libE_output(H, persis_info, __file__, nworkers)
