@@ -72,4 +72,13 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_master:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
     print('[Manager]: Time taken =', time() - start_time, flush=True)
+
+    tol = 1e-5
+    for m in minima:
+        # The minima are known on this test problem.
+        # We use their values to test APOSMM has identified all minima
+        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)),flush=True)
+        if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) > tol:
+            libE_abort()
+
     save_libE_output(H, persis_info, __file__, nworkers)
