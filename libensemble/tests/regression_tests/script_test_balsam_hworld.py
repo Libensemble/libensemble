@@ -31,12 +31,6 @@ nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_master = MPI.COMM_WORLD.Get_rank() == 0
 
 cores_per_job = 1
-logical_cores = multiprocessing.cpu_count()
-cores_all_jobs = nworkers*cores_per_job
-
-if is_master:
-    print('\nCores req: {} Cores avail: {}\n'.format(cores_all_jobs,
-                                                     logical_cores))
 
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
@@ -63,7 +57,7 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 30}
+exit_criteria = {'elapsed_wallclock_time': 15}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
