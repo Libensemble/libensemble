@@ -271,7 +271,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             send_k_sample_points_for_evaluation(1, gen_specs, persis_info, n, c_flag, comm, local_H,
                                                 sim_id_to_child_indices)
         else:
-            send_mgr_worker_msg(comm, local_H[-counter:][['x', 'x_on_cube', 'sim_id']])
+            send_mgr_worker_msg(comm, local_H[-counter:][[i[0] for i in gen_specs['out']]])
 
     # for local_opter in local_opters:
     #     if local_opter.is_running:
@@ -968,7 +968,7 @@ def send_k_sample_points_for_evaluation(k, gen_specs, persis_info, n, c_flag, co
     assert local_H['sim_id'][-k] not in sim_id_to_child_indices
     # sim_id_to_child_indices[local_H['sim_id'][-k:]] = None
 
-    send_mgr_worker_msg(comm, local_H[-k:][['x', 'x_on_cube', 'sim_id']])
+    send_mgr_worker_msg(comm, local_H[-k:][[i[0] for i in gen_specs['out']]])
 
 
 def clean_up_and_stop(local_H, local_opters, run_order):
