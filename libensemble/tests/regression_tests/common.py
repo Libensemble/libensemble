@@ -225,3 +225,26 @@ def modify_Balsam_pyCoverage():
     with open(balsam_commands_path, 'w') as f:
         for line in lines:
             f.write(line)
+
+def modify_Balsam_hostprint():
+    # Also modify Balsam to print Host type (for debugging purposes)
+    import balsam
+
+    print_line = "        print('HOST TYPE: ', self.host_type)\n"
+
+    workerfile = 'worker.py'
+    balsam_path = os.path.dirname(balsam.__file__) + '/launcher'
+    balsam_worker_path = os.path.join(balsam_path, workerfile)
+
+    with open(balsam_worker_path, 'r') as f:
+        lines = f.readlines()
+
+    newlines = []
+    for line in lines:
+        newlines.append(line)
+        if line == "        self.host_type = JobEnv.host_type\n":
+            newlines.append(print_line)
+
+    with open(balsam_worker_path, 'w') as f:
+        for line in newlines:
+            f.write(line)
