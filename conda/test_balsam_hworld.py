@@ -108,7 +108,8 @@ if __name__ == '__main__':
 
     print('Test complete.')
 
-# travis_run_before_install && travis_run_install && travis_run_before_script
+
+# IN BALSAM LOG:
 
 # 11-Sep-2019 14:36:27|7301|   ERROR|balsam:47] Uncaught Exception <class 'ValueError'>: Cooley WorkerGroup needs workers_file to setup
 # Traceback (most recent call last):
