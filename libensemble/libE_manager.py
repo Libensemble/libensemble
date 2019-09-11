@@ -203,6 +203,9 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
+            assert len(work_fields), \
+                "Allocation function requested rows={} be sent to worker={}, "\
+                "but requested no fields to be sent.".format(work_rows, w)
             hist_fields = self.hist.H.dtype.names
             diff_fields = list(work_fields.difference(hist_fields))
             assert not diff_fields, \
