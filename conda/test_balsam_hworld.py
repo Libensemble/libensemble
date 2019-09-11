@@ -123,5 +123,3 @@ if __name__ == '__main__':
 #   File "/home/travis/build/Libensemble/balsam/balsam/launcher/worker.py", line 112, in setup_COOLEY
 #     raise ValueError("Cooley WorkerGroup needs workers_file to setup")
 # ValueError: Cooley WorkerGroup needs workers_file to setup
-
-# print('HOST TYPE:', self.host_type)
