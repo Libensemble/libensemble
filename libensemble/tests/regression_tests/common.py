@@ -242,9 +242,12 @@ def modify_Balsam_hostprint():
 
     newlines = []
     for line in lines:
+        if line == print_line:
+            continue
         newlines.append(line)
         if line == "        self.host_type = JobEnv.host_type\n":
             newlines.append(print_line)
+
 
     with open(balsam_worker_path, 'w') as f:
         for line in newlines:
