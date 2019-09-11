@@ -11,8 +11,8 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi 
-# TESTSUITE_NPROCS: 3 
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 3
 
 import sys
 import numpy as np

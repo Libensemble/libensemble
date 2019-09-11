@@ -310,7 +310,6 @@ class LocalOptInterfacer(object):
         else:
             self.grad0 = None
 
-
         # {{{ setting the local optimization method
 
         if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
@@ -485,12 +484,12 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read, parent_ca
                           child_can_read, parent_can_read, gen_specs), x0,
                           method=method, options={'maxiter': 10, 'fatol': gen_specs['fatol'], 'xatol': gen_specs['xatol']})
 
-    if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
-        exit_code = 0
-    else:
-        if method == 'Nelder-Mead':
-            assert res['status'] == 0, "Unknown status for Nelder-Mead"
-            exit_code = 1
+    # if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
+    #     exit_code = 0
+    # else:
+    #     if method == 'Nelder-Mead':
+    #         assert res['status'] == 0, "Unknown status for Nelder-Mead"
+    #         exit_code = 1
 
     x_opt = res['x']
 
@@ -535,7 +534,7 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
     x_recv, f_recv, grad_recv = comm_queue.get()
 
     assert np.array_equal(x.array_r, x_recv), "The point I gave is not the point I got back!"
-    
+
     g.array[:] = grad_recv
     child_can_read.clear()
     return f_recv
@@ -595,7 +594,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
     tao.solve(x)
 
     x_opt = tao.getSolution().getArray()
-    exit_code = tao.getConvergedReason()
+    # exit_code = tao.getConvergedReason()
 
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
