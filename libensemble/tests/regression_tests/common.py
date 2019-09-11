@@ -226,6 +226,7 @@ def modify_Balsam_pyCoverage():
         for line in lines:
             f.write(line)
 
+
 def modify_Balsam_hostprint():
     # Also modify Balsam to print Host type (for debugging purposes)
     import balsam
