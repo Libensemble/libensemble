@@ -200,7 +200,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     if gen_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
-                                          'LN_NELDERMEAD', 'pounders', 'scipy_COBYLA']:
+                                          'LN_NELDERMEAD', 'pounders', 'scipy_Nelder-Mead']:
         fields_to_pass = ['x_on_cube', 'f']
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(gen_specs['localopt_method']))
@@ -305,7 +305,11 @@ class LocalOptInterfacer(object):
 
         self.x0 = x0.copy()
         self.f0 = f0.copy()
-        self.grad0 = grad0.copy()
+        if grad0 is not None:
+            self.grad0 = grad0.copy()
+        else:
+            self.grad0 = None
+
 
         # {{{ setting the local optimization method
 
@@ -313,7 +317,7 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_nlopt
         elif gen_specs['localopt_method'] in ['pounders', 'blmvm']:
             run_local_opt = run_local_tao
-        elif gen_specs['localopt_method'] in ['scipy_COBYLA']:
+        elif gen_specs['localopt_method'] in ['scipy_Nelder-Mead']:
             run_local_opt = run_local_scipy_opt
         else:
             raise NotImplementedError("Unknown local optimization method "
@@ -361,6 +365,7 @@ class LocalOptInterfacer(object):
         return x_new
 
     def destroy(self, previous_x):
+
         while not isinstance(previous_x, ConvergedMsg):
             self.parent_can_read.clear()
             if self.grad0 is None:
@@ -455,7 +460,9 @@ def scipy_callback_fun(x, comm_queue, child_can_read, parent_can_read, gen_specs
     # print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
     # print('[Child]: Wohooo.. I am free folks', flush=True)
-    f_x_recv, = comm_queue.get()
+    x_recv, f_x_recv, = comm_queue.get()
+
+    assert np.array_equal(x, x_recv), "The point I gave is not the point I got back!"
     child_can_read.clear()
     return f_x_recv
 
@@ -476,19 +483,19 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read, parent_ca
     # print('[Child]: Started my optimization', flush=True)
     res = sp_opt.minimize(lambda x: scipy_callback_fun(x, comm_queue,
                           child_can_read, parent_can_read, gen_specs), x0,
-                          method=method, options={'maxiter': 100, 'tol': gen_specs['tol']})
+                          method=method, options={'maxiter': 10, 'fatol': gen_specs['fatol'], 'xatol': gen_specs['xatol']})
 
     if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
         exit_code = 0
     else:
-        if method == 'COBYLA':
-            assert res['status'] == 1, "Unknown status for COBYLA"
+        if method == 'Nelder-Mead':
+            assert res['status'] == 0, "Unknown status for Nelder-Mead"
             exit_code = 1
 
     x_opt = res['x']
 
     # FIXME: Need to do something with the exit codes.
-    print(exit_code)
+    # print(exit_code)
 
     # print('[Child]: I have converged.', flush=True)
     comm_queue.put(ConvergedMsg(x_opt))
@@ -507,9 +514,12 @@ def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen
     # print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
     # print('[Child]: Wohooo.. I am free folks', flush=True)
-    f_recv, = comm_queue.get()
-    child_can_read.clear()
+    x_recv, f_recv, = comm_queue.get()
+
+    assert np.array_equal(x.array_r, x_recv), "The point I gave is not the point I got back!"
+
     f.array[:] = f_recv
+    child_can_read.clear()
     return f
 
 
@@ -522,7 +532,10 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
     # print('[Child]: I have started waiting', flush=True)
     child_can_read.wait()
     # print('[Child]: Wohooo.. I am free folks', flush=True)
-    f_recv, grad_recv = comm_queue.get()
+    x_recv, f_recv, grad_recv = comm_queue.get()
+
+    assert np.array_equal(x.array_r, x_recv), "The point I gave is not the point I got back!"
+    
     g.array[:] = grad_recv
     child_can_read.clear()
     return f_recv
@@ -585,7 +598,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
     exit_code = tao.getConvergedReason()
 
     # FIXME: Need to do something with the exit codes.
-    print(exit_code)
+    # print(exit_code)
     # print(tao.view())
     # print(x_opt)
 

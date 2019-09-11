@@ -11,8 +11,8 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 3 4
+# TESTSUITE_COMMS: mpi 
+# TESTSUITE_NPROCS: 3 
 
 import sys
 import numpy as np
@@ -49,7 +49,7 @@ gen_specs = {'gen_f': gen_f,
              'batch_mode': True,
              'initial_sample_size': 100,
              'sample_points': np.round(minima, 1),
-             'localopt_method': 'LD_MMA',
+             'localopt_method': 'LN_BOBYQA',
              'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'xtol_rel': 1e-6,
              'num_active_gens': 1,
