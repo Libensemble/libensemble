@@ -77,4 +77,3 @@ if is_master:
     from libensemble.sim_funcs.chwirut1 import EvaluateJacobian
     J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
     assert np.linalg.norm(J) < 2000
-
