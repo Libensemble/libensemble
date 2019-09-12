@@ -570,7 +570,10 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
         f.setSizes(m)
         f.setFromOptions()
 
-        tao.setResidual(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs), f)
+        if hasattr(tao, 'setResidual'):
+            tao.setResidual(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs), f)
+        else:
+            tao.setSeparableObjective(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs), f)
 
     elif gen_specs['localopt_method'] == 'blmvm':
         g = PETSc.Vec().create(tao_comm)
