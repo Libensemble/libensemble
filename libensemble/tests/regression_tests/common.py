@@ -225,3 +225,43 @@ def modify_Balsam_pyCoverage():
     with open(balsam_commands_path, 'w') as f:
         for line in lines:
             f.write(line)
+
+
+def modify_Balsam_hostprint():
+    # Also modify Balsam Worker & Worker Gropu to print Host type (for debugging
+    #    purposes). Balsam test bug may be caused by setup_COOLEY() being called
+    #   instead of setup_DEFAULT() within Balsam's worker.py
+    import balsam
+
+    print_lines = {"host": "        print('HOST TYPE: ', self.host_type)\n",
+                   "COOLEY": "        print('IN setup_COOLEY')\n",
+                   "DEFAULT": "        print('IN setup_DEFAULT')\n"}
+
+    host_prior_lines = ["        self.host_type = JobEnv.host_type\n",
+                        "        self.host_type = host_type\n"]
+
+    setup_prior_lines = ["    def setup_COOLEY(self):\n",
+                         "    def setup_DEFAULT(self):\n"]
+
+    workerfile = 'worker.py'
+    balsam_path = os.path.dirname(balsam.__file__) + '/launcher'
+    balsam_worker_path = os.path.join(balsam_path, workerfile)
+
+    with open(balsam_worker_path, 'r') as f:
+        lines = f.readlines()
+
+    newlines = []
+    for line in lines:
+        if line in print_lines.values():
+            continue
+        newlines.append(line)               # Line of code from prior
+        if line in host_prior_lines:        #
+            newlines.append(print_lines['host'])
+        elif line == setup_prior_lines[0]:
+            newlines.append(print_lines['COOLEY'])
+        elif line == setup_prior_lines[1]:
+            newlines.append(print_lines['DEFAULT'])
+
+    with open(balsam_worker_path, 'w') as f:
+        for line in newlines:
+            f.write(line)

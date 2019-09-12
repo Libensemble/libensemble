@@ -3,7 +3,6 @@
 
 import os
 import numpy as np
-import multiprocessing
 import mpi4py
 from mpi4py import MPI
 
@@ -31,12 +30,6 @@ nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_master = MPI.COMM_WORLD.Get_rank() == 0
 
 cores_per_job = 1
-logical_cores = multiprocessing.cpu_count()
-cores_all_jobs = nworkers*cores_per_job
-
-if is_master:
-    print('\nCores req: {} Cores avail: {}\n'.format(cores_all_jobs,
-                                                     logical_cores))
 
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):

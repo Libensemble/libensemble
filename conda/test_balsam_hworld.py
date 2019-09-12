@@ -1,15 +1,15 @@
 import subprocess
 import os
 import time
-import sys
 import libensemble
-from libensemble.tests.regression_tests.common import modify_Balsam_worker
+from libensemble.tests.regression_tests.common import modify_Balsam_worker, modify_Balsam_hostprint
 
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 3
 
-# This test is NOT submitted as a job to Balsam. Instead, script_test_balsam_hworld.py
-#   This test executes that job through the 'runstr' line in run_Balsam_job()
+# This test is NOT submitted as a job to Balsam. script_test_balsam_hworld.py is
+#   the executable submitted to Balsam as a job. This test executes that job
+#   through the 'runstr' line in run_Balsam_job()
 
 
 def run_Balsam_job():
@@ -27,8 +27,7 @@ def wait_for_job_dir(basedb):
 
     print('Waiting for Job Directory'.format(sleeptime))
     while len(os.listdir(basedb)) == 0 and sleeptime < 15:
-        print('{}'.format(sleeptime), end=" ")
-        sys.stdout.flush()
+        print(sleeptime, end=" ", flush=True)
         time.sleep(1)
         sleeptime += 1
 
@@ -44,10 +43,9 @@ def wait_for_job_output(jobdir):
     print('Checking for Balsam output file: {}'.format(output))
 
     while not os.path.isfile(output) and sleeptime < 30:
-        print('{}'.format(sleeptime), end=" ")
-        sys.stdout.flush()
-        time.sleep(2)
-        sleeptime += 2
+        print(sleeptime, end=" ", flush=True)
+        time.sleep(1)
+        sleeptime += 1
 
     return output
 
@@ -56,7 +54,9 @@ def print_job_output(outscript):
     sleeptime = 0
 
     print('Output file found. Waiting for complete Balsam Job Output.')
-    lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n']
+    lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n',
+                 'Run completed.\n']
+
     lastposition = 0
 
     while sleeptime < 60:
@@ -66,10 +66,9 @@ def print_job_output(outscript):
             lastposition = f.tell()
 
         if len(new) > 0:
-            print(new)
+            print(new, flush=True)
         else:
-            print('{}'.format(sleeptime), end=" ")
-        sys.stdout.flush()
+            print(sleeptime, end=" ", flush=True)
 
         if any(new.endswith(line) for line in lastlines):
             break
@@ -92,13 +91,14 @@ def move_job_coverage(jobdir):
 
 if __name__ == '__main__':
 
-    # For Balsam-specific Coverage config file, to not evaluate Balsam data dir
+    # Used by Balsam Coverage config file. Dont evaluate Balsam data dir
     libepath = os.path.dirname(libensemble.__file__)
     os.environ['LIBE_PATH'] = libepath
 
-    basedb = os.path.expanduser('~/test-balsam/data/libe_test-balsam')
+    basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
 
     modify_Balsam_worker()
+    modify_Balsam_hostprint()
     run_Balsam_job()
 
     jobdir = wait_for_job_dir(basedb)
@@ -107,3 +107,20 @@ if __name__ == '__main__':
     move_job_coverage(jobdir)
 
     print('Test complete.')
+
+
+# IN BALSAM LOG:
+
+# 11-Sep-2019 14:36:27|7301|   ERROR|balsam:47] Uncaught Exception <class 'ValueError'>: Cooley WorkerGroup needs workers_file to setup
+# Traceback (most recent call last):
+#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/launcher.py", line 443, in <module>
+#     main(args)
+#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/launcher.py", line 422, in main
+#     launcher = Launcher(wf_filter, timelimit_min, gpus_per_node)
+#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/launcher.py", line 104, in __init__
+#     self.worker_group = worker.WorkerGroup()
+#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/worker.py", line 50, in __init__
+#     self.setup()
+#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/worker.py", line 112, in setup_COOLEY
+#     raise ValueError("Cooley WorkerGroup needs workers_file to setup")
+# ValueError: Cooley WorkerGroup needs workers_file to setup
