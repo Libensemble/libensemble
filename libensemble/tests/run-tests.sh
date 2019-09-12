@@ -316,7 +316,7 @@ COV_LINE_PARALLEL=''
 if [ $RUN_COV_TESTS = "true" ]; then
    COV_LINE_SERIAL='--cov --cov-report html:cov_unit'
    #COV_LINE_PARALLEL='-m coverage run --parallel-mode --rcfile=../.coveragerc' #running in sub-dirs
-   COV_LINE_PARALLEL='-m coverage run --parallel-mode' #running in regression dir itself
+   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing' #running in regression dir itself
 
    #include branch coverage? eg. flags if never jumped a statement block... [see .coveragerc file]
    #COV_LINE_PARALLEL='-m coverage run --branch --parallel-mode'
