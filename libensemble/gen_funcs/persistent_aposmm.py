@@ -200,8 +200,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     if gen_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
-                                          'LN_NELDERMEAD', 'pounders', 'scipy_Nelder-Mead']:
+                                          'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
         fields_to_pass = ['x_on_cube', 'f']
+    elif gen_specs['localopt_method'] in ['pounders']: 
+        fields_to_pass = ['x_on_cube', 'fvec']
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(gen_specs['localopt_method']))
 
@@ -252,7 +254,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 # Initialize a local opt run
                 local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'],
-                                                 local_H[ind]['f'], local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
+                                                 local_H[ind]['f'] if 'f' in fields_to_pass else local_H[ind]['fvec'], 
+                                                 local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
 
                 local_opters[total_runs] = local_opter
 
@@ -318,9 +321,6 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_tao
         elif gen_specs['localopt_method'] in ['scipy_Nelder-Mead']:
             run_local_opt = run_local_scipy_opt
-        else:
-            raise NotImplementedError("Unknown local optimization method "
-                                      "'{}'.".format(gen_specs['localopt_method']))
 
         # }}}
 
@@ -346,6 +346,8 @@ class LocalOptInterfacer(object):
 
         if 'grad' in data.dtype.names:
             self.comm_queue.put((data['x_on_cube'], data['f'], data['grad']))
+        elif 'fvec' in data.dtype.names:
+            self.comm_queue.put((data['x_on_cube'], data['fvec']))
         else:
             self.comm_queue.put((data['x_on_cube'], data['f'], ))
 
@@ -925,7 +927,7 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 
     n_s = 0
 
-    if 'single_component_at_a_time' in gen_specs and gen_specs['single_component_at_a_time']:
+    if gen_specs.get('single_component_at_a_time'):
         assert gen_specs['batch_mode'], ("Must be in batch mode when using "
                                          "'single_component_at_a_time'")
         c_flag = True
@@ -974,6 +976,9 @@ def initialize_APOSMM(H, gen_specs, libE_info):
                       ('returned', bool),
                       ('pt_id', int),  # Identify the same point evaluated by different sim_f's or components
                       ]
+
+    if 'components' in gen_specs:
+        local_H_fields += [('fvec', float, gen_specs['components'])] 
 
     local_H = np.empty(0, dtype=local_H_fields)
 
