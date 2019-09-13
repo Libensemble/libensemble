@@ -54,6 +54,7 @@ gen_specs = {'gen_f': gen_f,
              'gatol': 1e-6,
              'num_active_gens': 1,
              'dist_to_bound_multiple': 0.5,
+             'lhs_divisions': 5,
              'components': m,
              'lb': (-2-np.pi/10)*np.ones(n),
              'ub': 2*np.ones(n)}

@@ -53,9 +53,8 @@ gen_specs = {'gen_f': gen_f,
              'xatol': 1e-5,
              'nu': 1e-8,
              'mu': 1e-8,
-             'lhs_divisions': 5,
              'num_active_gens': 1,
-             'dist_to_bound_multiple': 0.5,
+             'dist_to_bound_multiple': 0.01,
              'max_active_runs': 6,
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2])}
@@ -64,7 +63,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 2000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
