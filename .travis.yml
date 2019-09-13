@@ -27,8 +27,6 @@ matrix:
 services:
     - postgresql
 
-addons:
-  hostname: libensemble-travis
 
 # matrix:
 #  allow_failures:
