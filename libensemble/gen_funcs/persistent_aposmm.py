@@ -7,7 +7,6 @@ described in detail in the paper
 __all__ = ['initialize_APOSMM', 'decide_where_to_start_localopt', 'update_history_dist']
 
 import sys
-import traceback
 import numpy as np
 from scipy.spatial.distance import cdist
 from scipy import optimize as sp_opt
@@ -279,11 +278,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             new_inds_to_send_mgr.append(len(local_H)-1)
 
         send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
-
-    # for local_opter in local_opters:
-    #     if local_opter.is_running:
-    #         raise RuntimeError("[Parent]: Atleast one child process is still active, even after"
-    #                            " killing all the children.")
 
     return local_H, persis_info, tag
 
@@ -1012,25 +1006,24 @@ def clean_up_and_stop(local_H, local_opters, run_order):
           local_H[np.where(local_H['local_min'])]['x'], flush=True)
 
     for i, p in local_opters.items():
-        if p.is_running:
-            p.destroy(local_H['x_on_cube'][run_order[i][-1]])
+        p.destroy(local_H['x_on_cube'][run_order[i][-1]])
 
 
-def display_exception(e):
-    print(e.__doc__)
-    print(e.args)
-    _, _, tb = sys.exc_info()
-    traceback.print_tb(tb)  # Fixed format
-    tb_info = traceback.extract_tb(tb)
-    filename, line, func, text = tb_info[-1]
-    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text))
+# def display_exception(e):
+#     print(e.__doc__)
+#     print(e.args)
+#     _, _, tb = sys.exc_info()
+#     traceback.print_tb(tb)  # Fixed format
+#     tb_info = traceback.extract_tb(tb)
+#     filename, line, func, text = tb_info[-1]
+#     print('An error occurred on line {} of function {} with statement {}'.format(line, func, text))
 
-    # PETSc/TAO errors are printed in the following manner:
-    if hasattr(e, '_traceback_'):
-        print('The error was:')
-        for i in e._traceback_:
-            print(i)
-    sys.stdout.flush()
+#     # PETSc/TAO errors are printed in the following manner:
+#     if hasattr(e, '_traceback_'):
+#         print('The error was:')
+#         for i in e._traceback_:
+#             print(i)
+#     sys.stdout.flush()
 
 
 # if __name__ == "__main__":

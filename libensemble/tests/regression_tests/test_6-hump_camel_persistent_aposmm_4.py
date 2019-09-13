@@ -19,7 +19,6 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from math import gamma, pi, sqrt
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
@@ -50,9 +49,11 @@ gen_specs = {'gen_f': gen_f,
              'initial_sample_size': 100,
              'sample_points': np.round(minima, 1),
              'localopt_method': 'scipy_Nelder-Mead',
-             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
              'fatol': 1e-5,
              'xatol': 1e-5,
+             'nu': 1e-8,
+             'mu': 1e-8,
+             'lhs_divisions': 5,
              'num_active_gens': 1,
              'dist_to_bound_multiple': 0.5,
              'max_active_runs': 6,
