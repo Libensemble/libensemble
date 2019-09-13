@@ -73,7 +73,7 @@ if is_master:
     assert len(H) >= budget
 
     save_libE_output(H, persis_info, __file__, nworkers)
-    # Calculating the Jacobian at the best point (though this information was not used by pounders)
-    from libensemble.sim_funcs.chwirut1 import EvaluateJacobian
-    J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
-    assert np.linalg.norm(J) < 2000
+    # # Calculating the Jacobian at the best point (though this information was not used by pounders)
+    # from libensemble.sim_funcs.chwirut1 import EvaluateJacobian
+    # J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
+    # assert np.linalg.norm(J) < 2000
