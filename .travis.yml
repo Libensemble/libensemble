@@ -24,8 +24,6 @@ matrix:
       language: generic
       python: 3
 
-addons:
-  hostname: libensemble-travis
 
 services:
     - postgresql
