@@ -2,7 +2,7 @@ import subprocess
 import os
 import time
 import libensemble
-from libensemble.tests.regression_tests.common import modify_Balsam_worker, modify_Balsam_hostprint
+from libensemble.tests.regression_tests.common import modify_Balsam_worker, modify_Balsam_JobEnv
 
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 3
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
 
     modify_Balsam_worker()
-    modify_Balsam_hostprint()
+    modify_Balsam_JobEnv()
     run_Balsam_job()
 
     jobdir = wait_for_job_dir(basedb)
@@ -107,20 +107,3 @@ if __name__ == '__main__':
     move_job_coverage(jobdir)
 
     print('Test complete.')
-
-
-# IN BALSAM LOG:
-
-# 11-Sep-2019 14:36:27|7301|   ERROR|balsam:47] Uncaught Exception <class 'ValueError'>: Cooley WorkerGroup needs workers_file to setup
-# Traceback (most recent call last):
-#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/launcher.py", line 443, in <module>
-#     main(args)
-#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/launcher.py", line 422, in main
-#     launcher = Launcher(wf_filter, timelimit_min, gpus_per_node)
-#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/launcher.py", line 104, in __init__
-#     self.worker_group = worker.WorkerGroup()
-#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/worker.py", line 50, in __init__
-#     self.setup()
-#   File "/home/travis/build/Libensemble/balsam/balsam/launcher/worker.py", line 112, in setup_COOLEY
-#     raise ValueError("Cooley WorkerGroup needs workers_file to setup")
-# ValueError: Cooley WorkerGroup needs workers_file to setup
