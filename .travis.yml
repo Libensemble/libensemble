@@ -24,10 +24,8 @@ matrix:
       language: generic
       python: 3
 
-
 services:
     - postgresql
-
 
 # matrix:
 #  allow_failures:
