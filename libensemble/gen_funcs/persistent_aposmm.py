@@ -61,7 +61,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     and optionally
 
     - ``'priority' [float]``: Value quantifying a point's desirability
-    - ``'f_i' [float]``: Value of ith objective component (if single_component)
     - ``'fvec' [m floats]``: All objective components (if calculated together)
     - ``'obj_component' [int]``: Index corresponding to value in ``'f_i``'
     - ``'pt_id' [int]``: Identify the point (useful when evaluating different
@@ -105,8 +104,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       points must satisfy
     - ``'nu' [float]``: Distance from identified minima that all starting
       points must satisfy
-    - ``'single_component_at_a_time' [bool]``: True if single objective
-      components will be evaluated at a time
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
@@ -156,9 +153,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     Description of intermediate variables in aposmm_logic:
 
     n:                domain dimension
-    c_flag:           True if giving libEnsemble individual components of fvec
-                      to evaluate. (Note if c_flag is True, APOSMM will use
-                      only the component to store the function value f)
     n_s:              the number of complete evaluations of sampled points
     updated_inds:     indices of H that have been updated (and so all their
                       information must be sent back to libE manager to update)
@@ -189,7 +183,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-    n, n_s, c_flag, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
+    n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
 
     # Initialize stuff for localopt children
     local_opters = {}
@@ -209,7 +203,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     # Send our initial sample. We don't need to check that n_s is large enough:
     # the alloc_func only returns when the initial sample has function values.
     persis_info = add_k_sample_points_to_local_H(gen_specs['initial_sample_size'], gen_specs,
-                                                 persis_info, n, c_flag, comm, local_H,
+                                                 persis_info, n, comm, local_H,
                                                  sim_id_to_child_indices)
     send_mgr_worker_msg(comm, local_H[:gen_specs['initial_sample_size']][[i[0] for i in gen_specs['out']]])
 
@@ -221,7 +215,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             clean_up_and_stop(local_H, local_opters, run_order)
             break
 
-        n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in)
+        n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, Work, calc_in)
 
         new_opt_inds_to_send_mgr = []
         new_inds_to_send_mgr = []
@@ -236,7 +230,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         new_opt_inds_to_send_mgr.append(opt_ind)
                         local_opters.pop(child_idx)
                     else:
-                        add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                        add_to_local_H(local_H, x_new, gen_specs, local_flag=1, on_cube=True)
                         new_inds_to_send_mgr.append(len(local_H)-1)
 
                         run_order[child_idx].append(local_H[-1]['sim_id'])
@@ -260,7 +254,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second point can't be ruled optimal
 
-                add_to_local_H(local_H, x_new, gen_specs, c_flag, local_flag=1, on_cube=True)
+                add_to_local_H(local_H, x_new, gen_specs, local_flag=1, on_cube=True)
                 new_inds_to_send_mgr.append(len(local_H)-1)
 
                 run_order[total_runs] = [ind, local_H[-1]['sim_id']]
@@ -274,7 +268,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         if len(new_inds_to_send_mgr) == 0:
             persis_info = add_k_sample_points_to_local_H(1, gen_specs, persis_info, n,
-                                                         c_flag, comm, local_H, sim_id_to_child_indices)
+                                                         comm, local_H, sim_id_to_child_indices)
             new_inds_to_send_mgr.append(len(local_H)-1)
 
         send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
@@ -620,7 +614,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
 # }}}
 
 
-def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, calc_in):
+def update_local_H_after_receiving(local_H, n, n_s, gen_specs, Work, calc_in):
 
     for name in calc_in.dtype.names:
         local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
@@ -629,12 +623,12 @@ def update_local_H_after_receiving(local_H, n, n_s, gen_specs, c_flag, Work, cal
     n_s += np.sum(~local_H[Work['libE_info']['H_rows']]['local_pt'])
 
     # dist -> distance
-    update_history_dist(local_H, n, gen_specs, c_flag)
+    update_history_dist(local_H, n, gen_specs)
 
     return n_s
 
 
-def add_to_local_H(local_H, pts, gen_specs, c_flag, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
+def add_to_local_H(local_H, pts, gen_specs, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
@@ -644,12 +638,6 @@ def add_to_local_H(local_H, pts, gen_specs, c_flag, local_flag=0, sorted_run_ind
 
     ub = gen_specs['ub']
     lb = gen_specs['lb']
-    if c_flag:
-        m = gen_specs['components']
-
-        assert len_local_H % m == 0, "Number of points in local_H not congruent to 0 mod 'components'"
-        pt_ids = np.sort(np.tile(np.arange((len_local_H)/m, (len_local_H)/m+len(pts)), (1, m)))
-        pts = np.tile(pts, (m, 1))
 
     num_pts = len(pts)
 
@@ -671,17 +659,13 @@ def add_to_local_H(local_H, pts, gen_specs, c_flag, local_flag=0, sorted_run_ind
     local_H['ind_of_better_l'][-num_pts:] = -1
     local_H['ind_of_better_s'][-num_pts:] = -1
 
-    if c_flag:
-        local_H['obj_component'][-num_pts:] = np.tile(range(0, m), (1, num_pts//m))
-        local_H['pt_id'][-num_pts:] = pt_ids
-
     if local_flag:
         local_H['num_active_runs'][-num_pts] += 1
     else:
         local_H['priority'][-num_pts:] = 1
 
 
-def update_history_dist(H, n, gen_specs, c_flag):
+def update_history_dist(H, n, gen_specs):
     """
     Updates distances/indices after new points that have been evaluated.
 
@@ -691,15 +675,7 @@ def update_history_dist(H, n, gen_specs, c_flag):
 
     new_inds = np.where(~H['known_to_aposmm'])[0]
 
-    if c_flag:
-        for v in np.unique(H['pt_id'][new_inds]):
-            inds = H['pt_id'] == v
-            H['f'][inds] = np.inf
-            H['f'][np.where(inds)[0][0]] = gen_specs['combine_component_func'](H['f_i'][inds])
-
-        p = np.logical_and.reduce((H['returned'], H['obj_component'] == 0, ~np.isnan(H['f'])))
-    else:
-        p = np.logical_and.reduce((H['returned'], ~np.isnan(H['f'])))
+    p = np.logical_and.reduce((H['returned'], ~np.isnan(H['f'])))
 
     for new_ind in new_inds:
         # Loop over new returned points and update their distances
@@ -924,13 +900,6 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 
     n_s = 0
 
-    if gen_specs.get('single_component_at_a_time'):
-        assert gen_specs['batch_mode'], ("Must be in batch mode when using "
-                                         "'single_component_at_a_time'")
-        c_flag = True
-    else:
-        c_flag = False
-
     if 'rk_const' in gen_specs:
         rk_c = gen_specs['rk_const']
     else:
@@ -971,7 +940,6 @@ def initialize_APOSMM(H, gen_specs, libE_info):
                       ('sim_id', int),
                       ('paused', bool),
                       ('returned', bool),
-                      ('pt_id', int),  # Identify the same point evaluated by different sim_f's or components
                       ]
 
     if 'components' in gen_specs:
@@ -979,22 +947,22 @@ def initialize_APOSMM(H, gen_specs, libE_info):
 
     local_H = np.empty(0, dtype=local_H_fields)
 
-    return n, n_s, c_flag, rk_c, ld, mu, nu, comm, local_H
+    return n, n_s, rk_c, ld, mu, nu, comm, local_H
 
 
-def add_k_sample_points_to_local_H(k, gen_specs, persis_info, n, c_flag, comm, local_H, sim_id_to_child_indices):
+def add_k_sample_points_to_local_H(k, gen_specs, persis_info, n, comm, local_H, sim_id_to_child_indices):
 
     if 'sample_points' in gen_specs:
         v = np.sum(~local_H['local_pt'])  # Number of sample points so far
         sampled_points = gen_specs['sample_points'][v:v+k]
         on_cube = False  # Assume points are on original domain, not unit cube
         if len(sampled_points):
-            add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=on_cube)
+            add_to_local_H(local_H, sampled_points, gen_specs, on_cube=on_cube)
         k = k-len(sampled_points)
 
     if k > 0:
         sampled_points = persis_info['rand_stream'].uniform(0, 1, (k, n))
-        add_to_local_H(local_H, sampled_points, gen_specs, c_flag, on_cube=True)
+        add_to_local_H(local_H, sampled_points, gen_specs, on_cube=True)
 
     return persis_info
 
