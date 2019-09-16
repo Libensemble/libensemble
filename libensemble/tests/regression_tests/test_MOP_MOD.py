@@ -45,9 +45,11 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float, 3)]}
 
 gen_specs = {'gen_f': gen_f,
-             'in': ['x'],
-             'gen_batch_size': 500,
-             'out': [('x', float, (2,))],
+             'in': ['x', 'f', 'iter_num'],
+             'gen_batch_size': 10,
+             'num_active_gens': 1,
+             'batch_mode': True,
+             'out': [('x', float, 2), ('iter_num', int)],
              'lb': np.array([-3, -2]),
              'ub': np.array([3, 2])}
 

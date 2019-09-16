@@ -22,4 +22,9 @@ def mop_mod_wrapper(H, persis_info, gen_specs, _):
 
     O['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
 
+    if len(H) == 0:
+        O['iter_num'] = 0
+    else:
+        O['iter_num'] = np.max(H['iter_num']) + 1
+
     return O, persis_info
