@@ -8,6 +8,9 @@
     Each rank computes forces for a subset of particles.
     Particle force arrays are allreduced across ranks.
     
+    Sept 2019: 
+    Added OpenMP options for CPU and GPU. Toggle in forces_naive function.
+    
     Run executable on N procs:
     
     mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS>
@@ -18,8 +21,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
+#include <sys/time.h>
 #include <mpi.h>
+#include <omp.h>
 
 #define min(a,b) \
   ({ __typeof__ (a) _a = (a); \
@@ -29,14 +33,38 @@
 // Flags 0 or 1
 #define PRINT_PARTICLE_DECOMP 0
 #define PRINT_ALL_PARTICLES 0
+#define CHECK_THREADS 0
 
 static FILE* stat_fp;
+
+// Return elapsed wall clock time from start/end timevals
+double elapsed(struct timeval *tv1, struct timeval *tv2) {
+    return (double)(tv2->tv_usec - tv1->tv_usec) / 1000000 
+    + (double)(tv2->tv_sec - tv1->tv_sec);  
+}
+
+// Print from each thread.
+int check_threads(int rank) {
+    int tid, nthreads;
+
+    #pragma omp parallel private(tid,nthreads)
+    {
+        #if defined(_OPENMP)
+            nthreads = omp_get_num_threads();
+            tid = omp_get_thread_num();
+            printf("Rank: %d:   ThreadID: %d    Num threads: %d\n",rank,tid,nthreads);
+        #else
+            printf("Rank: %d: OpenMP is disabled\n",rank);
+        #endif
+    }
+    return 0;
+}
 
 typedef struct particle {
     double p[3]; // Particle position
     double f[3]; // Particle force
     double q;    // Particle charge
-} particle;  
+}__attribute__((__packed__)) particle;  
 
 
 // Seed RNG
@@ -92,7 +120,18 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
-    for(i=lower; i<upper; i++) {          
+    // For GPU/Accelerators
+    /*
+    #pragma omp target teams distribute parallel for \
+                map(to: lower,upper,n) map(tofrom: parr[0:n]) \
+                reduction(+: ret) //thread_limit(128) //*/
+                
+    // For CPU
+    //*
+    #pragma omp parallel for default(none) shared(n,lower,upper,parr) \
+                             private(i,j,dx,dy,dz,r,force) \
+                             reduction(+:ret)  //*/                
+    for(i=lower; i<upper; i++) {
         for(j=0; j<n; j++){
             if (i==j) {
                 continue;
@@ -102,7 +141,7 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
             dz = parr[i].p[2] - parr[j].p[2];
             r = sqrt(dx * dx + dy * dy + dz * dz);
 
-            //ret += parr[i].q * parr[j].q / r;
+            //force = parr[i].q * parr[j].q / r;
             force = parr[i].q * parr[j].q / (r*r);
 
             parr[i].f[0] += dx * force;
@@ -284,7 +323,11 @@ int main(int argc, char **argv) {
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
     double compute_forces_time, comms_time, total_time;
-    clock_t start, compute_start, comms_start;
+//     clock_t start, compute_start, comms_start;
+    struct timeval tstart, tend;
+    struct timeval compute_start, compute_end;
+    struct timeval comms_start, comms_end;
+    
     double local_en, total_en;
     double step_survival_rate;
     int badrun = 0;
@@ -322,6 +365,10 @@ int main(int argc, char **argv) {
         printf("Random seed: %d\n",rand_seed);
     }
     
+    if (CHECK_THREADS) {
+        check_threads(rank);
+    }
+
     k = num_particles / num_procs;
     m = num_particles % num_procs; //Remainder = no. procs with extra particle
     p_lower = rank * k + min(rank, m);
@@ -339,20 +386,21 @@ int main(int argc, char **argv) {
         open_stat_file();
     }
 
-    start = clock();    
+    gettimeofday(&tstart, NULL);
     for (step=0; step<num_steps; step++) {
         
-        compute_start = clock();
+        gettimeofday(&compute_start, NULL);
         
         init_forces(0, num_particles, parr); // Whole array
         
         local_en = forces_naive(num_particles, p_lower, p_upper, parr);
         //local_en = forces_eqopp(num_particles, p_lower, p_upper, parr);
-        
-        compute_forces_time = (double)(clock() - compute_start)/CLOCKS_PER_SEC;
+
+        gettimeofday(&compute_end, NULL);
+        compute_forces_time = elapsed(&compute_start, &compute_end);
         
         // Note: Will need to add barrier to get pure comms time
-        comms_start = clock();
+        gettimeofday(&comms_start, NULL);
         
         // Now allreduce forces and update particle positions on master
         
@@ -362,7 +410,8 @@ int main(int argc, char **argv) {
         // Scalar reduce energy
         MPI_Allreduce(&local_en, &total_en, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-        comms_time = (double)(clock() - comms_start)/CLOCKS_PER_SEC;
+        gettimeofday(&comms_end, NULL);
+        comms_time = elapsed(&comms_start, &comms_end);
         
         // Update positions globally (each rank replicates)
         move_particles(0, num_particles, parr);
@@ -385,7 +434,8 @@ int main(int argc, char **argv) {
     
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD);
-    total_time = (double)(clock() - start)/CLOCKS_PER_SEC;
+    gettimeofday(&tend, NULL);
+    total_time = elapsed(&tstart, &tend);
     
     if (rank == 0) {
         printf("\nFinal total %f after total time of %.3f seconds.",total_en, total_time);
