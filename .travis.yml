@@ -56,7 +56,6 @@ cache:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-MacOSX-x86_64.sh -O miniconda.sh;
-      sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O miniconda.sh;
     fi
@@ -69,6 +68,7 @@ before_install:
   - conda config --add channels conda-forge
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
   - source activate condaenv
+        # sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /;
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
