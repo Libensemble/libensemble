@@ -65,6 +65,8 @@ install:
         mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk;
         COMPILERS=clang_osx-64;
         MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
+        echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.14.sdk" > setenv.sh;
+        source setenv.sh;
     else
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
