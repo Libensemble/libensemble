@@ -45,8 +45,7 @@ cache:
 # Setup Miniconda
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-MacOSX-x86_64.sh -O miniconda.sh;
-      brew update && brew upgrade;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-MacOSX-x86_64.sh -O miniconda.sh;
       sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O miniconda.sh;
@@ -67,12 +66,12 @@ install:
         mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk;
         COMPILERS=clang_osx-64;
         MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
-        conda install clang=8.0.1;
+        #conda install clang=8.0.1;
     else
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
-  - conda install --freeze-installed $COMPILERS
+  - conda install $COMPILERS
   #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
