@@ -61,8 +61,8 @@ before_install:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz;
-        mkdir ../sdk; tar xf MacOSX10.13.sdk.tar.xz -C ../sdk;
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.14-beta4/MacOSX10.14.sdk.tar.xz;
+        mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk;
         COMPILERS=clang_osx-64;
         MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
     else
