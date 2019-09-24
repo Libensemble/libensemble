@@ -18,16 +18,16 @@ env:
 
 matrix:
   include:
-    - os: osx
-      osx_image: xcode11
-      env: MPI=mpich PY=3
-      language: generic
-      python: 3
-    - os: osx
-      osx_image: xcode10.3
-      env: MPI=mpich PY=3
-      language: generic
-      python: 3
+    # - os: osx
+    #   osx_image: xcode11
+    #   env: MPI=mpich PY=3
+    #   language: generic
+    #   python: 3
+    # - os: osx
+    #   osx_image: xcode10.3
+    #   env: MPI=mpich PY=3
+    #   language: generic
+    #   python: 3
     - os: osx
       osx_image: xcode9.4
       env: MPI=mpich PY=3
@@ -57,7 +57,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-MacOSX-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-Linux-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -68,7 +68,7 @@ before_install:
   - conda config --add channels conda-forge
   - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
   - source activate condaenv
-        # sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /;
+    # sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /;
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
