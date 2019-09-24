@@ -65,13 +65,12 @@ install:
         mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk;
         COMPILERS=clang_osx-64;
         MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
-        echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.14.sdk" > setenv.sh;
-        source setenv.sh;
+        conda install clang=8.0.1
     else
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
-  - conda install $COMPILERS
+  - conda install --no-update-dependencies $COMPILERS
   #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
