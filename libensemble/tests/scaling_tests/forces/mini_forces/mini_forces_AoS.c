@@ -6,20 +6,21 @@
     
     E.g: gcc build and run on 2 threads on CPU:
     
-    gcc -O3 -fopenmp -o mini_forces.x mini_forces.c -lm
+    gcc -O3 -fopenmp -march=native -o mini_forces_AoS.x mini_forces_AoS.c -lm
     export OMP_NUM_THREADS=2
-    ./mini_forces.x
+    ./mini_forces_AoS.x
     
     E.g: xlc build and run on GPU:
     
     # First toggle #omp pragma line to target in forces_naive function.
-    xlc_r -O3 -qsmp=omp -qoffload -o mini_forces_xlc_gpu.x mini_forces.c
-    ./mini_forces.x
+    xlc_r -O3 -qsmp=omp -qoffload -o mini_forces_AoS_xlc_gpu.x mini_forces_AoS.c
+    ./mini_forces_AoS.x
     
     Functionality:
     Particles position and charge are initiated by a random stream.
     Computes forces for all particles. Note: This version uses
-    parallel arrays to store the data (SoA).
+    an array of structures to store the data (AoS). The forces loop
+    should vectorize but will have overhead of gathers.
     
     OpenMP options for CPU and GPU. Toggle in forces_naive function.
     
@@ -33,6 +34,12 @@
 
 #define CHECK_THREADS 1
 #define NUM_PARTICLES 6000
+
+typedef struct particle {
+    double p[3]; // Particle position
+    double f[3]; // Particle force
+    double q;    // Particle charge
+}__attribute__((__packed__)) particle;
 
 // Seed RNG
 int seed_rand(int seed) {
@@ -49,32 +56,30 @@ double get_rand() {
 
 
 // Particles start at random locations in 10x10x10 cube
-int build_system(int n, double* x, double* y, double* z, double* fx, double* fy, double* fz, double* q) {
+int build_system(int n, particle* parr) {
     int q_range_low = -10;
     int q_range_high = 10;
     double extent = 10.0;
-    int i;
+    int i, dim;
     
     for(i=0; i<n; i++) {
-        x[i] = get_rand()*extent;
-        y[i] = get_rand()*extent;
-        z[i] = get_rand()*extent;
-        fx[i] = 0.0;
-        fy[i] = 0.0;
-        fz[i] = 0.0;
-        q[i] = ((q_range_high+1)-q_range_low)*get_rand() + q_range_low;;
+        for(dim=0; dim<3; dim++) {
+            parr[i].p[dim] = get_rand()*extent;
+            parr[i].f[dim] = 0.0;
+        }
+        parr[i].q = ((q_range_high+1)-q_range_low)*get_rand() + q_range_low;
     }
     return 0;
 }
 
 
 // Initialize forces to zero for all particles
-int init_forces(int lower, int upper, double* fx, double* fy, double* fz) {
-    int i;
+int init_forces(int lower, int upper, particle* parr) {
+    int i, dim;
     for(i=lower; i<upper; i++) {
-        fx[i] = 0.0;
-        fy[i] = 0.0;
-        fz[i] = 0.0;       
+        for(dim=0; dim<3; dim++) {
+            parr[i].f[dim] = 0.0;
+        }        
     }
     return 0;
 }
@@ -99,10 +104,11 @@ int check_threads() {
 
 
 // Electostatics pairwise forces kernel (O(N^2))
-double forces_naive(int n,  double* x, double* y, double* z, double* fx, double* fy, double* fz, double* q) {
+double forces_naive(int n,  particle* parr) {
     int i,j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
+    double fx, fy, fz;
     struct timeval tv1, tv2;
 
     gettimeofday(&tv1, NULL);
@@ -110,32 +116,39 @@ double forces_naive(int n,  double* x, double* y, double* z, double* fx, double*
     // For GPU/Accelerators
     /*
     #pragma omp target teams distribute parallel for map(to: n) \
-                       map(tofrom: x[:n],y[:n],z[:n],fx[:n],fy[:n],fz[:n],q[:n]) \
+                       map(tofrom: parr[0:n]) \
                        reduction(+:ret) //thread_limit(128) //*/
 
     // For CPU
     //*
-    #pragma omp parallel for default(none) shared(n,x,y,z,fx,fy,fz,q) \
-                             private(i,j,dx,dy,dz,r,force) \
+    #pragma omp parallel for default(none) shared(n,parr) \
+                             private(i,j,dx,dy,dz,r,force,fx,fy,fz) \
                              reduction(+:ret)  //*/
     for(i=0; i<n; i++) {
-        #pragma omp simd private(dx,dy,dz,r,force) reduction(+:fx[i],fy[i],fz[i],ret) // Enable vectorization
+        fx = 0.0;
+        fy = 0.0;
+        fz = 0.0;
+        #pragma omp simd private(dx,dy,dz,r,force) reduction(+:fx,fy,fz,ret) // Enable vectorization
         for(j=0; j<n; j++){
             if (i==j) {
                 continue;
             }
-            dx = x[i] - x[j];
-            dy = y[i] - y[j];
-            dz = z[i] - z[j];
+            dx = parr[i].p[0] - parr[j].p[0];
+            dy = parr[i].p[1] - parr[j].p[1];
+            dz = parr[i].p[2] - parr[j].p[2];
             r = sqrt(dx * dx + dy * dy + dz * dz);
 
-            force = q[i] * q[j] / (r*r);
-            fx[i] += dx * force;
-            fy[i] += dy * force;
-            fz[i] += dz * force;
+            force = parr[i].q * parr[j].q / (r*r);
+
+            fx += dx * force;
+            fy += dy * force;
+            fz += dz * force;
             
             ret += 0.5 * force;
         }
+        parr[i].f[0] += fx;
+        parr[i].f[1] += fy;
+        parr[i].f[2] += fz;
     }
 
     gettimeofday(&tv2, NULL);
@@ -151,29 +164,17 @@ int main(int argc, char **argv) {
     
     int num_particles = NUM_PARTICLES;
     double local_en;        
-    double *pos_x   = malloc(num_particles * sizeof(double));
-    double *pos_y   = malloc(num_particles * sizeof(double));
-    double *pos_z   = malloc(num_particles * sizeof(double));
-    double *force_x = malloc(num_particles * sizeof(double));
-    double *force_y = malloc(num_particles * sizeof(double));
-    double *force_z = malloc(num_particles * sizeof(double));
-    double *charge  = malloc(num_particles * sizeof(double));
+    particle* parr = malloc(num_particles * sizeof(particle));
+
     
     if (CHECK_THREADS) {
         check_threads();
     }
     
-    build_system(num_particles, pos_x, pos_y, pos_z, force_x, force_y, force_z, charge);
-    init_forces(0, num_particles, force_x, force_y, force_z);
-    local_en = forces_naive(num_particles, pos_x, pos_y, pos_z, force_x, force_y, force_z, charge);
+    build_system(num_particles, parr);
+    init_forces(0, num_particles, parr); // Whole array
+    local_en = forces_naive(num_particles, parr);
     printf("energy is %f \n",local_en);
-
-    free(pos_x  );
-    free(pos_y  );
-    free(pos_z  );
-    free(force_x);
-    free(force_y);
-    free(force_z);
-    free(charge );
+    free(parr);
     return 0;
 }
