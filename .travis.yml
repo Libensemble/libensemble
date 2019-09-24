@@ -93,7 +93,7 @@ before_script:
   - ulimit -Sn 10000
   # Set conda compilers to use new SDK instead of Travis default.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.13.sdk" > setenv.sh;
+        echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.14.sdk" > setenv.sh;
         source setenv.sh;
     fi
 
