@@ -19,35 +19,11 @@ env:
 matrix:
   include:
     - os: osx
-      osx_image: xcode11
-      env: MPI=mpich PY=3
-      language: generic
-      python: 3
-    - os: osx
-      osx_image: xcode10.3
-      env: MPI=mpich PY=3
-      language: generic
-      python: 3
-    - os: osx
-      osx_image: xcode10.2
-      env: MPI=mpich PY=3
-      language: generic
-      python: 3
-    - os: osx
       osx_image: xcode10.1
       env: MPI=mpich PY=3
       language: generic
       python: 3
-    - os: osx
-      osx_image: xcode10
-      env: MPI=mpich PY=3
-      language: generic
-      python: 3
-    - os: osx
-      osx_image: xcode9.4
-      env: MPI=mpich PY=3
-      language: generic
-      python: 3
+
 
 services:
     - postgresql
