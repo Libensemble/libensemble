@@ -23,4 +23,4 @@ gcc -O3 -fopenmp -march=native -o mini_forces.x mini_forces.c -lm
 # xlc_r -O3 -qsmp=omp -qoffload -o mini_forces.x mini_forces.c
 
 # IRIS node (Intel Gen9 GPU)
-# env MPICH_CC=icx mpigcc -g -fiopenmp -fopenmp-targets=spir64 -o mini_forces.x mini_forces.c
+# icx -g -fiopenmp -fopenmp-targets=spir64 -o mini_forces.x mini_forces.c
