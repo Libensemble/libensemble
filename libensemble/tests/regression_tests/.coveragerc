@@ -7,6 +7,8 @@ omit =
     */unit_tests_nompi/*
     */regression_tests/*
     */branin_*/*
+    balsam_controller.py
+
 
 branch = true
 
@@ -22,7 +24,6 @@ omit =
     */unit_tests/*
     */unit_tests_nompi/*
     */regression_tests/*
-    balsam_controller.py
 
 
 exclude_lines =
