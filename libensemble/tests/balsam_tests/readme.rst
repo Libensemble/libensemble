@@ -13,7 +13,7 @@ If the instructions are followed to set up a conda environment called balsam, th
 Quickstart - Balsam tests for libensemble
 -----------------------------------------
 
-Having set up balsam, the tests here can be run as follows.  
+Having set up balsam, the tests here can be run as follows.
 
 **i) Set up the tests**
 
@@ -66,9 +66,9 @@ Register tests:
 .. code-block:: bash
 
     balsam app --name test_balsam_1__runjobs     --exec test_balsam_1__runjobs.py     --desc "Run balsam test 1"
-    
+
     balsam app --name test_balsam_2__workerkill  --exec test_balsam_2__workerkill.py  --desc "Run balsam test 2"
-    
+
     balsam app --name test_balsam_3__managerkill --exec test_balsam_3__managerkill.py --desc "Run balsam test 3"
 
 Register user application that will be called inside tests:
@@ -121,13 +121,13 @@ In this case 4 ranks per node and 1 node are selected. This is for running on th
 Note that the user jobs (launched in a libensemble job) are registered from within the code. For staging out files, the output directory needs to somehow be accessible to the code. For the tests here, this is simply the directory of the test scripts (accessed via the __file__ variable in python). Search for dag.add_job in test scripts (eg. test_balsam_1__runjobs.py)
 
 
-To list jobs: 
+To list jobs:
 
 .. code-block:: bash
 
   balsam ls jobs
 
-To clean: 
+To clean:
 
 .. code-block:: bash
 
@@ -143,15 +143,15 @@ Launch all jobs:
 
 .. code-block:: bash
 
-  balsam launcher --consume-all 
- 
+  balsam launcher --consume-all
+
 For other launcher options:
 
 .. code-block:: bash
 
   balsam launcher -h
- 
- 
+
+
 4 Reset jobs
 ------------
 
@@ -159,7 +159,7 @@ A script to reset the tests is available: reset_balsam_tests.py
 
 This script can be modified easily. However, to reset from the command line - without removing and re-adding jobs you can do the following.
 
- 
+
 Note: After running tests the balsam job database will contain something like the following (job_ids abbreviated for space):
 
 .. code-block:: bash
@@ -167,7 +167,7 @@ Note: After running tests the balsam job database will contain something like th
   $ balsam ls jobs
 
 ::
-  
+
      job_id            | name                            | workflow       | application    | latest update
     -------------------------------------------------------------------------------------------------------------
      29add031-8e7c-... | job_balsam1                     | libe_workflow  | test_balsam_1  | [01-30-2018 18:57:47 JOB_FINISHED]
@@ -196,7 +196,7 @@ To remove only the generated jobs you can just use a sub-string of the job name 
      job_id            | name             | workflow        | application      | latest update
     -----------------------------------------------------------------------------------------------------------------------
      29add031-8e7c-... | job_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 JOB_FINISHED]
-    
+
 
 To run again - change status attribute to READY (you need to specify job_id - an abbreviation is ok) eg:
 

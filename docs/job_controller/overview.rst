@@ -13,16 +13,16 @@ cluster, or any other provision of compute resources.
 In order to remove the burden of system interaction from the user, and enable sim_f
 scripts that are portable between systems, a job_controller interface is provided by
 libEnsemble. The job_controller provides the key functions: ``launch()``, ``poll()`` and
-``kill()``. libEnsemble auto-detects a number of system criteria, such as the MPI launcher, 
+``kill()``. libEnsemble auto-detects a number of system criteria, such as the MPI launcher,
 along with correct mechanisms for polling and killing jobs, on supported systems. It also
 contains built in resilience, such as re-launching jobs that fail due to system factors.
 User scripts that employ the job_controller interface will be portable between supported
-systems. Job attributes can be queried to determine status after each poll. Functions are 
+systems. Job attributes can be queried to determine status after each poll. Functions are
 also provided to access and interrogate files in the job's working directory.
 
 The Job Controller module can be used to submit
 and manage jobs using a portable interface. Various back-end mechanisms may be
-used to implement this interface on the system, including a proxy launcher and 
+used to implement this interface on the system, including a proxy launcher and
 job management system, such as Balsam. Currently, these job_controllers launch
 at the application level within an existing resource pool. However, submissions
 to a batch schedular may be supported in the future.
@@ -62,7 +62,7 @@ In user sim func::
 
     timeout_sec = 600
     poll_delay_sec = 1
-    
+
     while(not job.finished):
 
         # Has manager sent a finish signal
@@ -82,10 +82,10 @@ In user sim func::
         else:
             time.sleep(poll_delay_sec)
             job.poll()
-    
+
     print(job.state)  # state may be finished/failed/killed
 
-See the :doc:`job_controller<job_controller>` interface for API.  
+See the :doc:`job_controller<job_controller>` interface for API.
 
 For a more realistic example see:
 

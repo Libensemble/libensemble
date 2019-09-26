@@ -22,7 +22,7 @@ Build the C program:
 Either run on local node - or create an allocation of nodes and run::
 
     python killtest.py <kill_type> <num_nodes> <num_procs_per_node>
-    
+
 where kill_type currently is 1 or 2. [1. is the original kill - 2. is using group ID approach]
 
 E.g Single node with 4 processes:

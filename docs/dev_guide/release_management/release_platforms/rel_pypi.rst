@@ -3,7 +3,7 @@
 PyPI release
 ============
 
-libEnsemble is released on the Python Package Index (commonly known as PyPI). This enable users to “pip install” the package. 
+libEnsemble is released on the Python Package Index (commonly known as PyPI). This enable users to “pip install” the package.
 
 The package is stored on PyPI in the form of a source distribution (commonly known as a tarball). The tarball could be obtained from github, though historically this has been created with a checkout of libensemble from git.
 

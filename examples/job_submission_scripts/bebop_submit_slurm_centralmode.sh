@@ -3,12 +3,12 @@
 #SBATCH -N 5
 #SBATCH -p knlall
 ##SBATCH -A <my_project>
-#SBATCH -o tlib.%j.%N.out 
-#SBATCH -e tlib.%j.%N.error 
-#SBATCH -t 01:00:00 
+#SBATCH -o tlib.%j.%N.out
+#SBATCH -e tlib.%j.%N.error
+#SBATCH -t 01:00:00
 
 #Launch script for running in central mode.
-#LibEnsemble will run on a dedicated node (or nodes). 
+#LibEnsemble will run on a dedicated node (or nodes).
 #The remaining nodes in the allocation will be dedicated to the jobs launched by the workers.
 
 #Requirements for running:
@@ -31,7 +31,7 @@ export LIBE_WALLCLOCK=55
 #---------------------------------------------------------------------------------------------
 #Test
 echo -e "Slurm job ID: $SLURM_JOBID"
- 
+
 #cd $PBS_O_WORKDIR
 cd $SLURM_SUBMIT_DIR
 
@@ -42,9 +42,9 @@ echo -e "Directory is:  $PWD"
 #This will work for the number of contexts that will fit on one node (eg. 320 on Bebop) - increase libE nodes for more.
 cmd="srun --overcommit --ntasks=$(($NUM_WORKERS+1)) --nodes=1 python $EXE $LIBE_WALLCLOCK"
 
-echo The command is: $cmd 
-echo End PBS script information. 
-echo All further output is from the process being run and not the pbs script.\n\n $cmd # Print the date again -- when finished 
+echo The command is: $cmd
+echo End PBS script information.
+echo All further output is from the process being run and not the pbs script.\n\n $cmd # Print the date again -- when finished
 
 $cmd
 

@@ -3,15 +3,15 @@ Job Controller Module
 
 .. automodule:: controller
   :no-undoc-members:
- 
+
 See  :doc:`example<overview>` for usage.
 
-See the controller APIs for optional arguments. 
+See the controller APIs for optional arguments.
 
 .. toctree::
    :maxdepth: 1
    :caption: Job Controllers:
-   
+
    mpi_controller
    balsam_controller
 
@@ -32,10 +32,10 @@ polled/killed (or through other job or job controller functions).
 
 Job Attributes
 --------------
-                
+
 Following is a list of job status and configuration attributes that can be retrieved from a job.
 
-:NOTE: These should not be set directly. Jobs are launched by the job controller and job information can be queired through the job attributes below and the query functions. 
+:NOTE: These should not be set directly. Jobs are launched by the job controller and job information can be queired through the job attributes below and the query functions.
 
 Job Status attributes include:
 
@@ -53,7 +53,7 @@ Run configuration attributes - Some will be auto-generated:
 :job.workdir: (string) Work directory for the job
 :job.name: (string) Name of job - auto-generated
 :job.app: (app obj) Use application/executable, registered using jobctl.register_calc
-:job.app_args: (string) Application arguments as a string  
+:job.app_args: (string) Application arguments as a string
 :job.stdout: (string) Name of file where the standard output of the job is written (in job.workdir)
 :job.stderr: (string) Name of file where the standard error of the job is written (in job.workdir)
 

@@ -4,7 +4,7 @@
 [run]
 data_file = .cov_merge_out
 
-[html]    
+[html]
 directory = cov_merge
 
 #Report files can be controlled here

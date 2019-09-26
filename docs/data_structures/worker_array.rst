@@ -10,14 +10,14 @@ convention:
 =========================================   =======  ============  =======
 Worker state                                 active  persis_state  blocked
 =========================================   =======  ============  =======
-idle worker                                    0          0           0   
-active, nonpersistent sim                      1          0           0   
-active, nonpersistent gen                      2          0           0   
-active, persistent sim                         1          1           0   
-active, persistent gen                         2          2           0   
-waiting, persistent sim                        0          1           0   
-waiting, persistent gen                        0          2           0   
-worker blocked by some other calculation       1          0           1   
+idle worker                                    0          0           0
+active, nonpersistent sim                      1          0           0
+active, nonpersistent gen                      2          0           0
+active, persistent sim                         1          1           0
+active, persistent gen                         2          2           0
+waiting, persistent sim                        0          1           0
+waiting, persistent gen                        0          2           0
+worker blocked by some other calculation       1          0           1
 =========================================   =======  ============  =======
 
 :Note:

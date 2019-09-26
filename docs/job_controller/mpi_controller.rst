@@ -5,8 +5,8 @@ To create an MPI job controller, the calling script should contain::
 
     jobctl = MPIJobController()
 
-See the controller API below for optional arguments.    
-    
+See the controller API below for optional arguments.
+
 .. automodule:: mpi_controller
   :no-undoc-members:
 
@@ -15,7 +15,7 @@ See the controller API below for optional arguments.
   :inherited-members:
 
   .. automethod:: __init__
-  
+
 ..  :member-order: bysource
 ..  :members: __init__, register_calc, launch, manager_poll
 

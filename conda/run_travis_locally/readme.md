@@ -4,7 +4,7 @@
 
 This explains how to replicate the Travis container environment locally.
 
-This can save a lot of git pushes and trial-and-error when there is problems in Travis builds that are not 
+This can save a lot of git pushes and trial-and-error when there is problems in Travis builds that are not
 observed locally.
 
 #### References:
@@ -32,8 +32,8 @@ Add user name to docker group so dont need sudo before docker:
     sudo usermod -aG docker ${USER}
     su - ${USER}
     id -nG # Confirm username added to docker users
-    
-    
+
+
 ### Install Travis Image for Python and create a container
 
 Name your new travis container:
@@ -46,7 +46,7 @@ Install the Travis Docker image for Python and run the container (server):
 
 This might take a while if image is not downloaded. Once image is downloaded it will be run from cache.
 
-Note: 
+Note:
 travisci/ci-garnet:packer-1512502276-986baf0 is the Travis Python image. The name in
 $CONTAINER is the name you are assigning to the new container made from the image.
 
@@ -58,7 +58,7 @@ Alternative travisCI docker images can be found [here](https://hub.docker.com/r/
 Then open a shell in running container:
 
     sudo docker exec -it $CONTAINER bash -l
-    
+
 Prompt should say travis@ rather than root@:
 
 
@@ -72,7 +72,7 @@ the installs against .travis.yml in the top level libEnsemble package directory.
 
 #### Copy build script from host system to the running container
 
-Run the following **from your host machine environment**. This copies the given file into an existing 
+Run the following **from your host machine environment**. This copies the given file into an existing
 container named $CONTAINER. Where /home/travis is target location in container
 filesystem.
 
@@ -82,19 +82,19 @@ On the docker side you may need to set ownership of the script:
 
     chown travis:travis /home/travis/build_mpich_libE.sh
 
-    
+
 #### Run the libEnsemble build-and-run script
 
 Now, in the docker container, become user travis:
 
     su - travis
- 
+
 Source the script, setting python version and libEnsemble branch if necessary (see script for defaults).
 **Always source** to maintain environment variables after running (inc. miniconda path). The following
 would run with Python 3.7 and test the libEnsemble branch hotfix/logging:
 
     . ./build_mpich_libE.sh -p 3.7 -b hotfix/logging
-    
+
 Note: libEnsemble will be git cloned and checked out at the given branch.
 
 The script should build all dependencies and run tests. Having sourced the script, you should
@@ -108,12 +108,12 @@ If the conda output is too verbose, remove the "set -x" line in the script.
 To exit the container session (client).
     exit # Travis user
     exit # Exit running session (but container server is still running.
-    
+
 Re-enter while background container still running:
 
     sudo docker exec -it $CONTAINER bash -l
     su - travis
-    
+
 Note that environment variables are not saved.
 
 To save the modified container as an image (with your changes to filesystem):
@@ -123,7 +123,7 @@ Note: This will not by default save your environment variables
 First to check running containers (ie. running server - whether or not you are in a session):
 
     docker ps
-    
+
 OR
 
     docker container ls
@@ -144,13 +144,13 @@ Now it should show if you do:
 If it is saved you can stop the container (server) thats running and restart eg.
 
     docker stop $CONTAINER
-    
+
 where $CONTAINER is the name you gave the container on the docker run command.
 
 You can restart from your new image with docker run and docker exec or to run server and run session in one:
 
     docker run -it <user_name>/<image_name> /bin/bash
-    
+
 where <user_name>/<image_name> is as used above to save (or from first column in "docker images" output).
 
 
@@ -164,6 +164,3 @@ container can be [restricted](https://docs.docker.com/config/containers/resource
 An alternative to this process is to log in to your Travis build and debug. For public
 repositories, this requires contacting Travis support for a token that can only be used by
 the given user. See [here](https://docs.travis-ci.com/user/running-build-in-debug-mode/).
-
-
-    
