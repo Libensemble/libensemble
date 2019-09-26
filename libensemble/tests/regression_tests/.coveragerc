@@ -9,7 +9,7 @@ omit =
     */branin_*/*
 
 branch = true
-	 
+
 data_file = .cov_reg_out
 
 parallel = true
@@ -22,9 +22,11 @@ omit =
     */unit_tests/*
     */unit_tests_nompi/*
     */regression_tests/*
+    */balsam_controller.py
+
 
 exclude_lines =
     if __name__ == .__main__.:
 
-[html]    
+[html]
 directory = cov_reg
