@@ -22,7 +22,7 @@ omit =
     */unit_tests/*
     */unit_tests_nompi/*
     */regression_tests/*
-    */balsam_controller.py
+    balsam_controller.py
 
 
 exclude_lines =
