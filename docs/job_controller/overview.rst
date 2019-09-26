@@ -92,4 +92,3 @@ For a more realistic example see:
 - libensemble/tests/scaling_tests/forces/
 
 which launches the forces.x application as an MPI job.
-

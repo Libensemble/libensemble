@@ -58,4 +58,3 @@ Run configuration attributes - Some will be auto-generated:
 :job.stderr: (string) Name of file where the standard error of the job is written (in job.workdir)
 
 A list of job_controller and job functions can be found under the Job Controller Module.
-

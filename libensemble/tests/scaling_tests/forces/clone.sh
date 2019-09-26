@@ -10,4 +10,3 @@ else
   # Take you there if source script.
   mkdir ../$NEWDIR && cp -rp $INPUTS ../$NEWDIR && cd ../$NEWDIR
 fi
-

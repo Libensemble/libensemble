@@ -107,4 +107,3 @@ In second shell. Log in to whatever qsub node you got:
     top
 
 Four burn_time.x processes should appear, then go, then come, then go.
-

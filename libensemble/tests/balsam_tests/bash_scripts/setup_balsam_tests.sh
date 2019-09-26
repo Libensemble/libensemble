@@ -59,4 +59,3 @@ balsam ls jobs
 
 #Run launcher in either interactive session or via script
 echo -e "\nTo launch jobs run: balsam launcher --consume-all"
-

@@ -37,4 +37,3 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
 |
 | For allocation functions giving work that blocks other workers, see
 | ``libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
-

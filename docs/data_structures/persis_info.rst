@@ -24,4 +24,3 @@ From: libEnsemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MAA.py::
 
     for i in range(MPI.COMM_WORLD.Get_size()):
         persis_info[i] = {'rand_stream': np.random.RandomState(i)} # used as a random number stream for each worker
-

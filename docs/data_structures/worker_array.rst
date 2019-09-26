@@ -24,4 +24,3 @@ worker blocked by some other calculation       1          0           1
 
 * libE only receives from workers with 'active' nonzero
 * libE only calls the alloc_f if some worker has 'active' zero
-

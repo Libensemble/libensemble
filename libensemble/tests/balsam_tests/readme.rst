@@ -229,5 +229,3 @@ To see time remaining:
 .. code-block:: bash
 
   qstat -fu <username>
-
-

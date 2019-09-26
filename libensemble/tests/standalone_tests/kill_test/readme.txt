@@ -40,5 +40,3 @@ kill 2: python killtest.py 2 2 2
 If the test fails, an assertion error will occur.
 
 Output files are produced out_0.txt and out_1.txt (one for each job). These can be deleted between runs.
-
-

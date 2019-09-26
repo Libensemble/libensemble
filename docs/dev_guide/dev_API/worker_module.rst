@@ -8,4 +8,3 @@ Worker Module
   :members:
 
   .. automethod:: __init__
-

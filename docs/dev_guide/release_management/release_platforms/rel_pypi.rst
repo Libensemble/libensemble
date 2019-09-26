@@ -32,6 +32,3 @@ It should also be visible here:
 https://pypi.org/project/libensemble/
 
 For more details on creating PyPI packages see https://betterscientificsoftware.github.io/python-for-hpc/tutorials/python-pypi-packaging/
-
-
-
