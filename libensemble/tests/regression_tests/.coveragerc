@@ -9,7 +9,7 @@ omit =
     */branin_*/*
 
 branch = true
-	 
+ 
 data_file = .cov_reg_out
 
 parallel = true

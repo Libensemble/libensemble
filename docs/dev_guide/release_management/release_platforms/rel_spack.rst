@@ -34,7 +34,7 @@ To set upstream repo::
 (Optional) Prevent accidental pushes to upstream::
 
     git remote set-url --push upstream no_push
-    git remote -v # Check for line: `upstream	no_push (push)`
+    git remote -v # Check for line: `upstream no_push (push)`
     
 
 Now to update (the main develop branch)

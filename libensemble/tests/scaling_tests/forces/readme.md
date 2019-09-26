@@ -66,28 +66,28 @@ scripts such as `theta_submit_balsam.sh`.
 
 The scripts are set up assuming a conda environment. To use script directly you will need to replace the following templated values:
 
-	<projectID> in the COBALT -A directive with your project ID.
+  <projectID> in the COBALT -A directive with your project ID.
 
-	<conda_env_name> is the name of your conda environment.
+  <conda_env_name> is the name of your conda environment.
 
 and in Balsam scripts:
 
-	<dbase_name> The name of an initialized balsam database.
-	             (with max_connections enough for number of workers)
+  <dbase_name> The name of an initialized balsam database.
+               (with max_connections enough for number of workers)
 
 The included scripts are.
 
 * theta_submit_mproc.sh:
 
-	Example Theta submission script to run libEnsemble in central mode on the Theta launch (MOM) nodes with multiprocessing worker concurrency.
+  Example Theta submission script to run libEnsemble in central mode on the Theta launch (MOM) nodes with multiprocessing worker concurrency.
 
 * summit_submit_mproc.sh:
 
-	Example Summit submission script to run libEnsemble in central mode on the Summit launch nodes with multiprocessing worker concurrency.
+  Example Summit submission script to run libEnsemble in central mode on the Summit launch nodes with multiprocessing worker concurrency.
 
 * theta_submit_balsam.sh:
 
-	Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit jobs via Balsam.
+  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit jobs via Balsam.
 
 #### Plotting Options
 
