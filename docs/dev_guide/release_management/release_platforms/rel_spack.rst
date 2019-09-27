@@ -8,7 +8,7 @@ Introduction
 
 This assumes you have already:
 
- - Made a PyPI package for new version of libensemble
+ - Made a PyPI package for new version of libEnsemble
  - Made a GitHub fork of Spack and cloned it to your local system.
 
 Details on how to create forks can be found at: https://help.github.com/articles/fork-a-repo
@@ -18,7 +18,7 @@ You now have a configuration like shown in answer at: https://stackoverflow.com/
 Upstream, in this case, is the official Spack repository on GitHub. Origin is your fork on GitHub and Local Machine is your local clone (from your fork).
 
 
-Make sure SPACK_ROOT is set and spack binary is in your path::
+Make sure ``SPACK_ROOT`` is set and spack binary is in your path::
 
     export SPACK_ROOT=<PATH/TO/LOCAL/SPACK/REPO>
     export PATH=$SPACK_ROOT/bin:$PATH
@@ -62,10 +62,9 @@ If you have local changes to go "on top" of latest code::
 
     git rebase upstream/develop
 
-Or to make your local machine identical to upstream repo (**WARNING** Any local changes WILL BE LOST)::
+Or to make your local machine identical to upstream repo (**WARNING** Any local changes will be lost!)::
 
     git reset --hard upstream/develop
-
 
 (Optional) You may want to update your forked (origin) repo on GitHub at this point.
 This may requires a forced push::
@@ -83,12 +82,12 @@ See the Spack [packaging](https://spack.readthedocs.io/en/latest/packaging_guide
 [contibution](https://spack.readthedocs.io/en/latest/contribution_guide.html) guides for more info.
 
 
-Quick example to update libensemble::
+Quick example to update libEnsemble::
 
     git branch update_libensemble
     git checkout update_libensemble
 
-This will open the libensemble package.py file in your editor (given by env variable EDITOR)::
+This will open the libEnsemble ``package.py`` file in your editor (given by env variable EDITOR)::
 
     spack edit py-libensemble  # SPACK_ROOT must be set (see above) (python packages use "py-" prefix)
 
@@ -101,7 +100,7 @@ Get the tarball (see PyPI instructions), for the new release and use::
 
     sha256sum libensemble-*.tar.gz
 
-Update the `package.py` file by pasting in the new checksum lines (and make sure url line points to latest version).
+Update the ``package.py`` file by pasting in the new checksum lines (and make sure url line points to latest version).
 Also update any dependencies for the new version.
 
 Check package::

@@ -10,7 +10,7 @@ Theta:
 If the instructions are followed to set up a conda environment called balsam, then the script env_setup_theta.sh, under the balsam tests dir, can be sourced in future logins for theta. Or modified for other platforms. In some platforms you may need to only activate the balsam conda environment.
 
 -----------------------------------------
-Quickstart - Balsam tests for libensemble
+Quickstart - Balsam tests for libEnsemble
 -----------------------------------------
 
 Having set up balsam, the tests here can be run as follows.
@@ -56,7 +56,7 @@ General Usage
 1. Register applications
 ------------------------
 
-You must register with balsam the parent application (eg. libensemble) and any user application (eg. sim funcs/gen funcs).
+You must register with balsam the parent application (eg. libEnsemble) and any user application (eg. sim funcs/gen funcs).
 This only need be done once - unless eg. name of application changes.
 
 Example (as used in tests) - run from within balsam_tests dir:
@@ -116,9 +116,9 @@ A log will also be created when run under hpc-edge-service/log/
 The standard output will go to file <jobname>.out. So in above case this will be job_balsam1.out which will be staged out to $WORKDIR
 
 
-In this case 4 ranks per node and 1 node are selected. This is for running on the parent application (eg. libensemble). This does not constrain the running of sub-apps (eg. helloworld), which will use the full allocation available.
+In this case 4 ranks per node and 1 node are selected. This is for running on the parent application (e.g., libEnsemble). This does not constrain the running of sub-apps (eg. helloworld), which will use the full allocation available.
 
-Note that the user jobs (launched in a libensemble job) are registered from within the code. For staging out files, the output directory needs to somehow be accessible to the code. For the tests here, this is simply the directory of the test scripts (accessed via the __file__ variable in python). Search for dag.add_job in test scripts (eg. test_balsam_1__runjobs.py)
+Note that the user jobs (launched in a libEnsemble job) are registered from within the code. For staging out files, the output directory needs to somehow be accessible to the code. For the tests here, this is simply the directory of the test scripts (accessed via the __file__ variable in python). Search for dag.add_job in test scripts (eg. test_balsam_1__runjobs.py)
 
 
 To list jobs:

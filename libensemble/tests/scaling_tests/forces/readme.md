@@ -98,4 +98,12 @@ If either of the plotting options in the submission scripts are set to true, the
 
 #### Note on theta_submit_balsam.sh
 
-Adjusting the node/core/worker count.: The NUM_WORKERS variable is only currently used if libEnsemble is running on one node, in which case it should be one less than the number of nodes in the job allocation (leaving one dedicated node to run libEnsemble). If more workers are used then the variables NUM_NODES and RANKS_PER_NODE need to be explicitly set (these are for libensemble which will require one task for the manager and the rest will be workers). The total node allocation (in the COBALT -n directive) will need to be the number of nodes for libEnsemble + number of nodes for each worker to launch jobs to.
+Adjusting the node/core/worker count.: The NUM_WORKERS variable is only
+currently used if libEnsemble is running on one node, in which case it should
+be one less than the number of nodes in the job allocation (leaving one
+dedicated node to run libEnsemble). If more workers are used then the variables
+NUM_NODES and RANKS_PER_NODE need to be explicitly set (these are for
+libEnsemble which will require one task for the manager and the rest will be
+workers). The total node allocation (in the COBALT -n directive) will need to
+be the number of nodes for libEnsemble + number of nodes for each worker to
+launch jobs to.

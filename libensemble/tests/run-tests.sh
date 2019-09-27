@@ -302,8 +302,8 @@ hint_colour=$(tput bold;tput setaf 4) #blue
 # Exit code 5:  No tests were collected
 
 tput bold
-#echo -e "\nRunning $RUN_PREFIX libensemble Test-suite .......\n"
-echo -e "\n************** Running: Libensemble Test-Suite **************\n"
+#echo -e "\nRunning $RUN_PREFIX libEnsemble Test-suite .......\n"
+echo -e "\n************** Running: libEnsemble Test-Suite **************\n"
 tput sgr 0
 echo -e "Selected:"
 [ $RUN_UNIT_TESTS = "true" ] && echo -e "Unit Tests"

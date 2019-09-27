@@ -86,19 +86,9 @@ The example sim and gen functions and tests require the following dependencies:
 * NLopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
 PETSc and NLopt must be built with shared libraries enabled and present in
-sys.path (e.g., via setting the PYTHONPATH environment variable). NLopt should
+sys.path (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt should
 produce a file nlopt.py if Python is found on the system. NLopt may also require SWIG_
 to be installed on certain systems.
-
-.. _PETSc:  http://www.mcs.anl.gov/petsc
-.. _Python: http://www.python.org
-.. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
-.. _NumPy:  http://www.numpy.org
-.. _SciPy:  http://www.scipy.org
-.. _mpi4py:  https://bitbucket.org/mpi4py/mpi4py
-.. _petsc4py:  https://bitbucket.org/petsc/petsc4py
-.. _Balsam: https://www.alcf.anl.gov/balsam
-.. _SWIG: http://swig.org/
 
 
 Installation
@@ -129,7 +119,7 @@ regularly on:
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
-The test suite requires the mock, pytest, pytest-cov and pytest-timeout
+The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
 packages to be installed and can be run from the libensemble/tests directory of
 the source distribution by running::
 
@@ -169,7 +159,7 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-The user will create a python script to call the libEnsemble :doc:`libE<libE_module>` function.
+The user will create a python script to call the libEnsemble :doc:`libE <libE_module>` function.
 This must supply the :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`,
 and optionally :ref:`libE_specs<datastruct-libe-specs>`, :ref:`alloc_specs<datastruct-alloc-specs>` and :ref:`persis_info<datastruct-persis-info>`.
 
@@ -191,6 +181,20 @@ function used in the regression tests, which can be found in
 
 
 See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
+
+.. _PETSc:  http://www.mcs.anl.gov/petsc
+.. _Python: http://www.python.org
+.. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
+.. _NumPy:  http://www.numpy.org
+.. _SciPy:  http://www.scipy.org
+.. _mpi4py:  https://bitbucket.org/mpi4py/mpi4py
+.. _petsc4py:  https://bitbucket.org/petsc/petsc4py
+.. _Balsam: https://www.alcf.anl.gov/balsam
+.. _SWIG: http://swig.org/
+.. _mock: https://pypi.org/project/mock
+.. _pytest: https://pypi.org/project/pytest/ 
+.. _pytest-cov: https://pypi.org/project/pytest-cov/ 
+.. _pytest-timeout: https://pypi.org/project/pytest-timeout/ 
 
 .. include:: ../README.rst
     :start-after: docs-include-tag
