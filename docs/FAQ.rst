@@ -20,7 +20,7 @@ need to install xQuartz_.
 
 .. _xQuartz: https://www.xquartz.org/
 
-If running in ``'local'`` comms mode try using one of the ``ForkablePdb``
+If running in ``local`` comms mode try using one of the ``ForkablePdb``
 routines in ``libensemble/util/forkpdb.py`` to set breakpoints. How well these
 work may depend on the system. Usage::
 
@@ -31,7 +31,7 @@ work may depend on the system. Usage::
 AssertionError - Idle workers
 -----------------------------
 
-**"AssertionError: Should not wait for workers when all workers are idle."**
+**AssertionError: Should not wait for workers when all workers are idle.**
 
 with ``mpiexec -np 1 python [calling script].py``
 
@@ -46,7 +46,7 @@ The generator will occupy the one worker, leaving none to run simulation functio
 Not enough processors per worker to honour arguments
 ----------------------------------------------------
 
-**"libensemble.resources.ResourcesException: Not enough processors per worker to honour arguments."**
+**libensemble.resources.ResourcesException: Not enough processors per worker to honour arguments.**
 
 This is likely when using the job_controller, when there are not enough
 cores/nodes available to launch jobs. This can be disabled if you want
@@ -63,13 +63,13 @@ hyperthreads/SMT threads available.
 FileExistsError
 ---------------
 
-**"FileExistsError: [Errno 17] File exists: './sim_worker1'"**
+**FileExistsError: [Errno 17] File exists: './sim_worker1'**
 
 This can happen when libEnsemble tries to create sim directories that already exist. If
 the directory does not already exist, a possible cause is that you are trying
-to run using ``mpiexec``, when the ``libE_specs['comms']`` option is set to ``'local'``.
+to run using ``mpiexec``, when the ``libE_specs['comms']`` option is set to ``local``.
 Note that to run with differently named sub-directories you can use the
-``'sim_dir_suffix'`` option to :ref:`sim_specs<datastruct-sim-specs>`.
+``sim_dir_suffix`` option to :ref:`sim_specs<datastruct-sim-specs>`.
 
 
 libEnsemble hangs when using mpi4py
@@ -81,7 +81,7 @@ observed with Intels Truescale (TMI) fabric at time of writing. This can be solv
 either by switch fabric or turning off matching probes before the MPI module is first
 imported.
 
-Add these two lines BEFORE 'from mpi4py import MPI'::
+Add these two lines BEFORE ``from mpi4py import MPI``::
 
     import mpi4py
     mpi4py.rc.recv_mprobe = False
@@ -94,7 +94,7 @@ Messages are not received correctly when using mpi4py
 
 This may manifest itself with the following error:
 
-**"_pickle.UnpicklingError: invalid load key, '\x00'."**
+**_pickle.UnpicklingError: invalid load key, '\x00'.**
 
 or some similar variation. This has been observed with the OFA fabric. The solution
 is to either switch fabric or turn off matching probes.
@@ -115,7 +115,7 @@ PETSc and MPI errors
 with ``python [test with PETSc].py --comms local --nworkers 4``
 
 This error occurs on some platforms, including Travis, when using PETSc with libEnsemble
-in 'local' (multiprocessing) mode. We believe this is due to PETSc initializing MPI
+in ``local`` (multiprocessing) mode. We believe this is due to PETSc initializing MPI
 before libEnsemble forks processes using multiprocessing. The recommended solution
 is running libEnsemble in MPI mode. An alternative solution may be using a serial
 build of PETSc.
@@ -127,7 +127,7 @@ handles an existing MPI communicator in a particular platform.
 Fatal error in MPI_Init_thread
 ------------------------------
 
-**"Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
+**Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed**
 
 
 This error may be macOS specific. MPI uses TCP to initiate connections,
@@ -161,8 +161,8 @@ Running out of contexts when running libEnsemble in distributed mode on TMI fabr
 
 The error message may be similar to below:
 
-**"can't open hfi unit: -1 (err=23)"**
-**"[13] MPI startup(): tmi fabric is not available and fallback fabric is not enabled"**
+**can't open hfi unit: -1 (err=23)**
+**[13] MPI startup(): tmi fabric is not available and fallback fabric is not enabled**
 
 This may occur on TMI when libEnsemble Python processes have been launched to a node and these,
 in turn, launch jobs on the node; creating too many processes for the available contexts. Note that

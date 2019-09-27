@@ -7,10 +7,10 @@ calculations in parallel using :doc:`libEnsemble<../quickstart>` with Python's M
 
 The foundation of writing libEnsemble routines is accounting for four components:
 
-    1. The *Generator Function* :ref:`gen_f<api_gen_f>`, which produces values for simulations.
-    2. The *Simulator Function* :ref:`sim_f<api_sim_f>`, which performs simulations based on values from ``gen_f``.
-    3. The *Allocation Function* :ref:`alloc_f<api_alloc_f>`, which decides which of the previous two functions should be called, when.
-    4. The *Calling Script*, which defines parameters and information about these functions and the libEnsemble task, then begins execution.
+    1. The generator function :ref:`gen_f<api_gen_f>`, which produces values for simulations.
+    2. The simulator function :ref:`sim_f<api_sim_f>`, which performs simulations based on values from ``gen_f``.
+    3. The allocation function :ref:`alloc_f<api_alloc_f>`, which decides which of the previous two functions should be called, when.
+    4. The calling script, which defines parameters and information about these functions and the libEnsemble task, then begins execution.
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
 user requests. The manager coordinates data-transfer between workers and assigns each
@@ -66,15 +66,22 @@ function.
 
 An available libEnsemble worker will call this generator function with the following parameters:
 
-* :ref:`H<datastruct-history-array>`: The History array. Updated by the workers with ``gen_f`` and ``sim_f`` inputs and outputs, then returned to the user. libEnsemble passes ``H`` to the generator function in case the user wants to generate new values based on previous data.
+* :ref:`H<datastruct-history-array>`: The History array. Updated by the workers
+  with ``gen_f`` and ``sim_f`` inputs and outputs, then returned to the user.
+  libEnsemble passes ``H`` to the generator function in case the user wants to
+  generate new values based on previous data.
 
-* :ref:`persis_info<datastruct-persis-info>`: Dictionary with worker-specific information. In our case this dictionary contains mechanisms called random streams for generating random numbers.
+* :ref:`persis_info<datastruct-persis-info>`: Dictionary with worker-specific
+  information. In our case this dictionary contains mechanisms called random
+  streams for generating random numbers.
 
-* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with ``gen_f`` specifications like simulation IDs, inputs and outputs, data-types, and other fields.
+* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with ``gen_f``
+  specifications like simulation IDs, inputs and outputs, data-types, and other
+  fields.
 
 Later on, we'll populate ``gen_specs`` and ``persis_info`` in our calling script.
 
-For now, create a new Python file named 'generator.py'. Write the following:
+For now, create a new Python file named ``generator.py``. Write the following:
 
 .. code-block:: python
     :linenos:
@@ -117,7 +124,7 @@ functions perform calculations based on values from the generator function.
 The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which serves
 a similar purpose to ``gen_specs``.
 
-Create a new Python file named 'simulator.py'. Write the following:
+Create a new Python file named ``simulator.py``. Write the following:
 
 .. code-block:: python
     :linenos:
@@ -148,7 +155,7 @@ Calling Script
 Now we can write the calling script that configures our generator and simulator
 functions and calls libEnsemble.
 
-Create an empty Python file named 'calling_script.py'.
+Create an empty Python file named ``calling_script.py``.
 In this file, we'll start by importing NumPy, libEnsemble, and the generator and
 simulator functions we just created.
 
@@ -159,7 +166,6 @@ use. Our communication method, 'local', refers to Python's Multiprocessing.
 .. code-block:: python
     :linenos:
 
-    import numpy as np
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
@@ -213,7 +219,7 @@ This :ref:`H<datastruct-history-array>` is the final version of the History arra
     :linenos:
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                              libE_specs=libE_specs)
+                                libE_specs=libE_specs)
 
     print([i for i in H.dtype.fields])            # Some (optional) statements to visualize our History array
     print(H)
@@ -302,7 +308,7 @@ Modifying the Calling Script
 """"""""""""""""""""""""""""
 
 Only a few changes are necessary to make our code MPI-compatible. Modify the top
-of the Calling Script as follows:
+of the calling script as follows:
 
 .. code-block:: python
     :linenos:
@@ -321,14 +327,14 @@ of the Calling Script as follows:
     is_master = (MPI.COMM_WORLD.Get_rank() == 0)    # master process has MPI rank 0
 
 So that only one process executes the graphing and printing portion of our code,
-modify the bottom of the Calling Script like this:
+modify the bottom of the calling script like this:
 
 .. code-block:: python
   :linenos:
   :emphasize-lines: 4
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+                                libE_specs=libE_specs)
 
     if is_master:
 
@@ -339,15 +345,15 @@ modify the bottom of the Calling Script like this:
         colors = ['b', 'g', 'r', 'y', 'm', 'c', 'k', 'w']
 
         for i in range(1, nworkers + 1):
-          worker_xy = np.extract(H['sim_worker'] == i, H)
-          x = [entry.tolist()[0] for entry in worker_xy['x']]
-          y = [entry for entry in worker_xy['y']]
-          plt.scatter(x, y, label='Worker {}'.format(i), c=colors[i-1])
+            worker_xy = np.extract(H['sim_worker'] == i, H)
+            x = [entry.tolist()[0] for entry in worker_xy['x']]
+            y = [entry for entry in worker_xy['y']]
+            plt.scatter(x, y, label='Worker {}'.format(i), c=colors[i-1])
 
         plt.title('Sine calculations for a uniformly sampled random distribution')
         plt.xlabel('x')
         plt.ylabel('sine(x)')
-        plt.legend(loc = 'lower right')
+        plt.legend(loc='lower right')
         plt.show()
 
 With these changes in place, our libEnsemble code can be run with MPI by:
