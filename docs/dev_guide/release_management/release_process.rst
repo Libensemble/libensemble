@@ -1,12 +1,15 @@
 Release Process
 ===============
 
-This document details the current release process for libEnsemble. A release can only be undertaken by a project administrator. A project administrator should have an administrator role on the libEnsemble github,  PyPI and readthedocs pages.
+This document details the current release process for libEnsemble. A release
+can only be undertaken by a project administrator. A project administrator
+should have an administrator role on the libEnsemble GitHub, PyPI, and
+readthedocs pages.
 
 Before release
 --------------
 
-- A github issue is created with a checklist for the release.
+- A GitHub issue is created with a checklist for the release.
 
 - A release branch should be taken off develop (or develop pulls controlled).
 
@@ -43,7 +46,7 @@ An administrator will take the following steps.
 
 - Once CI tests have passed on master.
 
-  - A github release will be taken from the master (:ref:`github release<rel-github>`).
+  - A GitHub release will be taken from the master (:ref:`github release<rel-github>`).
 
   - A tarball (source distribution) will be uploaded to PyPI (:ref:`PyPI release<rel-pypi>`).
 
@@ -56,4 +59,4 @@ An administrator will take the following steps.
 After release
 -------------
 
-- Ensure all relevant github issues are closed and moved to the *Done* column on the kanban project board (inc. the release checklist).
+- Ensure all relevant GitHub issues are closed and moved to the *Done* column on the kanban project board (inc. the release checklist).

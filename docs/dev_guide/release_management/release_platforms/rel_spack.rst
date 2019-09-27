@@ -9,13 +9,13 @@ Introduction
 This assumes you have already:
 
  - Made a PyPI package for new version of libensemble
- - Made a github fork of Spack and cloned it to your local system.
+ - Made a GitHub fork of Spack and cloned it to your local system.
 
 Details on how to create forks can be found at: https://help.github.com/articles/fork-a-repo
 
 You now have a configuration like shown in answer at: https://stackoverflow.com/questions/6286571/are-git-forks-actually-git-clones
 
-Upstream, in this case, is the official Spack repository on github. Origin is your fork on github and Local Machine is your local clone (from your fork).
+Upstream, in this case, is the official Spack repository on GitHub. Origin is your fork on GitHub and Local Machine is your local clone (from your fork).
 
 
 Make sure SPACK_ROOT is set and spack binary is in your path::
@@ -67,7 +67,7 @@ Or to make your local machine identical to upstream repo (**WARNING** Any local 
     git reset --hard upstream/develop
 
 
-(Optional) You may want to update your forked (origin) repo on github at this point.
+(Optional) You may want to update your forked (origin) repo on GitHub at this point.
 This may requires a forced push::
 
     git push origin develop --force
@@ -113,7 +113,7 @@ If OK add, commit and push to origin (forked repo)::
      git commit -am "Update libensemble"
      git push origin update_libensemble --force
 
-Once the branch is pushed to the forked repo - go to github and do a pull request from this
+Once the branch is pushed to the forked repo - go to GitHub and do a pull request from this
 branch on the fork to the develop branch on the upstream.
 
 
