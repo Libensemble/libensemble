@@ -142,18 +142,18 @@ error.
 macOS - Firewall prompts
 ------------------------
 
-**macOS - System constantly prompts Firewall Security Permission windows throughout execution**
+**macOS - Constant Firewall Security permission windows throughout Job Controller task**
 
 
-There are several ways to address this nuisance. One easy (but insecure) solution is
-temporarily disabling the Firewall through System Preferences -> Security & Privacy
--> Firewall -> Turn Off Firewall. Alternatively, adding a Firewall "Allow incoming
-connections" rule can be tried for the offending Python installations,
-but this may not prevent the prompts and only clear them shortly after appearing.
-Finally, `Signing your Python installation with a self-signed certificate`_ may
-be effective.
+There are several ways to address this nuisance, but all involve trial and error.
+One easy (but insecure) solution is temporarily disabling the Firewall through System Preferences
+-> Security & Privacy -> Firewall -> Turn Off Firewall. Alternatively, adding a Firewall "Allow incoming
+connections" rule can be tried for the offending Job Controller executable.
+Based on a suggestion from here here_, we've had the most success running
+``sudo codesign --force --deep --sign - /path/to/application.app`` on our Job Controller executables,
+then confirming the next alerts for the executable and ``mpiexec.hydra``.
 
-.. _`Signing your Python installation with a self-signed certificate`: https://coderwall.com/p/5b_apq/stop-mac-os-x-firewall-from-prompting-with-python-in-virtualenv
+.. _`here`: https://coderwall.com/p/5b_apq/stop-mac-os-x-firewall-from-prompting-with-python-in-virtualenv
 
 
 Running out of contexts when running libEnsemble in distributed mode on TMI fabric
