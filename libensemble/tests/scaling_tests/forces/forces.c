@@ -2,16 +2,16 @@
     Naive Electostatics Code Example
     This is designed only as an artificial, highly conifurable test
     code for a libEnsemble sim func.
-    
+
     Particles position and charge are initiated by a random stream.
-    Particles are replicated on all ranks. 
+    Particles are replicated on all ranks.
     Each rank computes forces for a subset of particles.
     Particle force arrays are allreduced across ranks.
-    
+
     Run executable on N procs:
-    
+
     mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS>
-    
+
     Author: S Hudson.
 -------------------------------------------------------------------- */
 
@@ -36,20 +36,20 @@ typedef struct particle {
     double p[3]; // Particle position
     double f[3]; // Particle force
     double q;    // Particle charge
-} particle;  
+} particle;
 
 
 // Seed RNG
 int seed_rand(int seed) {
-    srand(seed);    
+    srand(seed);
     return 0;
 }
 
 // Return a random number from a persistent stream
 //TODO Use parallel RNG - As replicated data can currently do on master rank.
 double get_rand() {
-    double randnum;              
-    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)    
+    double randnum;
+    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)
     return randnum;
 }
 
@@ -60,7 +60,7 @@ int build_system(int n, particle* parr) {
     int q_range_high = 10;
     double extent = 10.0;
     int i, dim;
-    
+
     for(i=0; i<n; i++) {
         for(dim=0; dim<3; dim++) {
             parr[i].p[dim] = get_rand()*extent;
@@ -78,7 +78,7 @@ int init_forces(int lower, int upper, particle* parr) {
     for(i=lower; i<upper; i++) {
         for(dim=0; dim<3; dim++) {
             parr[i].f[dim] = 0.0;
-        }        
+        }
     }
     return 0;
 }
@@ -87,12 +87,12 @@ int init_forces(int lower, int upper, particle* parr) {
 // Electostatics pairwise forces kernel (O(N^2))
 // No Eq/Opp - no reduction required (poss adv on fine-grained parallel arch).
 double forces_naive(int n, int lower, int upper, particle* parr) {
-    
+
     int i,j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
-    for(i=lower; i<upper; i++) {          
+    for(i=lower; i<upper; i++) {
         for(j=0; j<n; j++){
             if (i==j) {
                 continue;
@@ -108,7 +108,7 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
             parr[i].f[0] += dx * force;
             parr[i].f[1] += dy * force;
             parr[i].f[2] += dz * force;
-            
+
             ret += 0.5 * force;
         }
     }
@@ -119,13 +119,13 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
 // Electostatics pairwise forces kernel (O(N^2))
 // Triangle loop structure (eq/opp)
 double forces_eqopp(int n, int lower, int upper, particle* parr) {
-    
+
     int i,j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
     for(i=lower; i<upper; i++) {
-        for(j=i+1; j<n; j++) {    
+        for(j=i+1; j<n; j++) {
 
             dx = parr[i].p[0] - parr[j].p[0];
             dy = parr[i].p[1] - parr[j].p[1];
@@ -134,7 +134,7 @@ double forces_eqopp(int n, int lower, int upper, particle* parr) {
 
             //ret += parr[i].q * parr[j].q / r;
             force = parr[i].q * parr[j].q / (r*r);
-        
+
             parr[i].f[0] += dx * force;
             parr[i].f[1] += dy * force;
             parr[i].f[2] += dz * force;
@@ -142,7 +142,7 @@ double forces_eqopp(int n, int lower, int upper, particle* parr) {
             parr[j].f[0] -= dx * force;
             parr[j].f[1] -= dy * force;
             parr[j].f[2] -= dz * force;
-            
+
             ret += force;
         }
     }
@@ -179,23 +179,23 @@ int print_particles(int n, particle* parr) {
     printf("\nPrinting %d particles:\n", n);
 
     for(i=0; i<n; i++) {
-        printf("Point %4d: ",i); 
-        
+        printf("Point %4d: ",i);
+
         // Positions
         x = parr[i].p[0];
         y = parr[i].p[1];
         z = parr[i].p[2];
         printf("Pos (%6.3f, %6.3f, %6.3f)", x, y, z);
-        
+
         // Forces
         x = parr[i].f[0];
         y = parr[i].f[1];
-        z = parr[i].f[2];        
+        z = parr[i].f[2];
         printf("   Forces (%7.3f, %7.3f, %7.3f)", x, y, z);
         printf("   Charge: %.2f\n", parr[i].q);
     }
     return 0;
-} 
+}
 
 
 int print_step_summary(int step, double total_en,
@@ -211,8 +211,8 @@ int print_step_summary(int step, double total_en,
 int open_stat_file() {
     stat_fp = fopen("forces.stat", "w");
     if(stat_fp == NULL) {
-        printf("Error opening statfile");   
-        return 1;             
+        printf("Error opening statfile");
+        return 1;
     }
     fflush(stat_fp);
     return 0;
@@ -239,7 +239,7 @@ int pack_forces(int n, particle* parr, double forces[][3]) {
     int i, dim;
     for(i=0; i<n; i++) {
         for(dim=0; dim<3; dim++) {
-            forces[i][dim] = parr[i].f[dim]; 
+            forces[i][dim] = parr[i].f[dim];
         }
     }
     return 0;
@@ -249,9 +249,9 @@ int unpack_forces(int n, particle* parr, double forces[][3]) {
     int i, dim;
     for(i=0; i<n; i++) {
         for(dim=0; dim<3; dim++) {
-            parr[i].f[dim] = forces[i][dim]; 
+            parr[i].f[dim] = forces[i][dim];
         }
-    }    
+    }
     return 0;
 }
 
@@ -275,12 +275,12 @@ int test_badrun(double rate) {
 
 
 int main(int argc, char **argv) {
-    
+
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
     double kill_rate = 0; // default proportion of jobs to kill
-    
+
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
     double compute_forces_time, comms_time, total_time;
@@ -288,90 +288,90 @@ int main(int argc, char **argv) {
     double local_en, total_en;
     double step_survival_rate;
     int badrun = 0;
-    
+
     if (argc >=2) {
         num_particles = atoi(argv[1]); // no. of particles
     }
-    
+
     if (argc >=3) {
         num_steps = atoi(argv[2]); // no. of timesteps
     }
-    
+
     if (argc >=4) {
         rand_seed = atoi(argv[3]); // RNG seed
         seed_rand(rand_seed);
     }
-    
+
     if (argc >=5) {
         kill_rate = atof(argv[4]); // Proportion of jobs to kill
         step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     }
-    
+
     particle* parr = malloc(num_particles * sizeof(particle));
     build_system(num_particles, parr);
     //printf("\n");
-    
+
     ierr = MPI_Init(&argc, &argv);
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
-    
+
     if (rank == 0) {
         printf("Particles: %d\n",num_particles);
         printf("Timesteps: %d\n",num_steps);
         printf("MPI Ranks: %d\n",num_procs);
         printf("Random seed: %d\n",rand_seed);
     }
-    
+
     k = num_particles / num_procs;
     m = num_particles % num_procs; //Remainder = no. procs with extra particle
     p_lower = rank * k + min(rank, m);
     p_upper = (rank + 1) * k + min(rank + 1, m);
     local_n = p_upper - p_lower;
-    
+
     if (PRINT_PARTICLE_DECOMP) {
         MPI_Barrier(MPI_COMM_WORLD);
         printf("Proc: %d has %d particles\n", rank, local_n);
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    fflush(stdout); 
+    fflush(stdout);
 
     if (rank == 0) {
         open_stat_file();
     }
 
-    start = clock();    
+    start = clock();
     for (step=0; step<num_steps; step++) {
-        
+
         compute_start = clock();
-        
+
         init_forces(0, num_particles, parr); // Whole array
-        
+
         local_en = forces_naive(num_particles, p_lower, p_upper, parr);
         //local_en = forces_eqopp(num_particles, p_lower, p_upper, parr);
-        
+
         compute_forces_time = (double)(clock() - compute_start)/CLOCKS_PER_SEC;
-        
+
         // Note: Will need to add barrier to get pure comms time
         comms_start = clock();
-        
+
         // Now allreduce forces and update particle positions on master
-        
+
         // Forces array reduction
-        comm_forces(num_particles, parr);       
+        comm_forces(num_particles, parr);
 
         // Scalar reduce energy
         MPI_Allreduce(&local_en, &total_en, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
         comms_time = (double)(clock() - comms_start)/CLOCKS_PER_SEC;
-        
+
         // Update positions globally (each rank replicates)
         move_particles(0, num_particles, parr);
-        
+
         if (!badrun) {
             badrun = test_badrun(step_survival_rate);
         }
-        
-        
+
+
         if (rank == 0) {
             print_step_summary(step, total_en, compute_forces_time, comms_time);
             if (badrun) {
@@ -382,11 +382,11 @@ int main(int argc, char **argv) {
             }
         }
     }
-    
+
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD);
     total_time = (double)(clock() - start)/CLOCKS_PER_SEC;
-    
+
     if (rank == 0) {
         printf("\nFinal total %f after total time of %.3f seconds.",total_en, total_time);
         if (badrun) {
@@ -405,6 +405,6 @@ int main(int argc, char **argv) {
         close_stat_file();
     }
     free(parr); //todo - prob do in teardown routine.
-    ierr = MPI_Finalize();   
+    ierr = MPI_Finalize();
     return 0;
 }

@@ -25,7 +25,7 @@ export LIBE_WALLCLOCK=25
 export WORKFLOW_NAME=libe_workflow #sh - todo - may currently be hardcoded to this in libE - allow user to specify
 
 #Tell libE manager to stop workers, dump timing.dat and exit after this time. Script must be set up to receive as argument.
-export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-5)) 
+export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-5))
 # export SCRIPT_ARGS='' #Default No args
 
 # Name of Conda environment (Need to have set up: https://balsam.alcf.anl.gov/quick/quickstart.html)
@@ -95,7 +95,7 @@ if [[ $LIBE_PLOTS = "true" ]]; then
 
 if [[ $BALSAM_PLOTS = "true" ]]; then
 #   export MPLBACKEND=TkAgg
-  python $PLOT_DIR/plot_util_v_time.py  
+  python $PLOT_DIR/plot_util_v_time.py
   python $PLOT_DIR/plot_jobs_v_time.py
   python $PLOT_DIR/plot_waiting_v_time.py
 fi

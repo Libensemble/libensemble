@@ -10,6 +10,6 @@ must be provided. The required API and examples are given here.
 .. toctree::
    :maxdepth: 2
    :caption: libEnsemble User Functions:
-   
+
    sim_gen_alloc_funcs
    examples/examples_index

@@ -13,7 +13,7 @@ given in the ".flake8" configuration file in the project directory.
 Issues can be raised at:
 
     https://github.com/Libensemble/libensemble/issues
-    
+
 Issues may include reporting bugs or suggested features. Administrators
 will add issues, as appropriate, to the project board at:
 

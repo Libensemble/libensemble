@@ -67,7 +67,7 @@ with open(infile) as f:
                     append_to_list(in_times_kill,in_times,found_time) # Assumes Time comes first
                 elif search_for_keyword(lst[i+1:len(lst)], run_exception):
                     exceptions = True
-                    append_to_list(in_times_exception,in_times,found_time) # Assumes Time comes first                
+                    append_to_list(in_times_exception,in_times,found_time) # Assumes Time comes first
                 else:
                     print('Error: Unkown status - rest of line: {}'.format(lst[i+1:len(lst)]))
                     sys.exit()
@@ -98,8 +98,8 @@ if sim_only:
     calc_type = 'sim'
 else:
     calc_type = 'calc'
-    
-title = 'libEnsemble histogram of ' + calc_type  + ' times' + ' (' + str(active_line_count) + ' user calcs)'  +  str(num_bins) + ' bins'   
+
+title = 'libEnsemble histogram of ' + calc_type  + ' times' + ' (' + str(active_line_count) + ' user calcs)'  +  str(num_bins) + ' bins'
 
 plt.title(title)
 plt.xlabel('Calc run-time (sec)')

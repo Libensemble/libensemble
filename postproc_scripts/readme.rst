@@ -4,7 +4,7 @@ Timing analysis scripts
 
 Note that all plotting scripts produce a file rather than opening a plot interactively.
 
-The following scripts must be run in the directory with the **libE_stats.txt** file. They extract and plot information from that file.  
+The following scripts must be run in the directory with the **libE_stats.txt** file. They extract and plot information from that file.
 
 * **plot_libe_calcs_util_v_time.py**: Extract worker utilization v time plot (with one second sampling). Shows number of workers running user sim or gen functions over time.
 

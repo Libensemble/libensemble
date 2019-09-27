@@ -22,7 +22,7 @@ Build the C program:
 Either run on local node - or create an allocation of nodes and run::
 
     python killtest.py <kill_type> <num_nodes> <num_procs_per_node>
-    
+
 where kill_type currently is 1 or 2. [1. is the original kill - 2. is using group ID approach]
 
 E.g Single node with 4 processes:
@@ -40,5 +40,3 @@ kill 2: python killtest.py 2 2 2
 If the test fails, an assertion error will occur.
 
 Output files are produced out_0.txt and out_1.txt (one for each job). These can be deleted between runs.
-
-

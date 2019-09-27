@@ -13,7 +13,7 @@ is a randon number generator to be used in consecutive calls to a generator.
 
 If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``. This functionality
 can be used to, for example, pass a random stream back to the manager to be included in future work
-from the allocation function. 
+from the allocation function.
 
 :Examples:
 
@@ -24,4 +24,3 @@ From: libEnsemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MAA.py::
 
     for i in range(MPI.COMM_WORLD.Get_size()):
         persis_info[i] = {'rand_stream': np.random.RandomState(i)} # used as a random number stream for each worker
-

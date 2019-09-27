@@ -11,17 +11,17 @@ code for a libEnsemble sim func.
 A system of charged particles is set up and simulated over a number of time-steps.
 
 Particles position and charge are initiated by a random stream.
-Particles are replicated on all ranks. 
+Particles are replicated on all ranks.
 **Each rank** computes forces for a subset of particles (O(N^2))
 Particle force arrays are allreduced across ranks.
 Particles are moved (replicated on each rank)
 Total energy is appended to file forces.stat
 
 To run forces as a standalone executable on N procs:
-    
+
     mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS> <SEED>
 
-    
+
 ### Running with libEnsemble.
 
 A random sample of seeds is taken and used as imput to the sim func (forces miniapp).
@@ -61,33 +61,33 @@ While the key output files will be copied back to the run dir at completion. Als
 the log in `<DIR>/log` if there are any issues. To run on batch systems, see the example
 scripts such as `theta_submit_balsam.sh`.
 
-    
+
 ### Using batch scripts
 
 The scripts are set up assuming a conda environment. To use script directly you will need to replace the following templated values:
 
-	<projectID> in the COBALT -A directive with your project ID.
+  <projectID> in the COBALT -A directive with your project ID.
 
-	<conda_env_name> is the name of your conda environment.
+  <conda_env_name> is the name of your conda environment.
 
 and in Balsam scripts:
 
-	<dbase_name> The name of an initialized balsam database.
-	             (with max_connections enough for number of workers)
+  <dbase_name> The name of an initialized balsam database.
+               (with max_connections enough for number of workers)
 
 The included scripts are.
 
 * theta_submit_mproc.sh:
 
-	Example Theta submission script to run libEnsemble in central mode on the Theta launch (MOM) nodes with multiprocessing worker concurrency.
+  Example Theta submission script to run libEnsemble in central mode on the Theta launch (MOM) nodes with multiprocessing worker concurrency.
 
 * summit_submit_mproc.sh:
 
-	Example Summit submission script to run libEnsemble in central mode on the Summit launch nodes with multiprocessing worker concurrency.
+  Example Summit submission script to run libEnsemble in central mode on the Summit launch nodes with multiprocessing worker concurrency.
 
 * theta_submit_balsam.sh:
 
-	Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit jobs via Balsam.
+  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit jobs via Balsam.
 
 #### Plotting Options
 
