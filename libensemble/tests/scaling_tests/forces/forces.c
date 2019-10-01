@@ -2,19 +2,19 @@
     Naive Electostatics Code Example
     This is designed only as an artificial, highly conifurable test
     code for a libEnsemble sim func.
-    
+
     Particles position and charge are initiated by a random stream.
     Particles are replicated on all ranks. 
     Each rank computes forces for a subset of particles.
     Particle force arrays are allreduced across ranks.
-    
+
     Sept 2019: 
     Added OpenMP options for CPU and GPU. Toggle in forces_naive function.
-    
+
     Run executable on N procs:
-    
+
     mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS>
-    
+
     Author: S Hudson.
 -------------------------------------------------------------------- */
 
@@ -39,8 +39,8 @@ static FILE* stat_fp;
 
 // Return elapsed wall clock time from start/end timevals
 double elapsed(struct timeval *tv1, struct timeval *tv2) {
-    return (double)(tv2->tv_usec - tv1->tv_usec) / 1000000 
-    + (double)(tv2->tv_sec - tv1->tv_sec);  
+    return (double)(tv2->tv_usec - tv1->tv_usec) / 1000000
+    + (double)(tv2->tv_sec - tv1->tv_sec);
 }
 
 // Print from each thread.
@@ -64,7 +64,7 @@ typedef struct particle {
     double p[3]; // Particle position
     double f[3]; // Particle force
     double q;    // Particle charge
-}__attribute__((__packed__)) particle;  
+}__attribute__((__packed__)) particle;
 
 
 // Seed RNG
@@ -125,12 +125,12 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
     #pragma omp target teams distribute parallel for \
                 map(to: lower,upper,n) map(tofrom: parr[0:n]) \
                 reduction(+: ret) //thread_limit(128) //*/
-                
+
     // For CPU
     //*
     #pragma omp parallel for default(none) shared(n,lower,upper,parr) \
                              private(i,j,dx,dy,dz,r,force) \
-                             reduction(+:ret)  //*/                
+                             reduction(+:ret)  //*/
     for(i=lower; i<upper; i++) {
         for(j=0; j<n; j++){
             if (i==j) {
@@ -314,67 +314,66 @@ int test_badrun(double rate) {
 
 
 int main(int argc, char **argv) {
-    
+
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
     double kill_rate = 0; // default proportion of jobs to kill
-    
+
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
     double compute_forces_time, comms_time, total_time;
-//     clock_t start, compute_start, comms_start;
     struct timeval tstart, tend;
     struct timeval compute_start, compute_end;
     struct timeval comms_start, comms_end;
-    
+
     double local_en, total_en;
     double step_survival_rate;
     int badrun = 0;
-    
+
     if (argc >=2) {
-        num_particles = atoi(argv[1]); // no. of particles
+        num_particles = atoi(argv[1]); // No. of particles
     }
-    
+
     if (argc >=3) {
-        num_steps = atoi(argv[2]); // no. of timesteps
+        num_steps = atoi(argv[2]); // No. of timesteps
     }
-    
+
     if (argc >=4) {
         rand_seed = atoi(argv[3]); // RNG seed
         seed_rand(rand_seed);
     }
-    
+
     if (argc >=5) {
         kill_rate = atof(argv[4]); // Proportion of jobs to kill
         step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     }
-    
+
     particle* parr = malloc(num_particles * sizeof(particle));
     build_system(num_particles, parr);
     //printf("\n");
-    
+
     ierr = MPI_Init(&argc, &argv);
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
-    
+
     if (rank == 0) {
         printf("Particles: %d\n",num_particles);
         printf("Timesteps: %d\n",num_steps);
         printf("MPI Ranks: %d\n",num_procs);
         printf("Random seed: %d\n",rand_seed);
     }
-    
+
     if (CHECK_THREADS) {
         check_threads(rank);
     }
 
     k = num_particles / num_procs;
-    m = num_particles % num_procs; //Remainder = no. procs with extra particle
+    m = num_particles % num_procs; // Remainder = no. procs with extra particle
     p_lower = rank * k + min(rank, m);
     p_upper = (rank + 1) * k + min(rank + 1, m);
     local_n = p_upper - p_lower;
-    
+
     if (PRINT_PARTICLE_DECOMP) {
         MPI_Barrier(MPI_COMM_WORLD);
         printf("Proc: %d has %d particles\n", rank, local_n);
@@ -388,39 +387,39 @@ int main(int argc, char **argv) {
 
     gettimeofday(&tstart, NULL);
     for (step=0; step<num_steps; step++) {
-        
+
         gettimeofday(&compute_start, NULL);
-        
+
         init_forces(0, num_particles, parr); // Whole array
-        
+
         local_en = forces_naive(num_particles, p_lower, p_upper, parr);
         //local_en = forces_eqopp(num_particles, p_lower, p_upper, parr);
 
         gettimeofday(&compute_end, NULL);
         compute_forces_time = elapsed(&compute_start, &compute_end);
-        
+
         // Note: Will need to add barrier to get pure comms time
         gettimeofday(&comms_start, NULL);
-        
+
         // Now allreduce forces and update particle positions on master
-        
+
         // Forces array reduction
-        comm_forces(num_particles, parr);       
+        comm_forces(num_particles, parr);
 
         // Scalar reduce energy
         MPI_Allreduce(&local_en, &total_en, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
         gettimeofday(&comms_end, NULL);
         comms_time = elapsed(&comms_start, &comms_end);
-        
+
         // Update positions globally (each rank replicates)
         move_particles(0, num_particles, parr);
-        
+
         if (!badrun) {
             badrun = test_badrun(step_survival_rate);
         }
-        
-        
+
+
         if (rank == 0) {
             print_step_summary(step, total_en, compute_forces_time, comms_time);
             if (badrun) {
@@ -431,12 +430,12 @@ int main(int argc, char **argv) {
             }
         }
     }
-    
+
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD);
     gettimeofday(&tend, NULL);
     total_time = elapsed(&tstart, &tend);
-    
+
     if (rank == 0) {
         printf("\nFinal total %f after total time of %.3f seconds.",total_en, total_time);
         if (badrun) {
@@ -455,6 +454,6 @@ int main(int argc, char **argv) {
         close_stat_file();
     }
     free(parr); //todo - prob do in teardown routine.
-    ierr = MPI_Finalize();   
+    ierr = MPI_Finalize();
     return 0;
 }
