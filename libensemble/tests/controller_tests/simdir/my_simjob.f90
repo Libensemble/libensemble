@@ -17,21 +17,21 @@ program hello_fortran
   use mpi
   use, intrinsic :: iso_c_binding, only: c_int
   use Fortran_Sleep
-  
+
   implicit none
-  
+
   integer (kind = 4) :: err
   integer (kind = 4) :: rank
   integer (kind = 4) :: nprocs
   character(len=32)  :: arg
-  character(len=32)  :: arglist(2) 
+  character(len=32)  :: arglist(2)
   integer (c_int)    :: delay,dummy
   integer            :: i
-  
+
   delay=5
   dummy = FortSleep(delay)
- 
-  
+
+
   !init in case get no args
   DO i = 1, 2
     arglist(i) = "None"
@@ -41,15 +41,15 @@ program hello_fortran
     CALL getarg(i, arg)
     arglist(i) = arg
   END DO
-  
+
   call mpi_init(err)
   call mpi_comm_size (MPI_COMM_WORLD, nprocs, err)
   call mpi_comm_rank (MPI_COMM_WORLD, rank, err)
-  
-  
+
+
 
   write(*,100) rank, nprocs, trim(arglist(1)), trim(arglist(2))
-  
+
   call MPI_Finalize (err)
 
   100 FORMAT('Hello World from proc: ',i3,' of',i3,'  arg1: ',a,'  arg2: ',a)

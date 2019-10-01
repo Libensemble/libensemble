@@ -3,9 +3,9 @@
 #SBATCH -N 4
 #SBATCH -p knlall
 ##SBATCH -A <my_project>
-#SBATCH -o tlib.%j.%N.out 
-#SBATCH -e tlib.%j.%N.error 
-#SBATCH -t 01:00:00 
+#SBATCH -o tlib.%j.%N.out
+#SBATCH -e tlib.%j.%N.error
+#SBATCH -t 01:00:00
 
 #Launch script that evenly spreads workers and adds manager to the first node.
 #Requires even distribution - either multiple workers per node or nodes per worker
@@ -43,7 +43,7 @@ fi;
 #---------------------------------------------------------------------------------------------
 #Test
 echo -e "Slurm job ID: $SLURM_JOBID"
- 	
+
 #cd $PBS_O_WORKDIR
 cd $SLURM_SUBMIT_DIR
 
@@ -56,7 +56,7 @@ srun hostname | sort -u > node_list
 
 #Generate list of nodes for workers
 if [[ $MANAGER_NODE = "true" ]]; then
-  tail -n +2 node_list > worker_list  
+  tail -n +2 node_list > worker_list
 else
   cp node_list worker_list
 fi
@@ -79,9 +79,9 @@ export SLURM_HOSTFILE=machinefile.$SLURM_JOBID
 # cmd="srun --ntasks $(($NUM_WORKERS+1)) -m arbitrary python $EXE"
 cmd="srun --ntasks $(($NUM_WORKERS+1)) -m arbitrary python $EXE $LIBE_WALLCLOCK"
 
-echo The command is: $cmd 
-echo End PBS script information. 
-echo All further output is from the process being run and not the pbs script.\n\n $cmd # Print the date again -- when finished 
+echo The command is: $cmd
+echo End PBS script information.
+echo All further output is from the process being run and not the pbs script.\n\n $cmd # Print the date again -- when finished
 
 $cmd
 

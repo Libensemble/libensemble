@@ -21,7 +21,7 @@ export EXE=run_libe_forces.py
 # Wallclock for libE. Slightly smaller than job wallclock
 #export LIBE_WALLCLOCK=15 # Optional if pass to script
 
-# Name of Conda environment 
+# Name of Conda environment
 export CONDA_ENV_NAME=<conda_env_name>
 
 export LIBE_PLOTS=true # Require plot scripts in $PLOT_DIR (see at end)
@@ -38,13 +38,13 @@ export PYTHONNOUSERSITE=1
 # hash -d python # Check pick up python in conda env
 hash -r # Check no commands hashed (pip/python...)
 
-# Launch libE. 
+# Launch libE.
 #python $EXE $NUM_WORKERS $LIBE_WALLCLOCK > out.txt 2>&1
 #python $EXE $NUM_WORKERS > out.txt 2>&1
 python $EXE > out.txt 2>&1
 
 if [[ $LIBE_PLOTS = "true" ]]; then
   python $PLOT_DIR/plot_libe_calcs_util_v_time.py
-  python $PLOT_DIR/plot_libe_runs_util_v_time.py  
+  python $PLOT_DIR/plot_libe_runs_util_v_time.py
   python $PLOT_DIR/plot_libE_histogram.py
 fi

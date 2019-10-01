@@ -7,17 +7,17 @@ Generation function specifications to be set in user calling script and passed t
 
     gen_specs: [dict]:
 
-        Required keys :     
-        
-        'gen_f' [func] : 
+        Required keys :
+
+        'gen_f' [func] :
             generates inputs to sim_f
-        'in' [list] : 
+        'in' [list] :
             field names (as strings) that will be given to gen_f
         'out' [list of tuples (field name, data type, [size])] :
             gen_f outputs that will be stored in the libEnsemble history
-            
+
         Optional keys :
-    
+
         'save_every_k' [int] :
             Save history array to file after every k generated points.
 

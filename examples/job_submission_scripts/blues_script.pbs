@@ -24,7 +24,7 @@
 # Specify CPU time needed
 #PBS -l walltime=0:01:00
 
-# Select queue 
+# Select queue
 ##PBS -q haswell
 ##PBS -q biggpu
 ##PBS -q ivy
@@ -46,7 +46,7 @@ echo This job has allocated $NPROCS cores
 rm libE_machinefile
 # Parse the PBS_NODEFILE to a machinefile (to be used below) in order to put
 # ranks 1-4 on each of the 4 nodes, and put rank 0 (the manager) on the first
-# node as well. 
+# node as well.
 head -n 1 $PBS_NODEFILE > libE_machinefile
 cat $PBS_NODEFILE | sort | uniq >> libE_machinefile
 
@@ -57,11 +57,11 @@ echo Starting executation at: `date`
 pwd
 cmd="mpiexec -np 5 -machinefile libE_machinefile python2 libE_calling_script.py libE_machinefile"
 # This note that this command passes the libE_machinefile to both MPI and the
-# libE_calling_script, in the latter script, it can be parsed and given to the 
+# libE_calling_script, in the latter script, it can be parsed and given to the
 # alloc_func
 
 echo The command is: $cmd
-echo End PBS script information. 
+echo End PBS script information.
 echo All further output is from the process being run and not the pbs script.\n\n
 $cmd
 

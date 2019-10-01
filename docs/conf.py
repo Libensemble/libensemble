@@ -209,6 +209,3 @@ texinfo_documents = [
      author, 'libEnsemble', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-

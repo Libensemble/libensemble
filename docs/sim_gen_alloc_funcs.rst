@@ -124,4 +124,3 @@ Returns:
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
-
