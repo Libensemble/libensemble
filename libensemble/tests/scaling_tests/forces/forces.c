@@ -4,11 +4,11 @@
     code for a libEnsemble sim func.
 
     Particles position and charge are initiated by a random stream.
-    Particles are replicated on all ranks. 
+    Particles are replicated on all ranks.
     Each rank computes forces for a subset of particles.
     Particle force arrays are allreduced across ranks.
 
-    Sept 2019: 
+    Sept 2019:
     Added OpenMP options for CPU and GPU. Toggle in forces_naive function.
 
     Run executable on N procs:
@@ -69,15 +69,15 @@ typedef struct particle {
 
 // Seed RNG
 int seed_rand(int seed) {
-    srand(seed);    
+    srand(seed);
     return 0;
 }
 
 // Return a random number from a persistent stream
 //TODO Use parallel RNG - As replicated data can currently do on master rank.
 double get_rand() {
-    double randnum;              
-    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)    
+    double randnum;
+    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)
     return randnum;
 }
 
@@ -88,7 +88,7 @@ int build_system(int n, particle* parr) {
     int q_range_high = 10;
     double extent = 10.0;
     int i, dim;
-    
+
     for(i=0; i<n; i++) {
         for(dim=0; dim<3; dim++) {
             parr[i].p[dim] = get_rand()*extent;
@@ -106,7 +106,7 @@ int init_forces(int lower, int upper, particle* parr) {
     for(i=lower; i<upper; i++) {
         for(dim=0; dim<3; dim++) {
             parr[i].f[dim] = 0.0;
-        }        
+        }
     }
     return 0;
 }
@@ -115,7 +115,7 @@ int init_forces(int lower, int upper, particle* parr) {
 // Electostatics pairwise forces kernel (O(N^2))
 // No Eq/Opp - no reduction required (poss adv on fine-grained parallel arch).
 double forces_naive(int n, int lower, int upper, particle* parr) {
-    
+
     int i,j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
@@ -147,7 +147,7 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
             parr[i].f[0] += dx * force;
             parr[i].f[1] += dy * force;
             parr[i].f[2] += dz * force;
-            
+
             ret += 0.5 * force;
         }
     }
@@ -158,13 +158,13 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
 // Electostatics pairwise forces kernel (O(N^2))
 // Triangle loop structure (eq/opp)
 double forces_eqopp(int n, int lower, int upper, particle* parr) {
-    
+
     int i,j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
     for(i=lower; i<upper; i++) {
-        for(j=i+1; j<n; j++) {    
+        for(j=i+1; j<n; j++) {
 
             dx = parr[i].p[0] - parr[j].p[0];
             dy = parr[i].p[1] - parr[j].p[1];
@@ -173,7 +173,7 @@ double forces_eqopp(int n, int lower, int upper, particle* parr) {
 
             //ret += parr[i].q * parr[j].q / r;
             force = parr[i].q * parr[j].q / (r*r);
-        
+
             parr[i].f[0] += dx * force;
             parr[i].f[1] += dy * force;
             parr[i].f[2] += dz * force;
@@ -181,7 +181,7 @@ double forces_eqopp(int n, int lower, int upper, particle* parr) {
             parr[j].f[0] -= dx * force;
             parr[j].f[1] -= dy * force;
             parr[j].f[2] -= dz * force;
-            
+
             ret += force;
         }
     }
@@ -218,23 +218,23 @@ int print_particles(int n, particle* parr) {
     printf("\nPrinting %d particles:\n", n);
 
     for(i=0; i<n; i++) {
-        printf("Point %4d: ",i); 
-        
+        printf("Point %4d: ",i);
+
         // Positions
         x = parr[i].p[0];
         y = parr[i].p[1];
         z = parr[i].p[2];
         printf("Pos (%6.3f, %6.3f, %6.3f)", x, y, z);
-        
+
         // Forces
         x = parr[i].f[0];
         y = parr[i].f[1];
-        z = parr[i].f[2];        
+        z = parr[i].f[2];
         printf("   Forces (%7.3f, %7.3f, %7.3f)", x, y, z);
         printf("   Charge: %.2f\n", parr[i].q);
     }
     return 0;
-} 
+}
 
 
 int print_step_summary(int step, double total_en,
@@ -250,8 +250,8 @@ int print_step_summary(int step, double total_en,
 int open_stat_file() {
     stat_fp = fopen("forces.stat", "w");
     if(stat_fp == NULL) {
-        printf("Error opening statfile");   
-        return 1;             
+        printf("Error opening statfile");
+        return 1;
     }
     fflush(stat_fp);
     return 0;
@@ -278,7 +278,7 @@ int pack_forces(int n, particle* parr, double forces[][3]) {
     int i, dim;
     for(i=0; i<n; i++) {
         for(dim=0; dim<3; dim++) {
-            forces[i][dim] = parr[i].f[dim]; 
+            forces[i][dim] = parr[i].f[dim];
         }
     }
     return 0;
@@ -288,9 +288,9 @@ int unpack_forces(int n, particle* parr, double forces[][3]) {
     int i, dim;
     for(i=0; i<n; i++) {
         for(dim=0; dim<3; dim++) {
-            parr[i].f[dim] = forces[i][dim]; 
+            parr[i].f[dim] = forces[i][dim];
         }
-    }    
+    }
     return 0;
 }
 
@@ -379,7 +379,7 @@ int main(int argc, char **argv) {
         printf("Proc: %d has %d particles\n", rank, local_n);
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    fflush(stdout); 
+    fflush(stdout);
 
     if (rank == 0) {
         open_stat_file();

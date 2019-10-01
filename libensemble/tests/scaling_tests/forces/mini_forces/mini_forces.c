@@ -1,28 +1,28 @@
 /* --------------------------------------------------------------------
     Non-MPI, Single Step, Electostatics Code Example
-    
+
     This is a complete working example to test threading/vectorization
     without MPI or other non-trivial features.
-    
+
     E.g: gcc build and run on 2 threads on CPU:
-    
+
     gcc -O3 -fopenmp -o mini_forces.x mini_forces.c -lm
     export OMP_NUM_THREADS=2
     ./mini_forces.x
-    
+
     E.g: xlc build and run on GPU:
-    
+
     # First toggle #omp pragma line to target in forces_naive function.
     xlc_r -O3 -qsmp=omp -qoffload -o mini_forces_xlc_gpu.x mini_forces.c
     ./mini_forces.x
-    
+
     Functionality:
     Particles position and charge are initiated by a random stream.
     Computes forces for all particles. Note: This version uses
     parallel arrays to store the data (SoA).
-    
+
     OpenMP options for CPU and GPU. Toggle in forces_naive function.
-    
+
     Author: S Hudson.
 -------------------------------------------------------------------- */
 #include <stdlib.h>
@@ -36,14 +36,14 @@
 
 // Seed RNG
 int seed_rand(int seed) {
-    srand(seed);    
+    srand(seed);
     return 0;
 }
 
 // Return a random number from a persistent stream
 double get_rand() {
-    double randnum;              
-    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)    
+    double randnum;
+    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)
     return randnum;
 }
 
@@ -54,7 +54,7 @@ int build_system(int n, double* x, double* y, double* z, double* fx, double* fy,
     int q_range_high = 10;
     double extent = 10.0;
     int i;
-    
+
     for(i=0; i<n; i++) {
         x[i] = get_rand()*extent;
         y[i] = get_rand()*extent;
@@ -74,7 +74,7 @@ int init_forces(int lower, int upper, double* fx, double* fy, double* fz) {
     for(i=lower; i<upper; i++) {
         fx[i] = 0.0;
         fy[i] = 0.0;
-        fz[i] = 0.0;       
+        fz[i] = 0.0;
     }
     return 0;
 }
@@ -133,7 +133,7 @@ double forces_naive(int n,  double* x, double* y, double* z, double* fx, double*
             fx[i] += dx * force;
             fy[i] += dy * force;
             fz[i] += dz * force;
-            
+
             ret += 0.5 * force;
         }
     }
@@ -142,15 +142,15 @@ double forces_naive(int n,  double* x, double* y, double* z, double* fx, double*
     printf ("Time taken for loop (Wallclock) = %f seconds\n",
          (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec));
-   
+
     return ret;
 }
 
 
 int main(int argc, char **argv) {
-    
+
     int num_particles = NUM_PARTICLES;
-    double local_en;        
+    double local_en;
     double *pos_x   = malloc(num_particles * sizeof(double));
     double *pos_y   = malloc(num_particles * sizeof(double));
     double *pos_z   = malloc(num_particles * sizeof(double));
@@ -158,11 +158,11 @@ int main(int argc, char **argv) {
     double *force_y = malloc(num_particles * sizeof(double));
     double *force_z = malloc(num_particles * sizeof(double));
     double *charge  = malloc(num_particles * sizeof(double));
-    
+
     if (CHECK_THREADS) {
         check_threads();
     }
-    
+
     build_system(num_particles, pos_x, pos_y, pos_z, force_x, force_y, force_z, charge);
     init_forces(0, num_particles, force_x, force_y, force_z);
     local_en = forces_naive(num_particles, pos_x, pos_y, pos_z, force_x, force_y, force_z, charge);
