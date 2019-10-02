@@ -234,7 +234,7 @@ class MPIJobController(JobController):
             logger.info('runline args are {}'.format(runline))
         else:
             subgroup_launch = True
-            if self.mpi_launch_type in ['aprun']:
+            if self.mpi_launch_type in ['aprun', 'srun']:
                 subgroup_launch = False
 
             retry_count = 0
