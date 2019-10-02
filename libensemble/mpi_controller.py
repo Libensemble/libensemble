@@ -228,8 +228,7 @@ class MPIJobController(JobController):
             runline.extend(job.app_args.split())
 
         if test:
-            logger.info('Test selected: Not launching job')
-            logger.info('runline args are {}'.format(runline))
+            logger.info('Test (No launch) Runline: {}'.format(' '.join(runline)))
         else:
             subgroup_launch = True
             if self.mpi_launch_type in ['aprun']:
