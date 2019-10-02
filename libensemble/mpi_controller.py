@@ -89,7 +89,8 @@ class MPIJobController(JobController):
                       '-N {ranks_per_node}'],
             'jsrun': ['jsrun', '--np {num_procs}'],  # Need to add more
             'srun': ['srun', '-w {hostlist}', '-n {num_procs}',
-                     '--ntasks-per-node {ranks_per_node}']  # Need to add more
+                     '--nodes {num_nodes}',
+                     '--ntasks-per-node {ranks_per_node}']
         }
         self.mpi_launch_type = MPIResources.get_MPI_variant()
         self.mpi_command = mpi_commands[self.mpi_launch_type]
