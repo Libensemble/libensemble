@@ -506,7 +506,7 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
                 exit_code = 0
                 display_exception(e)
 
-        elif gen_specs['localopt_method'] in ['pounders']:
+        elif gen_specs['localopt_method'] in ['pounders', 'blmvm']:
 
             if c_flag:
                 Run_H_F = np.zeros(len(sorted_run_inds), dtype=[('fvec', float, gen_specs['components'])])
@@ -515,7 +515,10 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
                     Run_H_F['fvec'][i, :] = H['f_i'][a1]
                 Run_H = merge_arrays([H[['x_on_cube']][sorted_run_inds], Run_H_F], flatten=True)
             else:
-                Run_H = H[['x_on_cube', 'fvec']][sorted_run_inds]
+                if gen_specs['localopt_method'] == 'pounders':
+                    Run_H = H[['x_on_cube', 'fvec']][sorted_run_inds]
+                else:
+                    Run_H = H[['x_on_cube', 'f', 'grad']][sorted_run_inds]
 
             try:
                 x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
@@ -653,16 +656,15 @@ def set_up_and_run_tao(Run_H, gen_specs):
     """
     tao_comm = MPI.COMM_SELF
     n = len(gen_specs['ub'])
-    m = len(Run_H['fvec'][0])
 
     def pounders_obj_func(tao, X, F, Run_H):
-        F.array = look_in_history(X.array, Run_H, vector_return=True)
+        F.array = look_in_history(X.array_r, Run_H, vector_return=True)
         return F
 
-    # def blmvm_obj_func(tao, X, G, Run_H):
-    #     (f, grad) = look_in_history_fd_grad(X.array, Run_H)
-    #     G.array = grad
-    #     return f
+    def blmvm_obj_func(tao, X, G, Run_H):
+        (f, grad) = look_in_history(X.array_r, Run_H)
+        G.array = grad
+        return f
 
     # Create starting point, bounds, and tao object
     x = PETSc.Vec().create(tao_comm)
@@ -676,24 +678,26 @@ def set_up_and_run_tao(Run_H, gen_specs):
     tao = PETSc.TAO().create(tao_comm)
     tao.setType(gen_specs['localopt_method'])
 
-    # if gen_specs['localopt_method'] == 'pounders':
-    f = PETSc.Vec().create(tao_comm)
-    f.setSizes(m)
-    f.setFromOptions()
+    if gen_specs['localopt_method'] == 'pounders':
+        f = PETSc.Vec().create(tao_comm)
+        f.setSizes(len(Run_H['fvec'][0]))
+        f.setFromOptions()
 
-    delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+        delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
 
-    PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
-    # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
-    if hasattr(tao, 'setResidual'):
-        tao.setResidual(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
-    else:
-        tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
-    # elif gen_specs['localopt_method'] == 'blmvm':
-    #     g = PETSc.Vec().create(tao_comm)
-    #     g.setSizes(n)
-    #     g.setFromOptions()
-    #     tao.setObjectiveGradient(lambda tao, x, g: blmvm_obj_func(tao, x, g, Run_H))
+        PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
+
+        # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
+        if hasattr(tao, 'setResidual'):
+            tao.setResidual(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
+        else:
+            tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
+
+    elif gen_specs['localopt_method'] == 'blmvm':
+        g = PETSc.Vec().create(tao_comm)
+        g.setSizes(n)
+        g.setFromOptions()
+        tao.setObjectiveGradient(lambda tao, x, g: blmvm_obj_func(tao, x, g, Run_H))
 
     # Set everything for tao before solving
     PETSc.Options().setValue('-tao_max_funcs', str(len(Run_H)+1))
@@ -712,10 +716,10 @@ def set_up_and_run_tao(Run_H, gen_specs):
     # print(tao.view())
     # print(x_opt)
 
-    # if gen_specs['localopt_method'] == 'pounders':
-    f.destroy()
-    # elif gen_specs['localopt_method'] == 'blmvm':
-    #     g.destroy()
+    if gen_specs['localopt_method'] == 'pounders':
+        f.destroy()
+    if gen_specs['localopt_method'] == 'blmvm':
+        g.destroy()
 
     lb.destroy()
     ub.destroy()

@@ -225,3 +225,29 @@ def modify_Balsam_pyCoverage():
     with open(balsam_commands_path, 'w') as f:
         for line in lines:
             f.write(line)
+
+
+def modify_Balsam_JobEnv():
+    # If Balsam detects that the system on which it is running contains the string
+    #   'cc' in it's hostname, then it thinks it's on Cooley! Travis hostnames are
+    #   randomly generated and occasionally may contain that offending string. This
+    #   modifies Balsam's JobEnvironment class to not check for 'cc'.
+    import balsam
+
+    bad_line = "        'COOLEY' : 'cooley cc'.split()\n"
+    new_line = "        'COOLEY' : 'cooley'.split()\n"
+
+    jobenv_file = 'JobEnvironment.py'
+    balsam_path = os.path.dirname(balsam.__file__) + '/service/schedulers'
+    balsam_jobenv_path = os.path.join(balsam_path, jobenv_file)
+
+    with open(balsam_jobenv_path, 'r') as f:
+        lines = f.readlines()
+
+    for i in range(len(lines)):
+        if lines[i] == bad_line:
+            lines[i] = new_line
+
+    with open(balsam_jobenv_path, 'w') as f:
+        for line in lines:
+            f.write(line)

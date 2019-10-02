@@ -4,7 +4,7 @@
 [run]
 data_file = .cov_merge_out
 
-[html]    
+[html]
 directory = cov_merge
 
 #Report files can be controlled here
@@ -20,6 +20,7 @@ omit =
     */unit_tests_logger/*
     */regression_tests/*
     */sim_funcs/helloworld.py
+    */balsam_controller.py
 #    */sim_funcs/*
 #    */gen_funcs/*
 exclude_lines =

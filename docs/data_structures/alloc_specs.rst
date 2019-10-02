@@ -8,13 +8,13 @@ Allocation function specifications to be set in user calling script and passed t
 
     alloc_specs: [dict, optional] :
 
-        Required keys :  
-        
+        Required keys :
+
         'alloc_f' [func] :
             Default: give_sim_work_first
-            
+
         Optional keys :
-        
+
         'out' [list of tuples] :
             Default: [('allocated',bool)]
 

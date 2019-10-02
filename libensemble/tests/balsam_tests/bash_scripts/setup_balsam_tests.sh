@@ -37,7 +37,7 @@ balsam app --name $SIM_APP_NAME --exec $SIM_DIR/$SIM_APP --desc "Run $SIM_APP_NA
 for LIBE_APP in $JOB_LIST
 do
   LIBE_APP_NAME=${LIBE_APP%.*}
-  balsam app --name $LIBE_APP_NAME --exec $WORK_DIR/$LIBE_APP --desc "Run $LIBE_APP_NAME"  
+  balsam app --name $LIBE_APP_NAME --exec $WORK_DIR/$LIBE_APP --desc "Run $LIBE_APP_NAME"
 
   #Add jobs
   balsam job --name job_$LIBE_APP_NAME --workflow libe_workflow --application $LIBE_APP_NAME \
@@ -45,10 +45,10 @@ do
              --url-out="local:$WORK_DIR" \
              --stage-out-files="${JOB_NAME}*" \
              --yes
-  
+
   #Add dependency so jobs run one at a time ....
   # *** Currently all jobs added will run simultaneously - kills may be an issue there
-  
+
 done
 
 echo -e "\nListing apps:"
@@ -59,4 +59,3 @@ balsam ls jobs
 
 #Run launcher in either interactive session or via script
 echo -e "\nTo launch jobs run: balsam launcher --consume-all"
-

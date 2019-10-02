@@ -34,8 +34,8 @@ To set upstream repo::
 (Optional) Prevent accidental pushes to upstream::
 
     git remote set-url --push upstream no_push
-    git remote -v # Check for line: `upstream	no_push (push)`
-    
+    git remote -v # Check for line: `upstream no_push (push)`
+
 
 Now to update (the main develop branch)
 ---------------------------------------
@@ -66,12 +66,12 @@ Or to make your local machine identical to upstream repo (**WARNING** Any local 
 
     git reset --hard upstream/develop
 
-    
+
 (Optional) You may want to update your forked (origin) repo on github at this point.
 This may requires a forced push::
 
     git push origin develop --force
-    
+
 
 Making changes
 --------------
@@ -87,14 +87,14 @@ Quick example to update libensemble::
 
     git branch update_libensemble
     git checkout update_libensemble
-    
+
 This will open the libensemble package.py file in your editor (given by env variable EDITOR)::
 
     spack edit py-libensemble  # SPACK_ROOT must be set (see above) (python packages use "py-" prefix)
 
 Or just open it manually: var/spack/repos/builtin/packages/py-libensemble/package.py
-    
-    
+
+
 Now get checksum for new lines:
 
 Get the tarball (see PyPI instructions), for the new release and use::
@@ -112,22 +112,21 @@ If OK add, commit and push to origin (forked repo)::
 
      git commit -am "Update libensemble"
      git push origin update_libensemble --force
-     
+
 Once the branch is pushed to the forked repo - go to github and do a pull request from this
 branch on the fork to the develop branch on the upstream.
 
-    
+
 Express summary: Make fork identical to upstream
 ------------------------------------------------
 
 Quick summary for bringing develop branch on forked repo up to speed with upstream
 (YOU WILL LOSE ANY CHANGES)::
 
-    git remote add upstream https://github.com/spack/spack.git  
-    git fetch upstream  
-    git checkout develop  
-    git reset --hard upstream/develop  
-    git push origin develop --force  
+    git remote add upstream https://github.com/spack/spack.git
+    git fetch upstream
+    git checkout develop
+    git reset --hard upstream/develop
+    git push origin develop --force
 
 Reference: <https://stackoverflow.com/questions/9646167/clean-up-a-fork-and-restart-it-from-the-upstream/39628366>
-    

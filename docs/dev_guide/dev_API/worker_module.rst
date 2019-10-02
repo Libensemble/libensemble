@@ -6,6 +6,5 @@ Worker Module
 .. autoclass:: Worker
   :member-order: bysource
   :members:
-  
-  .. automethod:: __init__
 
+  .. automethod:: __init__

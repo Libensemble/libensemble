@@ -9,6 +9,6 @@ The job controller can be used within the simulator (and potentially generator) 
    :maxdepth: 2
    :titlesonly:
    :caption: libEnsemble Job Controller:
-   
+
    overview
    job_controller
