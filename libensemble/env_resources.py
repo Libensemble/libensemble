@@ -106,22 +106,38 @@ class EnvResources:
         return a, b, nnum_len
 
     @staticmethod
-    def get_slurm_nodelist(node_list_env):
-        """Get global libEnsemble nodelist from the Slurm environment"""
-        nidlst = []
-        fullstr = os.environ[node_list_env]
-        if not fullstr:
-            return []
-        splitstr = fullstr.split('[', 1)
-        if len(splitstr) == 1:
-            return splitstr
-        prefix = splitstr[0]
-        nidstr = splitstr[1].strip("]")
+    def _noderange_split(prefix, nidstr, nidlst):
         for nidgroup in nidstr.split(','):
             a, b, nnum_len = EnvResources._range_split(nidgroup)
             for nid in range(a, b):
                 nidlst.append(prefix + str(nid).zfill(nnum_len))
-        return sorted(nidlst)
+        return nidlst
+
+    @staticmethod
+    def get_slurm_nodelist(node_list_env):
+        """Get global libEnsemble nodelist from the Slurm environment"""
+        fullstr = os.environ[node_list_env]
+        if not fullstr:
+            return []
+        splitstr = fullstr.split('],')
+        if len(splitstr) == 1:
+            splitstr = fullstr.split('[', 1)
+            if len(splitstr) == 1:
+                return splitstr
+            prefix = splitstr[0]
+            nidstr = splitstr[1].strip("]")
+            nidlst = EnvResources._noderange_split(prefix, nidstr, [])
+            return sorted(nidlst)
+        else:
+            splitgroups = [str.split('[', 1) for str in splitstr]
+            prefixgroups = [group[0] for group in splitgroups]
+            nodegroups = [group[1].strip(']') for group in splitgroups]
+            nidlst = []
+            for i in range(len(prefixgroups)):
+                prefix = prefixgroups[i]
+                nidstr = nodegroups[i]
+                nidlst.extend(EnvResources._noderange_split(prefix, nidstr, nidlst))
+            return sorted(set(nidlst))
 
     @staticmethod
     def get_cobalt_nodelist(node_list_env):

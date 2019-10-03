@@ -66,6 +66,13 @@ def test_slurm_nodelist_groups():
     assert nodelist == exp_out, "Nodelist returned does not match expected"
 
 
+def test_slurm_nodelist_groups_partitions():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "bdw-[0254,0384,0565-0568],bdwd-[0004,0009]"
+    exp_out = ['bdw-0254', 'bdw-0384', 'bdw-0565', 'bdw-0566', 'bdw-0567', 'bdw-0568', 'bdwd-0004', 'bdwd-0009']
+    nodelist = EnvResources.get_slurm_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
 def test_slurm_nodelist_groups_nodash():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "nid0[0020-0022,0137-0139,1234]"
     exp_out = ['nid00020', 'nid00021', 'nid00022', 'nid00137', 'nid00138', 'nid00139', 'nid01234']
@@ -209,6 +216,7 @@ if __name__ == "__main__":
     test_slurm_nodelist_knl_seq()
     test_slurm_nodelist_bdw_seq()
     test_slurm_nodelist_groups()
+    test_slurm_nodelist_groups_partitions()
     test_slurm_nodelist_groups_nodash()
     test_slurm_nodelist_groups_longprefix()
     test_slurm_nodelist_reverse_grp()
