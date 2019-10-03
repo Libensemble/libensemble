@@ -87,7 +87,10 @@ class MPIJobController(JobController):
             'aprun': ['aprun', '-e {env}',
                       '-L {hostlist}', '-n {num_procs}',
                       '-N {ranks_per_node}'],
-            'jsrun': ['jsrun', '--np {num_procs}']
+            'jsrun': ['jsrun', '--np {num_procs}'],  # Need to add more
+            'srun': ['srun', '-w {hostlist}', '-n {num_procs}',
+                     '--nodes {num_nodes}',
+                     '--ntasks-per-node {ranks_per_node}']
         }
         self.mpi_launch_type = MPIResources.get_MPI_variant()
         self.mpi_command = mpi_commands[self.mpi_launch_type]
@@ -123,8 +126,8 @@ class MPIJobController(JobController):
                                              ranks_per_node=ranks_per_node,
                                              hyperthreads=hyperthreads)
 
-            # Use hostlist if multiple nodes, otherwise machinefile
-            if num_nodes > 1:
+            # Use hostlist if full nodes, otherwise machinefile
+            if self.resources.worker_resources.workers_per_node == 1:
                 hostlist = self.resources.get_hostlist()
             else:
                 machinefile = "machinefile_autogen"
@@ -228,11 +231,10 @@ class MPIJobController(JobController):
             runline.extend(job.app_args.split())
 
         if test:
-            logger.info('Test selected: Not launching job')
-            logger.info('runline args are {}'.format(runline))
+            logger.info('Test (No launch) Runline: {}'.format(' '.join(runline)))
         else:
             subgroup_launch = True
-            if self.mpi_launch_type in ['aprun']:
+            if self.mpi_launch_type in ['aprun', 'srun']:
                 subgroup_launch = False
 
             retry_count = 0
