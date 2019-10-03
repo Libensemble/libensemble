@@ -126,8 +126,8 @@ class MPIJobController(JobController):
                                              ranks_per_node=ranks_per_node,
                                              hyperthreads=hyperthreads)
 
-            # Use hostlist if multiple nodes, otherwise machinefile
-            if num_nodes > 1:
+            # Use hostlist if full nodes, otherwise machinefile
+            if self.resources.worker_resources.workers_per_node == 1:
                 hostlist = self.resources.get_hostlist()
             else:
                 machinefile = "machinefile_autogen"
