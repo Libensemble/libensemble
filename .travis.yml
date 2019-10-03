@@ -73,6 +73,7 @@ install:
     # mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk;
   - conda install $COMPILERS
   #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
+  - conda install libopenblas
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
