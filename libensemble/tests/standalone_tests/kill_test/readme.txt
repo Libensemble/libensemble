@@ -16,7 +16,7 @@ Instructions
 
 Build the C program:
     mpicc -g -o sleep_and_print.x sleep_and_print.c
-    OR (e.g. on Theta):
+    OR (e.g. on Theta/Cori):
     cc -g -o sleep_and_print.x sleep_and_print.c
 
 Either run on local node - or create an allocation of nodes and run::

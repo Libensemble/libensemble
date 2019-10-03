@@ -112,13 +112,15 @@ class EnvResources:
         fullstr = os.environ[node_list_env]
         if not fullstr:
             return []
-        splitstr = fullstr.split('-', 1)
+        splitstr = fullstr.split('[', 1)
+        if len(splitstr) == 1:
+            return splitstr
         prefix = splitstr[0]
-        nidstr = splitstr[1].strip("[]")
+        nidstr = splitstr[1].strip("]")
         for nidgroup in nidstr.split(','):
             a, b, nnum_len = EnvResources._range_split(nidgroup)
             for nid in range(a, b):
-                nidlst.append(prefix + '-' + str(nid).zfill(nnum_len))
+                nidlst.append(prefix + str(nid).zfill(nnum_len))
         return sorted(nidlst)
 
     @staticmethod
