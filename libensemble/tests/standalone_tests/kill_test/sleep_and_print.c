@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     double time_secs;
 
     delay=1;
-    num_sleeps = 12;
+    num_sleeps = 16;
 
     ierr = MPI_Init(&argc, &argv);
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
