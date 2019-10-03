@@ -22,9 +22,9 @@
 What is libEnsemble?
 ====================
 
-libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of computations.
-Designed with flexibility in mind, libEnsemble can utilize massively parallel resources to accelerate
-the solution of design, decision, and inference problems.
+libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles
+of computations. Designed with flexibility in mind, libEnsemble can utilize massively
+parallel resources to accelerate the solution of design, decision, and inference problems.
 
 A visual overview is given in the libEnsemble poster_.
 
@@ -38,18 +38,18 @@ libEnsemble aims for:
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
-The user selects or supplies a generation function that produces simulation input as well as
-a simulation function that performs and monitors the simulations. The generation function
-may contain, for example, an optimization method to generate new simulation parameters
-on-the-fly and based on the results of previous simulations. Examples and templates of these
-functions are included in the library.
+The user selects or supplies a generation function that produces simulation input
+as well as a simulation function that performs and monitors the simulations. The
+generation function may contain, for example, an optimization method to generate
+new simulation parameters on-the-fly and based on the results of previous simulations.
+Examples and templates of these functions are included in the library.
 
-libEnsemble employs a manager-worker scheme that can run on various communication media
-(including MPI, multiprocessing, and TCP). Each worker can control and monitor any type
-of job from small sub-node jobs to huge many-node simulations. A job controller
-interface is provided to ensure scripts are portable, resilient and flexible; it also
-enables automatic detection of the nodes and cores in a system and can split up
-jobs automatically if nodes/cores are not supplied.
+libEnsemble employs a manager-worker scheme that can run on various communication
+media (including MPI, multiprocessing, and TCP). Each worker can control and monitor
+any level of work from small sub-node jobs to huge many-node simulations. A job
+controller interface is provided to ensure scripts are portable, resilient and
+flexible; it also enables automatic detection of the nodes and cores in a system
+and can split up jobs automatically if resource data isn't supplied.
 
 
 Dependencies
@@ -75,8 +75,9 @@ Optional dependency:
 
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
-platforms (e.g., Cray XC40); platforms that do not support launching jobs from compute nodes.
-Note that as of v0.5.0, libEnsemble can also be run on the launch nodes using multiprocessing.
+platforms (e.g., Cray XC40); platforms that do not support launching jobs from
+compute nodes. Note that as of v0.5.0, libEnsemble can also be run on the launch
+nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
 
@@ -104,7 +105,8 @@ libEnsemble is also available in the Spack_ distribution. It can be installed fr
 
 .. _Spack: https://spack.readthedocs.io/en/latest
 
-The tests and examples can be accessed in the `GitHub <https://github.com/Libensemble/libensemble>`_ repository. If necessary, you may install all optional dependencies (listed above) at once with::
+The tests and examples can be accessed in the `GitHub <https://github.com/Libensemble/libensemble>`_ repository.
+If necessary, you may install all optional dependencies (listed above) at once with::
 
     pip install libensemble[extras]
 
@@ -143,14 +145,15 @@ in the top-level directory containing the setup script.
 Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors
 is taken. Furthermore, a combined coverage report is created at the top level,
-which can be viewed after running the tests via the html file
-libensemble/tests/cov_merge/index.html. The Travis CI coverage results are
-given online at
+which can be viewed after running the tests via the HTML file
+``libensemble/tests/cov_merge/index.html``. The Travis CI coverage results are
+available online at
 `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
 
 Note: The job_controller tests can be run using the direct-launch or
-Balsam job controllers. However, currently only the direct-launch versions can
-be run on Travis CI, which reduces the test coverage results.
+Balsam job controllers. Although only the direct-launch versions can
+be run on Travis CI, Balsam integration with libEnsemble is now tested via
+``test_balsam_hworld.py``.
 
 
 Basic Usage
@@ -159,7 +162,7 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-The user will create a python script to call the libEnsemble :doc:`libE <libE_module>` function.
+The user creates a python script to call the libEnsemble :doc:`libE <libE_module>` function.
 This must supply the :ref:`sim_specs<datastruct-sim-specs>` and :ref:`gen_specs<datastruct-gen-specs>`,
 and optionally :ref:`libE_specs<datastruct-libe-specs>`, :ref:`alloc_specs<datastruct-alloc-specs>` and :ref:`persis_info<datastruct-persis-info>`.
 
@@ -192,9 +195,9 @@ See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.htm
 .. _Balsam: https://www.alcf.anl.gov/balsam
 .. _SWIG: http://swig.org/
 .. _mock: https://pypi.org/project/mock
-.. _pytest: https://pypi.org/project/pytest/ 
-.. _pytest-cov: https://pypi.org/project/pytest-cov/ 
-.. _pytest-timeout: https://pypi.org/project/pytest-timeout/ 
+.. _pytest: https://pypi.org/project/pytest/
+.. _pytest-cov: https://pypi.org/project/pytest-cov/
+.. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 
 .. include:: ../README.rst
     :start-after: docs-include-tag

@@ -13,6 +13,7 @@ Parallel Debugging
 **How can I perform parallel debugging on libEnsemble, or debug specific processes?**
 
 
+This is most easily addressed when running with MPI.
 Try the following: ``mpiexec -np [num processes] xterm -e 'python [calling script].py'``
 
 This will launch an xterm terminal window specific to each process. Mac users will
@@ -28,18 +29,18 @@ work may depend on the system. Usage::
     ForkablePdb().set_trace()
 
 
-AssertionError - Idle workers
+AssertionError - idle workers
 -----------------------------
 
 **AssertionError: Should not wait for workers when all workers are idle.**
 
 with ``mpiexec -np 1 python [calling script].py``
 
-This error occurs when the manager is waiting, although no workers are busy.
+This error occurs when the manager is waiting although no workers are busy.
 In the above case, this occurs because an MPI libEnsemble run was initiated with
 only one process, resulting in one manager but no workers.
 
-Note: this may also occur with two processes if you are using a persistent generator.
+This may also occur with two processes if you are using a persistent generator.
 The generator will occupy the one worker, leaving none to run simulation functions.
 
 
@@ -48,16 +49,15 @@ Not enough processors per worker to honour arguments
 
 **libensemble.resources.ResourcesException: Not enough processors per worker to honour arguments.**
 
-This is likely when using the job_controller, when there are not enough
-cores/nodes available to launch jobs. This can be disabled if you want
-to oversubscribe (often if testing on a local machine). Set up the
-job_controller with ``auto_resources=False``. E.g.::
+This error often occurs when there aren't enough cores/nodes available to launch
+jobs with the job controller. Automatic partitioning of resources can be disabled
+if you want to oversubscribe (often if testing on a local machine) by configuring
+the job controller with ``auto_resources=False``. E.g.::
 
     jobctrl = MPIJobController(auto_resources=False)
 
-Also, note that the job_controller launch command has the argument
-hyperthreads, which is set to True, will attempt to use all
-hyperthreads/SMT threads available.
+Note that the job_controller ``.launch()`` method has a parameter``hyperthreads``
+which will attempt to use all hyperthreads/SMT threads available if set to ``True``
 
 
 FileExistsError
@@ -65,21 +65,22 @@ FileExistsError
 
 **FileExistsError: [Errno 17] File exists: './sim_worker1'**
 
-This can happen when libEnsemble tries to create sim directories that already exist. If
-the directory does not already exist, a possible cause is that you are trying
-to run using ``mpiexec``, when the ``libE_specs['comms']`` option is set to ``local``.
-Note that to run with differently named sub-directories you can use the
-``sim_dir_suffix`` option to :ref:`sim_specs<datastruct-sim-specs>`.
+This can happen when libEnsemble tries to create sim directories that already exist.
+If these directories do not already exist, another possibility is that you are trying
+to run libEnsemble using ``mpiexec`` when the ``libE_specs['comms']`` option is
+set to ``local``.
+
+To create differently named sim directories, you can use the ``sim_dir_suffix``
+option in :ref:`sim_specs<datastruct-sim-specs>`.
 
 
 libEnsemble hangs when using mpi4py
 -----------------------------------
 
-One cause of this could be that the communications fabric does not support matching
-probes (part of the MPI 3.0 standard), which mpi4py uses by default. This has been
-observed with Intels Truescale (TMI) fabric at time of writing. This can be solved
-either by switch fabric or turning off matching probes before the MPI module is first
-imported.
+This may occur if matching probes, which mpi4py uses by default, are not supported
+by the communications fabric. This has been observed with Intels Truescale (TMI)
+fabric at time of writing. This can be solved either by switching fabrics or disabling
+matching probes before the MPI module is first imported.
 
 Add these two lines BEFORE ``from mpi4py import MPI``::
 
@@ -89,10 +90,10 @@ Add these two lines BEFORE ``from mpi4py import MPI``::
 Also see https://software.intel.com/en-us/articles/python-mpi4py-on-intel-true-scale-and-omni-path-clusters
 
 
-Messages are not received correctly when using mpi4py
-------------------------------------------------------
+Messages not received correctly when using mpi4py
+-------------------------------------------------
 
-This may manifest itself with the following error:
+This may manifest with the following error:
 
 **_pickle.UnpicklingError: invalid load key, '\x00'.**
 
@@ -146,14 +147,12 @@ macOS - Firewall prompts
 
 
 There are several ways to address this nuisance, but all involve trial and error.
-One easy (but insecure) solution is temporarily disabling the Firewall through System Preferences
--> Security & Privacy -> Firewall -> Turn Off Firewall. Alternatively, adding a Firewall "Allow incoming
-connections" rule can be tried for the offending Job Controller executable.
-Based on a suggestion from here_, we've had the most success running
-``sudo codesign --force --deep --sign - /path/to/application.app`` on our Job Controller executables,
-then confirming the next alerts for the executable and ``mpiexec.hydra``.
-
-.. _`here`: https://coderwall.com/p/5b_apq/stop-mac-os-x-firewall-from-prompting-with-python-in-virtualenv
+An easy (but insecure) solution is temporarily disabling the Firewall through
+System Preferences -> Security & Privacy -> Firewall -> Turn Off Firewall. Alternatively,
+adding a Firewall "Allow incoming connections" rule can be attempted for the offending
+Job Controller executable. We've had limited success running ``sudo codesign --force --deep --sign - /path/to/application.app``
+on our Job Controller executables, then confirming the next alerts for the executable
+and ``mpiexec.hydra``.
 
 
 Running out of contexts when running libEnsemble in distributed mode on TMI fabric
