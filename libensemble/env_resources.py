@@ -136,7 +136,7 @@ class EnvResources:
             nidstr = splitstr[1].strip("]")
             nidlst = EnvResources._noderange_append(prefix, nidstr)
         else:                           # Multiple Partitions
-            splitgroups = [str.split('[', 1) for str in splitstr]
+            splitgroups = [str.split('[', 1) for str in part_splitstr]
             prefixgroups = [group[0] for group in splitgroups]
             nodegroups = [group[1].strip(']') for group in splitgroups]
             nidlst = []
