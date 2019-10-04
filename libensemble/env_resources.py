@@ -33,6 +33,7 @@ class EnvResources:
     default_nodelist_env_lsf = 'LSB_HOSTS'
     default_nodelist_env_lsf_shortform = 'LSB_MCPU_HOSTS'
 
+
     def __init__(self,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
@@ -76,6 +77,7 @@ class EnvResources:
         self.ndlist_funcs['LSF'] = EnvResources.get_lsf_nodelist
         self.ndlist_funcs['LSF_shortform'] = EnvResources.get_lsf_nodelist_frm_shortform
 
+
     def get_nodelist(self):
         """Return nodelist from environment or an empty list"""
         for env, env_var in self.nodelists.items():
@@ -87,11 +89,13 @@ class EnvResources:
                 return global_nodelist
         return []
 
+
     def abbrev_nodenames(self, node_list):
         """Return nodelist with entries in abbreviated form"""
         if self.schedular == 'Cobalt':
             return EnvResources.cobalt_abbrev_nodenames(node_list)
         return node_list
+
 
     @staticmethod
     def _range_split(s):
@@ -105,8 +109,10 @@ class EnvResources:
         b = b + 1
         return a, b, nnum_len
 
+
     @staticmethod
-    def _noderange_split(prefix, nidstr):
+    def _noderange_append(prefix, nidstr):
+        """Format and append nodes to overall nodelist"""
         nidlst = []
         for nidgroup in nidstr.split(','):
             a, b, nnum_len = EnvResources._range_split(nidgroup)
@@ -114,21 +120,22 @@ class EnvResources:
                 nidlst.append(prefix + str(nid).zfill(nnum_len))
         return nidlst
 
+
     @staticmethod
     def get_slurm_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Slurm environment"""
         fullstr = os.environ[node_list_env]
         if not fullstr:
             return []
-        splitstr = fullstr.split('],')
-        if len(splitstr) == 1:
+        part_splitstr = fullstr.split('],')
+        if len(part_splitstr) == 1:     # Single Partition
             splitstr = fullstr.split('[', 1)
-            if len(splitstr) == 1:
+            if len(splitstr) == 1:      # Single Node
                 return splitstr
             prefix = splitstr[0]
             nidstr = splitstr[1].strip("]")
-            nidlst = EnvResources._noderange_split(prefix, nidstr)
-        else:
+            nidlst = EnvResources._noderange_append(prefix, nidstr)
+        else:                           # Multiple Partitions
             splitgroups = [str.split('[', 1) for str in splitstr]
             prefixgroups = [group[0] for group in splitgroups]
             nodegroups = [group[1].strip(']') for group in splitgroups]
@@ -136,9 +143,10 @@ class EnvResources:
             for i in range(len(prefixgroups)):
                 prefix = prefixgroups[i]
                 nidstr = nodegroups[i]
-                nidlst.extend(EnvResources._noderange_split(prefix, nidstr))
+                nidlst.extend(EnvResources._noderange_append(prefix, nidstr))
 
         return sorted(nidlst)
+
 
     @staticmethod
     def get_cobalt_nodelist(node_list_env):
@@ -153,12 +161,14 @@ class EnvResources:
                 nidlst.append(str(nid))
         return sorted(nidlst, key=int)
 
+
     @staticmethod
     def cobalt_abbrev_nodenames(node_list, prefix='nid'):
         """Return nodelist with prefix and leading zeros stripped"""
         newlist = [s.lstrip(prefix) for s in node_list]
         newlist = [s.lstrip('0') for s in newlist]
         return newlist
+
 
     @staticmethod
     def get_lsf_nodelist(node_list_env):
@@ -169,6 +179,7 @@ class EnvResources:
         unique_entries = list(OrderedDict.fromkeys(entries))
         nodes = [n for n in unique_entries if 'batch' not in n]
         return nodes
+
 
     @staticmethod
     def get_lsf_nodelist_frm_shortform(node_list_env):
