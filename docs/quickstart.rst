@@ -1,5 +1,5 @@
 .. image:: images/libE_logo.png
-  :alt: libEnsemble
+   :alt: libEnsemble
 
 |
 
@@ -22,34 +22,37 @@
 What is libEnsemble?
 ====================
 
-libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles
-of computations. Designed with flexibility in mind, libEnsemble can utilize massively
-parallel resources to accelerate the solution of design, decision, and inference problems.
-
-A visual overview is given in the libEnsemble poster_.
-
-.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+libEnsemble is a Python library to coordinate the concurrent evaluation of
+ensembles of computations. Designed with flexibility in mind, libEnsemble can
+utilize massively parallel resources to accelerate the solution of design,
+decision, and inference problems.
 
 libEnsemble aims for:
 
 • Extreme scaling
-• Resilience/Fault tolerance
+• Resilience/fault tolerance
 • Monitoring/killing jobs (and recovering resources)
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
-The user selects or supplies a generation function that produces simulation input
-as well as a simulation function that performs and monitors the simulations. The
-generation function may contain, for example, an optimization method to generate
-new simulation parameters on-the-fly and based on the results of previous simulations.
-Examples and templates of these functions are included in the library.
+The user selects or supplies a generation function that produces simulation
+input as well as a simulation function that performs and monitors the
+simulations. The generation function may contain, for example, an optimization
+method to generate new simulation parameters on-the-fly and based on the
+results of previous simulations.  Examples and templates of these functions are
+included in the library.
 
-libEnsemble employs a manager-worker scheme that can run on various communication
-media (including MPI, multiprocessing, and TCP). Each worker can control and monitor
-any level of work from small sub-node jobs to huge many-node simulations. A job
-controller interface is provided to ensure scripts are portable, resilient and
-flexible; it also enables automatic detection of the nodes and cores in a system
-and can split up jobs automatically if resource data isn't supplied.
+libEnsemble employs a manager-worker scheme that can run on various
+communication media (including MPI, multiprocessing, and TCP). Each worker can
+control and monitor any level of work from small sub-node jobs to huge
+many-node simulations. A job controller interface is provided to ensure scripts
+are portable, resilient and flexible; it also enables automatic detection of
+the nodes and cores in a system and can split up jobs automatically if resource
+data isn't supplied.
+
+A visual overview is given in the libEnsemble poster_.
+
+.. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
 
 Dependencies
@@ -76,8 +79,8 @@ Optional dependency:
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
 platforms (e.g., Cray XC40); platforms that do not support launching jobs from
-compute nodes. Note that as of v0.5.0, libEnsemble can also be run on the launch
-nodes using multiprocessing.
+compute nodes. Note that as of v0.5.0, libEnsemble can also be run on the
+launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
 
@@ -87,9 +90,9 @@ The example sim and gen functions and tests require the following dependencies:
 * NLopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
 PETSc and NLopt must be built with shared libraries enabled and present in
-sys.path (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt should
-produce a file nlopt.py if Python is found on the system. NLopt may also require SWIG_
-to be installed on certain systems.
+``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
+should produce a file nlopt.py if Python is found on the system. NLopt may also
+require SWIG_ to be installed on certain systems.
 
 
 Installation
@@ -185,6 +188,9 @@ function used in the regression tests, which can be found in
 
 See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for more information.
 
+.. include:: ../README.rst
+    :start-after: docs-include-tag
+
 .. _PETSc:  http://www.mcs.anl.gov/petsc
 .. _Python: http://www.python.org
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
@@ -199,5 +205,3 @@ See the `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.htm
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 
-.. include:: ../README.rst
-    :start-after: docs-include-tag

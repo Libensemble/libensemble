@@ -1,5 +1,5 @@
 .. image:: docs/images/libE_logo.png
-  :alt: libEnsemble
+   :alt: libEnsemble
 
 |
 
@@ -22,15 +22,16 @@
 What is libEnsemble?
 ====================
 
-libEnsemble is a Python library to coordinate the concurrent evaluation of ensembles of computations.
-Designed with flexibility in mind, libEnsemble can utilize massively parallel resources to accelerate
-the solution of design, decision, and inference problems.
+libEnsemble is a Python library to coordinate the concurrent evaluation of
+ensembles of computations. Designed with flexibility in mind, libEnsemble can
+utilize massively parallel resources to accelerate the solution of design,
+decision, and inference problems.
 
 libEnsemble aims for:
 
 • Extreme scaling
-• Fault tolerance
-• Monitoring/killing jobs (recovers resources)
+• Resilience/fault tolerance
+• Monitoring/killing jobs (and recovering resources)
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
@@ -66,8 +67,9 @@ Optional dependency:
 
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
 is required for running libEnsemble on the compute nodes of some supercomputing
-platforms (eg. Cray XC40); platforms that do not support launching jobs from compute nodes.
-Note that as of v0.5.0, libEnsemble can also be run on the launch nodes using multiprocessing.
+platforms (e.g., Cray XC40); platforms that do not support launching jobs from
+compute nodes. Note that as of v0.5.0, libEnsemble can also be run on the
+launch nodes using multiprocessing.
 
 The example sim and gen functions and tests require the following dependencies:
 
@@ -77,17 +79,9 @@ The example sim and gen functions and tests require the following dependencies:
 * NLopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
 
 PETSc and NLopt must be built with shared libraries enabled and present in
-sys.path (eg. via setting the PYTHONPATH environment variable). NLopt should
-produce a file nlopt.py if Python is found on the system.
+``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
+should produce a file nlopt.py if Python is found on the system.
 
-.. _PETSc:  http://www.mcs.anl.gov/petsc
-.. _Python: http://www.python.org
-.. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
-.. _NumPy:  http://www.numpy.org
-.. _SciPy:  http://www.scipy.org
-.. _mpi4py:  https://bitbucket.org/mpi4py/mpi4py
-.. _petsc4py:  https://bitbucket.org/petsc/petsc4py
-.. _Balsam: https://www.alcf.anl.gov/balsam
 
 
 Installation
@@ -104,6 +98,10 @@ libEnsemble is also available in the Spack_ distribution. It can be installed fr
 .. _Spack: https://spack.readthedocs.io/en/latest
 
 The tests and examples can be accessed in the `GitHub <https://github.com/Libensemble/libensemble>`_ repository.
+If necessary, you may install all optional dependencies (listed above) at once with::
+
+    pip install libensemble[extras]
+
 A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
 
 
@@ -115,7 +113,7 @@ regularly on:
 
 * `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
 
-The test suite requires the mock, pytest, pytest-cov and pytest-timeout
+The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
 packages to be installed and can be run from the libensemble/tests directory of
 the source distribution by running::
 
@@ -129,17 +127,25 @@ Further options are available. To see a complete list of options run::
 
     ./run-tests.sh -h
 
+If you have the source distribution, you can download (but not install) the testing
+prerequisites and run the tests with::
+
+    python setup.py test
+
+in the top-level directory containing the setup script.
+
 Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors
 is taken. Furthermore, a combined coverage report is created at the top level,
-which can be viewed after running the tests via the html file
-libensemble/tests/cov_merge/index.html. The Travis CI coverage results are
-given online at
+which can be viewed after running the tests via the HTML file
+``libensemble/tests/cov_merge/index.html``. The Travis CI coverage results are
+available online at
 `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
 
 Note: The job_controller tests can be run using the direct-launch or
-Balsam job controllers. However, currently only the direct-launch versions can
-be run on Travis CI, which reduces the test coverage results.
+Balsam job controllers. Although only the direct-launch versions can
+be run on Travis CI, Balsam integration with libEnsemble is now tested via
+``test_balsam_hworld.py``.
 
 
 Basic Usage
@@ -186,3 +192,18 @@ or email questions to:
 or communicate (and establish a private channel, if desired) at:
 
 * https://libensemble.slack.com
+
+.. _PETSc:  http://www.mcs.anl.gov/petsc
+.. _Python: http://www.python.org
+.. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
+.. _NumPy:  http://www.numpy.org
+.. _SciPy:  http://www.scipy.org
+.. _mpi4py:  https://bitbucket.org/mpi4py/mpi4py
+.. _petsc4py:  https://bitbucket.org/petsc/petsc4py
+.. _Balsam: https://www.alcf.anl.gov/balsam
+.. _SWIG: http://swig.org/
+.. _mock: https://pypi.org/project/mock
+.. _pytest: https://pypi.org/project/pytest/
+.. _pytest-cov: https://pypi.org/project/pytest-cov/
+.. _pytest-timeout: https://pypi.org/project/pytest-timeout/
+
