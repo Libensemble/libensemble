@@ -182,16 +182,16 @@ inputs and outputs from those functions to expect.
 .. code-block:: python
     :linenos:
 
-    gen_specs = {'gen_f': gen_random_sample,      # Our generator function
-                 'in': ['sim_id'],                  # Input field names. 'sim_id' necessary default
-                 'out': [('x', float, (1,))],       # gen_f output (name, type, size).
-                 'lower': np.array([-3]),           # lower boundary for random sampling.
-                 'upper': np.array([3]),            # upper boundary for random sampling.
-                 'gen_batch_size': 5}               # number of values gen_f will generate per call
-
-    sim_specs = {'sim_f': sim_find_sine,          # Our simulator function
-                 'in': ['x'],                       # Input field names. 'x' from gen_f output
-                 'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
+    gen_specs = {'gen_f': gen_random_sample,   # Our generator function
+                 'in': ['sim_id'],             # Input field names. 'sim_id' necessary default
+                 'out': [('x', float, (1,))],  # gen_f output (name, type, size)
+                 'lower': np.array([-3]),      # lower boundary for random sampling
+                 'upper': np.array([3]),       # upper boundary for random sampling
+                 'gen_batch_size': 5}          # number of x's gen_f generates per call
+                                               
+    sim_specs = {'sim_f': sim_find_sine,       # Our simulator function
+                 'in': ['x'],                  # Input field names. 'x' from gen_f output
+                 'out': [('y', float)]}        # sim_f output. 'y' = sine('x')
 
 
 Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
@@ -204,12 +204,12 @@ circumstances where libEnsemble should stop execution in :ref:`exit_criteria<dat
 
     persis_info = {}
 
-    for i in range(1, nworkers+1):                # Worker numbers start at 1.
+    for i in range(1, nworkers+1):            # Worker numbers start at 1
         persis_info[i] = {
             'rand_stream': np.random.RandomState(i),
             'worker_num': i}
 
-    exit_criteria = {'sim_max': 80}               # Stop libEnsemble after 80 simulations
+    exit_criteria = {'sim_max': 80}           # Stop libEnsemble after 80 simulations
 
 Now we're ready to write our libEnsemble :doc:`libE<../libE_module>` function call.
 This :ref:`H<datastruct-history-array>` is the final version of the History array.
@@ -221,7 +221,7 @@ This :ref:`H<datastruct-history-array>` is the final version of the History arra
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 libE_specs=libE_specs)
 
-    print([i for i in H.dtype.fields])            # Some (optional) statements to visualize our History array
+    print([i for i in H.dtype.fields])        # Some (optional) statements to visualize our History array
     print(H)
 
 That's it! Now that these files are complete, we can run our simulation.
@@ -237,11 +237,11 @@ be rearranged.
 .. code-block::
 
   ['y', 'given_time', 'gen_worker', 'sim_worker', 'given', 'returned', 'x', 'allocated', 'sim_id', 'gen_time']
-  [(-0.37466051, 1.55968252e+09, 2, 2,  True,  True, [-0.38403059],  True,  0, 1.55968252e+09)
-  (-0.29279634, 1.55968252e+09, 2, 3,  True,  True, [-2.84444261],  True,  1, 1.55968252e+09)
-  ( 0.29358492, 1.55968252e+09, 2, 4,  True,  True, [ 0.29797487],  True,  2, 1.55968252e+09)
-  (-0.3783986 , 1.55968252e+09, 2, 1,  True,  True, [-0.38806564],  True,  3, 1.55968252e+09)
-  (-0.45982062, 1.55968252e+09, 2, 2,  True,  True, [-0.47779319],  True,  4, 1.55968252e+09)
+  [(-0.37466051, 1.559+09, 2, 2,  True,  True, [-0.38403059],  True,  0, 1.559+09)
+  (-0.29279634, 1.559+09, 2, 3,  True,  True, [-2.84444261],  True,  1, 1.559+09)
+  ( 0.29358492, 1.559+09, 2, 4,  True,  True, [ 0.29797487],  True,  2, 1.559+09)
+  (-0.3783986 , 1.559+09, 2, 1,  True,  True, [-0.38806564],  True,  3, 1.559+09)
+  (-0.45982062, 1.559+09, 2, 2,  True,  True, [-0.47779319],  True,  4, 1.559+09)
   ...
 
 In this arrangement, our output values are listed on the far-left with the generated
@@ -320,11 +320,11 @@ of the calling script as follows:
     from simulator import sim_find_sine
     from mpi4py import MPI
 
-    # nworkers = 4                                  # nworkers will come from MPI
-    libE_specs = {'comms': 'mpi'}                   # 'nworkers' removed, 'comms' now 'mpi'
+    # nworkers = 4                                # nworkers will come from MPI
+    libE_specs = {'comms': 'mpi'}                 # 'nworkers' removed, 'comms' now 'mpi'
 
     nworkers = MPI.COMM_WORLD.Get_size() - 1
-    is_master = (MPI.COMM_WORLD.Get_rank() == 0)    # master process has MPI rank 0
+    is_master = (MPI.COMM_WORLD.Get_rank() == 0)  # master process has MPI rank 0
 
 So that only one process executes the graphing and printing portion of our code,
 modify the bottom of the calling script like this:
@@ -337,8 +337,8 @@ modify the bottom of the calling script like this:
                                 libE_specs=libE_specs)
 
     if is_master:
-
-        print([i for i in H.dtype.fields])            # Some (optional) statements to visualize our History array
+        # Some (optional) statements to visualize our History array
+        print([i for i in H.dtype.fields])  
         print(H)
 
         import matplotlib.pyplot as plt

@@ -68,6 +68,12 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconver
 #breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["test.cpp","test2.cpp"] )}
 
 autodoc_mock_imports = ["balsam"]
+extlinks = {'duref': ('http://docutils.sourceforge.net/docs/ref/rst/'
+                      'restructuredtext.html#%s', ''),
+            'durole': ('http://docutils.sourceforge.net/docs/ref/rst/'
+                       'roles.html#%s', ''),
+            'dudir': ('http://docutils.sourceforge.net/docs/ref/rst/'
+                      'directives.html#%s', '')}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -163,6 +169,13 @@ htmlhelp_basename = 'libEnsembledoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
+    # Sonny, Lenny, or Bjornstrup
+    'fncychap': '\\usepackage[Lenny]{fncychap}',
+    'extraclassoptions': 'openany',
+    'preamble':
+    r'''
+
+                ''',
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
@@ -188,7 +201,7 @@ latex_documents = [
      'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, \\\\ \\hfill David Bindel, John-Luke Navarro', 'manual'),
 ]
 
-latex_logo = 'images/libEnsemble_Logo.png'
+latex_logo = 'images/libE_logo.png'
 
 # -- Options for manual page output ---------------------------------------
 
