@@ -35,9 +35,20 @@ libEnsemble aims for:
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
-A more detailed overview can be found in the docs_.
+The user selects or supplies a generation function that produces simulation
+input as well as a simulation function that performs and monitors the
+simulations. The generation function may contain, for example, an optimization
+method to generate new simulation parameters on-the-fly and based on the
+results of previous simulations.  Examples and templates of these functions are
+included in the library.
 
-.. _docs:  https://libensemble.readthedocs.org/en/latest/
+libEnsemble employs a manager-worker scheme that can run on various
+communication media (including MPI, multiprocessing, and TCP). Each worker can
+control and monitor any level of work from small sub-node jobs to huge
+many-node simulations. A job controller interface is provided to ensure scripts
+are portable, resilient and flexible; it also enables automatic detection of
+the nodes and cores in a system and can split up jobs automatically if resource
+data isn't supplied.
 
 A visual overview is given in the libEnsemble poster_.
 
@@ -80,8 +91,8 @@ The example sim and gen functions and tests require the following dependencies:
 
 PETSc and NLopt must be built with shared libraries enabled and present in
 ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
-should produce a file nlopt.py if Python is found on the system.
-
+should produce a file nlopt.py if Python is found on the system. NLopt may also
+require SWIG_ to be installed on certain systems.
 
 
 Installation
@@ -154,9 +165,38 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-See the `user-guide <https://libensemble.readthedocs.io/en/latest/quickstart.html#basic-usage>`_ for more information.
+The user creates a python script to call the libEnsemble :doc:`libE
+<libE_module>` function.  This must supply the
+:ref:`sim_specs<datastruct-sim-specs>` and
+:ref:`gen_specs<datastruct-gen-specs>`, and optionally
+:ref:`libE_specs<datastruct-libe-specs>`,
+:ref:`alloc_specs<datastruct-alloc-specs>` and
+:ref:`persis_info<datastruct-persis-info>`.
 
-.. docs-include-tag
+The default manager/worker communications mode is MPI. The user script is
+launched as::
+
+    mpiexec -np N python myscript.py
+
+where ``N`` is the number of processors. This will launch one manager and
+``N-1`` workers.
+
+If running in local mode, which uses Python's multiprocessing module, the
+'local' comms option and the number of workers must be specified in
+:ref:`libE_specs<datastruct-libe-specs>`. The script can then be run as a
+regular python script::
+
+    python myscript.py
+
+When specifying these options via command line options, one may use the
+``parse_args`` function used in the regression tests, which can be found in
+``libensemble/tests/regression_tests/common.py``
+
+
+See the
+`user-guide<https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for
+more information.
+
 
 Documentation
 -------------
