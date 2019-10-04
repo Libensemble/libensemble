@@ -106,7 +106,8 @@ class EnvResources:
         return a, b, nnum_len
 
     @staticmethod
-    def _noderange_split(prefix, nidstr, nidlst):
+    def _noderange_split(prefix, nidstr):
+        nidlst = []
         for nidgroup in nidstr.split(','):
             a, b, nnum_len = EnvResources._range_split(nidgroup)
             for nid in range(a, b):
@@ -126,8 +127,7 @@ class EnvResources:
                 return splitstr
             prefix = splitstr[0]
             nidstr = splitstr[1].strip("]")
-            nidlst = EnvResources._noderange_split(prefix, nidstr, [])
-            return sorted(nidlst)
+            nidlst = EnvResources._noderange_split(prefix, nidstr)
         else:
             splitgroups = [str.split('[', 1) for str in splitstr]
             prefixgroups = [group[0] for group in splitgroups]
@@ -136,8 +136,9 @@ class EnvResources:
             for i in range(len(prefixgroups)):
                 prefix = prefixgroups[i]
                 nidstr = nodegroups[i]
-                nidlst.extend(EnvResources._noderange_split(prefix, nidstr, nidlst))
-            return sorted(set(nidlst))
+                nidlst.extend(EnvResources._noderange_split(prefix, nidstr))
+
+        return sorted(nidlst)
 
     @staticmethod
     def get_cobalt_nodelist(node_list_env):
