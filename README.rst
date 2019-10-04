@@ -1,4 +1,6 @@
 .. image:: docs/images/libE_logo.png
+   :scale: 90
+   :align: center
    :alt: libEnsemble
 
 |
