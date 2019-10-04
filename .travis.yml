@@ -73,6 +73,7 @@ install:
     # mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk;
   - conda install $COMPILERS
   #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
+  - conda install libblas libopenblas # Attempt to prevent 'File exists' error
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   # pip install these as the conda installs downgrade pytest on python3.4
   - pip install flake8
@@ -93,7 +94,6 @@ before_script:
   - source setbalsampath.sh
   # Allow 10000 files to be open at once (critical for persistent_aposmm)
   - ulimit -Sn 10000
-  # Set conda compilers to use new SDK instead of Travis default.
   # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   #       echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.14.sdk" > setenv.sh;
   #       source setenv.sh;
