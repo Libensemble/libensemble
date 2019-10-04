@@ -33,7 +33,6 @@ class EnvResources:
     default_nodelist_env_lsf = 'LSB_HOSTS'
     default_nodelist_env_lsf_shortform = 'LSB_MCPU_HOSTS'
 
-
     def __init__(self,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
@@ -77,7 +76,6 @@ class EnvResources:
         self.ndlist_funcs['LSF'] = EnvResources.get_lsf_nodelist
         self.ndlist_funcs['LSF_shortform'] = EnvResources.get_lsf_nodelist_frm_shortform
 
-
     def get_nodelist(self):
         """Return nodelist from environment or an empty list"""
         for env, env_var in self.nodelists.items():
@@ -89,13 +87,11 @@ class EnvResources:
                 return global_nodelist
         return []
 
-
     def abbrev_nodenames(self, node_list):
         """Return nodelist with entries in abbreviated form"""
         if self.schedular == 'Cobalt':
             return EnvResources.cobalt_abbrev_nodenames(node_list)
         return node_list
-
 
     @staticmethod
     def _range_split(s):
@@ -109,7 +105,6 @@ class EnvResources:
         b = b + 1
         return a, b, nnum_len
 
-
     @staticmethod
     def _noderange_append(prefix, nidstr):
         """Format and append nodes to overall nodelist"""
@@ -119,7 +114,6 @@ class EnvResources:
             for nid in range(a, b):
                 nidlst.append(prefix + str(nid).zfill(nnum_len))
         return nidlst
-
 
     @staticmethod
     def get_slurm_nodelist(node_list_env):
@@ -147,7 +141,6 @@ class EnvResources:
 
         return sorted(nidlst)
 
-
     @staticmethod
     def get_cobalt_nodelist(node_list_env):
         """Get global libEnsemble nodelist from the Cobalt environment"""
@@ -161,14 +154,12 @@ class EnvResources:
                 nidlst.append(str(nid))
         return sorted(nidlst, key=int)
 
-
     @staticmethod
     def cobalt_abbrev_nodenames(node_list, prefix='nid'):
         """Return nodelist with prefix and leading zeros stripped"""
         newlist = [s.lstrip(prefix) for s in node_list]
         newlist = [s.lstrip('0') for s in newlist]
         return newlist
-
 
     @staticmethod
     def get_lsf_nodelist(node_list_env):
@@ -179,7 +170,6 @@ class EnvResources:
         unique_entries = list(OrderedDict.fromkeys(entries))
         nodes = [n for n in unique_entries if 'batch' not in n]
         return nodes
-
 
     @staticmethod
     def get_lsf_nodelist_frm_shortform(node_list_env):
