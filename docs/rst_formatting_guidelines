@@ -7,9 +7,9 @@ Put referenced file names in between double ticks ``stuff here`` (no quotes)
 
 Put environment variables in between double ticks ``stuff here`` (no quotes)
 
-Put warnings line: **WARNING:** 
+Put warnings line: **WARNING:**
 
-Put breakout code snippets into a box using two colons :: 
+Put breakout code snippets into a box using two colons ::
 
 No italics on text of links
 

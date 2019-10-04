@@ -13,7 +13,7 @@ three routines:
 * :ref:`sim_f<api_sim_f>`: Evaluates a simulation or other evaluation at output from ``gen_f``.
 * :ref:`alloc_f<api_alloc_f>`: Decides whether ``sim_f`` or ``gen_f`` should be called (and with what input/resources) as workers become available.
 
-Example ``sim_f``, ``gen_f``, ``alloc_f``, and calling scripts 
+Example ``sim_f``, ``gen_f``, ``alloc_f``, and calling scripts
 be found in the ``examples/`` directory. To enable portability, a
 :doc:`job_controller<job_controller/overview>`
 interface is supplied for users to launch and monitor jobs in their
@@ -110,7 +110,7 @@ libEnsemble Output
 The history array :ref:`H<datastruct-history-array>` and
 :ref:`persis_info<datastruct-persis-info>` dictionary are returned to the user
 by libEnsemble.  If libEnsemble aborts on an exception, these structures are
-dumped to the respective files, 
+dumped to the respective files,
 
 * ``libE_history_at_abort_<sim_count>.npy``
 * ``libE_history_at_abort_<sim_count>.pickle``

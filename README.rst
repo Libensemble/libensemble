@@ -166,14 +166,6 @@ Basic Usage
 The examples directory contains example libEnsemble calling scripts, sim
 functions, gen functions, alloc functions and job submission scripts.
 
-The user creates a python script to call the libEnsemble :doc:`libE
-<libE_module>` function.  This must supply the
-:ref:`sim_specs<datastruct-sim-specs>` and
-:ref:`gen_specs<datastruct-gen-specs>`, and optionally
-:ref:`libE_specs<datastruct-libe-specs>`,
-:ref:`alloc_specs<datastruct-alloc-specs>` and
-:ref:`persis_info<datastruct-persis-info>`.
-
 The default manager/worker communications mode is MPI. The user script is
 launched as::
 
@@ -183,9 +175,8 @@ where ``N`` is the number of processors. This will launch one manager and
 ``N-1`` workers.
 
 If running in local mode, which uses Python's multiprocessing module, the
-'local' comms option and the number of workers must be specified in
-:ref:`libE_specs<datastruct-libe-specs>`. The script can then be run as a
-regular python script::
+'local' comms option and the number of workers must be specified. The script
+can then be run as a regular python script::
 
     python myscript.py
 
