@@ -188,6 +188,7 @@ latex_documents = [
      'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, \\\\ \\hfill David Bindel, John-Luke Navarro', 'manual'),
 ]
 
+latex_logo = 'images/libEnsemble_Logo.png'
 
 # -- Options for manual page output ---------------------------------------
 
