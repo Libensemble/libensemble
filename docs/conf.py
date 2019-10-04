@@ -163,6 +163,9 @@ htmlhelp_basename = 'libEnsembledoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
+    # Sonny, Lenny, or Bjornstrup
+    'fncychap': '\\usepackage[Lenny]{fncychap}',
+    'extraclassoptions': 'openany',
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
