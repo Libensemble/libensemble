@@ -17,6 +17,7 @@
    :alt: Documentation Status
 
 |
+.. after_badges_tag
 
 ====================
 What is libEnsemble?
@@ -193,9 +194,9 @@ When specifying these options via command line options, one may use the
 ``libensemble/tests/regression_tests/common.py``
 
 
-See the
-`user-guide<https://libensemble.readthedocs.io/en/latest/user_guide.html>`_ for
-more information.
+See the 
+`user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_
+for more information.
 
 
 Documentation
@@ -210,7 +211,8 @@ Please use the following to cite libEnsemble in a publication:
 .. code-block:: bibtex
 
   @techreport{libEnsemble,
-    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and David Bindel and John-Luke Navarro},
+    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
+                   David Bindel and John-Luke Navarro},
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
     number      = {Revision 0.5.2},
