@@ -26,6 +26,7 @@ def move_test_balsam(balsam_test):
     if not os.path.isfile(reg_dir_with_btest):
         os.rename('./conda/{}'.format(balsam_test), reg_dir_with_btest)
 
+
 def configure_coverage():
     # Enables coverage of balsam_controller.py if running test
     coveragerc = './libensemble/tests/.coveragerc'
@@ -37,6 +38,7 @@ def configure_coverage():
     with open(coveragerc, 'w') as f:
         for line in newlines:
             f.write(line)
+
 
 if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
     install_balsam()
