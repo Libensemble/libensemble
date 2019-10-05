@@ -174,7 +174,7 @@ latex_elements = {
     'extraclassoptions': 'openany',
     'preamble':
     r'''
-
+    \protected\def\sphinxcrossref#1{\texttt{#1}}
                 ''',
     # The paper size ('letterpaper' or 'a4paper').
     #
