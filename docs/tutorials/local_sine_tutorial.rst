@@ -74,7 +74,7 @@ An available libEnsemble worker will call this generator function with the follo
 
 Later on, we'll populate ``gen_specs`` and ``persis_info`` in our calling script.
 
-For now, create a new Python file named 'generator.py'. Write the following:
+For now, create a new Python file named ``generator.py``. Write the following:
 
 .. code-block:: python
     :linenos:
@@ -117,7 +117,7 @@ functions perform calculations based on values from the generator function.
 The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which serves
 a similar purpose to ``gen_specs``.
 
-Create a new Python file named 'simulator.py'. Write the following:
+Create a new Python file named ``simulator.py``. Write the following:
 
 .. code-block:: python
     :linenos:
@@ -148,13 +148,13 @@ Calling Script
 Now we can write the calling script that configures our generator and simulator
 functions and calls libEnsemble.
 
-Create an empty Python file named 'calling_script.py'.
+Create an empty Python file named ``calling_script.py``.
 In this file, we'll start by importing NumPy, libEnsemble, and the generator and
 simulator functions we just created.
 
 Next, in a dictionary called :ref:`libE_specs<datastruct-libe-specs>` we'll specify
 the number of workers and the type of manager/worker communication libEnsemble will
-use. Our communication method, 'local', refers to Python's Multiprocessing.
+use. Our communication method, ``'local'``, refers to Python's Multiprocessing.
 
 .. code-block:: python
     :linenos:
@@ -177,7 +177,6 @@ inputs and outputs from those functions to expect.
     :linenos:
 
     gen_specs = {'gen_f': gen_random_sample,      # Our generator function
-                 'in': ['sim_id'],                  # Input field names. 'sim_id' necessary default
                  'out': [('x', float, (1,))],       # gen_f output (name, type, size).
                  'lower': np.array([-3]),           # lower boundary for random sampling.
                  'upper': np.array([3]),            # upper boundary for random sampling.
@@ -242,8 +241,8 @@ In this arrangement, our output values are listed on the far-left with the gener
 values being the fourth column from the right.
 
 Two additional log files should also have been created.
-'ensemble.log' contains debugging or informational logging output from libEnsemble,
-while 'libE_stats.txt' contains a quick summary of all calculations performed.
+``ensemble.log`` contains debugging or informational logging output from libEnsemble,
+while ``libE_stats.txt`` contains a quick summary of all calculations performed.
 
 I graphed my output using Matplotlib, coloring entries by which worker performed
 the simulation:

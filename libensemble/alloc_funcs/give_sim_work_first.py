@@ -78,6 +78,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             # Give gen work
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
+            if 'in' in gen_specs and len(gen_specs['in']):
+                gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
+            else:
+                gen_work(Work, i, [], [], persis_info[i])
 
     return Work, persis_info

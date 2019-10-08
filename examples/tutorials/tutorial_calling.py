@@ -8,7 +8,6 @@ nworkers = 4
 libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
 
 gen_specs = {'gen_f': gen_random_sample,        # Our generator function
-             'in': ['sim_id'],                  # Input field names. 'sim_id' necessary default
              'out': [('x', float, (1,))],       # gen_f output (name, type, size).
              'lower': np.array([-3]),           # lower boundary for random sampling.
              'upper': np.array([3]),            # upper boundary for random sampling.
