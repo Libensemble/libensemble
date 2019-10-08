@@ -1153,3 +1153,360 @@ NameError: name 'x_vals' is not defined
 [0] libensemble.libE_manager (INFO): Term test tripped: sim_max
 [0] libensemble.libE_manager (INFO): Term test tripped: sim_max
 [0] libensemble.libE (INFO): libE_manager total time: 2.675287961959839
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl122.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl122.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 20 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl122.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl122.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 20 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl122.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl122.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 20 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl122.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl122.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 20 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl122.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl122.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 20 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl122.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl122.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 20 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl122.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl122.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl122.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl122.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: too many values to unpack (expected 1)
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 50, in mop_mod_wrapper
+    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
+ValueError: too many values to unpack (expected 1)
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 20 sims evaluated:

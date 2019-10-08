@@ -23,28 +23,30 @@ def mop_mod_wrapper(H, persis_info, gen_specs, _):
     n = np.size(H['f'][:,0]) # size of database in the history array
 
     if len(H) == 0:
-        # Write initialization data to the mop.dat file for MOP_INIT
-        fp1 = FortranFile('mop.dat','w')
-        fp1.write_record(np.int32(d), np.int32(p), np.int32(nb))
-        fp1.write_record(np.array(lb, dtype=np.float64))
-        fp1.write_record(np.array(ub, dtype=np.float64))
+        # Write initialization data to the mop.io file for MOP_INIT
+        fp1 = FortranFile('mop.io','w')
+        fp1.write_record( np.int32(d), np.int32(p), np.int32(nb) )
+        fp1.write_record( np.array(lb, dtype=np.float64), 
+                          np.array(ub, dtype=np.float64) )
         fp1.close()
-        system("./mop_init")
+        system("mop_initializer")
     else:
+        # Write unformatted problem dimensions to the mop.io file
+        fp1 = FortranFile('mop.io','w')
+        fp1.write_record( np.int32(d), np.int32(p), np.int32(n), np.int32(nb) )
+        fp1.write_record( np.array(lb, dtype=np.float64), 
+                          np.array(ub, dtype=np.float64) )
+        fp1.close()
         # Write unformatted history to the mop.dat file, to be read by MOP_MOD
         fp1 = FortranFile('mop.dat','w')
-        fp1.write_record(np.int32(d))
-        fp1.write_record(np.int32(p))
-        fp1.write_record(np.int32(n))
-        fp1.write_record(np.int32(nb))
         for i in range(n):
             fp1.write_record(np.float64(H['x'][i,:]), np.float64(H['f'][i,:]))
         fp1.close()
         # Call MOP_MOD from command line
-        system("./mop_gen")
+        system("mop_generator")
     
     # Read unformatted list of candidates
-    fp2 = FortranFile('mop.out','r')
+    fp2 = FortranFile('mop.io','r')
     [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
     cand_pts = fp2.read_record(dtype=np.float64) # read in candidates
     fp2.close()
