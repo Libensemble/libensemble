@@ -161,11 +161,12 @@ simulator functions we just created.
 
 Next, in a dictionary called :ref:`libE_specs<datastruct-libe-specs>` we'll specify
 the number of workers and the type of manager/worker communication libEnsemble will
-use. Our communication method, 'local', refers to Python's Multiprocessing.
+use. Our communication method, ``'local'``, refers to Python's Multiprocessing.
 
 .. code-block:: python
     :linenos:
 
+    import numpy as np
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
@@ -182,16 +183,15 @@ inputs and outputs from those functions to expect.
 .. code-block:: python
     :linenos:
 
-    gen_specs = {'gen_f': gen_random_sample,   # Our generator function
-                 'in': ['sim_id'],             # Input field names. 'sim_id' necessary default
-                 'out': [('x', float, (1,))],  # gen_f output (name, type, size)
-                 'lower': np.array([-3]),      # lower boundary for random sampling
-                 'upper': np.array([3]),       # upper boundary for random sampling
-                 'gen_batch_size': 5}          # number of x's gen_f generates per call
-                                               
-    sim_specs = {'sim_f': sim_find_sine,       # Our simulator function
-                 'in': ['x'],                  # Input field names. 'x' from gen_f output
-                 'out': [('y', float)]}        # sim_f output. 'y' = sine('x')
+    gen_specs = {'gen_f': gen_random_sample,      # Our generator function
+                 'out': [('x', float, (1,))],       # gen_f output (name, type, size).
+                 'lower': np.array([-3]),           # lower boundary for random sampling.
+                 'upper': np.array([3]),            # upper boundary for random sampling.
+                 'gen_batch_size': 5}               # number of values gen_f will generate per call
+
+    sim_specs = {'sim_f': sim_find_sine,          # Our simulator function
+                 'in': ['x'],                       # Input field names. 'x' from gen_f output
+                 'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
 
 
 Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
@@ -248,8 +248,8 @@ In this arrangement, our output values are listed on the far-left with the gener
 values being the fourth column from the right.
 
 Two additional log files should also have been created.
-'ensemble.log' contains debugging or informational logging output from libEnsemble,
-while 'libE_stats.txt' contains a quick summary of all calculations performed.
+``ensemble.log`` contains debugging or informational logging output from libEnsemble,
+while ``libE_stats.txt`` contains a quick summary of all calculations performed.
 
 I graphed my output using Matplotlib, coloring entries by which worker performed
 the simulation:

@@ -26,7 +26,6 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
              'out': [('x', float, (1,))],
              'lb': np.array([-3]),
              'ub': np.array([3]),
