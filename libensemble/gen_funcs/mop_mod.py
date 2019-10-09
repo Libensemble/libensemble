@@ -38,22 +38,26 @@ def mop_mod_wrapper(H, persis_info, gen_specs, _):
                           np.array(ub, dtype=np.float64) )
         fp1.close()
         # Write unformatted history to the mop.dat file, to be read by MOP_MOD
-        fp1 = FortranFile('mop.dat','w')
+        fp2 = FortranFile('mop.dat','w')
+        fp2.write_record(np.int32(d), np.int32(p))
         for i in range(n):
-            fp1.write_record(np.float64(H['x'][i,:]), np.float64(H['f'][i,:]))
-        fp1.close()
+            fp2.write_record(np.float64(H['x'][i,:]), np.float64(H['f'][i,:]))
+        fp2.close()
         # Call MOP_MOD from command line
         system("mop_generator")
     
-    # Read unformatted list of candidates
-    fp2 = FortranFile('mop.io','r')
-    [nb,] = fp2.read_record(dtype=np.int32) # actual batch size may differ
-    cand_pts = fp2.read_record(dtype=np.float64) # read in candidates
-    fp2.close()
+    # Read unformatted list of candidates from mop.io file
+    fp1 = FortranFile('mop.io','r')
+    cand_pts = fp1.read_record(np.float64)
+    fp1.close()
 
-    O = np.zeros(nb, dtype=gen_specs['out'])
-    for i in range(0,nb):
-        O['x'][i,:] = cand_pts[d*i:d*(i+1)]
+    # Get the true batch size
+    b = cand_pts.size // d
+
+    # Read record
+    O = np.zeros(b, dtype=gen_specs['out'])
+    for i in range(0,b):
+        O['x'][i] = cand_pts[d*i:d*(i+1)]
     #O['x'] = persis_info['rand_stream'].uniform(lb, ub, (nb, d))
 
     return O, persis_info

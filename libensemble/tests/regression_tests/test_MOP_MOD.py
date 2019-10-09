@@ -47,7 +47,7 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'num_obj': 3,
              'gen_f': gen_f,
              'in': ['x', 'f'],
-             'gen_batch_size': 10,
+             'gen_batch_size': 50,
              'num_active_gens': 1,
              'batch_mode': True,
              'out': [('x', float, 2)],
@@ -56,7 +56,7 @@ gen_specs = {'num_obj': 3,
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 10}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
