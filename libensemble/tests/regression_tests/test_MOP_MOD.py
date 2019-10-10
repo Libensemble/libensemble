@@ -56,7 +56,7 @@ gen_specs = {'num_obj': 3,
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 10}
+exit_criteria = {'sim_max': 500, 'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

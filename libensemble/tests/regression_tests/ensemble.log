@@ -2415,3 +2415,71 @@ A last attempt has been made to receive any completed work.
 Posting nonblocking receives and kill messages for all active workers.
 
 [0] libensemble.libE (INFO): libE_manager total time: 10.000530004501343
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 10}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl102.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl102.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl102.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Term test tripped: elapsed_wallclock_time
+[0] libensemble.libE_manager (INFO): Term test tripped: elapsed_wallclock_time
+[0] libensemble.libE_manager (MANAGER_WARNING): 
+Termination due to elapsed_wallclock_time has occurred.
+A last attempt has been made to receive any completed work.
+Posting nonblocking receives and kill messages for all active workers.
+
+[0] libensemble.libE (INFO): libE_manager total time: 10.000496864318848
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 10}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl102.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl102.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl102.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Term test tripped: elapsed_wallclock_time
+[0] libensemble.libE_manager (INFO): Term test tripped: elapsed_wallclock_time
+[0] libensemble.libE_manager (MANAGER_WARNING): 
+Termination due to elapsed_wallclock_time has occurred.
+A last attempt has been made to receive any completed work.
+Posting nonblocking receives and kill messages for all active workers.
+
+[0] libensemble.libE (INFO): libE_manager total time: 10.00051474571228
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 10}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl102.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl102.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl102.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Term test tripped: elapsed_wallclock_time
+[0] libensemble.libE_manager (INFO): Term test tripped: elapsed_wallclock_time
+[0] libensemble.libE_manager (MANAGER_WARNING): 
+Termination due to elapsed_wallclock_time has occurred.
+A last attempt has been made to receive any completed work.
+Posting nonblocking receives and kill messages for all active workers.
+
+[0] libensemble.libE (INFO): libE_manager total time: 10.000503063201904
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 500, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl102.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl102.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl102.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl102.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Term test tripped: sim_max
+[0] libensemble.libE_manager (INFO): Term test tripped: sim_max
+[0] libensemble.libE_manager (INFO): Term test tripped: sim_max
+[0] libensemble.libE (INFO): libE_manager total time: 5.628961801528931
