@@ -18,9 +18,10 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from math import gamma, pi, sqrt
+from math import gamma, pi, sqrt, ceil
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+from libensemble.gen_funcs.uniform_sampling import lhs_sample
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
@@ -54,7 +55,7 @@ gen_specs = {'gen_f': gen_f,
              'gatol': 1e-6,
              'num_active_gens': 1,
              'dist_to_bound_multiple': 0.5,
-             'lhs_divisions': 5,
+             'lhs_divisions': 50,
              'components': m,
              'lb': (-2-np.pi/10)*np.ones(n),
              'ub': 2*np.ones(n)}
@@ -64,6 +65,12 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 500}
+
+sample_points = np.zeros((0,n))
+for i in range(ceil(exit_criteria['sim_max']/gen_specs['lhs_divisions'])):
+    sample_points = np.append(sample_points,lhs_sample(n,gen_specs['lhs_divisions']),axis=0)
+
+gen_specs['sample_points'] = sample_points*(gen_specs['ub']-gen_specs['lb']) + gen_specs['lb']
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
