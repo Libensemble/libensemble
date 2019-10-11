@@ -66,9 +66,9 @@ persis_info = per_worker_stream({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 500}
 
-sample_points = np.zeros((0,n))
+sample_points = np.zeros((0, n))
 for i in range(ceil(exit_criteria['sim_max']/gen_specs['lhs_divisions'])):
-    sample_points = np.append(sample_points,lhs_sample(n,gen_specs['lhs_divisions']),axis=0)
+    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['lhs_divisions']), axis=0)
 
 gen_specs['sample_points'] = sample_points*(gen_specs['ub']-gen_specs['lb']) + gen_specs['lb']
 

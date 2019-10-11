@@ -114,19 +114,19 @@ def latin_hypercube_sample(H, persis_info, gen_specs, _):
 def lhs_sample(n, k):
 
     # Generate the intervals and random values
-    intervals = np.linspace(0, 1, k + 1)    
-    rand_source = np.random.uniform(0,1,(k, n))
+    intervals = np.linspace(0, 1, k+1)
+    rand_source = np.random.uniform(0, 1, (k, n))
     rand_pts = np.zeros((k, n))
     sample = np.zeros((k, n))
-    
+
     # Add a point uniformly in each interval
     a = intervals[:k]
     b = intervals[1:]
     for j in range(n):
         rand_pts[:, j] = rand_source[:, j]*(b-a) + a
-    
+
     # Randomly perturb
     for j in range(n):
         sample[:, j] = rand_pts[np.random.permutation(k), j]
-    
+
     return sample
