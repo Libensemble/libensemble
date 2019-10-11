@@ -21,7 +21,7 @@ from libensemble.libE import libE
 from math import gamma, pi, sqrt, ceil
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.gen_funcs.uniform_sampling import lhs_sample
+from libensemble.gen_funcs.sampling import lhs_sample
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
