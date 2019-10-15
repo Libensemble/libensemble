@@ -55,7 +55,7 @@ Bebop (intelmpi)::
 
     kill 1: Fails
     kill 2: Works
-    
+
     [*Update 2019: kill 1 seems to also work if use srun instead of mpirun]
 
 Cooley (intelmpi)::
@@ -94,14 +94,14 @@ Theta (intelmpi)::
 
     Alternative - may be to use apkill. This may work without unloading xalt - not tried.
 
-    
+
 Cori (intelmpi - launched with srun)::
 
-    Single node on 4 processes:   
-    
+    Single node on 4 processes:
+
     kill 1: Works
     kill 2: Works
-    
+
     Two nodes with 2 processes each:
 
     kill 1: Works

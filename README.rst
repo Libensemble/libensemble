@@ -186,7 +186,7 @@ When specifying these options via command line options, one may use the
 ``libensemble/tests/regression_tests/common.py``
 
 
-See the 
+See the
 `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_
 for more information.
 
