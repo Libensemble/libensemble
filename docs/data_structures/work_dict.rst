@@ -17,7 +17,7 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
 
         Available keys are:
         'H_rows' [list of ints]: History rows to send to worker 'i'
-        'blocking' [list of ints]: Workers to be blocked by this calculation 
+        'blocking' [list of ints]: Workers to be blocked by this calculation
         'persistent' [bool]: True if worker 'i' will enter persistent mode
 
 
