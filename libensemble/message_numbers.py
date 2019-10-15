@@ -1,13 +1,13 @@
 # --- Tags
 
-UNSET_TAG = 0  # sh temp - this is a libe feature that is to be reviewed for best solution
+UNSET_TAG = 0  # sh temp - this is a libE feature that is to be reviewed for best solution
 EVAL_SIM_TAG = 1
 EVAL_GEN_TAG = 2
 STOP_TAG = 3
 PERSIS_STOP = 4                     # manager tells persistent worker to desist
 FINISHED_PERSISTENT_SIM_TAG = 11    # tells manager sim_f done persistent mode
 FINISHED_PERSISTENT_GEN_TAG = 12    # tells manager gen_f done persistent mode
-# ABORT_ENSEMBLE = 13 # Worker asks manager to abort (and dump history)
+# last_message_number_rst_tag
 
 calc_type_strings = {
     EVAL_SIM_TAG: 'sim',

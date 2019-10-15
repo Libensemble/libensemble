@@ -17,7 +17,7 @@ Fields in ``H`` include those specified in ``sim_specs['out']``,
 Below are the protected fields used in ``H``
 
 ..  literalinclude:: ../../libensemble/libE_fields.py
-    :lines: 4-
+    :start-at: libE_fields
 
 :Examples:
 

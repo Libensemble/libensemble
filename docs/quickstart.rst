@@ -20,4 +20,4 @@
   |
 
 .. include:: ../README.rst
-    :start-after: after_badges_tag
+    :start-after: after_badges_rst_tag

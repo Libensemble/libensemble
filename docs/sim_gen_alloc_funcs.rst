@@ -40,7 +40,7 @@ Returns:
   Used to tell manager why a persistent worker is stopping.
 
 ..  literalinclude:: ../libensemble/message_numbers.py
-    :lines: 1-8
+    :end-before: last_message_number_rst_tag
 
 .. _api_gen_f:
 
@@ -82,7 +82,7 @@ Returns:
   Used to tell manager why a persistent worker is stopping.
 
 ..  literalinclude:: ../libensemble/message_numbers.py
-    :lines: 1-8
+    :end-before: last_message_number_rst_tag
 
 .. _api_alloc_f:
 

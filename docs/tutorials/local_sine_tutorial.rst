@@ -183,7 +183,6 @@ inputs and outputs from those functions to expect.
     :linenos:
 
     gen_specs = {'gen_f': gen_random_sample,   # Our generator function
-                 'in': ['sim_id'],             # Input field names. 'sim_id' necessary default
                  'out': [('x', float, (1,))],  # gen_f output (name, type, size)
                  'lower': np.array([-3]),      # lower boundary for random sampling
                  'upper': np.array([3]),       # upper boundary for random sampling
@@ -221,7 +220,7 @@ This :ref:`H<datastruct-history-array>` is the final version of the History arra
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 libE_specs=libE_specs)
 
-    print([i for i in H.dtype.fields])        # Some (optional) statements to visualize our History array
+    print([i for i in H.dtype.fields])  # (optional) to visualize our History array
     print(H)
 
 That's it! Now that these files are complete, we can run our simulation.

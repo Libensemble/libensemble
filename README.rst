@@ -18,7 +18,7 @@
    :alt: Documentation Status
 
 |
-.. after_badges_tag
+.. after_badges_rst_tag
 
 ====================
 What is libEnsemble?
