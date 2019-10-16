@@ -70,13 +70,13 @@ sim_specs = {'sim_f': run_forces,         # Function whose output is being minim
              'in': ['x'],                 # Name of input data structure for sim func
              'out': [('energy', float)],  # Output from sim func
              'keys': ['seed'],            # Key/keys for input data
-             'sim_dir': './sim',          # Sim dir to be copied for each worker 
+             'sim_dir': './sim',          # Sim dir to be copied for each worker
              'sim_dir_suffix': 'test',    # Suffix for copied sim dirs (to ID run)
              'profile': False,            # Don't have libE profile run
-             'simdir_basename': 'force',  # Used by sim_f to name sim directories 
+             'simdir_basename': 'force',  # Used by sim_f to name sim directories
              'cores': 2,                  # Used by sim_f to set number of cores used
-             'sim_particles': 1e3,        # Used by sim_f for number of particles 
-             'sim_timesteps': 5,          # Used by sim_f for number of timesteps 
+             'sim_particles': 1e3,        # Used by sim_f for number of particles
+             'sim_timesteps': 5,          # Used by sim_f for number of timesteps
              'sim_kill_minutes': 10.0,    # Used by sim_f to set max run time
              'particle_variance': 0.2,    # Used by sim_f to vary load imbalance
              'kill_rate': 0.5,            # Fraction of bad sim_f evals (tests kills)
