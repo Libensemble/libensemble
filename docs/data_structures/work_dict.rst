@@ -15,20 +15,16 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
         'tag' [int]: 'EVAL_SIM_TAG'/'EVAL_GEN_TAG') if worker 'i' is to call sim/gen_func
         'libE_info' [dict]: Info sent to/from worker to help manager update the 'H'
 
-        Available keys are:
+        Optional keys are:
         'H_rows' [list of ints]: History rows to send to worker 'i'
         'blocking' [list of ints]: Workers to be blocked by this calculation
         'persistent' [bool]: True if worker 'i' will enter persistent mode
 
 
-:Examples:
+.. Hint::
+  For allocation functions giving Work dictionaries using persistent workers, see `start_only_persistent.py`_ or `start_persistent_local_opt_gens.py`_.
+  For a use case where the allocation and generator functions combine to do simulation evaluations with different resources (blocking some workers), see `test_6-hump_camel_with_different_nodes_uniform_sample.py`_.
 
-.. How to link directly to the file?
-
-| For allocation functions using persistent workers, see
-| ``libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
-| or
-| ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
-|
-| For allocation functions giving work that blocks other workers, see
-| ``libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
+.. _start_only_persistent.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_only_persistent.py 
+.. _start_persistent_local_opt_gens.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py
+.. _test_6-hump_camel_with_different_nodes_uniform_sample.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py

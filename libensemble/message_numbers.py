@@ -1,6 +1,6 @@
 # --- Tags
 
-UNSET_TAG = 0  # sh temp - this is a libE feature that is to be reviewed for best solution
+UNSET_TAG = 0  # sh temp - this is a libE feature to be reviewed for best solution
 EVAL_SIM_TAG = 1
 EVAL_GEN_TAG = 2
 STOP_TAG = 3

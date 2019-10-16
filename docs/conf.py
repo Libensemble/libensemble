@@ -172,6 +172,7 @@ latex_elements = {
     # Sonny, Lenny, or Bjornstrup
     'fncychap': '\\usepackage[Lenny]{fncychap}',
     'extraclassoptions': 'openany',
+    'sphinxsetup': 'admonitioncolor={RGB}{255,204,204}',
     'preamble':
     r'''
     \protected\def\sphinxcrossref#1{\texttt{#1}}
