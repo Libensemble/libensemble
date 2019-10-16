@@ -15,12 +15,10 @@ If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``. 
 can be used to, for example, pass a random stream back to the manager to be included in future work
 from the allocation function.
 
-:Examples:
+.. seealso::
 
-From: libEnsemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MAA.py::
+  From: ``libEnsemble/tests/regression_tests/support.py``
 
-    persis_info = {'next_to_give':0} # used in alloc_funcs/fast_alloc_to_aposmm.py to store the next entry in H to give
-    persis_info['total_gen_calls'] = 0 # used in alloc_funcs/fast_alloc_to_aposmm.py to count total gen calls
-
-    for i in range(MPI.COMM_WORLD.Get_size()):
-        persis_info[i] = {'rand_stream': np.random.RandomState(i)} # used as a random number stream for each worker
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/support.py
+      :start-at: persis_info_1
+      :end-before: end_persis_info_rst_tag

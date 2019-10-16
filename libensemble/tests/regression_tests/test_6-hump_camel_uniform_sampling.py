@@ -25,18 +25,21 @@ from libensemble.tests.regression_tests.support import six_hump_camel_minima as 
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'save_every_k': 400}
+sim_specs = {'sim_f': sim_f,         # Function whose output is being minimized
+             'in': ['x'],            # Keys to be given to the above function
+             'out': [('f', float)],  # Output from the function being minimized
+             'save_every_k': 400,    # Want progress saved every 400 evals
+             }
+# end_sim_specs_rst_tag
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'gen_batch_size': 500,
-             'save_every_k': 300,
-             'out': [('x', float, (2,))],
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2])}
+gen_specs = {'gen_f': gen_f,               # Tell libE function generating sim_f input
+             'out': [('x', float, (2,))],  # Tell libE gen_f output, type, size
+             'save_every_k': 300,          # Tell libE to save every 300 gen entries
+             'gen_batch_size': 500,        # Tell gen_f how much to generate per call
+             'lb': np.array([-3, -2]),     # Tell gen_f lower bounds
+             'ub': np.array([3, 2]),       # Tell gen_f upper bounds
+             }
+# end_gen_specs_rst_tag
 
 persis_info = per_worker_stream({}, nworkers + 1)
 

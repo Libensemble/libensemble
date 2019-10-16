@@ -35,15 +35,15 @@ aposmm_gen_out += [('sim_id', int),
                    ('pt_id', int)]  # Identify the same point evaluated by different sim_f's or components
 
 # give_sim_work_first persis_info
-persis_info_1 = {}
-# Below persis_info fields store APOSMM information, but can be passed to various workers.
-persis_info_1['total_gen_calls'] = 0
-persis_info_1['last_worker'] = 0
-persis_info_1['next_to_give'] = 0
-persis_info_1[0] = {'run_order': {},
-                    'old_runs': {},
-                    'total_runs': 0,
+persis_info_1 = {'total_gen_calls': 0,  # Counts gen calls in alloc_f
+                 'last_worker': 0,      # Remembers last gen worker in alloc_f
+                 'next_to_give': 0}     # Remembers next H row to give in alloc_f
+
+persis_info_1[0] = {'run_order': {},    # Used by manager to remember run order
+                    'old_runs': {},     # Used by manager to store old runs order
+                    'total_runs': 0,    # Used by manager to count total runs
                     'rand_stream': np.random.RandomState(1)}
+# end_persis_info_rst_tag
 
 persis_info_2 = copy.deepcopy(persis_info_1)
 persis_info_2[1] = persis_info_2[0]

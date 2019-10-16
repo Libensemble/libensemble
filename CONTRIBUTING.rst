@@ -1,14 +1,14 @@
 Contributing
 ============
 
-Contributions may be made via Github pull request to:
+Contributions may be made via GitHub pull request to:
 
     https://github.com/Libensemble/libensemble
 
 libEnsemble uses the Gitflow model. Contributors should branch from, and
 make pull requests to, the develop branch. The master branch is used only
 for releases. Code should pass flake8 tests, allowing for the exceptions
-given in the ".flake8" configuration file in the project directory.
+given in the ``.flake8`` configuration file in the project directory.
 
 Issues can be raised at:
 
@@ -20,7 +20,7 @@ will add issues, as appropriate, to the project board at:
     https://github.com/Libensemble/libensemble/projects
 
 By convention, user branch names should have a <type>/<name> format, where
-example types are feature, bugfix, testing, docs and experimental.
+example types are feature, bugfix, testing, docs, and experimental.
 Administrators may take a hotfix branch from the the master, which will be
 merged into master (as a patch) and develop. Administrators may also take a
 release branch off develop and merge into master and develop for a release.

@@ -53,12 +53,12 @@ sys.path.append(os.path.abspath('../libensemble/util'))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
+needs_sphinx = '2.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
 #extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'numpydoc']
 #extensions = ['sphinx.ext.autodoc', 'breathe']
 #breathe_projects = { "libEnsemble": "../code/src/xml/" }
@@ -68,6 +68,12 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 #breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["test.cpp","test2.cpp"] )}
 
 autodoc_mock_imports = ["balsam"]
+extlinks = {'duref': ('http://docutils.sourceforge.net/docs/ref/rst/'
+                      'restructuredtext.html#%s', ''),
+            'durole': ('http://docutils.sourceforge.net/docs/ref/rst/'
+                       'roles.html#%s', ''),
+            'dudir': ('http://docutils.sourceforge.net/docs/ref/rst/'
+                      'directives.html#%s', '')}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -163,6 +169,13 @@ htmlhelp_basename = 'libEnsembledoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
+    # Sonny, Lenny, or Bjornstrup
+    'fncychap': '\\usepackage[Lenny]{fncychap}',
+    'extraclassoptions': 'openany',
+    'preamble':
+    r'''
+    \protected\def\sphinxcrossref#1{\texttt{#1}}
+                ''',
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
@@ -188,6 +201,7 @@ latex_documents = [
      'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, \\\\ \\hfill David Bindel, John-Luke Navarro', 'manual'),
 ]
 
+latex_logo = 'images/libE_logo.png'
 
 # -- Options for manual page output ---------------------------------------
 

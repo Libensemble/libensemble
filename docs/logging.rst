@@ -9,7 +9,7 @@ and when jobs are killed. To gain additional diagnostics, the logging level can 
 to DEBUG. libEnsemble produces logging to the file ensemble.log by default. A log
 file name can also be supplied.
 
-E.g. To change the logging level to DEBUG, provide the following in your the calling scripts::
+To change the logging level to DEBUG, provide the following in your the calling scripts::
 
     from libensemble import libE_logger
     libE_logger.set_level('DEBUG')
@@ -22,7 +22,7 @@ This boundary can be adjusted as follows::
     # Only display messages with level >= ERROR
     libE_logger.set_stderr_level('ERROR')
 
-This feature can be effectively disabled by setting the stderr level to CRITICAL.
+stderr displaying can be effectively disabled by setting the stderr level to CRITICAL.
 
 
 Logging API
