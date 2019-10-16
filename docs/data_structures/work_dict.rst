@@ -21,7 +21,7 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
         'persistent' [bool]: True if worker 'i' will enter persistent mode
 
 
-.. Hint::
+.. seealso::
   For allocation functions giving Work dictionaries using persistent workers, see `start_only_persistent.py`_ or `start_persistent_local_opt_gens.py`_.
   For a use case where the allocation and generator functions combine to do simulation evaluations with different resources (blocking some workers), see `test_6-hump_camel_with_different_nodes_uniform_sample.py`_.
 

@@ -19,10 +19,10 @@ Allocation function specifications to be set in user calling script and passed t
             Default: [('allocated',bool)]
 
 
-:Notes:
+.. note::
 
-* The alloc_specs has the default keys as given above, but may be overidden by the user.
-* The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
+  * The alloc_specs has the default keys as given above, but may be overidden by the user.
+  * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
 
-
-:Examples:
+.. seealso::
+  * JL fill

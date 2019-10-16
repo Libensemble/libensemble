@@ -15,10 +15,10 @@ If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``. 
 can be used to, for example, pass a random stream back to the manager to be included in future work
 from the allocation function.
 
-:Examples:
+.. seealso::
 
-From: ``libEnsemble/tests/regression_tests/support.py``
+  From: ``libEnsemble/tests/regression_tests/support.py``
 
-..  literalinclude:: ../../libensemble/tests/regression_tests/support.py
-    :start-at: persis_info_1
-    :end-before: end_persis_info_rst_tag
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/support.py
+      :start-at: persis_info_1
+      :end-before: end_persis_info_rst_tag

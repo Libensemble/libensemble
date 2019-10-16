@@ -37,13 +37,12 @@ aposmm_gen_out += [('sim_id', int),
 # give_sim_work_first persis_info
 persis_info_1 = {'total_gen_calls': 0,  # Counts gen calls in alloc_f
                  'last_worker': 0,      # Remembers last gen worker in alloc_f
-                 'next_to_give': 0,     # Remembers next H row to give in alloc_f
-                }
+                 'next_to_give': 0}     # Remembers next H row to give in alloc_f
+
 persis_info_1[0] = {'run_order': {},    # Used by manager to remember run order
                     'old_runs': {},     # Used by manager to store old runs order
                     'total_runs': 0,    # Used by manager to count total runs
-                    'rand_stream': np.random.RandomState(1)
-                   }
+                    'rand_stream': np.random.RandomState(1)}
 # end_persis_info_rst_tag
 
 persis_info_2 = copy.deepcopy(persis_info_1)
