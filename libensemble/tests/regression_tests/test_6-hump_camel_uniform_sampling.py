@@ -25,10 +25,12 @@ from libensemble.tests.regression_tests.support import six_hump_camel_minima as 
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'save_every_k': 400}
+sim_specs = {'sim_f': sim_f,         # Function whose output is being minimized  
+             'in': ['x'],            # Keys to be given to the above function
+             'out': [('f', float)],  # Output from the function being minimized
+             'save_every_k': 400,    # Want progress saved every 400 evals
+             }                       
+# end_sim_specs_rst_tag
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],

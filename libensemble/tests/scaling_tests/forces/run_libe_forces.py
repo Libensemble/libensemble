@@ -66,21 +66,22 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': run_forces,             # This is the function whose output is being minimized (sim func)
-             'in': ['x'],                     # Name of input data structure for sim func
-             'out': [('energy', float)],      # Output from sim func
-             'keys': ['seed'],                # Key/keys for input data
-             'sim_dir': './sim',              # Simulation input dir to be copied for each worker (*currently empty)
-             'sim_dir_suffix': 'test',        # Suffix for copied sim dirs to indentify run (in case multiple)
-             'simdir_basename': 'forces',     # User attribute to name sim directories (forces_***)
-             'cores': 2,                      # User attribute to set number of cores for sim func runs (optional)
-             'sim_particles': 1e3,            # User attribute for number of particles in simulations
-             'sim_timesteps': 5,              # User attribute for number of timesteps in simulations
-             'sim_kill_minutes': 10.0,        # User attribute for max time for simulations
-             'kill_rate': 0.5,                # Between 0 and 1 for proportion of jobs that go bad (for testing kills)
-             'particle_variance': 0.2,        # Range over which particle count varies (for testing load imbalance)
-             'profile': False
+sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
+             'in': ['x'],                 # Name of input data structure for sim func
+             'out': [('energy', float)],  # Output from sim func
+             'keys': ['seed'],            # Key/keys for input data
+             'sim_dir': './sim',          # Sim dir to be copied for each worker 
+             'sim_dir_suffix': 'test',    # Suffix for copied sim dirs (to ID run)
+             'profile': False,            # Don't have libE profile run
+             'simdir_basename': 'force',  # Used by sim_f to name sim directories 
+             'cores': 2,                  # Used by sim_f to set number of cores used
+             'sim_particles': 1e3,        # Used by sim_f for number of particles 
+             'sim_timesteps': 5,          # Used by sim_f for number of timesteps 
+             'sim_kill_minutes': 10.0,    # Used by sim_f to set max run time
+             'particle_variance': 0.2,    # Used by sim_f to vary load imbalance
+             'kill_rate': 0.5,            # Fraction of bad sim_f evals (tests kills)
              }
+# end_sim_specs_rst_tag
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': uniform_random_sample,  # Generator function
