@@ -25,7 +25,7 @@ from libensemble.tests.regression_tests.common import parse_args, save_libE_outp
 
 num_comms = 2  # Must have atleast num_comms*2 processors
 nworkers, is_master, libE_specs, _ = parse_args()
-libE_specs['comm'], color = mpi_comm_split(num_comms)
+libE_specs['comm'], sub_comm_number = mpi_comm_split(num_comms)
 is_master = (libE_specs['comm'].Get_rank() == 0)
 
 # Declare the run parameters/functions
@@ -72,5 +72,5 @@ if is_master:
     J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
     assert np.linalg.norm(J) < 2000
 
-    outname = os.path.splitext(__file__)[0] + '_color' + str(color)
+    outname = os.path.splitext(__file__)[0] + '_sub_comm' + str(sub_comm_number)
     save_libE_output(H, persis_info, outname, nworkers)
