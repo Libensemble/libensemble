@@ -22,4 +22,3 @@ From: ``libEnsemble/tests/regression_tests/support.py``
 ..  literalinclude:: ../../libensemble/tests/regression_tests/support.py
     :start-at: persis_info_1
     :end-before: end_persis_info_rst_tag
-
