@@ -36,16 +36,11 @@ Generation function specifications to be set in user calling script and passed t
 
 .. _gen-specs-exmple1:
 
-From: libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py::
+From: ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py``
 
-    gen_specs = {'gen_f': uniform_random_sample,
-                 'in': ['sim_id'],
-                 'out': [('x',float,2)],
-                 'lb': np.array([-3,-2]),
-                 'ub': np.array([ 3, 2]),
-                 'gen_batch_size': 500,
-                 'save_every_k': 300
-                 }
+..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
+    :start-at: gen_specs
+    :end-before: end_gen_specs_rst_tag
 
 In this example, the generation function *uniform_random_sample* will generate 500 random points
 uniformly over the 2D domain defined by ``gen_specs['ub']`` and ``gen_specs['lb']``.
