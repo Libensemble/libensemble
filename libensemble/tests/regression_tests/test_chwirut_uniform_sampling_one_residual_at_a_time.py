@@ -64,8 +64,8 @@ gen_specs = {'gen_f': gen_f,
              'components': m}
 
 alloc_specs = {'alloc_f': alloc_f,              # Allocation function
-               'out': [('allocated', bool)],    # Output fields (included in History) 
-               'stop_on_NaNs': True,            # Should alloc_f preempt evals 
+               'out': [('allocated', bool)],    # Output fields (included in History)
+               'stop_on_NaNs': True,            # Should alloc_f preempt evals
                'stop_partial_fvec_eval': True}  # Should alloc_f preempt evals
 # end_alloc_specs_rst_tag
 
