@@ -46,7 +46,7 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
-             'batch_mode': True,
+             'batch_mode': True,     #  a different comment
              'initial_sample_size': 100,
              'sample_points': np.round(minima, 1),
              'localopt_method': 'LD_MMA',
