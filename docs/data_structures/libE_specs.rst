@@ -16,3 +16,8 @@ Specifications for libEnsemble::
         'abort_on_exception' [boolean] :
             In MPI mode, whether to call MPI_ABORT on an exception. Default: True
             IF False, an exception will be raised by the manager.
+
+.. seealso::
+  Examples in `common.py`_
+
+.. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py

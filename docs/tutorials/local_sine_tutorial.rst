@@ -183,15 +183,15 @@ inputs and outputs from those functions to expect.
 .. code-block:: python
     :linenos:
 
-    gen_specs = {'gen_f': gen_random_sample,      # Our generator function
-                 'out': [('x', float, (1,))],       # gen_f output (name, type, size).
-                 'lower': np.array([-3]),           # lower boundary for random sampling.
-                 'upper': np.array([3]),            # upper boundary for random sampling.
-                 'gen_batch_size': 5}               # number of values gen_f will generate per call
+    gen_specs = {'gen_f': gen_random_sample,   # Our generator function
+                 'out': [('x', float, (1,))],  # gen_f output (name, type, size)
+                 'lower': np.array([-3]),      # lower boundary for random sampling
+                 'upper': np.array([3]),       # upper boundary for random sampling
+                 'gen_batch_size': 5}          # number of x's gen_f generates per call
 
-    sim_specs = {'sim_f': sim_find_sine,          # Our simulator function
-                 'in': ['x'],                       # Input field names. 'x' from gen_f output
-                 'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
+    sim_specs = {'sim_f': sim_find_sine,       # Our simulator function
+                 'in': ['x'],                  # Input field names. 'x' from gen_f output
+                 'out': [('y', float)]}        # sim_f output. 'y' = sine('x')
 
 
 Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
@@ -221,7 +221,7 @@ This :ref:`H<datastruct-history-array>` is the final version of the History arra
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 libE_specs=libE_specs)
 
-    print([i for i in H.dtype.fields])        # Some (optional) statements to visualize our History array
+    print([i for i in H.dtype.fields])  # (optional) to visualize our History array
     print(H)
 
 That's it! Now that these files are complete, we can run our simulation.
@@ -338,7 +338,7 @@ modify the bottom of the calling script like this:
 
     if is_master:
         # Some (optional) statements to visualize our History array
-        print([i for i in H.dtype.fields])  
+        print([i for i in H.dtype.fields])
         print(H)
 
         import matplotlib.pyplot as plt
