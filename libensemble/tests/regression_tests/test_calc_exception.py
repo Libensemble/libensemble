@@ -17,7 +17,7 @@ import numpy as np
 
 from libensemble.libE import libE
 from libensemble.libE_manager import ManagerException
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()

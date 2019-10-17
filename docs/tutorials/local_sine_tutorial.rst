@@ -161,7 +161,7 @@ simulator functions we just created.
 
 Next, in a dictionary called :ref:`libE_specs<datastruct-libe-specs>` we'll specify
 the number of workers and the type of manager/worker communication libEnsemble will
-use. Our communication method, 'local', refers to Python's Multiprocessing.
+use. Our communication method, ``'local'``, refers to Python's Multiprocessing.
 
 .. code-block:: python
     :linenos:
@@ -247,8 +247,8 @@ In this arrangement, our output values are listed on the far-left with the gener
 values being the fourth column from the right.
 
 Two additional log files should also have been created.
-'ensemble.log' contains debugging or informational logging output from libEnsemble,
-while 'libE_stats.txt' contains a quick summary of all calculations performed.
+``ensemble.log`` contains debugging or informational logging output from libEnsemble,
+while ``libE_stats.txt`` contains a quick summary of all calculations performed.
 
 I graphed my output using Matplotlib, coloring entries by which worker performed
 the simulation:
