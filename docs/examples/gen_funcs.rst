@@ -6,9 +6,9 @@ Below are example generation functions available in libEnsemble.
 .. IMPORTANT::
   See the API for generation functions :ref:`here<api_gen_f>`
 
-uniform_sampling
+sampling
 ----------------
-.. automodule:: uniform_sampling
+.. automodule:: sampling
   :members:
   :undoc-members:
 
