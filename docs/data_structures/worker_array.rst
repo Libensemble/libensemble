@@ -34,7 +34,7 @@ worker blocked by some other calculation       1          0           1
   * libE only receives from workers with a nonzero 'active' state
   * libE only calls the alloc_f if some worker has an 'active' state of zero
 
-.. seealso:: 
+.. seealso::
   For an example allocation function that queries the worker array, see
   `persistent_aposmm_alloc`_.
 
