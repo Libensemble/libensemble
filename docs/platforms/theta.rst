@@ -11,7 +11,9 @@ Before getting started
 ----------------------
 
 An Argonne ALCF_ account is required to access Theta. Interested users will need
-to apply for and be granted an account before continuing.
+to apply for and be granted an account before continuing. To submit jobs to Theta,
+users must charge their jobs to a project (likely specified while requesting an
+account.)
 
 
 
