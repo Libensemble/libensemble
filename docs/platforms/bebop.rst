@@ -7,12 +7,15 @@ National Laboratory, featuring both Intel Broadwell and Knights Landing nodes.
 
 
 
-Before getting started
+Before Getting Started
 ----------------------
 
 An Argonne LCRC_ account is required to access Bebop. Interested users will need
 to apply for and be granted an account before continuing. To submit jobs to Bebop,
 users can charge hours to a project or their personal allocation (default).
+
+Bebop consists primarily of login and compute nodes. Users start on the login
+nodes, and schedule work for execution on the compute nodes.
 
 
 Configuring Python
@@ -30,7 +33,7 @@ dependencies::
     source activate my_env
 
 
-Installing Dependencies and libEnsemble
+Installing libEnsemble and Dependencies
 ---------------------------------------
 
 You should have an indication that the virtual environment is activated.
@@ -47,7 +50,7 @@ following block:
 Job Submission
 --------------
 
-Bebop uses Slurm_ for job management. The two commands you'll likely use the most
+Bebop uses Slurm_ for job submission and management. The two commands you'll likely use the most
 to run jobs are ``srun`` and ``sbatch`` for running interactively and batch, respectively.
 
 
@@ -80,6 +83,7 @@ Batch scripts specify run-settings using ``#SBATCH`` statements. A simple exampl
 for a libEnsemble use-case running on Broadwell nodes resembles the following:
 
 .. code-block:: bash
+    :linenos:
 
     #!/bin/bash
     #SBATCH -J myjob
@@ -100,7 +104,7 @@ for a libEnsemble use-case running on Broadwell nodes resembles the following:
 
 
 With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
-on Bebop is as simple as::
+on Bebop becomes::
 
     sbatch myscript.sh
 
@@ -123,7 +127,7 @@ a bash session on a Knights Landing node for thirty minutes with::
 Additional Information
 ----------------------
 
-See the LCRC Bebop docs here_ for much more information.
+See the LCRC Bebop docs here_ for much more information about Bebop.
 
 
 .. _Bebop: https://www.lcrc.anl.gov/systems/resources/bebop/
