@@ -8,7 +8,7 @@ Below are example generation functions available in libEnsemble.
 
 uniform_sampling
 ----------------
-.. automodule:: uniform_sampling
+.. automodule:: sampling
   :members:
   :undoc-members:
 

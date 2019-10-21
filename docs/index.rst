@@ -44,6 +44,8 @@ libEnsemble is a library for managing ensemble-like collections of computations.
      Quickstart<quickstart>
      user_guide
      tutorials/local_sine_tutorial
+     platforms/bebop
+     platforms/theta
      contributing
      FAQ
      libE_module
@@ -73,6 +75,14 @@ libEnsemble is a library for managing ensemble-like collections of computations.
      :caption: Tutorials:
 
      tutorials/local_sine_tutorial
+
+
+  .. toctree::
+     :maxdepth: 2
+     :caption: Running on:
+
+     platforms/bebop
+     platforms/theta
 
 
   .. toctree::

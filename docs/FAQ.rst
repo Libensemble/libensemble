@@ -118,8 +118,9 @@ before libEnsemble forks processes using multiprocessing. The recommended soluti
 is running libEnsemble in MPI mode. An alternative solution may be using a serial
 build of PETSc.
 
-Note: This error may depend on how multiprocessing handles an existing MPI
-communicator in a particular platform.
+.. note::
+    This error may depend on how multiprocessing handles an existing MPI
+    communicator in a particular platform.
 
 
 Running out of contexts in distributed mode on TMI fabric
@@ -146,7 +147,7 @@ nodes, while launching all sub-jobs to other nodes.
 
 
 macOS - Common Issues
--------------------
+---------------------
 
 **"Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
 
