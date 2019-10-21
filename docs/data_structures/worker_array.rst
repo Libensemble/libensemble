@@ -2,10 +2,20 @@
 
 worker array
 =============
+::
 
-Stores information to inform the allocation function about the current state of
-the workers. Workers can be in a variety of states. We take the following
-convention:
+    W: numpy structured array
+        'active' [int]:
+            Is the worker active or not
+        'persis_state' [int]:
+            Is the worker in a persis_state
+        'blocked' [int]:
+            Is the worker's resources blocked by another calculation
+
+Since workers can be an a variety of states, the worker array ``W`` is contains
+information about each workers state. This can allow an allocation functions to
+determine what work should be performed.
+We take the following convention:
 
 =========================================   =======  ============  =======
 Worker state                                 active  persis_state  blocked
@@ -23,3 +33,9 @@ worker blocked by some other calculation       1          0           1
 .. note::
   * libE only receives from workers with a nonzero 'active' state
   * libE only calls the alloc_f if some worker has an 'active' state of zero
+
+.. seealso:: 
+  For an example allocation function that queries the worker array, see
+  `persistent_aposmm_alloc`_.
+
+.. _persistent_aposmm_alloc: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/persistent_aposmm_alloc.py
