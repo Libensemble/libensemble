@@ -11,6 +11,13 @@ If you have any further questions, feel free to contact us through Support_
 Common Errors
 -------------
 
+**I keep getting "Manager only - must be at least one worker (2 MPI tasks)" when
+running with multiprocessing and multiple workers specified.**
+
+If your calling script code was switched from MPI to multiprocessing, make sure that
+libE_specs is populated with ``comms: local`` and ``nworkers: [num]``.
+
+
 **What does "AssertionError: Should not wait for workers when all workers are idle."
 mean?**
 
