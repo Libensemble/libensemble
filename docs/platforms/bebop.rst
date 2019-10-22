@@ -6,7 +6,6 @@ Bebop_ is the newest addition to the computational power of LCRC at Argonne
 National Laboratory, featuring both Intel Broadwell and Knights Landing nodes.
 
 
-
 Before Getting Started
 ----------------------
 
@@ -112,9 +111,9 @@ on Bebop becomes::
 Debugging Strategies
 --------------------
 
-View the status of your submitted jobs with ``squeue``.
+View the status of your submitted jobs with ``squeue`` and cancel jobs with ``scancel [jobID]``.
 
-It's not recommended to debug compute-intensive tasks on the login nodes. Start
+It's not recommended to debug compute-intensive tasks on the login nodes. Instead, start
 a bash session on a Knights Landing node for thirty minutes with::
 
     srun --pty -A [username OR project] -p knl -t 00:30:00 /bin/bash
@@ -127,7 +126,7 @@ a bash session on a Knights Landing node for thirty minutes with::
 Additional Information
 ----------------------
 
-See the LCRC Bebop docs here_ for much more information about Bebop.
+See the LCRC Bebop docs here_ for more information about Bebop.
 
 
 .. _Bebop: https://www.lcrc.anl.gov/systems/resources/bebop/
