@@ -12,7 +12,7 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
         Required keys :
         'persis_info' [dict]: Any persistent info to be sent to worker 'i'
         'H_fields' [list]: The field names of the history 'H' to be sent to worker 'i'
-        'tag' [int]: 'EVAL_SIM_TAG'/'EVAL_GEN_TAG') if worker 'i' is to call sim/gen_func
+        'tag' [int]: 'EVAL_SIM_TAG'/'EVAL_GEN_TAG' if worker 'i' is to call sim/gen_func
         'libE_info' [dict]: Info sent to/from worker to help manager update the 'H'
 
         Optional keys are:
