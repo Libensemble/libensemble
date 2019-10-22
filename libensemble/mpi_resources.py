@@ -58,7 +58,7 @@ class MPIResources(Resources):
         user supplied config is valid, and fills in any missing config
         information (ie. num_procs/num_nodes/ranks_per_node)
 
-        User supplied config options are honoured, and an exception is
+        User supplied config options are honored, and an exception is
         raised if these are infeasible.
         """
 
@@ -97,22 +97,22 @@ class MPIResources(Resources):
 
         # Could just downgrade to those available with warning - for now error
         rassert(num_nodes <= local_node_count,
-                "Not enough nodes to honour arguments. "
+                "Not enough nodes to honor arguments. "
                 "Requested {}. Only {} available".
                 format(num_nodes, local_node_count))
 
         rassert(ranks_per_node <= cores_avail_per_node,
-                "Not enough processors on a node to honour arguments. "
+                "Not enough processors on a node to honor arguments. "
                 "Requested {}. Only {} available".
                 format(ranks_per_node, cores_avail_per_node))
 
         rassert(ranks_per_node <= cores_avail_per_node_per_worker,
-                "Not enough processors per worker to honour arguments. "
+                "Not enough processors per worker to honor arguments. "
                 "Requested {}. Only {} available".
                 format(ranks_per_node, cores_avail_per_node_per_worker))
 
         rassert(num_procs <= (cores_avail_per_node * local_node_count),
-                "Not enough procs to honour arguments. "
+                "Not enough procs to honor arguments. "
                 "Requested {}. Only {} available".
                 format(num_procs, cores_avail_per_node*local_node_count))
 

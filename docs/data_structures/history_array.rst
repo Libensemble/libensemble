@@ -19,7 +19,7 @@ Below are the protected fields used in ``H``
 ..  literalinclude:: ../../libensemble/libE_fields.py
     :start-at: libE_fields
 
-.. seealso:: 
+.. seealso::
 
   See example :doc:`sim_specs<./sim_specs>`, :doc:`gen_specs<./gen_specs>`, and :doc:`alloc_specs<./alloc_specs>`.
 
