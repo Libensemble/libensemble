@@ -101,8 +101,8 @@ variables::
     export I_MPI_FABRICS_LIST=tmi,tcp
     export I_MPI_FALLBACK=1
 
-Another alternative is to run libEnsemble in central mode, in which libEnsemble runs on dedicated
-nodes, while launching all sub-jobs to other nodes.
+Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
+nodes, while launching all sub-jobs onto other nodes.
 
 
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
