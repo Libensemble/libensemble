@@ -78,7 +78,7 @@ libEnsemble is a library for managing ensemble-like collections of computations.
 
 
   .. toctree::
-     :maxdepth: 2
+     :maxdepth: 1
      :caption: Running on:
 
      platforms/bebop
