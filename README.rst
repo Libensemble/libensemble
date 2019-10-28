@@ -155,10 +155,11 @@ which can be viewed after running the tests via the HTML file
 available online at
 `Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
 
-Note: The job_controller tests can be run using the direct-launch or
-Balsam job controllers. Although only the direct-launch versions can
-be run on Travis CI, Balsam integration with libEnsemble is now tested via
-``test_balsam_hworld.py``.
+.. note::
+    The job_controller tests can be run using the direct-launch or
+    Balsam job controllers. Although only the direct-launch versions can be run
+    on Travis CI, Balsam integration with libEnsemble is now tested via
+    ``test_balsam_hworld.py``.
 
 
 Basic Usage
@@ -176,7 +177,7 @@ where ``N`` is the number of processors. This will launch one manager and
 ``N-1`` workers.
 
 If running in local mode, which uses Python's multiprocessing module, the
-'local' comms option and the number of workers must be specified. The script
+``local`` comms option and the number of workers must be specified. The script
 can then be run as a regular python script::
 
     python myscript.py
@@ -240,4 +241,3 @@ or communicate (and establish a private channel, if desired) at:
 .. _pytest: https://pypi.org/project/pytest/
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
-
