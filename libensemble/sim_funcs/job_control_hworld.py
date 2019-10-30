@@ -65,7 +65,7 @@ def polling_loop(comm, jobctl, job, timeout_sec=3.0, delay=0.3):
 def job_control_hworld(H, persis_info, sim_specs, libE_specs):
     """ Test of launching and polling job and exiting on job finish"""
     jobctl = MPIJobController.controller
-    cores = sim_specs['cores']
+    cores = sim_specs['user']['cores']
     comm = libE_specs['comm']
 
     args_for_sim = 'sleep 1'
