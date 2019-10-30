@@ -31,7 +31,7 @@ gen_specs = {'gen_f': gen_f,
              'user': {'gen_batch_size': 500,
                       'lb': np.array([-3]),
                       'ub': np.array([3]),
-                     }
+                      }
              }
 
 persis_info = per_worker_stream({}, nworkers + 1)

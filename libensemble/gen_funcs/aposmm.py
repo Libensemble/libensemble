@@ -491,8 +491,8 @@ def advance_local_run(H, user_specs, c_flag, run, persis_info):
         advance_local_run.pt_in_run = 0
 
         if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
-                                            'LN_COBYLA', 'LN_NELDERMEAD',
-                                            'LD_MMA']:
+                                             'LN_COBYLA', 'LN_NELDERMEAD',
+                                             'LD_MMA']:
 
             if user_specs['localopt_method'] in ['LD_MMA']:
                 fields_to_pass = ['x_on_cube', 'f', 'grad']
@@ -900,7 +900,7 @@ def initialize_APOSMM(H, gen_specs):
 
     if 'single_component_at_a_time' in user_specs and user_specs['single_component_at_a_time']:
         assert user_specs['batch_mode'], ("Must be in batch mode when using "
-                                         "'single_component_at_a_time'")
+                                          "'single_component_at_a_time'")
         c_flag = True
     else:
         c_flag = False

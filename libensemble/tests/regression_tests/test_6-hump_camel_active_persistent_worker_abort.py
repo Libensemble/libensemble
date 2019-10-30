@@ -42,8 +42,8 @@ gen_specs = {'gen_f': gen_f,
                       'num_active_gens': 1,
                       'dist_to_bound_multiple': 0.5,
                       'localopt_maxeval': 4
-                     }
-            }
+                      }
+             }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
 

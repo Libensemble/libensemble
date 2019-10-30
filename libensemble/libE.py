@@ -33,6 +33,7 @@ allowed_sim_spec_keys = ['sim_f', 'in', 'out', 'sim_dir', 'sim_dir_prefix', 'cle
 allowed_gen_spec_keys = ['gen_f', 'in', 'out', 'save_every_k', 'user']
 allowed_alloc_spec_keys = ['alloc_f', 'in', 'out', 'user']
 
+
 def report_manager_exception(hist, persis_info, mgr_exc=None):
     "Write out exception manager exception to log."
     if mgr_exc is not None:
@@ -481,7 +482,7 @@ def check_alloc_specs(alloc_specs):
     assert alloc_specs['alloc_f'], "Allocation function must be specified"
 
     for k in alloc_specs.keys():
-        assert k in allowed_alloc_spec_keys, "Key %s is not allowed in alloc_specs. Supported keys are: %s " % (k,allowed_alloc_spec_keys)
+        assert k in allowed_alloc_spec_keys, "Key %s is not allowed in alloc_specs. Supported keys are: %s " % (k, allowed_alloc_spec_keys)
 
 
 def check_sim_specs(sim_specs):
@@ -493,7 +494,7 @@ def check_sim_specs(sim_specs):
     assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
 
     for k in sim_specs.keys():
-        assert k in allowed_sim_spec_keys, "Key %s is not allowed in sim_specs. Supported keys are: %s " % (k,allowed_sim_spec_keys)
+        assert k in allowed_sim_spec_keys, "Key %s is not allowed in sim_specs. Supported keys are: %s " % (k, allowed_sim_spec_keys)
 
 
 def check_gen_specs(gen_specs):
@@ -501,7 +502,7 @@ def check_gen_specs(gen_specs):
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
     for k in gen_specs.keys():
-        assert k in allowed_gen_spec_keys, "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k,allowed_gen_spec_keys)
+        assert k in allowed_gen_spec_keys, "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k, allowed_gen_spec_keys)
 
 
 def check_exit_criteria(exit_criteria, sim_specs, gen_specs):

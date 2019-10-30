@@ -195,7 +195,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
-                                          'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
+                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
         fields_to_pass = ['x_on_cube', 'f']
     elif user_specs['localopt_method'] in ['pounders']:
         fields_to_pass = ['x_on_cube', 'fvec']
@@ -386,7 +386,7 @@ def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, use
         grad[:] = grad_recv
     else:
         assert user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
-                                                'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
+                                                 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
         x_recv, f_recv = comm_queue.get()
 
     assert np.array_equal(x, x_recv), "The point I gave is not the point I got back!"
