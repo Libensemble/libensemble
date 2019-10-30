@@ -40,24 +40,25 @@ if nworkers == 1:
     # Otherwise, will just copy in same directory as sim_dir
     sim_specs['sim_dir_prefix'] = '~'
 elif nworkers == 3:
-    sim_specs['uniform_random_pause_ub'] = 0.05
+    sim_specs['user'] = {'uniform_random_pause_ub': 0.05}
 
 n = 2
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f', 'returned'],
              'out': gen_out,
-             'num_active_gens': 1,
-             'batch_mode': True,
-             'lb': np.array([-5, 0]),
-             'ub': np.array([10, 15]),
-             'initial_sample_size': 20,
-             'localopt_method': 'LN_BOBYQA',
-             'dist_to_bound_multiple': 0.99,
-             'xtol_rel': 1e-3,
-             'min_batch_size': nworkers,
-             'high_priority_to_best_localopt_runs': True,
-             'max_active_runs': 3}
+             'user': {'num_active_gens': 1,
+                      'batch_mode': True,
+                      'lb': np.array([-5, 0]),
+                      'ub': np.array([10, 15]),
+                      'initial_sample_size': 20,
+                      'localopt_method': 'LN_BOBYQA',
+                      'dist_to_bound_multiple': 0.99,
+                      'xtol_rel': 1e-3,
+                      'min_batch_size': nworkers,
+                      'high_priority_to_best_localopt_runs': True,
+                      'max_active_runs': 3}
+             }
 
 persis_info = per_worker_stream(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
@@ -71,9 +72,9 @@ exit_criteria = {'sim_max': 150,
 # Perform the run
 for run in range(2):
     if run == 1:
-        gen_specs['localopt_method'] = 'scipy_COBYLA'
-        gen_specs.pop('xtol_rel')
-        gen_specs['tol'] = 1e-5
+        gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
+        gen_specs['user'].pop('xtol_rel')
+        gen_specs['user']['tol'] = 1e-5
         exit_criteria['sim_max'] = 500
         persis_info = deepcopy(persis_info_safe)
 
@@ -89,5 +90,5 @@ for run in range(2):
             print(dist)
             assert dist < tol
 
-        print("\nAPOSMM + " + gen_specs['localopt_method'] + " found " + str(k) + " minima to tolerance " + str(tol))
+        print("\nAPOSMM + " + gen_specs['user']['localopt_method'] + " found " + str(k) + " minima to tolerance " + str(tol))
         save_libE_output(H, persis_info, __file__, nworkers)

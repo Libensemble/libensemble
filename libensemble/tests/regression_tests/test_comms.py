@@ -37,12 +37,13 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('x', float, (2,))],
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2]),
-             'gen_batch_size': sim_max,
-             'batch_mode': True,
-             'num_active_gens': 1,
-             'save_every_k': 300}
+             'save_every_k': 300,
+             'user': {'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2]),
+                      'batch_mode': True,
+                      'gen_batch_size': sim_max,
+                      'num_active_gens': 1}
+             }
 
 persis_info = per_worker_stream({}, nworkers + 1)
 

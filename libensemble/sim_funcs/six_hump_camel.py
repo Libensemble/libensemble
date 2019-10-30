@@ -57,7 +57,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a collection of points given in ``H['x']``.
     Additionally evaluates the gradient if ``'grad'`` is a field in
-    ``sim_specs['out']`` and pauses for ``sim_specs['pause_time']]`` if
+    ``sim_specs['out']`` and pauses for ``sim_specs['user']['pause_time']]`` if
     defined.
 
     :See:
@@ -73,7 +73,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
         if 'grad' in O.dtype.names:
             O['grad'][i] = six_hump_camel_grad(x)
 
-        if 'pause_time' in sim_specs:
+        if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
             time.sleep(sim_specs['user']['pause_time'])
 
     return O, persis_info

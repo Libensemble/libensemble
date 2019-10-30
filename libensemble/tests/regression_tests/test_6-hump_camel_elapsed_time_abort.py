@@ -27,16 +27,18 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float)],
-             'pause_time': 2}
+             'user': {'pause_time': 2}
+             }
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
-             'gen_batch_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': False,
              'out': [('x', float, (2,))],
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2])}
+             'user': {'gen_batch_size': 5,
+                      'num_active_gens': 1,
+                      'batch_mode': False,
+                      'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2])}
+             }
 
 persis_info = per_worker_stream({}, nworkers + 1)
 

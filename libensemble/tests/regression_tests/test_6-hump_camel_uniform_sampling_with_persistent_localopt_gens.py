@@ -39,15 +39,16 @@ sim_specs = {'sim_f': sim_f,
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'xtol_rel': 1e-4,
              'out': gen_out,
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2]),
-             'gen_batch_size': 2,
-             'batch_mode': True,
-             'num_active_gens': 1,
-             'localopt_method': 'LD_MMA',
-             'xtol_rel': 1e-4}
+             'user': {'xtol_rel': 1e-4,
+                      'batch_mode': True,
+                      'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2]),
+                      'gen_batch_size': 2,
+                      'num_active_gens': 1,
+                      'localopt_method': 'LD_MMA',
+                      'xtol_rel': 1e-4}
+             }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
 

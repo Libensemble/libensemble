@@ -40,7 +40,8 @@ budget = 10
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('fvec', float, m)],
-             'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             'user': {'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             }
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 
@@ -48,16 +49,17 @@ gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out]+['f', 'fvec', 'returned'],
              'out': gen_out,
-             'initial_sample_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': True,
-             'lb': (-2-np.pi/10)*np.ones(n),
-             'ub': 2*np.ones(n),
-             'localopt_method': 'pounders',
-             'dist_to_bound_multiple': 0.5,
-             'components': m}
+             'user': {'initial_sample_size': 5,
+                      'batch_mode': True,
+                      'num_active_gens': 1,
+                      'lb': (-2-np.pi/10)*np.ones(n),
+                      'ub': 2*np.ones(n),
+                      'localopt_method': 'pounders',
+                      'dist_to_bound_multiple': 0.5,
+                      'components': m}
+             }
 
-gen_specs.update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
+gen_specs['user'].update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 
 persis_info = per_worker_stream(persis_info, nworkers + 1)
 

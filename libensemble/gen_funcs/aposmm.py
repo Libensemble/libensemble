@@ -180,7 +180,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     """
 
-    n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs['user'])
+    n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
     if n_s < gen_specs['user']['initial_sample_size']:
@@ -887,7 +887,7 @@ def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     return r_k
 
 
-def initialize_APOSMM(H, user_specs):
+def initialize_APOSMM(H, gen_specs):
     """
     Computes common values every time that APOSMM is reinvoked
 
@@ -895,6 +895,7 @@ def initialize_APOSMM(H, user_specs):
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
+    user_specs = gen_specs['user']
     n = len(user_specs['ub'])
 
     if 'single_component_at_a_time' in user_specs and user_specs['single_component_at_a_time']:
@@ -915,7 +916,7 @@ def initialize_APOSMM(H, user_specs):
 
     # Rather than build up a large output, we will just make changes in the
     # given H, and then send back the rows corresponding to updated H entries.
-    Out = np.empty(0, dtype=user_specs['out'])
+    Out = np.empty(0, dtype=gen_specs['out'])
 
     if 'rk_const' in user_specs:
         rk_c = user_specs['rk_const']

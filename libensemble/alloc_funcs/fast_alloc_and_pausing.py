@@ -53,7 +53,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # partial combine_component_func evaluation is # worse than the
             # best, known, complete evaluation (and the point is not a
             # local_pt).
-            if alloc_specs['user'].get(['stop_partial_fvec_eval']):
+            if alloc_specs['user'].get('stop_partial_fvec_eval'):
                 pt_ids = set(persis_info['pt_ids']) - persis_info['has_nan'] - persis_info['complete']
                 pt_ids = np.array(list(pt_ids))
                 partial_fvals = np.zeros(len(pt_ids))
