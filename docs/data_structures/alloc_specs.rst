@@ -25,4 +25,11 @@ Allocation function specifications to be set in user calling script and passed t
   * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
 
 .. seealso::
-  * JL fill
+  The script `test_chwirut_uniform_sampling_one_residual_at_a_time.py`_
+  specifies fields to be used by the allocation function.
+
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py
+      :start-at: alloc_specs
+      :end-before: end_alloc_specs_rst_tag
+
+.. _test_chwirut_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py

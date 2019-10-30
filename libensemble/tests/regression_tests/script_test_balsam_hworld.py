@@ -24,7 +24,7 @@ def build_simfunc():
     subprocess.check_call(buildstring.split())
 
 
-libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
+libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_master = MPI.COMM_WORLD.Get_rank() == 0

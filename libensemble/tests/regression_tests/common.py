@@ -36,7 +36,7 @@ def mpi_parse_args(args):
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_master = MPI.COMM_WORLD.Get_rank() == 0
-    libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
+    libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
     return nworkers, is_master, libE_specs, args.tester_args
 
 
@@ -50,16 +50,16 @@ def mpi_comm_excl(exc=[0], comm=None):
     return mpi_comm, MPI.COMM_NULL
 
 
-def mpi_comm_split(num_colors, comm=None):
+def mpi_comm_split(num_parts, comm=None):
     "Split COMM_WORLD into sub-communicators for MPI comms."
     from mpi4py import MPI
     parent_comm = comm or MPI.COMM_WORLD
     parent_size = parent_comm.Get_size()
     key = parent_comm.Get_rank()
-    row_size = parent_size // num_colors
-    color = key // row_size
-    sub_comm = parent_comm.Split(color, key)
-    return sub_comm, color
+    row_size = parent_size // num_parts
+    sub_comm_number = key // row_size
+    sub_comm = parent_comm.Split(sub_comm_number, key)
+    return sub_comm, sub_comm_number
 
 
 def local_parse_args(args):

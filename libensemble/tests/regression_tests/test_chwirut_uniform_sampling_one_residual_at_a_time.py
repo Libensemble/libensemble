@@ -63,10 +63,11 @@ gen_specs = {'gen_f': gen_f,
              'ub': 2*np.ones(n),
              'components': m}
 
-alloc_specs = {'alloc_f': alloc_f,
-               'out': [('allocated', bool)],
-               'stop_on_NaNs': True,
-               'stop_partial_fvec_eval': True}
+alloc_specs = {'alloc_f': alloc_f,              # Allocation function
+               'out': [('allocated', bool)],    # Output fields (included in History)
+               'stop_on_NaNs': True,            # Should alloc_f preempt evals
+               'stop_partial_fvec_eval': True}  # Should alloc_f preempt evals
+# end_alloc_specs_rst_tag
 
 persis_info = per_worker_stream(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)

@@ -66,6 +66,7 @@ persis_info_safe = deepcopy(persis_info)
 exit_criteria = {'sim_max': 150,
                  'elapsed_wallclock_time': 100,
                  'stop_val': ('f', -1)}
+# end_exit_criteria_rst_tag
 
 # Perform the run
 for run in range(2):
