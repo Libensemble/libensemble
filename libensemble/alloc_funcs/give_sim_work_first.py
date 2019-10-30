@@ -7,10 +7,10 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
-    completed or running does it start (at most ``gen_specs['num_active_gens']``)
+    completed or running does it start (at most ``gen_specs['user']['num_active_gens']``)
     generator instances.
 
-    Allows for a ``gen_specs['batch_mode']`` where no generation
+    Allows for a ``gen_specs['user']['batch_mode']`` where no generation
     work is given out unless all entries in ``H`` are returned.
 
     Allows for ``blocking`` of workers that are not active, for example, so
@@ -39,7 +39,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Pick all high priority, oldest high priority, or just oldest point
             if 'priority' in H.dtype.fields:
                 priorities = H['priority'][~H['allocated']]
-                if gen_specs.get('give_all_with_same_priority'):
+                if gen_specs['user'].get('give_all_with_same_priority'):
                     q_inds = (priorities == np.max(priorities))
                 else:
                     q_inds = np.argmax(priorities)
@@ -68,12 +68,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         else:
 
             # Allow at most num_active_gens active generator instances
-            if gen_count >= gen_specs.get('num_active_gens', gen_count+1):
+            if gen_count >= gen_specs['user'].get('num_active_gens', gen_count+1):
                 break
 
             # No gen instances in batch mode if workers still working
             still_working = ~H['returned']
-            if gen_specs.get('batch_mode') and np.any(still_working):
+            if gen_specs['user'].get('batch_mode') and np.any(still_working):
                 break
 
             # Give gen work

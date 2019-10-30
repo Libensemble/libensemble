@@ -23,7 +23,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
     # If any persistent worker's calculated values have returned, give them back.
     for i in avail_worker_ids(W, persistent=True):
-        if persis_info.get('sample_done') or sum(H['returned']) >= gen_specs['initial_sample_size']:
+        if persis_info.get('sample_done') or sum(H['returned']) >= gen_specs['user']['initial_sample_size']:
             # Don't return if the initial sample is not complete
             persis_info['sample_done'] = True
 

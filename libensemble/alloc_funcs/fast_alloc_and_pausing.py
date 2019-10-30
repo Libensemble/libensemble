@@ -9,16 +9,16 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
     are given. If all entries in `H` have been given a be evaluated, a worker
     is told to call the generator function, provided this wouldn't result in
-    more than ``gen_specs['num_active_gen']`` active generators. Also allows
+    more than ``gen_specs['user']['num_active_gen']`` active generators. Also allows
     for a 'batch_mode'.
 
     When there are multiple objective components, this allocation function
     does not evaluate further components for some point in the following
     scenarios:
 
-    alloc_specs['stop_on_NaNs']: True --- after a NaN has been found in returned in some
+    alloc_specs['user']['stop_on_NaNs']: True --- after a NaN has been found in returned in some
         objective component
-    allocated['stop_partial_fvec_eval']: True --- after the value returned from
+    alloc_specs['user']['stop_partial_fvec_eval']: True --- after the value returned from
         combine_component_func is larger than a known upper bound on the objective.
 
     :See:
@@ -46,14 +46,14 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if len(persis_info['need_to_give']):
             # If 'stop_on_NaN' is true and any f_i is a NaN, then pause
             # evaluations of other f_i, corresponding to the same pt_id
-            if 'stop_on_NaNs' in alloc_specs and alloc_specs['stop_on_NaNs']:
+            if alloc_specs['user'].get('stop_on_NaNs'):
                 pt_ids_to_pause.update(H['pt_id'][np.isnan(H['f_i'])])
 
             # If 'stop_partial_fvec_eval' is true, pause entries in H if a
             # partial combine_component_func evaluation is # worse than the
             # best, known, complete evaluation (and the point is not a
             # local_pt).
-            if 'stop_partial_fvec_eval' in alloc_specs and alloc_specs['stop_partial_fvec_eval']:
+            if alloc_specs['user'].get(['stop_partial_fvec_eval']):
                 pt_ids = set(persis_info['pt_ids']) - persis_info['has_nan'] - persis_info['complete']
                 pt_ids = np.array(list(pt_ids))
                 partial_fvals = np.zeros(len(pt_ids))
@@ -71,11 +71,11 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
                     if np.all(H['returned'][a1]):
                         persis_info['complete'].add(pt_id)
-                        persis_info['best_complete_val'] = min(persis_info['best_complete_val'], gen_specs['combine_component_func'](H['f_i'][a1]))
+                        persis_info['best_complete_val'] = min(persis_info['best_complete_val'], gen_specs['user']['combine_component_func'](H['f_i'][a1]))
                     else:
                         # Ensure combine_component_func calculates partial fevals correctly
                         # with H['f_i'] = 0 for non-returned point
-                        partial_fvals[j] = gen_specs['combine_component_func'](H['f_i'][a1])
+                        partial_fvals[j] = gen_specs['user']['combine_component_func'](H['f_i'][a1])
 
                 if len(persis_info['complete']) and len(pt_ids) > 1:
 
@@ -102,13 +102,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 i, idle_workers = idle_workers[0], idle_workers[1:]
                 sim_work(Work, i, sim_specs['in'], [next_row], [])
 
-        elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
+        elif gen_count < gen_specs['user'].get('num_active_gens', gen_count+1):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if (gen_specs.get('batch_mode')
+                if (gen_specs['user'].get('batch_mode')
                     and not all(np.logical_or(H['returned'][last_size:],
                                               H['paused'][last_size:]))):
                     break
@@ -131,7 +131,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             persis_info['last_worker'] = i
 
-        elif gen_count >= gen_specs.get('num_active_gens', gen_count+1):
+        elif gen_count >= gen_specs['user'].get('num_active_gens', gen_count+1):
             idle_workers = []
 
     return Work, persis_info
