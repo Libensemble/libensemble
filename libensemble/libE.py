@@ -500,8 +500,8 @@ def check_gen_specs(gen_specs):
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
-    for k in alloc_specs.keys():
-        assert k in allowed_gen_spec_keys, "Key %s in gen_specs is not an allowable key" % (k,allowed_gen_spec_keys)
+    for k in gen_specs.keys():
+        assert k in allowed_gen_spec_keys, "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k,allowed_gen_spec_keys)
 
 
 def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
