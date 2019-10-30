@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
-allowed_sim_spec_keys = ['sim_f', 'in', 'out', 'sim_dir', 'clean_jobs', 'save_every_k', 'user']
+allowed_sim_spec_keys = ['sim_f', 'in', 'out', 'sim_dir', 'sim_dir_prefix', 'clean_jobs', 'save_every_k', 'user']
 allowed_gen_spec_keys = ['gen_f', 'in', 'out', 'save_every_k', 'user']
 allowed_alloc_spec_keys = ['alloc_f', 'in', 'out', 'user']
 
