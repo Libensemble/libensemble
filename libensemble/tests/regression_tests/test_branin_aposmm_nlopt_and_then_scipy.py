@@ -25,20 +25,21 @@ from libensemble.tests.regression_tests.common import parse_args, save_libE_outp
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
+libE_specs['clean_jobs'] = True
+libE_specs['sim_dir'] = pkg_resources.resource_filename('libensemble.sim_funcs.branin', ''),  # to be copied by each worker
+
 if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             'out': [('f', float)],
-             'sim_dir': pkg_resources.resource_filename('libensemble.sim_funcs.branin', ''),  # to be copied by each worker
-             'clean_jobs': True}
+             'out': [('f', float)]}
 
 if nworkers == 1:
     # Have the workers put their directories in a different (e.g., a faster
     # /sandbox/ or /scratch/ directory)
     # Otherwise, will just copy in same directory as sim_dir
-    sim_specs['sim_dir_prefix'] = '~'
+    libE_specs['sim_dir_prefix'] = '~'
 elif nworkers == 3:
     sim_specs['user'] = {'uniform_random_pause_ub': 0.05}
 

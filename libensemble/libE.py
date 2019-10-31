@@ -46,7 +46,12 @@ allowed_alloc_spec_keys = ['alloc_f',  #
 
 allowed_libE_spec_keys = ['comms',               #
                           'comm',                #
+                          'ip',                  #
+                          'port',                #
+                          'authkey',             #
+                          'workerID',            #
                           'nprocesses',          #
+                          'worker_cmd',          #
                           'abort_on_exception',  #
                           'sim_dir',             #
                           'sim_dir_prefix',      #
