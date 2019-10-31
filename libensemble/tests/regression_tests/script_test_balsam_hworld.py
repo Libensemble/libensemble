@@ -24,7 +24,11 @@ def build_simfunc():
     subprocess.check_call(buildstring.split())
 
 
-libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+libE_specs = {'comm': MPI.COMM_WORLD,
+              'comms': 'mpi',
+              'save_every_k_sims': 400,
+              'save_every_k_gens': 20,
+              }
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_master = MPI.COMM_WORLD.Get_rank() == 0
@@ -41,13 +45,11 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'save_every_k': 400,
              'user': {'cores': cores_per_job}}
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('x', float, (2,))],
-             'save_every_k': 20,
              'user': {'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
                       'gen_batch_size': nworkers,

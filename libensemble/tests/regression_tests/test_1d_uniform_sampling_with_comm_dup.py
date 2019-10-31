@@ -45,7 +45,6 @@ sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('x', float, (1,))],
-             'save_every_k': 300,
              'user': {'lb': np.array([-3]),
                       'ub': np.array([3]),
                       'gen_batch_size': 500
