@@ -50,7 +50,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
         Parameters/information for generation calculations
 
     libE_specs: dict
-        Parameters/information for libE operations 
+        Parameters/information for libE operations
 
     workerID: int
         Manager assigned worker ID (if None, default is comm.rank)
