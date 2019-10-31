@@ -56,7 +56,6 @@ gen_specs = {'gen_f': gen_f,
                      ('obj_component', int),
                      ('pt_id', int)],
              'user': {'gen_batch_size': 2,
-                      'batch_mode': True,
                       'single_component_at_a_time': True,
                       'combine_component_func': lambda x: np.sum(np.power(x, 2)),
                       'num_active_gens': 1,
@@ -68,6 +67,7 @@ gen_specs = {'gen_f': gen_f,
 alloc_specs = {'alloc_f': alloc_f,              # Allocation function
                'out': [('allocated', bool)],    # Output fields (included in History)
                'user': {'stop_on_NaNs': True,            # Should alloc_f preempt evals
+                        'batch_mode': True,
                         'stop_partial_fvec_eval': True}  # Should alloc_f preempt evals
                }
 # end_alloc_specs_rst_tag
