@@ -37,7 +37,6 @@ gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
              'out': gen_out,
              'user': {'num_active_gens': 1,
-                      'batch_mode': True,
                       'initial_sample_size': 100,
                       'sample_points': np.round(minima, 1),
                       'localopt_method': 'LD_MMA',
@@ -50,7 +49,7 @@ gen_specs = {'gen_f': gen_f,
                       }
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)], 'user': {'batch_mode': True}}
 
 persis_info = per_worker_stream(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)

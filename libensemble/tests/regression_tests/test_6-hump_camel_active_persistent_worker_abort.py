@@ -38,14 +38,13 @@ gen_specs = {'gen_f': gen_f,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
                       'gen_batch_size': 2,
-                      'batch_mode': True,
                       'num_active_gens': 1,
                       'dist_to_bound_multiple': 0.5,
                       'localopt_maxeval': 4
                       }
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': gen_out}
+alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True}}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
