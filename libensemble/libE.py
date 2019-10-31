@@ -55,6 +55,7 @@ allowed_libE_spec_keys = ['comms',               #
                           'abort_on_exception',  #
                           'sim_dir',             #
                           'sim_dir_prefix',      #
+                          'sim_dir_suffix',      #
                           'clean_jobs',          #
                           'save_every_k_sims',   #
                           'save_every_k_gens',   #
@@ -232,7 +233,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
     comm = libE_specs['comm']
 
-    if libE_specs['comm'] == mpi_comm_null:
+    if comm == mpi_comm_null:
         return [], persis_info, 3  # Process not in comm
 
     rank = comm.Get_rank()
@@ -251,7 +252,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
                                 persis_info, alloc_specs, libE_specs, H0)
 
     # Worker returns a subset of MPI output
-    libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
+    libE_mpi_worker(sim_specs, gen_specs, libE_specs)
     return [], persis_info, []
 
 
@@ -279,19 +280,19 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                         on_abort=on_abort)
 
 
-def libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs):
+def libE_mpi_worker(sim_specs, gen_specs, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
-    comm = MainMPIComm(mpi_comm)
-    worker_main(comm, sim_specs, gen_specs, log_comm=True)
+    comm = MainMPIComm(libE_specs['comm'])
+    worker_main(comm, sim_specs, gen_specs, libE_specs, log_comm=True)
     logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
 
 # ==================== Process version =================================
-def start_proc_team(nworkers, sim_specs, gen_specs, log_comm=True):
+def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     "Launch a process worker team."
-    wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, w, log_comm)
+    wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, libE_specs, w, log_comm)
               for w in range(1, nworkers+1)]
     for wcomm in wcomms:
         wcomm.run()
@@ -322,7 +323,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Launch worker team and set up logger
-    wcomms = start_proc_team(nworkers, sim_specs, gen_specs)
+    wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
     manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
@@ -468,7 +469,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
     workerID = libE_specs['workerID']
 
     with ClientQCommManager(ip, port, authkey, workerID) as comm:
-        worker_main(comm, sim_specs, gen_specs,
+        worker_main(comm, sim_specs, gen_specs, libE_specs,
                     workerID=workerID, log_comm=True)
         logger.debug("Worker {} exiting".format(workerID))
 
