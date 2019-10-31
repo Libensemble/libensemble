@@ -45,17 +45,17 @@ def run_forces(x, persis_info, sim_specs, libE_info):
 
     calc_status = 0  # Returns to worker
 
-    simdir_basename = sim_specs['simdir_basename']
-    # cores           = sim_specs['cores']
-    keys = sim_specs['keys']
-    sim_particles = sim_specs['sim_particles']
-    sim_timesteps = sim_specs['sim_timesteps']
-    time_limit = sim_specs['sim_kill_minutes'] * 60.0
+    simdir_basename = sim_specs['user']['simdir_basename']
+    # cores           = sim_specs['user']['cores']
+    keys = sim_specs['user']['keys']
+    sim_particles = sim_specs['user']['sim_particles']
+    sim_timesteps = sim_specs['user']['sim_timesteps']
+    time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
 
     # Get from dictionary if key exists, else return default (e.g. 0)
-    cores = sim_specs.get('cores', None)
-    kill_rate = sim_specs.get('kill_rate', 0)
-    particle_variance = sim_specs.get('particle_variance', 0)
+    cores = sim_specs['user'].get('cores', None)
+    kill_rate = sim_specs['user'].get('kill_rate', 0)
+    particle_variance = sim_specs['user'].get('particle_variance', 0)
 
     # Composing variable names and x values to set up simulation
     # arguments = []

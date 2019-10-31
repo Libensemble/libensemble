@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
+allowed_sim_spec_keys = ['sim_f', 'in', 'out', 'sim_dir', 'sim_dir_prefix', 'clean_jobs', 'save_every_k', 'profile', 'user']
+allowed_gen_spec_keys = ['gen_f', 'in', 'out', 'save_every_k', 'user']
+allowed_alloc_spec_keys = ['alloc_f', 'in', 'out', 'user']
+
 
 def report_manager_exception(hist, persis_info, mgr_exc=None):
     "Write out exception manager exception to log."
@@ -477,6 +481,9 @@ def check_alloc_specs(alloc_specs):
     assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
     assert alloc_specs['alloc_f'], "Allocation function must be specified"
 
+    for k in alloc_specs.keys():
+        assert k in allowed_alloc_spec_keys, "Key %s is not allowed in alloc_specs. Supported keys are: %s " % (k, allowed_alloc_spec_keys)
+
 
 def check_sim_specs(sim_specs):
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
@@ -486,10 +493,16 @@ def check_sim_specs(sim_specs):
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
 
+    for k in sim_specs.keys():
+        assert k in allowed_sim_spec_keys, "Key %s is not allowed in sim_specs. Supported keys are: %s " % (k, allowed_sim_spec_keys)
+
 
 def check_gen_specs(gen_specs):
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
+
+    for k in gen_specs.keys():
+        assert k in allowed_gen_spec_keys, "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k, allowed_gen_spec_keys)
 
 
 def check_exit_criteria(exit_criteria, sim_specs, gen_specs):

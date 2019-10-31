@@ -12,10 +12,10 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     :See:
         ``libensemble/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
     """
-    ub = gen_specs['ub']
-    lb = gen_specs['lb']
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
     n = len(lb)
-    b = gen_specs['gen_batch_size']
+    b = gen_specs['user']['gen_batch_size']
     comm = libE_info['comm']
 
     # Send batches until manager sends stop tag

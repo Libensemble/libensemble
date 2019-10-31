@@ -67,7 +67,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       objective components for a given ``'x'``)
 
     When using libEnsemble to do individual objective component evaluations,
-    APOSMM will return ``gen_specs['components']`` copies of each point, but
+    APOSMM will return ``gen_specs['user']['components']`` copies of each point, but
     the component=0 entry of each point will only be considered when
 
     - deciding where to start a run,
@@ -76,7 +76,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - storing the combined objective function value
     - etc
 
-    Necessary quantities in ``gen_specs`` are:
+    Necessary quantities in ``gen_specs['user']`` are:
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
@@ -86,7 +86,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods)
 
-    Optional ``gen_specs`` entries are:
+    Optional ``gen_specs['user']`` entries are:
 
     - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
     - ``'combine_component_func' [func]``: Function to combine obj components
@@ -107,7 +107,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
-    And ``gen_specs`` convergence tolerances for NLopt, PETSc/TAO, SciPy
+    And ``gen_specs['user']`` convergence tolerances for NLopt, PETSc/TAO, SciPy
 
     - ``'fatol' [float]``:
     - ``'ftol_abs' [float]``:
@@ -133,7 +133,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     (breaking ties arbitrarily).
 
     :Note:
-        ``gen_specs['combine_component_func']`` must be defined when there are
+        ``gen_specs['user']['combine_component_func']`` must be defined when there are
         multiple objective components.
 
     :Note:
@@ -183,29 +183,31 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-    n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, gen_specs, libE_info)
+    user_specs = gen_specs['user']
+
+    n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
 
     # Initialize stuff for localopt children
     local_opters = {}
     sim_id_to_child_indices = {}
     run_order = {}
     total_runs = 0
-    if gen_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
+    if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
-    elif gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
-                                          'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
+    elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
+                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
         fields_to_pass = ['x_on_cube', 'f']
-    elif gen_specs['localopt_method'] in ['pounders']:
+    elif user_specs['localopt_method'] in ['pounders']:
         fields_to_pass = ['x_on_cube', 'fvec']
     else:
-        raise NotImplementedError("Unknown local optimization method " "'{}'.".format(gen_specs['localopt_method']))
+        raise NotImplementedError("Unknown local optimization method " "'{}'.".format(user_specs['localopt_method']))
 
     # Send our initial sample. We don't need to check that n_s is large enough:
     # the alloc_func only returns when the initial sample has function values.
-    persis_info = add_k_sample_points_to_local_H(gen_specs['initial_sample_size'], gen_specs,
+    persis_info = add_k_sample_points_to_local_H(user_specs['initial_sample_size'], user_specs,
                                                  persis_info, n, comm, local_H,
                                                  sim_id_to_child_indices)
-    send_mgr_worker_msg(comm, local_H[:gen_specs['initial_sample_size']][[i[0] for i in gen_specs['out']]])
+    send_mgr_worker_msg(comm, local_H[:user_specs['initial_sample_size']][[i[0] for i in gen_specs['out']]])
 
     tag = None
     while 1:
@@ -215,7 +217,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             clean_up_and_stop(local_H, local_opters, run_order)
             break
 
-        n_s = update_local_H_after_receiving(local_H, n, n_s, gen_specs, Work, calc_in)
+        n_s = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
 
         new_opt_inds_to_send_mgr = []
         new_inds_to_send_mgr = []
@@ -230,7 +232,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         new_opt_inds_to_send_mgr.append(opt_ind)
                         local_opters.pop(child_idx)
                     else:
-                        add_to_local_H(local_H, x_new, gen_specs, local_flag=1, on_cube=True)
+                        add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
                         new_inds_to_send_mgr.append(len(local_H)-1)
 
                         run_order[child_idx].append(local_H[-1]['sim_id'])
@@ -242,11 +244,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
 
         for ind in starting_inds:
-            if len([p for p in local_opters.values() if p.is_running]) < gen_specs.get('max_active_runs', np.inf):
+            if len([p for p in local_opters.values() if p.is_running]) < user_specs.get('max_active_runs', np.inf):
                 local_H['started_run'][ind] = 1
 
                 # Initialize a local opt run
-                local_opter = LocalOptInterfacer(gen_specs, local_H[ind]['x_on_cube'],
+                local_opter = LocalOptInterfacer(user_specs, local_H[ind]['x_on_cube'],
                                                  local_H[ind]['f'] if 'f' in fields_to_pass else local_H[ind]['fvec'],
                                                  local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
 
@@ -254,7 +256,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second point can't be ruled optimal
 
-                add_to_local_H(local_H, x_new, gen_specs, local_flag=1, on_cube=True)
+                add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
                 new_inds_to_send_mgr.append(len(local_H)-1)
 
                 run_order[total_runs] = [ind, local_H[-1]['sim_id']]
@@ -267,7 +269,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 total_runs += 1
 
         if len(new_inds_to_send_mgr) == 0:
-            persis_info = add_k_sample_points_to_local_H(1, gen_specs, persis_info, n,
+            persis_info = add_k_sample_points_to_local_H(1, user_specs, persis_info, n,
                                                          comm, local_H, sim_id_to_child_indices)
             new_inds_to_send_mgr.append(len(local_H)-1)
 
@@ -277,7 +279,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
 
 class LocalOptInterfacer(object):
-    def __init__(self, gen_specs, x0, f0, grad0=None):
+    def __init__(self, user_specs, x0, f0, grad0=None):
         """
         :param x0: A numpy array of the initial guess solution. This guess
             should be scaled to a unit cube.
@@ -303,17 +305,17 @@ class LocalOptInterfacer(object):
 
         # {{{ setting the local optimization method
 
-        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
+        if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
             run_local_opt = run_local_nlopt
-        elif gen_specs['localopt_method'] in ['pounders', 'blmvm']:
+        elif user_specs['localopt_method'] in ['pounders', 'blmvm']:
             run_local_opt = run_local_tao
-        elif gen_specs['localopt_method'] in ['scipy_Nelder-Mead']:
+        elif user_specs['localopt_method'] in ['scipy_Nelder-Mead']:
             run_local_opt = run_local_scipy_opt
 
         # }}}
 
         self.parent_can_read.clear()
-        self.process = Process(target=run_local_opt, args=(gen_specs,
+        self.process = Process(target=run_local_opt, args=(user_specs,
                                self.comm_queue, x0, f0, self.child_can_read,
                                self.parent_can_read))
 
@@ -375,16 +377,16 @@ class LocalOptInterfacer(object):
 
 # {{{ NLOPT for local opt
 
-def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, gen_specs):
+def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, user_specs):
     comm_queue.put(x)
     parent_can_read.set()
     child_can_read.wait()
-    if gen_specs['localopt_method'] in ['LD_MMA']:
+    if user_specs['localopt_method'] in ['LD_MMA']:
         x_recv, f_recv, grad_recv = comm_queue.get()
         grad[:] = grad_recv
     else:
-        assert gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
-                                                'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
+        assert user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
+                                                 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
         x_recv, f_recv = comm_queue.get()
 
     assert np.array_equal(x, x_recv), "The point I gave is not the point I got back!"
@@ -394,11 +396,11 @@ def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, gen
     return f_recv
 
 
-def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
     # print('[Child]: Started local opt at {}.'.format(x0), flush=True)
-    n = len(gen_specs['ub'])
+    n = len(user_specs['ub'])
 
-    opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
+    opt = nlopt.opt(getattr(nlopt, user_specs['localopt_method']), n)
 
     lb = np.zeros(n)
     ub = np.ones(n)
@@ -409,8 +411,8 @@ def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_re
     dist_to_bound = min(min(ub-x0), min(x0-lb))
     assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small for NLopt to handle"
 
-    if 'dist_to_bound_multiple' in gen_specs:
-        opt.set_initial_step(dist_to_bound*gen_specs['dist_to_bound_multiple'])
+    if 'dist_to_bound_multiple' in user_specs:
+        opt.set_initial_step(dist_to_bound*user_specs['dist_to_bound_multiple'])
     else:
         opt.set_initial_step(dist_to_bound)
 
@@ -419,16 +421,16 @@ def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_re
 
     opt.set_min_objective(lambda x, grad: nlopt_callback_fun(x, grad,
                           comm_queue, child_can_read, parent_can_read,
-                          gen_specs))
+                          user_specs))
 
-    if 'xtol_rel' in gen_specs:
-        opt.set_xtol_rel(gen_specs['xtol_rel'])
-    if 'ftol_rel' in gen_specs:
-        opt.set_ftol_rel(gen_specs['ftol_rel'])
-    if 'xtol_abs' in gen_specs:
-        opt.set_xtol_abs(gen_specs['xtol_abs'])
-    if 'ftol_abs' in gen_specs:
-        opt.set_ftol_abs(gen_specs['ftol_abs'])
+    if 'xtol_rel' in user_specs:
+        opt.set_xtol_rel(user_specs['xtol_rel'])
+    if 'ftol_rel' in user_specs:
+        opt.set_ftol_rel(user_specs['ftol_rel'])
+    if 'xtol_abs' in user_specs:
+        opt.set_xtol_abs(user_specs['xtol_abs'])
+    if 'ftol_abs' in user_specs:
+        opt.set_ftol_abs(user_specs['ftol_abs'])
 
     # FIXME: Do we need to do something of the final 'x_opt'?
     # print('[Child]: Started my optimization', flush=True)
@@ -442,7 +444,7 @@ def run_local_nlopt(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_re
 
 # {{{ SciPy optimization
 
-def scipy_callback_fun(x, comm_queue, child_can_read, parent_can_read, gen_specs):
+def scipy_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs):
     comm_queue.put(x)
     # print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
@@ -456,23 +458,23 @@ def scipy_callback_fun(x, comm_queue, child_can_read, parent_can_read, gen_specs
     return f_x_recv
 
 
-def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
 
     # Construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
         lo = {'type': 'ineq',
-              'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i]-lb}
+              'fun': lambda x, lb=user_specs['lb'][factor], i=factor: x[i]-lb}
         up = {'type': 'ineq',
-              'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub-x[i]}
+              'fun': lambda x, ub=user_specs['ub'][factor], i=factor: ub-x[i]}
         cons.append(lo)
         cons.append(up)
 
-    method = gen_specs['localopt_method'][6:]
+    method = user_specs['localopt_method'][6:]
     # print('[Child]: Started my optimization', flush=True)
     res = sp_opt.minimize(lambda x: scipy_callback_fun(x, comm_queue,
-                          child_can_read, parent_can_read, gen_specs), x0,
-                          method=method, options={'maxiter': 10, 'fatol': gen_specs['fatol'], 'xatol': gen_specs['xatol']})
+                          child_can_read, parent_can_read, user_specs), x0,
+                          method=method, options={'maxiter': 10, 'fatol': user_specs['fatol'], 'xatol': user_specs['xatol']})
 
     # if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
     #     exit_code = 0
@@ -495,7 +497,7 @@ def run_local_scipy_opt(gen_specs, comm_queue, x0, f0, child_can_read, parent_ca
 
 # {{{ TAO routines for local opt
 
-def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs):
+def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs):
     comm_queue.put(x.array_r)
     # print('[Child]: I just put x_on_cube =', x.array, flush=True)
     # print('[Child]: Parent should no longer wait.', flush=True)
@@ -512,7 +514,7 @@ def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen
     return f
 
 
-def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, gen_specs):
+def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs):
 
     comm_queue.put(x.array_r)
     # print('[Child]: I just put x_on_cube =', x.array, flush=True)
@@ -530,7 +532,7 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
     return f_recv
 
 
-def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
 
     assert isinstance(x0, np.ndarray)
 
@@ -551,25 +553,25 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
     lb.array = 0*np.ones(n)
     ub.array = 1*np.ones(n)
     tao = PETSc.TAO().create(tao_comm)
-    tao.setType(gen_specs['localopt_method'])
+    tao.setType(user_specs['localopt_method'])
 
-    if gen_specs['localopt_method'] == 'pounders':
+    if user_specs['localopt_method'] == 'pounders':
         f = PETSc.Vec().create(tao_comm)
         f.setSizes(m)
         f.setFromOptions()
 
         if hasattr(tao, 'setResidual'):
-            tao.setResidual(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs), f)
+            tao.setResidual(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
         else:
-            tao.setSeparableObjective(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, gen_specs), f)
+            tao.setSeparableObjective(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
 
-    elif gen_specs['localopt_method'] == 'blmvm':
+    elif user_specs['localopt_method'] == 'blmvm':
         g = PETSc.Vec().create(tao_comm)
         g.setSizes(n)
         g.setFromOptions()
-        tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, gen_specs))
+        tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs))
 
-    delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+    delta_0 = user_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
     PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
 
     # Set everything for tao before solving
@@ -578,9 +580,9 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
     PETSc.Options().setValue('-tao_max_funcs', '100')
     tao.setFromOptions()
     tao.setVariableBounds((lb, ub))
-    # tao.setObjectiveTolerances(fatol=gen_specs['fatol'], frtol=gen_specs['frtol'])
-    # tao.setGradientTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
-    tao.setTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
+    # tao.setObjectiveTolerances(fatol=user_specs['fatol'], frtol=user_specs['frtol'])
+    # tao.setGradientTolerances(grtol=user_specs['grtol'], gatol=user_specs['gatol'])
+    tao.setTolerances(grtol=user_specs['grtol'], gatol=user_specs['gatol'])
     tao.setInitial(x)
 
     # print('[Child]: Started my optimization', flush=True)
@@ -594,9 +596,9 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
     # print(tao.view())
     # print(x_opt)
 
-    if gen_specs['localopt_method'] == 'pounders':
+    if user_specs['localopt_method'] == 'pounders':
         f.destroy()
-    elif gen_specs['localopt_method'] == 'blmvm':
+    elif user_specs['localopt_method'] == 'blmvm':
         g.destroy()
 
     lb.destroy()
@@ -614,7 +616,7 @@ def run_local_tao(gen_specs, comm_queue, x0, f0, child_can_read, parent_can_read
 # }}}
 
 
-def update_local_H_after_receiving(local_H, n, n_s, gen_specs, Work, calc_in):
+def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in):
 
     for name in calc_in.dtype.names:
         local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
@@ -623,12 +625,12 @@ def update_local_H_after_receiving(local_H, n, n_s, gen_specs, Work, calc_in):
     n_s += np.sum(~local_H[Work['libE_info']['H_rows']]['local_pt'])
 
     # dist -> distance
-    update_history_dist(local_H, n, gen_specs)
+    update_history_dist(local_H, n)
 
     return n_s
 
 
-def add_to_local_H(local_H, pts, gen_specs, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
+def add_to_local_H(local_H, pts, user_specs, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
     """
     Adds points to O, the numpy structured array to be sent back to the manager
     """
@@ -636,8 +638,8 @@ def add_to_local_H(local_H, pts, gen_specs, local_flag=0, sorted_run_inds=[], ru
 
     len_local_H = len(local_H)
 
-    ub = gen_specs['ub']
-    lb = gen_specs['lb']
+    ub = user_specs['ub']
+    lb = user_specs['lb']
 
     num_pts = len(pts)
 
@@ -665,7 +667,7 @@ def add_to_local_H(local_H, pts, gen_specs, local_flag=0, sorted_run_inds=[], ru
         local_H['priority'][-num_pts:] = 1
 
 
-def update_history_dist(H, n, gen_specs):
+def update_history_dist(H, n):
     """
     Updates distances/indices after new points that have been evaluated.
 
@@ -889,34 +891,34 @@ def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     return r_k
 
 
-def initialize_APOSMM(H, gen_specs, libE_info):
+def initialize_APOSMM(H, user_specs, libE_info):
     """
     Computes common values every time that APOSMM is reinvoked
 
     :See:
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
-    n = len(gen_specs['ub'])
+    n = len(user_specs['ub'])
 
     n_s = 0
 
-    if 'rk_const' in gen_specs:
-        rk_c = gen_specs['rk_const']
+    if 'rk_const' in user_specs:
+        rk_c = user_specs['rk_const']
     else:
         rk_c = ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi)
 
-    if 'lhs_divisions' in gen_specs:
-        ld = gen_specs['lhs_divisions']
+    if 'lhs_divisions' in user_specs:
+        ld = user_specs['lhs_divisions']
     else:
         ld = 0
 
-    if 'mu' in gen_specs:
-        mu = gen_specs['mu']
+    if 'mu' in user_specs:
+        mu = user_specs['mu']
     else:
         mu = 1e-4
 
-    if 'nu' in gen_specs:
-        nu = gen_specs['nu']
+    if 'nu' in user_specs:
+        nu = user_specs['nu']
     else:
         nu = 0
 
@@ -942,27 +944,27 @@ def initialize_APOSMM(H, gen_specs, libE_info):
                       ('returned', bool),
                       ]
 
-    if 'components' in gen_specs:
-        local_H_fields += [('fvec', float, gen_specs['components'])]
+    if 'components' in user_specs:
+        local_H_fields += [('fvec', float, user_specs['components'])]
 
     local_H = np.empty(0, dtype=local_H_fields)
 
     return n, n_s, rk_c, ld, mu, nu, comm, local_H
 
 
-def add_k_sample_points_to_local_H(k, gen_specs, persis_info, n, comm, local_H, sim_id_to_child_indices):
+def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_indices):
 
-    if 'sample_points' in gen_specs:
+    if 'sample_points' in user_specs:
         v = np.sum(~local_H['local_pt'])  # Number of sample points so far
-        sampled_points = gen_specs['sample_points'][v:v+k]
+        sampled_points = user_specs['sample_points'][v:v+k]
         on_cube = False  # Assume points are on original domain, not unit cube
         if len(sampled_points):
-            add_to_local_H(local_H, sampled_points, gen_specs, on_cube=on_cube)
+            add_to_local_H(local_H, sampled_points, user_specs, on_cube=on_cube)
         k = k-len(sampled_points)
 
     if k > 0:
         sampled_points = persis_info['rand_stream'].uniform(0, 1, (k, n))
-        add_to_local_H(local_H, sampled_points, gen_specs, on_cube=True)
+        add_to_local_H(local_H, sampled_points, user_specs, on_cube=True)
 
     return persis_info
 

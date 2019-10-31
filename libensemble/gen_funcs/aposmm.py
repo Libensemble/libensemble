@@ -58,7 +58,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
       objective components for a given ``'x'``)
 
     When using libEnsemble to do individual objective component evaluations,
-    APOSMM will return ``gen_specs['components']`` copies of each point, but
+    APOSMM will return ``gen_specs['user']['components']`` copies of each point, but
     the component=0 entry of each point will only be considered when
 
     - deciding where to start a run,
@@ -67,7 +67,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - storing the combined objective function value
     - etc
 
-    Necessary quantities in ``gen_specs`` are:
+    Necessary quantities in ``gen_specs['user']`` are:
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
@@ -77,7 +77,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods)
 
-    Optional ``gen_specs`` entries are:
+    Optional ``gen_specs['user']`` entries are:
 
     - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
     - ``'combine_component_func' [func]``: Function to combine obj components
@@ -100,7 +100,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
-    And ``gen_specs`` convergence tolerances for NLopt, PETSc/TAO, SciPy
+    And ``gen_specs['user']`` convergence tolerances for NLopt, PETSc/TAO, SciPy
 
     - ``'fatol' [float]``:
     - ``'ftol_abs' [float]``:
@@ -126,7 +126,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     (breaking ties arbitrarily).
 
     :Note:
-        ``gen_specs['combine_component_func']`` must be defined when there are
+        ``gen_specs['user']['combine_component_func']`` must be defined when there are
         multiple objective components.
 
     :Note:
@@ -183,7 +183,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
-    if n_s < gen_specs['initial_sample_size']:
+    if n_s < gen_specs['user']['initial_sample_size']:
         updated_inds = set()
 
     else:
@@ -203,7 +203,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             persis_info['total_runs'] += 1
 
         num_runs = len(persis_info['run_order'])
-        if 'max_active_runs' in gen_specs and gen_specs['max_active_runs'] < num_runs:
+        if 'max_active_runs' in gen_specs['user'] and gen_specs['user']['max_active_runs'] < num_runs:
             # Store run number and sim_id of the best point in each run
             run_vals = np.zeros((num_runs, 2), dtype=int)
             for i, run in enumerate(persis_info['run_order'].keys()):
@@ -221,8 +221,8 @@ def aposmm_logic(H, persis_info, gen_specs, _):
                     dist_to_better[i] = np.min(P[i, better])
 
             # Take max_active_runs largest
-            k_sorted = np.argpartition(-dist_to_better, kth=gen_specs['max_active_runs']-1)
-            active_runs = set(run_vals[k_sorted[:gen_specs['max_active_runs']], 0].astype(int))
+            k_sorted = np.argpartition(-dist_to_better, kth=gen_specs['user']['max_active_runs']-1)
+            active_runs = set(run_vals[k_sorted[:gen_specs['user']['max_active_runs']], 0].astype(int))
         else:
             active_runs = set(persis_info['run_order'].keys())
 
@@ -233,7 +233,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             if not np.all(H['returned'][persis_info['run_order'][run]]):
                 continue  # Can't advance a run if all points aren't returned.
 
-            x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_local_run(H, gen_specs, c_flag, run, persis_info)
+            x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_local_run(H, gen_specs['user'], c_flag, run, persis_info)
 
             if np.isinf(x_new).all():
                 if exit_code == 0:
@@ -271,15 +271,15 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             persis_info['old_runs'][i] = old_run
 
     if len(H) == 0:
-        samples_needed = gen_specs['initial_sample_size']
-    elif 'min_batch_size' in gen_specs:
-        samples_needed = gen_specs['min_batch_size']-len(O)
+        samples_needed = gen_specs['user']['initial_sample_size']
+    elif 'min_batch_size' in gen_specs['user']:
+        samples_needed = gen_specs['user']['min_batch_size']-len(O)
     else:
         samples_needed = int(not bool(len(O)))  # 1 if len(O)==0, 0 otherwise
 
-    if samples_needed > 0 and 'sample_points' in gen_specs:
+    if samples_needed > 0 and 'sample_points' in gen_specs['user']:
         v = np.sum(~H['local_pt'])  # Number of sample points so far
-        sampled_points = gen_specs['sample_points'][v:v+samples_needed]
+        sampled_points = gen_specs['user']['sample_points'][v:v+samples_needed]
         on_cube = False  # Assume points are on original domain, not unit cube
         if len(sampled_points):
             persis_info = add_to_O(O, sampled_points, H, gen_specs,
@@ -308,10 +308,10 @@ def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
     original_len_O = len(O)
 
     len_H = len(H)
-    ub = gen_specs['ub']
-    lb = gen_specs['lb']
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
     if c_flag:
-        m = gen_specs['components']
+        m = gen_specs['user']['components']
 
         assert len_H % m == 0, "Number of points in len_H not congruent to 0 mod 'components'"
         pt_ids = np.sort(np.tile(np.arange((len_H+original_len_O)/m, (len_H+original_len_O)/m+len(pts)), (1, m)))
@@ -345,7 +345,7 @@ def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
         O['num_active_runs'][-num_pts] += 1
         # O['priority'][-num_pts:] = 1
         # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
-        if 'high_priority_to_best_localopt_runs' in gen_specs and gen_specs['high_priority_to_best_localopt_runs']:
+        if 'high_priority_to_best_localopt_runs' in gen_specs['user'] and gen_specs['user']['high_priority_to_best_localopt_runs']:
             O['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
         else:
             O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0, 1, num_pts)
@@ -358,7 +358,7 @@ def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
         else:
             # p_tmp = np.random.uniform(0,1,num_pts)
             # persis_info['rand_stream'].uniform(lb,ub,(1,n))
-            if 'high_priority_to_best_localopt_runs' in gen_specs and gen_specs['high_priority_to_best_localopt_runs']:
+            if 'high_priority_to_best_localopt_runs' in gen_specs['user'] and gen_specs['user']['high_priority_to_best_localopt_runs']:
                 p_tmp = -np.inf*np.ones(num_pts)
             else:
                 p_tmp = persis_info['rand_stream'].uniform(0, 1, num_pts)
@@ -384,7 +384,7 @@ def update_history_dist(H, n, gen_specs, c_flag):
         for v in np.unique(H['pt_id'][new_inds]):
             inds = H['pt_id'] == v
             H['f'][inds] = np.inf
-            H['f'][np.where(inds)[0][0]] = gen_specs['combine_component_func'](H['f_i'][inds])
+            H['f'][np.where(inds)[0][0]] = gen_specs['user']['combine_component_func'](H['f_i'][inds])
 
         p = np.logical_and.reduce((H['returned'], H['obj_component'] == 0, ~np.isnan(H['f'])))
     else:
@@ -478,7 +478,7 @@ def update_history_optimal(x_opt, H, run_inds):
     H['num_active_runs'][run_inds] -= 1
 
 
-def advance_local_run(H, gen_specs, c_flag, run, persis_info):
+def advance_local_run(H, user_specs, c_flag, run, persis_info):
     """
     Moves a local optimization method one iteration forward. We currently do
     this by feeding all past evaluations from a run to the method and then
@@ -487,52 +487,52 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
 
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
-        advance_local_run.x_new = np.ones((1, len(gen_specs['ub'])))*np.inf
+        advance_local_run.x_new = np.ones((1, len(user_specs['ub'])))*np.inf
         advance_local_run.pt_in_run = 0
 
-        if gen_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
-                                            'LN_COBYLA', 'LN_NELDERMEAD',
-                                            'LD_MMA']:
+        if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
+                                             'LN_COBYLA', 'LN_NELDERMEAD',
+                                             'LD_MMA']:
 
-            if gen_specs['localopt_method'] in ['LD_MMA']:
+            if user_specs['localopt_method'] in ['LD_MMA']:
                 fields_to_pass = ['x_on_cube', 'f', 'grad']
             else:
                 fields_to_pass = ['x_on_cube', 'f']
 
             try:
-                x_opt, exit_code = set_up_and_run_nlopt(H[fields_to_pass][sorted_run_inds], gen_specs)
+                x_opt, exit_code = set_up_and_run_nlopt(H[fields_to_pass][sorted_run_inds], user_specs)
             except Exception as e:
                 x_opt = 0
                 exit_code = 0
                 display_exception(e)
 
-        elif gen_specs['localopt_method'] in ['pounders', 'blmvm']:
+        elif user_specs['localopt_method'] in ['pounders', 'blmvm']:
 
             if c_flag:
-                Run_H_F = np.zeros(len(sorted_run_inds), dtype=[('fvec', float, gen_specs['components'])])
+                Run_H_F = np.zeros(len(sorted_run_inds), dtype=[('fvec', float, user_specs['components'])])
                 for i, ind in enumerate(sorted_run_inds):
                     a1 = H['pt_id'] == H['pt_id'][ind]
                     Run_H_F['fvec'][i, :] = H['f_i'][a1]
                 Run_H = merge_arrays([H[['x_on_cube']][sorted_run_inds], Run_H_F], flatten=True)
             else:
-                if gen_specs['localopt_method'] == 'pounders':
+                if user_specs['localopt_method'] == 'pounders':
                     Run_H = H[['x_on_cube', 'fvec']][sorted_run_inds]
                 else:
                     Run_H = H[['x_on_cube', 'f', 'grad']][sorted_run_inds]
 
             try:
-                x_opt, exit_code = set_up_and_run_tao(Run_H, gen_specs)
+                x_opt, exit_code = set_up_and_run_tao(Run_H, user_specs)
             except Exception as e:
                 x_opt = 0
                 exit_code = 0
                 display_exception(e)
 
-        elif gen_specs['localopt_method'] == 'scipy_COBYLA':
+        elif user_specs['localopt_method'] == 'scipy_COBYLA':
 
             fields_to_pass = ['x_on_cube', 'f']
 
             try:
-                x_opt, exit_code = set_up_and_run_scipy_minimize(H[fields_to_pass][sorted_run_inds], gen_specs)
+                x_opt, exit_code = set_up_and_run_scipy_minimize(H[fields_to_pass][sorted_run_inds], user_specs)
             except Exception as e:
                 x_opt = 0
                 exit_code = 0
@@ -552,7 +552,7 @@ def advance_local_run(H, gen_specs, c_flag, run, persis_info):
     return x_opt, exit_code, persis_info, sorted_run_inds, advance_local_run.x_new
 
 
-def set_up_and_run_scipy_minimize(Run_H, gen_specs):
+def set_up_and_run_scipy_minimize(Run_H, user_specs):
     """ Set up objective and runs scipy
 
     Declares the appropriate syntax for our special objective function to read
@@ -571,14 +571,14 @@ def set_up_and_run_scipy_minimize(Run_H, gen_specs):
     cons = []
     for factor in range(len(x0)):
         lo = {'type': 'ineq',
-              'fun': lambda x, lb=gen_specs['lb'][factor], i=factor: x[i]-lb}
+              'fun': lambda x, lb=user_specs['lb'][factor], i=factor: x[i]-lb}
         up = {'type': 'ineq',
-              'fun': lambda x, ub=gen_specs['ub'][factor], i=factor: ub-x[i]}
+              'fun': lambda x, ub=user_specs['ub'][factor], i=factor: ub-x[i]}
         cons.append(lo)
         cons.append(up)
 
-    method = gen_specs['localopt_method'][6:]
-    res = scipy_optimize.minimize(obj, x0, method=method, options={'maxiter': len(Run_H['x_on_cube'])+1, 'tol': gen_specs['tol']})
+    method = user_specs['localopt_method'][6:]
+    res = scipy_optimize.minimize(obj, x0, method=method, options={'maxiter': len(Run_H['x_on_cube'])+1, 'tol': user_specs['tol']})
 
     if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
         exit_code = 0
@@ -591,27 +591,27 @@ def set_up_and_run_scipy_minimize(Run_H, gen_specs):
     return x_opt, exit_code
 
 
-def set_up_and_run_nlopt(Run_H, gen_specs):
+def set_up_and_run_nlopt(Run_H, user_specs):
     """ Set up objective and runs nlopt
 
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
 
-    assert 'xtol_rel' or 'xtol_abs' or 'ftol_rel' or 'ftol_abs' in gen_specs, "NLopt can cycle if xtol_rel, xtol_abs, ftol_rel, or ftol_abs are not set"
+    assert 'xtol_rel' or 'xtol_abs' or 'ftol_rel' or 'ftol_abs' in user_specs, "NLopt can cycle if xtol_rel, xtol_abs, ftol_rel, or ftol_abs are not set"
 
     def nlopt_obj_fun(x, grad, Run_H):
         out = look_in_history(x, Run_H)
 
-        if gen_specs['localopt_method'] in ['LD_MMA']:
+        if user_specs['localopt_method'] in ['LD_MMA']:
             grad[:] = out[1]
             out = out[0]
 
         return out
 
-    n = len(gen_specs['ub'])
+    n = len(user_specs['ub'])
 
-    opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
+    opt = nlopt.opt(getattr(nlopt, user_specs['localopt_method']), n)
 
     lb = np.zeros(n)
     ub = np.ones(n)
@@ -623,21 +623,21 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     dist_to_bound = min(min(ub-x0), min(x0-lb))
     assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small for NLopt to handle"
 
-    if 'dist_to_bound_multiple' in gen_specs:
-        opt.set_initial_step(dist_to_bound*gen_specs['dist_to_bound_multiple'])
+    if 'dist_to_bound_multiple' in user_specs:
+        opt.set_initial_step(dist_to_bound*user_specs['dist_to_bound_multiple'])
     else:
         opt.set_initial_step(dist_to_bound)
 
     opt.set_maxeval(len(Run_H)+1)  # evaluate one more point
     opt.set_min_objective(lambda x, grad: nlopt_obj_fun(x, grad, Run_H))
-    if 'xtol_rel' in gen_specs:
-        opt.set_xtol_rel(gen_specs['xtol_rel'])
-    if 'ftol_rel' in gen_specs:
-        opt.set_ftol_rel(gen_specs['ftol_rel'])
-    if 'xtol_abs' in gen_specs:
-        opt.set_xtol_abs(gen_specs['xtol_abs'])
-    if 'ftol_abs' in gen_specs:
-        opt.set_ftol_abs(gen_specs['ftol_abs'])
+    if 'xtol_rel' in user_specs:
+        opt.set_xtol_rel(user_specs['xtol_rel'])
+    if 'ftol_rel' in user_specs:
+        opt.set_ftol_rel(user_specs['ftol_rel'])
+    if 'xtol_abs' in user_specs:
+        opt.set_xtol_abs(user_specs['xtol_abs'])
+    if 'ftol_abs' in user_specs:
+        opt.set_ftol_abs(user_specs['ftol_abs'])
 
     x_opt = opt.optimize(x0)
     exit_code = opt.last_optimize_result()
@@ -648,14 +648,14 @@ def set_up_and_run_nlopt(Run_H, gen_specs):
     return x_opt, exit_code
 
 
-def set_up_and_run_tao(Run_H, gen_specs):
+def set_up_and_run_tao(Run_H, user_specs):
     """ Set up objective and runs PETSc on the comm_self communicator
 
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
     tao_comm = MPI.COMM_SELF
-    n = len(gen_specs['ub'])
+    n = len(user_specs['ub'])
 
     def pounders_obj_func(tao, X, F, Run_H):
         F.array = look_in_history(X.array_r, Run_H, vector_return=True)
@@ -676,14 +676,14 @@ def set_up_and_run_tao(Run_H, gen_specs):
     lb.array = 0*np.ones(n)
     ub.array = 1*np.ones(n)
     tao = PETSc.TAO().create(tao_comm)
-    tao.setType(gen_specs['localopt_method'])
+    tao.setType(user_specs['localopt_method'])
 
-    if gen_specs['localopt_method'] == 'pounders':
+    if user_specs['localopt_method'] == 'pounders':
         f = PETSc.Vec().create(tao_comm)
         f.setSizes(len(Run_H['fvec'][0]))
         f.setFromOptions()
 
-        delta_0 = gen_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+        delta_0 = user_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
 
         PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
 
@@ -693,7 +693,7 @@ def set_up_and_run_tao(Run_H, gen_specs):
         else:
             tao.setSeparableObjective(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
 
-    elif gen_specs['localopt_method'] == 'blmvm':
+    elif user_specs['localopt_method'] == 'blmvm':
         g = PETSc.Vec().create(tao_comm)
         g.setSizes(n)
         g.setFromOptions()
@@ -703,9 +703,9 @@ def set_up_and_run_tao(Run_H, gen_specs):
     PETSc.Options().setValue('-tao_max_funcs', str(len(Run_H)+1))
     tao.setFromOptions()
     tao.setVariableBounds((lb, ub))
-    # tao.setObjectiveTolerances(fatol=gen_specs['fatol'], frtol=gen_specs['frtol'])
-    # tao.setGradientTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
-    tao.setTolerances(grtol=gen_specs['grtol'], gatol=gen_specs['gatol'])
+    # tao.setObjectiveTolerances(fatol=user_specs['fatol'], frtol=user_specs['frtol'])
+    # tao.setGradientTolerances(grtol=user_specs['grtol'], gatol=user_specs['gatol'])
+    tao.setTolerances(grtol=user_specs['grtol'], gatol=user_specs['gatol'])
     tao.setInitial(x)
 
     tao.solve(x)
@@ -716,9 +716,9 @@ def set_up_and_run_tao(Run_H, gen_specs):
     # print(tao.view())
     # print(x_opt)
 
-    if gen_specs['localopt_method'] == 'pounders':
+    if user_specs['localopt_method'] == 'pounders':
         f.destroy()
-    if gen_specs['localopt_method'] == 'blmvm':
+    if user_specs['localopt_method'] == 'blmvm':
         g.destroy()
 
     lb.destroy()
@@ -895,11 +895,12 @@ def initialize_APOSMM(H, gen_specs):
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
-    n = len(gen_specs['ub'])
+    user_specs = gen_specs['user']
+    n = len(user_specs['ub'])
 
-    if 'single_component_at_a_time' in gen_specs and gen_specs['single_component_at_a_time']:
-        assert gen_specs['batch_mode'], ("Must be in batch mode when using "
-                                         "'single_component_at_a_time'")
+    if 'single_component_at_a_time' in user_specs and user_specs['single_component_at_a_time']:
+        assert user_specs['batch_mode'], ("Must be in batch mode when using "
+                                          "'single_component_at_a_time'")
         c_flag = True
     else:
         c_flag = False
@@ -908,7 +909,7 @@ def initialize_APOSMM(H, gen_specs):
         # Get the pt_id for non-nan, returned points
         pt_ids = H['pt_id'][np.logical_and(H['returned'], ~np.isnan(H['f_i']))]
         _, counts = np.unique(pt_ids, return_counts=True)
-        n_s = np.sum(counts == gen_specs['components'])
+        n_s = np.sum(counts == user_specs['components'])
     else:
         # Number of returned sampled points (excluding nans)
         n_s = np.sum(np.logical_and.reduce((~np.isnan(H['f']), ~H['local_pt'], H['returned'])))
@@ -917,23 +918,23 @@ def initialize_APOSMM(H, gen_specs):
     # given H, and then send back the rows corresponding to updated H entries.
     Out = np.empty(0, dtype=gen_specs['out'])
 
-    if 'rk_const' in gen_specs:
-        rk_c = gen_specs['rk_const']
+    if 'rk_const' in user_specs:
+        rk_c = user_specs['rk_const']
     else:
         rk_c = ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi)
 
-    if 'lhs_divisions' in gen_specs:
-        ld = gen_specs['lhs_divisions']
+    if 'lhs_divisions' in user_specs:
+        ld = user_specs['lhs_divisions']
     else:
         ld = 0
 
-    if 'mu' in gen_specs:
-        mu = gen_specs['mu']
+    if 'mu' in user_specs:
+        mu = user_specs['mu']
     else:
         mu = 1e-4
 
-    if 'nu' in gen_specs:
-        nu = gen_specs['nu']
+    if 'nu' in user_specs:
+        nu = user_specs['nu']
     else:
         nu = 0
 

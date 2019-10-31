@@ -33,16 +33,17 @@ gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int)]
 gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f', 'f_i', 'returned'],
              'out': gen_out,
-             'lb': -2*np.ones(n),
-             'ub': 2*np.ones(n),
-             'initial_sample_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': True}
+             'user': {'initial_sample_size': 5,
+                      'lb': -2*np.ones(n),
+                      'ub': 2*np.ones(n),
+                      'batch_mode': True,
+                      'num_active_gens': 1}
+             }
 
 if nworkers == 3:
-    gen_specs['single_component_at_a_time'] = True
-    gen_specs['components'] = 1
-    gen_specs['combine_component_func'] = np.linalg.norm
+    gen_specs['user']['single_component_at_a_time'] = True
+    gen_specs['user']['components'] = 1
+    gen_specs['user']['combine_component_func'] = np.linalg.norm
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
