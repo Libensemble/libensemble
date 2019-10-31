@@ -12,7 +12,7 @@ import subprocess
 
 def install_balsam():
     # Installs Balsam
-    balsaminstall = 'pip install balsam-flow==0.3.5'
+    balsaminstall = 'pip install balsam-flow==0.3.6'
     subprocess.check_call(balsaminstall.split())
     # here = os.getcwd()
     # balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
