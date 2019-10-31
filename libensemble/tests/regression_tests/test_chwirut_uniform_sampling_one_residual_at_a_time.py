@@ -44,7 +44,8 @@ budget = 10*m
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component'],
              'out': [('f_i', float)],
-             'component_nan_frequency': 0.01}
+             'user': {'component_nan_frequency': 0.01}
+             }
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
@@ -54,19 +55,21 @@ gen_specs = {'gen_f': gen_f,
                      ('paused', bool),
                      ('obj_component', int),
                      ('pt_id', int)],
-             'gen_batch_size': 2,
-             'single_component_at_a_time': True,
-             'combine_component_func': lambda x: np.sum(np.power(x, 2)),
-             'num_active_gens': 1,
-             'batch_mode': True,
-             'lb': (-2-np.pi/10)*np.ones(n),
-             'ub': 2*np.ones(n),
-             'components': m}
+             'user': {'gen_batch_size': 2,
+                      'batch_mode': True,
+                      'single_component_at_a_time': True,
+                      'combine_component_func': lambda x: np.sum(np.power(x, 2)),
+                      'num_active_gens': 1,
+                      'lb': (-2-np.pi/10)*np.ones(n),
+                      'ub': 2*np.ones(n),
+                      'components': m}
+             }
 
 alloc_specs = {'alloc_f': alloc_f,              # Allocation function
                'out': [('allocated', bool)],    # Output fields (included in History)
-               'stop_on_NaNs': True,            # Should alloc_f preempt evals
-               'stop_partial_fvec_eval': True}  # Should alloc_f preempt evals
+               'user': {'stop_on_NaNs': True,            # Should alloc_f preempt evals
+                        'stop_partial_fvec_eval': True}  # Should alloc_f preempt evals
+               }
 # end_alloc_specs_rst_tag
 
 persis_info = per_worker_stream(persis_info, nworkers + 1)
@@ -82,7 +85,7 @@ if is_master:
     save_libE_output(H, persis_info, __file__, nworkers)
 
 # Perform the run but not stopping on NaNs
-alloc_specs.pop('stop_on_NaNs')
+alloc_specs['user'].pop('stop_on_NaNs')
 persis_info = deepcopy(persis_info_safe)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
@@ -90,7 +93,7 @@ if is_master:
     assert flag == 0
 
 # Perform the run also not stopping on partial fvec evals
-alloc_specs.pop('stop_partial_fvec_eval')
+alloc_specs['user'].pop('stop_partial_fvec_eval')
 persis_info = deepcopy(persis_info_safe)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)

@@ -46,17 +46,18 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
-             'batch_mode': True,
-             'initial_sample_size': 100,
-             'sample_points': np.round(minima, 1),
-             'localopt_method': 'LD_MMA',
-             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-             'xtol_rel': 1e-6,
-             'ftol_rel': 1e-6,
-             'num_active_gens': 1,
-             'max_active_runs': 6,
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2])}
+             'user': {'batch_mode': True,
+                      'initial_sample_size': 100,
+                      'sample_points': np.round(minima, 1),
+                      'localopt_method': 'LD_MMA',
+                      'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+                      'xtol_rel': 1e-6,
+                      'ftol_rel': 1e-6,
+                      'num_active_gens': 1,
+                      'max_active_runs': 6,
+                      'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2])}
+             }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 

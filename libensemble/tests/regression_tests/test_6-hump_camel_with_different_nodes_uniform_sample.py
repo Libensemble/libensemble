@@ -46,7 +46,8 @@ n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'num_nodes', 'ranks_per_node'],
              'out': [('f', float)],
-             'nodelist': libE_machinefile}
+             'user': {'nodelist': libE_machinefile}
+             }
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
@@ -55,14 +56,15 @@ gen_specs = {'gen_f': gen_f,
                      ('ranks_per_node', int),
                      ('x', float, n),
                      ('x_on_cube', float, n)],
-             'initial_batch_size': 5,
-             'max_ranks_per_node': 8,
-             'num_active_gens': 1,
-             'batch_mode': False,
-             'give_all_with_same_priority': True,
-             'max_num_nodes': nworkers,  # Used in uniform_random_sample_with_different_nodes_and_ranks,
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2])}
+             'user': {'initial_batch_size': 5,
+                      'batch_mode': False,
+                      'max_ranks_per_node': 8,
+                      'num_active_gens': 1,
+                      'give_all_with_same_priority': True,
+                      'max_num_nodes': nworkers,  # Used in uniform_random_sample_with_different_nodes_and_ranks,
+                      'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2])}
+             }
 
 persis_info = per_worker_stream({}, nworkers + 1)
 

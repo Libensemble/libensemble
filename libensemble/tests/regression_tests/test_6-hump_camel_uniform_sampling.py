@@ -35,9 +35,10 @@ sim_specs = {'sim_f': sim_f,         # Function whose output is being minimized
 gen_specs = {'gen_f': gen_f,               # Tell libE function generating sim_f input
              'out': [('x', float, (2,))],  # Tell libE gen_f output, type, size
              'save_every_k': 300,          # Tell libE to save every 300 gen entries
-             'gen_batch_size': 500,        # Tell gen_f how much to generate per call
-             'lb': np.array([-3, -2]),     # Tell gen_f lower bounds
-             'ub': np.array([3, 2]),       # Tell gen_f upper bounds
+             'user': {'gen_batch_size': 500,        # Tell gen_f how much to generate per call
+                      'lb': np.array([-3, -2]),     # Tell gen_f lower bounds
+                      'ub': np.array([3, 2])        # Tell gen_f upper bounds
+                      }
              }
 # end_gen_specs_rst_tag
 

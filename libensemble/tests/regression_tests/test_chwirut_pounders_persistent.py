@@ -38,7 +38,8 @@ budget = 10
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('fvec', float, m)],
-             'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             'user': {'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             }
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
            ('local_min', bool), ('local_pt', bool)]
@@ -47,18 +48,19 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
-             'batch_mode': True,
-             'initial_sample_size': 100,
-             'localopt_method': 'pounders',
-             'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-             'grtol': 1e-6,
-             'gatol': 1e-6,
-             'num_active_gens': 1,
-             'dist_to_bound_multiple': 0.5,
-             'lhs_divisions': 50,
-             'components': m,
-             'lb': (-2-np.pi/10)*np.ones(n),
-             'ub': 2*np.ones(n)}
+             'user': {'initial_sample_size': 100,
+                      'localopt_method': 'pounders',
+                      'batch_mode': True,
+                      'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+                      'grtol': 1e-6,
+                      'gatol': 1e-6,
+                      'num_active_gens': 1,
+                      'dist_to_bound_multiple': 0.5,
+                      'lhs_divisions': 50,
+                      'components': m,
+                      'lb': (-2-np.pi/10)*np.ones(n),
+                      'ub': 2*np.ones(n)}
+             }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
@@ -67,10 +69,10 @@ persis_info = per_worker_stream({}, nworkers + 1)
 exit_criteria = {'sim_max': 500}
 
 sample_points = np.zeros((0, n))
-for i in range(ceil(exit_criteria['sim_max']/gen_specs['lhs_divisions'])):
-    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['lhs_divisions']), axis=0)
+for i in range(ceil(exit_criteria['sim_max']/gen_specs['user']['lhs_divisions'])):
+    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions']), axis=0)
 
-gen_specs['sample_points'] = sample_points*(gen_specs['ub']-gen_specs['lb']) + gen_specs['lb']
+gen_specs['user']['sample_points'] = sample_points*(gen_specs['user']['ub']-gen_specs['user']['lb']) + gen_specs['user']['lb']
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

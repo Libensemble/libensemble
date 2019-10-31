@@ -69,17 +69,18 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
              'in': ['x'],                 # Name of input data structure for sim func
              'out': [('energy', float)],  # Output from sim func
-             'keys': ['seed'],            # Key/keys for input data
              'sim_dir': './sim',          # Sim dir to be copied for each worker
-             'sim_dir_suffix': 'test',    # Suffix for copied sim dirs (to ID run)
              'profile': False,            # Don't have libE profile run
-             'simdir_basename': 'force',  # Used by sim_f to name sim directories
-             'cores': 2,                  # Used by sim_f to set number of cores used
-             'sim_particles': 1e3,        # Used by sim_f for number of particles
-             'sim_timesteps': 5,          # Used by sim_f for number of timesteps
-             'sim_kill_minutes': 10.0,    # Used by sim_f to set max run time
-             'particle_variance': 0.2,    # Used by sim_f to vary load imbalance
-             'kill_rate': 0.5,            # Fraction of bad sim_f evals (tests kills)
+             'user': {'sim_dir_suffix': 'test',    # Suffix for copied sim dirs (to ID run)
+                      'simdir_basename': 'force',  # Used by sim_f to name sim directories
+                      'keys': ['seed'],            # Key/keys for input data
+                      'cores': 2,                  # Used by sim_f to set number of cores used
+                      'sim_particles': 1e3,        # Used by sim_f for number of particles
+                      'sim_timesteps': 5,          # Used by sim_f for number of timesteps
+                      'sim_kill_minutes': 10.0,    # Used by sim_f to set max run time
+                      'particle_variance': 0.2,    # Used by sim_f to vary load imbalance
+                      'kill_rate': 0.5,            # Fraction of bad sim_f evals (tests kills)
+                      }
              }
 # end_sim_specs_rst_tag
 
@@ -87,12 +88,13 @@ sim_specs = {'sim_f': run_forces,         # Function whose output is being minim
 gen_specs = {'gen_f': uniform_random_sample,  # Generator function
              'in': ['sim_id'],                # Generator input
              'out': [('x', float, (1,))],     # Name, type and size of data produced (must match sim_specs 'in')
-             'lb': np.array([0]),             # Lower bound for random sample array (1D)
-             'ub': np.array([32767]),         # Upper bound for random sample array (1D)
-             'gen_batch_size': 1000,          # How many random samples to generate in one call
-             'batch_mode': True,              # If true wait for sims to process before generate more
-             'num_active_gens': 1,            # Only one active generator at a time.
-             'save_every_k': 1000             # Save every K steps
+             'save_every_k': 1000,             # Save every K steps
+             'user': {'lb': np.array([0]),             # Lower bound for random sample array (1D)
+                      'ub': np.array([32767]),         # Upper bound for random sample array (1D)
+                      'gen_batch_size': 1000,          # How many random samples to generate in one call
+                      'batch_mode': True,              # If true wait for sims to process before generate more
+                      'num_active_gens': 1,            # Only one active generator at a time.
+                      }
              }
 
 # Maximum number of simulations

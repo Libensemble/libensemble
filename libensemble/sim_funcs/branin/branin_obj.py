@@ -23,7 +23,7 @@ def call_branin(H, persis_info, sim_specs, _):
 
         O['f'][i] = branin(x[0], x[1])
 
-        if 'uniform_random_pause_ub' in sim_specs:
-            time.sleep(sim_specs['uniform_random_pause_ub']*np.random.uniform())
+        if 'user' in sim_specs and 'uniform_random_pause_ub' in sim_specs['user']:
+            time.sleep(sim_specs['user']['uniform_random_pause_ub']*np.random.uniform())
 
     return O, persis_info
