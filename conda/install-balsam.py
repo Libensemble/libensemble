@@ -12,7 +12,7 @@ import subprocess
 
 def install_balsam():
     # Installs Balsam
-    balsaminstall = 'pip install balsam-flow==0.3.6'
+    balsaminstall = 'pip install balsam-flow==0.3.5'
     subprocess.check_call(balsaminstall.split())
     # here = os.getcwd()
     # balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
@@ -42,7 +42,7 @@ def configure_coverage():
             f.write(line)
 
 
-if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
+if int(sys.version[2]) == 6:  # Balsam 0.3.5 only supports Python 3.6
     install_balsam()
     move_test_balsam('test_balsam_hworld.py')
     configure_coverage()
