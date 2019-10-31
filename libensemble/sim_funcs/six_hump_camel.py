@@ -91,7 +91,7 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
 
     O['f'] = six_hump_camel_func(x[0][0])
 
-    if 'pause_time' in sim_specs:
+    if 'pause_time' in sim_specs['user']:
         time.sleep(sim_specs['user']['pause_time'])
 
     return O, persis_info
