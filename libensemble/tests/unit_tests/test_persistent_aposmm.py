@@ -4,6 +4,7 @@ import libensemble.tests.unit_tests.setup as setup
 
 libE_specs = {'comm': {}}
 
+
 def test_persis_apossm_localopt_test():
     _, _, gen_specs_0, _, _ = setup.hist_setup1()
 
