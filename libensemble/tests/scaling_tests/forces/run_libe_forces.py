@@ -69,8 +69,6 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
              'in': ['x'],                 # Name of input data structure for sim func
              'out': [('energy', float)],  # Output from sim func
-             'sim_dir': './sim',          # Sim dir to be copied for each worker
-             'profile': False,            # Don't have libE profile run
              'user': {'sim_dir_suffix': 'test',    # Suffix for copied sim dirs (to ID run)
                       'simdir_basename': 'force',  # Used by sim_f to name sim directories
                       'keys': ['seed'],            # Key/keys for input data
@@ -88,7 +86,6 @@ sim_specs = {'sim_f': run_forces,         # Function whose output is being minim
 gen_specs = {'gen_f': uniform_random_sample,  # Generator function
              'in': ['sim_id'],                # Generator input
              'out': [('x', float, (1,))],     # Name, type and size of data produced (must match sim_specs 'in')
-             'save_every_k': 1000,             # Save every K steps
              'user': {'lb': np.array([0]),             # Lower bound for random sample array (1D)
                       'ub': np.array([32767]),         # Upper bound for random sample array (1D)
                       'gen_batch_size': 1000,          # How many random samples to generate in one call
@@ -96,6 +93,10 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
                       'num_active_gens': 1,            # Only one active generator at a time.
                       }
              }
+
+libE_specs['save_every_k_gens'] = 1000  # Save every K steps
+libE_specs['sim_dir'] = './sim'         # Sim dir to be copied for each worker
+libE_specs['profile'] = False           # Don't have libE profile run
 
 # Maximum number of simulations
 sim_max = 8

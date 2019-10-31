@@ -184,13 +184,13 @@ class Manager:
         "Save history every kth sim step."
         self._save_every_k('libE_history_after_sim_{}.npy',
                            self.hist.sim_count,
-                           self.sim_specs['save_every_k'])
+                           self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
         "Save history every kth gen step."
         self._save_every_k('libE_history_after_gen_{}.npy',
                            self.hist.index,
-                           self.gen_specs['save_every_k'])
+                           self.libE_specs['save_every_k_gens'])
 
     # --- Handle outgoing messages to workers (work orders from alloc)
 
@@ -276,9 +276,9 @@ class Manager:
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
 
-        if 'save_every_k' in self.sim_specs:
+        if 'save_every_k_sims' in self.libE_specs:
             self._save_every_k_sims()
-        if 'save_every_k' in self.gen_specs:
+        if 'save_every_k_gens' in self.libE_specs:
             self._save_every_k_gens()
         return persis_info
 
