@@ -29,9 +29,10 @@ logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
-allowed_sim_spec_keys = ['sim_f', 'in', 'out', 'sim_dir', 'sim_dir_prefix', 'clean_jobs', 'save_every_k', 'profile', 'user']
-allowed_gen_spec_keys = ['gen_f', 'in', 'out', 'save_every_k', 'user']
+allowed_sim_spec_keys = ['sim_f', 'in', 'out', 'user']
+allowed_gen_spec_keys = ['gen_f', 'in', 'out', 'user']
 allowed_alloc_spec_keys = ['alloc_f', 'in', 'out', 'user']
+allowed_libE_spec_keys = ['sim_dir', 'sim_dir_prefix', 'clean_jobs', 'save_every_k_sims', 'save_every_k_gens', 'profile_worker']
 
 
 def report_manager_exception(hist, persis_info, mgr_exc=None):
@@ -475,6 +476,9 @@ def check_libE_specs(libE_specs, serial_check=False):
     elif comms_type in ['tcp']:
         # TODO, differentiate and test SSH/Client
         assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
+
+    for k in libE_specs.keys():
+        assert k in allowed_libE_spec_keys, "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
 
 
 def check_alloc_specs(alloc_specs):
