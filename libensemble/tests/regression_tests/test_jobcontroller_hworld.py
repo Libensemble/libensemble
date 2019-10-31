@@ -68,14 +68,12 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'save_every_k': 400,
              'user': {'cores': cores_per_job}
              }
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('x', float, (2,))],
-             'save_every_k': 20,
              'user': {'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
                       'batch_mode': True,

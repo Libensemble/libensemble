@@ -24,17 +24,17 @@ from libensemble.tests.regression_tests.common import parse_args, save_libE_outp
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 nworkers, is_master, libE_specs, _ = parse_args()
+libE_specs['save_every_k_sims'] = 400
+libE_specs['save_every_k_gens'] = 300
 
 sim_specs = {'sim_f': sim_f,         # Function whose output is being minimized
              'in': ['x'],            # Keys to be given to the above function
              'out': [('f', float)],  # Output from the function being minimized
-             'save_every_k': 400,    # Want progress saved every 400 evals
              }
 # end_sim_specs_rst_tag
 
 gen_specs = {'gen_f': gen_f,               # Tell libE function generating sim_f input
              'out': [('x', float, (2,))],  # Tell libE gen_f output, type, size
-             'save_every_k': 300,          # Tell libE to save every 300 gen entries
              'user': {'gen_batch_size': 500,        # Tell gen_f how much to generate per call
                       'lb': np.array([-3, -2]),     # Tell gen_f lower bounds
                       'ub': np.array([3, 2])        # Tell gen_f upper bounds
