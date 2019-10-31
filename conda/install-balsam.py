@@ -11,13 +11,15 @@ import subprocess
 
 
 def install_balsam():
-    # Installs Balsam in a directory on the same level as the current directory.
-    here = os.getcwd()
-    balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
-    subprocess.check_call(balsamclone.split())
-    os.chdir('../balsam')
-    subprocess.check_call('pip install -e .'.split())
-    os.chdir(here)
+    # Installs Balsam
+    balsaminstall = 'pip install -Iv balsam-flow==0.3.5'
+    subprocess.check_call(balsaminstall.split())
+    # here = os.getcwd()
+    # balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
+    # subprocess.check_call(balsamclone.split())
+    # os.chdir('../balsam')
+    # subprocess.check_call('pip install -e .'.split())
+    # os.chdir(here)
 
 
 def move_test_balsam(balsam_test):
