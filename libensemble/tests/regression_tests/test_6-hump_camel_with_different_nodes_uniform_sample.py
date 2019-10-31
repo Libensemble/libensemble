@@ -66,9 +66,9 @@ gen_specs = {'gen_f': gen_f,
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs={'alloc_f': give_sim_work_first,
-             'out': [('allocated', bool)],
-             'user': {'batch_mode': False}}
+alloc_specs = {'alloc_f': give_sim_work_first,
+               'out': [('allocated', bool)],
+               'user': {'batch_mode': False}}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
