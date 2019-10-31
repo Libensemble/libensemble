@@ -36,7 +36,6 @@ gen_specs = {'gen_f': gen_f,
              'user': {'initial_sample_size': 5,
                       'lb': -2*np.ones(n),
                       'ub': 2*np.ones(n),
-                      'batch_mode': True,
                       'num_active_gens': 1}
              }
 
