@@ -93,7 +93,7 @@ for run in range(3):
         gen_specs['user']['rk_const'] = 0.01*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi)
         gen_specs['user']['lhs_divisions'] = 2
         # APOSMM can be called when some run is incomplete
-        gen_specs['user'].pop('batch_mode')
+        alloc_specs['user'].pop('batch_mode')
 
         gen_specs['user'].pop('xtol_rel')
         gen_specs['user']['ftol_rel'] = 1e-2

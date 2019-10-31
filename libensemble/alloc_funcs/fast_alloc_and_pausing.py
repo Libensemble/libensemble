@@ -28,6 +28,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     Work = {}
     gen_count = count_gens(W)
 
+    if gen_specs.get('single_component_at_a_time'):
+        assert alloc_specs['batch_mode'], ("Must be in batch mode when using "
+                                          "'single_component_at_a_time'")
     if len(H) != persis_info['H_len']:
         # Something new is in the history.
         persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())

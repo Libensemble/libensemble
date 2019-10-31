@@ -68,7 +68,7 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs={'alloc_f': give_sim_work_first,
              'out': [('allocated', bool)],
-             'user': {'batch_mode': False}},
+             'user': {'batch_mode': False}}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 
