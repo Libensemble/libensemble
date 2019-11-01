@@ -18,6 +18,9 @@ Allocation function specifications to be set in user calling script and passed t
         'out' [list of tuples] :
             Default: [('allocated',bool)]
 
+        'batch_mode' [bool] :
+            Default: True
+
 
 .. note::
 
