@@ -16,7 +16,7 @@ to main ``libE()`` routine::
             field names (as strings) that will be given to gen_f
         'out' [list of tuples (field name, data type, [size])] :
             gen_f outputs that will be stored in the libEnsemble history
-        'user' [dict]: 
+        'user' [dict]:
             Data structure to contain problem specific constants and/or input data
 
 .. note::
