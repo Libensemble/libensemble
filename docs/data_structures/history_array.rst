@@ -1,3 +1,7 @@
+***********************************
+Internal libEnsemble data structure
+***********************************
+
 .. _datastruct-history-array:
 
 history array
