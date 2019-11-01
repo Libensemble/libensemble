@@ -4,7 +4,8 @@
 alloc_specs
 ===========
 
-Allocation function specifications to be set in user calling script and passed to libE.libE()::
+Allocation function specifications to be set in user calling script and passed
+to main ``libE()`` routine::
 
     alloc_specs: [dict, optional] :
 
