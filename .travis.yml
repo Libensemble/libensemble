@@ -20,9 +20,9 @@ matrix:
   include:
     - os: osx
       osx_image: xcode10.1
-      env: MPI=mpich PY=3
+      env: MPI=mpich PY=3.7
       language: generic
-      python: 3
+      python: 3.7
 
 
 services:
@@ -57,7 +57,7 @@ before_install:
   #- conda update -q -y conda
   - conda info -a # For debugging any issues with conda
   - conda config --add channels conda-forge
-  - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION
+  - conda create --yes --name condaenv python=3.7
   - source activate condaenv
     # sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /;
 

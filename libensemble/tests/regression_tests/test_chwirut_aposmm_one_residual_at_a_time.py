@@ -43,7 +43,6 @@ gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f_i', 'returned'],
              'out': gen_out,
              'user': {'initial_sample_size': 5,
-                      'batch_mode': True,
                       'num_active_gens': 1,
                       'lb': LB,
                       'ub': UB,
@@ -61,6 +60,7 @@ gen_specs['user']['sample_points'] = np.random.uniform(0, 1, (budget, n))*(UB-LB
 alloc_specs = {'alloc_f': alloc_f,
                'out': [('allocated', bool)],
                'user': {'stop_on_NaNs': True,
+                        'batch_mode': True,
                         'stop_partial_fvec_eval': True}
                }
 

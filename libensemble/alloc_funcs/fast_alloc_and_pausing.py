@@ -28,6 +28,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     Work = {}
     gen_count = count_gens(W)
 
+    if gen_specs['user'].get('single_component_at_a_time'):
+        assert alloc_specs['user']['batch_mode'], ("Must be in batch mode when using "
+                                                   "'single_component_at_a_time'")
     if len(H) != persis_info['H_len']:
         # Something new is in the history.
         persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())
@@ -108,7 +111,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             last_size = persis_info.get('last_size')
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if (gen_specs['user'].get('batch_mode')
+                if (alloc_specs['user'].get('batch_mode')
                     and not all(np.logical_or(H['returned'][last_size:],
                                               H['paused'][last_size:]))):
                     break

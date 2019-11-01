@@ -899,8 +899,6 @@ def initialize_APOSMM(H, gen_specs):
     n = len(user_specs['ub'])
 
     if 'single_component_at_a_time' in user_specs and user_specs['single_component_at_a_time']:
-        assert user_specs['batch_mode'], ("Must be in batch mode when using "
-                                          "'single_component_at_a_time'")
         c_flag = True
     else:
         c_flag = False

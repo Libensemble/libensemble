@@ -32,7 +32,6 @@ gen_specs = {'gen_f': gen_f,
              'user': {'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
                       'initial_sample': 100,
-                      'batch_mode': True,
                       'num_active_gens': 1}
              }
 
