@@ -13,8 +13,8 @@ import subprocess
 def install_balsam():
     # Installs Balsam in a directory on the same level as the current directory.
     here = os.getcwd()
-    balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
-    subprocess.check_call(balsamclone.split())
+    # balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
+    # subprocess.check_call(balsamclone.split())
     os.chdir('../balsam')
     subprocess.check_call('pip install -e .'.split())
     os.chdir(here)
