@@ -166,6 +166,7 @@ use. Our communication method, ``'local'``, refers to Python's Multiprocessing.
 .. code-block:: python
     :linenos:
 
+    import numpy as np
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
