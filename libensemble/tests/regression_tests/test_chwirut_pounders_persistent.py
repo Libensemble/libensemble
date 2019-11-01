@@ -50,7 +50,6 @@ gen_specs = {'gen_f': gen_f,
              'out': gen_out,
              'user': {'initial_sample_size': 100,
                       'localopt_method': 'pounders',
-                      'batch_mode': True,
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                       'grtol': 1e-6,
                       'gatol': 1e-6,
@@ -62,7 +61,7 @@ gen_specs = {'gen_f': gen_f,
                       'ub': 2*np.ones(n)}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 

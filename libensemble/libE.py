@@ -84,7 +84,8 @@ def report_manager_exception(hist, persis_info, mgr_exc=None):
 def libE(sim_specs, gen_specs, exit_criteria,
          persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first,
-                      'out': [('allocated', bool)]},
+                      'out': [('allocated', bool)],
+                      'user': {'batch_mode': True}},
          libE_specs={},
          H0=[]):
     """This is the outer libEnsemble routine.

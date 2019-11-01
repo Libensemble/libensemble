@@ -33,7 +33,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             last_size = persis_info.get('last_size')
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if (gen_specs['user'].get('batch_mode')
+                if (alloc_specs['user'].get('batch_mode')
                     and not all(np.logical_or(H['returned'][last_size:],
                                               H['paused'][last_size:]))):
                     break
