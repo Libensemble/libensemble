@@ -10,8 +10,11 @@
 
 # Can't run this line in calling Python file. Balsam installation hasn't been
 #   noticed by the Python runtime yet.
-python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
+# python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
+
 export EXE=$PWD/libensemble/tests/regression_tests/script_test_balsam_hworld.py
+export COVERAGE=" -m coverage run --parallel-mode --rcfile=./libensemble/tests/regression_tests/.bal_coveragerc "
+export COV_EXE="${COVERAGE} ${EXE}"
 export NUM_WORKERS=2
 export WORKFLOW_NAME=libe_test-balsam
 export LIBE_WALLCLOCK=3
@@ -31,7 +34,7 @@ balsam rm apps --all --force
 balsam rm jobs --all --force
 
 # Submit script_test_balsam_hworld as app
-balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
+balsam app --name $SCRIPT_BASENAME.app --exec $COV_EXE --desc "Run $SCRIPT_BASENAME"
 
 # Submit job based on script_test_balsam_hworld app
 balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
