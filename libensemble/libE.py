@@ -8,12 +8,9 @@ __all__ = ['libE']
 
 import os
 import logging
-import traceback
 import random
 import socket
-import pickle  # Only used when saving output on error
 
-import numpy as np
 import libensemble.util.launcher as launcher
 from libensemble.util.timer import Timer
 from libensemble.history import History
@@ -102,7 +99,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     exit_flag: :obj:`int`
 
-        Flag containing final job status: 
+        Flag containing final job status:
 
         0 = No errors
         1 = Exception occured
@@ -425,5 +422,3 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
         worker_main(comm, sim_specs, gen_specs, libE_specs,
                     workerID=workerID, log_comm=True)
         logger.debug("Worker {} exiting".format(workerID))
-
-

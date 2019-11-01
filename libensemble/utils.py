@@ -4,6 +4,15 @@ libEnsemble utilities
 
 """
 
+import traceback
+import logging
+import numpy as np
+import pickle  # Only used when saving output on error
+
+logger = logging.getLogger(__name__)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
+
 
 """
 Below are the fields used within libEnsemble
@@ -68,7 +77,6 @@ def report_manager_exception(hist, persis_info, mgr_exc=None):
     np.save(filename + '.npy', hist.trim_H())
     with open(filename + '.pickle', "wb") as f:
         pickle.dump(persis_info, f)
-
 
 
 # ==================== Common input checking =================================
