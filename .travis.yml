@@ -5,7 +5,6 @@ python:
   - 3.5
   - 3.6
   - 3.7
-  - 3.8
 
 os: linux
 
@@ -23,7 +22,7 @@ matrix:
       osx_image: xcode10.1
       env: MPI=mpich PY=3
       language: generic
-      python: 3
+      python: 3.7
 
 
 services:
