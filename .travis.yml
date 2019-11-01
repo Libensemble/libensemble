@@ -87,7 +87,7 @@ install:
   - mpiexec --version # Show MPI library details
   - pip install -e . # Installing libEnsemble
   - wget https://github.com/balsam-alcf/balsam/archive/0.3.5.1.tar.gz
-  - mkdir ../balsam; tar xf balsam-0.3.5.1.tar.gz -C ../balsam;
+  - mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
   - python conda/install-balsam.py
 
 before_script:

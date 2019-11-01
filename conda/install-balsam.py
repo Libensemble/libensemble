@@ -15,7 +15,7 @@ def install_balsam():
     here = os.getcwd()
     # balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
     # subprocess.check_call(balsamclone.split())
-    os.chdir('../balsam')
+    os.chdir('../balsam/balsam-0.3.5.1')
     subprocess.check_call('pip install -e .'.split())
     os.chdir(here)
 
