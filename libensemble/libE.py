@@ -102,7 +102,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     exit_flag: :obj:`int`
 
-        Flag containing job status: 0 = No errors,
+        Flag containing final job status: 
+
+        0 = No errors
         1 = Exception occured
         2 = Manager timed out and ended simulation
         3 = Current process is not in libEnsemble MPI communicator
