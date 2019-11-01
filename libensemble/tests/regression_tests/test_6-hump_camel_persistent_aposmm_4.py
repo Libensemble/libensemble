@@ -55,12 +55,11 @@ gen_specs = {'gen_f': gen_f,
                       'num_active_gens': 1,
                       'dist_to_bound_multiple': 0.01,
                       'max_active_runs': 6,
-                      'batch_mode': True,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
 
 persis_info = per_worker_stream({}, nworkers + 1)
 

@@ -73,7 +73,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             # No gen instances in batch mode if workers still working
             still_working = ~H['returned']
-            if gen_specs['user'].get('batch_mode') and np.any(still_working):
+            if alloc_specs['user'].get('batch_mode') and np.any(still_working):
                 break
 
             # Give gen work
