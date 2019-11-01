@@ -11,14 +11,16 @@ import subprocess
 
 
 def install_balsam():
-    # Installs Balsam in a directory on the same level as the current directory.
     here = os.getcwd()
-    os.chdir('../balsam/balsam-0.3.5.1')
-    subprocess.check_call('pip install -e .'.split())
+    os.chdir('../balsam/balsam-0.3.5.1/balsam/scripts')
 
     # Replace old version of balsamactivate
-    os.chdir('./balsam/scripts'); os.remove('balsamactivate')
+    os.remove('balsamactivate')
     subprocess.check_call('wget https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'.split())
+
+    # Pip install Balsam
+    os.chdir('../..')
+    subprocess.check_call('pip install -e .'.split())
 
     os.chdir(here)
 
