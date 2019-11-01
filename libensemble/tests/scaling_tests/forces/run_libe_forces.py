@@ -69,14 +69,14 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
              'in': ['x'],                 # Name of input for sim_f
              'out': [('energy', float)],  # Name, type of output from sim_f
-             'user': {'sim_dir_suffix': 'test',    
-                      'simdir_basename': 'force',  
-                      'keys': ['seed'],            
-                      'cores': 2,                  
-                      'sim_particles': 1e3,        
-                      'sim_timesteps': 5,          
-                      'sim_kill_minutes': 10.0,    
-                      'particle_variance': 0.2,    
+             'user': {'sim_dir_suffix': 'test',
+                      'simdir_basename': 'force',
+                      'keys': ['seed'],
+                      'cores': 2,
+                      'sim_particles': 1e3,
+                      'sim_timesteps': 5,
+                      'sim_kill_minutes': 10.0,
+                      'particle_variance': 0.2,
                       'kill_rate': 0.5}   # Used by this specific sim_f
              }
 # end_sim_specs_rst_tag
