@@ -2,24 +2,15 @@
 Theta
 =====
 
-Theta_ is a 11.69 petaflops system based on the second-generation Intel Xeon Phi
-processor, available within ALCF_ at Argonne National Laboratory.
+Theta_ is a 11.69 petaflops Cray XC40 system based on the second-generation Intel
+Xeon Phi processor, available within ALCF_ at Argonne National Laboratory.
 
+On Theta, libEnsemble users will mostly interact with login, Machine Oriented
+Mini-server (MOM) and compute nodes. MOM nodes execute user batch-scripts to run
+on the compute nodes.
 
-Before Getting Started
-----------------------
-
-An Argonne ALCF account is required to access Theta. Interested users will need
-to apply for and be granted an account before continuing. To submit jobs to Theta,
-users must charge their jobs to a project (specified while requesting an
-account).
-
-Theta contains numerous node-types, but libEnsemble users will mostly interact
-with login, Machine Oriented Mini-server (MOM) and compute nodes. MOM nodes execute
-user batch-scripts to run on the compute nodes.
-
-libEnsemble functions need to incorporate the libEnsemble
-:ref:`job controller<jobcontroller_index>` to perform calculations on Theta.
+It is recommended that libEnsemble functions incorporate the libEnsemble
+:ref:`job controller<jobcontroller_index>` for performing calculations on Theta.
 
 
 Configuring Python

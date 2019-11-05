@@ -2,19 +2,8 @@
 Bebop
 =====
 
-Bebop_ is the newest addition to the computational power of LCRC at Argonne
-National Laboratory, featuring both Intel Broadwell and Knights Landing nodes.
-
-
-Before Getting Started
-----------------------
-
-An Argonne LCRC_ account is required to access Bebop. Interested users will need
-to apply for and be granted an account before continuing. To submit jobs to Bebop,
-users can charge hours to a project or their personal allocation (default).
-
-Bebop consists primarily of login and compute nodes. Users start on the login
-nodes, and schedule work for execution on the compute nodes.
+Bebop_ is a Cray CS400 cluster available within LCRC at Argonne National Laboratory,
+featuring both Intel Broadwell and Knights Landing compute nodes.
 
 
 Configuring Python
@@ -22,7 +11,7 @@ Configuring Python
 
 Begin by loading the Python 3 Anaconda_ module::
 
-    module load anaconda3/2018.12
+    module load anaconda3
 
 Create a Conda_ virtual environment in which to install libEnsemble and all
 dependencies::
@@ -49,8 +38,9 @@ following block:
 Job Submission
 --------------
 
-Bebop uses Slurm_ for job submission and management. The two commands you'll likely use the most
-to run jobs are ``srun`` and ``sbatch`` for running interactively and batch, respectively.
+Bebop uses Slurm_ for job submission and management. The two commands you'll
+likely use the most to run jobs are ``srun`` and ``sbatch`` for running
+interactively and batch, respectively.
 
 
 Interactive Runs
@@ -73,6 +63,17 @@ worker can perform stand-alone calculations or launch jobs through the job contr
     When performing an MPI libEnsemble run and not oversubscribing, specify one
     more MPI process than the number of allocated nodes. The Manager and first
     worker run together on a node.
+
+
+If you would like to interact directly with the compute nodes via a shell,
+the following showcases starting a bash session on a Knights Landing node
+for thirty minutes::
+
+    srun --pty -A [username OR project] -p knl -t 00:30:00 /bin/bash
+
+.. note::
+    You will need to re-activate your conda virtual environment and reload your
+    modules! Configuring this routine to occur automatically is recommended.
 
 
 Batch Runs
@@ -111,16 +112,8 @@ on Bebop becomes::
 Debugging Strategies
 --------------------
 
-View the status of your submitted jobs with ``squeue`` and cancel jobs with ``scancel [jobID]``.
-
-It's not recommended to debug compute-intensive tasks on the login nodes. Instead, start
-a bash session on a Knights Landing node for thirty minutes with::
-
-    srun --pty -A [username OR project] -p knl -t 00:30:00 /bin/bash
-
-.. note::
-    You will need to re-activate your conda virtual environment and reload your
-    modules! Configuring this routine to occur automatically is recommended.
+View the status of your submitted jobs with ``squeue`` and cancel jobs with
+``scancel [jobID]``.
 
 
 Additional Information
@@ -130,7 +123,6 @@ See the LCRC Bebop docs here_ for more information about Bebop.
 
 
 .. _Bebop: https://www.lcrc.anl.gov/systems/resources/bebop/
-.. _LCRC: https://www.lcrc.anl.gov
 .. _Anaconda: https://www.anaconda.com/distribution/
 .. _Conda: https://conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
