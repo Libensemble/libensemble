@@ -20,8 +20,8 @@ launching and controlling user-applications with a :ref:`job controller<jobcontr
 Finally, workers pass results back to the manager.
 
 For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python without
-other applications. our ``gen_f`` will produce uniform randomly-sampled
-values, and our ``sim_f`` will find the sine of each. By default we don't need to
+other applications. Our ``gen_f`` will produce uniform randomly-sampled
+values, and our ``sim_f`` will calculate the sine of each. By default we don't need to
 write a new allocation function. All generated and simulated values alongside other
 parameters are stored in :ref:`H<datastruct-history-array>`, the History array.
 
@@ -30,7 +30,8 @@ parameters are stored in :ref:`H<datastruct-history-array>`, the History array.
 Getting started
 ---------------
 
-libEnsemble and it's functions are written entirely in Python_. Let's make sure Python 3 is installed.
+libEnsemble and it's functions are written entirely in Python_. Let's make sure
+Python 3 is installed.
 
 Note: If you have a Python version-specific virtual environment set up (e.g. Conda),
 then ``python`` and ``pip`` will work in place of ``python3`` and ``pip3``.
@@ -75,9 +76,11 @@ An available libEnsemble worker will call this generator function with the follo
   information. In our case this dictionary contains mechanisms called random
   streams for generating random numbers.
 
-* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with ``gen_f``
-  specifications like simulation IDs, inputs and outputs, data-types, and other
-  fields.
+* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined and
+  operational parameters for the ``gen_f``. The user places function-specific
+  parameters like boundaries and batch-sizes within the nested ``user`` dictionary,
+  while parameters that libEnsemble depends on to operate the ``gen_f`` are placed
+  outside ``user``.
 
 Later on, we'll populate ``gen_specs`` and ``persis_info`` in our calling script.
 
@@ -92,13 +95,16 @@ For now, create a new Python file named ``generator.py``. Write the following:
     def gen_random_sample(H, persis_info, gen_specs, _):
         # underscore parameter for internal/testing arguments
 
+        # Pull out user parameters to perform calculations
+        user_specs = gen_specs['user']
+
         # Get lower and upper bounds from gen_specs
-        lower = gen_specs['lower']
-        upper = gen_specs['upper']
+        lower = user_specs['lower']
+        upper = user_specs['upper']
 
         # Determine how many values to generate
         num = len(lower)
-        batch_size = gen_specs['gen_batch_size']
+        batch_size = user_specs['gen_batch_size']
 
         # Create array of 'batch_size' zeros
         out = np.zeros(batch_size, dtype=gen_specs['out'])
@@ -185,9 +191,13 @@ inputs and outputs from those functions to expect.
 
     gen_specs = {'gen_f': gen_random_sample,   # Our generator function
                  'out': [('x', float, (1,))],  # gen_f output (name, type, size)
-                 'lower': np.array([-3]),      # lower boundary for random sampling
-                 'upper': np.array([3]),       # upper boundary for random sampling
-                 'gen_batch_size': 5}          # number of x's gen_f generates per call
+                 'user': {
+                    'lower': np.array([-3]),   # lower boundary for random sampling
+                    'upper': np.array([3]),    # upper boundary for random sampling
+                    'gen_batch_size': 5        # number of x's gen_f generates per call
+                    }
+                 }
+
 
     sim_specs = {'sim_f': sim_find_sine,       # Our simulator function
                  'in': ['x'],                  # Input field names. 'x' from gen_f output
