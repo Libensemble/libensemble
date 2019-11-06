@@ -113,7 +113,7 @@ Debugging Strategies
 --------------------
 
 View the status of your submitted jobs with ``squeue`` and cancel jobs with
-``scancel [jobID]``.
+``scancel [Job ID]``.
 
 
 Additional Information

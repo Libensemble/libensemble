@@ -1,8 +1,8 @@
 
 libEnsemble has been largely developed, supported, and tested on Linux
-distributions and macOS, from single-nodes to hundreds. Although libEnsemble
-and most user functions are cross-platform compatible, there are platform-specific
-differences for installing and configuring libEnsemble.
+distributions and macOS, from laptops to hundreds of compute-nodes. Although
+libEnsemble and most user functions are cross-platform compatible, there are
+platform-specific differences for installing and configuring libEnsemble.
 
 Local
 =====
