@@ -5,12 +5,8 @@ Theta
 Theta_ is a 11.69 petaflops Cray XC40 system based on the second-generation Intel
 Xeon Phi processor, available within ALCF_ at Argonne National Laboratory.
 
-On Theta, libEnsemble users will mostly interact with login, Machine Oriented
-Mini-server (MOM) and compute nodes. MOM nodes execute user batch-scripts to run
-on the compute nodes.
-
-It is recommended that libEnsemble functions incorporate the libEnsemble
-:ref:`job controller<jobcontroller_index>` for performing calculations on Theta.
+Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
+and compute nodes. MOM nodes execute user batch-scripts to run on the compute nodes.
 
 
 Configuring Python
@@ -47,22 +43,32 @@ following block:
     (my_env) user@thetalogin6:~$ CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
     (my_env) user@thetalogin6:~$ pip install libensemble
 
+.. note::
+    If you encounter pip errors, run ``python -m pip install --upgrade pip`` first
 
-Balsam
-^^^^^^
+
+Balsam (Optional)
+^^^^^^^^^^^^^^^^^
 
 Balsam_ is an ALCF Python utility for coordinating and executing workflows of
-computations on systems like Theta. Balsam can stage in tasks from many sources,
-including libEnsemble's job controller, and submit these tasks dynamically to the
-compute nodes. If running with MPI, Balsam is necessary to launch libEnsemble on
-Theta.
+computations on systems like Theta. Balsam can stage in tasks to a database hosted
+on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
+can also be submitted to Balsam for centralized execution on a compute-node. At
+this point, libEnsemble can then submit tasks to Balsam through libEnsemble's
+Balsam job-controller for execution on additional allocated nodes:
+
+.. image:: ../images/centralized_Balsam_ThS.png
+    :alt: central_Balsam
+    :scale: 75
+    :align: center
+
 
 Load the Balsam module with::
 
     $ module load balsam/0.3.5.1
 
-Balsam stages tasks in and out from a database. Initialize a new database similarly
-to thefollowing:
+
+Initialize a new database similarly to the following (from the Balsam docs):
 
 .. code-block:: bash
 
@@ -73,21 +79,26 @@ to thefollowing:
     $ balsam submit-launch -A [project] -q default -t 5 -n 1 --job-mode=mpi
     $ watch balsam ls   #  follow status in realtime from command-line
 
-See **Additional Information** for the Balsam docs.
+
+See **Additional Information** for Balsam's documentation.
 
 Job Submission
 --------------
 
-Theta uses Cobalt_ for job submission and management. For libEnsemble, the most
-important command is ``qsub``, for submitting batch scripts from the login nodes.
+Theta uses Cobalt_ for job management and submission. For libEnsemble, the most
+important command is ``qsub``, for submitting batch scripts from the login nodes
+to execute on the MOM nodes.
 
-On Theta, libEnsemble is commonly configured to run in one of two ways:
+On Theta, libEnsemble's communications are commonly configured to run in one of two ways:
 
-    1. Multiprocessing mode, with libEnsemble's MPI job controller taking
-    responsibility for direct submissions of jobs to compute nodes.
+    1. **Multiprocessing mode**, where libEnsemble's MPI job-controller takes
+    responsibility for direct submissions of jobs to compute nodes. In this mode,
+    libEnsemble itself, including all manager and worker processes, runs on the
+    MOM nodes.
 
-    2. MPI mode, with libEnsemble's Balsam job controller interfacing with a Balsam
-    backend for dynamic job submission.
+    2. **MPI mode**, with libEnsemble's Balsam job-controller interfacing with the
+    previously-mentioned Balsam backend for dynamic task submission. In this mode
+    libEnsemble has been submitted to Balsam and tasked to a compute-node.
 
 Theta features one default production queue, ``default``, and two debug queues,
 ``debug-cache-quad`` and ``debug-flat-quad``.
@@ -108,8 +119,9 @@ This will place the user on a MOM node. If running in multiprocessing mode, laun
 jobs to the compute nodes is as simple as ``python calling_script.py``
 
 .. note::
-    You will need to re-activate your conda virtual environment and reload your
-    modules! Configuring this routine to occur automatically is recommended.
+    You will need to re-activate your conda virtual environment, re-activate your
+    Balsam database (if using Balsam), and reload your modules! Configuring this
+    routine to occur automatically is recommended.
 
 Batch Runs
 ^^^^^^^^^^
@@ -247,12 +259,8 @@ Debugging Strategies
 
 View the status of your submitted jobs with ``qstat -fu [user]``.
 
-It's not recommended to debug compute-intensive tasks on the login or MOM nodes,
-and if running in MPI mode, may be impossible. Allocate nodes on the debug queues
-for the best results.
-
-Each of the two debug queues has sixteen nodes apiece. A user can use up to
-eight nodes at a time for a maximum of one hour. Allocate nodes on the debug
+Theta features two debug queues with sixteen nodes apiece. Each user can allocate
+up to eight nodes at once for a maximum of one hour. Allocate nodes on a debug
 queue interactively::
 
     $ qsub -A [project] -n 4 -q debug-flat-quad -t 60 -I

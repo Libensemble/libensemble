@@ -7,13 +7,13 @@ Below are example generation functions available in libEnsemble.
   See the API for generation functions :ref:`here<api_gen_f>`
 
 sampling
-----------------
+--------
 .. automodule:: sampling
   :members:
   :undoc-members:
 
 APOSMM
-------------
+------
 .. automodule:: aposmm
   :members:
   :undoc-members:

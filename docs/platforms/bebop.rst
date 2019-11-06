@@ -2,8 +2,8 @@
 Bebop
 =====
 
-Bebop_ is a Cray CS400 cluster available within LCRC at Argonne National Laboratory,
-featuring both Intel Broadwell and Knights Landing compute nodes.
+Bebop_ is a Cray CS400 cluster available within LCRC at Argonne National
+Laboratory, featuring both Intel Broadwell and Knights Landing compute nodes.
 
 
 Configuring Python
