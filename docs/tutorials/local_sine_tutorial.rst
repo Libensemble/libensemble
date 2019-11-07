@@ -91,7 +91,6 @@ For now, create a new Python file named ``generator.py``. Write the following:
 
     import numpy as np
 
-
     def gen_random_sample(H, persis_info, gen_specs, _):
         # underscore parameter for internal/testing arguments
 
@@ -115,12 +114,10 @@ For now, create a new Python file named ``generator.py``. Write the following:
         # Send back our output and persis_info
         return out, persis_info
 
-
 Our function creates 'batch_size' random numbers uniformly distributed
 between the 'lower' and 'upper' bounds. A random stream
 from ``persis_info`` is used to generate these values. Finally, the values are placed
 into a NumPy array that meets the specifications from ``gen_specs['out']``.
-
 
 Simulator function
 ------------------
@@ -137,7 +134,6 @@ Create a new Python file named ``simulator.py``. Write the following:
 
     import numpy as np
 
-
     def sim_find_sine(H, persis_info, sim_specs, _):
         # underscore for internal/testing arguments
 
@@ -153,7 +149,6 @@ Create a new Python file named ``simulator.py``. Write the following:
 Our simulator function is called by a worker for every value in it's batch from the
 generator function. This function calculates the sine of the passed value, then returns
 it so a worker can log it into ``H``.
-
 
 Calling Script
 --------------
@@ -202,7 +197,6 @@ inputs and outputs from those functions to expect.
     sim_specs = {'sim_f': sim_find_sine,       # Our simulator function
                  'in': ['x'],                  # Input field names. 'x' from gen_f output
                  'out': [('y', float)]}        # sim_f output. 'y' = sine('x')
-
 
 Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
 dictionary that, in this tutorial, contains  a ``RandomState()`` random stream for
@@ -274,7 +268,6 @@ and run ``python3 calling_script.py`` again
 .. code-block:: python
   :linenos:
 
-
   import matplotlib.pyplot as plt
   colors = ['b', 'g', 'r', 'y', 'm', 'c', 'k', 'w']
 
@@ -290,9 +283,7 @@ and run ``python3 calling_script.py`` again
   plt.legend(loc = 'lower right')
   plt.show()
 
-
 ---
-
 
 Next Steps
 ----------

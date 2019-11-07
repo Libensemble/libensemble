@@ -6,7 +6,6 @@ work dictionary
 Dictionary with integer keys ``i`` and dictionary values to be given to worker ``i``.
 ``Work[i]`` has the following form::
 
-
     Work[i]: [dict]:
 
         Required keys :
@@ -19,7 +18,6 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
         'H_rows' [list of ints]: History rows to send to worker 'i'
         'blocking' [list of ints]: Workers to be blocked by this calculation
         'persistent' [bool]: True if worker 'i' will enter persistent mode
-
 
 .. seealso::
   For allocation functions giving Work dictionaries using persistent workers, see `start_only_persistent.py`_ or `start_persistent_local_opt_gens.py`_.

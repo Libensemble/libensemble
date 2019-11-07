@@ -5,7 +5,6 @@ sim_specs
 
 Simulation function specifications to be set in user calling script and passed to ``libE.libE()``::
 
-
     sim_specs: [dict]:
 
         Required keys :
@@ -16,7 +15,6 @@ Simulation function specifications to be set in user calling script and passed t
             field names (as strings) that will be given to sim_f
         'out' [list of tuples (field name, data type, [size])] :
             sim_f outputs that will be stored in the libEnsemble history
-
 
         Optional keys :
 
@@ -38,7 +36,6 @@ Simulation function specifications to be set in user calling script and passed t
   * The tuples defined in the ``'out'`` list are entered into the master :ref:`history array<datastruct-history-array>`
   * The ``sim_dir_prefix`` option may be used to create simulation working directories in node local/scratch storage when workers are distributed. This may have a performance benefit with I/O heavy sim funcs.
 
-
 .. seealso::
 
   .. _sim-specs-exmple1:
@@ -48,7 +45,6 @@ Simulation function specifications to be set in user calling script and passed t
   ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
       :start-at: sim_specs
       :end-before: end_sim_specs_rst_tag
-
 
   The dimensions and type of the ``'in'`` field variable ``'x'`` is specified by the corresponding
   generator ``'out'`` field ``'x'`` (see :ref:`gen_specs example<gen-specs-exmple1>`).

@@ -3,7 +3,6 @@ libEnsemble Internal Modules
 
 Internal modules of libEnsemble.
 
-
 .. toctree::
    :maxdepth: 1
    :caption: Modules:

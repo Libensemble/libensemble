@@ -48,7 +48,6 @@ To quickly reset the tests to run again use the reset (python) script:
 
 The file readme.balsam_tests.txt contains a brief explanation of the tests
 
-
 -------------
 General Usage
 -------------
@@ -91,8 +90,6 @@ To clean:
 
   balsam rm apps --all
 
-
-
 2 Register job/s
 ----------------
 
@@ -115,11 +112,9 @@ A log will also be created when run under hpc-edge-service/log/
 
 The standard output will go to file <jobname>.out. So in above case this will be job_balsam1.out which will be staged out to $WORKDIR
 
-
 In this case 4 ranks per node and 1 node are selected. This is for running on the parent application (e.g., libEnsemble). This does not constrain the running of sub-apps (eg. helloworld), which will use the full allocation available.
 
 Note that the user jobs (launched in a libEnsemble job) are registered from within the code. For staging out files, the output directory needs to somehow be accessible to the code. For the tests here, this is simply the directory of the test scripts (accessed via the __file__ variable in python). Search for dag.add_job in test scripts (eg. test_balsam_1__runjobs.py)
-
 
 To list jobs:
 
@@ -132,7 +127,6 @@ To clean:
 .. code-block:: bash
 
   balsam rm jobs --all
-
 
 3 Launch job/s
 --------------
@@ -151,14 +145,12 @@ For other launcher options:
 
   balsam launcher -h
 
-
 4 Reset jobs
 ------------
 
 A script to reset the tests is available: reset_balsam_tests.py
 
 This script can be modified easily. However, to reset from the command line - without removing and re-adding jobs you can do the following.
-
 
 Note: After running tests the balsam job database will contain something like the following (job_ids abbreviated for space):
 
@@ -178,14 +170,11 @@ Note: After running tests the balsam job database will contain something like th
      183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 JOB_FINISHED]
     ..................
 
-
 To remove only the generated jobs you can just use a sub-string of the job name eg:
 
 .. code-block:: bash
 
   balsam rm jobs --name outfile
-
-
 
 .. code-block:: bash
 
@@ -197,16 +186,13 @@ To remove only the generated jobs you can just use a sub-string of the job name 
     -----------------------------------------------------------------------------------------------------------------------
      29add031-8e7c-... | job_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 JOB_FINISHED]
 
-
 To run again - change status attribute to READY (you need to specify job_id - an abbreviation is ok) eg:
-
 
 .. code-block:: bash
 
   balsam modify jobs 29ad --attr state --value READY
 
 Now you are ready to re-run.
-
 
 Theta tip - Interactive sessions
 --------------------------------
@@ -224,7 +210,6 @@ You will need to load the conda env in the interactive session - or source the s
 At time of writing theta does not log you out of interactive sessions. But jobs launched after time is up will not work.
 
 To see time remaining:
-
 
 .. code-block:: bash
 

@@ -8,7 +8,6 @@ Xeon Phi processor, available within ALCF_ at Argonne National Laboratory.
 Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
 and compute nodes. MOM nodes execute user batch-scripts to run on the compute nodes.
 
-
 Configuring Python
 ------------------
 
@@ -25,10 +24,8 @@ dependencies::
 
 More information_ on using Conda on Theta.
 
-
 Installing libEnsemble and Dependencies
 ---------------------------------------
-
 
 libEnsemble and mpi4py
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -106,7 +103,6 @@ Theta features one default production queue, ``default``, and two debug queues,
 .. note::
     For the default queue, the minimum number of nodes to allocate at once is 128
 
-
 Interactive Runs
 ^^^^^^^^^^^^^^^^
 
@@ -166,12 +162,10 @@ for a libEnsemble use-case may resemble the following:
 
     python $EXE $COMMS $NWORKERS > out.txt 2>&1
 
-
 With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
 on Theta becomes::
 
     $ qsub --mode script myscript.sh
-
 
 Balsam Runs
 ^^^^^^^^^^^
@@ -222,7 +216,6 @@ for execution. This is an example Balsam submission script:
     # Activate Balsam database
     . balsamactivate default
 
-
     # Currently need at least one DB connection per worker (for postgres).
     if [[ $NUM_WORKERS -gt 128 ]]
     then
@@ -253,7 +246,6 @@ for execution. This is an example Balsam submission script:
 
 See **Additional Information** for the Balsam docs.
 
-
 Debugging Strategies
 --------------------
 
@@ -265,15 +257,12 @@ queue interactively::
 
     $ qsub -A [project] -n 4 -q debug-flat-quad -t 60 -I
 
-
 Additional Information
 ----------------------
 
 See the ALCF guides_ on XC40 systems for more information about Theta.
 
 Read the documentation for Balsam here_.
-
-
 
 .. _ALCF: https://www.alcf.anl.gov/
 .. _Theta: https://www.alcf.anl.gov/theta

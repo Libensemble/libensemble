@@ -2,7 +2,6 @@
 Release Notes
 =============
 
-
 Release 0.5.2
 -------------
 
@@ -27,7 +26,6 @@ Release 0.5.2
 
 * These are unchanged from v0.5.0
 
-
 Release 0.5.1
 -------------
 
@@ -45,7 +43,6 @@ Release 0.5.1
 :Known issues:
 
 * These are unchanged from v0.5.0
-
 
 Release 0.5.0
 -------------
@@ -80,19 +77,16 @@ Release 0.5.0
 * Remote detection of logical cores via LSB_HOSTS (e.g., Summit) returns number of physical cores as SMT info not available.
 * TCP mode does not support: 1) more than one libEnsemble call in a given script or 2) the auto-resources option to the job controller.
 
-
 Release 0.4.1
 -------------
 
 :Date: February 20, 2019
-
 
 * Logging no longer uses root logger (Also added option to change libEnsemble log level) (#105)
 * Added wait_on_run option for job controller launch to block until jobs have started (#111)
 * persis_info can be passed to sim as well as gen functions (#112)
 * Post-processing scripts added to create performance/utilization graphs (#102)
 * New scaling test added (not part of current CI test suite) (#114)
-
 
 Release 0.4.0
 -------------
@@ -110,7 +104,6 @@ Release 0.4.0
 :Known issues:
 
 * OpenMPI is not supported with direct MPI launches as nested MPI launches are not supported.
-
 
 Release 0.3.0
 -------------
@@ -133,7 +126,6 @@ Release 0.3.0
 
 * OpenMPI is not supported with direct MPI launches as nested MPI launches are not supported.
 
-
 Release 0.2.0
 -------------
 
@@ -149,7 +141,6 @@ Release 0.2.0
 
 * Killing MPI jobs does not work correctly on some systems (including Cray XC40 and CS400). In these cases, libEnsemble continues, but processes remain running.
 * OpenMPI does not work correctly with direct launches (and has not been tested with Balsam).
-
 
 Release 0.1.0
 -------------

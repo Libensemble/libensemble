@@ -5,7 +5,6 @@ Bebop
 Bebop_ is a Cray CS400 cluster available within LCRC at Argonne National
 Laboratory, featuring both Intel Broadwell and Knights Landing compute nodes.
 
-
 Configuring Python
 ------------------
 
@@ -20,7 +19,6 @@ dependencies::
     conda create --name my_env intelpython3_core python=3
     source activate my_env
 
-
 Installing libEnsemble and Dependencies
 ---------------------------------------
 
@@ -34,14 +32,12 @@ following block:
     (my_env) user@beboplogin4:~$ CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
     (my_env) user@beboplogin4:~$ pip install libensemble
 
-
 Job Submission
 --------------
 
 Bebop uses Slurm_ for job submission and management. The two commands you'll
 likely use the most to run jobs are ``srun`` and ``sbatch`` for running
 interactively and batch, respectively.
-
 
 Interactive Runs
 ^^^^^^^^^^^^^^^^
@@ -50,11 +46,9 @@ You can allocate four Knights Landing nodes for thirty minutes through the follo
 
     salloc -N 4 -p knl -A [username OR project] -t 00:30:00
 
-
 With your nodes allocated, queue your job to start with five MPI ranks::
 
     srun -n 5 python calling.py
-
 
 ``mpirun`` should also work. This launches a worker on every node, on which every
 worker can perform stand-alone calculations or launch jobs through the job controller.
@@ -102,12 +96,10 @@ for a libEnsemble use-case running on Broadwell nodes resembles the following:
 
     srun --ntasks 5 python3 calling_script.py
 
-
 With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
 on Bebop becomes::
 
     sbatch myscript.sh
-
 
 Debugging Strategies
 --------------------
@@ -115,12 +107,10 @@ Debugging Strategies
 View the status of your submitted jobs with ``squeue`` and cancel jobs with
 ``scancel [Job ID]``.
 
-
 Additional Information
 ----------------------
 
 See the LCRC Bebop docs here_ for more information about Bebop.
-
 
 .. _Bebop: https://www.lcrc.anl.gov/systems/resources/bebop/
 .. _Anaconda: https://www.anaconda.com/distribution/

@@ -87,6 +87,9 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
+# The latex toctree document.
+latex_doc = 'latex_index'
+
 # General information about the project.
 project = 'libEnsemble'
 copyright = '2019, Jeffrey Larson'
@@ -205,7 +208,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'libEnsemble.tex', 'libEnsemble User Manual',
+    (latex_doc, 'libEnsemble.tex', 'libEnsemble User Manual',
      'Stephen Hudson, Jeffrey Larson, Stefan M. Wild, \\\\ \\hfill David Bindel, John-Luke Navarro', 'manual'),
 ]
 
@@ -216,7 +219,7 @@ latex_logo = 'images/libE_logo.png'
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'libEnsemble', 'libEnsemble User Manual',
+    (latex_doc, 'libEnsemble', 'libEnsemble User Manual',
      [author], 1)
 ]
 
@@ -227,7 +230,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'libEnsemble', 'libEnsemble User Manual',
+    (latex_doc, 'libEnsemble', 'libEnsemble User Manual',
      author, 'libEnsemble', 'One line description of project.',
      'Miscellaneous'),
 ]
