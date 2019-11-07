@@ -12,15 +12,15 @@
    Introduction<introduction>
    programming_libE
 
-
 .. toctree::
    :caption: Further information:
    :maxdepth: 2
 
+   FAQ
+   release_notes
    platforms/platforms
    dev_info
    tutorials/tutorials
-
 
 Indices and tables
 ==================
