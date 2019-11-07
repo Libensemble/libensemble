@@ -10,4 +10,3 @@
    platforms/platforms
    dev_info
    appendix
-

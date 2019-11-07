@@ -76,7 +76,6 @@ The default ``alloc_f`` tells each available worker to call ``sim_f`` with the
 highest priority unit of work from ``gen_f``. If a worker is idle and there is
 no ``gen_f`` output to give, the worker is told to call ``gen_f``.
 
-
 Example Use Cases
 ~~~~~~~~~~~~~~~~~
 Below are some expected libEnsemble use cases that we support (or are working
@@ -120,13 +119,12 @@ Naturally, combinations of these use cases are supported as well. An example of
 such a combination is using libEnsemble to solve an optimization problem that
 relies on simulations that fail frequently.
 
-
 Resources
 ~~~~~~~~~~~~~~~~~~
 
 **Support:**
 
-- Email questions to libensemble@lists.mcs.anl.gov 
+- Email questions to libensemble@lists.mcs.anl.gov
 - Communicate (and establish a private channel, if desired) at https://libensemble.slack.com
 - Join the libEnsemble mailing list for updates about new releases at https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 
@@ -150,11 +148,9 @@ Resources
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
-
 **Other:**
 
 - A visual overview of libEnsemble is given in this poster_.
-
 
 Quickstart
 ----------

@@ -1,4 +1,3 @@
-
 .. _datastruct-alloc-specs:
 
 alloc_specs

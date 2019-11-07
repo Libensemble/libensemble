@@ -24,7 +24,6 @@ This section outlines the data structures used by libEnsemble.
    persis_info
    exit_criteria
 
-
    history_array
    worker_array
    work_dict
