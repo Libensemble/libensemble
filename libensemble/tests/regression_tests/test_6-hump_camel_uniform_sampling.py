@@ -28,16 +28,16 @@ libE_specs['save_every_k_sims'] = 400
 libE_specs['save_every_k_gens'] = 300
 
 sim_specs = {'sim_f': sim_f,         # Function whose output is being minimized
-             'in': ['x'],            # Keys to be given to the above function
-             'out': [('f', float)],  # Output from the function being minimized
+             'in': ['x'],            # Keys to be given to sim_f
+             'out': [('f', float)],  # Name of the outputs from sim_f
              }
 # end_sim_specs_rst_tag
 
-gen_specs = {'gen_f': gen_f,               # Tell libE function generating sim_f input
-             'out': [('x', float, (2,))],  # Tell libE gen_f output, type, size
-             'user': {'gen_batch_size': 500,        # Tell gen_f how much to generate per call
-                      'lb': np.array([-3, -2]),     # Tell gen_f lower bounds
-                      'ub': np.array([3, 2])        # Tell gen_f upper bounds
+gen_specs = {'gen_f': gen_f,                     # Function generating sim_f input
+             'out': [('x', float, (2,))],        # Tell libE gen_f output, type, size
+             'user': {'gen_batch_size': 500,     # Used by this specific gen_f
+                      'lb': np.array([-3, -2]),  # Used by this specific gen_f
+                      'ub': np.array([3, 2])     # Used by this specific gen_f
                       }
              }
 # end_gen_specs_rst_tag

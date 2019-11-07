@@ -1,5 +1,5 @@
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.libE_fields import libE_fields
+from libensemble.utils import libE_fields
 from libensemble.libE_worker import Worker
 from libensemble.message_numbers import EVAL_SIM_TAG
 import numpy as np
