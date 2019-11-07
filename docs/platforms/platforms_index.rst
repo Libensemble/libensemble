@@ -4,8 +4,8 @@ distributions and macOS, from laptops to hundreds of compute-nodes. Although
 libEnsemble and most user functions are cross-platform compatible, there are
 platform-specific differences for installing and configuring libEnsemble.
 
-Local
-=====
+Personal Computers
+==================
 
 Users interested in installing and running libEnsemble on their personal machines
 are encouraged to read the Quickstart guide :doc:`here<../quickstart>`.

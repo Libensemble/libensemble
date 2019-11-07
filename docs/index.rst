@@ -24,8 +24,7 @@
    :maxdepth: 1
    :caption: Running on:
 
-   platforms/bebop
-   platforms/theta
+   platforms/platforms_index.rst
 
 .. toctree::
    :maxdepth: 2
