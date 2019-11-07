@@ -12,7 +12,6 @@ The following scripts must be run in the directory with the **libE_stats.txt** f
 
 * **plot_libE_histogram.py**: Create histogram showing the number of completed/killed/failed user calculations binned by run-time.
 
-
 ========================
 Results analysis scripts
 ========================

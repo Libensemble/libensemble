@@ -58,7 +58,6 @@ A visual overview is given in the libEnsemble poster_.
 
 .. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 
-
 Dependencies
 ------------
 
@@ -74,7 +73,6 @@ For libEnsemble running with the mpi4py parallelism:
   <http://www.mpich.org/>`_  built with shared/dynamic libraries.
 
 * mpi4py_ v2.0.0 or above
-
 
 Optional dependency:
 
@@ -98,7 +96,6 @@ PETSc and NLopt must be built with shared libraries enabled and present in
 should produce a file nlopt.py if Python is found on the system. NLopt may also
 require SWIG_ to be installed on certain systems.
 
-
 Installation
 ------------
 
@@ -118,7 +115,6 @@ If necessary, you may install all optional dependencies (listed above) at once w
     pip install libensemble[extras]
 
 A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
-
 
 Testing
 ---------
@@ -163,7 +159,6 @@ available online at
     on Travis CI, Balsam integration with libEnsemble is now tested via
     ``test_balsam_hworld.py``.
 
-
 Basic Usage
 -----------
 
@@ -188,11 +183,9 @@ When specifying these options via command line options, one may use the
 ``parse_args`` function used in the regression tests, which can be found in
 ``libensemble/tests/regression_tests/common.py``
 
-
 See the
 `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_
 for more information.
-
 
 Documentation
 -------------
