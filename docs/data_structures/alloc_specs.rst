@@ -18,7 +18,6 @@ Allocation function specifications to be set in user calling script and passed t
         'out' [list of tuples] :
             Default: [('allocated',bool)]
 
-
 .. note::
 
   * The alloc_specs has the default keys as given above, but may be overidden by the user.

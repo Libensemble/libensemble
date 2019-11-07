@@ -14,13 +14,11 @@
    release_notes
    FAQ
 
-
 .. toctree::
    :maxdepth: 1
    :caption: Tutorials:
 
    tutorials/local_sine_tutorial
-
 
 .. toctree::
    :maxdepth: 1
@@ -28,7 +26,6 @@
 
    platforms/bebop
    platforms/theta
-
 
 .. toctree::
    :maxdepth: 2
@@ -41,14 +38,12 @@
    job_controller/jc_index
    logging
 
-
 .. toctree::
    :maxdepth: 2
    :caption: Developer Guide:
 
    dev_guide/release_management/release_index.rst
    dev_guide/dev_API/developer_API.rst
-
 
 Indices and tables
 ==================

@@ -23,7 +23,6 @@ The default ``alloc_f`` tells each available worker to call ``sim_f`` with the
 highest priority unit of work from ``gen_f``. If a worker is idle and there is
 no ``gen_f`` output to give, the worker is told to call ``gen_f``.
 
-
 Expected use cases
 ------------------
 
@@ -64,11 +63,9 @@ to support) and plan to have examples of:
   point is ruled to be an optimum, a different ``gen_f`` can produce a
   collection of parameters necessary for sensitivity analysis of ``sim_f``.
 
-
 Naturally, combinations of these use cases are supported as well. An example of
 such a combination is using libEnsemble to solve an optimization problem that
 relies on simulations that fail frequently.
-
 
 The libEnsemble History Array
 -----------------------------
@@ -102,7 +99,6 @@ include the following fields:
 
 * ``returned`` [bool]: Has this worker completed the evaluation of this unit of
   work?
-
 
 libEnsemble Output
 ------------------

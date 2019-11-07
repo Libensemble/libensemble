@@ -29,7 +29,6 @@ polled/killed (or through other job or job controller functions).
 ..  :member-order: bysource
 ..  :members: poll, kill, workdir_exists, file_exists_in_workdir, read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr
 
-
 Job Attributes
 --------------
 

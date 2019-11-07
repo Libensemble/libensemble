@@ -21,7 +21,6 @@
    dev_guide/dev_API/developer_API.rst
    release_notes
 
-
 Indices and tables
 ==================
 

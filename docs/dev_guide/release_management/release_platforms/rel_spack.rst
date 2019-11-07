@@ -17,12 +17,10 @@ You now have a configuration like shown in answer at: https://stackoverflow.com/
 
 Upstream, in this case, is the official Spack repository on GitHub. Origin is your fork on GitHub and Local Machine is your local clone (from your fork).
 
-
 Make sure ``SPACK_ROOT`` is set and spack binary is in your path::
 
     export SPACK_ROOT=<PATH/TO/LOCAL/SPACK/REPO>
     export PATH=$SPACK_ROOT/bin:$PATH
-
 
 DO ONCE in your local checkout:
 
@@ -35,7 +33,6 @@ To set upstream repo::
 
     git remote set-url --push upstream no_push
     git remote -v # Check for line: `upstream no_push (push)`
-
 
 Now to update (the main develop branch)
 ---------------------------------------
@@ -71,7 +68,6 @@ This may requires a forced push::
 
     git push origin develop --force
 
-
 Making changes
 --------------
 
@@ -80,7 +76,6 @@ you have multiple packages, to make separate branches for each package.
 
 See the Spack [packaging](https://spack.readthedocs.io/en/latest/packaging_guide.html) and
 [contibution](https://spack.readthedocs.io/en/latest/contribution_guide.html) guides for more info.
-
 
 Quick example to update libEnsemble::
 
@@ -92,7 +87,6 @@ This will open the libEnsemble ``package.py`` file in your editor (given by env 
     spack edit py-libensemble  # SPACK_ROOT must be set (see above) (python packages use "py-" prefix)
 
 Or just open it manually: var/spack/repos/builtin/packages/py-libensemble/package.py
-
 
 Now get checksum for new lines:
 
@@ -114,7 +108,6 @@ If OK add, commit and push to origin (forked repo)::
 
 Once the branch is pushed to the forked repo - go to GitHub and do a pull request from this
 branch on the fork to the develop branch on the upstream.
-
 
 Express summary: Make fork identical to upstream
 ------------------------------------------------

@@ -25,7 +25,6 @@ Welcome to libEnsemble's documentation!
 
 libEnsemble is a library to coordinate the concurrent evaluation of dynamic ensembles of calculations.
 
-
 * New to libEnsemble? Start :doc:`here<quickstart>`.
 * Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.
 * Go in-depth by reading the :doc:`User Guide<user_guide>`.

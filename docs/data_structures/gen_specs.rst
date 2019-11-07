@@ -31,7 +31,6 @@ Generation function specifications to be set in user calling script and passed t
     :ref:`sim_specs example<sim-specs-exmple1>`, where 'x' is defined in the gen_specs 'out' field to give
     two positional floats.
 
-
 .. seealso::
 
   .. _gen-specs-exmple1:
