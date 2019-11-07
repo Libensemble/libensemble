@@ -1,6 +1,3 @@
-*********************
-Input data structures
-*********************
 We first describe the dictionaries given to libEnsemble to specify the
 inputs/outputs of the ensemble of calculations to be performed.
 

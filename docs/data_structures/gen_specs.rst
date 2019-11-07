@@ -7,8 +7,6 @@ to main ``libE()`` routine::
 
     gen_specs: [dict]:
 
-        Required keys :
-
         'gen_f' [func] :
             generates inputs to sim_f
         'in' [list] :

@@ -14,7 +14,7 @@ This section outlines the data structures used by libEnsemble.
     check_inputs(sim_specs=my-sim_specs, gen_specs=my-gen_specs, exit_criteria=ec)
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: libEnsemble Data Structures:
 
    sim_specs

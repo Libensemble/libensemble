@@ -9,18 +9,14 @@ to main ``libE()`` routine::
 
     alloc_specs: [dict, optional] :
 
-        Required keys :
-
         'alloc_f' [func] :
             Default: give_sim_work_first
-
-        Optional keys :
-
+        'in' [list of strings] :
+            Default: None
         'out' [list of tuples] :
             Default: [('allocated',bool)]
-
-        'batch_mode' [bool] :
-            Default: True
+        'user' [dict]
+            Default: {'batch_mode': True}
 
 .. note::
 

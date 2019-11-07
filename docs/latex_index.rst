@@ -6,23 +6,8 @@
    :maxdepth: 3
 
    Introduction<introduction>
-   user_guide
-   tutorials/local_sine_tutorial
-   platforms/bebop
-   platforms/theta
-   contributing
-   FAQ
-   libE_module
-   data_structures/data_structures
-   user_funcs
-   job_controller/jc_index
-   logging
-   dev_guide/release_management/release_index.rst
-   dev_guide/dev_API/developer_API.rst
-   release_notes
+   programming_libE
+   platforms/platforms
+   dev_info
+   appendix
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`

@@ -1,7 +1,13 @@
 """
-Main libEnsemble routine
-============================================
+This is the outer libEnsemble routine.
 
+We dispatch to different types of worker teams depending on
+the contents of libE_specs.  If 'comm' is a field, we use MPI;
+if 'nthreads' is a field, we use threads; if 'nprocesses' is a
+field, we use multiprocessing.
+
+If an exception is encountered by the manager or workers, the
+history array is dumped to file and MPI abort is called.
 """
 
 __all__ = ['libE']
@@ -35,15 +41,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
                       'user': {'batch_mode': True}},
          libE_specs={},
          H0=[]):
-    """This is the outer libEnsemble routine.
-
-    We dispatch to different types of worker teams depending on
-    the contents of libE_specs.  If 'comm' is a field, we use MPI;
-    if 'nthreads' is a field, we use threads; if 'nprocesses' is a
-    field, we use multiprocessing.
-
-    If an exception is encountered by the manager or workers, the
-    history array is dumped to file and MPI abort is called.
+    """
 
     Parameters
     ----------

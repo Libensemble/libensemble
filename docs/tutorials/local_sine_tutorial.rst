@@ -205,7 +205,7 @@ circumstances where libEnsemble should stop execution in :ref:`exit_criteria<dat
 
     exit_criteria = {'sim_max': 80}           # Stop libEnsemble after 80 simulations
 
-Now we're ready to write our libEnsemble :doc:`libE<../libE_module>` function call.
+Now we're ready to write our libEnsemble :doc:`libE<../programming_libE>` function call.
 This :ref:`H<datastruct-history-array>` is the final version of the History array.
 'flag' should be zero if no errors occur.
 

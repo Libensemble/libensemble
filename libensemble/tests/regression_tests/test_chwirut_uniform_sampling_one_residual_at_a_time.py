@@ -66,9 +66,9 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f,              # Allocation function
                'out': [('allocated', bool)],    # Output fields (included in History)
-               'user': {'stop_on_NaNs': True,            # Should alloc_f preempt evals
-                        'batch_mode': True,
-                        'stop_partial_fvec_eval': True}  # Should alloc_f preempt evals
+               'user': {'stop_on_NaNs': True,   # Should alloc preempt evals
+                        'batch_mode': True,     # Wait until all sim evals are done
+                        'stop_partial_fvec_eval': True}  # Should alloc preempt evals
                }
 # end_alloc_specs_rst_tag
 

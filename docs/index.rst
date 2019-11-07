@@ -31,8 +31,7 @@
    :maxdepth: 2
    :caption: User Guide:
 
-   user_guide
-   libE_module
+   programming_libE
    data_structures/data_structures
    user_funcs
    job_controller/jc_index

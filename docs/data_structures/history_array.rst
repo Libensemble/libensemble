@@ -1,11 +1,7 @@
-***********************************
-Internal libEnsemble data structure
-***********************************
-
-.. _datastruct-history-array:
-
 history array
 =============
+.. _datastruct-history-array:
+
 ::
 
     H: numpy structured array
