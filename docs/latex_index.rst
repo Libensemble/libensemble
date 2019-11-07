@@ -5,7 +5,7 @@
 .. toctree::
    :maxdepth: 3
 
-   Quickstart<quickstart>
+   Introduction<introduction>
    user_guide
    tutorials/local_sine_tutorial
    platforms/bebop

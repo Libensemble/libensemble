@@ -3,7 +3,7 @@ Simple Local Sine Tutorial
 ==========================
 
 This introductory tutorial demonstrates the capability to perform ensembles of
-calculations in parallel using :doc:`libEnsemble<../quickstart>` with Python's Multiprocessing.
+calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's Multiprocessing.
 
 The foundation of writing libEnsemble routines is accounting for four components:
 

@@ -9,7 +9,7 @@
    :maxdepth: 2
    :caption: Getting Started:
 
-   Quickstart<quickstart>
+   Introduction<introduction>
    contributing
    release_notes
    FAQ
