@@ -20,9 +20,9 @@
 |
 .. after_badges_rst_tag
 
-====================
-What is libEnsemble?
-====================
+===========================
+Introduction to libEnsemble
+===========================
 
 libEnsemble is a Python library to coordinate the concurrent evaluation of
 dynamic ensembles of calculations. The library is developed to use massively
