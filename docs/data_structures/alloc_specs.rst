@@ -22,7 +22,6 @@ to main ``libE()`` routine::
         'batch_mode' [bool] :
             Default: True
 
-
 .. note::
 
   * The alloc_specs has the default keys as given above, but may be overidden by the user.

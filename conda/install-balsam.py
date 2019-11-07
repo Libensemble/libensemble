@@ -11,20 +11,25 @@ import subprocess
 
 
 def install_balsam():
-    # Installs Balsam in a directory on the same level as the current directory.
     here = os.getcwd()
-    balsamclone = 'git clone https://github.com/balsam-alcf/balsam.git ../balsam'
-    subprocess.check_call(balsamclone.split())
-    os.chdir('../balsam')
+    os.chdir('../balsam/balsam-0.3.5.1/balsam/scripts')
+
+    # Replace old version of balsamactivate
+    os.remove('balsamactivate')
+    subprocess.check_call('wget https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'.split())
+
+    # Pip install Balsam
+    os.chdir('../..')
     subprocess.check_call('pip install -e .'.split())
+
     os.chdir(here)
 
 
 def move_test_balsam(balsam_test):
     # Moves specified test from /conda to /regression_tests
-    reg_dir_with_btest = os.path.join('./libensemble/tests/regression_tests', balsam_test)
+    reg_dir_with_btest = './libensemble/tests/regression_tests/' + balsam_test
     if not os.path.isfile(reg_dir_with_btest):
-        os.rename('./conda/{}'.format(balsam_test), reg_dir_with_btest)
+        os.rename('./conda/' + balsam_test, reg_dir_with_btest)
 
 
 def configure_coverage():

@@ -6,7 +6,9 @@ python:
   - 3.6
   - 3.7
 
+
 os: linux
+
 
 env:
   global:
@@ -14,7 +16,7 @@ env:
     - OMPI_MCA_rmaps_base_oversubscribe=yes
   matrix:
     - MPI=mpich
-    #- MPI=openmpi
+
 
 matrix:
   include:
@@ -28,22 +30,12 @@ matrix:
 services:
     - postgresql
 
-# matrix:
-#  allow_failures:
-#    - env: MPI=openmpi
-
-# addons:
-#   apt:
-#     packages:
-#       - gfortran
-#       - libblas-dev
-#       - liblapack-dev
 
 cache:
   pip: true
   apt: true
 
-# Setup Miniconda
+
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-MacOSX-x86_64.sh -O miniconda.sh;
@@ -54,12 +46,15 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  #- conda update -q -y conda
-  - conda info -a # For debugging any issues with conda
+  - conda info -a # For debugging conda issues
   - conda config --add channels conda-forge
-  - conda create --yes --name condaenv python=3.7
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      conda create --yes --name condaenv python=3.7;
+    else
+      conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION;
+    fi
   - source activate condaenv
-    # sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /;
+
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -69,44 +64,42 @@ install:
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
     fi
-    # wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.14-beta4/MacOSX10.14.sdk.tar.xz;
-    # mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk;
+
   - conda install $COMPILERS
-  #S- conda install nlopt petsc4py petsc mpi4py scipy $MPI
-  - conda install libblas libopenblas # Attempt to prevent 'File exists' error
+  - conda install libblas libopenblas # Prevent 'File exists' error
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
-  # pip install these as the conda installs downgrade pytest on python3.4
-  - pip install flake8
+  - pip install flake8       # Conda installs downgrade pytest on python3.4
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout
   - pip install mock
   - pip install coveralls
-  # For confirmation of MPI library being used.
-  - python conda/find_mpi.py # locate compilers
-  - mpiexec --version # Show MPI library details
-  - pip install -e .
+  - python conda/find_mpi.py # Locate compilers. Confirm MPI library
+  - mpiexec --version        # Show MPI library details
+  - pip install -e .         # Installing libEnsemble
+  - wget https://github.com/balsam-alcf/balsam/archive/0.3.5.1.tar.gz
+  - mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
   - python conda/install-balsam.py
+
 
 before_script:
   - flake8 libensemble
   - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
-  - source setbalsampath.sh
-  # Allow 10000 files to be open at once (critical for persistent_aposmm)
-  - ulimit -Sn 10000
-  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  #       echo "export CONDA_BUILD_SYSROOT=/Users/travis/build/Libensemble/sdk/MacOSX10.14.sdk" > setenv.sh;
-  #       source setenv.sh;
-  #   fi
+  - source setbalsampath.sh # Imperfect method for env var persist after setup
+  - ulimit -Sn 10000   # More concurrent file descriptors (for persis aposmm)
+
+
 
 # Run test (-z show output)
 script:
   - ./libensemble/tests/run-tests.sh -z
 
-# Coverage
+
+# Track code coverage
 after_success:
   - mv libensemble/tests/.cov* .
   - coveralls
+
 
 after_failure:
 - cat libensemble/tests/regression_tests/log.err

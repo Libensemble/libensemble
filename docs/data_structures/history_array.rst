@@ -15,8 +15,6 @@ Fields in ``H`` include those specified in ``sim_specs['out']``,
 ``gen_specs['out']``, and ``alloc_specs['out']``. All values are initiated to
 0 for integers, 0.0 for floats, and False for booleans.
 
-
-
 Below are the protected fields used in ``H``
 
 ..  literalinclude:: ../../libensemble/utils.py

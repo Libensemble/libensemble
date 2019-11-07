@@ -33,7 +33,6 @@ Used to specify the simulation function, its inputs and outputs, and user data::
     are distributed. This may have a performance benefit with I/O heavy
     simulations.
 
-
 .. seealso::
 
   .. _sim-specs-exmple1:
@@ -43,7 +42,6 @@ Used to specify the simulation function, its inputs and outputs, and user data::
   ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
       :start-at: sim_specs
       :end-before: end_sim_specs_rst_tag
-
 
   The dimensions and type of the ``'in'`` field variable ``'x'`` is specified by the corresponding
   generator ``'out'`` field ``'x'`` (see :ref:`gen_specs example<gen-specs-exmple1>`).

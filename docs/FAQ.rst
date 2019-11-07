@@ -6,8 +6,6 @@ If you have any further questions, feel free to contact us through Support_
 
 .. _Support: https://libensemble.readthedocs.io/en/latest/quickstart.html#support
 
-
-
 Common Errors
 -------------
 
@@ -16,7 +14,6 @@ running with multiprocessing and multiple workers specified.**
 
 If your calling script code was switched from MPI to multiprocessing, make sure that
 libE_specs is populated with ``comms: local`` and ``nworkers: [num]``.
-
 
 **What does "AssertionError: Should not wait for workers when all workers are idle."
 mean?**
@@ -27,7 +24,6 @@ manager but no workers.
 
 This may also occur with two processes if you are using a persistent generator.
 The generator will occupy the one worker, leaving none to run simulation functions.
-
 
 **I keep getting: "Not enough processors per worker to honor arguments." when
 using the job controller. Can I launch jobs anyway?**
@@ -41,7 +37,6 @@ Automatic partitioning of resources can be disabled if you want to oversubscribe
 Note that the job_controller ``.launch()`` method has a parameter``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``
 
-
 **FileExistsError: [Errno 17] File exists: './sim_worker1'**
 
 This can happen when libEnsemble tries to create sim directories that already exist,
@@ -50,7 +45,6 @@ set to ``local``.
 
 To create differently named sim directories, you can use the ``sim_dir_suffix``
 option in :ref:`sim_specs<datastruct-sim-specs>`.
-
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
@@ -66,11 +60,8 @@ build of PETSc.
     This error may depend on how multiprocessing handles an existing MPI
     communicator in a particular platform.
 
-
-
 HPC Errors and Questions
 ------------------------
-
 
 **Why does libEnsemble hang on certain systems when running with MPI?**
 
@@ -85,7 +76,6 @@ Add these two lines BEFORE ``from mpi4py import MPI``::
     mpi4py.rc.recv_mprobe = False
 
 Also see https://software.intel.com/en-us/articles/python-mpi4py-on-intel-true-scale-and-omni-path-clusters
-
 
 **can't open hfi unit: -1 (err=23)**
 **[13] MPI startup(): tmi fabric is not available and fallback fabric is not enabled**
@@ -104,7 +94,6 @@ variables::
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
 nodes, while launching all sub-jobs onto other nodes.
 
-
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
 
 This has been observed with the OFA fabric, and usually indicates MPI messages
@@ -113,8 +102,6 @@ is to either switch fabric or turn off matching probes. See the answer for "Why
 does libEnsemble hang on certain systems when running with MPI?"
 
 For more information see: https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe
-
-
 
 libEnsemble-theory
 ------------------
@@ -135,17 +122,13 @@ to ``pdb``. How well this works varies by system::
     from libensemble.util.forkpdb import ForkablePdb
     ForkablePdb().set_trace()
 
-
 .. _xQuartz: https://www.xquartz.org/
-
 
 **Can I use the MPI Job Controller when running libEnsemble with multiprocessing?**
 
 Actually, yes! The job controller type only determines how launched jobs communicate
 with libEnsemble, and is independent of ``comms`` chosen for manager-worker
 communications.
-
-
 
 macOS-specific Errors
 ---------------------
@@ -156,7 +139,6 @@ Resolve this by appending ``127.0.0.1   [your hostname]`` to /etc/hosts.
 Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this
 error.
 
-
 **How do I stop the Firewall Security popups when running with the Job Controller?**
 
 There are several ways to address this nuisance, but all involve trial and error.
@@ -166,7 +148,6 @@ adding a Firewall "Allow incoming connections" rule can be attempted for the off
 Job Controller executable. We've had limited success running ``sudo codesign --force --deep --sign - /path/to/application.app``
 on our Job Controller executables, then confirming the next alerts for the executable
 and ``mpiexec.hydra``.
-
 
 **Frozen PETSc installation following a failed wheel build with** ``pip install petsc petsc4py``
 

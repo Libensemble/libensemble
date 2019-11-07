@@ -3,7 +3,6 @@ Example User Funcs
 
 Example gen, sim and alloc functions for libEnsemble.
 
-
 .. toctree::
    :maxdepth: 2
    :caption: libEnsemble Example Functions:
