@@ -36,28 +36,6 @@ libEnsemble is a library for managing ensemble-like collections of computations.
 * Go in-depth by reading the :doc:`User Guide<user_guide>`.
 * Check the :doc:`FAQ<FAQ>` for common questions and answers, errors and resolutions.
 
-.. .. only:: (latex or latexpdf)
-.. 
-..   .. toctree::
-..      :maxdepth: 2
-.. 
-..      Quickstart<quickstart>
-..      user_guide
-..      tutorials/local_sine_tutorial
-..      platforms/bebop
-..      platforms/theta
-..      contributing
-..      FAQ
-..      libE_module
-..      data_structures/data_structures
-..      user_funcs
-..      job_controller/jc_index
-..      logging
-..      dev_guide/release_management/release_index.rst
-..      dev_guide/dev_API/developer_API.rst
-..      release_notes
-
-
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started:
