@@ -25,7 +25,6 @@ Parameters:
   **libE_info**: :obj:`dict`
   :doc:`(example)<data_structures/work_dict>`
 
-
 Returns:
 ********
 
@@ -51,7 +50,6 @@ The gen_f calculations will be called by libEnsemble with the following API::
 
     out = gen_f(H[gen_specs['in']][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
 
-
 Parameters:
 ***********
 
@@ -66,7 +64,6 @@ Parameters:
 
   **libE_info**: :obj:`dict`
   :doc:`(example)<data_structures/work_dict>`
-
 
 Returns:
 ********
@@ -113,7 +110,6 @@ Parameters:
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
-
 
 Returns:
 ********

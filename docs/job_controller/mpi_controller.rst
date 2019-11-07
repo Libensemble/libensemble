@@ -19,7 +19,6 @@ See the controller API below for optional arguments.
 ..  :member-order: bysource
 ..  :members: __init__, register_calc, launch, manager_poll
 
-
 Class specific attributes
 -------------------------
 
