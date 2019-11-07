@@ -1,7 +1,7 @@
 """
 libEnsemble.
 
-Library for managing ensemble-like collections of computations.
+Library to coordinate the concurrent evaluation of dynamic ensembles of calculations.
 """
 
 __version__ = "0.5.2"

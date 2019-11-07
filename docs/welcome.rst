@@ -23,7 +23,7 @@
 Welcome to libEnsemble's documentation!
 =======================================
 
-libEnsemble is a library for managing ensemble-like collections of computations.
+libEnsemble is a library to coordinate the concurrent evaluation of dynamic ensembles of calculations.
 
 
 * New to libEnsemble? Start :doc:`here<quickstart>`.
