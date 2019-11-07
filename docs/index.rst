@@ -5,36 +5,20 @@
 .. image:: images/libE_logo.png
  :alt: libEnsemble
 
+.. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
+  :target: https://pypi.org/project/libensemble
 
-.. only::html
-  |
+.. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
+  :target: https://travis-ci.org/Libensemble/libensemble
 
-  .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
-    :target: https://pypi.org/project/libensemble
+.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=master
+  :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
 
-  .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
-    :target: https://travis-ci.org/Libensemble/libensemble
+.. image::  https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
+  :target: https://libensemble.readthedocs.org/en/latest/
+  :alt: Documentation Status
 
-  .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=master
-    :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
-
-  .. image::  https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
-    :target: https://libensemble.readthedocs.org/en/latest/
-    :alt: Documentation Status
-
-  |
-
-=======================================
-Welcome to libEnsemble's documentation!
-=======================================
-
-libEnsemble is a library for managing ensemble-like collections of computations.
-
-
-* New to libEnsemble? Start :doc:`here<quickstart>`.
-* Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.
-* Go in-depth by reading the :doc:`User Guide<user_guide>`.
-* Check the :doc:`FAQ<FAQ>` for common questions and answers, errors and resolutions.
+.. include:: welcome.rst
 
 .. toctree::
    :maxdepth: 2
@@ -81,11 +65,8 @@ libEnsemble is a library for managing ensemble-like collections of computations.
    dev_guide/dev_API/developer_API.rst
 
 
-
-
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
