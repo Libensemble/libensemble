@@ -36,73 +36,49 @@ libEnsemble is a library for managing ensemble-like collections of computations.
 * Go in-depth by reading the :doc:`User Guide<user_guide>`.
 * Check the :doc:`FAQ<FAQ>` for common questions and answers, errors and resolutions.
 
-.. only:: (latex or latexpdf)
+.. toctree::
+   :maxdepth: 2
+   :caption: Getting Started:
 
-  .. toctree::
-     :maxdepth: 2
-
-     Quickstart<quickstart>
-     user_guide
-     tutorials/local_sine_tutorial
-     platforms/bebop
-     platforms/theta
-     contributing
-     FAQ
-     libE_module
-     data_structures/data_structures
-     user_funcs
-     job_controller/jc_index
-     logging
-     dev_guide/release_management/release_index.rst
-     dev_guide/dev_API/developer_API.rst
-     release_notes
+   Quickstart<quickstart>
+   contributing
+   release_notes
+   FAQ
 
 
-.. only:: html
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials:
 
-  .. toctree::
-     :maxdepth: 2
-     :caption: Getting Started:
-
-     Quickstart<quickstart>
-     contributing
-     release_notes
-     FAQ
+   tutorials/local_sine_tutorial
 
 
-  .. toctree::
-     :maxdepth: 1
-     :caption: Tutorials:
+.. toctree::
+   :maxdepth: 1
+   :caption: Running on:
 
-     tutorials/local_sine_tutorial
-
-
-  .. toctree::
-     :maxdepth: 1
-     :caption: Running on:
-
-     platforms/bebop
-     platforms/theta
+   platforms/bebop
+   platforms/theta
 
 
-  .. toctree::
-     :maxdepth: 2
-     :caption: User Guide:
+.. toctree::
+   :maxdepth: 2
+   :caption: User Guide:
 
-     user_guide
-     libE_module
-     data_structures/data_structures
-     user_funcs
-     job_controller/jc_index
-     logging
+   user_guide
+   libE_module
+   data_structures/data_structures
+   user_funcs
+   job_controller/jc_index
+   logging
 
 
-  .. toctree::
-     :maxdepth: 2
-     :caption: Developer Guide:
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer Guide:
 
-     dev_guide/release_management/release_index.rst
-     dev_guide/dev_API/developer_API.rst
+   dev_guide/release_management/release_index.rst
+   dev_guide/dev_API/developer_API.rst
 
 
 
