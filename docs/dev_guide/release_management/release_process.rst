@@ -31,11 +31,9 @@ Before release
 
   - Documentation must build and display correctly wherever hosted (currently readthedocs.com).
 
-
 - Pull request from either develop or release branch to master requesting reviewer/s (including at least one other administrator).
 
 - Reviewer will check tests have passed and approve merge.
-
 
 During release
 --------------
@@ -52,9 +50,7 @@ An administrator will take the following steps.
 
   - Spack package will be updated (:ref:`Spack release<rel-spack>`).
 
-
 - If the merge was made from a release branch (instead of develop), merge this branch into develop.
-
 
 After release
 -------------

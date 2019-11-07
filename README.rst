@@ -25,9 +25,10 @@ What is libEnsemble?
 ====================
 
 libEnsemble is a Python library to coordinate the concurrent evaluation of
-ensembles of computations. Designed with flexibility in mind, libEnsemble can
-utilize massively parallel resources to accelerate the solution of design,
-decision, and inference problems.
+dynamic ensembles of calculations. The library is developed to use massively
+parallel resources to accelerate the solution of design, decision, and
+inference problems and to expand the class of problems that can benefit from
+increased concurrency levels.
 
 libEnsemble aims for:
 
@@ -37,15 +38,16 @@ libEnsemble aims for:
 • Portability and flexibility
 • Exploitation of persistent data/control flow.
 
-The user selects or supplies a generation function that produces simulation
-input as well as a simulation function that performs and monitors the
-simulations. The generation function may contain, for example, an optimization
-method to generate new simulation parameters on-the-fly and based on the
-results of previous simulations.  Examples and templates of these functions are
+The user selects or supplies a function that generates simulation
+input as well as a function that performs and monitors the
+simulations. For example, the generation function may contain an
+optimization routine to generate new simulation parameters on-the-fly based on the
+results of previous simulations. Examples and templates of such functions are
 included in the library.
 
 libEnsemble employs a manager-worker scheme that can run on various
-communication media (including MPI, multiprocessing, and TCP). Each worker can
+communication media (including MPI, multiprocessing, and TCP); interfacing with
+user-provided executables is also supported. Each worker can
 control and monitor any level of work from small sub-node jobs to huge
 many-node simulations. A job controller interface is provided to ensure scripts
 are portable, resilient and flexible; it also enables automatic detection of
@@ -55,7 +57,6 @@ data isn't supplied.
 A visual overview is given in the libEnsemble poster_.
 
 .. _poster:  https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
-
 
 Dependencies
 ------------
@@ -72,7 +73,6 @@ For libEnsemble running with the mpi4py parallelism:
   <http://www.mpich.org/>`_  built with shared/dynamic libraries.
 
 * mpi4py_ v2.0.0 or above
-
 
 Optional dependency:
 
@@ -96,7 +96,6 @@ PETSc and NLopt must be built with shared libraries enabled and present in
 should produce a file nlopt.py if Python is found on the system. NLopt may also
 require SWIG_ to be installed on certain systems.
 
-
 Installation
 ------------
 
@@ -116,7 +115,6 @@ If necessary, you may install all optional dependencies (listed above) at once w
     pip install libensemble[extras]
 
 A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
-
 
 Testing
 ---------
@@ -161,7 +159,6 @@ available online at
     on Travis CI, Balsam integration with libEnsemble is now tested via
     ``test_balsam_hworld.py``.
 
-
 Basic Usage
 -----------
 
@@ -186,11 +183,9 @@ When specifying these options via command line options, one may use the
 ``parse_args`` function used in the regression tests, which can be found in
 ``libensemble/tests/regression_tests/common.py``
 
-
 See the
 `user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_
 for more information.
-
 
 Documentation
 -------------

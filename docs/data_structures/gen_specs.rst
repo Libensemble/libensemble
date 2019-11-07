@@ -3,7 +3,8 @@
 gen_specs
 =========
 
-Generation function specifications to be set in user calling script and passed to libE.libE()::
+Generation function specifications to be set in user calling script and passed
+to main ``libE()`` routine::
 
     gen_specs: [dict]:
 
@@ -15,22 +16,18 @@ Generation function specifications to be set in user calling script and passed t
             field names (as strings) that will be given to gen_f
         'out' [list of tuples (field name, data type, [size])] :
             gen_f outputs that will be stored in the libEnsemble history
-
-        Optional keys :
-
-        'save_every_k' [int] :
-            Save history array to file after every k generated points.
+        'user' [dict]:
+            Data structure to contain problem specific constants and/or input data
 
 .. note::
 
-  * The user may define other fields to be passed to the generator function.
+  * The user may define fields only in ``'user'`` to be passed to the generator function.
   * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
-  * The generator 'out' field will generally include a variable(s) which is used for the simulator 'in' field,
-    in which case only the variable name is required for the simulator 'in' field.  E.g. The
+  * The generator ``'out'`` field will generally include a variable(s) which is used for the simulator 'in' field,
+    in which case only the variable name is required for the simulator ``'in'`` field.  E.g. The
     **test_6-hump_camel_uniform_sampling.py** example below, matches the corresponding
-    :ref:`sim_specs example<sim-specs-exmple1>`, where 'x' is defined in the gen_specs 'out' field to give
-    two positional floats.
-
+    :ref:`sim_specs example<sim-specs-exmple1>`, where ``'x'`` is defined in the gen_specs ``'out'`` field to give
+    two-dimensional floats.
 
 .. seealso::
 
