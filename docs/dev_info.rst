@@ -1,5 +1,5 @@
-Advanced libEnsemble
-====================
+Developer's Guide
+=================
 
 .. toctree::
 
