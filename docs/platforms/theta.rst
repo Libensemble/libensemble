@@ -15,7 +15,7 @@ Begin by loading the Python 3 Miniconda_ module::
 
     $ module load miniconda-3/latest
 
-Create a Conda virtual environment, cloning the base-environment. This
+Create a Conda_ virtual environment, cloning the base-environment. This
 environment will contain mpi4py_ and many other packages you may find useful::
 
     $ conda create --name my_env --clone $MINICONDA_INSTALL_PATH
@@ -75,7 +75,7 @@ Initialize a new database similarly to the following (from the Balsam docs):
     $ balsam submit-launch -A [project] -q default -t 5 -n 1 --job-mode=mpi
     $ watch balsam ls   #  follow status in realtime from command-line
 
-See Additional_ for Balsam's documentation.
+Read Balsam's documentation here_.
 
 Job Submission
 --------------
@@ -251,8 +251,6 @@ Here is an example Balsam submission script:
 
     . balsamdeactivate
 
-See Additional_ for the Balsam docs.
-
 Debugging Strategies
 --------------------
 
@@ -263,8 +261,6 @@ up to eight nodes at once for a maximum of one hour. Allocate nodes on a debug
 queue interactively::
 
     $ qsub -A [project] -n 4 -q debug-flat-quad -t 60 -I
-
-.. _Additional:
 
 Additional Information
 ----------------------
