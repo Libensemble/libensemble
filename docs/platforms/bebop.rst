@@ -39,6 +39,10 @@ Bebop uses Slurm_ for job submission and management. The two commands you'll
 likely use the most to run jobs are ``srun`` and ``sbatch`` for running
 interactively and batch, respectively.
 
+libEnsemble node-worker affinity is especially flexible on Bebop. By adjusting
+``srun`` runtime options_ users may assign multiple libEnsemble  workers to each
+allocated node(oversubscription) or assign multiple nodes per worker.
+
 Interactive Runs
 ^^^^^^^^^^^^^^^^
 
@@ -48,10 +52,11 @@ You can allocate four Knights Landing nodes for thirty minutes through the follo
 
 With your nodes allocated, queue your job to start with five MPI ranks::
 
-    srun -n 5 python calling.py
+    srun -n 4 python calling.py
 
-``mpirun`` should also work. This launches a worker on every node, on which every
-worker can perform stand-alone calculations or launch jobs through the job controller.
+``mpirun`` should also work. This line launches libEnsemble with a manager and
+**three** workers to one allocated compute node, with three nodes available for
+the workers to launch calculations with the job-controller or a job-launch command.
 
 .. note::
     When performing an MPI libEnsemble run and not oversubscribing, specify one
@@ -68,7 +73,6 @@ for thirty minutes::
 .. note::
     You will need to re-activate your conda virtual environment and reload your
     modules! Configuring this routine to occur automatically is recommended.
-
 
 Batch Runs
 ^^^^^^^^^^
@@ -118,3 +122,4 @@ See the LCRC Bebop docs here_ for more information about Bebop.
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _Slurm: https://slurm.schedmd.com/
 .. _here: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-bebop/
+.. _options: https://slurm.schedmd.com/srun.html

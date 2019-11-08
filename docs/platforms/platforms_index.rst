@@ -1,6 +1,6 @@
 
 libEnsemble has been largely developed, supported, and tested on Linux
-distributions and macOS, from laptops to hundreds of compute-nodes. Although
+distributions and macOS, from laptops to thousands of compute-nodes. Although
 libEnsemble and most user functions are cross-platform compatible, there are
 platform-specific differences for installing and configuring libEnsemble.
 
@@ -8,11 +8,15 @@ Personal Computers
 ==================
 
 Users interested in installing and running libEnsemble on their personal machines
-are encouraged to read the Quickstart guide :doc:`here<../quickstart>`.
+are encouraged to start by reading the Quickstart guide :doc:`here<../quickstart>`.
+
+We recommend installing libEnsemble and it's dependencies in a virtual environment,
+created either through ``conda create``, ``virtualenv``, or ``python -m venv``,
+depending on how Python is installed.
 
 
-High-Powered Systems
-====================
+HPC Systems
+===========
 
 libEnsemble's flexible architecture lends it best to two general modes of worker
 distributions across allocated compute nodes. The first mode we refer
@@ -38,15 +42,15 @@ other workers directly on one or more allocated nodes:
 
 .. note::
 
-    Certain machines (like Theta and Summit) that do not support child-process
-    launches also do not support libEnsemble in distributed mode.
+    Certain machines (like Theta and Summit) that can only submit MPI jobs from
+    specialized launch nodes do not support libEnsemble in distributed mode.
 
-Due to this factor, Theta and Summit approach centralized mode differently.
-On these machines, libEnsemble is run centralized on either a compute-node with
-the support of Balsam_ or on a frontend server called a MOM
+Due to this factor, libEnsemble on Theta and Summit approaches centralized mode
+differently. On these machines, libEnsemble is run centralized on either a
+compute-node with the support of Balsam_ or on a frontend server called a MOM
 (Machine-Oriented Mini-server) node.
 
-Read more about configuring and launching libEnsemble on some HPC machines:
+Read more about configuring and launching libEnsemble on some HPC systems:
 
 .. toctree::
     :maxdepth: 2

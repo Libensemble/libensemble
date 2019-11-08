@@ -32,8 +32,8 @@ libEnsemble and mpi4py
 
 There should be an indication that the virtual environment is activated.
 Install mpi4py_ and libEnsemble in this environment, making sure to reference
-the pre-installed Intel MPI Compiler. Your prompt should be similar to the
-following block:
+the pre-installed Intel C Compiler (which should support MPI). Your prompt may
+be similar to the following block:
 
 .. code-block:: console
 
