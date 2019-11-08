@@ -5,8 +5,8 @@ Bebop
 Bebop_ is the newest addition to the computational power of LCRC at Argonne
 National Laboratory, featuring both Intel Broadwell and Knights Landing nodes.
 
-Before Getting Started
-----------------------
+Prerequisites
+-------------
 
 An Argonne LCRC_ account is required to access Bebop. Interested users will need
 to apply for and be granted an account before continuing. To submit jobs to Bebop,

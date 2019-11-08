@@ -4,6 +4,6 @@ Appendices
 .. toctree::
    tutorials/tutorials
    FAQ
-   release_notes
    examples/examples_index
+   release_notes
    bibliography

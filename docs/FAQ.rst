@@ -103,8 +103,8 @@ does libEnsemble hang on certain systems when running with MPI?"
 
 For more information see: https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe
 
-libEnsemble-theory
-------------------
+libEnsemble Help 
+----------------
 
 **How can I debug specific libEnsemble processes?**
 

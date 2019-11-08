@@ -18,7 +18,16 @@
 
    platforms/platforms
    dev_info
-   In Depth<appendix>
+
+.. toctree::
+   :caption: In Depth:
+   :maxdepth: 2
+
+   tutorials/tutorials
+   FAQ
+   examples/examples_index
+   bibliography
+   release_notes
 
 Indices and tables
 ==================

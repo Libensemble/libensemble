@@ -1,5 +1,5 @@
-Contributing
-============
+Contributing to libEnsemble
+===========================
 
 Contributions may be made via GitHub pull request to:
 

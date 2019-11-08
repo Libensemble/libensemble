@@ -5,8 +5,8 @@ Theta
 Theta_ is a 11.69 petaflops system based on the second-generation Intel Xeon Phi
 processor, available within ALCF_ at Argonne National Laboratory.
 
-Before Getting Started
-----------------------
+Prerequisites
+-------------
 
 An Argonne ALCF account is required to access Theta. Interested users will need
 to apply for and be granted an account before continuing. To submit jobs to Theta,

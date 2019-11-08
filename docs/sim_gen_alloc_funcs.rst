@@ -1,4 +1,4 @@
-User function API
+User Function API
 -----------------
 
 **The libEnsemble History Array**
