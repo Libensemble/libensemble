@@ -2,8 +2,8 @@
 Theta
 =====
 
-Theta_ is a 11.69 petaflops system based on the second-generation Intel Xeon Phi
-processor, available within ALCF_ at Argonne National Laboratory.
+Theta_ is a Cray XC40 system based on the second-generation Intel
+Xeon Phi processor, available within ALCF_ at Argonne National Laboratory.
 
 Prerequisites
 -------------
@@ -20,53 +20,68 @@ user batch-scripts to run on the compute nodes.
 libEnsemble functions need to incorporate the libEnsemble
 :ref:`job controller<jobcontroller_index>` to perform calculations on Theta.
 
+Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
+and compute nodes. Users on login nodes submit batch runs to the MOM nodes.
+MOM nodes execute user batch-scripts to run on the compute nodes.
+
+
 Configuring Python
 ------------------
 
 Begin by loading the Python 3 Miniconda_ module::
 
-    $ module load miniconda-3.6/conda-4.5.12
+    $ module load miniconda-3/latest
 
-Create a Conda_ virtual environment in which to install libEnsemble and all
-dependencies::
+Create a Conda_ virtual environment, cloning the base-environment. This
+environment will contain mpi4py_ and many other packages you may find useful::
 
-    $ conda config --add channels intel
-    $ conda create --name my_env intelpython3_core python=3
-    $ source activate my_env
+    $ conda create --name my_env --clone $MINICONDA_INSTALL_PATH
+
+.. note::
+    The "Executing transaction" step of creating your new environment may take a while!
+
+Following a successful environment-creation, the prompt will suggest activating
+your new environment immediately. A Conda error may result; follow the on-screen
+instructions to configure your shell with Conda.
+
+Activate your virtual environment with::
+
+    $ conda activate my_env
 
 More information_ on using Conda on Theta.
 
-Installing libEnsemble and Dependencies
----------------------------------------
+Installing libEnsemble and Balsam
+---------------------------------
 
-libEnsemble and mpi4py
-^^^^^^^^^^^^^^^^^^^^^^
+libEnsemble
+^^^^^^^^^^^
 
-There should be an indication that the virtual environment is activated.
-Install mpi4py_ and libEnsemble in this environment, making sure to reference
-the pre-installed Intel MPI Compiler. Your prompt should be similar to the
-following block:
+There should be an indication that your virtual environment is activated.
+Obtaining libEnsemble is now as simple as ``pip install libensemble``.
+Your prompt should be similar to the following line:
 
 .. code-block:: console
 
-    (my_env) user@thetalogin6:~$ CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
     (my_env) user@thetalogin6:~$ pip install libensemble
 
-Balsam
-^^^^^^
+.. note::
+    If you encounter pip errors, run ``python -m pip install --upgrade pip`` first
+
+Balsam (Optional)
+^^^^^^^^^^^^^^^^^
 
 Balsam_ is an ALCF Python utility for coordinating and executing workflows of
-computations on systems like Theta. Balsam can stage in tasks from many sources,
-including libEnsemble's job controller, and submit these tasks dynamically to the
-compute nodes. If running with MPI, Balsam is necessary to launch libEnsemble on
-Theta.
+computations on systems like Theta. Balsam can stage in tasks to a database hosted
+on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
+can also be submitted to Balsam for centralized execution on a compute-node.
+libEnsemble can then submit tasks to Balsam through libEnsemble's Balsam
+job-controller for execution on additional allocated nodes.
 
 Load the Balsam module with::
 
     $ module load balsam/0.3.5.1
 
-Balsam stages tasks in and out from a database. Initialize a new database similarly
-to thefollowing:
+Initialize a new database similarly to the following (from the Balsam docs):
 
 .. code-block:: bash
 
@@ -77,21 +92,36 @@ to thefollowing:
     $ balsam submit-launch -A [project] -q default -t 5 -n 1 --job-mode=mpi
     $ watch balsam ls   #  follow status in realtime from command-line
 
-See **Additional Information** for the Balsam docs.
+Read Balsam's documentation here_.
 
 Job Submission
 --------------
 
-Theta uses Cobalt_ for job submission and management. For libEnsemble, the most
-important command is ``qsub``, for submitting batch scripts from the login nodes.
+Theta uses Cobalt_ for job management and submission. For libEnsemble, the most
+important command is ``qsub``, for submitting batch scripts from the login nodes
+to execute on the MOM nodes.
 
-On Theta, libEnsemble is commonly configured to run in one of two ways:
+On Theta, libEnsemble can be launched to two locations:
 
-    1. Multiprocessing mode, with libEnsemble's MPI job controller taking
-    responsibility for direct submissions of jobs to compute nodes.
+    1. **A MOM Node**: All of libEnsemble's manager and worker processes
+    run on a front-end MOM node. libEnsemble's MPI job-controller takes
+    responsibility for direct job-submission to allocated compute nodes.
+    libEnsemble must be configured to run with *multiprocessing* communications,
+    since mpi4py isn't configured for use on the MOM nodes.
 
-    2. MPI mode, with libEnsemble's Balsam job controller interfacing with a Balsam
-    backend for dynamic job submission.
+    2. **The Compute Nodes**: libEnsemble is submitted to Balsam and all manager
+    and worker processes are tasked to a backend compute node. libEnsemble's
+    Balsam job-controller interfaces with Balsam running on a MOM node for dynamic
+    task submission to the compute nodes.
+
+    .. image:: ../images/combined_ThS.png
+        :alt: central_MOM
+        :scale: 40
+        :align: center
+
+When considering on which nodes to run libEnsemble, consider if your user
+functions execute computationally expensive code, or code built for specific
+architectures. Recall also that only the MOM nodes can launch MPI jobs.
 
 Theta features one default production queue, ``default``, and two debug queues,
 ``debug-cache-quad`` and ``debug-flat-quad``.
@@ -107,18 +137,21 @@ to the following::
 
     $ qsub -A [project] -n 128 -q default -t 120 -I
 
-This will place the user on a MOM node. If running in multiprocessing mode, launching
-jobs to the compute nodes is as simple as ``python calling_script.py``
+This will place the user on a MOM node. Then, to launch MPI jobs to the compute
+nodes use ``aprun`` where you would use ``mpirun``.
 
 .. note::
-    You will need to re-activate your conda virtual environment and reload your
-    modules! Configuring this routine to occur automatically is recommended.
+    You will need to re-activate your conda virtual environment, re-activate your
+    Balsam database (if using Balsam), and reload your modules. Configuring this
+    routine to occur automatically is recommended.
 
 Batch Runs
 ^^^^^^^^^^
 
-Batch scripts specify run-settings using ``#COBALT`` statements. A simple example
-for a libEnsemble use-case may resemble the following:
+Batch scripts specify run-settings using ``#COBALT`` statements. The following
+simple example depicts configuring and launching libEnsemble to a MOM node with
+multiprocessing. This script also assumes the user is using the ``parse_args()``
+convenience function within libEnsemble's ``/regression_tests/common.py``.
 
 .. code-block:: bash
 
@@ -129,7 +162,19 @@ for a libEnsemble use-case may resemble the following:
     #COBALT -A [project]
     #COBALT -O libE-project
 
-    module load miniconda-3.6/conda-4.5.12
+    # --- Prepare Python ---
+
+    # Load conda module
+    module load miniconda-3/latest
+
+    # Name of Conda environment
+    export CONDA_ENV_NAME=my_env
+
+    # Activate Conda environment
+    export PYTHONNOUSERSITE=1
+    source activate $CONDA_ENV_NAME
+
+    # --- Prepare libEnsemble ---
 
     # Name of calling script
     export EXE=calling_script.py
@@ -139,13 +184,6 @@ for a libEnsemble use-case may resemble the following:
 
     # Number of workers.
     export NWORKERS='--nworkers 128'
-
-    # Name of Conda environment
-    export CONDA_ENV_NAME=my_env
-
-    # Activate Conda environment
-    export PYTHONNOUSERSITE=1
-    source activate $CONDA_ENV_NAME
 
     # Conda location - theta specific
     export PATH=/home/user/path/to/packages/:$PATH
@@ -157,16 +195,15 @@ for a libEnsemble use-case may resemble the following:
 
     python $EXE $COMMS $NWORKERS > out.txt 2>&1
 
-With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
-on Theta becomes::
+With this saved as ``myscript.sh``, allocating, configuring, and queueing
+libEnsemble on Theta becomes::
 
     $ qsub --mode script myscript.sh
 
 Balsam Runs
 ^^^^^^^^^^^
 
-Balsam runs are Batch runs, except Balsam is responsible for submitting libEnsemble
-for execution. This is an example Balsam submission script:
+Here is an example Balsam submission script:
 
 .. code-block:: bash
 
@@ -239,19 +276,13 @@ for execution. This is an example Balsam submission script:
 
     . balsamdeactivate
 
-See **Additional Information** for the Balsam docs.
-
 Debugging Strategies
 --------------------
 
 View the status of your submitted jobs with ``qstat -fu [user]``.
 
-It's not recommended to debug compute-intensive tasks on the login or MOM nodes,
-and if running in MPI mode, may be impossible. Allocate nodes on the debug queues
-for the best results.
-
-Each of the two debug queues has sixteen nodes apiece. A user can use up to
-eight nodes at a time for a maximum of one hour. Allocate nodes on the debug
+Theta features two debug queues each with sixteen nodes. Each user can allocate
+up to eight nodes at once for a maximum of one hour. Allocate nodes on a debug
 queue interactively::
 
     $ qsub -A [project] -n 4 -q debug-flat-quad -t 60 -I

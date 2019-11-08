@@ -4,13 +4,16 @@ import numpy as np
 def gen_random_sample(H, persis_info, gen_specs, _):
     # underscore parameter for internal/testing arguments
 
+    # Pull out user parameters to perform calculations
+    user_specs = gen_specs['user']
+
     # Get lower and upper bounds from gen_specs
-    lower = gen_specs['lower']
-    upper = gen_specs['upper']
+    lower = user_specs['lower']
+    upper = user_specs['upper']
 
     # Determine how many values to generate
     num = len(lower)
-    batch_size = gen_specs['gen_batch_size']
+    batch_size = user_specs['gen_batch_size']
 
     # Create array of 'batch_size' zeros
     out = np.zeros(batch_size, dtype=gen_specs['out'])
