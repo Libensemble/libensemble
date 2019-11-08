@@ -15,15 +15,15 @@ dumped to the respective files,
 * ``libE_history_at_abort_<sim_count>.npy``
 * ``libE_history_at_abort_<sim_count>.pickle``
 
-where ``sim_count`` is the number of points evaluated.
+where ``<sim_count>`` is the number of points evaluated.
 
 Other libEnsemble files produced by default are:
 
-* ``libE_stats.txt``: This contains a one-line summary of all user
+* ``libE_stats.txt``: Contains a one-line summary of all user
   calculations.  Each calculation summary is sent by workers to the manager and
   printed as the run progresses.
 
-* ``ensemble.log``: This is the logging output from libEnsemble. The default
+* ``ensemble.log``: The logging output from libEnsemble. The default
   logging is at INFO level. To gain additional diagnostics logging level can be
   set to DEBUG.  If this file is not removed, multiple runs will append output.
   Messages at or above level MANAGER_WARNING are also copied to stderr to alert

@@ -1,10 +1,10 @@
 """
 This is the outer libEnsemble routine.
 
-We dispatch to different types of worker teams depending on
-the contents of libE_specs.  If 'comm' is a field, we use MPI;
-if 'nthreads' is a field, we use threads; if 'nprocesses' is a
-field, we use multiprocessing.
+We dispatch to different types of worker teams depending on the contents of
+``libE_specs``.  If ``'comm'`` is a field, MPI is used; if ``'nthreads'`` is a
+field, threads are used ; if ``'nprocesses'`` is a field, multiprocessing is
+used.
 
 If an exception is encountered by the manager or workers, the
 history array is dumped to file and MPI abort is called.
@@ -76,7 +76,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs>`
 
-    H0: :obj:`numpy structured array`, optional
+    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
 
         A previous libEnsemble history to be prepended to the history in the
         current libEnsemble run
@@ -85,7 +85,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
     Returns
     -------
 
-    H: :obj:`numpy structured array`
+    H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
 
         History array storing rows for each point.
         :doc:`(example)<data_structures/history_array>`
@@ -97,7 +97,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     exit_flag: :obj:`int`
 
-        Flag containing final job status:
+        Flag containing final job status::
 
         0 = No errors
         1 = Exception occured
