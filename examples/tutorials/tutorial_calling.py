@@ -9,9 +9,11 @@ libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
 
 gen_specs = {'gen_f': gen_random_sample,        # Our generator function
              'out': [('x', float, (1,))],       # gen_f output (name, type, size).
-             'lower': np.array([-3]),           # lower boundary for random sampling.
-             'upper': np.array([3]),            # upper boundary for random sampling.
-             'gen_batch_size': 5}               # number of values gen_f will generate per call
+             'user': { 'lower': np.array([-3]), # random sampling lower bound
+                       'upper': np.array([3]),  # random sampling upper bound
+                       'gen_batch_size': 5      # number of values gen_f will generate per call
+                     }
+             }
 
 sim_specs = {'sim_f': sim_find_sine,            # Our simulator function
              'in': ['x'],                       # Input field names. 'x' from gen_f output
