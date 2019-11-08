@@ -1,6 +1,11 @@
 User Function API
 -----------------
 
+libEnsemble requires functions for generation, simulation and allocation.
+
+While libEnsemble provides a default allocation function, the sim and gen functions
+must be provided. The required API and examples are given here.
+
 **The libEnsemble History Array**
 
 libEnsemble uses a NumPy structured array :ref:`H<datastruct-history-array>` to

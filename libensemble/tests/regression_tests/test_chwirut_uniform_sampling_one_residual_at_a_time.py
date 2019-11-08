@@ -25,7 +25,7 @@ from copy import deepcopy
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample_obj_components as gen_f
-from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
+from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
@@ -64,7 +64,7 @@ gen_specs = {'gen_f': gen_f,
                       'components': m}
              }
 
-alloc_specs = {'alloc_f': alloc_f,              # Allocation function
+alloc_specs = {'alloc_f': give_sim_work_first,  # Allocation function
                'out': [('allocated', bool)],    # Output fields (included in History)
                'user': {'stop_on_NaNs': True,   # Should alloc preempt evals
                         'batch_mode': True,     # Wait until all sim evals are done
