@@ -8,3 +8,4 @@ code/tests/regression_tests/output/
 .cache
 libensemble.egg-info
 docs/_build
+x.log
