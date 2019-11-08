@@ -2,11 +2,12 @@
 Theta
 =====
 
-Theta_ is a 11.69 petaflops Cray XC40 system based on the second-generation Intel
+Theta_ is a Cray XC40 system based on the second-generation Intel
 Xeon Phi processor, available within ALCF_ at Argonne National Laboratory.
 
 Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
-and compute nodes. MOM nodes execute user batch-scripts to run on the compute nodes.
+and compute nodes. Users on login nodes submit batch runs to the MOM nodes.
+MOM nodes execute user batch-scripts to run on the compute nodes.
 
 Configuring Python
 ------------------
@@ -56,9 +57,9 @@ Balsam (Optional)
 Balsam_ is an ALCF Python utility for coordinating and executing workflows of
 computations on systems like Theta. Balsam can stage in tasks to a database hosted
 on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
-can also be submitted to Balsam for centralized execution on a compute-node. At
-this point, libEnsemble can then submit tasks to Balsam through libEnsemble's
-Balsam job-controller for execution on additional allocated nodes.
+can also be submitted to Balsam for centralized execution on a compute-node.
+libEnsemble can then submit tasks to Balsam through libEnsemble's Balsam
+job-controller for execution on additional allocated nodes.
 
 Load the Balsam module with::
 
@@ -84,26 +85,27 @@ Theta uses Cobalt_ for job management and submission. For libEnsemble, the most
 important command is ``qsub``, for submitting batch scripts from the login nodes
 to execute on the MOM nodes.
 
-On Theta, libEnsemble itself can be launched to two locations:
+On Theta, libEnsemble can be launched to two locations:
 
     1. **A MOM Node**: All of libEnsemble's manager and worker processes
     run on a front-end MOM node. libEnsemble's MPI job-controller takes
-    responsibility for direct submissions of jobs to all allocated compute nodes.
-    libEnsemble must be configured to run with *multiprocessing* communications:
+    responsibility for direct job-submission to allocated compute nodes.
+    libEnsemble must be configured to run with *multiprocessing* communications,
+    since mpi4py isn't configured for use on the MOM nodes.
 
-    2. **The Compute Nodes**: libEnsemble is submitted to Balsam and tasked to a
-    compute node. libEnsemble's Balsam job-controller interfaces with the Balsam
-    backend for dynamic task submission to the compute nodes.
+    2. **The Compute Nodes**: libEnsemble is submitted to Balsam and all manager
+    and worker processes are tasked to a backend compute node. libEnsemble's
+    Balsam job-controller interfaces with Balsam running on a MOM node for dynamic
+    task submission to the compute nodes.
 
     .. image:: ../images/combined_ThS.png
         :alt: central_MOM
         :scale: 40
         :align: center
 
-
-When considering on which nodes to run libEnsemble, consider if your worker functions
-will execute computationally expensive code, or code built for a specific
-architectures or nodes. Recall also that only the MOM nodes can launch MPI jobs.
+When considering on which nodes to run libEnsemble, consider if your user
+functions execute computationally expensive code, or code built for specific
+architectures. Recall also that only the MOM nodes can launch MPI jobs.
 
 Theta features one default production queue, ``default``, and two debug queues,
 ``debug-cache-quad`` and ``debug-flat-quad``.
@@ -119,19 +121,21 @@ to the following::
 
     $ qsub -A [project] -n 128 -q default -t 120 -I
 
-This will place the user on a MOM node. To launch MPI jobs to the compute nodes from
-the MOM nodes use ``aprun`` where you would use ``mpirun``.
+This will place the user on a MOM node. Then, to launch MPI jobs to the compute
+nodes use ``aprun`` where you would use ``mpirun``.
 
 .. note::
     You will need to re-activate your conda virtual environment, re-activate your
-    Balsam database (if using Balsam), and reload your modules! Configuring this
+    Balsam database (if using Balsam), and reload your modules. Configuring this
     routine to occur automatically is recommended.
 
 Batch Runs
 ^^^^^^^^^^
 
-Batch scripts specify run-settings using ``#COBALT`` statements. A simple example
-for a libEnsemble use-case may resemble the following:
+Batch scripts specify run-settings using ``#COBALT`` statements. The following
+simple example depicts configuring and launching libEnsemble to a MOM node with
+multiprocessing. This script also assumes the user is using the ``parse_args()``
+convenience function within libEnsemble's ``/regression_tests/common.py``.
 
 .. code-block:: bash
 
@@ -142,7 +146,19 @@ for a libEnsemble use-case may resemble the following:
     #COBALT -A [project]
     #COBALT -O libE-project
 
-    module load miniconda-3.6/conda-4.5.12
+    # --- Prepare Python ---
+
+    # Load conda module
+    module load miniconda-3/latest
+
+    # Name of Conda environment
+    export CONDA_ENV_NAME=my_env
+
+    # Activate Conda environment
+    export PYTHONNOUSERSITE=1
+    source activate $CONDA_ENV_NAME
+
+    # --- Prepare libEnsemble ---
 
     # Name of calling script
     export EXE=calling_script.py
@@ -152,13 +168,6 @@ for a libEnsemble use-case may resemble the following:
 
     # Number of workers.
     export NWORKERS='--nworkers 128'
-
-    # Name of Conda environment
-    export CONDA_ENV_NAME=my_env
-
-    # Activate Conda environment
-    export PYTHONNOUSERSITE=1
-    source activate $CONDA_ENV_NAME
 
     # Conda location - theta specific
     export PATH=/home/user/path/to/packages/:$PATH
@@ -170,8 +179,8 @@ for a libEnsemble use-case may resemble the following:
 
     python $EXE $COMMS $NWORKERS > out.txt 2>&1
 
-With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
-on Theta becomes::
+With this saved as ``myscript.sh``, allocating, configuring, and queueing
+libEnsemble on Theta becomes::
 
     $ qsub --mode script myscript.sh
 
@@ -256,7 +265,7 @@ Debugging Strategies
 
 View the status of your submitted jobs with ``qstat -fu [user]``.
 
-Theta features two debug queues with sixteen nodes apiece. Each user can allocate
+Theta features two debug queues each with sixteen nodes. Each user can allocate
 up to eight nodes at once for a maximum of one hour. Allocate nodes on a debug
 queue interactively::
 
