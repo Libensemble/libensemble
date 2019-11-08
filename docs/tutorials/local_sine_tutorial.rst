@@ -193,7 +193,6 @@ inputs and outputs from those functions to expect.
                     }
                  }
 
-
     sim_specs = {'sim_f': sim_find_sine,       # Our simulator function
                  'in': ['x'],                  # Input field names. 'x' from gen_f output
                  'out': [('y', float)]}        # sim_f output. 'y' = sine('x')

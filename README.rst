@@ -241,6 +241,11 @@ which can be viewed after ``run_tests.sh`` is completed at
 ``libensemble/tests/cov_merge/index.html``. The Travis CI coverage results are
 available online at Coveralls_.
 
+.. note::
+    The job_controller tests can be run using the direct-launch or
+    Balsam job controllers. Balsam integration with libEnsemble is now tested
+    via ``test_balsam_hworld.py``.
+
 Basic Usage
 ~~~~~~~~~~~
 

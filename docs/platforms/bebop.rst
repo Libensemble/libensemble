@@ -73,7 +73,6 @@ the workers to launch calculations with the job-controller or a job-launch comma
     more MPI process than the number of allocated nodes. The Manager and first
     worker run together on a node.
 
-
 If you would like to interact directly with the compute nodes via a shell,
 the following showcases starting a bash session on a Knights Landing node
 for thirty minutes::

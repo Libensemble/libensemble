@@ -24,7 +24,6 @@ Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
 and compute nodes. Users on login nodes submit batch runs to the MOM nodes.
 MOM nodes execute user batch-scripts to run on the compute nodes.
 
-
 Configuring Python
 ------------------
 
