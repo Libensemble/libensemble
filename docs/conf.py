@@ -58,8 +58,8 @@ needs_sphinx = '2.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinxcontrib.bibtex','sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
-# extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
+# extensions = ['sphinxcontrib.bibtex','sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
 #breathe_projects = { "libEnsemble": "../code/src/xml/" }
 #breathe_default_project = "libEnsemble"
 
