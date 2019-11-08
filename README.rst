@@ -152,8 +152,8 @@ Resources
 
 - A visual overview of libEnsemble is given in this poster_.
 
-Quickstart
-----------
+Quickstart Guide
+----------------
 
 Dependencies
 ~~~~~~~~~~~~
