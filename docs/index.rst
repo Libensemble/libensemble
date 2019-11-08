@@ -14,13 +14,11 @@
 
 .. toctree::
    :caption: Further information:
-   :maxdepth: 1
+   :maxdepth: 2
 
-   FAQ
-   release_notes
    platforms/platforms
    dev_info
-   tutorials/tutorials
+   In Depth<appendix>
 
 Indices and tables
 ==================
