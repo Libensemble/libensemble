@@ -124,13 +124,14 @@ Resources
 
 **Support:**
 
-- Email questions to libensemble@lists.mcs.anl.gov
-- Communicate (and establish a private channel, if desired) at https://libensemble.slack.com
-- Join the libEnsemble mailing list for updates about new releases at https://lists.mcs.anl.gov/mailman/listinfo/libensemble
+- The best way to receive support is to email questions to ``libEnsemble@lists.mcs.anl.gov``.
+- Communicate (and establish a private channel, if desired) at the `libEnsemble Slack page`_.
+- Join the `libEnsemble mailing list`_ for updates about new releases.
 
-**Documentation:**
+**Further Information:**
 
-- Provided by ReadtheDocs at http://libensemble.readthedocs.org/
+- Documentation is provided by ReadtheDocs_.
+- A visual overview of libEnsemble is given in this poster_.
 
 **Citation:**
 
@@ -148,9 +149,6 @@ Resources
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
-**Other:**
-
-- A visual overview of libEnsemble is given in this poster_.
 
 Quickstart Guide
 ----------------
@@ -161,14 +159,11 @@ Dependencies
 Required dependencies:
 
 * Python_ 3.5 or above.
-
 * NumPy_
 
 For libEnsemble running with the mpi4py parallelism:
 
-* A functional MPI 1.x/2.x/3.x implementation such as `MPICH
-  <http://www.mpich.org/>`_  built with shared/dynamic libraries.
-
+* A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries.
 * mpi4py_ v2.0.0 or above
 
 Optional dependency:
@@ -186,11 +181,11 @@ The example sim and gen functions and tests require the following dependencies:
 * SciPy_
 * petsc4py_
 * PETSc_ - This can optionally be installed by pip along with petsc4py
-* NLopt_ - Installed with `shared libraries enabled <http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries>`_.
+* NLopt_ - Installed with `shared libraries enabled`_.
 
 PETSc and NLopt must be built with shared libraries enabled and present in
 ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
-should produce a file nlopt.py if Python is found on the system. NLopt may also
+should produce a file ``nlopt.py`` if Python is found on the system. NLopt may also
 require SWIG_ to be installed on certain systems.
 
 Installation
@@ -204,14 +199,12 @@ libEnsemble is also available in the Spack_ distribution. It can be installed fr
 
     spack install py-libensemble
 
-.. _Spack: https://spack.readthedocs.io/en/latest
-
-The tests and examples can be accessed in the `GitHub <https://github.com/Libensemble/libensemble>`_ repository.
+The tests and examples can be accessed in the GitHub_ repository.
 If necessary, you may install all optional dependencies (listed above) at once with::
 
     pip install libensemble[extras]
 
-A `tarball <https://github.com/Libensemble/libensemble/releases/latest>`_ of the most recent release is also available.
+A tarball_ of the most recent release is also available.
 
 Testing
 ~~~~~~~
@@ -219,7 +212,7 @@ Testing
 The provided test suite includes both unit and regression tests and is run
 regularly on:
 
-* `Travis CI <https://travis-ci.org/Libensemble/libensemble>`_
+* `Travis CI`_
 
 The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
 packages to be installed and can be run from the libensemble/tests directory of
@@ -245,16 +238,9 @@ in the top-level directory containing the setup script.
 Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors
 is taken. Furthermore, a combined coverage report is created at the top level,
-which can be viewed after running the tests via the HTML file
+which can be viewed after ``run_tests.sh`` is completed at 
 ``libensemble/tests/cov_merge/index.html``. The Travis CI coverage results are
-available online at
-`Coveralls <https://coveralls.io/github/Libensemble/libensemble?branch=master>`_.
-
-.. note::
-    The job_controller tests can be run using the direct-launch or
-    Balsam job controllers. Although only the direct-launch versions can be run
-    on Travis CI, Balsam integration with libEnsemble is now tested via
-    ``test_balsam_hworld.py``.
+available online at Coveralls_.
 
 Basic Usage
 ~~~~~~~~~~~
@@ -278,23 +264,33 @@ can then be run as a regular python script::
 
 When specifying these options via command line options, one may use the
 ``parse_args`` function used in the regression tests, which can be found in
-``libensemble/tests/regression_tests/common.py``
+`common.py`_ in the ``libensemble/tests/regression_tests`` directory.
 
-See the
-`user-guide <https://libensemble.readthedocs.io/en/latest/user_guide.html>`_
-for more information.
+See the `user guide`_ for more information.
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
-.. _NumPy: http://www.numpy.org
-.. _PETSc: http://www.mcs.anl.gov/petsc
-.. _Python: http://www.python.org
-.. _SWIG: http://swig.org/
-.. _SciPy: http://www.scipy.org
+.. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py
+.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _GitHub: https://github.com/Libensemble/libensemble
+.. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
+.. _libEnsemble Slack page: https://libensemble.slack.com
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
+.. _MPICH: http://www.mpich.org/
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
+.. _NumPy: http://www.numpy.org
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
+.. _PETSc: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 .. _pytest: https://pypi.org/project/pytest/
+.. _Python: http://www.python.org
+.. _ReadtheDocs: http://libensemble.readthedocs.org/
+.. _SciPy: http://www.scipy.org
+.. _shared libraries enabled: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
+.. _Spack: https://spack.readthedocs.io/en/latest
+.. _SWIG: http://swig.org/
+.. _tarball: https://github.com/Libensemble/libensemble/releases/latest
+.. _Travis CI: https://travis-ci.org/Libensemble/libensemble
+.. _user guide: https://libensemble.readthedocs.io/en/latest/user_guide.html
