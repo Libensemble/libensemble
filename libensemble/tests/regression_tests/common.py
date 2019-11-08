@@ -199,34 +199,6 @@ def modify_Balsam_worker():
             f.write(line)
 
 
-def modify_Balsam_pyCoverage():
-    # Tracking line coverage through our tests requires running the Python module
-    #   'coverage' directly. Balsam explicitely configures Python runs with
-    #   'python [script].py args' with no current capability for specifying
-    #   modules. This hack specifies the coverage module and some options.
-    import balsam
-
-    old_line = "            path = ' '.join((exe, script_path, args))\n"
-    new_line = "            path = ' '.join((exe, '-m coverage run " + \
-               "--parallel-mode --rcfile=./libensemble/tests/regression_tests/" + \
-               ".bal_coveragerc', script_path, args))\n"
-
-    commandfile = 'cli_commands.py'
-    balsam_path = os.path.dirname(balsam.__file__) + '/scripts'
-    balsam_commands_path = os.path.join(balsam_path, commandfile)
-
-    with open(balsam_commands_path, 'r') as f:
-        lines = f.readlines()
-
-    for i in range(len(lines)):
-        if lines[i] == old_line:
-            lines[i] = new_line
-
-    with open(balsam_commands_path, 'w') as f:
-        for line in lines:
-            f.write(line)
-
-
 def modify_Balsam_JobEnv():
     # If Balsam detects that the system on which it is running contains the string
     #   'cc' in it's hostname, then it thinks it's on Cooley! Travis hostnames are
