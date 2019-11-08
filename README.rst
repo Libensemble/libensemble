@@ -149,7 +149,6 @@ Resources
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
-
 Quickstart Guide
 ----------------
 
@@ -238,7 +237,7 @@ in the top-level directory containing the setup script.
 Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors
 is taken. Furthermore, a combined coverage report is created at the top level,
-which can be viewed after ``run_tests.sh`` is completed at 
+which can be viewed after ``run_tests.sh`` is completed at
 ``libensemble/tests/cov_merge/index.html``. The Travis CI coverage results are
 available online at Coveralls_.
 
