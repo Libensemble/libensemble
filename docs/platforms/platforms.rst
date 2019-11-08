@@ -1,0 +1,7 @@
+Platforms
+---------
+
+.. toctree::
+
+   theta
+   bebop

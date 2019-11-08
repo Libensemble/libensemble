@@ -6,6 +6,4 @@ Appendices
    FAQ
    release_notes
    examples/examples_index
-
-Bibliography
-------------
+   bibliography

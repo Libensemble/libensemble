@@ -14,7 +14,7 @@
 
 .. toctree::
    :caption: Further information:
-   :maxdepth: 2
+   :maxdepth: 1
 
    FAQ
    release_notes
