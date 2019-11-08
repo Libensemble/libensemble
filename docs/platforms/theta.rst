@@ -13,36 +13,42 @@ Configuring Python
 
 Begin by loading the Python 3 Miniconda_ module::
 
-    $ module load miniconda-3.6/conda-4.5.12
+    $ module load miniconda-3/latest
 
-Create a Conda_ virtual environment in which to install libEnsemble and all
-dependencies::
+Create a Conda virtual environment, cloning the base-environment. This
+environment will contain mpi4py_ and many other packages you may find useful::
 
-    $ conda config --add channels intel
-    $ conda create --name my_env intelpython3_core python=3
-    $ source activate my_env
+    $ conda create --name my_env --clone $MINICONDA_INSTALL_PATH
+
+.. note::
+    The "Executing transaction" step of creating your new environment may take a while!
+
+Following a successful environment-creation, the prompt will suggest activating
+your new environment immediately. A Conda error may result; follow the on-screen
+instructions to configure your shell with Conda.
+
+Activate your virtual environment with::
+
+    $ conda activate my_env
 
 More information_ on using Conda on Theta.
 
-Installing libEnsemble and Dependencies
----------------------------------------
+Installing libEnsemble and Balsam
+---------------------------------
 
-libEnsemble and mpi4py
-^^^^^^^^^^^^^^^^^^^^^^
+libEnsemble
+^^^^^^^^^^^
 
-There should be an indication that the virtual environment is activated.
-Install mpi4py_ and libEnsemble in this environment, making sure to reference
-the pre-installed Intel C Compiler (which should support MPI). Your prompt may
-be similar to the following block:
+There should be an indication that your virtual environment is activated.
+Obtaining libEnsemble is now as simple as ``pip install libensemble``.
+Your prompt should be similar to the following line:
 
 .. code-block:: console
 
-    (my_env) user@thetalogin6:~$ CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
     (my_env) user@thetalogin6:~$ pip install libensemble
 
 .. note::
     If you encounter pip errors, run ``python -m pip install --upgrade pip`` first
-
 
 Balsam (Optional)
 ^^^^^^^^^^^^^^^^^
@@ -52,18 +58,11 @@ computations on systems like Theta. Balsam can stage in tasks to a database host
 on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
 can also be submitted to Balsam for centralized execution on a compute-node. At
 this point, libEnsemble can then submit tasks to Balsam through libEnsemble's
-Balsam job-controller for execution on additional allocated nodes:
-
-.. image:: ../images/centralized_Balsam_ThS.png
-    :alt: central_Balsam
-    :scale: 75
-    :align: center
-
+Balsam job-controller for execution on additional allocated nodes.
 
 Load the Balsam module with::
 
     $ module load balsam/0.3.5.1
-
 
 Initialize a new database similarly to the following (from the Balsam docs):
 
@@ -76,8 +75,7 @@ Initialize a new database similarly to the following (from the Balsam docs):
     $ balsam submit-launch -A [project] -q default -t 5 -n 1 --job-mode=mpi
     $ watch balsam ls   #  follow status in realtime from command-line
 
-
-See **Additional Information** for Balsam's documentation.
+See Additional_ for Balsam's documentation.
 
 Job Submission
 --------------
@@ -86,16 +84,26 @@ Theta uses Cobalt_ for job management and submission. For libEnsemble, the most
 important command is ``qsub``, for submitting batch scripts from the login nodes
 to execute on the MOM nodes.
 
-On Theta, libEnsemble's communications are commonly configured to run in one of two ways:
+On Theta, libEnsemble itself can be launched to two locations:
 
-    1. **Multiprocessing mode**, where libEnsemble's MPI job-controller takes
-    responsibility for direct submissions of jobs to compute nodes. In this mode,
-    libEnsemble itself, including all manager and worker processes, runs on the
-    MOM nodes.
+    1. **A MOM Node**: All of libEnsemble's manager and worker processes
+    run on a front-end MOM node. libEnsemble's MPI job-controller takes
+    responsibility for direct submissions of jobs to all allocated compute nodes.
+    libEnsemble must be configured to run with *multiprocessing* communications:
 
-    2. **MPI mode**, with libEnsemble's Balsam job-controller interfacing with the
-    previously-mentioned Balsam backend for dynamic task submission. In this mode
-    libEnsemble has been submitted to Balsam and tasked to a compute-node.
+    2. **The Compute Nodes**: libEnsemble is submitted to Balsam and tasked to a
+    compute node. libEnsemble's Balsam job-controller interfaces with the Balsam
+    backend for dynamic task submission to the compute nodes.
+
+    .. image:: ../images/combined_ThS.png
+        :alt: central_MOM
+        :scale: 40
+        :align: center
+
+
+When considering on which nodes to run libEnsemble, consider if your worker functions
+will execute computationally expensive code, or code built for a specific
+architectures or nodes. Recall also that only the MOM nodes can launch MPI jobs.
 
 Theta features one default production queue, ``default``, and two debug queues,
 ``debug-cache-quad`` and ``debug-flat-quad``.
@@ -111,8 +119,8 @@ to the following::
 
     $ qsub -A [project] -n 128 -q default -t 120 -I
 
-This will place the user on a MOM node. If running in multiprocessing mode, launching
-jobs to the compute nodes is as simple as ``python calling_script.py``
+This will place the user on a MOM node. To launch MPI jobs to the compute nodes from
+the MOM nodes use ``aprun`` where you would use ``mpirun``.
 
 .. note::
     You will need to re-activate your conda virtual environment, re-activate your
@@ -170,8 +178,7 @@ on Theta becomes::
 Balsam Runs
 ^^^^^^^^^^^
 
-Balsam runs are Batch runs, except Balsam is responsible for submitting libEnsemble
-for execution. This is an example Balsam submission script:
+Here is an example Balsam submission script:
 
 .. code-block:: bash
 
@@ -244,7 +251,7 @@ for execution. This is an example Balsam submission script:
 
     . balsamdeactivate
 
-See **Additional Information** for the Balsam docs.
+See Additional_ for the Balsam docs.
 
 Debugging Strategies
 --------------------
@@ -256,6 +263,8 @@ up to eight nodes at once for a maximum of one hour. Allocate nodes on a debug
 queue interactively::
 
     $ qsub -A [project] -n 4 -q debug-flat-quad -t 60 -I
+
+.. _Additional:
 
 Additional Information
 ----------------------
