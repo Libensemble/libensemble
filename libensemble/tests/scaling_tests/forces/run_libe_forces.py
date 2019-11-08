@@ -67,18 +67,17 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
-             'in': ['x'],                 # Name of input data structure for sim func
-             'out': [('energy', float)],  # Output from sim func
-             'user': {'sim_dir_suffix': 'test',    # Suffix for copied sim dirs (to ID run)
-                      'simdir_basename': 'force',  # Used by sim_f to name sim directories
-                      'keys': ['seed'],            # Key/keys for input data
-                      'cores': 2,                  # Used by sim_f to set number of cores used
-                      'sim_particles': 1e3,        # Used by sim_f for number of particles
-                      'sim_timesteps': 5,          # Used by sim_f for number of timesteps
-                      'sim_kill_minutes': 10.0,    # Used by sim_f to set max run time
-                      'particle_variance': 0.2,    # Used by sim_f to vary load imbalance
-                      'kill_rate': 0.5,            # Fraction of bad sim_f evals (tests kills)
-                      }
+             'in': ['x'],                 # Name of input for sim_f
+             'out': [('energy', float)],  # Name, type of output from sim_f
+             'user': {'sim_dir_suffix': 'test',
+                      'simdir_basename': 'force',
+                      'keys': ['seed'],
+                      'cores': 2,
+                      'sim_particles': 1e3,
+                      'sim_timesteps': 5,
+                      'sim_kill_minutes': 10.0,
+                      'particle_variance': 0.2,
+                      'kill_rate': 0.5}   # Used by this specific sim_f
              }
 # end_sim_specs_rst_tag
 

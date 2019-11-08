@@ -1,3 +1,7 @@
+***********************************
+Internal libEnsemble data structure
+***********************************
+
 .. _datastruct-history-array:
 
 history array
@@ -5,7 +9,7 @@ history array
 ::
 
     H: numpy structured array
-        History to store output from ``gen_f``/``sim_f``/``alloc_f`` for each entry
+        History to store output from gen_f/sim_f/alloc_f for each entry
 
 Fields in ``H`` include those specified in ``sim_specs['out']``,
 ``gen_specs['out']``, and ``alloc_specs['out']``. All values are initiated to
@@ -13,8 +17,9 @@ Fields in ``H`` include those specified in ``sim_specs['out']``,
 
 Below are the protected fields used in ``H``
 
-..  literalinclude:: ../../libensemble/libE_fields.py
+..  literalinclude:: ../../libensemble/utils.py
     :start-at: libE_fields
+    :end-before: end_libE_fields_rst_tag
 
 .. seealso::
 
