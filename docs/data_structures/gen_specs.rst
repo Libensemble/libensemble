@@ -1,7 +1,6 @@
-.. _datastruct-gen-specs:
-
 gen_specs
 =========
+.. _datastruct-gen-specs:
 
 Generation function specifications to be set in user calling script and passed
 to main ``libE()`` routine::
