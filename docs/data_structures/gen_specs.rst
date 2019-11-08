@@ -1,6 +1,7 @@
+.. _datastruct-gen-specs:
+
 gen_specs
 =========
-.. _datastruct-gen-specs:
 
 Generation function specifications to be set in user calling script and passed
 to main ``libE()`` routine::
@@ -30,7 +31,7 @@ to main ``libE()`` routine::
 
   .. _gen-specs-exmple1:
 
-  From `test_6-hump_camel_uniform_sampling.py`_
+  From test_6-hump_camel_uniform_sampling.py_
 
   ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
       :start-at: gen_specs

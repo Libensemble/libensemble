@@ -1,10 +1,7 @@
-We first describe the dictionaries given to libEnsemble to specify the
-inputs/outputs of the ensemble of calculations to be performed.
+.. _datastruct-sim-specs:
 
 sim_specs
 =========
-.. _datastruct-sim-specs:
-
 Used to specify the simulation function, its inputs and outputs, and user data::
 
     sim_specs: [dict]:
@@ -34,21 +31,25 @@ Used to specify the simulation function, its inputs and outputs, and user data::
 
   .. _sim-specs-exmple1:
 
-  From: ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py``
+  - test_6-hump_camel_uniform_sampling.py_ has a ``sim_specs``  that declares
+    the name of the ``'in'`` field variable, ``'x'`` (as specified by the
+    corresponding generator ``'out'`` field ``'x'`` from the :ref:`gen_specs
+    example<gen-specs-exmple1>`).  Only the field name is required in
+    ``sim_specs['in']``.
 
   ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
       :start-at: sim_specs
       :end-before: end_sim_specs_rst_tag
 
-  The dimensions and type of the ``'in'`` field variable ``'x'`` is specified by the corresponding
-  generator ``'out'`` field ``'x'`` (see :ref:`gen_specs example<gen-specs-exmple1>`).
-  Only the variable name is then required in ``sim_specs['in']``.
-
-  From: ``libensemble/tests/scaling_tests/forces/run_libe_forces.py``
+  - run_libe_forces.py_ has a longer ``sim_specs`` declaration with a number of
+    user-specific fields. These are given to the corresponding sim_f, which
+    can be found at forces_simf.py_
 
   ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces.py
       :start-at: sim_f
       :end-before: end_sim_specs_rst_tag
 
-  This example uses a number of user specific fields, that will be dealt with in the corresponding sim f, which
-  can be found at ``libensemble/tests/scaling_tests/forces/forces_simf.py``
+
+.. _forces_simf.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_simf.py
+.. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py
+.. _test_6-hump_camel_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py

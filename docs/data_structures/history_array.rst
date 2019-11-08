@@ -1,7 +1,7 @@
-history array
-=============
 .. _datastruct-history-array:
 
+history array
+=============
 ::
 
     H: numpy structured array
