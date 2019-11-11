@@ -10,7 +10,7 @@
 
 export EXE=$PWD/libensemble/tests/regression_tests/script_test_balsam_hworld.py
 export COVERAGE=" -m coverage run --parallel-mode --rcfile=./libensemble/tests/regression_tests/.bal_coveragerc "
-export COV_EXE="${COVERAGE} ${EXE}"
+export COV_EXE="${COVERAGE}${EXE}"
 export NUM_WORKERS=2
 export WORKFLOW_NAME=libe_test-balsam
 export LIBE_WALLCLOCK=3
