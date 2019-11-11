@@ -30,7 +30,7 @@ balsam rm apps --all --force
 balsam rm jobs --all --force
 
 # Submit script_test_balsam_hworld as app
-balsam app --name $SCRIPT_BASENAME.app --exec $COV_EXE --desc "Run $SCRIPT_BASENAME"
+balsam app --name $SCRIPT_BASENAME.app --exec "$COV_EXE" --desc "Run $SCRIPT_BASENAME"
 
 # Submit job based on script_test_balsam_hworld app
 balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
