@@ -84,6 +84,8 @@ pip install coveralls || return
 git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || return
 cd libensemble/ || return
 pip install -e . || return
+wget https://github.com/balsam-alcf/balsam/archive/0.3.5.1.tar.gz
+mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
 python conda/install-balsam.py
 export BALSAM_DB_PATH=~/test-balsam
 
