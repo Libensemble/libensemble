@@ -9,7 +9,7 @@
    :maxdepth: 2
    :caption: User Guide:
 
-   Introduction<introduction>
+   Quickstart<introduction>
    overview_usecases
    libe_module
    data_structures/data_structures
@@ -17,6 +17,7 @@
    job_controller/jc_index
    logging
    utilities
+   platforms/platforms_index
 
 .. toctree::
    :maxdepth: 2
