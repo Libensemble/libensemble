@@ -53,102 +53,6 @@ many-node simulations. A job controller interface is provided to ensure scripts
 are portable, resilient and flexible; it also enables automatic detection of
 the nodes and cores in a system and can split up jobs automatically if resource
 data isn't supplied.
-
-Overview
---------
-libEnsemble is a Python library to coordinate the concurrent evaluation of
-dynamic ensembles of calculations. libEnsemble uses a manager to allocate work to
-various workers. A libEnsemble worker is the smallest indivisible unit to
-perform some calculation. The work performed by libEnsemble is governed by
-three routines:
-
-* :ref:`gen_f<api_gen_f>`: Generates inputs to ``sim_f``.
-* :ref:`sim_f<api_sim_f>`: Evaluates a simulation or other evaluation at output from ``gen_f``.
-* :ref:`alloc_f<api_alloc_f>`: Decides whether ``sim_f`` or ``gen_f`` should be called (and with what input/resources) as workers become available.
-
-Example ``sim_f``, ``gen_f``, ``alloc_f``, and calling scripts
-be found in the ``examples/`` directory. To enable portability, a
-:doc:`job_controller<job_controller/overview>`
-interface is supplied for users to launch and monitor jobs in their
-user-provided ``sim_f`` and ``gen_f`` routines.
-
-The default ``alloc_f`` tells each available worker to call ``sim_f`` with the
-highest priority unit of work from ``gen_f``. If a worker is idle and there is
-no ``gen_f`` output to give, the worker is told to call ``gen_f``.
-
-Example Use Cases
-~~~~~~~~~~~~~~~~~
-Below are some expected libEnsemble use cases that we support (or are working
-to support) and plan to have examples of:
-
-* A user is looking to optimize a simulation calculation. The simulation may
-  already be using parallel resources, but not a large fraction of some
-  computer. libEnsemble can coordinate the concurrent evaluation of the
-  simulation ``sim_f`` at various parameter values and ``gen_f`` would return
-  candidate parameter values (possibly after each ``sim_f`` output).
-
-* A user has a ``gen_f`` that produces different meshes to be used within a
-  ``sim_f``. Given the ``sim_f`` output, ``gen_f`` will refine a mesh or
-  produce a new mesh. libEnsemble can ensure that the calculated meshes can be
-  used by multiple simulations without requiring movement of data.
-
-* A user is attempting to sample a simulation ``sim_f`` at some parameter
-  values, many of which will cause the simulation to fail. libEnsemble can stop
-  unresponsive evaluations, and recover computational resources for future
-  evaluations. ``gen_f`` can possibly update the sampling after discovering
-  regions where evaluations of ``sim_f`` fail.
-
-* A user has a simulation ``sim_f`` that requires calculating multiple
-  expensive quantities, some of which depend on other quantities. ``sim_f`` can
-  observe intermediate quantities in order to stop related calculations and
-  preempt future calculations associated with poor parameter values.
-
-* A user has a ``sim_f`` with multiple fidelities, with the higher-fidelity
-  evaluations requiring more computational resources, and a
-  ``gen_f``/``alloc_f`` that decides which parameters should be evaluated and
-  at what fidelity level. libEnsemble can coordinate these evaluations without
-  requiring the user know parallel programming.
-
-* A user wishes to identify multiple local optima for a ``sim_f``. Furthermore,
-  sensitivity analysis is desired at each identified optimum. libEnsemble can
-  use the points from the APOSMM ``gen_f`` to identify optima; and after a
-  point is ruled to be an optimum, a different ``gen_f`` can produce a
-  collection of parameters necessary for sensitivity analysis of ``sim_f``.
-
-Naturally, combinations of these use cases are supported as well. An example of
-such a combination is using libEnsemble to solve an optimization problem that
-relies on simulations that fail frequently.
-
-Resources
-~~~~~~~~~~~~~~~~~~
-
-**Support:**
-
-- The best way to receive support is to email questions to ``libEnsemble@lists.mcs.anl.gov``.
-- Communicate (and establish a private channel, if desired) at the `libEnsemble Slack page`_.
-- Join the `libEnsemble mailing list`_ for updates about new releases.
-
-**Further Information:**
-
-- Documentation is provided by ReadtheDocs_.
-- A visual overview of libEnsemble is given in this poster_.
-
-**Citation:**
-
-- Please use the following to cite libEnsemble in a publication:
-
-.. code-block:: bibtex
-
-  @techreport{libEnsemble,
-    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
-                   David Bindel and John-Luke Navarro},
-    title       = {{libEnsemble} Users Manual},
-    institution = {Argonne National Laboratory},
-    number      = {Revision 0.5.2},
-    year        = {2019},
-    url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
-  }
-
 Quickstart Guide
 ----------------
 
@@ -271,6 +175,37 @@ When specifying these options via command line options, one may use the
 `common.py`_ in the ``libensemble/tests/regression_tests`` directory.
 
 See the `user guide`_ for more information.
+
+
+Resources
+~~~~~~~~~~~~~~~~~~
+
+**Support:**
+
+- The best way to receive support is to email questions to ``libEnsemble@lists.mcs.anl.gov``.
+- Communicate (and establish a private channel, if desired) at the `libEnsemble Slack page`_.
+- Join the `libEnsemble mailing list`_ for updates about new releases.
+
+**Further Information:**
+
+- Documentation is provided by ReadtheDocs_.
+- A visual overview of libEnsemble is given in this poster_.
+
+**Citation:**
+
+- Please use the following to cite libEnsemble in a publication:
+
+.. code-block:: bibtex
+
+  @techreport{libEnsemble,
+    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
+                   David Bindel and John-Luke Navarro},
+    title       = {{libEnsemble} Users Manual},
+    institution = {Argonne National Laboratory},
+    number      = {Revision 0.5.2},
+    year        = {2019},
+    url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
+  }
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
 .. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py

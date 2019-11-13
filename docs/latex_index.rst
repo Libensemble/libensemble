@@ -6,6 +6,7 @@
    :maxdepth: 3
 
    Introduction<introduction>
+   overview_usecases
    programming_libE
    platforms/platforms
    dev_info
