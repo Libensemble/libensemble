@@ -53,8 +53,6 @@ many-node simulations. A job controller interface is provided to ensure scripts
 are portable, resilient and flexible; it also enables automatic detection of
 the nodes and cores in a system and can split up jobs automatically if resource
 data isn't supplied.
-Quickstart Guide
-----------------
 
 Dependencies
 ~~~~~~~~~~~~
@@ -178,7 +176,7 @@ See the `user guide`_ for more information.
 
 
 Resources
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
 
 **Support:**
 
@@ -206,6 +204,9 @@ Resources
     year        = {2019},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
+
+
+
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
 .. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py

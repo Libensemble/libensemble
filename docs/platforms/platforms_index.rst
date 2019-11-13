@@ -30,14 +30,4 @@ differently. On these machines, libEnsemble is run centralized on either a
 compute-node with the support of Balsam_ or on a frontend server called a MOM
 (Machine-Oriented Mini-server) node.
 
-Read more about configuring and launching libEnsemble on some HPC systems:
-
-.. toctree::
-    :maxdepth: 2
-    :titlesonly:
-
-    bebop
-    theta
-    example_scripts
-
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
