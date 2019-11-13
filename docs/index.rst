@@ -11,7 +11,7 @@
 
    Introduction<introduction>
    overview_usecases
-   programming_libE
+   libe_module
    data_structures/data_structures
    user_funcs
    job_controller/jc_index
