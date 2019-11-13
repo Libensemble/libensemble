@@ -7,27 +7,35 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting Started:
-
+   :caption: User Guide:
    Introduction<introduction>
+   overview_usecases
    programming_libE
+   data_structures/data_structures
+   user_funcs
+   job_controller/jc_index
+   logging
+   utilities
 
 .. toctree::
-   :caption: Further information:
    :maxdepth: 2
-
-   platforms/platforms
-   dev_info
+   :caption: Tutorials:
+   tutorials/local_sine_tutorial
 
 .. toctree::
-   :caption: In Depth:
    :maxdepth: 2
-
-   tutorials/tutorials
+   :caption: Additional Reference:
    FAQ
-   examples/examples_index
-   bibliography
    release_notes
+   contributing
+   known_issues
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer Guide:
+   dev_guide/release_management/release_index
+   dev_guide/dev_API/developer_API
+
 
 Indices and tables
 ==================

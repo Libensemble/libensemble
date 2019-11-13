@@ -1,6 +1,6 @@
 
-Overview
---------
+Architecture Overview
+---------------------
 libEnsemble is a Python library to coordinate the concurrent evaluation of
 dynamic ensembles of calculations. libEnsemble uses a manager to allocate work to
 various workers. A libEnsemble worker is the smallest indivisible unit to

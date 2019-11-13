@@ -1,18 +1,3 @@
-libEnsemble has been largely developed, supported, and tested on Linux
-distributions and macOS, from laptops to thousands of compute-nodes. Although
-libEnsemble and most user functions are cross-platform compatible, there are
-platform-specific differences for installing and configuring libEnsemble.
-
-Personal Computers
-==================
-
-Users interested in installing and running libEnsemble on their personal machines
-are encouraged to start by reading the Quickstart guide :doc:`here<../quickstart>`.
-
-We recommend installing libEnsemble and it's dependencies in a virtual environment,
-created either through ``conda create``, ``virtualenv``, or ``python -m venv``,
-depending on how Python is installed.
-
 HPC Systems
 ===========
 
