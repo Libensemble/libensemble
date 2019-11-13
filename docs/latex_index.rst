@@ -5,8 +5,7 @@
 .. toctree::
    :maxdepth: 3
 
-   Introduction<introduction>
-   overview_usecases
+   Introduction<introduction_latex>
    programming_libE
    platforms/platforms
    dev_info
