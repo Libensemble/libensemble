@@ -10,4 +10,11 @@ build:
     image: latest
 
 python:
-    install: .
+    install:
+      - method: pip
+        path: .
+      #- method: setuptools        
+        #This would do pip install .[docs] - if have a 'docs' dep in setup.py
+        #extra_requirements:
+           #- docs
+  
