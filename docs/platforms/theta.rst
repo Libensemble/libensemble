@@ -5,21 +5,6 @@ Theta
 Theta_ is a Cray XC40 system based on the second-generation Intel
 Xeon Phi processor, available within ALCF_ at Argonne National Laboratory.
 
-Prerequisites
--------------
-
-An Argonne ALCF account is required to access Theta. Interested users will need
-to apply for and be granted an account before continuing. To submit jobs to Theta,
-users must charge their jobs to a project (specified while requesting an
-account).
-
-Theta contains numerous node-types, but libEnsemble users will mostly interact
-with login, Machine Oriented Mini-server (MOM) and compute nodes. MOM nodes execute
-user batch-scripts to run on the compute nodes.
-
-libEnsemble functions need to incorporate the libEnsemble
-:ref:`job controller<jobcontroller_index>` to perform calculations on Theta.
-
 Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
 and compute nodes. Users on login nodes submit batch runs to the MOM nodes.
 MOM nodes execute user batch-scripts to run on the compute nodes.
