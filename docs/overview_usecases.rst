@@ -1,3 +1,6 @@
+Understanding libEnsemble
+=========================
+
 Overview
 ~~~~~~~~
 .. begin_overview_rst_tag

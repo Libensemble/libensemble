@@ -10,7 +10,7 @@
    :caption: User Guide:
 
    Quickstart<introduction>
-   architecture_html
+   overview_usecases
    programming_libE
    utilities
    platforms/platforms_index
