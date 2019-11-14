@@ -24,7 +24,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
 from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
 from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
-from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
+from libensemble.util import parse_args, per_worker_stream
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()

@@ -19,7 +19,7 @@ import numpy as np
 from libensemble.libE import libE
 from support import nan_func as sim_f, aposmm_gen_out as gen_out
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.util import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 n = 2

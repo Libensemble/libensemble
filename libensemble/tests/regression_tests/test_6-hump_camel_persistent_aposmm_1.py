@@ -23,7 +23,7 @@ from math import gamma, pi, sqrt
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.util import parse_args, save_libE_output, per_worker_stream
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
 
