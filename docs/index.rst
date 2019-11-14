@@ -11,11 +11,7 @@
 
    Quickstart<introduction>
    architecture_html
-   libe_module
-   data_structures/data_structures
-   user_funcs
-   job_controller/jc_index
-   logging
+   programming_libE
    utilities
    platforms/platforms_index
 
