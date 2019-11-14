@@ -20,6 +20,7 @@
    :caption: Tutorials:
 
    tutorials/local_sine_tutorial
+   examples/examples_index
 
 .. toctree::
    :maxdepth: 2
