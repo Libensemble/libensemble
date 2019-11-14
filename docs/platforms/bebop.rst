@@ -5,16 +5,6 @@ Bebop
 Bebop_ is a Cray CS400 cluster available within LCRC at Argonne National
 Laboratory, featuring both Intel Broadwell and Knights Landing compute nodes.
 
-Prerequisites
--------------
-
-An Argonne LCRC_ account is required to access Bebop. Interested users will need
-to apply for and be granted an account before continuing. To submit jobs to Bebop,
-users can charge hours to a project or their personal allocation (default).
-
-Bebop consists primarily of login and compute nodes. Users start on the login
-nodes, and schedule work for execution on the compute nodes.
-
 Configuring Python
 ------------------
 
