@@ -10,4 +10,4 @@ build:
     image: latest
 
 python:
-    install: true
+    install: .
