@@ -1,3 +1,6 @@
+before_install:
+    conda install sphinxcontrib-bibtex
+
 dependencies:
  - python>=3.6
- - sphinxcontrib-bibtex
+ 
