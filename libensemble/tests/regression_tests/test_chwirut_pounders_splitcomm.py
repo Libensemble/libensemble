@@ -21,7 +21,8 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out
-from libensemble.utils import parse_args, save_libE_output, per_worker_stream, mpi_comm_split
+from libensemble.tests.regression_tests.common import mpi_comm_split
+from libensemble.utils import parse_args, save_libE_output, per_worker_stream
 
 num_comms = 2  # Must have atleast num_comms*2 processors
 nworkers, is_master, libE_specs, _ = parse_args()
