@@ -58,6 +58,7 @@ Read more about configuring and launching libEnsemble on some HPC systems:
 
     bebop
     theta
+    summit
     example_scripts
 
 
