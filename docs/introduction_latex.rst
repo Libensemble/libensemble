@@ -1,7 +1,3 @@
-==========
-INTROLATEX
-==========
-
 .. include:: ../README.rst
     :start-after: after_badges_rst_tag
     :end-before: before_dependencies_rst_tag
@@ -9,29 +5,19 @@ INTROLATEX
 Overview
 ========
 .. include:: overview_usecases.rst
+    :start-after: begin_overview_rst_tag
+    :end-before: Example Use Cases 
 
-Further
-=======
+Example Use Cases
+=================
+.. include:: overview_usecases.rst
+    :start-after: begin_usecases_rst_tag
+
+Further Information
+===================
 .. include:: ../README.rst
     :start-after: before_dependencies_rst_tag
     :end-before: after_resources_rst_tag
-
-Support for HPC
-~~~~~~~~~~~~~~~
-
-libEnsemble's flexible architecture was developed with HPC System support and
-scaling as a central focus, and can perform calculations on both laptops and
-thousands of compute-nodes.
-
-.. toctree::
-    :maxdepth: 1
-    :titlesonly:
-
-    platforms/platforms_index
-    platforms/bebop
-    platforms/theta
-    platforms/example_scripts
-
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
 .. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py

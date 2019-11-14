@@ -7,6 +7,6 @@
 
    Introduction<introduction_latex>
    programming_libE
-   platforms/platforms
+   platforms/platforms_index
    dev_info
    appendix
