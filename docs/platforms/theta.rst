@@ -6,8 +6,8 @@ Theta_ is a Cray XC40 system based on the second-generation Intel
 Xeon Phi processor, available within ALCF_ at Argonne National Laboratory.
 
 Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
-and compute nodes. Users on login nodes submit batch runs to the MOM nodes.
-MOM nodes execute user batch-scripts to run on the compute nodes.
+and compute nodes. Users on login nodes submit batch jobs to the MOM nodes.
+MOM nodes execute user batch-scripts to run on the compute nodes via ``aprun``.
 
 Configuring Python
 ------------------
@@ -119,7 +119,7 @@ Interactive Runs
 Users can run interactively with ``qsub`` by specifying the ``-I`` flag, similarly
 to the following::
 
-    $ qsub -A [project] -n 128 -q default -t 120 -I
+    $ qsub -A [project] -n 8 -q debug-cache-quad -t 60 -I
 
 This will place the user on a MOM node. Then, to launch MPI jobs to the compute
 nodes use ``aprun`` where you would use ``mpirun``.
@@ -196,7 +196,7 @@ Here is an example Balsam submission script:
     #COBALT -O libE_test
     #COBALT -n 128
     #COBALT -q default
-    ##COBALT -A [project]
+    #COBALT -A [project]
 
     # Name of calling script
     export EXE=calling_script.py
