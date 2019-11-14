@@ -1,3 +1,7 @@
+Overview
+~~~~~~~~
+.. begin_overview_rst_tag
+
 libEnsemble is a Python library to coordinate the concurrent evaluation of
 dynamic ensembles of calculations. libEnsemble uses a manager to allocate work to
 various workers. A libEnsemble worker is the smallest indivisible unit to
@@ -20,6 +24,8 @@ no ``gen_f`` output to give, the worker is told to call ``gen_f``.
 
 Example Use Cases
 ~~~~~~~~~~~~~~~~~
+.. begin_usecases_rst_tag
+
 Below are some expected libEnsemble use cases that we support (or are working
 to support) and plan to have examples of:
 
