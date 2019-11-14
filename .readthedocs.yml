@@ -1,7 +1,7 @@
 version: 2
 
 conda:
-    file: conda/environment.yml
+    environment: conda/environment.yml
 
 sphinx:
     configuration: docs/conf.py
