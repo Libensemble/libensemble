@@ -2,11 +2,8 @@
 Common plumbing for regression tests
 """
 
-import sys
 import os
 import os.path
-import numpy as np
-import pickle
 
 
 def mpi_comm_excl(exc=[0], comm=None):

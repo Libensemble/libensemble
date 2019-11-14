@@ -18,7 +18,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_fß
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.util import parse_args, per_worker_stream

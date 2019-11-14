@@ -5,6 +5,8 @@ libEnsemble utilities
 """
 
 import traceback
+import os
+import sys
 import logging
 import numpy as np
 import argparse
@@ -238,7 +240,9 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
 
 # ==================== Command-line argument parsing ===========================
 
+
 parser = argparse.ArgumentParser(prog='test_...')
+
 parser.add_argument('--comms', type=str, nargs='?',
                     choices=['local', 'tcp', 'ssh', 'client', 'mpi'],
                     default='mpi', help='Type of communicator')
@@ -339,6 +343,7 @@ def parse_args():
 
 # =================== save libE output to pickle and np ========================
 
+
 def save_libE_output(H, persis_info, calling_file, nworkers):
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
@@ -354,6 +359,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
 
 # ===================== per-worker numpy random-streams ========================
 
+
 def per_worker_stream(persis_info, nworkers):
     for i in range(nworkers):
         if i in persis_info:
@@ -365,7 +371,6 @@ def per_worker_stream(persis_info, nworkers):
                 'rand_stream': np.random.RandomState(i),
                 'worker_num': i}
     return persis_info
-
 
 
 def eprint(*args, **kwargs):
