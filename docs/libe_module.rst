@@ -1,6 +1,2 @@
-Main libEnsemble module
-=======================
-
-.. automodule:: libE
-  :members:
-  :no-undoc-members:
+.. include:: programming_libE
+    :end-before: end-before-toctree_rst_tag

@@ -29,6 +29,8 @@ Other libEnsemble files produced by default are:
   Messages at or above level MANAGER_WARNING are also copied to stderr to alert
   the user promptly.  For more info, see :doc:`Logging<logging>`.
 
+.. end-before-toctree_rst_tag
+
 .. toctree::
    data_structures/data_structures
    user_funcs
