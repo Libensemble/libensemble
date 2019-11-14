@@ -12,7 +12,7 @@ Users can check the formatting and consistency of ``exit_criteria`` and each
 module. Provide any combination of these data structures as keyword arguments.
 For example::
 
-  from libensemble.libE import check_inputs
+  from libensemble.utils import check_inputs
   check_inputs(sim_specs=my-sim_specs, gen_specs=my-gen_specs, exit_criteria=ec)
 
 Parameters as command-line arguments
@@ -23,7 +23,7 @@ command-line arguments.
 
 In your calling script::
 
-    from libensemble.tests.regression_tests.common import parse_args
+    from libensemble.utils import parse_args
     nworkers, is_master, libE_specs, misc_args = parse_args()
 
 From the shell, for example::
@@ -40,8 +40,3 @@ Usage:
                     [--pwd [PWD]] [--worker_pwd [WORKER_PWD]]
                     [--worker_python [WORKER_PYTHON]]
                     [--tester_args [TESTER_ARGS [TESTER_ARGS ...]]]
-
-.. note::
-    Since this utility was developed to support automatic testing,
-    it currently only accepts calling scripts prepended with ``test_``
-    and isn't necessarily recommended for production purposes.
