@@ -9,14 +9,15 @@
    :maxdepth: 2
    :caption: User Guide:
 
-   Introduction<introduction>
-   overview_usecases
+   Quickstart<introduction>
+   architecture_html
    libe_module
    data_structures/data_structures
    user_funcs
    job_controller/jc_index
    logging
    utilities
+   platforms/platforms_index
 
 .. toctree::
    :maxdepth: 2
@@ -29,9 +30,10 @@
    :caption: Additional Reference:
 
    FAQ
+   known_issues
    release_notes
    contributing
-   known_issues
+
 
 .. toctree::
    :maxdepth: 2
