@@ -4,6 +4,8 @@ libEnsemble utilities
 
 """
 
+__all__ = ['check_inputs']
+
 import traceback
 import logging
 import numpy as np
