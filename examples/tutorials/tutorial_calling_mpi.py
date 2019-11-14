@@ -13,10 +13,10 @@ is_master = (MPI.COMM_WORLD.Get_rank() == 0)    # master process has MPI rank 0
 
 gen_specs = {'gen_f': gen_random_sample,        # Our generator function
              'out': [('x', float, (1,))],       # gen_f output (name, type, size).
-             'user': { 'lower': np.array([-3]), # random sampling lower bound
-                       'upper': np.array([3]),  # random sampling upper bound
-                       'gen_batch_size': 5      # number of values gen_f will generate per call
-                     }
+             'user': {'lower': np.array([-3]),  # random sampling lower bound
+                      'upper': np.array([3]),   # random sampling upper bound
+                      'gen_batch_size': 5       # number of values gen_f will generate per call
+                      }
              }
 
 sim_specs = {'sim_f': sim_find_sine,            # Our simulator function

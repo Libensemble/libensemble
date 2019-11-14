@@ -177,7 +177,6 @@ When specifying these options via command line options, one may use the
 
 See the `user guide`_ for more information.
 
-
 Resources
 ~~~~~~~~~
 
@@ -208,10 +207,7 @@ Resources
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
-
 .. after_resources_rst_tag
-
-
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
 .. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py

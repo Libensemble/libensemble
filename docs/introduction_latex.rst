@@ -6,7 +6,7 @@ Overview
 ========
 .. include:: overview_usecases.rst
     :start-after: begin_overview_rst_tag
-    :end-before: Example Use Cases 
+    :end-before: Example Use Cases
 
 Example Use Cases
 =================
