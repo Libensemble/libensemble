@@ -23,7 +23,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.util import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, per_worker_stream
 
 nworkers, is_master, libE_specs, _ = parse_args()
 

@@ -23,7 +23,7 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt as gen_f
 from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens as alloc_f
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
-from libensemble.util import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, per_worker_stream
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 nworkers, is_master, libE_specs, _ = parse_args()
