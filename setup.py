@@ -62,6 +62,7 @@ setup(
 
     extras_require={
         'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py']},
+        'docs': ['sphinxcontrib.bibtex']
 
     classifiers=[
         'Development Status :: 4 - Beta',

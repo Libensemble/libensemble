@@ -13,8 +13,5 @@ python:
     install:
       - method: pip
         path: .
-      #- method: setuptools        
-        #This would do pip install .[docs] - if have a 'docs' dep in setup.py
-        #extra_requirements:
-           #- docs
-  
+        extra_requirements:
+         - docs
