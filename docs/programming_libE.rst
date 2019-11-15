@@ -1,11 +1,8 @@
 Programming with libEnsemble
 ============================
 
-.. automodule:: libE
-  :members:
-  :no-undoc-members:
-
 .. toctree::
+   libe_module
    history_output
    data_structures/data_structures
 
