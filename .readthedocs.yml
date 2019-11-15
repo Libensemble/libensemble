@@ -4,7 +4,7 @@ conda:
     environment: conda/environment.yml
 
 sphinx:
-  configuration: docs/conf.py
+    configuration: docs/conf.py
 
 build:
     image: latest
