@@ -24,7 +24,7 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: Additional Reference:
+   :caption: Additional References:
 
    FAQ
    known_issues
