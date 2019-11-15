@@ -1,8 +1,7 @@
 """
 This module contains methods used our implementation of the Asynchronously
 Parallel Optimization Solver for finding Multiple Minima (APOSMM) method
-described in detail in the paper
-`https://doi.org/10.1007/s12532-017-0131-4 <https://doi.org/10.1007/s12532-017-0131-4>`_
+described in detail in :cite:`LW16`.
 """
 __all__ = ['aposmm_logic', 'initialize_APOSMM',
            'decide_where_to_start_localopt', 'update_history_dist']

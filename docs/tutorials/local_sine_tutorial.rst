@@ -3,7 +3,7 @@ Simple Local Sine Tutorial
 ==========================
 
 This introductory tutorial demonstrates the capability to perform ensembles of
-calculations in parallel using :doc:`libEnsemble<../quickstart>` with Python's Multiprocessing.
+calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's Multiprocessing.
 
 The foundation of writing libEnsemble routines is accounting for four components:
 
@@ -193,7 +193,6 @@ inputs and outputs from those functions to expect.
                     }
                  }
 
-
     sim_specs = {'sim_f': sim_find_sine,       # Our simulator function
                  'in': ['x'],                  # Input field names. 'x' from gen_f output
                  'out': [('y', float)]}        # sim_f output. 'y' = sine('x')
@@ -215,7 +214,7 @@ circumstances where libEnsemble should stop execution in :ref:`exit_criteria<dat
 
     exit_criteria = {'sim_max': 80}           # Stop libEnsemble after 80 simulations
 
-Now we're ready to write our libEnsemble :doc:`libE<../libE_module>` function call.
+Now we're ready to write our libEnsemble :doc:`libE<../programming_libE>` function call.
 This :ref:`H<datastruct-history-array>` is the final version of the History array.
 'flag' should be zero if no errors occur.
 

@@ -1,4 +1,3 @@
-
 .. _datastruct-alloc-specs:
 
 alloc_specs
@@ -9,18 +8,14 @@ to main ``libE()`` routine::
 
     alloc_specs: [dict, optional] :
 
-        Required keys :
-
         'alloc_f' [func] :
             Default: give_sim_work_first
-
-        Optional keys :
-
+        'in' [list of strings] :
+            Default: None
         'out' [list of tuples] :
             Default: [('allocated',bool)]
-
-        'batch_mode' [bool] :
-            Default: True
+        'user' [dict]
+            Default: {'batch_mode': True}
 
 .. note::
 
@@ -28,11 +23,13 @@ to main ``libE()`` routine::
   * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
 
 .. seealso::
-  The script `test_chwirut_uniform_sampling_one_residual_at_a_time.py`_
-  specifies fields to be used by the allocation function.
+  - `test_chwirut_uniform_sampling_one_residual_at_a_time.py`_ specifies fields
+    to be used by the allocation function ``give_sim_work_first`` from
+    fast_alloc_and_pausing.py_.
 
   ..  literalinclude:: ../../libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py
       :start-at: alloc_specs
       :end-before: end_alloc_specs_rst_tag
 
 .. _test_chwirut_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py
+.. _fast_alloc_and_pausing.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/fast_alloc_and_pausing.py

@@ -17,8 +17,10 @@ from the allocation function.
 
 .. seealso::
 
-  From: ``libEnsemble/tests/regression_tests/support.py``
+  From: support.py_
 
   ..  literalinclude:: ../../libensemble/tests/regression_tests/support.py
       :start-at: persis_info_1
       :end-before: end_persis_info_rst_tag
+
+.. _support.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/support.py

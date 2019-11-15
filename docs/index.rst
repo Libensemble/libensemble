@@ -7,42 +7,37 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting Started:
+   :caption: User Guide:
 
-   Quickstart<quickstart>
-   contributing
-   release_notes
-   FAQ
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Tutorials:
-
-   tutorials/local_sine_tutorial
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Running on:
-
-   platforms/platforms_index.rst
+   Quickstart<introduction>
+   overview_usecases
+   programming_libE
+   utilities
+   platforms/platforms_index
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide:
+   :caption: Tutorials:
 
-   user_guide
-   libE_module
-   data_structures/data_structures
-   user_funcs
-   job_controller/jc_index
-   logging
+   tutorials/local_sine_tutorial
+   examples/examples_index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Additional References:
+
+   FAQ
+   known_issues
+   release_notes
+   contributing
+   bibliography
 
 .. toctree::
    :maxdepth: 2
    :caption: Developer Guide:
 
-   dev_guide/release_management/release_index.rst
-   dev_guide/dev_API/developer_API.rst
+   dev_guide/release_management/release_index
+   dev_guide/dev_API/developer_API
 
 Indices and tables
 ==================
