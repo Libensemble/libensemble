@@ -51,7 +51,7 @@ allowed_libE_spec_keys = ['comms',               #
                           'port',                #
                           'authkey',             #
                           'workerID',            #
-                          'nprocesses',          #
+                          'nworkers',          #
                           'worker_cmd',          #
                           'abort_on_exception',  #
                           'sim_dir',             #
@@ -107,10 +107,10 @@ def check_libE_specs(libE_specs, serial_check=False):
         if not serial_check:
             assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
     elif comms_type in ['local']:
-        assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
+        assert libE_specs['nworkers'] >= 1, "Must specify at least one worker"
     elif comms_type in ['tcp']:
         # TODO, differentiate and test SSH/Client
-        assert libE_specs['nprocesses'] >= 1, "Must specify at least one worker"
+        assert libE_specs['nworkers'] >= 1, "Must specify at least one worker"
 
     for k in libE_specs.keys():
         assert k in allowed_libE_spec_keys, "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
@@ -276,7 +276,7 @@ def mpi_parse_args(args):
 def local_parse_args(args):
     "Parse arguments for forked processes using multiprocessing."
     nworkers = args.nworkers or 4
-    libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+    libE_specs = {'nworkers': nworkers, 'comms': 'local'}
     return nworkers, True, libE_specs, args.tester_args
 
 
@@ -288,7 +288,7 @@ def tcp_parse_args(args):
         "{manager_ip}", "{manager_port}", "{authkey}", "--workerID",
         "{workerID}", "--nworkers",
         str(nworkers)]
-    libE_specs = {'nprocesses': nworkers, 'worker_cmd': cmd, 'comms': 'tcp'}
+    libE_specs = {'nworkers': nworkers, 'worker_cmd': cmd, 'comms': 'tcp'}
     return nworkers, True, libE_specs, args.tester_args
 
 
@@ -323,7 +323,7 @@ def client_parse_args(args):
                   'port': int(port),
                   'authkey': authkey.encode('utf-8'),
                   'workerID': args.workerID,
-                  'nprocesses': nworkers,
+                  'nworkers': nworkers,
                   'comms': 'tcp'}
     return nworkers, False, libE_specs, args.tester_args
 

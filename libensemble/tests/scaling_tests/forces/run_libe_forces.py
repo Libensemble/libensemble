@@ -30,7 +30,7 @@ else:
         print("WARNING: nworkers not passed to script - defaulting to 4")
         nworkers = 4
     is_master = True  # processes are forked in libE
-    libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+    libE_specs = {'nworkers': nworkers, 'comms': 'local'}
 
 if is_master:
     print('\nRunning with {} workers\n'.format(nworkers))

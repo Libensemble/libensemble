@@ -39,7 +39,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     We dispatch to different types of worker teams depending on
     the contents of libE_specs.  If 'comm' is a field, we use MPI;
-    if 'nthreads' is a field, we use threads; if 'nprocesses' is a
+    if 'nthreads' is a field, we use threads; if 'nworkers' is a
     field, we use multiprocessing.
 
     If an exception is encountered by the manager or workers, the
@@ -262,7 +262,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
     "Main routine for thread/process launch of libE."
 
-    nworkers = libE_specs['nprocesses']
+    nworkers = libE_specs['nworkers']
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     jobctl = JobController.controller
@@ -375,9 +375,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
     launchf = libE_tcp_worker_launcher(libE_specs)
 
     # Get worker launch parameters and fill in defaults for TCP/IP conn
-    if 'nprocesses' in libE_specs:
+    if 'nworkers' in libE_specs:
         workers = None
-        nworkers = libE_specs['nprocesses']
+        nworkers = libE_specs['nworkers']
     elif 'workers' in libE_specs:
         workers = libE_specs['workers']
         nworkers = len(workers)

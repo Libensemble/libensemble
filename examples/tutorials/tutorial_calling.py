@@ -5,7 +5,7 @@ from tutorial_gen import gen_random_sample
 from tutorial_sim import sim_find_sine
 
 nworkers = 4
-libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+libE_specs = {'nworkers': nworkers, 'comms': 'local'}
 
 gen_specs = {'gen_f': gen_random_sample,        # Our generator function
              'out': [('x', float, (1,))],       # gen_f output (name, type, size).

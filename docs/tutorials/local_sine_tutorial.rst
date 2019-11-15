@@ -173,7 +173,7 @@ use. Our communication method, ``'local'``, refers to Python's Multiprocessing.
     from simulator import sim_find_sine
 
     nworkers = 4
-    libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+    libE_specs = {'nworkers': nworkers, 'comms': 'local'}
 
 We configure the settings and specifications for our ``sim_f`` and ``gen_f``
 functions in the :ref:`gen_specs<datastruct-gen-specs>` and
