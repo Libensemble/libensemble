@@ -4,7 +4,7 @@ libEnsemble utilities
 
 """
 
-__all__ = ['check_inputs']
+__all__ = ['check_inputs', 'parse_args']
 
 import traceback
 import logging
