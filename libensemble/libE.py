@@ -1,13 +1,13 @@
 """
 This is the outer libEnsemble routine.
 
-We dispatch to different types of worker teams depending on the contents of
-``libE_specs``.  If ``'comm'`` is a field, MPI is used; if ``'nthreads'`` is a
-field, threads are used ; if ``'nprocesses'`` is a field, multiprocessing is
-used.
+libEnsemble dispatches to different types of worker teams depending on the
+contents of ``libE_specs``.  If ``'comm'`` is a field, MPI is used; if
+``'nthreads'`` is a field, threads are used ; if ``'nworkers'`` is a field,
+multiprocessing is used.
 
 If an exception is encountered by the manager or workers, the
-history array is dumped to file and MPI abort is called.
+History array is dumped to file and MPI abort is called.
 """
 
 __all__ = ['libE']
