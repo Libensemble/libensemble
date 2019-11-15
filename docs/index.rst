@@ -30,6 +30,7 @@
    known_issues
    release_notes
    contributing
+   bibliography
 
 .. toctree::
    :maxdepth: 2

@@ -30,4 +30,5 @@ Appendices
    known_issues
    examples/examples_index
    release_notes
-   bibliography
+
+.. bibliography:: references.bib

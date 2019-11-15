@@ -13,8 +13,8 @@ Example Use Cases
 .. include:: overview_usecases.rst
     :start-after: begin_usecases_rst_tag
 
-Further Information
-===================
+Quickstart Guide
+================
 .. include:: ../README.rst
     :start-after: before_dependencies_rst_tag
     :end-before: after_resources_rst_tag
