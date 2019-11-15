@@ -1,13 +1,15 @@
 """
 This is the outer libEnsemble routine.
 
-libEnsemble dispatches to different types of worker teams depending on the
-contents of ``libE_specs``.  If ``'comm'`` is a field, MPI is used; if
-``'nthreads'`` is a field, threads are used ; if ``'nworkers'`` is a field,
-multiprocessing is used.
+This module sets up the manager and the team of workers, configured according
+to the contents of the 'libE_specs' dictionary. The Manager/Worker
+communications scheme used within libEnsemble is parsed from the 'comms' key
+if present, with valid values being 'MPI', 'local' (for multiprocessing), or
+'TCP'. MPI is the default. If no communication scheme or MPI communicator is
+specified, a duplicate of COMM_WORLD will be used.
 
-If an exception is encountered by the manager or workers, the
-History array is dumped to file and MPI abort is called.
+If an exception is encountered by the manager or workers, the history array
+is dumped to file and MPI abort is called.
 """
 
 __all__ = ['libE']
