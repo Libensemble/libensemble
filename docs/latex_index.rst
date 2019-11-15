@@ -8,5 +8,26 @@
    Introduction<introduction_latex>
    programming_libE
    platforms/platforms_index
-   dev_info
-   appendix
+
+Developer's Guide
+=================
+
+.. toctree::
+   :maxdepth: 3
+
+   contributing
+   dev_guide/dev_API/developer_API.rst
+   dev_guide/release_management/release_index.rst
+
+Appendices
+==========
+
+.. toctree::
+   :maxdepth: 3
+
+   tutorials/tutorials
+   FAQ
+   known_issues
+   examples/examples_index
+   release_notes
+   bibliography
