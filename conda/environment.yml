@@ -1,6 +1,7 @@
+channels:
+  - conda-forge
+  - defaults
+
 dependencies:
+ - sphinxcontrib-bibtex
  - python>=3.6
- - pip
- - pip:
-   - sphinxcontrib.bibtex
-   - sphinxcontrib-bibtex
