@@ -1,22 +1,10 @@
+Running on HPC Systems
+======================
 
-libEnsemble has been largely developed, supported, and tested on Linux
-distributions and macOS, from laptops to thousands of compute-nodes. Although
-libEnsemble and most user functions are cross-platform compatible, there are
-platform-specific differences for installing and configuring libEnsemble.
-
-Personal Computers
-==================
-
-Users interested in installing and running libEnsemble on their personal machines
-are encouraged to start by reading the Quickstart guide :doc:`here<../quickstart>`.
-
-We recommend installing libEnsemble and it's dependencies in a virtual environment,
-created either through ``conda create``, ``virtualenv``, or ``python -m venv``,
-depending on how Python is installed.
-
-
-HPC Systems
-===========
+libEnsemble has been developed, supported, and tested on systems of highly varying
+scales, from laptops to thousands of compute-nodes. libEnsemble's embarrassingly
+parallel  scaling capabilities are best exemplified on the resources available
+within high-performance machines.
 
 libEnsemble's flexible architecture lends it best to two general modes of worker
 distributions across allocated compute nodes. The first mode we refer
@@ -29,8 +17,6 @@ job-launch command can execute calculations on the other allocated nodes:
     :scale: 75
     :align: center
 
-
-
 Alternatively, in *distributed* mode, each worker process runs independently of
 other workers directly on one or more allocated nodes:
 
@@ -38,7 +24,6 @@ other workers directly on one or more allocated nodes:
     :alt: distributed
     :scale: 75
     :align: center
-
 
 .. note::
 
@@ -59,6 +44,5 @@ Read more about configuring and launching libEnsemble on some HPC systems:
     bebop
     theta
     example_scripts
-
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/

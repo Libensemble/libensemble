@@ -1,6 +1,7 @@
+.. _datastruct-exit-criteria:
+
 exit_criteria
 =============
-.. _datastruct-exit-criteria:
 
 Exit criteria for libEnsemble::
 

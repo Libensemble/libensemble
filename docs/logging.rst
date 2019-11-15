@@ -24,9 +24,6 @@ This boundary can be adjusted as follows::
 
 stderr displaying can be effectively disabled by setting the stderr level to CRITICAL.
 
-Logging API
------------
-
 .. automodule:: libE_logger
   :members:
   :no-undoc-members:
