@@ -9,7 +9,7 @@ Specifications for libEnsemble::
         'comms' [string] :
             Manager/Worker communications mode. Default: mpi
             Options are 'mpi', 'local', 'tcp'
-        'nprocesses' [int]:
+        'nworkers' [int]:
             Number of worker processes to spawn (in local/tcp modes)
         'comm' [MPI communicator] :
             libEnsemble communicator. Default: MPI.COMM_WORLD
