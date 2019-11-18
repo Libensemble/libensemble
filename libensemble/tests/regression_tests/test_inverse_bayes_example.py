@@ -24,7 +24,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
 from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
 from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
-from libensemble.utils import parse_args, per_worker_stream
+from libensemble.utils import parse_args, add_unique_random_streams
 
 # Parse args for test code
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -45,7 +45,7 @@ gen_specs = {'gen_f': gen_f,
                       'num_batches': 10}
              }
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
 exit_criteria = {

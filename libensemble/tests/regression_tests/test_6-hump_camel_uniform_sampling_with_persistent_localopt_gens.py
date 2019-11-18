@@ -23,7 +23,7 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt as gen_f
 from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens as alloc_f
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
-from libensemble.utils import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -51,7 +51,7 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True}}
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
 

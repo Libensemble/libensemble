@@ -21,7 +21,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
-from libensemble.utils import parse_args, per_worker_stream
+from libensemble.utils import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -40,7 +40,7 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': num_pts, 'elapsed_wallclock_time': 300}
 

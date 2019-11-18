@@ -18,7 +18,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.libE_manager import ManagerException
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.utils import parse_args, per_worker_stream
+from libensemble.utils import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -38,7 +38,7 @@ gen_specs = {'gen_f': gen_f,
                       'gen_batch_size': 10}
              }
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 10}
 

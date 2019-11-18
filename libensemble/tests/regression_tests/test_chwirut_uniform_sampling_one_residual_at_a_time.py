@@ -27,7 +27,7 @@ from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample_obj_components as gen_f
 from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
-from libensemble.utils import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'tcp':
@@ -72,7 +72,7 @@ alloc_specs = {'alloc_f': give_sim_work_first,  # Allocation function
                }
 # end_alloc_specs_rst_tag
 
-persis_info = per_worker_stream(persis_info, nworkers + 1)
+persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
 
 exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
