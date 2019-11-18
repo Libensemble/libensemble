@@ -331,13 +331,15 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
     Parameters
     ----------
 
-    H: :obj:`numpy structured array`, optional
+    H: :obj:`numpy structured array`
 
         A previous libEnsemble history array
         :doc:`(example)<data_structures/history_array>`
 
-    persis_info: [dict] :
-        Dictionary containing persistent info
+    persis_info: :obj:`dict`
+
+        Persistent information to be passed between user functions
+        :doc:`(example)<data_structures/persis_info>`
 
     calling_file: [path] :
         Filepath to calling script (typically __file__), or base-name for output
@@ -369,12 +371,22 @@ def add_unique_random_streams(persis_info, size):
     Parameters
     ----------
 
-    persis_info: [dict] :
-        Dictionary containing persistent info
+    persis_info: :obj:`dict`
+
+        Persistent information to be passed between user functions
+        :doc:`(example)<data_structures/persis_info>`
 
     size: [int] :
         Number of entries to update with random streams in `persis_info`
 
+
+    Returns
+    -------
+
+    persis_info: :obj:`dict`
+
+        persistent information updated with random streams
+        :doc:`(example)<data_structures/persis_info>`
 
     """
     for i in range(size):
