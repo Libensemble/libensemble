@@ -44,7 +44,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # output            = what will be returned to libE
 
     calc_status = 0  # Returns to worker
-    
+
     x = H['x']
     simdir_basename = sim_specs['user']['simdir_basename']
     keys = sim_specs['user']['keys']
@@ -121,8 +121,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         data = np.loadtxt(filepath)
         # job.read_file_in_workdir(statfile)
         final_energy = data[-1]
-    except Exception as e:
-        # print('Caught:', e)
+    except Exception:
         final_energy = np.nan
         # print('Warning - Energy Nan')
 
