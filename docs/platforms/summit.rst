@@ -81,7 +81,7 @@ Batch Runs
 Batch scripts specify run-settings using ``#BSUB`` statements. The following
 simple example depicts configuring and launching libEnsemble to a launch node with
 multiprocessing. This script also assumes the user is using the ``parse_args()``
-convenience function within libEnsemble's ``/regression_tests/common.py``.
+convenience function within libEnsemble's ``utils.py``.
 
 .. code-block:: bash
 
