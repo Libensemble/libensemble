@@ -326,6 +326,26 @@ def parse_args():
 
 
 def save_libE_output(H, persis_info, calling_file, nworkers):
+    """Save History array contents to NumPy arrays and persis_info to pickle
+
+    Parameters
+    ----------
+
+    H: :obj:`numpy structured array`, optional
+
+        A previous libEnsemble history array
+        :doc:`(example)<data_structures/history_array>`
+
+    persis_info: [dict] :
+        Dictionary containing persistent info
+
+    calling_file: [path] :
+        Filepath to calling script (typically __file__), or base-name for output
+
+    nworkers: [int] :
+        Number of workers
+
+    """
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_History_length=' + str(len(H)) \
@@ -342,8 +362,21 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
 
 
 def add_unique_random_streams(persis_info, size):
-    # Creates ``size`` random number streams for the libE manager and workers
-    # where ``size`` is num_workers + 1. Stream i is initialized with seed i.
+    """
+    Creates ``size`` random number streams for the libE manager and workers
+    where ``size`` is num_workers + 1. Stream i is initialized with seed i.
+
+    Parameters
+    ----------
+
+    persis_info: [dict] :
+        Dictionary containing persistent info
+
+    size: [int] :
+        Number of entries to update with random streams in `persis_info`
+
+
+    """
     for i in range(size):
         if i in persis_info:
             persis_info[i].update({
