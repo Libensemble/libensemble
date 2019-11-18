@@ -6,13 +6,12 @@ libEnsemble utilities
 
 __all__ = ['check_inputs']
 
-import traceback
 import os
 import sys
 import logging
 import numpy as np
 import argparse
-import pickle  # Only used when saving output on error
+import pickle
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -63,26 +62,6 @@ allowed_libE_spec_keys = ['comms',               #
                           'save_every_k_sims',   #
                           'save_every_k_gens',   #
                           'profile_worker']      #
-
-
-def report_manager_exception(hist, persis_info, mgr_exc=None):
-    "Write out exception manager exception to log."
-    if mgr_exc is not None:
-        from_line, msg, exc = mgr_exc.args
-        logger.error("---- {} ----".format(from_line))
-        logger.error("Message: {}".format(msg))
-        logger.error(exc)
-    else:
-        logger.error(traceback.format_exc())
-    logger.error("Manager exception raised .. aborting ensemble:")
-    logger.error("Dumping ensemble history with {} sims evaluated:".
-                 format(hist.sim_count))
-
-    filename = 'libE_history_at_abort_' + str(hist.sim_count)
-    np.save(filename + '.npy', hist.trim_H())
-    with open(filename + '.pickle', "wb") as f:
-        pickle.dump(persis_info, f)
-
 
 # ==================== Common input checking =================================
 _USER_SIM_ID_WARNING = \
