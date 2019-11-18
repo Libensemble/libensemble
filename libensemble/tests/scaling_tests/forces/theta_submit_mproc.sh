@@ -14,8 +14,11 @@
 # Name of calling script
 export EXE=run_libe_forces.py
 
+# Communication Method
+export COMMS="--comms local"
+
 # Number of workers.
-#export NUM_WORKERS=4 # Optional if pass to script
+export NWORKERS="--nworkers 4"
 
 # Wallclock for libE (allow clean shutdown)
 #export LIBE_WALLCLOCK=25 # Optional if pass to script
@@ -43,7 +46,7 @@ export PYTHONNOUSERSITE=1
 # Launch libE
 #python $EXE $NUM_WORKERS $LIBE_WALLCLOCK > out.txt 2>&1
 #python $EXE $NUM_WORKERS > out.txt 2>&1
-python $EXE > out.txt 2>&1
+python $EXE $COMMS $NWORKERS > out.txt 2>&1
 
 if [[ $LIBE_PLOTS = "true" ]]; then
   python $PLOT_DIR/plot_libe_calcs_util_v_time.py

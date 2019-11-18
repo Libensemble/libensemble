@@ -25,7 +25,8 @@ export LIBE_WALLCLOCK=25
 export WORKFLOW_NAME=libe_workflow #sh - todo - may currently be hardcoded to this in libE - allow user to specify
 
 #Tell libE manager to stop workers, dump timing.dat and exit after this time. Script must be set up to receive as argument.
-export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-5))
+export SCRIPT_ARGS="--comms mpi --nworkers $NUM_WORKERS"
+# export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-5))
 # export SCRIPT_ARGS='' #Default No args
 
 # Name of Conda environment (Need to have set up: https://balsam.alcf.anl.gov/quick/quickstart.html)
