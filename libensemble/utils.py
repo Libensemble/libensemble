@@ -4,7 +4,7 @@ libEnsemble utilities
 
 """
 
-__all__ = ['check_inputs']
+__all__ = ['check_inputs', 'parse_args', 'save_libE_output', 'add_unique_random_streams']
 
 import os
 import sys
@@ -73,7 +73,7 @@ _USER_SIM_ID_WARNING = \
      '\n' + 79*'*' + '\n\n')
 
 
-def check_consistent_field(name, field0, field1):
+def _check_consistent_field(name, field0, field1):
     "Check that new field (field1) is compatible with an old field (field0)."
     assert field0.ndim == field1.ndim, \
         "H0 and H have different ndim for field {}".format(name)
@@ -167,7 +167,7 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
 
         # Check dimensional compatibility of fields
         for field in fields:
-            check_consistent_field(field, H0[field], Dummy_H[field])
+            _check_consistent_field(field, H0[field], Dummy_H[field])
 
 
 def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
@@ -245,7 +245,7 @@ parser.add_argument('--tester_args', type=str, nargs='*',
                     help='Additional arguments for use by specific testers')
 
 
-def mpi_parse_args(args):
+def _mpi_parse_args(args):
     "Parse arguments for MPI comms."
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
@@ -254,14 +254,14 @@ def mpi_parse_args(args):
     return nworkers, is_master, libE_specs, args.tester_args
 
 
-def local_parse_args(args):
+def _local_parse_args(args):
     "Parse arguments for forked processes using multiprocessing."
     nworkers = args.nworkers or 4
     libE_specs = {'nworkers': nworkers, 'comms': 'local'}
     return nworkers, True, libE_specs, args.tester_args
 
 
-def tcp_parse_args(args):
+def _tcp_parse_args(args):
     "Parse arguments for local TCP connections"
     nworkers = args.nworkers or 4
     cmd = [
@@ -273,7 +273,7 @@ def tcp_parse_args(args):
     return nworkers, True, libE_specs, args.tester_args
 
 
-def ssh_parse_args(args):
+def _ssh_parse_args(args):
     "Parse arguments for SSH with reverse tunnel."
     nworkers = len(args.workers)
     worker_pwd = args.worker_pwd or os.getcwd()
@@ -296,7 +296,7 @@ def ssh_parse_args(args):
     return nworkers, True, libE_specs, args.tester_args
 
 
-def client_parse_args(args):
+def _client_parse_args(args):
     "Parse arguments for a TCP client."
     nworkers = args.nworkers or 4
     ip, port, authkey = args.server
@@ -313,11 +313,11 @@ def parse_args():
     "Unified parsing interface for regression test arguments"
     args = parser.parse_args(sys.argv[1:])
     front_ends = {
-        'mpi': mpi_parse_args,
-        'local': local_parse_args,
-        'tcp': tcp_parse_args,
-        'ssh': ssh_parse_args,
-        'client': client_parse_args}
+        'mpi': _mpi_parse_args,
+        'local': _local_parse_args,
+        'tcp': _tcp_parse_args,
+        'ssh': _ssh_parse_args,
+        'client': _client_parse_args}
     if args.pwd is not None:
         os.chdir(args.pwd)
     return front_ends[args.comms or 'mpi'](args)

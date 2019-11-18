@@ -250,13 +250,13 @@ class Worker:
                            calc_type_strings[calc_type],
                            timer,
                            job.timer,
-                           calc_status_strings.get(calc_status, "Completed"))
+                           calc_status_strings.get(calc_status, "Not set"))
             else:
                 calc_msg = "Calc {:5d}: {} {} Status: {}".\
                     format(calc_id,
                            calc_type_strings[calc_type],
                            timer,
-                           calc_status_strings.get(calc_status, "Completed"))
+                           calc_status_strings.get(calc_status, "Not set"))
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 

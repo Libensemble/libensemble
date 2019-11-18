@@ -37,7 +37,7 @@ def make_unique_simdir(simdir, count=0):
         return make_unique_simdir(".".join([simdir.split('.')[0], str(count)]), count)
 
 
-def run_forces(x, persis_info, sim_specs, libE_info):
+def run_forces(H, persis_info, sim_specs, libE_info):
     # Setting up variables needed for input and output
     # keys              = variable names
     # x                 = variable values
@@ -45,8 +45,8 @@ def run_forces(x, persis_info, sim_specs, libE_info):
 
     calc_status = 0  # Returns to worker
 
+    x = H['x']
     simdir_basename = sim_specs['user']['simdir_basename']
-    # cores           = sim_specs['user']['cores']
     keys = sim_specs['user']['keys']
     sim_particles = sim_specs['user']['sim_particles']
     sim_timesteps = sim_specs['user']['sim_timesteps']
@@ -58,15 +58,6 @@ def run_forces(x, persis_info, sim_specs, libE_info):
     particle_variance = sim_specs['user'].get('particle_variance', 0)
 
     # Composing variable names and x values to set up simulation
-    # arguments = []
-    # sim_dir   = [simdir_basename]
-    # for i,key in enumerate(keys):
-    #    variable = key+'='+str(x[i])
-    #    arguments.append(variable)
-    #    sim_dir.append('_'+variable)
-    # print(os.getcwd(), sim_dir)
-
-    # For one key
     seed = int(np.rint(x[0][0]))
 
     # This is to give a random variance of work-load
@@ -91,7 +82,7 @@ def run_forces(x, persis_info, sim_specs, libE_info):
         job = jobctl.launch(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)  # Auto-partition
 
     # Stat file to check for bad runs
-    statfile = simdir_basename+'.stat'
+    statfile = 'forces.stat'
     filepath = os.path.join(job.workdir, statfile)
     line = None
 
@@ -112,6 +103,7 @@ def run_forces(x, persis_info, sim_specs, libE_info):
             print("Job {} completed".format(job.name))
             calc_status = WORKER_DONE
             if read_last_line(filepath) == "kill":
+                # Generally mark as complete if want results (completed after poll - before readline)
                 print("Warning: Job completed although marked as a bad run (kill flag set in forces.stat)")
         elif job.state == 'FAILED':
             print("Warning: Job {} failed: Error code {}".format(job.name, job.errcode))
@@ -129,8 +121,7 @@ def run_forces(x, persis_info, sim_specs, libE_info):
         data = np.loadtxt(filepath)
         # job.read_file_in_workdir(statfile)
         final_energy = data[-1]
-    except Exception as e:
-        print('Caught:', e)
+    except Exception:
         final_energy = np.nan
         # print('Warning - Energy Nan')
 

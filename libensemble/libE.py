@@ -241,7 +241,9 @@ def libE_mpi_worker(sim_specs, gen_specs, libE_specs):
     logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
 
 
-# ==================== Process version =================================
+# ==================== Local version ===============================
+
+
 def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     "Launch a process worker team."
     wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, libE_specs, w, log_comm)
