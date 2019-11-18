@@ -126,9 +126,9 @@ to ``pdb``. How well this works varies by system::
 
 **Can I use the MPI Job Controller when running libEnsemble with multiprocessing?**
 
-Actually, yes! The job controller type only determines how launched jobs communicate
-with libEnsemble, and is independent of ``comms`` chosen for manager-worker
-communications.
+Actually, yes! The job controller type only determines how libEnsemble workers
+launch and interact with user applications, and is independent of ``comms`` chosen
+for manager-worker communications.
 
 macOS-specific Errors
 ---------------------
