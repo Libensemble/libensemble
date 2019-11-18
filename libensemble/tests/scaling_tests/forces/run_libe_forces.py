@@ -7,30 +7,34 @@ from forces_simf import run_forces  # Sim func from current dir
 # Import libEnsemble modules
 from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 from libensemble import libE_logger
-libE_logger.set_level('INFO')
+libE_logger.set_level('INFO')  # Info is now default - but shows usage.
 
 USE_BALSAM = False
-USE_MPI = False
+#USE_MPI = False
 
-if USE_MPI:
-    # Run with MPI (Add a proc for manager): mpiexec -np <num_workers+1> python run_libe_forces.py
-    import mpi4py
-    mpi4py.rc.recv_mprobe = False  # Disable matching probes
-    from mpi4py import MPI
-    nworkers = MPI.COMM_WORLD.Get_size() - 1
-    is_master = (MPI.COMM_WORLD.Get_rank() == 0)
-    libE_specs = {}  # MPI is default comms, workers are decided at launch
-else:
-    # Run with multi-processing: python run_libe_forces.py <num_workers>
-    try:
-        nworkers = int(sys.argv[1])
-    except Exception:
-        print("WARNING: nworkers not passed to script - defaulting to 4")
-        nworkers = 4
-    is_master = True  # processes are forked in libE
-    libE_specs = {'nworkers': nworkers, 'comms': 'local'}
+#if USE_MPI:
+    ## Run with MPI (Add a proc for manager): mpiexec -np <num_workers+1> python run_libe_forces.py
+    #import mpi4py
+    #mpi4py.rc.recv_mprobe = False  # Disable matching probes
+    #from mpi4py import MPI
+    #nworkers = MPI.COMM_WORLD.Get_size() - 1
+    #is_master = (MPI.COMM_WORLD.Get_rank() == 0)
+    #libE_specs = {}  # MPI is default comms, workers are decided at launch
+#else:
+    ## Run with multi-processing: python run_libe_forces.py <num_workers>
+    #try:
+        #nworkers = int(sys.argv[1])
+    #except Exception:
+        #print("WARNING: nworkers not passed to script - defaulting to 4")
+        #nworkers = 4
+    #is_master = True  # processes are forked in libE
+    #libE_specs = {'nworkers': nworkers, 'comms': 'local'}
+
+
+nworkers, is_master, libE_specs, _ = parse_args()
 
 if is_master:
     print('\nRunning with {} workers\n'.format(nworkers))
@@ -48,7 +52,7 @@ if not os.path.isfile('forces.x'):
         subprocess.check_call(['./build_forces.sh'])
 
 # Normally the sim_dir will exist with common input which is copied for each worker. Here it starts empty.
-# Create if no ./sim dir. See sim_specs['sim_dir']
+# Create if no ./sim dir. See libE_specs['sim_dir']
 if not os.path.isdir('./sim'):
     os.mkdir('./sim')
 
@@ -61,16 +65,13 @@ else:
     jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
-
-# Todo - clarify difference sim 'in' and 'keys'
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
              'in': ['x'],                 # Name of input for sim_f
              'out': [('energy', float)],  # Name, type of output from sim_f
-             'user': {'sim_dir_suffix': 'test',
-                      'simdir_basename': 'force',
+             'user': {'simdir_basename': 'forces',
                       'keys': ['seed'],
                       'cores': 2,
                       'sim_particles': 1e3,
@@ -95,23 +96,18 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
 libE_specs['sim_dir'] = './sim'         # Sim dir to be copied for each worker
-libE_specs['profile'] = False           # Don't have libE profile run
+libE_specs['profile_worker'] = False    # Whether to have libE profile on
 
 # Maximum number of simulations
 sim_max = 8
 exit_criteria = {'sim_max': sim_max}
 
-# Create a different random number stream for each worker (used by uniform_random_sample)
-np.random.seed(1)
+# Create a different random number stream for each worker and the manager
 persis_info = {}
-for i in range(1, nworkers+1):
-    persis_info[i] = {'rand_stream': np.random.RandomState(i)}
+persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 # Save results to numpy file
 if is_master:
-    short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) + '_evals=' + str(sum(H['returned']))
-    print("\n\nRun completed.\nSaving results to file: " + filename)
-    np.save(filename, H)
+    save_libE_output(H, persis_info, __file__, nworkers)
