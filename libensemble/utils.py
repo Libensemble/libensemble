@@ -342,8 +342,8 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
 
 
 def add_unique_random_streams(persis_info, size):
-    # Creates size random number streams for the libE manager and workers when
-    # size is num_workers + 1. Stream i is initialized with seed i.
+    # Creates ``size`` random number streams for the libE manager and workers
+    # where ``size`` is num_workers + 1. Stream i is initialized with seed i.
     for i in range(size):
         if i in persis_info:
             persis_info[i].update({
