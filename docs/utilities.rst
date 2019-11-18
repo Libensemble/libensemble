@@ -1,7 +1,7 @@
 Utilities
 =========
 
-libEnsemble features several modules and tools to assist in writing consistent
+libEnsemble features a utilities module to assist in writing consistent
 calling scripts and user functions.
 
 Input consistency
@@ -40,3 +40,10 @@ Usage:
                     [--pwd [PWD]] [--worker_pwd [WORKER_PWD]]
                     [--worker_python [WORKER_PYTHON]]
                     [--tester_args [TESTER_ARGS [TESTER_ARGS ...]]]
+
+Utilities API
+-------------
+
+.. automodule:: utils
+   :members:
+   :no-undoc-members:

@@ -1,6 +1,6 @@
 """
 libEnsemble utilities
-============================================
+=====================
 
 """
 
@@ -310,7 +310,11 @@ def _client_parse_args(args):
 
 
 def parse_args():
-    "Unified parsing interface for regression test arguments"
+    """Parses command line arguments.
+
+    :doc:`(See usage)<utilities>`
+
+    """
     args = parser.parse_args(sys.argv[1:])
     front_ends = {
         'mpi': _mpi_parse_args,
@@ -326,6 +330,35 @@ def parse_args():
 
 
 def save_libE_output(H, persis_info, calling_file, nworkers):
+    """
+    Writes out history array and persis_info to files.
+
+    Format: <user_script>_results_History_length=<history_length>_evals=<Completed evals>_ranks=<nworkers>
+
+    Parameters
+    ----------
+
+    H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
+
+        History array storing rows for each point.
+        :doc:`(example)<data_structures/history_array>`
+
+    persis_info: :obj:`dict`
+
+        Persistent information dictionary
+        :doc:`(example)<data_structures/persis_info>`
+
+    calling_file  : :obj:`string`
+
+        Name of user calling script (or user chosen name) to prefix output files.
+        The convention is to send __file__ from user calling script.
+
+    nworkers: :obj:`int`
+
+        The number of workers in this ensemble. Added to output file names.
+
+    """
+
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
     filename = short_name + '_results_History_length=' + str(len(H)) \
@@ -341,10 +374,27 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
 # ===================== per-worker numpy random-streams ========================
 
 
-def add_unique_random_streams(persis_info, size):
-    # Creates size random number streams for the libE manager and workers when
-    # size is num_workers + 1. Stream i is initialized with seed i.
-    for i in range(size):
+def add_unique_random_streams(persis_info, nstreams):
+    """Creates nstreams random number streams for the libE manager and workers
+    when nstreams is num_workers + 1. Stream i is initialized with seed i.
+
+    The entries are appended to the existing persis_info dictionary.
+
+    Parameters
+    ----------
+
+    persis_info: :obj:`dict`
+
+        Persistent information dictionary
+        :doc:`(example)<data_structures/persis_info>`
+
+    nstreams: :obj:`int`
+
+        Number of independent random number streams to produce
+
+    """
+
+    for i in range(nstreams):
         if i in persis_info:
             persis_info[i].update({
                 'rand_stream': np.random.RandomState(i),
