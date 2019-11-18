@@ -341,10 +341,10 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
         Persistent information to be passed between user functions
         :doc:`(example)<data_structures/persis_info>`
 
-    calling_file: [path] :
+    calling_file: :obj:`path`
         Filepath to calling script (typically __file__), or base-name for output
 
-    nworkers: [int] :
+    nworkers: :obj:`int`
         Number of workers
 
     """
@@ -376,7 +376,7 @@ def add_unique_random_streams(persis_info, size):
         Persistent information to be passed between user functions
         :doc:`(example)<data_structures/persis_info>`
 
-    size: [int] :
+    size: :obj:`int`
         Number of entries to update with random streams in `persis_info`
 
 
