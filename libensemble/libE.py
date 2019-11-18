@@ -18,6 +18,9 @@ import os
 import logging
 import random
 import socket
+import traceback
+import numpy as np
+import pickle  # Only used when saving output on error
 
 import libensemble.util.launcher as launcher
 from libensemble.util.timer import Timer
@@ -29,7 +32,7 @@ from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.controller import JobController
-from libensemble.utils import check_inputs, _USER_SIM_ID_WARNING, report_manager_exception
+from libensemble.utils import check_inputs, _USER_SIM_ID_WARNING
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -136,12 +139,12 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         logger.info("libE_manager total time: {}".format(elapsed_time))
 
     except ManagerException as e:
-        report_manager_exception(hist, persis_info, e)
+        _report_manager_exception(hist, persis_info, e)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
     except Exception:
-        report_manager_exception(hist, persis_info)
+        _report_manager_exception(hist, persis_info)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
@@ -421,3 +424,25 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
         worker_main(comm, sim_specs, gen_specs, libE_specs,
                     workerID=workerID, log_comm=True)
         logger.debug("Worker {} exiting".format(workerID))
+
+
+# ==================== Additional Internal Functions ===========================
+
+
+def _report_manager_exception(hist, persis_info, mgr_exc=None):
+    "Write out exception manager exception to log."
+    if mgr_exc is not None:
+        from_line, msg, exc = mgr_exc.args
+        logger.error("---- {} ----".format(from_line))
+        logger.error("Message: {}".format(msg))
+        logger.error(exc)
+    else:
+        logger.error(traceback.format_exc())
+    logger.error("Manager exception raised .. aborting ensemble:")
+    logger.error("Dumping ensemble history with {} sims evaluated:".
+                 format(hist.sim_count))
+
+    filename = 'libE_history_at_abort_' + str(hist.sim_count)
+    np.save(filename + '.npy', hist.trim_H())
+    with open(filename + '.pickle', "wb") as f:
+        pickle.dump(persis_info, f)
