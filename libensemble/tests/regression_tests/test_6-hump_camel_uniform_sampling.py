@@ -20,7 +20,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.gen_funcs.sampling import uniform_random_sample
-from libensemble.utils import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -42,7 +42,7 @@ gen_specs = {'gen_f': uniform_random_sample,     # Function generating sim_f inp
              }
 # end_gen_specs_rst_tag
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 

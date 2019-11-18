@@ -19,7 +19,7 @@ import numpy as np
 from libensemble.libE import libE
 from support import nan_func as sim_f, aposmm_gen_out as gen_out
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
-from libensemble.utils import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 n = 2
@@ -44,7 +44,7 @@ if nworkers == 3:
     gen_specs['user']['components'] = 1
     gen_specs['user']['combine_component_func'] = np.linalg.norm
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 100, 'elapsed_wallclock_time': 300}

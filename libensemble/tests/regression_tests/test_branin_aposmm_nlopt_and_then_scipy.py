@@ -21,7 +21,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out, branin_vals_and_minima as M
-from libensemble.utils import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -60,7 +60,7 @@ gen_specs = {'gen_f': gen_f,
                       'max_active_runs': 3}
              }
 
-persis_info = per_worker_stream(persis_info, nworkers + 1)
+persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
 
 # Tell libEnsemble when to stop (stop_val key must be in H)

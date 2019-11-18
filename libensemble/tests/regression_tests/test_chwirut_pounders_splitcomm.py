@@ -22,7 +22,7 @@ from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out
 from libensemble.tests.regression_tests.common import mpi_comm_split
-from libensemble.utils import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 num_comms = 2  # Must have atleast num_comms*2 processors
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -57,7 +57,7 @@ gen_specs = {'gen_f': gen_f,
 
 gen_specs['user'].update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 
-persis_info = per_worker_stream(persis_info, nworkers + 1)
+persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 

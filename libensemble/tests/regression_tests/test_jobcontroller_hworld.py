@@ -21,7 +21,7 @@ from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.utils import parse_args, per_worker_stream
+from libensemble.utils import parse_args, add_unique_random_streams
 from libensemble.tests.regression_tests.common import build_simfunc
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -82,7 +82,7 @@ gen_specs = {'gen_f': gen_f,
                       }
              }
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 10}
 
