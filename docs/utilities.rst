@@ -4,29 +4,34 @@ Utilities
 libEnsemble features a utilities module to assist in writing consistent
 calling scripts and user functions.
 
-Input consistency
------------------
 
-Users can check the formatting and consistency of ``exit_criteria`` and each
-``specs`` dictionary with the ``check_inputs()`` function from the ``utils``
-module. Provide any combination of these data structures as keyword arguments.
-For example::
+Utilities API
+-------------
 
-  from libensemble.utils import check_inputs
-  check_inputs(sim_specs=my-sim_specs, gen_specs=my-gen_specs, exit_criteria=ec)
+.. automodule:: utils
+   :members:
+   :no-undoc-members:
 
-Parameters as command-line arguments
-------------------------------------
+Examples
+--------
 
-The ``parse_args()`` function can be used to pass common libEnsemble parameters as
-command-line arguments.
+Check inputs
+~~~~~~~~~~~~
 
-In your calling script::
+.. code-block:: python
+
+    from libensemble.utils import check_inputs
+    check_inputs(sim_specs=my_sim_specs, gen_specs=my_gen_specs, exit_criteria=ec)
+
+Parse Args
+~~~~~~~~~~
+
+.. code-block:: python
 
     from libensemble.utils import parse_args
     nworkers, is_master, libE_specs, misc_args = parse_args()
 
-From the shell, for example::
+From the shell::
 
     $ python calling_script --comms local --nworkers 4
 
@@ -41,9 +46,16 @@ Usage:
                     [--worker_python [WORKER_PYTHON]]
                     [--tester_args [TESTER_ARGS [TESTER_ARGS ...]]]
 
-Utilities API
--------------
+Save libE Output
+~~~~~~~~~~~~~~~~
 
-.. automodule:: utils
-   :members:
-   :no-undoc-members:
+.. code-block:: python
+
+    save_libE_output(H, persis_info, __file__, nworkers)
+
+Add Unique Random Streams
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+    persis_info = add_unique_random_streams(old_persis_info, nworkers + 1)
