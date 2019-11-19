@@ -2,15 +2,15 @@
 Summit
 ======
 
-Summit_ is an IBM AC922 system located at the Oak Ridge Leadership Computing Facility.
-Each of the approximately 4,600 compute nodes on Summit contains two IBM POWER9
-processors and six NVIDIA Volta V100 accelerators.
+Summit_ is an IBM AC922 system located at the Oak Ridge Leadership Computing
+Facility. Each of the approximately 4,600 compute nodes on Summit contains two
+IBM POWER9 processors and six NVIDIA Volta V100 accelerators.
 
 Summit features three tiers of nodes: login, launch, and compute nodes.
 
 Users on login nodes submit batch runs to the launch nodes.
-Batch scripts and interactive sessions run on the launch nodes. Only the launch nodes
-can submit MPI runs to the compute nodes via ``jsrun``.
+Batch scripts and interactive sessions run on the launch nodes. Only the launch
+nodes can submit MPI runs to the compute nodes via ``jsrun``.
 
 
 Configuring Python
@@ -26,9 +26,9 @@ You can now create and activate your own custom Conda_ environment::
     export PYTHONNOUSERSITE=1 # Make sure get python from conda env
     . activate myenv
 
-If you are installing any packages with extensions, ensure the correct compiler module
-is loaded. If using mpi4py_, this must be installed from source, referencing the compiler.
-At time of writing, mpi4py must be built with gcc::
+If you are installing any packages with extensions, ensure the correct compiler
+module is loaded. If using mpi4py_, this must be installed from source,
+referencing the compiler. At time of writing, mpi4py must be built with gcc::
 
     module load gcc
 
@@ -56,15 +56,15 @@ Summit uses LSF_ for job management and submission. For libEnsemble, the most
 important command is ``bsub``, for submitting batch scripts from the login nodes
 to execute on the Launch nodes.
 
-It is recommended to run libEnsemble on the Launch nodes (assuming workers are submitting
-MPI jobs) using the ``local`` communications mode (multiprocessing).
+It is recommended to run libEnsemble on the Launch nodes (assuming workers are
+submitting MPI jobs) using the ``local`` communications mode (multiprocessing).
 In the future, Balsam may be used to run libEnsemble on compute nodes.
 
 Interactive Runs
 ^^^^^^^^^^^^^^^^
 
-Users can run interactively with ``bsub`` by specifying the ``-Is`` flag, similarly
-to the following::
+Users can run interactively with ``bsub`` by specifying the ``-Is`` flag,
+similarly to the following::
 
     $ bsub -W 30 -P [project] -nnodes 8 -Is
 
