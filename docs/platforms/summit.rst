@@ -129,11 +129,11 @@ Launching user applications from libEnsemble Workers
 ----------------------------------------------------
 
 Only the launch nodes can submit MPI runs to the compute nodes via ``jsrun``.
-This can be accomplished in user sim_f functions directly. However, it is highly
+This can be accomplished in user ``sim_f`` functions directly. However, it is highly
 recommended that the :doc:`job_controller<../job_controller/overview>` interface
-is used inside the sim_f (or gen_f), as this provides a portable interface
+is used inside the ``sim_f`` or ``gen_f``, as this provides a portable interface
 with many advantages including automatic resource detection, portability,
-launch failure resilience, and ease of use.
+launch failure resilience, and ease-of-use.
 
 
 Additional Information
