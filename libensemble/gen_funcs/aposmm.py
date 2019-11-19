@@ -133,13 +133,14 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         active runs, order of points in each run, etc. The allocation function
         must ensure it's always given.
 
+    `Python <http://www.python.org/>`_
+
     .. seealso::
-        `test_branin_aposmm.py<https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm.py`_
+        `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
         for basic APOSMM usage.
 
     .. seealso::
-        ``libensemble/tests/regression_tests/``
-        `test_chwirut_aposmm_one_residual_at_a_time.py<https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py`_
+        `test_chwirut_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py>`_
         for an example of APOSMM coordinating multiple local optimization runs
         for an objective with more than one component.
     """
@@ -374,7 +375,7 @@ def update_history_dist(H, n, gen_specs, c_flag):
     Updates distances/indices after new points that have been evaluated.
 
     .. seealso::
-        `start_persistent_local_opt_gens.py<https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py`_
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
 
     updated_inds = set()
@@ -769,7 +770,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
 
 
     .. seealso::
-        `start_persistent_local_opt_gens.py<https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py`_
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
 
     if nu > 0:
@@ -893,7 +894,7 @@ def initialize_APOSMM(H, gen_specs):
     Computes common values every time that APOSMM is reinvoked
 
     .. seealso::
-        `start_persistent_local_opt_gens.py<https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py`_
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
 
     user_specs = gen_specs['user']
