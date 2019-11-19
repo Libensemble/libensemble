@@ -9,8 +9,8 @@ from mpi4py import MPI
 from libensemble.balsam_controller import BalsamJobController
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
 from libensemble.libE import libE
-from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.sim_funcs.job_control_hworld import job_control_hworld
+from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.utils import add_unique_random_streams
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
@@ -42,12 +42,12 @@ if not os.path.isfile(sim_app):
 jobctrl = BalsamJobController(auto_resources=False)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 
-sim_specs = {'sim_f': sim_f,
+sim_specs = {'sim_f': job_control_hworld,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
              'user': {'cores': cores_per_job}}
 
-gen_specs = {'gen_f': gen_f,
+gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
              'out': [('x', float, (2,))],
              'user': {'lb': np.array([-3, -2]),
