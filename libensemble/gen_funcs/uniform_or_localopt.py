@@ -16,7 +16,7 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     function a persistent nlopt local optimization run.
 
     .. seealso::
-        ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
+        `test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py>`_
     """
 
     if libE_info.get('persistent'):

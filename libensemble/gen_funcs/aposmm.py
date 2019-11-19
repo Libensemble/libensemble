@@ -133,8 +133,6 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         active runs, order of points in each run, etc. The allocation function
         must ensure it's always given.
 
-    `Python <http://www.python.org/>`_
-
     .. seealso::
         `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
         for basic APOSMM usage.

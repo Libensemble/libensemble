@@ -13,7 +13,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     for a 'batch_mode'.
 
     .. seealso::
-        ``/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py``
+        `test_6-hump_camel_aposmm_LD_MMA.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py>`_
     """
 
     Work = {}

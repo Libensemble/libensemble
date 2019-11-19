@@ -142,10 +142,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         must ensure it's always given.
 
     .. seealso::
-        ``libensemble/tests/regression_tests/test_branin_aposmm.py``
+        `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
         for basic APOSMM usage.
+
     .. seealso::
-        ``libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
+        `test_chwirut_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py>`_
         for an example of APOSMM coordinating multiple local optimization runs
         for an objective with more than one component.
     """
@@ -672,7 +673,7 @@ def update_history_dist(H, n):
     Updates distances/indices after new points that have been evaluated.
 
     .. seealso::
-        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
 
     new_inds = np.where(~H['known_to_aposmm'])[0]
@@ -804,7 +805,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
 
 
     .. seealso::
-        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
 
     r_k = calc_rk(n, n_s, rk_const, ld)
@@ -896,7 +897,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     Computes common values every time that APOSMM is reinvoked
 
     .. seealso::
-        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
     n = len(user_specs['ub'])
 
