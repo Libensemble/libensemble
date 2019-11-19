@@ -13,8 +13,8 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     This function assumes that one persistent APOSMM will be started and never
     stopped (until some exit_criterion is satisfied).
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm.py``
+    .. seealso::
+        `test_6-hump_camel_persistent_aposmm.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm.py>`_
     """
 
     Work = {}

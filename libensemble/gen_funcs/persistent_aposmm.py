@@ -141,11 +141,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         active runs, order of points in each run, etc. The allocation function
         must ensure it's always given.
 
-    :See:
-        ``libensemble/tests/regression_tests/test_branin_aposmm.py``
+    .. seealso::
+        `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
         for basic APOSMM usage.
-    :See:
-        ``libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
+
+    .. seealso::
+        `test_chwirut_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py>`_
         for an example of APOSMM coordinating multiple local optimization runs
         for an objective with more than one component.
     """
@@ -671,8 +672,8 @@ def update_history_dist(H, n):
     """
     Updates distances/indices after new points that have been evaluated.
 
-    :See:
-        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
+    .. seealso::
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
 
     new_inds = np.where(~H['known_to_aposmm'])[0]
@@ -803,8 +804,8 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
         Indices where a local opt run should be started
 
 
-    :See:
-        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
+    .. seealso::
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
 
     r_k = calc_rk(n, n_s, rk_const, ld)
@@ -895,8 +896,8 @@ def initialize_APOSMM(H, user_specs, libE_info):
     """
     Computes common values every time that APOSMM is reinvoked
 
-    :See:
-        ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
+    .. seealso::
+        `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
     n = len(user_specs['ub'])
 

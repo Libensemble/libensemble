@@ -9,8 +9,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     is told to call the generator function, provided this wouldn't result in
     more than ``gen_specs['user']['num_active_gen']`` active generators.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_fast_alloc.py``
+    .. seealso::
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_
     """
 
     Work = {}

@@ -260,11 +260,13 @@ def chwirut_eval(H, persis_info, sim_specs, _):
     component of the objective will be evaluated. Otherwise, all 214 components
     are evaluated and returned in the ``'fvec'`` field.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_chwirut_pounders.py`` for an example where the entire fvec is computed.
+    .. seealso::
+        `test_chwirut_pounders.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_pounders.py>`_
+        for an example where the entire fvec is computed each call.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
+    .. seealso::
+        `test_chwirut_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py>`_
+        for an example where one component of fvec is computed per call
     """
 
     batch = len(H['x'])

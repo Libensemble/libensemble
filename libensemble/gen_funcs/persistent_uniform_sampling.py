@@ -9,8 +9,8 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     This generation function always enters into persistent mode and returns
     ``gen_specs['gen_batch_size']`` uniformly sampled points.
 
-    :See:
-        ``libensemble/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
+    .. seealso::
+        `test_6-hump_camel_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py>`_
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
