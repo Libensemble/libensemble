@@ -3,7 +3,8 @@ Simple Local Sine Tutorial
 ==========================
 
 This introductory tutorial demonstrates the capability to perform ensembles of
-calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's Multiprocessing.
+calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's
+Multiprocessing.
 
 The foundation of writing libEnsemble routines is accounting for four components:
 
@@ -13,17 +14,18 @@ The foundation of writing libEnsemble routines is accounting for four components
     4. The calling script, which defines parameters and information about these functions and the libEnsemble task, then begins execution.
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
-user requests. The manager coordinates data-transfer between workers and assigns each
-units of work, consisting of a ``gen_f`` or ``sim_f`` function to run and
+user requests. The manager coordinates data-transfer between workers and assigns
+each units of work, consisting of a ``gen_f`` or ``sim_f`` function to run and
 accompanying data. These functions can perform their work in-line with Python or by
 launching and controlling user-applications with a :ref:`job controller<jobcontroller_index>`.
 Finally, workers pass results back to the manager.
 
-For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python without
-other applications. Our ``gen_f`` will produce uniform randomly-sampled
-values, and our ``sim_f`` will calculate the sine of each. By default we don't need to
-write a new allocation function. All generated and simulated values alongside other
-parameters are stored in :ref:`H<datastruct-history-array>`, the History array.
+For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python
+without other applications. Our ``gen_f`` will produce uniform randomly-sampled
+values, and our ``sim_f`` will calculate the sine of each. By default we don't
+need to write a new allocation function. All generated and simulated values
+alongside other parameters are stored in :ref:`H<datastruct-history-array>`,
+the History array.
 
 .. _libEnsemble: https://libensemble.readthedocs.io/en/latest/quickstart.html
 
@@ -199,18 +201,14 @@ inputs and outputs from those functions to expect.
 
 Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
 dictionary that, in this tutorial, contains  a ``RandomState()`` random stream for
-uniform random sampling. We populate that dictionary here. Finally, we specify the
-circumstances where libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
+uniform random sampling. We populate that dictionary here using a utility from
+the :doc:`utils module<../utilities>`. Finally, we specify the circumstances
+where libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
 
 .. code-block:: python
     :linenos:
 
-    persis_info = {}
-
-    for i in range(1, nworkers+1):            # Worker numbers start at 1
-        persis_info[i] = {
-            'rand_stream': np.random.RandomState(i),
-            'worker_num': i}
+    persis_info = add_unique_random_streams({}, nworkers+1) # Worker numbers start at 1
 
     exit_criteria = {'sim_max': 80}           # Stop libEnsemble after 80 simulations
 
