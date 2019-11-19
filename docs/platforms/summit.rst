@@ -2,7 +2,7 @@
 Summit
 ======
 
-Summit_ is an IBM AC922 system located at the Oak Ridge Leadership Computing Facility. 
+Summit_ is an IBM AC922 system located at the Oak Ridge Leadership Computing Facility.
 Each of the approximately 4,600 compute nodes on Summit contains two IBM POWER9 processors and six NVIDIA Volta V100 accelerators.
 
 Summit features three tiers of nodes: login, launch, and compute nodes.
@@ -19,12 +19,12 @@ Begin by loading the Python 3 Anaconda module::
 You can now create your own custom Conda_ environment::
 
     conda create --name myenv python=3.7
-    
+
 Now activate environment::
 
     export PYTHONNOUSERSITE=1 # Make sure get python from conda env
     . activate myenv
-  
+
 If you are installing any packages with extensions, ensure the correct compiler module
 is loaded. If using mpi4py_, this must be installed from source, referencing the compiler.
 At time of writing, mpi4py must be built with gcc::
@@ -34,7 +34,6 @@ At time of writing, mpi4py must be built with gcc::
 With your environment activated::
 
     CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
-
 
 Installing libEnsemble
 ----------------------
@@ -48,7 +47,6 @@ Your prompt should be similar to the following line:
 
 .. note::
     If you encounter pip errors, run ``python -m pip install --upgrade pip`` first
-            
 
 Job Submission
 --------------
@@ -114,7 +112,7 @@ convenience function within libEnsemble's ``utils.py``.
     export COMMS='--comms local'
 
     # Number of workers.
-    export NWORKERS='--nworkers 128'    
+    export NWORKERS='--nworkers 128'
 
     hash -r # Check no commands hashed (pip/python...)
 
