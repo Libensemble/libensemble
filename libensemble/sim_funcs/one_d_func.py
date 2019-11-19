@@ -10,7 +10,7 @@ def one_d_example(x, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a single point ``x``.
 
-    :See:
+    .. seealso::
         ``/libensemble/libensemble/tests/regression_tests/test_fast_alloc.py``
     """
 

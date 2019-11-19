@@ -260,10 +260,10 @@ def chwirut_eval(H, persis_info, sim_specs, _):
     component of the objective will be evaluated. Otherwise, all 214 components
     are evaluated and returned in the ``'fvec'`` field.
 
-    :See:
+    .. seealso::
         ``/libensemble/tests/regression_tests/test_chwirut_pounders.py`` for an example where the entire fvec is computed.
 
-    :See:
+    .. seealso::
         ``/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
     """
 

@@ -21,7 +21,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     alloc_specs['user']['stop_partial_fvec_eval']: True --- after the value returned from
         combine_component_func is larger than a known upper bound on the objective.
 
-    :See:
+    .. seealso::
         ``/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py``
     """
 

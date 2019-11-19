@@ -6,7 +6,7 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
     This allocation function gives (in order) entries in alloc_spec['x'] to
     idle workers. It is an example use case where no gen_func is used.
 
-    :See:
+    .. seealso::
         ``/libensemble/tests/regression_tests/test_fast_alloc.py``
     """
 

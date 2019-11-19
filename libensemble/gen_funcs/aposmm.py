@@ -133,10 +133,10 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         active runs, order of points in each run, etc. The allocation function
         must ensure it's always given.
 
-    :See:
+    .. seealso::
         ``libensemble/tests/regression_tests/test_branin_aposmm.py``
         for basic APOSMM usage.
-    :See:
+    .. seealso::
         ``libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
         for an example of APOSMM coordinating multiple local optimization runs
         for an objective with more than one component.
@@ -371,7 +371,7 @@ def update_history_dist(H, n, gen_specs, c_flag):
     """
     Updates distances/indices after new points that have been evaluated.
 
-    :See:
+    .. seealso::
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
@@ -766,7 +766,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
         Indices where a local opt run should be started
 
 
-    :See:
+    .. seealso::
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 
@@ -890,7 +890,7 @@ def initialize_APOSMM(H, gen_specs):
     """
     Computes common values every time that APOSMM is reinvoked
 
-    :See:
+    .. seealso::
         ``/libensemble/alloc_funcs/start_persistent_local_opt_gens.py``
     """
 

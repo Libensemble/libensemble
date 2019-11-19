@@ -15,7 +15,7 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     ``libE_info['persistent']`` isn't ``True``).  Otherwise, the generation
     function a persistent nlopt local optimization run.
 
-    :See:
+    .. seealso::
         ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
     """
 

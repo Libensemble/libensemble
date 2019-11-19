@@ -10,7 +10,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     the persistent generator have been returned from the simulation evaluation,
     then this information is given back to the persistent generator.
 
-    :See:
+    .. seealso::
         ``/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
     """
 

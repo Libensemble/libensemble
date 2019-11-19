@@ -12,7 +12,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     more than ``gen_specs['user']['num_active_gen']`` active generators. Also allows
     for a 'batch_mode'.
 
-    :See:
+    .. seealso::
         ``/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py``
     """
 
