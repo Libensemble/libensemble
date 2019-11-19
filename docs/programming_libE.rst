@@ -14,3 +14,6 @@ Programming with libEnsemble
 .. toctree::
    job_controller/jc_index
    logging
+
+.. toctree::
+    utilities
