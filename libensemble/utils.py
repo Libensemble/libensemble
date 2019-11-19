@@ -312,7 +312,18 @@ def _client_parse_args(args):
 def parse_args():
     """Parses command line arguments.
 
-    :doc:`(See usage)<utilities>`
+    Returns
+    -------
+
+    nworkers: :obj:`int`
+        Number of workers libEnsemble will inititate
+
+    is_master: :obj:`boolean`
+        Indicate if the current process is the manager process
+
+    libE_specs: :obj:`dict`
+        Settings and specifications for libEnsemble
+        :doc:`(example)<data_structures/libE_specs>`
 
     """
     args = parser.parse_args(sys.argv[1:])
