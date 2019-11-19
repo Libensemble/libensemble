@@ -15,8 +15,8 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
     performs a system call with a given number of nodes and ranks per node
     using a machinefile (to show one way of evaluating a compiled simulation).
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
+    .. seealso::
+        `test_6-hump_camel_with_different_nodes_uniform_sample.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py>`_
     """
 
     from mpi4py import MPI
@@ -60,8 +60,8 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     ``sim_specs['out']`` and pauses for ``sim_specs['user']['pause_time']]`` if
     defined.
 
-    :See:
-        ``/libensemble/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py``
+    .. seealso::
+        `test_6-hump_camel_aposmm_LD_MMA.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py>`_
     """
 
     batch = len(H['x'])
@@ -83,8 +83,8 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a single point ``x``.
 
-    :See:
-        ``/libensemble/libensemble/tests/regression_tests/test_fast_alloc.py``
+    .. seealso::
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_
     """
 
     O = np.zeros(1, dtype=sim_specs['out'])
