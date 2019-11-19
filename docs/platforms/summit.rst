@@ -3,11 +3,15 @@ Summit
 ======
 
 Summit_ is an IBM AC922 system located at the Oak Ridge Leadership Computing Facility.
-Each of the approximately 4,600 compute nodes on Summit contains two IBM POWER9 processors and six NVIDIA Volta V100 accelerators.
+Each of the approximately 4,600 compute nodes on Summit contains two IBM POWER9
+processors and six NVIDIA Volta V100 accelerators.
 
 Summit features three tiers of nodes: login, launch, and compute nodes.
+
 Users on login nodes submit batch runs to the launch nodes.
-Launch nodes execute user batch-scripts to run on the compute nodes via ``jsrun``.
+Batch scripts and interactive sessions run on the launch nodes. Only the launch nodes
+can submit MPI runs to the compute nodes via ``jsrun``.
+
 
 Configuring Python
 ------------------
@@ -16,12 +20,9 @@ Begin by loading the Python 3 Anaconda module::
 
     $ module load python
 
-You can now create your own custom Conda_ environment::
+You can now create and activate your own custom Conda_ environment::
 
     conda create --name myenv python=3.7
-
-Now activate environment::
-
     export PYTHONNOUSERSITE=1 # Make sure get python from conda env
     . activate myenv
 
@@ -56,8 +57,8 @@ important command is ``bsub``, for submitting batch scripts from the login nodes
 to execute on the Launch nodes.
 
 It is recommended to run libEnsemble on the Launch nodes (assuming workers are submitting
-MPI jobs) using ``local`` comm mode (multiprocessing). In the future, Balsam may be used
-to run libEnsemble on compute nodes.
+MPI jobs) using the ``local`` communications mode (multiprocessing).
+In the future, Balsam may be used to run libEnsemble on compute nodes.
 
 Interactive Runs
 ^^^^^^^^^^^^^^^^
@@ -67,8 +68,7 @@ to the following::
 
     $ bsub -W 30 -P [project] -nnodes 8 -Is
 
-This will place the user on a launch node. Then, to launch MPI jobs to the compute
-nodes use ``jsrun`` where you would use ``mpirun``.
+This will place the user on a launch node.
 
 .. note::
     You will need to re-activate your conda virtual environment.
@@ -79,7 +79,7 @@ Batch Runs
 Batch scripts specify run-settings using ``#BSUB`` statements. The following
 simple example depicts configuring and launching libEnsemble to a launch node with
 multiprocessing. This script also assumes the user is using the ``parse_args()``
-convenience function within libEnsemble's ``utils.py``.
+convenience function from libEnsemble's :doc:`utils module<../utilities>`.
 
 .. code-block:: bash
 
@@ -122,7 +122,19 @@ convenience function within libEnsemble's ``utils.py``.
 With this saved as ``myscript.sh``, allocating, configuring, and queueing
 libEnsemble on Summit becomes::
 
-    $ bsub script myscript.sh
+    $ bsub myscript.sh
+
+
+Launching user applications from libEnsemble Workers
+----------------------------------------------------
+
+Only the launch nodes can submit MPI runs to the compute nodes via ``jsrun``.
+This can be accomplished in user sim_f functions directly. However, it is highly
+recommended that the :doc:`job_controller<../job_controller/overview>` interface
+is used inside the sim_f (or gen_f), as this provides a portable interface
+with many advantages including automatic resource detection, portability,
+launch failure resilience, and ease of use.
+
 
 Additional Information
 ----------------------
