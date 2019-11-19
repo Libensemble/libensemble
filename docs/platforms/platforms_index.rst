@@ -6,7 +6,7 @@ scales, from laptops to thousands of compute-nodes. libEnsemble's embarrassingly
 parallel  scaling capabilities are best exemplified on the resources available
 within high-performance machines.
 
-libEnsemble's flexible architecture lends it best to two general modes of worker
+libEnsemble's flexible architecture lends itself best to two general modes of worker
 distributions across allocated compute nodes. The first mode we refer
 to as *centralized* mode, where the libEnsemble manager and worker processes
 are grouped on one or more nodes, but through the libEnsemble job-controller or a

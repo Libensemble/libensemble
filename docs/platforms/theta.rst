@@ -89,14 +89,14 @@ On Theta, libEnsemble can be launched to two locations:
 
     1. **A MOM Node**: All of libEnsemble's manager and worker processes
     run on a front-end MOM node. libEnsemble's MPI job-controller takes
-    responsibility for direct job-submission to allocated compute nodes.
+    responsibility for direct user-application submission to allocated compute nodes.
     libEnsemble must be configured to run with *multiprocessing* communications,
     since mpi4py isn't configured for use on the MOM nodes.
 
     2. **The Compute Nodes**: libEnsemble is submitted to Balsam and all manager
     and worker processes are tasked to a backend compute node. libEnsemble's
     Balsam job-controller interfaces with Balsam running on a MOM node for dynamic
-    task submission to the compute nodes.
+    user-application submission to the compute nodes.
 
     .. image:: ../images/combined_ThS.png
         :alt: central_MOM
@@ -106,6 +106,12 @@ On Theta, libEnsemble can be launched to two locations:
 When considering on which nodes to run libEnsemble, consider if your user
 functions execute computationally expensive code, or code built for specific
 architectures. Recall also that only the MOM nodes can launch MPI jobs.
+
+Although libEnsemble workers on the MOM nodes can technically submit
+user-applications to the compute nodes via ``aprun`` within user functions, it
+is highly recommended that the aforementioned :doc:`job_controller<../job_controller/overview>`
+interface is used instead. The libEnsemble job-controller features advantages like
+automatic resource-detection, portability, launch failure resilience, and ease-of-use.
 
 Theta features one default production queue, ``default``, and two debug queues,
 ``debug-cache-quad`` and ``debug-flat-quad``.
@@ -135,7 +141,7 @@ Batch Runs
 Batch scripts specify run-settings using ``#COBALT`` statements. The following
 simple example depicts configuring and launching libEnsemble to a MOM node with
 multiprocessing. This script also assumes the user is using the ``parse_args()``
-convenience function within libEnsemble's ``utils.py``.
+convenience function from libEnsemble's :doc:`utils module<../utilities>`.
 
 .. code-block:: bash
 
