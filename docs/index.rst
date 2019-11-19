@@ -12,7 +12,6 @@
    Quickstart<introduction>
    overview_usecases
    programming_libE
-   utilities
    platforms/platforms_index
 
 .. toctree::

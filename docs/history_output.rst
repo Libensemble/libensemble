@@ -53,3 +53,12 @@ Other libEnsemble files produced by default are:
   set to DEBUG.  If this file is not removed, multiple runs will append output.
   Messages at or above level MANAGER_WARNING are also copied to stderr to alert
   the user promptly.  For more info, see :doc:`Logging<logging>`.
+
+Output Analysis
+^^^^^^^^^^^^^^^
+The ``postproc_scripts`` directory, in the libEnsemble project root directory,
+contains scripts to compare outputs and create plots based on the ensemble output.
+
+.. include:: ../postproc_scripts/readme.rst
+
+.. include:: ../postproc_scripts/balsam/readme.rst
