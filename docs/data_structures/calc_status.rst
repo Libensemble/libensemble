@@ -3,7 +3,7 @@
 calc_status
 ===========
 
-The ``calc_status`` is an integer attribute with a corresponding description that can be used in :ref:`sim_f<api_sim_f>` or :ref:`gen_f<api_gen_f>` functions to capture the status of a calcuation. This is returned to the manager and printed to the ``libE_stats.txt`` file. This is not currently used by the manager, but can still provide a useful summary in libE_stats.txt. The user determines the status of the calculation, as it could include multiple application runs. It can be added as a third return variable in sim_f or gen_f functions.
+The ``calc_status`` is an integer attribute with named (enumerated) values and a corresponding description that can be used in :ref:`sim_f<api_sim_f>` or :ref:`gen_f<api_gen_f>` functions to capture the status of a calcuation. This is returned to the manager and printed to the ``libE_stats.txt`` file. Only the status values ``FINISHED_PERSISTENT_SIM_TAG`` and ``FINISHED_PERSISTENT_GEN_TAG`` are currently used by the manager,  but others can still provide a useful summary in libE_stats.txt. The user determines the status of the calculation, as it could include multiple application runs. It can be added as a third return variable in sim_f or gen_f functions.
 The calc_status codes are in the ``libensemble.message_numbers`` module.
 
 Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_index>` in sim_f:
@@ -44,6 +44,7 @@ Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_in
     return output, persis_info, calc_status
 
 See forces_simf.py_ for a complete example.
+See uniform_or_localopt.py_ for an example of using *FINISHED_PERSISTENT_GEN_TAG*
 
 Available values:
 
@@ -72,3 +73,4 @@ Example segment of libE_stats.txt:
     Worker     2: Calc     3: sim Time: 4.41 Start: 2019-11-19 18:53:56 End: 2019-11-19 18:54:00 Status: Completed
 
 .. _forces_simf.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_simf.py
+.. _uniform_or_localopt.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/uniform_or_localopt.py

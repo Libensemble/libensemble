@@ -72,7 +72,7 @@ Returns:
   :doc:`(example)<data_structures/persis_info>`
 
   **calc_status**: :obj:`int`, optional.
-  Provides a job status to the Manager. Currently only used to output to libE_stats.txt file.
+  Provides a job status to the Manager and the libE_stats.txt file.
   :doc:`(example)<data_structures/calc_status>`
 
 
@@ -110,7 +110,7 @@ Returns:
   :doc:`(example)<data_structures/persis_info>`
 
   **calc_status**: :obj:`int`, optional.
-  Provides a job status to the Manager. Currently only used to output to libE_stats.txt file.
+  Provides a job status to the Manager and the libE_stats.txt file.
   :doc:`(example)<data_structures/calc_status>`
 
 
