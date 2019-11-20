@@ -57,12 +57,12 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 ``mpirun`` should also work. This line launches libEnsemble with a manager and
 **three** workers to one allocated compute node, with three nodes available for
 the workers to launch calculations with the job-controller or a job-launch command.
-This is an example of running in :doc:`centralized<platforms_index.rst>` mode and,
-if using the :doc:`job_controller<../job_controller/mpi_controller.rst>`, it should
+This is an example of running in :doc:`centralized<platforms_index>` mode and,
+if using the :doc:`job_controller<../job_controller/mpi_controller>`, it should
 be intiated with ``central_mode=True``
 
 .. note::
-    When performing a :doc:`distributed<platforms_index.rst>` MPI libEnsemble run
+    When performing a :doc:`distributed<platforms_index>` MPI libEnsemble run
     and not oversubscribing, specify one more MPI process than the number of
     allocated nodes. The Manager and first worker run together on a node.
 
@@ -80,7 +80,7 @@ Batch Runs
 ^^^^^^^^^^
 
 Batch scripts specify run-settings using ``#SBATCH`` statements. A simple example
-for a libEnsemble use-case running in :doc:`distributed<platforms_index.rst>` MPI
+for a libEnsemble use-case running in :doc:`distributed<platforms_index>` MPI
 mode on Broadwell nodes resembles the following:
 
 .. code-block:: bash
