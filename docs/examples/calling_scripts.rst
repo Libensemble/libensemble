@@ -13,6 +13,8 @@ meant to run with Python's multiprocessing as the primary ``comms`` method.
 
 ..  literalinclude:: ../../examples/tutorials/tutorial_calling.py
     :language: python
+    :linenos:
+    :emphasize-lines: 8-28
 
 Balsam Job Controller
 ---------------------
@@ -23,3 +25,5 @@ libEnsemble job controller to be launched by the job controller within the ``sim
 
 ..  literalinclude:: ../../libensemble/tests/regression_tests/script_test_balsam_hworld.py
     :language: python
+    :linenos:
+    :emphasize-lines: 27-31, 33-34, 42-43, 45-57, 59-65
