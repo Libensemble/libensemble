@@ -1,6 +1,6 @@
 # --- Tags
 
-UNSET_TAG = 0  # sh temp - this is a libE feature to be reviewed for best solution
+UNSET_TAG = 0
 EVAL_SIM_TAG = 1
 EVAL_GEN_TAG = 2
 STOP_TAG = 3
@@ -17,17 +17,17 @@ calc_type_strings = {
 
 
 # --- Signal flags (in message body vs tags)
-
-# CALC STATUS/SIGNAL FLAGS: In future these will be in a data structure
+# first_calc_status_rst_tag
+# CALC STATUS/SIGNAL FLAGS
 MAN_SIGNAL_FINISH = 20  # Kill jobs and shutdown worker
 MAN_SIGNAL_KILL = 21    # Kill running job - but don't stop worker
-
-WORKER_KILL = 30             # Worker kills not covered by a more specific case
+WORKER_KILL = 30        # Worker kills not covered by a more specific case
 WORKER_KILL_ON_ERR = 31
 WORKER_KILL_ON_TIMEOUT = 32
-JOB_FAILED = 33
-WORKER_DONE = 34
-CALC_EXCEPTION = 35
+JOB_FAILED = 33  # Calc had jobs that failed
+WORKER_DONE = 34  # Calculation was successful
+CALC_EXCEPTION = 35  # Reserved: Automatically used if gen_f or sim_f raised an exception.
+# last_calc_status_rst_tag
 
 calc_status_strings = {
     MAN_SIGNAL_FINISH: "Manager killed on finish",
@@ -40,3 +40,4 @@ calc_status_strings = {
     CALC_EXCEPTION: "Exception occurred",
     None: "Unknown Status"
 }
+# last_calc_status_string_rst_tag
