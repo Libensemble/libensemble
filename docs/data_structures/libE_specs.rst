@@ -32,6 +32,12 @@ Specifications for libEnsemble::
             Profile using cProfile. Default: False
 
 .. seealso::
-  Examples in `common.py`_
+  Example ``libE_specs`` from the forces_ scaling test, completely populated::
 
-.. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py
+      libE_specs = {'comm': MPI.COMM_WORLD,
+                    'comms': 'mpi',
+                    'save_every_k_gens': 1000,
+                    'sim_dir': './sim',
+                    'profile_worker': False}
+
+.. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py
