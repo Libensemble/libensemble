@@ -23,7 +23,7 @@ sim_specs = {'sim_f': sim_find_sine,            # Our simulator function
              'in': ['x'],                       # Input field names. 'x' from gen_f output
              'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
 
-persis_info = add_unique_random_streams({}, nworkers+1) # Worker numbers start at 1
+persis_info = add_unique_random_streams({}, nworkers+1)  # Intitialize manager/workers random streams
 
 exit_criteria = {'sim_max': 80}                 # Stop libEnsemble after 80 simulations
 
