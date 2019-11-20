@@ -8,7 +8,7 @@ within high-performance machines.
 
 libEnsemble's flexible architecture lends itself best to two general modes of worker
 distributions across allocated compute nodes. The first mode we refer
-to as *centralized* mode, where the libEnsemble manager and worker processes
+to as **centralized** mode, where the libEnsemble manager and worker processes
 are grouped on one or more nodes, but through the libEnsemble job-controller or a
 job-launch command can execute calculations on the other allocated nodes:
 
@@ -17,7 +17,7 @@ job-launch command can execute calculations on the other allocated nodes:
     :scale: 75
     :align: center
 
-Alternatively, in *distributed* mode, each worker process runs independently of
+Alternatively, in **distributed** mode, each worker process runs independently of
 other workers directly on one or more allocated nodes:
 
 .. image:: ../images/distributed_Bb.png
@@ -42,6 +42,7 @@ Read more about configuring and launching libEnsemble on some HPC systems:
     :titlesonly:
 
     bebop
+    cori
     theta
     summit
     example_scripts

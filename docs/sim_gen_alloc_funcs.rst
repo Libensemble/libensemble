@@ -71,11 +71,10 @@ Returns:
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
 
-  **calc_tag**: :obj:`int`, optional
-  Used to tell manager why a persistent worker is stopping.
+  **calc_status**: :obj:`int`, optional.
+  Provides a job status to the Manager and the libE_stats.txt file.
+  :doc:`(example)<data_structures/calc_status>`
 
-..  literalinclude:: ../libensemble/message_numbers.py
-    :end-before: last_message_number_rst_tag
 
 gen_f API
 ~~~~~~~~~
@@ -110,11 +109,10 @@ Returns:
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
 
-  **calc_tag**: :obj:`int`, optional
-  Used to tell manager why a persistent worker is stopping.
+  **calc_status**: :obj:`int`, optional.
+  Provides a job status to the Manager and the libE_stats.txt file.
+  :doc:`(example)<data_structures/calc_status>`
 
-..  literalinclude:: ../libensemble/message_numbers.py
-    :end-before: last_message_number_rst_tag
 
 alloc_f API
 ~~~~~~~~~~~

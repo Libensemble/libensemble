@@ -34,3 +34,4 @@ function.
    history_array
    worker_array
    work_dict
+   calc_status
