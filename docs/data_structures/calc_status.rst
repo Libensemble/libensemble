@@ -51,7 +51,7 @@ Available values:
     :start-after: first_calc_status_rst_tag
     :end-before: last_calc_status_rst_tag
 
-The corresponding messages printed to the libE_stats.txt file are:
+The corresponding messages printed to the ``libE_stats.txt`` file are:
 
 ..  literalinclude:: ../../libensemble/message_numbers.py
     :start-at: calc_status_strings
