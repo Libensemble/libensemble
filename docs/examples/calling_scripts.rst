@@ -41,4 +41,4 @@ persistent run via a custom allocation function. Note the use of the
 ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py
     :language: python
     :linenos:
-    :emphasize-lines: 30, 38-69
+    :emphasize-lines: 30, 38-69, 82
