@@ -113,7 +113,7 @@ View the status of your submitted jobs with ``squeue`` and cancel jobs with
 Additional Information
 ----------------------
 
-See the LCRC Bebop docs here_ for more information about Cori.
+See the NERSC Cori docs here_ for more information about Cori.
 
 .. _Cori: https://docs.nersc.gov/systems/cori/
 .. _Anaconda: https://www.anaconda.com/distribution/
