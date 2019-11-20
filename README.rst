@@ -42,8 +42,8 @@ libEnsemble aims for:
 The user selects or supplies a function that generates simulation
 input as well as a function that performs and monitors the
 simulations. For example, the generation function may contain an
-optimization routine to generate new simulation parameters on-the-fly based on the
-results of previous simulations. Examples and templates of such functions are
+optimization routine to generate new simulation parameters on-the-fly based on
+the results of previous simulations. Examples and templates of such functions are
 included in the library.
 
 libEnsemble employs a manager-worker scheme that can run on various
@@ -74,13 +74,12 @@ Optional dependency:
 
 * Balsam_
 
-From v0.2.0, libEnsemble has the option of using the Balsam job manager. This
-is required for running libEnsemble on the compute nodes of some supercomputing
-platforms (e.g., Cray XC40); platforms that do not support launching jobs from
-compute nodes. Note that as of v0.5.0, libEnsemble can also be run on the
-launch nodes using multiprocessing.
+From v0.2.0, libEnsemble has the option of using the Balsam job manager. Balsam
+is required to run libEnsemble on the compute nodes of some supercomputing
+platforms that do not support launching jobs from compute nodes. As of v0.5.0,
+libEnsemble can also be run on launch nodes using multiprocessing.
 
-The example sim and gen functions and tests require the following dependencies:
+The example simulation and generation functions and tests require the following:
 
 * SciPy_
 * petsc4py_
@@ -89,22 +88,32 @@ The example sim and gen functions and tests require the following dependencies:
 
 PETSc and NLopt must be built with shared libraries enabled and present in
 ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
-should produce a file ``nlopt.py`` if Python is found on the system. NLopt may also
-require SWIG_ to be installed on certain systems.
+should produce a file ``nlopt.py`` if Python is found on the system. NLopt may
+also require SWIG_ to be installed on certain systems.
 
 Installation
 ~~~~~~~~~~~~
+
+libEnsemble may be installed or accessed from a variety of sources.
 
 Use pip to install libEnsemble and its dependencies::
 
     pip install libensemble
 
-libEnsemble is also available in the Spack_ distribution. It can be installed from Spack with::
+libEnsemble is also available in the Spack_ distribution. It can be installed
+from Spack with::
 
     spack install py-libensemble
 
-The tests and examples can be accessed in the GitHub_ repository.
-If necessary, you may install all optional dependencies (listed above) at once with::
+libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_
+from version 0.5.0 onward. Install the xSDK and load the environment with::
+
+    spack install xsdk
+    spack load -r xsdk
+
+The codebase, tests and examples can be accessed in the GitHub_ repository.
+If necessary, you may install all optional dependencies (listed above) at once
+with::
 
     pip install libensemble[extras]
 
@@ -119,8 +128,8 @@ regularly on:
 * `Travis CI`_
 
 The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
-packages to be installed and can be run from the libensemble/tests directory of
-the source distribution by running::
+packages to be installed and can be run from the ``libensemble/tests`` directory
+of the source distribution by running::
 
     ./run-tests.sh
 
@@ -154,8 +163,8 @@ available online at Coveralls_.
 Basic Usage
 ~~~~~~~~~~~
 
-The examples directory contains example libEnsemble calling scripts, sim
-functions, gen functions, alloc functions and job submission scripts.
+The examples directory contains example libEnsemble calling scripts, simulation
+functions, generation functions, allocation functions and job submission scripts.
 
 The default manager/worker communications mode is MPI. The user script is
 launched as::
@@ -171,9 +180,8 @@ can then be run as a regular python script::
 
     python myscript.py
 
-When specifying these options via command line options, one may use the
-``parse_args`` function used in the regression tests, which can be found in
-`common.py`_ in the ``libensemble/tests/regression_tests`` directory.
+These options may be specified via the command-line using the ``parse_args()``
+convenience function within ``libensemble/utils.py``.
 
 See the `user guide`_ for more information.
 
@@ -210,7 +218,6 @@ Resources
 .. after_resources_rst_tag
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
-.. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
@@ -235,3 +242,4 @@ Resources
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/user_guide.html
+.. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info/
