@@ -26,6 +26,6 @@ Below are the protected fields used in ``H``
   ``check_inputs()`` and calling it with their ``gen_specs``, ``alloc_specs``,
   and ``sim_specs`` as keyword arguments::
 
-      from libensemble.libE import check_inputs
+      from libensemble.utils import check_inputs
 
       check_inputs(H0=my_H, sim_specs=sim_specs, alloc_specs=alloc_specs, gen_specs=gen_specs)
