@@ -1,14 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from libensemble.libE import libE
+from libensemble.utils import add_unique_random_streams
 from tutorial_gen import gen_random_sample
 from tutorial_sim import sim_find_sine
 from mpi4py import MPI
 
-# nworkers = 4                                  # nworkers will come from MPI
 libE_specs = {'comms': 'mpi'}                   # 'nworkers' removed, 'comms' now 'mpi'
 
-nworkers = MPI.COMM_WORLD.Get_size() - 1
+nworkers = MPI.COMM_WORLD.Get_size() - 1        # one process belongs to manager
 is_master = (MPI.COMM_WORLD.Get_rank() == 0)    # master process has MPI rank 0
 
 gen_specs = {'gen_f': gen_random_sample,        # Our generator function
@@ -23,20 +23,17 @@ sim_specs = {'sim_f': sim_find_sine,            # Our simulator function
              'in': ['x'],                       # Input field names. 'x' from gen_f output
              'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
 
-persis_info = {}
-
-for i in range(1, nworkers+1):                  # Worker numbers start at 1.
-    persis_info[i] = {
-        'rand_stream': np.random.RandomState(i),
-        'worker_num': i}
+persis_info = add_unique_random_streams({}, nworkers+1)  # Intitialize manager/workers random streams
 
 exit_criteria = {'sim_max': 80}                 # Stop libEnsemble after 80 simulations
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
-if is_master:                                   # Only the master process should execute this
-    print([i for i in H.dtype.fields])          # Some (optional) statements to visualize our History array
+# Some (optional) statements to visualize our History array
+# Only the master process should execute this
+if is_master:
+    print([i for i in H.dtype.fields])
     print(H)
 
     colors = ['b', 'g', 'r', 'y', 'm', 'c', 'k', 'w']
