@@ -24,7 +24,6 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -34,6 +33,10 @@ if is_master:
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+
+six_hump_camel_minima = np.array([[-0.089842, 0.712656], [0.089842, -0.712656],
+                                  [-1.70361, 0.796084], [1.70361, -0.796084],
+                                  [-1.6071, -0.568651], [1.6071, 0.568651]])
 
 n = 2
 sim_specs = {'sim_f': sim_f,
@@ -47,7 +50,7 @@ gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
              'user': {'initial_sample_size': 100,
-                      'sample_points': np.round(minima, 1),
+                      'sample_points': np.round(six_hump_camel_minima, 1),
                       'localopt_method': 'LD_MMA',
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                       'xtol_rel': 1e-6,
@@ -73,7 +76,7 @@ if is_master:
     print('[Manager]: Time taken =', time() - start_time, flush=True)
 
     tol = 1e-5
-    for m in minima:
+    for m in six_hump_camel_minima:
         # The minima are known on this test problem.
         # We use their values to test APOSMM has identified all minima
         print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
