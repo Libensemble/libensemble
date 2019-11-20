@@ -9,22 +9,26 @@ Bebop - Central Mode
 --------------------
 
 ..  literalinclude:: ../../examples/job_submission_scripts/bebop_submit_slurm_centralmode.sh
+    :caption: /examples/job_submission_scripts/bebop_submit_slurm_centralmode.sh
     :language: bash
 
 Bebop - Distributed Mode
 ------------------------
 
 ..  literalinclude:: ../../examples/job_submission_scripts/bebop_submit_slurm.sh
+    :caption: /examples/job_submission_scripts/bebop_submit_slurm.sh
     :language: bash
 
 Blues
 -----
 
 ..  literalinclude:: ../../examples/job_submission_scripts/blues_script.pbs
+    :caption: /examples/job_submission_scripts/blues_script.pbs
     :language: bash
 
 Theta - Central Mode with Balsam
 --------------------------------
 
 ..  literalinclude:: ../../examples/job_submission_scripts/theta_submit_balsam.sh
+    :caption: /examples/job_submission_scripts/theta_submit_balsam.sh
     :language: bash

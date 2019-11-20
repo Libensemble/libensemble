@@ -15,6 +15,7 @@ meant to run with Python's multiprocessing as the primary ``comms`` method.
 
 ..  literalinclude:: ../../examples/tutorials/tutorial_calling.py
     :language: python
+    :caption: examples/tutorials/tutorial_calling.py
     :linenos:
     :emphasize-lines: 8-28
 
@@ -27,6 +28,7 @@ libEnsemble job controller to be launched by the job controller within the ``sim
 
 ..  literalinclude:: ../../libensemble/tests/regression_tests/script_test_balsam_hworld.py
     :language: python
+    :caption: tests/regression_tests/script_test_balsam_hworld.py
     :linenos:
     :emphasize-lines: 27-34, 42-65
 
@@ -40,5 +42,6 @@ persistent run via a custom allocation function. Note the use of the
 
 ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py
     :language: python
+    :caption: tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py
     :linenos:
     :emphasize-lines: 30, 38-69, 82
