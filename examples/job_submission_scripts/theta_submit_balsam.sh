@@ -4,7 +4,7 @@
 #COBALT -n 5 # No. nodes
 #COBALT -q debug-flat-quad # Up to 8 nodes only
 ##COBALT -q default # For large jobs >=128 nodes
-##COBALT -A <...project code...>
+##COBALT -A <project code>
 
 # Script to launch libEnsemble using Balsam within Conda. Conda environment must be set up.
 
@@ -35,7 +35,7 @@ export LIBE_WALLCLOCK=$(($BALSAM_WALLCLOCK-3))
 # export SCRIPT_ARGS='' # No args
 # export SCRIPT_ARGS='$LIBE_WALLCLOCK' # If calling script takes wall-clock as positional arg.
 
-# If script is using util.parse_args() and takes wall-clock as positional arg.
+# If script is using utilsparse_args() and takes wall-clock as positional arg.
 export SCRIPT_ARGS="--comms mpi --nworkers $NUM_WORKERS $LIBE_WALLCLOCK"
 
 # Name of Conda environment (Need to have set up: https://balsam.readthedocs.io/en/latest/userguide/getting-started.html)

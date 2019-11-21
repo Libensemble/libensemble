@@ -1,9 +1,10 @@
 #!/bin/bash -x
 #COBALT -t 00:30:00
+#COBALT -O libE_mproc_MOM
 #COBALT -n 4
 #COBALT -q debug-flat-quad # Up to 8 nodes only
 ##COBALT -q default # For large jobs >=128 nodes
-##COBALT -A <...project code...>
+##COBALT -A <project code>
 
 # Script to run libEnsemble using multiprocessing on launch nodes.
 # Assumes Conda environment is set up.
@@ -44,4 +45,4 @@ export PYTHONNOUSERSITE=1
 # Launch libE
 #python $EXE $NUM_WORKERS > out.txt 2>&1 # No args
 #python $EXE $NUM_WORKERS $LIBE_WALLCLOCK > out.txt 2>&1  # If user script takes wall-clock as positional arg.
-python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If script is using util.parse_args()
+python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If script is using utils.parse_args()
