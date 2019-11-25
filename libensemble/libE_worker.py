@@ -192,7 +192,6 @@ class Worker:
             logger.info("No job_controller set on worker {}".format(workerID))
             return False
 
-
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         """Determines choice for implementing sim_dir structure,
         then performs calculation.
@@ -231,7 +230,6 @@ class Worker:
                 out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
         return out
-
 
     def _handle_calc(self, Work, calc_in):
         """Run a calculation on this worker object.

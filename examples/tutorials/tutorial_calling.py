@@ -25,7 +25,7 @@ persis_info = add_unique_random_streams({}, nworkers+1)  # Intitialize manager/w
 exit_criteria = {'sim_max': 40}                 # Stop libEnsemble after 80 simulations
 
 libE_specs['sim_dir'] = './tut_sim'
-libE_specs['do_worker_dir'] = True # Worker-specific sim_dirs. 'False' for call-specific
+libE_specs['do_worker_dir'] = True  # Worker-specific sim_dirs. 'False' for call-specific
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
