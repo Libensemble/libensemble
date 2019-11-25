@@ -22,6 +22,7 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func as func1
 from libensemble.sim_funcs.one_d_func import one_d_example as func2
 from libensemble.sim_funcs.branin.branin_obj import call_branin as func3
 from libensemble.gen_funcs.mop_mod import mop_mod_wrapper as gen_f
+from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
 
@@ -54,13 +55,17 @@ gen_specs = {'num_obj': 3,
              'lb': np.array([-3.0, -2.0]),
              'ub': np.array([3.0, 2.0])}
 
+alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
+
 persis_info = per_worker_stream({}, nworkers + 1)
+persis_info['next_to_give'] = 0
+persis_info['total_gen_calls'] = 0
 
 exit_criteria = {'sim_max': 500, 'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+                            alloc_specs=alloc_specs, libE_specs=libE_specs)
 
 if is_master:
     assert flag == 0
