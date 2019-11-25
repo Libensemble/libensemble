@@ -75,7 +75,6 @@ Returns:
   Provides a job status to the Manager and the libE_stats.txt file.
   :doc:`(example)<data_structures/calc_status>`
 
-
 gen_f API
 ~~~~~~~~~
 .. _api_gen_f:
@@ -112,7 +111,6 @@ Returns:
   **calc_status**: :obj:`int`, optional.
   Provides a job status to the Manager and the libE_stats.txt file.
   :doc:`(example)<data_structures/calc_status>`
-
 
 alloc_f API
 ~~~~~~~~~~~
