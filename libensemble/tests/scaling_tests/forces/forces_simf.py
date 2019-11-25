@@ -46,8 +46,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     calc_status = 0  # Returns to worker
 
     x = H['x']
-    simdir_basename = sim_specs['user']['simdir_basename']
-    keys = sim_specs['user']['keys']
+    # simdir_basename = sim_specs['user']['simdir_basename']
+    # keys = sim_specs['user']['keys']
     sim_particles = sim_specs['user']['sim_particles']
     sim_timesteps = sim_specs['user']['sim_timesteps']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0

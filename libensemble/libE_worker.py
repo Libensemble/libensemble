@@ -154,7 +154,6 @@ class Worker:
                               prefix=prefix, srcdir=sim_dir)
         return locs
 
-
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
         "Create functions to run a sim or gen"
