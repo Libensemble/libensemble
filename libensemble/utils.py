@@ -46,12 +46,13 @@ allowed_libE_spec_keys = ['comms',               #
                           'port',                #
                           'authkey',             #
                           'workerID',            #
-                          'nworkers',          #
+                          'nworkers',            #
                           'worker_cmd',          #
                           'abort_on_exception',  #
                           'sim_dir',             #
                           'sim_dir_prefix',      #
                           'sim_dir_suffix',      #
+                          'do_worker_dir',       #
                           'clean_jobs',          #
                           'save_every_k_sims',   #
                           'save_every_k_gens',   #

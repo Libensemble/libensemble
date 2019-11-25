@@ -149,7 +149,13 @@ class Worker:
             suffix = libE_specs.get('sim_dir_suffix', '')
             if suffix != '':
                 suffix = '_' + suffix
-            worker_dir = "{}{}_worker{}-{}".format(sim_dir, suffix, workerID, uuid.uuid4().hex[:8])
+            if libE_specs.get('do_worker_dir'):
+                worker_dir = "{}{}_worker{}" \
+                             .format(sim_dir, suffix, workerID)
+            else:
+                worker_dir = "{}{}_worker{}-{}" \
+                             .format(sim_dir, suffix, workerID,
+                                     uuid.uuid4().hex[:8])
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
                               prefix=prefix, srcdir=sim_dir)
         return locs
@@ -186,6 +192,47 @@ class Worker:
             logger.info("No job_controller set on worker {}".format(workerID))
             return False
 
+
+    def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
+        """Determines choice for implementing sim_dir structure,
+        then performs calculation.
+
+        If performing a sim calculation, make a directory in which
+        to perform work (and do so). If 'do_worker_dir' is a
+        libE_specs parameter, reuse a worker-specific) directory or
+        create one if the worker doesn't have one yet.
+        Otherwise continue with (presumably) gen work.
+
+        Parameters
+        ----------
+
+        Work: dictionary
+            :ref:`(example)<datastruct-work-dict>`
+
+        calc_type: string
+            sim or gen
+
+        calc: function
+            which sim_f or gen_f runner to call
+
+        calc_in: numpy structured array
+            Rows from the :ref:`history array<datastruct-history-array>`
+            for processing
+        """
+        if self.libE_specs.get('do_worker_dir'):
+            if not self.loc_stack:
+                self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
+
+            with self.loc_stack.loc(calc_type):
+                out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+        else:
+            with Worker._make_sim_worker_dir(self.libE_specs, self.workerID).loc(calc_type):
+                out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+        return out
+
+
     def _handle_calc(self, Work, calc_in):
         """Run a calculation on this worker object.
 
@@ -215,21 +262,8 @@ class Worker:
             with timer:
                 logger.debug("Calling calc {}".format(calc_type))
 
-                # Worker creates own sim_dir only if sim work performed.
-                # if calc_type == EVAL_SIM_TAG and self.loc_stack:
-                #     with self.loc_stack.loc(calc_type):
-                #         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-                #
-                # elif calc_type == EVAL_SIM_TAG and not self.loc_stack:
-                #     self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
-                #     with self.loc_stack.loc(calc_type):
-                #         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-
                 if calc_type == EVAL_SIM_TAG:
-                    self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
-                    with self.loc_stack.loc(calc_type):
-                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-
+                    out = self._determine_dir_then_calc(Work, calc_type, calc_in, calc)
                 else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 

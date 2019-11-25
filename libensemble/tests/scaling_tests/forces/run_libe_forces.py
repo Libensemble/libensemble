@@ -76,6 +76,7 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
 libE_specs['sim_dir'] = './sim'         # Sim dir to be copied for each worker
 libE_specs['profile_worker'] = False    # Whether to have libE profile on
+libE_specs['do_worker_dir'] = False     # JC overwrites output if one worker does each sim
 
 # Maximum number of simulations
 sim_max = 8
