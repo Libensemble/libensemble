@@ -5,7 +5,7 @@ libEnsemble worker class
 
 import socket
 import logging
-import secrets
+import uuid
 import logging.handlers
 from itertools import count
 from traceback import format_exc
@@ -149,7 +149,7 @@ class Worker:
             suffix = libE_specs.get('sim_dir_suffix', '')
             if suffix != '':
                 suffix = '_' + suffix
-            worker_dir = "{}{}_worker{}-{}".format(sim_dir, suffix, workerID, secrets.token_hex(4))
+            worker_dir = "{}{}_worker{}-{}".format(sim_dir, suffix, workerID, uuid.uuid4().hex[:8])
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
                               prefix=prefix, srcdir=sim_dir)
         return locs
