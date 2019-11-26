@@ -55,5 +55,5 @@ if is_master:
         'Number of worker directories does not match number of workers'
 
     for i in os.listdir():
-        if 'test_sim_dir_worker' in i:
+        if 'test_sim_dir' in i:
             shutil.rmtree(i)
