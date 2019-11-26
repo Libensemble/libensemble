@@ -83,6 +83,5 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     O = np.zeros(b, dtype=gen_specs['out'])
     for i in range(0, b):
         O['x'][i] = cand_pts[d*i:d*(i+1)]
-    # O['x'] = persis_info['rand_stream'].uniform(lb, ub, (nb, d))
 
     return O, persis_info
