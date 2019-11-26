@@ -1,6 +1,8 @@
 import numpy as np
 import copy
 
+__all__ = ['nan_func', 'write_func']
+
 branin_vals_and_minima = np.array([[-3.14159, 12.275, 0.397887],
                                    [3.14159, 2.275, 0.397887],
                                    [9.42478, 2.475, 0.397887]])
@@ -15,6 +17,14 @@ def nan_func(calc_in, persis_info, sim_specs, libE_info):
     H['f_i'] = np.nan
     H['f'] = np.nan
     return (H, persis_info)
+
+
+def write_func(calc_in, persis_info, sim_specs, libE_info):
+    out = np.zeros(1, dtype=sim_specs['out'])
+    out['f'] = calc_in['x']
+    with open('test_out.txt', 'a') as f:
+        f.write('sim_f received: {}\n'.format(out['f']))
+    return out, persis_info
 
 
 uniform_or_localopt_gen_out = [('priority', float),
