@@ -362,7 +362,7 @@ def parse_args():
         :doc:`(example)<data_structures/libE_specs>`
 
     """
-    #args = parser.parse_args(sys.argv[1:])
+    # args = parser.parse_args(sys.argv[1:])
     args, unknown = parser.parse_known_args(sys.argv[1:])
     front_ends = {
         'mpi': _mpi_parse_args,
