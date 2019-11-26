@@ -10,9 +10,5 @@ def sim_find_sine(H, persis_info, sim_specs, _):
     # Set the zero to the sine of the input value stored in H
     out['y'] = np.sin(H['x'])
 
-    with open('tut_out.txt', 'a') as f:
-        line = 'sin({})={}\n'.format(H['x'], out['y'])
-        f.write(line)
-
     # Send back our output and persis_info
     return out, persis_info

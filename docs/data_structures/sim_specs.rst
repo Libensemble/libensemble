@@ -22,11 +22,6 @@ Used to specify the simulation function, its inputs and outputs, and user data::
   * The tuples in ``sim_specs['out']`` are entered into the master
     :ref:`history array<datastruct-history-array>`
 
-  * The ``libE_specs['sim_dir_prefix']`` option may be used to create
-    simulation working directories in node local/scratch storage when workers
-    are distributed. This may have a performance benefit with I/O heavy
-    simulations.
-
 .. seealso::
 
   .. _sim-specs-exmple1:

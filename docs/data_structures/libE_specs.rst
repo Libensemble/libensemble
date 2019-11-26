@@ -21,7 +21,9 @@ Specifications for libEnsemble::
         'save_every_k_gens' [int] :
             Save history array to file after every k generated points.
         'sim_dir' [str] :
-            Name of simulation directory which will be copied for each worker
+            Name of simulation directory which will be copied for each sim calc
+        'do_worker_dir' [bool] :
+            Instead of copying sim dir for each calc, create a copy for each worker.
         'clean_jobs' [bool] :
             Clean up sim_dirs after libEnsemble completes. Default: False
         'sim_dir_prefix' [str] :
