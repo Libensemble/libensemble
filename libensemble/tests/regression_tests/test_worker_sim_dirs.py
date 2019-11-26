@@ -52,7 +52,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 
 if is_master:
     assert sum(['test_sim_dir_worker' in i for i in os.listdir()]) == nworkers, \
-    'Number of worker directories does not match number of workers'
+        'Number of worker directories does not match number of workers'
 
     for i in os.listdir():
         if 'test_sim_dir_worker' in i:
