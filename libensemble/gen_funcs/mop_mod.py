@@ -1,18 +1,43 @@
 """
-Wrapper for MOP-MOD
+Wrapper for the MOP_MOD genfuncs drivers, for solving multiobjective
+optimization problems with arbitrary number of objectives.
 """
 import numpy as np
 from scipy.io import FortranFile  # for reading/writing unformatted binary data
 from os import system  # for issuing batch commands
 
 
-def mop_mod_wrapper(H, persis_info, gen_specs, _):
+def mop_mod_gen(H, persis_info, gen_specs, _):
     """
-    Generates ``gen_specs['gen_batch_size']`` points uniformly over the domain
-    defined by ``gen_specs['ub']`` and ``gen_specs['lb']``.
+    This generator function solves multiobjective optimization problems
+    with d design variables (subject to simple bound constraints) and
+    p objectives using MOP_MOD.
 
-    :See:
-        ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py``
+    This requires that MOP_MOD be installed and in the system PATH.
+    To do so, download MOP_MOD (contact thchang@vt.edu), and use the
+    command
+
+    $ make genfuncs
+
+    to build the generator functions. Next, run the command
+
+    $ export PATH=$PATH:`pwd`
+
+    from the MOP_MOD source/build directory to add MOP_MOD to your system
+    PATH.
+
+    This generator alternates between generating large batches of size
+    gen_specs['gen_batch_size'] to explore design regions, and small
+    batches of undetermined size to fill in gaps on the Pareto front.
+
+    gen_specs['ub'] and gen_specs['lb'] must specify upper and lower
+    bound constraints on each design variable. The number of design variables
+    is inferred from len(gen_specs['ub']). gen_specs['num_obj']
+    specifies the number of objectives.
+
+    Several unformatted binary files (mop.io, mop.dat, and mop.chkpt) will
+    be generated in the calling directory to pass information between
+    libEnsemble and MOP_MOD. 
     """
     # First get the problem dimensions and data
     ub = gen_specs['ub']  # upper bounds
