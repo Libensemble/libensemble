@@ -198,7 +198,7 @@ class Worker:
 
         If performing a sim calculation, make a directory in which
         to perform work (and do so). If 'do_worker_dir' is a
-        libE_specs parameter, reuse a worker-specific) directory or
+        libE_specs parameter, reuse a worker-specific directory or
         create one if the worker doesn't have one yet.
         Otherwise continue with (presumably) gen work.
 

@@ -1,5 +1,6 @@
 # """
-# Runs libEnsemble on a gen_f that is missing necessary information; tests libE worker exception raising
+# Runs libEnsemble with uniform random sampling and writes results into sim dirs.
+#   tests per-worker or per-calculation sim_dir copying capability
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_worker_exceptions.py
@@ -54,6 +55,7 @@ if is_master:
     assert sum(['test_sim_dir_worker' in i for i in os.listdir()]) == nworkers, \
         'Number of worker directories does not match number of workers'
 
+    # Cleanup just-in-case
     for i in os.listdir():
         if 'test_sim_dir' in i:
             shutil.rmtree(i)

@@ -22,7 +22,7 @@ sim_specs = {'sim_f': sim_find_sine,            # Our simulator function
 
 persis_info = add_unique_random_streams({}, nworkers+1)  # Intitialize manager/workers random streams
 
-exit_criteria = {'sim_max': 40}                 # Stop libEnsemble after 80 simulations
+exit_criteria = {'sim_max': 80}                 # Stop libEnsemble after 80 simulations
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
