@@ -159,7 +159,6 @@ class Resources:
                 return 'mpich'
             return 'openmpi'
         except Exception as e:
-            print('Testing: Error on MPI command: {}'.format(e))
             pass
 
         try:
