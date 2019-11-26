@@ -37,7 +37,7 @@ gen_specs = {'gen_f': gen_f,
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 sim_dir = './test_sim_dir'
-if not os.path.isdir(sim_dir):
+if is_master and not os.path.isdir(sim_dir):
     os.mkdir(sim_dir)
 
 libE_specs['sim_dir'] = sim_dir
