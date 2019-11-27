@@ -43,5 +43,5 @@ Quickstart Guide
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
-.. _user guide: https://libensemble.readthedocs.io/en/latest/user_guide.html
+.. _user guide: https://libensemble.readthedocs.io/en/latest
 .. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
