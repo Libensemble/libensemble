@@ -10,7 +10,7 @@ The following scripts must be run in the directory with the **libE_stats.txt** f
 
 * **plot_libe_runs_util_v_time.py**: Extract launched job utilization v time plot (with one second sampling). Shows number of workers with active jobs, launched via the job controller, over time.
 
-* **plot_libE_histogram.py**: Create histogram showing the number of completed/killed/failed user calculations binned by run-time.
+* **plot_libe_histogram.py**: Create histogram showing the number of completed/killed/failed user calculations binned by run-time.
 
 ========================
 Results analysis scripts

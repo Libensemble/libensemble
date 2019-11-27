@@ -32,11 +32,9 @@ export WORKFLOW_NAME=libe_workflow
 export LIBE_WALLCLOCK=$(($BALSAM_WALLCLOCK-3))
 
 # libEnsemble calling script arguments
-# export SCRIPT_ARGS='' # No args
-# export SCRIPT_ARGS='$LIBE_WALLCLOCK' # If calling script takes wall-clock as positional arg.
-
-# If script is using utilsparse_args() and takes wall-clock as positional arg.
-export SCRIPT_ARGS="--comms mpi --nworkers $NUM_WORKERS $LIBE_WALLCLOCK"
+# export SCRIPT_ARGS='' # No args. All defined in calling script
+# export SCRIPT_ARGS="--comms mpi --nworkers $NUM_WORKERS # If calling script is using utils.parse_args()
+export SCRIPT_ARGS="$LIBE_WALLCLOCK --comms mpi --nworkers $NUM_WORKERS"  # If calling script takes wall-clock as positional arg.
 
 # Name of Conda environment (Need to have set up: https://balsam.readthedocs.io/en/latest/userguide/getting-started.html)
 export CONDA_ENV_NAME=<conda_env_name>
@@ -45,8 +43,8 @@ export CONDA_ENV_NAME=<conda_env_name>
 export DBASE_NAME=<dbase_name>  # default - to use default database.
 
 # Conda location - theta specific
-# export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
-# export LD_LIBRARY_PATH=~/.conda/envs/$CONDA_ENV_NAME/lib:$LD_LIBRARY_PATH
+export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
+export LD_LIBRARY_PATH=~/.conda/envs/$CONDA_ENV_NAME/lib:$LD_LIBRARY_PATH
 
 export PYTHONNOUSERSITE=1 # Ensure environment isolated
 

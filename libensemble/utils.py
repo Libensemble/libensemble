@@ -7,9 +7,25 @@ import numpy as np
 import argparse
 import pickle
 
+# Create logger
 logger = logging.getLogger(__name__)
-# To change logging level for just this module
-# logger.setLevel(logging.DEBUG)
+logger.propagate = False
+logger.setLevel(logging.INFO)
+
+# Set up format (Alt. Import LogConfig and base on that)
+utils_logformat = '%(name)s: %(message)s'
+formatter = logging.Formatter(utils_logformat)
+
+# Log to file
+# util_filename = 'util.log'
+# fh = logging.FileHandler(util_filename, mode='w')
+# fh.setFormatter(formatter)
+# logger.addHandler(fh)
+
+# Log to standard error
+sth = logging.StreamHandler(stream=sys.stderr)
+sth.setFormatter(formatter)
+logger.addHandler(sth)
 
 
 """
@@ -346,7 +362,7 @@ def parse_args():
         :doc:`(example)<data_structures/libE_specs>`
 
     """
-    args = parser.parse_args(sys.argv[1:])
+    args, unknown = parser.parse_known_args(sys.argv[1:])
     front_ends = {
         'mpi': _mpi_parse_args,
         'local': _local_parse_args,
@@ -355,12 +371,15 @@ def parse_args():
         'client': _client_parse_args}
     if args.pwd is not None:
         os.chdir(args.pwd)
-    return front_ends[args.comms or 'mpi'](args)
+    nworkers, is_master, libE_specs, tester_args = front_ends[args.comms or 'mpi'](args)
+    if is_master and unknown:
+        logger.warning('parse_args ignoring unrecognized arguments: {}'.format(' '.join(unknown)))
+    return nworkers, is_master, libE_specs, tester_args
 
 # =================== save libE output to pickle and np ========================
 
 
-def save_libE_output(H, persis_info, calling_file, nworkers):
+def save_libE_output(H, persis_info, calling_file, nworkers, mess='Run completed'):
     """
     Writes out history array and persis_info to files.
 
@@ -392,6 +411,10 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
 
         The number of workers in this ensemble. Added to output file names.
 
+    mess: :obj:`String`
+
+        A message to print/log when saving the file.
+
     """
 
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
@@ -400,13 +423,14 @@ def save_libE_output(H, persis_info, calling_file, nworkers):
                           + '_evals=' + str(sum(H['returned'])) \
                           + '_ranks=' + str(nworkers)
 
-    print("\n\n\nRun completed.\nSaving results to file: "+filename)
+    status_mess = ' '.join(['------------------', mess, '-------------------'])
+    logger.info('{}\nSaving results to file: {}'.format(status_mess, filename))
     np.save(filename, H)
 
     with open(filename + ".pickle", "wb") as f:
         pickle.dump(persis_info, f)
 
-# ===================== per-worker numpy random-streams ========================
+# ===================== per-process numpy random-streams =======================
 
 
 def add_unique_random_streams(persis_info, nstreams):
@@ -446,5 +470,7 @@ def add_unique_random_streams(persis_info, nstreams):
     return persis_info
 
 
+# A very specific exception to using the logger.
 def eprint(*args, **kwargs):
+    """Prints a user message to standard error"""
     print(*args, file=sys.stderr, **kwargs)

@@ -13,7 +13,7 @@
 # - Workers submit jobs to the nodes in the job available.
 
 # Name of calling script-
-export EXE=run_libe_forces.py
+export EXE=libE_calling_script.py
 
 # Communication Method
 export COMMS="--comms local"
@@ -22,7 +22,7 @@ export COMMS="--comms local"
 export NWORKERS="--nworkers 4"
 
 # Wallclock for libE.  (allow clean shutdown)
-#export LIBE_WALLCLOCK=25 # Optional if pass to script
+export LIBE_WALLCLOCK=25 # Optional if pass to script
 
 # Name of Conda environment
 export CONDA_ENV_NAME=<conda_env_name>
@@ -38,6 +38,7 @@ export PYTHONNOUSERSITE=1
 # hash -d python # Check pick up python in conda env
 hash -r # Check no commands hashed (pip/python...)
 
-# Launch libE.
-#python $EXE $LIBE_WALLCLOCK > out.txt 2>&1  # If user script takes wall-clock as positional arg.
-python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If script is using utils.parse_args()
+# Launch libE
+# python $EXE $NUM_WORKERS > out.txt 2>&1  # No args. All defined in calling script
+# python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If calling script is using utils.parse_args()
+python $EXE $LIBE_WALLCLOCK $COMMS $NWORKERS > out.txt 2>&1 # If calling script takes wall-clock as positional arg.

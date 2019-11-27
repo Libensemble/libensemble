@@ -14,7 +14,7 @@
 # - Workers submit jobs to the compute nodes in the node allocation available.
 
 # Name of calling script
-export EXE=run_libe_forces.py
+export EXE=libE_calling_script.py
 
 # Communication Method
 export COMMS="--comms local"
@@ -23,14 +23,14 @@ export COMMS="--comms local"
 export NWORKERS="--nworkers 4"
 
 # Wallclock for libE (allow clean shutdown)
-#export LIBE_WALLCLOCK=25 # Optional if pass to script
+export LIBE_WALLCLOCK=25 # Optional if pass to script
 
 # Name of Conda environment
 export CONDA_ENV_NAME=<conda_env_name>
 
 # Conda location - theta specific
 export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
-export LD_LIBRARY_PATH=~/.conda/envs/balsam/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=~/.conda/envs/$CONDA_ENV_NAME/lib:$LD_LIBRARY_PATH
 export PMI_NO_FORK=1 # Required for python kills on Theta
 
 # Unload Theta modules that may interfere with job monitoring/kills
@@ -43,6 +43,6 @@ export PYTHONNOUSERSITE=1
 . activate $CONDA_ENV_NAME
 
 # Launch libE
-#python $EXE $NUM_WORKERS > out.txt 2>&1 # No args
-#python $EXE $NUM_WORKERS $LIBE_WALLCLOCK > out.txt 2>&1  # If user script takes wall-clock as positional arg.
-python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If script is using utils.parse_args()
+# python $EXE $NUM_WORKERS > out.txt 2>&1  # No args. All defined in calling script
+# python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If calling script is using utils.parse_args()
+python $EXE $LIBE_WALLCLOCK $COMMS $NWORKERS > out.txt 2>&1 # If calling script takes wall-clock as positional arg.

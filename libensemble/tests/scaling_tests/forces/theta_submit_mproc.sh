@@ -51,5 +51,5 @@ python $EXE $COMMS $NWORKERS > out.txt 2>&1
 if [[ $LIBE_PLOTS = "true" ]]; then
   python $PLOT_DIR/plot_libe_calcs_util_v_time.py
   python $PLOT_DIR/plot_libe_runs_util_v_time.py
-  python $PLOT_DIR/plot_libE_histogram.py
+  python $PLOT_DIR/plot_libe_histogram.py
 fi
