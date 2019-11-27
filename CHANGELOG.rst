@@ -2,7 +2,6 @@
 Release Notes
 =============
 
-
 Release 0.6.0
 -------------
 
@@ -11,14 +10,14 @@ Release 0.6.0
 API changes:
 
 * sim/gen/alloc_specs options that do not directly involve these routines are moved to libE_specs (see docs) (#266, #269)
-* sim/gen/alloc_specs now require user defined attributes to be added under a user field (see docs and examples) (#266, #269).
+* sim/gen/alloc_specs now require user-defined attributes to be added under the 'user' field (see docs and examples) (#266, #269).
 * Addition of a utils module to help users create calling scripts. Includes an argument parser and utility functions (#308).
 * check_inputs() function is moved to the utils module (#308).
 * The libE_specs option ``nprocesses`` has been changed to ``nworkers`` (#235)
 
 New example functions:
 
-* Addition of a new persistent APOSMM generator function (#217).
+* Addition of a persistent APOSMM generator function (#217).
 
 Other changes:
 
@@ -34,8 +33,7 @@ Other changes:
 :Known issues:
 
 * These are unchanged from v0.5.0
-* A known issues section has now been added to documentation.
-
+* A known issues section has now been added to the documentation.
 
 Release 0.5.2
 -------------
@@ -78,7 +76,6 @@ Release 0.5.1
 :Known issues:
 
 * These are unchanged from v0.5.0
-
 
 Release 0.5.0
 -------------
