@@ -30,9 +30,6 @@
 ##PBS -q ivy
 #PBS -q shared
 
-export NLOPT_PYTHON_HOME="/home/jlarson/software/nlopt_install/lib/python2.7/site-packages"
-export PYTHONPATH="${PYTHONPATH}:${NLOPT_PYTHON_HOME}"
-
 cd $PBS_O_WORKDIR
 
 # A little useful information for the log file...
@@ -55,7 +52,7 @@ cat $PBS_NODEFILE | sort | uniq >> libE_machinefile
 echo Starting executation at: `date`
 
 pwd
-cmd="mpiexec -np 5 -machinefile libE_machinefile python2 libE_calling_script.py libE_machinefile"
+cmd="mpiexec -np 5 -machinefile libE_machinefile python libE_calling_script.py libE_machinefile"
 # This note that this command passes the libE_machinefile to both MPI and the
 # libE_calling_script, in the latter script, it can be parsed and given to the
 # alloc_func

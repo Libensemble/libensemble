@@ -26,9 +26,23 @@ Blues
     :caption: /examples/job_submission_scripts/blues_script.pbs
     :language: bash
 
+Theta - On MOM with multiprocessing
+-----------------------------------
+
+..  literalinclude:: ../../examples/job_submission_scripts/theta_submit_mproc.sh
+    :caption: /examples/job_submission_scripts/theta_submit_mproc.sh
+    :language: bash
+
 Theta - Central Mode with Balsam
 --------------------------------
 
 ..  literalinclude:: ../../examples/job_submission_scripts/theta_submit_balsam.sh
     :caption: /examples/job_submission_scripts/theta_submit_balsam.sh
+    :language: bash
+
+Summit - On Launch nodes with multiprocessing
+---------------------------------------------
+
+..  literalinclude:: ../../examples/job_submission_scripts/summit_submit_mproc.sh
+    :caption: /examples/job_submission_scripts/summit_submit_mproc.sh
     :language: bash
