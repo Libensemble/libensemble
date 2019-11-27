@@ -80,7 +80,7 @@ Read Balsam's documentation here_.
 
 .. note::
     Balsam will create the run directories inside the data sub-directory within the database
-    directory. From here files can be staged out to the user directory (see the example
+    directory. From here, files can be staged out to the user directory (see the example
     batch script below).
 
 Job Submission
