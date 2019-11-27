@@ -7,7 +7,10 @@ Contributions may be made via GitHub pull request to:
 
 libEnsemble uses the Gitflow model. Contributors should branch from, and
 make pull requests to, the develop branch. The master branch is used only
-for releases. Code should pass flake8 tests, allowing for the exceptions
+for releases. Pull requests may be made from a fork, for those without
+repository write access.
+
+Code should pass flake8 tests, allowing for the exceptions
 given in the flake8_ file in the project directory.
 
 Issues can be raised at:
