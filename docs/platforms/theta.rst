@@ -78,6 +78,11 @@ Initialize a new database similarly to the following (from the Balsam docs):
 
 Read Balsam's documentation here_.
 
+.. note::
+    Balsam will create the run directories inside the data sub-directory within the database
+    directory. From here files can be staged out to the user directory (see the example
+    batch script below).
+
 Job Submission
 --------------
 
@@ -108,7 +113,7 @@ functions execute computationally expensive code, or code built for specific
 architectures. Recall also that only the MOM nodes can launch MPI jobs.
 
 Although libEnsemble workers on the MOM nodes can technically submit
-user-applications to the compute nodes via ``aprun`` within user functions, it
+user-applications to the compute nodes directly via ``aprun`` within user functions, it
 is highly recommended that the aforementioned :doc:`job_controller<../job_controller/overview>`
 interface is used instead. The libEnsemble job-controller features advantages like
 automatic resource-detection, portability, launch failure resilience, and ease-of-use.
@@ -118,6 +123,20 @@ Theta features one default production queue, ``default``, and two debug queues,
 
 .. note::
     For the default queue, the minimum number of nodes to allocate at once is 128
+
+Module and environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To ensure proper functioning of libEnsemble, including the ability to kill running jobs, it
+recommended that the following environment variable is set::
+
+    export PMI_NO_FORK=1
+
+It is also recommended that the following environment modules are unloaded, if present::
+
+    module unload trackdeps
+    module unload darshan
+    module unload xalt
 
 Interactive Runs
 ^^^^^^^^^^^^^^^^
@@ -183,6 +202,11 @@ convenience function from libEnsemble's :doc:`utils module<../utilities>`.
     # Required for python kills on Theta
     export PMI_NO_FORK=1
 
+    # Unload Theta modules that may interfere with job monitoring/kills
+    module unload trackdeps
+    module unload darshan
+    module unload xalt
+
     python $EXE $COMMS $NWORKERS > out.txt 2>&1
 
 With this saved as ``myscript.sh``, allocating, configuring, and queueing
@@ -231,6 +255,11 @@ Here is an example Balsam submission script:
 
     # Required for python kills on Theta
     export PMI_NO_FORK=1
+
+    # Unload Theta modules that may interfere with job monitoring/kills
+    module unload trackdeps
+    module unload darshan
+    module unload xalt
 
     # Activate conda environment
     . activate $CONDA_ENV_NAME
