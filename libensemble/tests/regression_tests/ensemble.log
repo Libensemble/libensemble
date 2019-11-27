@@ -33,3 +33,62 @@ ValueError: Size obtained (12) is not a multiple of the dtypes given (8).
 [0] libensemble.libE_manager (INFO): Term test tripped: sim_max
 [0] libensemble.libE_manager (INFO): Term test tripped: sim_max
 [0] libensemble.libE (INFO): libE_manager total time: 1.2951300144195557
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl099.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl099.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: Size obtained (12) is not a multiple of the dtypes given (8).
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 80, in mop_mod_gen
+    cand_pts = fp1.read_record(np.float64)
+  File "/Users/tylerchang/Library/Python/3.7/lib/python/site-packages/scipy/io/_fortran.py", line 227, in read_record
+    'dtypes given ({1}).'.format(first_size, block_size))
+ValueError: Size obtained (12) is not a multiple of the dtypes given (8).
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl099.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl099.mcs.anl.gov
+[0] libensemble.libE (ERROR): ---- Received error message from 1 ----
+[0] libensemble.libE (ERROR): Message: Size obtained (12) is not a multiple of the dtypes given (8).
+[0] libensemble.libE (ERROR): Traceback (most recent call last):
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 313, in run
+    response = self._handle(Work)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 284, in _handle
+    calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 224, in _handle_calc
+    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+  File "/Users/tylerchang/Git/libensemble/libensemble/libE_worker.py", line 167, in run_gen
+    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+  File "/Users/tylerchang/Git/libensemble/libensemble/gen_funcs/mop_mod.py", line 80, in mop_mod_gen
+    cand_pts = fp1.read_record(np.float64)
+  File "/Users/tylerchang/Library/Python/3.7/lib/python/site-packages/scipy/io/_fortran.py", line 227, in read_record
+    'dtypes given ({1}).'.format(first_size, block_size))
+ValueError: Size obtained (12) is not a multiple of the dtypes given (8).
+
+[0] libensemble.libE (ERROR): Manager exception raised .. aborting ensemble:
+[0] libensemble.libE (ERROR): Dumping ensemble history with 0 sims evaluated:
+[0] libensemble.libE_manager (INFO): Manager initiated on node mcswl099.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Manager exit_criteria: {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+[1] libensemble.libE_worker (INFO): No job_controller set on worker 1
+[1] libensemble.libE_worker (INFO): Worker 1 initiated on node mcswl099.mcs.anl.gov
+[2] libensemble.libE_worker (INFO): No job_controller set on worker 2
+[3] libensemble.libE_worker (INFO): No job_controller set on worker 3
+[4] libensemble.libE_worker (INFO): No job_controller set on worker 4
+[2] libensemble.libE_worker (INFO): Worker 2 initiated on node mcswl099.mcs.anl.gov
+[3] libensemble.libE_worker (INFO): Worker 3 initiated on node mcswl099.mcs.anl.gov
+[4] libensemble.libE_worker (INFO): Worker 4 initiated on node mcswl099.mcs.anl.gov
+[0] libensemble.libE_manager (INFO): Term test tripped: sim_max
+[0] libensemble.libE_manager (INFO): Term test tripped: sim_max
+[0] libensemble.libE (INFO): libE_manager total time: 2.6127989292144775
