@@ -53,7 +53,7 @@ sys.path.append(os.path.abspath('../libensemble/util'))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '2.0'
+needs_sphinx = '2.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -91,7 +91,7 @@ latex_doc = 'latex_index'
 
 # General information about the project.
 project = 'libEnsemble'
-copyright = '2019'
+copyright = '2019 Argonne National Laboratory'
 author = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro'
 
 # The version info for the project you're documenting, acts as replacement for

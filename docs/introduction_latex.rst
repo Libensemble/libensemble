@@ -20,7 +20,6 @@ Quickstart Guide
     :end-before: after_resources_rst_tag
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
-.. _common.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/common.py
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
@@ -45,3 +44,4 @@ Quickstart Guide
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/user_guide.html
+.. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info

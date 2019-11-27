@@ -1,1 +1,0 @@
-../../libensemble/tests/regression_tests/test_chwirut_pounders.py

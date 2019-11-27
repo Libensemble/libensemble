@@ -1,1 +1,0 @@
-../../libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py

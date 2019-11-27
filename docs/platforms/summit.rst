@@ -12,7 +12,6 @@ Users on login nodes submit batch runs to the launch nodes.
 Batch scripts and interactive sessions run on the launch nodes. Only the launch
 nodes can submit MPI runs to the compute nodes via ``jsrun``.
 
-
 Configuring Python
 ------------------
 
@@ -124,7 +123,6 @@ libEnsemble on Summit becomes::
 
     $ bsub myscript.sh
 
-
 Launching user applications from libEnsemble Workers
 ----------------------------------------------------
 
@@ -134,7 +132,6 @@ recommended that the :doc:`job_controller<../job_controller/overview>` interface
 is used inside the ``sim_f`` or ``gen_f``, as this provides a portable interface
 with many advantages including automatic resource detection, portability,
 launch failure resilience, and ease-of-use.
-
 
 Additional Information
 ----------------------

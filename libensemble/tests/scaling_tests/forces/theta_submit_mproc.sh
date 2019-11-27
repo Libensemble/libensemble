@@ -18,7 +18,7 @@ export EXE=run_libe_forces.py
 export COMMS="--comms local"
 
 # Number of workers.
-export NWORKERS="--nworkers 4"
+export NWORKERS="--nworkers 128"
 
 # Wallclock for libE (allow clean shutdown)
 #export LIBE_WALLCLOCK=25 # Optional if pass to script
@@ -27,14 +27,14 @@ export NWORKERS="--nworkers 4"
 export CONDA_ENV_NAME=<conda_env_name>
 
 # Conda location - theta specific
-export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
-export LD_LIBRARY_PATH=~/.conda/envs/balsam/lib:$LD_LIBRARY_PATH
+# export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
+# export LD_LIBRARY_PATH=~/.conda/envs/<conda_env_name>/lib:$LD_LIBRARY_PATH
 export PMI_NO_FORK=1 # Required for python kills on Theta
 
 export LIBE_PLOTS=true # Require plot scripts in $PLOT_DIR (see at end)
 export PLOT_DIR=..
 
-# Unload Theta modules that may interfere
+# Unload Theta modules that may interfere with job monitoring/kills
 module unload trackdeps
 module unload darshan
 module unload xalt
@@ -51,5 +51,5 @@ python $EXE $COMMS $NWORKERS > out.txt 2>&1
 if [[ $LIBE_PLOTS = "true" ]]; then
   python $PLOT_DIR/plot_libe_calcs_util_v_time.py
   python $PLOT_DIR/plot_libe_runs_util_v_time.py
-  python $PLOT_DIR/plot_libE_histogram.py
+  python $PLOT_DIR/plot_libe_histogram.py
 fi
