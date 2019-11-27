@@ -27,6 +27,7 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 libE_specs['clean_jobs'] = True
 libE_specs['sim_dir'] = pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')  # to be copied by each worker
+libE_specs['do_worker_dir'] = True
 
 if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
