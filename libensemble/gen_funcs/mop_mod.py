@@ -45,6 +45,7 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     d = len(lb)  # design dimension
     p = gen_specs['num_obj']  # objective dimension
     nb = gen_specs['gen_batch_size']  # preferred batch size
+    inb = gen_specs['first_batch_size'] # batch size for first iteration
     n = np.size(H['f'][:, 0])  # size of database in the history array
 
     if len(H) == 0:
@@ -58,7 +59,7 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     else:
         # Write unformatted problem dimensions to the mop.io file
         fp1 = FortranFile('mop.io', 'w')
-        fp1.write_record(np.int32(d), np.int32(p), np.int32(n), np.int32(nb))
+        fp1.write_record(np.int32(d), np.int32(p), np.int32(n), np.int32(inb))
         fp1.write_record(np.array(lb, dtype=np.float64),
                          np.array(ub, dtype=np.float64))
         fp1.close()
