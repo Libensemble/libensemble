@@ -23,6 +23,11 @@ from libensemble.tests.regression_tests.support import write_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.utils import parse_args, add_unique_random_streams
 
+def cleanup():
+    for i in os.listdir():
+        if 'test_sim_dir' in i:
+            shutil.rmtree(i)
+
 nworkers, is_master, libE_specs, _ = parse_args()
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
@@ -37,9 +42,15 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
+if is_master:
+    cleanup()
+
 sim_dir = './test_sim_dir'
 if is_master and not os.path.isdir(sim_dir):
-    os.mkdir(sim_dir)
+    try:
+        os.mkdir(sim_dir)
+    except:
+        pass
 
 libE_specs['sim_dir'] = sim_dir
 libE_specs['do_worker_dir'] = True
@@ -52,10 +63,9 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    assert sum(['test_sim_dir_worker' in i for i in os.listdir()]) == nworkers, \
-        'Number of worker directories does not match number of workers'
+    dir_sum = sum(['test_sim_dir_worker' in i for i in os.listdir()])
+    assert dir_sum == nworkers, \
+        'Num worker directories ({}) does not match number of workers ({}).'\
+            .format(dir_sum, nworkers)
 
-    # Cleanup just-in-case
-    for i in os.listdir():
-        if 'test_sim_dir' in i:
-            shutil.rmtree(i)
+    cleanup()
