@@ -158,7 +158,7 @@ class Resources:
             if 'unrecognized argument npernode' in stdout.decode():
                 return 'mpich'
             return 'openmpi'
-        except Exception as e:
+        except Exception:
             pass
 
         try:
