@@ -23,10 +23,12 @@ from libensemble.tests.regression_tests.support import write_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.utils import parse_args, add_unique_random_streams
 
+
 def cleanup():
     for i in os.listdir():
         if 'test_sim_dir' in i:
             shutil.rmtree(i)
+
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -49,7 +51,7 @@ sim_dir = './test_sim_dir'
 if is_master and not os.path.isdir(sim_dir):
     try:
         os.mkdir(sim_dir)
-    except:
+    except FileExistsError:
         pass
 
 libE_specs['sim_dir'] = sim_dir
@@ -66,6 +68,6 @@ if is_master:
     dir_sum = sum(['test_sim_dir_worker' in i for i in os.listdir()])
     assert dir_sum == nworkers, \
         'Num worker directories ({}) does not match number of workers ({}).'\
-            .format(dir_sum, nworkers)
+        .format(dir_sum, nworkers)
 
     cleanup()
