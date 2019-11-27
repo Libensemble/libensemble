@@ -1,1 +1,0 @@
-../../libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py

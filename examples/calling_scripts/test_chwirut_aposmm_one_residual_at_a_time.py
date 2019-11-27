@@ -1,1 +1,0 @@
-../../libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py
