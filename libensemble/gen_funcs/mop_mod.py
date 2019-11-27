@@ -51,7 +51,7 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     if len(H) == 0:
         # Write initialization data to the mop.io file for MOP_INIT
         fp1 = FortranFile('mop.io', 'w')
-        fp1.write_record(np.int32(d), np.int32(p), np.int32(nb))
+        fp1.write_record(np.int32(d), np.int32(p), np.int32(inb))
         fp1.write_record(np.array(lb, dtype=np.float64),
                          np.array(ub, dtype=np.float64))
         fp1.close()
@@ -59,7 +59,7 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     else:
         # Write unformatted problem dimensions to the mop.io file
         fp1 = FortranFile('mop.io', 'w')
-        fp1.write_record(np.int32(d), np.int32(p), np.int32(n), np.int32(inb))
+        fp1.write_record(np.int32(d), np.int32(p), np.int32(n), np.int32(nb))
         fp1.write_record(np.array(lb, dtype=np.float64),
                          np.array(ub, dtype=np.float64))
         fp1.close()
