@@ -26,8 +26,8 @@ Blues
     :caption: /examples/job_submission_scripts/blues_script.pbs
     :language: bash
 
-Theta - On MOM nodes with multiprocessing
------------------------------------
+Theta - On MOM node with multiprocessing
+----------------------------------------
 
 ..  literalinclude:: ../../examples/job_submission_scripts/theta_submit_mproc.sh
     :caption: /examples/job_submission_scripts/theta_submit_mproc.sh
