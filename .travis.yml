@@ -6,9 +6,7 @@ python:
   - 3.6
   - 3.7
 
-
 os: linux
-
 
 env:
   global:
@@ -16,7 +14,6 @@ env:
     - OMPI_MCA_rmaps_base_oversubscribe=yes
   matrix:
     - MPI=mpich
-
 
 matrix:
   include:
@@ -26,15 +23,12 @@ matrix:
       language: generic
       python: 3.7
 
-
 services:
     - postgresql
-
 
 cache:
   pip: true
   apt: true
-
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -54,7 +48,6 @@ before_install:
       conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION;
     fi
   - source activate condaenv
-
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -81,25 +74,20 @@ install:
   - mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
   - python conda/install-balsam.py
 
-
 before_script:
   - flake8 libensemble
   - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
   - source setbalsampath.sh # Imperfect method for env var persist after setup
   - ulimit -Sn 10000   # More concurrent file descriptors (for persis aposmm)
 
-
-
 # Run test (-z show output)
 script:
   - ./libensemble/tests/run-tests.sh -z
-
 
 # Track code coverage
 after_success:
   - mv libensemble/tests/.cov* .
   - coveralls
-
 
 after_failure:
 - cat libensemble/tests/regression_tests/log.err

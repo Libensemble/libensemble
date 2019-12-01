@@ -163,7 +163,6 @@ cleanup() {
 
 #-----------------------------------------------------------------------------------------
 
-
 #Parse Options
 #set -x
 
@@ -279,7 +278,6 @@ if [[ $root_found == "false" ]]; then
   done
 fi;
 
-
 if [ $CLEAN_ONLY = "true" ]; then
   if [ "$root_found" = true ]; then
     cleanup
@@ -329,8 +327,6 @@ if [ $RUN_COV_TESTS = "true" ]; then
    #COV_LINE_PARALLEL='-m coverage run --branch --parallel-mode'
 fi;
 
-
-
 if [ "$root_found" = true ]; then
 
   #Running without subdirs - delete any leftover output and coverage data files
@@ -367,7 +363,6 @@ if [ "$root_found" = true ]; then
     done
   fi;
   cd $ROOT_DIR/
-
 
   # Run Regression Tests -----------------------------------------------------------------
 
@@ -501,7 +496,6 @@ if [ "$root_found" = true ]; then
 
     # ********* End Loop over regression tests *********
 
-
     cd $ROOT_DIR/$REG_TEST_SUBDIR
 
     #Create Coverage Reports ----------------------------------------------
@@ -547,7 +541,6 @@ if [ "$root_found" = true ]; then
       fi;
     fi;
 
-
     #All reg tests - summary ----------------------------------------------
     if [ "$code" -eq "0" ]; then
       echo
@@ -584,7 +577,6 @@ if [ "$root_found" = true ]; then
     fi;
 
   fi; #$RUN_REG_TESTS
-
 
   # Run Code standards Tests -----------------------------------------
   cd $ROOT_DIR
