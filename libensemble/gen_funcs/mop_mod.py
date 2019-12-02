@@ -68,7 +68,7 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
         fp2.write_record(np.int32(d), np.int32(p))
         for i in range(n):
             if (np.float64((H['f'][i,:]) == np.zeros(p)).all()):
-                continue
+                print('here')
             else:
                 fp2.write_record(np.float64(H['x'][i, :]), np.float64(H['f'][i, :]))
         fp2.close()
