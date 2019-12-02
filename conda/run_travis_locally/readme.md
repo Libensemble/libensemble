@@ -33,7 +33,6 @@ Add user name to docker group so dont need sudo before docker:
     su - ${USER}
     id -nG # Confirm username added to docker users
 
-
 ### Install Travis Image for Python and create a container
 
 Name your new travis container:
@@ -52,7 +51,6 @@ $CONTAINER is the name you are assigning to the new container made from the imag
 
 Alternative travisCI docker images can be found [here](https://hub.docker.com/r/travisci/ci-garnet/tags/).
 
-
 ### Start a shell session in the container
 
 Then open a shell in running container:
@@ -61,14 +59,12 @@ Then open a shell in running container:
 
 Prompt should say travis@ rather than root@:
 
-
 ### Build and run libEnsemble for a given Python version
 
 You now want to copy the latest build script to the container and run it.
 
 The default build script is build_mpich_libE.sh. If this is not up to date, check
 the installs against .travis.yml in the top level libEnsemble package directory.
-
 
 #### Copy build script from host system to the running container
 
@@ -81,7 +77,6 @@ filesystem.
 On the docker side you may need to set ownership of the script:
 
     chown travis:travis /home/travis/build_mpich_libE.sh
-
 
 #### Run the libEnsemble build-and-run script
 
@@ -101,7 +96,6 @@ The script should build all dependencies and run tests. Having sourced the scrip
 be left in the same environment for debugging. The script should stop running if an install step fails.
 
 If the conda output is too verbose, remove the "set -x" line in the script.
-
 
 ### Saving images from built containers and re-starting containers
 
@@ -152,7 +146,6 @@ You can restart from your new image with docker run and docker exec or to run se
     docker run -it <user_name>/<image_name> /bin/bash
 
 where <user_name>/<image_name> is as used above to save (or from first column in "docker images" output).
-
 
 ### Notes
 

@@ -18,7 +18,6 @@
 
 #Currently requires even distribution - either multiple workers per node or nodes per worker
 
-
 #User to edit these variables
 export EXE=libE_calling_script.py
 export NUM_WORKERS=4

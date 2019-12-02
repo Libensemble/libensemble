@@ -32,13 +32,12 @@ if myrank == 0:
     if not os.path.isdir(sim_path):
         try:
             os.mkdir(sim_path)
-        except:
+        except Exception as e:
+            print(e)
             raise("Cannot make simulation directory %s" % sim_path)
 MPI.COMM_WORLD.Barrier()  # Ensure output dir created
 
-
 print("Host job rank is %d Output dir is %s" % (myrank, sim_dir))
-
 
 start = time.time()
 for sim_id in range(steps):
@@ -52,7 +51,6 @@ for sim_id in range(steps):
                               ranks_per_node=8,
                               stage_out_url="local:" + sim_path,
                               stage_out_files=jobname + ".out")
-
     if sim_id == 1:
         dag.kill(current_job)
 

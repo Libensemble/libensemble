@@ -56,3 +56,5 @@ After release
 -------------
 
 - Ensure all relevant GitHub issues are closed and moved to the *Done* column on the kanban project board (inc. the release checklist).
+
+- Email libEnsemble mailing list

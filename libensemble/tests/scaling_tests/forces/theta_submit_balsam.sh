@@ -77,7 +77,6 @@ RANKS_PER_NODE=64
 # All jobs
 OUT_FILES_TO_RETURN="*.out *.txt *.log"
 
-
 balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
 
 balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes $NUM_NODES --ranks-per-node $RANKS_PER_NODE --url-out="local:/$THIS_DIR" --stage-out-files="${OUT_FILES_TO_RETURN}" --url-in="local:/$THIS_DIR/*" --yes

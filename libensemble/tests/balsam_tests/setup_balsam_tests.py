@@ -35,7 +35,8 @@ def run_cmd(cmd, echo=False):
         print("\nRunning %s ...\n" % cmd)
     try:
         subprocess.run(cmd.split(), check=True)
-    except:
+    except Exception as e:
+        print(e)
         raise("Error: Command %s failed to run" % cmd)
 
 

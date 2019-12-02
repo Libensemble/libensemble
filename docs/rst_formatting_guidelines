@@ -14,8 +14,3 @@ Put breakout code snippets into a box using two colons ::
 No italics on text of links
 
 Use italics for emphasis
-
-
-* Unfortunately, the Sphinx crossrefs (e.g., :doc:`ref`) are different then
-* hrefs, and they are italicized in the pdf. I assume there is a way to change
-* this formatting, but I couldn't find it.

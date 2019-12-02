@@ -210,7 +210,7 @@ Resources
                    David Bindel and John-Luke Navarro},
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
-    number      = {Revision 0.5.2},
+    number      = {Revision 0.6.0},
     year        = {2019},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
@@ -241,5 +241,5 @@ Resources
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
-.. _user guide: https://libensemble.readthedocs.io/en/latest/user_guide.html
+.. _user guide: https://libensemble.readthedocs.io/en/latest
 .. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info

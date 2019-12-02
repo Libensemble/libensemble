@@ -20,7 +20,6 @@ unset I_MPI_FABRICS
 export I_MPI_FABRICS_LIST=tmi,tcp
 export I_MPI_FALLBACK=1
 
-
 #If using in calling script (After N mins manager kills workers and timing.dat created.)
 export LIBE_WALLCLOCK=55
 
