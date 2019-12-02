@@ -5,7 +5,6 @@ Naive Electostatics Code Test
 This is designed only as an artificial, highly conifurable test
 code for a libEnsemble sim func.
 
-
 ### Forces Mini-App
 
 A system of charged particles is set up and simulated over a number of time-steps.
@@ -20,7 +19,6 @@ Total energy is appended to file forces.stat
 To run forces as a standalone executable on N procs:
 
     mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS> <SEED>
-
 
 ### Running with libEnsemble.
 
@@ -45,7 +43,6 @@ To remove output before the next run:
 
     ./cleanup.sh
 
-
 ### Running with Balsam
 
 To run with balsam, set `USE_MPI = True` and `USE_BALSAM = True` in `run_libe_forces.py`.
@@ -60,7 +57,6 @@ The running jobs can be seen inside the balsam database dir `<DIR>/data/libe_wor
 While the key output files will be copied back to the run dir at completion. Also see
 the log in `<DIR>/log` if there are any issues. To run on batch systems, see the example
 scripts such as `theta_submit_balsam.sh`.
-
 
 ### Using batch scripts
 

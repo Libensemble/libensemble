@@ -30,7 +30,8 @@ if myrank == 0:
     if not os.path.isdir(sim_path):
         try:
             os.mkdir(sim_path)
-        except:
+        except Exception as e:
+            print(e)
             raise("Cannot make simulation directory %s" % sim_path)
 MPI.COMM_WORLD.Barrier()  # Ensure output dir created
 

@@ -180,11 +180,15 @@ latex_elements = {
     \protected\def\sphinxcrossref#1{\texttt{#1}}
 
     \newsavebox\mytempbox
-\definecolor{sphinxnoteBgColor}{RGB}{221,233,239}
-\renewenvironment{sphinxnote}[1]
-   {\begin{lrbox}{\mytempbox}\begin{minipage}{\columnwidth}%
-    \begin{sphinxlightbox}\sphinxstrong{#1} }
-   {\end{sphinxlightbox}\end{minipage}\end{lrbox}%
+    \definecolor{sphinxnoteBgColor}{RGB}{221,233,239}
+    \renewenvironment{sphinxnote}[1]{%
+    \begin{lrbox}{\mytempbox}%
+    \begin{minipage}{\columnwidth}%
+    \begin{sphinxlightbox}%
+    \sphinxstrong{#1}}%
+    {\end{sphinxlightbox}%
+    \end{minipage}%
+    \end{lrbox}%
     \colorbox{sphinxnoteBgColor}{\usebox{\mytempbox}}}
                 ''',
     # The paper size ('letterpaper' or 'a4paper').
