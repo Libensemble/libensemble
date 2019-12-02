@@ -25,9 +25,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
 
-            if gen_specs.get('batch_mode', False):
-                if not all_workers_inactive(W):
-                    break
+            if not np.all(H['returned']):
+                break
 
             # Give gen work
             persis_info['total_gen_calls'] += 1
