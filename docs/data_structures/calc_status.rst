@@ -3,7 +3,15 @@
 calc_status
 ===========
 
-The ``calc_status`` is an integer attribute with named (enumerated) values and a corresponding description that can be used in :ref:`sim_f<api_sim_f>` or :ref:`gen_f<api_gen_f>` functions to capture the status of a calcuation. This is returned to the manager and printed to the ``libE_stats.txt`` file. Only the status values ``FINISHED_PERSISTENT_SIM_TAG`` and ``FINISHED_PERSISTENT_GEN_TAG`` are currently used by the manager,  but others can still provide a useful summary in libE_stats.txt. The user determines the status of the calculation, as it could include multiple application runs. It can be added as a third return variable in sim_f or gen_f functions.
+The ``calc_status`` is an integer attribute with named (enumerated) values and
+a corresponding description that can be used in :ref:`sim_f<api_sim_f>` or
+:ref:`gen_f<api_gen_f>` functions to capture the status of a calcuation. This
+is returned to the manager and printed to the ``libE_stats.txt`` file. Only the
+status values ``FINISHED_PERSISTENT_SIM_TAG`` and
+``FINISHED_PERSISTENT_GEN_TAG`` are currently used by the manager,  but others
+can still provide a useful summary in libE_stats.txt. The user determines the
+status of the calculation, as it could include multiple application runs. It
+can be added as a third return variable in sim_f or gen_f functions.
 The calc_status codes are in the ``libensemble.message_numbers`` module.
 
 Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_index>` in sim_f:
