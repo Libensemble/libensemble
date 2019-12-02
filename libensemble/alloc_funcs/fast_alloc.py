@@ -1,4 +1,4 @@
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_gens
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_gens, all_workers_inactive
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -24,6 +24,10 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             persis_info['next_to_give'] += 1
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
+
+            if gen_specs.get('batch_mode', False):
+                if not all_workers_inactive(W):
+                    break
 
             # Give gen work
             persis_info['total_gen_calls'] += 1
