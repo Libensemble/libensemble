@@ -53,7 +53,7 @@ def sim_f(H, *unused):
 nworkers, is_master, libE_specs, _ = parse_args()
 lower_bounds = np.zeros(num_dims)
 lower_bounds[:] = lower
-upper_bounds = np.zeros(num_dims)
+upper_bounds = np.ones(num_dims)
 upper_bounds[:] = upper
 
 # Set up the simulator
