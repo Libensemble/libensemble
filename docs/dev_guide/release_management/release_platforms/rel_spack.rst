@@ -13,9 +13,11 @@ This assumes you have already:
 
 Details on how to create forks can be found at: https://help.github.com/articles/fork-a-repo
 
-You now have a configuration like shown in answer at: https://stackoverflow.com/questions/6286571/are-git-forks-actually-git-clones
+You now have a configuration like shown in answer at:
+https://stackoverflow.com/questions/6286571/are-git-forks-actually-git-clones
 
-Upstream, in this case, is the official Spack repository on GitHub. Origin is your fork on GitHub and Local Machine is your local clone (from your fork).
+Upstream, in this case, is the official Spack repository on GitHub. Origin is
+your fork on GitHub and Local Machine is your local clone (from your fork).
 
 Make sure ``SPACK_ROOT`` is set and spack binary is in your path::
 
@@ -37,8 +39,8 @@ To set upstream repo::
 Now to update (the main develop branch)
 ---------------------------------------
 
-You will now update your local machine from the upstream repo (if in doubt - make a copy of local repo
-in your filestystem before doing the following).
+You will now update your local machine from the upstream repo (if in doubt -
+make a copy of local repo in your filestystem before doing the following).
 
 Check upstream remote is present::
 
