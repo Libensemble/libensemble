@@ -1,12 +1,11 @@
 The History Array
 ~~~~~~~~~~~~~~~~~
 libEnsemble uses a NumPy structured array :ref:`H<datastruct-history-array>` to
-store output from ``gen_f`` and corresponding ``sim_f`` output. Similarly,
-``gen_f`` and ``sim_f`` are expected to return output in NumPy structured
-arrays. The names of the fields to be given as input to ``gen_f`` and ``sim_f``
-must be an output from ``gen_f`` or ``sim_f``. In addition to the fields output
-from ``sim_f`` and ``gen_f``, the final history returned from libEnsemble will
-include the following fields:
+store corresponding output from each ``gen_f`` and ``sim_f``. Similarly,
+``gen_f`` and ``sim_f`` are expected to return output as NumPy structured
+arrays. The names of the input fields for ``gen_f`` and ``sim_f``
+must be output from ``gen_f`` or ``sim_f``. In addition to the user-function output fields,
+the final history from libEnsemble will includes the following:
 
 * ``sim_id`` [int]: Each unit of work output from ``gen_f`` must have an
   associated ``sim_id``. The generator can assign this, but users must be
