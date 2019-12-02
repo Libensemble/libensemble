@@ -25,7 +25,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         elif gen_count < gen_specs.get('num_active_gens', gen_count+1):
 
-            if not np.all(H['returned']):
+            if not all(H['returned']):
                 break
 
             # Give gen work
