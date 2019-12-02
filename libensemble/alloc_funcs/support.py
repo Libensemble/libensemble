@@ -17,6 +17,10 @@ def count_gens(W):
     "Return the number of generators in a set of workers."
     return sum(W['active'] == EVAL_GEN_TAG)
 
+def test_any_gen(W):
+    "Return True if a generator worker is active."
+    return any(W['active'] == EVAL_GEN_TAG)
+
 
 def all_workers_inactive(W):
     "Return True if all workers are idle."

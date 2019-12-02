@@ -1,5 +1,4 @@
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_gens
-
+from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, test_any_gen
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
@@ -14,6 +13,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
 
     Work = {}
+    gen_flag = True
 
     for i in avail_worker_ids(W):
         if persis_info['next_to_give'] < len(H):
@@ -22,18 +22,14 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
             persis_info['next_to_give'] += 1
 
-        else:
-            gen_count = count_gens(W)
-
-            if gen_count >= gen_specs.get('num_active_gens', gen_count+1):
-                break
+        elif not test_any_gen(W) and gen_flag:
 
             if not all(H['returned']):
                 break
 
             # Give gen work
             persis_info['total_gen_calls'] += 1
-            gen_count += 1
+            gen_flag = False
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
 
     return Work, persis_info
