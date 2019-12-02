@@ -48,7 +48,7 @@ Other libEnsemble files produced by default are:
   logged as the run progresses.
 
 * ``ensemble.log``: This contains logging output from libEnsemble. The default
-  logging is INFO. To gain additional diagnostics, the logging level can be
+  logging level is INFO. To gain additional diagnostics, the logging level can be
   set to DEBUG. If this file is not removed, multiple runs will append output.
   Messages at or above MANAGER_WARNING are also copied to stderr to alert
   the user promptly. For more info, see :doc:`Logging<logging>`.

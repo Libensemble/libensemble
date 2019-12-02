@@ -14,7 +14,7 @@ worker array
 
 Since workers can be an a variety of states, the worker array ``W`` contains
 information about each worker's state. This can allow allocation functions to
-determine what work should be performed based on worker-statuses.
+determine what work should be performed based on each worker's state.
 
 We take the following convention:
 

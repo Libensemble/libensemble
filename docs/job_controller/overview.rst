@@ -11,11 +11,11 @@ to represent an application launch to the system, which may be a supercomputer,
 cluster, or other provision of compute resources.
 
 A **job_controller** interface is provided by libEnsemble to remove the burden of
-system interaction from the user and ease writing portable ``sim_f`` scripts.
-The job_controller provides the key functions: ``launch()``, ``poll()`` and
-``kill()``. Job attributes can be queried to determine status after each poll.
-To implement these functions, libEnsemble auto-detects system criteria such as
-the MPI launcher and mechanisms to poll and kill jobs on supported systems.
+system interaction from the user and ease writing portable user scripts that
+launch applications. The job_controller provides the key functions: ``launch()``,
+``poll()`` and ``kill()``. Job attributes can be queried to determine status after
+each poll. To implement these functions, libEnsemble auto-detects system criteria
+such as the MPI launcher and mechanisms to poll and kill jobs on supported systems.
 libEnsemble's job_controller is resilient, and can re-launch jobs that fail due
 to system factors.
 
@@ -29,8 +29,8 @@ supported in the future.
 
 In a calling script, a job_controller object is created and the executable
 generator or simulation applications are registered to it for launch. If an
-alternative job_controller, such as Balsam, is to be used, then these can be
-created as in the example. Once in the user-side worker code (sim/gen func),
+alternative job_controller like Balsam will be used, then the applications can be
+registered like in the example below. Once in the user-side worker code (sim/gen func),
 an MPI based job_controller can be retrieved without any need to specify the type.
 
 **Example usage (code runnable with or without a Balsam backend):**
