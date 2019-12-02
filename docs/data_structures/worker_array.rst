@@ -12,9 +12,10 @@ worker array
         'blocked' [int]:
             Is the worker's resources blocked by another calculation
 
-Since workers can be an a variety of states, the worker array ``W`` is contains
-information about each workers state. This can allow an allocation functions to
-determine what work should be performed.
+The worker array ``W`` contains information about each worker's state. This is
+useful information for allocation functions determining what work should be
+performed next.
+
 We take the following convention:
 
 =========================================   =======  ============  =======

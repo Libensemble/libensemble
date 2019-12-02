@@ -1,16 +1,15 @@
 The History Array
 ~~~~~~~~~~~~~~~~~
 libEnsemble uses a NumPy structured array :ref:`H<datastruct-history-array>` to
-store output from ``gen_f`` and corresponding ``sim_f`` output. Similarly,
-``gen_f`` and ``sim_f`` are expected to return output in NumPy structured
-arrays. The names of the fields to be given as input to ``gen_f`` and ``sim_f``
-must be an output from ``gen_f`` or ``sim_f``. In addition to the fields output
-from ``sim_f`` and ``gen_f``, the final history returned from libEnsemble will
-include the following fields:
+store corresponding output from each ``gen_f`` and ``sim_f``. Similarly,
+``gen_f`` and ``sim_f`` are expected to return output as NumPy structured
+arrays. The names of the input fields for ``gen_f`` and ``sim_f``
+must be output from ``gen_f`` or ``sim_f``. In addition to the user-function output fields,
+the final history from libEnsemble will includes the following:
 
 * ``sim_id`` [int]: Each unit of work output from ``gen_f`` must have an
   associated ``sim_id``. The generator can assign this, but users must be
-  careful to ensure points are added in order. For example, ``if alloc_f``
+  careful to ensure points are added in order. For example, if ``alloc_f``
   allows for two ``gen_f`` instances to be running simultaneously, ``alloc_f``
   should ensure that both don’t generate points with the same ``sim_id``.
 
@@ -20,7 +19,7 @@ include the following fields:
 * ``given_time`` [float]: At what time (since the epoch) was this ``gen_f``
   output given to a worker?
 
-* ``sim_worker`` [int]: libEnsemble worker that it was given to be evaluated.
+* ``sim_worker`` [int]: libEnsemble worker that output was given to for evaluation
 
 * ``gen_worker`` [int]: libEnsemble worker that generated this ``sim_id``
 
@@ -44,15 +43,15 @@ where ``sim_count`` is the number of points evaluated.
 
 Other libEnsemble files produced by default are:
 
-* ``libE_stats.txt``: This contains a one-line summary of all user
-  calculations.  Each calculation summary is sent by workers to the manager and
-  printed as the run progresses.
+* ``libE_stats.txt``: This contains one-line summaries for each user
+  calculation. Each summary is sent by workers to the manager and
+  logged as the run progresses.
 
-* ``ensemble.log``: This is the logging output from libEnsemble. The default
-  logging is at INFO level. To gain additional diagnostics logging level can be
-  set to DEBUG.  If this file is not removed, multiple runs will append output.
-  Messages at or above level MANAGER_WARNING are also copied to stderr to alert
-  the user promptly.  For more info, see :doc:`Logging<logging>`.
+* ``ensemble.log``: This contains logging output from libEnsemble. The default
+  logging level is INFO. To gain additional diagnostics, the logging level can be
+  set to DEBUG. If this file is not removed, multiple runs will append output.
+  Messages at or above MANAGER_WARNING are also copied to stderr to alert
+  the user promptly. For more info, see :doc:`Logging<logging>`.
 
 Output Analysis
 ^^^^^^^^^^^^^^^

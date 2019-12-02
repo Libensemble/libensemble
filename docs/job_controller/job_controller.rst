@@ -18,9 +18,10 @@ See the controller APIs for optional arguments.
 Job Class
 ---------
 
-Jobs are created and returned though the job_controller launch function. Jobs can be polled and
-killed with the respective poll and kill functions. Job information can be queried through the job attributes
-below and the query functions. Note that the job attributes are only updated when they are
+Jobs are created and returned though the job_controller launch function. Jobs
+can be polled and killed with the respective poll and kill functions. Job
+information can be queried through the job attributes below and the query
+functions. Note that the job attributes are only updated when they are
 polled/killed (or through other job or job controller functions).
 
 .. autoclass:: Job
@@ -32,9 +33,12 @@ polled/killed (or through other job or job controller functions).
 Job Attributes
 --------------
 
-Following is a list of job status and configuration attributes that can be retrieved from a job.
+Following is a list of job status and configuration attributes that can be
+retrieved from a job.
 
-:NOTE: These should not be set directly. Jobs are launched by the job controller and job information can be queired through the job attributes below and the query functions.
+:NOTE: These should not be set directly. Jobs are launched by the job
+       controller and job information can be queired through the job attributes
+       below and the query functions.
 
 Job Status attributes include:
 

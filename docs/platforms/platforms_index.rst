@@ -2,12 +2,12 @@ Running on HPC Systems
 ======================
 
 libEnsemble has been developed, supported, and tested on systems of highly varying
-scales, from laptops to thousands of compute-nodes. libEnsemble's embarrassingly
-parallel  scaling capabilities are best exemplified on the resources available
-within high-performance machines.
+scales, from laptops to thousands of compute-nodes. libEnsemble's hugely parallel
+scaling capabilities are most productive with the resources available within
+high-performance machines.
 
-libEnsemble's flexible architecture lends itself best to two general modes of worker
-distributions across allocated compute nodes. The first mode we refer
+Across allocated compute nodes, libEnsemble's flexible architecture lends itself
+best to two general modes of worker distributions. The first mode we refer
 to as **centralized** mode, where the libEnsemble manager and worker processes
 are grouped on one or more nodes, but through the libEnsemble job-controller or a
 job-launch command can execute calculations on the other allocated nodes:
@@ -32,8 +32,8 @@ other workers directly on one or more allocated nodes:
 
 Due to this factor, libEnsemble on Theta and Summit approaches centralized mode
 differently. On these machines, libEnsemble is run centralized on either a
-compute-node with the support of Balsam_ or on a frontend server called a MOM
-(Machine-Oriented Mini-server) node.
+compute-node with the support of Balsam_, a frontend MOM
+(Machine-Oriented Mini-server) node on Theta, or a launch node on Summit.
 
 Read more about configuring and launching libEnsemble on some HPC systems:
 
