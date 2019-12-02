@@ -51,23 +51,26 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     if len(H) == 0:
         # Write initialization data to the mop.io file for MOP_INIT
         fp1 = FortranFile('mop.io', 'w')
-        fp1.write_record(np.int32(d), np.int32(p), np.int32(inb))
-        fp1.write_record(np.array(lb, dtype=np.float64),
-                         np.array(ub, dtype=np.float64))
+        fp1.write_record(np.array([np.int32(d), np.int32(p), np.int32(inb)]))
+        fp1.write_record(np.array([np.array(lb, dtype=np.float64),
+                         np.array(ub, dtype=np.float64)]))
         fp1.close()
         system("mop_initializer")
     else:
         # Write unformatted problem dimensions to the mop.io file
         fp1 = FortranFile('mop.io', 'w')
-        fp1.write_record(np.int32(d), np.int32(p), np.int32(n), np.int32(nb))
-        fp1.write_record(np.array(lb, dtype=np.float64),
-                         np.array(ub, dtype=np.float64))
+        fp1.write_record(np.array([np.int32(d), np.int32(p), np.int32(n), np.int32(nb)]))
+        fp1.write_record(np.array([np.array(lb, dtype=np.float64),
+                         np.array(ub, dtype=np.float64)]))
         fp1.close()
         # Write unformatted history to the mop.dat file, to be read by MOP_MOD
         fp2 = FortranFile('mop.dat', 'w')
-        fp2.write_record(np.int32(d), np.int32(p))
+        fp2.write_record(np.array([np.int32(d), np.int32(p)]))
         for i in range(n):
-            fp2.write_record(np.float64(H['x'][i, :]), np.float64(H['f'][i, :]))
+            toadd = np.zeros(d+p)
+            toadd[:d] = np.float64(H['x'][i, :])
+            toadd[d:] = np.float64(H['f'][i, :])
+            fp2.write_record(toadd)
             ## Debug statements below
             #if (np.float64((H['f'][i,:]) == np.zeros(p)).all()):
             #    print('here')
