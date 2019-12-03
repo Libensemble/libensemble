@@ -3,6 +3,9 @@ This module contains methods used our implementation of the Asynchronously
 Parallel Optimization Solver for finding Multiple Minima (APOSMM) method
 described in detail in the paper
 `https://doi.org/10.1007/s12532-017-0131-4 <https://doi.org/10.1007/s12532-017-0131-4>`_
+
+This implementation of APOSMM was developed by Kaushik Kulkarni and Jeffrey
+Larson in the summer of 2019.
 """
 __all__ = ['initialize_APOSMM', 'decide_where_to_start_localopt', 'update_history_dist']
 
