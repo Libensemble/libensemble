@@ -32,7 +32,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-# from libensemble.sim_funcs.mop_funcs import dtlz3 as func
+from libensemble.sim_funcs.mop_funcs import dtlz3 as func
 #from libensemble.sim_funcs.mop_funcs import conv_mop as func
 from libensemble.gen_funcs.mop_mod import mop_mod_gen as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
@@ -44,7 +44,7 @@ def sim_f(H, *unused):
     O = np.zeros(1, dtype=sim_specs['out'])
     # Evaluate the objective functions
     f = np.ones(np.size(O['f']))
-    # func(H['x'][0],f)
+    func(H['x'][0],f)
     # Return the output array
     O['f'] = f
     return O, {}
@@ -65,7 +65,7 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'num_obj': num_objs,
              'gen_f': gen_f,
              'in': ['x', 'f'],
-             'gen_batch_size': 25,
+             'gen_batch_size': 36,
              'first_batch_size': 900,
              'num_active_gens': 1,
              'batch_mode': True,
