@@ -25,7 +25,7 @@ mpi4py). Then libEnsemble can be installed locally::
 Alternatively, you can create your own Conda_ environment in which to install
 libEnsemble and all dependencies. If using ``mpi4py``, installation will need
 to be done using the `specific instructions from NERSC`_. libEnsemble can then
-be pip installed into the environment::
+be pip installed into the environment.
 
 .. code-block:: console
 
@@ -83,7 +83,7 @@ mode on KNL nodes resembles the following:
     #SBATCH -t 00:15:00
     #SBATCH -C knl
 
-    # Run the libE (manager and 4 workers) on one node
+    # Run libEnsemble (manager and 4 workers) on one node
     # leaving 4 nodes for worker launched applications.
     srun --ntasks 5 --nodes=1 python calling_script.py
 
@@ -116,7 +116,7 @@ user application. libEnsemble could be run on more than one node, but here the
     #SBATCH -t 01:00:00
     #SBATCH -C knl
 
-    # Run the libE (manager and 128 workers) on one node
+    # Run libEnsemble (manager and 128 workers) on one node
     # leaving 256 nodes for worker launched applications.
     srun --overcommit --ntasks 129 --nodes=1 python calling_script.py
 
