@@ -1,7 +1,7 @@
 Job Controller Overview
 =======================
 
-Users who wish to launch jobs to a system from a :ref:`sim_f<api_sim_f>`(or :ref:`gen_f<api_gen_f>`),
+Users who wish to launch jobs to a system from a :ref:`sim_f<api_sim_f>` (or :ref:`gen_f<api_gen_f>`),
 running on a worker have several options.
 
 Typically, an MPI job could be initialized with a subprocess call to
