@@ -4,13 +4,11 @@ import math
 
 # Concave multiobjective function with the shape of the unit sphere in the
 # first orthant. Credit to Deb et al.
-def dtlz3(x,f):
+def dtlz2(x,f):
     d = len(x)
     p = len(f)
     # Compute the kernel function g(x)
-    gx = 2.0 * (float(d - p) + 1.0 + np.dot(x[p-1:d]-0.5,x[p-1:d]-0.5))
-    for z in x[p-1:d]:
-        gx -= 2.0 * math.cos(20.0 * math.pi * (z - 0.5))
+    gx = np.dot(x[p-1:d]-0.5,x[p-1:d]-0.5)
     # Compute the objectives
     f[0] = (1.0 + gx)
     for y in x[:p-1]:

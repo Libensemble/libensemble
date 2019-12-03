@@ -32,7 +32,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.mop_funcs import dtlz3 as func
+from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 #from libensemble.sim_funcs.mop_funcs import conv_mop as func
 from libensemble.gen_funcs.mop_mod import mop_mod_gen as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
@@ -82,7 +82,7 @@ persis_info['next_to_give'] = 0
 persis_info['total_gen_calls'] = 0
 
 # Run for 500 evaluations or 300 seconds
-exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2000, 'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
