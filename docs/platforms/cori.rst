@@ -8,7 +8,6 @@ jobs from login nodes to run on the compute nodes.
 
 Cori does not allow more than one MPI application per compute node.
 
-
 Configuring Python and installation
 -----------------------------------
 
@@ -61,7 +60,6 @@ This is an example of running in :doc:`centralized<platforms_index>` mode and,
 if using the :doc:`job_controller<../job_controller/mpi_controller>`, it should
 be intiated with ``central_mode=True``. libEnsemble must be run in central mode
 on Cori as jobs cannot share nodes.
-
 
 Batch Runs
 ^^^^^^^^^^
@@ -121,7 +119,6 @@ user application. libEnsemble could be run on more than one node, but here the
     srun --overcommit --ntasks 129 --nodes=1 python calling_script.py
 
 Example submission scripts are also given in the examples_ directory.
-
 
 Additional Information
 ----------------------
