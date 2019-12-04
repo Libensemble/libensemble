@@ -9,6 +9,8 @@ Theta features three tiers of nodes: login, MOM (Machine-Oriented Mini-server),
 and compute nodes. Users on login nodes submit batch jobs to the MOM nodes.
 MOM nodes execute user batch-scripts to run on the compute nodes via ``aprun``.
 
+Theta does not allow more than one MPI application per compute node.
+
 Configuring Python
 ------------------
 

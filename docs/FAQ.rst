@@ -145,7 +145,8 @@ There are several ways to address this nuisance, but all involve trial and error
 An easy (but insecure) solution is temporarily disabling the Firewall through
 System Preferences -> Security & Privacy -> Firewall -> Turn Off Firewall. Alternatively,
 adding a Firewall "Allow incoming connections" rule can be attempted for the offending
-Job Controller executable. We've had limited success running ``sudo codesign --force --deep --sign - /path/to/application.app``
+Job Controller executable. We've had limited success running
+``sudo codesign --force --deep --sign - /path/to/application.app``
 on our Job Controller executables, then confirming the next alerts for the executable
 and ``mpiexec.hydra``.
 
