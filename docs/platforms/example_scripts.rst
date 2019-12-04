@@ -8,19 +8,26 @@ information about the respective systems and configuration.
 Bebop - Central mode
 --------------------
 
-..  literalinclude:: ../../examples/job_submission_scripts/bebop_submit_slurm_centralmode.sh
-    :caption: /examples/job_submission_scripts/bebop_submit_slurm_centralmode.sh
+..  literalinclude:: ../../examples/job_submission_scripts/bebop_submit_slurm_central.sh
+    :caption: /examples/job_submission_scripts/bebop_submit_slurm_central.sh
     :language: bash
 
 Bebop - Distributed mode
 ------------------------
 
-..  literalinclude:: ../../examples/job_submission_scripts/bebop_submit_slurm.sh
-    :caption: /examples/job_submission_scripts/bebop_submit_slurm.sh
+..  literalinclude:: ../../examples/job_submission_scripts/bebop_submit_slurm_distrib.sh
+    :caption: /examples/job_submission_scripts/bebop_submit_slurm_distrib.sh
     :language: bash
 
-Blues
------
+Cori - Central mode
+-------------------
+
+..  literalinclude:: ../../examples/job_submission_scripts/cori_submit.sh
+    :caption: /examples/job_submission_scripts/cori_submit.sh
+    :language: bash
+
+Blues (Blue Gene Q) - Distributed mode
+--------------------------------------
 
 ..  literalinclude:: ../../examples/job_submission_scripts/blues_script.pbs
     :caption: /examples/job_submission_scripts/blues_script.pbs
