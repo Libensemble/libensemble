@@ -5,7 +5,7 @@ Release Notes
 Release 0.6.0
 -------------
 
-:Date: November 27, 2019
+:Date: December 4, 2019
 
 API changes:
 
