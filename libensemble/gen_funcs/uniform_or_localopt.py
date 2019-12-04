@@ -10,13 +10,13 @@ import nlopt
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
-    This generation function returns ``gen_specs['gen_batch_size']`` uniformly
+    This generation function returns ``gen_specs['user']['gen_batch_size']`` uniformly
     sampled points when called in nonpersistent mode (i.e., when
     ``libE_info['persistent']`` isn't ``True``).  Otherwise, the generation
     function a persistent nlopt local optimization run.
 
-    :See:
-        ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
+    .. seealso::
+        `test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py>`_
     """
 
     if libE_info.get('persistent'):
@@ -24,10 +24,10 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         O = []
         return O, persis_info_updates, tag_out
     else:
-        ub = gen_specs['ub']
-        lb = gen_specs['lb']
+        ub = gen_specs['user']['ub']
+        lb = gen_specs['user']['lb']
         n = len(lb)
-        b = gen_specs['gen_batch_size']
+        b = gen_specs['user']['gen_batch_size']
 
         O = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0, b):
@@ -50,43 +50,43 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
         # Check if we can do an early return
         if np.array_equiv(x, H['x']):
-            if gen_specs['localopt_method'] in ['LD_MMA']:
+            if gen_specs['user']['localopt_method'] in ['LD_MMA']:
                 grad[:] = H['grad']
             return np.float(H['f'])
 
         # Send back x to the manager, then receive info or stop tag
         O = add_to_O(np.zeros(1, dtype=gen_specs['out']), x, 0,
-                     gen_specs['ub'], gen_specs['lb'], local=True, active=True)
+                     gen_specs['user']['ub'], gen_specs['user']['lb'], local=True, active=True)
         tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, O)
         if tag in [STOP_TAG, PERSIS_STOP]:
             nlopt.forced_stop.message = 'tag=' + str(tag)
             raise nlopt.forced_stop
 
         # Return function value (and maybe gradient)
-        if gen_specs['localopt_method'] in ['LD_MMA']:
+        if gen_specs['user']['localopt_method'] in ['LD_MMA']:
             grad[:] = calc_in['grad']
         return float(calc_in['f'])
 
     # ---------------------------------------------------------------------
 
     x0 = H['x'].flatten()
-    lb = gen_specs['lb']
-    ub = gen_specs['ub']
+    lb = gen_specs['user']['lb']
+    ub = gen_specs['user']['ub']
     n = len(ub)
 
-    opt = nlopt.opt(getattr(nlopt, gen_specs['localopt_method']), n)
+    opt = nlopt.opt(getattr(nlopt, gen_specs['user']['localopt_method']), n)
     opt.set_lower_bounds(lb)
     opt.set_upper_bounds(ub)
 
     # Care must be taken with NLopt because a too-large initial step causes
     # nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0), min(x0-lb))
-    init_step = dist_to_bound*gen_specs.get('dist_to_bound_multiple', 1)
+    init_step = dist_to_bound*gen_specs['user'].get('dist_to_bound_multiple', 1)
     opt.set_initial_step(init_step)
 
-    opt.set_maxeval(gen_specs.get('localopt_maxeval', 100*n))
+    opt.set_maxeval(gen_specs['user'].get('localopt_maxeval', 100*n))
     opt.set_min_objective(nlopt_obj_fun)
-    opt.set_xtol_rel(gen_specs['xtol_rel'])
+    opt.set_xtol_rel(gen_specs['user']['xtol_rel'])
 
     # Run local optimization.  Only send persis_info_updates back so new
     # information added to persis_info since this persistent instance started

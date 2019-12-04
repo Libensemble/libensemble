@@ -20,7 +20,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info, aposmm_gen_out as gen_out
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -42,27 +42,29 @@ LB = (-2-np.pi/10)*np.ones(n)
 gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f_i', 'returned'],
              'out': gen_out,
-             'initial_sample_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': True,
-             'lb': LB,
-             'ub': UB,
-             'localopt_method': 'pounders',
-             'dist_to_bound_multiple': 0.5,
-             'single_component_at_a_time': True,
-             'components': m,
-             'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             'user': {'initial_sample_size': 5,
+                      'num_active_gens': 1,
+                      'lb': LB,
+                      'ub': UB,
+                      'localopt_method': 'pounders',
+                      'dist_to_bound_multiple': 0.5,
+                      'single_component_at_a_time': True,
+                      'components': m,
+                      'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             }
 
-gen_specs.update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
+gen_specs['user'].update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 
 np.random.RandomState(0)
-gen_specs['sample_points'] = np.random.uniform(0, 1, (budget, n))*(UB-LB)+LB
+gen_specs['user']['sample_points'] = np.random.uniform(0, 1, (budget, n))*(UB-LB)+LB
 alloc_specs = {'alloc_f': alloc_f,
                'out': [('allocated', bool)],
-               'stop_on_NaNs': True,
-               'stop_partial_fvec_eval': True}
+               'user': {'stop_on_NaNs': True,
+                        'batch_mode': True,
+                        'stop_partial_fvec_eval': True}
+               }
 
-persis_info = per_worker_stream(persis_info, nworkers + 1)
+persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 

@@ -20,7 +20,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output
+from libensemble.utils import parse_args, save_libE_output
 
 nworkers, is_master, libE_specs, _ = parse_args()
 

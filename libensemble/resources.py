@@ -150,13 +150,22 @@ class Resources:
         except OSError:
             pass
 
-        # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
-        try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT)
-        stdout, _ = try_mpich.communicate()
-        if 'unrecognized argument npernode' in stdout.decode():
-            return 'mpich'
-        return 'openmpi'
+        try:
+            # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
+            try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT)
+            stdout, _ = try_mpich.communicate()
+            if 'unrecognized argument npernode' in stdout.decode():
+                return 'mpich'
+            return 'openmpi'
+        except Exception:
+            pass
+
+        try:
+            subprocess.check_call(['srun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return 'srun'
+        except OSError:
+            pass
 
     # ---------------------------------------------------------------------------
 

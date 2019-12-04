@@ -2,30 +2,30 @@
 
 history array
 =============
-
-Stores the history of the output from gen_f, sim_f, and alloc_f::
+::
 
     H: numpy structured array
-        History array storing rows for each point.
+        History to store output from gen_f/sim_f/alloc_f for each entry
 
 Fields in ``H`` include those specified in ``sim_specs['out']``,
 ``gen_specs['out']``, and ``alloc_specs['out']``. All values are initiated to
 0 for integers, 0.0 for floats, and False for booleans.
 
-
-
 Below are the protected fields used in ``H``
 
-..  literalinclude:: ../../libensemble/libE_fields.py
-    :lines: 4-
+..  literalinclude:: ../../libensemble/utils.py
+    :start-at: libE_fields
+    :end-before: end_libE_fields_rst_tag
 
-:Examples:
+.. seealso::
 
-See example :doc:`sim_specs<./sim_specs>`, :doc:`gen_specs<./gen_specs>`, and :doc:`alloc_specs<./alloc_specs>`.
+  See example :doc:`sim_specs<./sim_specs>`, :doc:`gen_specs<./gen_specs>`, and :doc:`alloc_specs<./alloc_specs>`.
 
-Users can also check the internal consistency of a History array by importing ``check_inputs()``
-and calling it with their gen, alloc, and sim specs as keyword arguments::
+.. hint::
+  Users can check the internal consistency of a History array by importing
+  ``check_inputs()`` and calling it with their ``gen_specs``, ``alloc_specs``,
+  and ``sim_specs`` as keyword arguments::
 
-    from libensemble.libE import check_inputs
+      from libensemble.utils import check_inputs
 
-    check_inputs(H0=my_H, sim_specs=sim_specs, alloc_specs=alloc_specs, gen_specs=gen_specs)
+      check_inputs(H0=my_H, sim_specs=sim_specs, alloc_specs=alloc_specs, gen_specs=gen_specs)

@@ -20,8 +20,9 @@ import multiprocessing
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import build_simfunc, parse_args, per_worker_stream
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.utils import parse_args, add_unique_random_streams
+from libensemble.tests.regression_tests.common import build_simfunc
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -68,20 +69,20 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'save_every_k': 400,
-             'cores': cores_per_job}
+             'user': {'cores': cores_per_job}
+             }
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('x', float, (2,))],
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2]),
-             'gen_batch_size': nworkers,
-             'batch_mode': True,
-             'num_active_gens': 1,
-             'save_every_k': 20}
+             'user': {'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2]),
+                      'gen_batch_size': nworkers,
+                      'num_active_gens': 1,
+                      }
+             }
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 10}
 

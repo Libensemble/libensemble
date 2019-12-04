@@ -10,7 +10,7 @@ Instructions
 Either run on local node - or create an allocation of nodes and run::
 
     python killtest.py <kill_type> <num_nodes> <num_procs_per_node>
-    
+
 where kill_type currently is 1 or 2. [1. is the original kill - 2. is using group ID approach]
 
 Then observe "top" on target nodes for burn_time.x processes.
@@ -52,11 +52,11 @@ Cooley (intelmpi)::
 
 Theta (intelmpi)::
 
-    kill 1: 
-    kill 2: 
-    
+    kill 1:
+    kill 2:
 
-    
+
+
 2018-07-02:
 
 Two nodes with 4 processes per node:
@@ -72,17 +72,17 @@ Bebop (intelmpi)::
 
 Cooley (intelmpi)::
 
-    kill 1: 
-    kill 2: 
+    kill 1:
+    kill 2:
 
 Theta (intelmpi)::
 
-    kill 1: 
-    kill 2: 
-    
-    
-    
-Example: 
+    kill 1:
+    kill 2:
+
+
+
+Example:
 ---------------------------------------------------------------------
 
 Running on Cooley - for my dir setup (maybe should store in project space).
@@ -97,7 +97,7 @@ Make sure got intel/mpi modules loaded. Then run:
 
     ./build.sh
     python killtest.py 1 1 4  #observe with top in another shell on that node (see below)
-    python killtest.py 2 1 4  #observe with top in another shell on that node (see below) 
+    python killtest.py 2 1 4  #observe with top in another shell on that node (see below)
 
 If processes dont stop:
 
@@ -107,4 +107,3 @@ In second shell. Log in to whatever qsub node you got:
     top
 
 Four burn_time.x processes should appear, then go, then come, then go.
-

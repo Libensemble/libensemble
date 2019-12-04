@@ -18,27 +18,31 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+from libensemble.gen_funcs.sampling import uniform_random_sample
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 nworkers, is_master, libE_specs, _ = parse_args()
+libE_specs['save_every_k_sims'] = 400
+libE_specs['save_every_k_gens'] = 300
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'save_every_k': 400}
+sim_specs = {'sim_f': six_hump_camel,  # Function whose output is being minimized
+             'in': ['x'],              # Keys to be given to sim_f
+             'out': [('f', float)],    # Name of the outputs from sim_f
+             }
+# end_sim_specs_rst_tag
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'gen_batch_size': 500,
-             'save_every_k': 300,
-             'out': [('x', float, (2,))],
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2])}
+gen_specs = {'gen_f': uniform_random_sample,     # Function generating sim_f input
+             'out': [('x', float, (2,))],        # Tell libE gen_f output, type, size
+             'user': {'gen_batch_size': 500,     # Used by this specific gen_f
+                      'lb': np.array([-3, -2]),  # Used by this specific gen_f
+                      'ub': np.array([3, 2])     # Used by this specific gen_f
+                      }
+             }
+# end_gen_specs_rst_tag
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 

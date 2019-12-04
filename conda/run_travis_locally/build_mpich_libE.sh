@@ -3,7 +3,7 @@
 # Note for other MPIs may need to install some packages from source (eg. petsc)
 
 # -x echo commands
-set -x # problem with this - loads of conda internal commands shown - overwhelming.
+# set -x # problem with this - loads of conda internal commands shown - overwhelming.
 
 export PYTHON_VERSION=3.7       # override with -p <version>
 export LIBE_BRANCH="develop"    # override with -b <branchname>
@@ -41,7 +41,10 @@ done
 
 echo -e "\nBuilding libE on ${SYSTEM} with python $PYTHON_VERSION and branch ${LIBE_BRANCH}\n"
 
-# sudo apt-get update
+sudo pip install --upgrade pip
+sudo /etc/init.d/postgresql stop 9.2
+sudo /etc/init.d/postgresql start 9.6
+export PATH=$PATH:/usr/lib/postgresql/9.6/bin
 
 # This works if not sourced but if sourced its no good.
 # set -e
@@ -69,11 +72,6 @@ else
   conda install gcc_linux-64 || return
 fi
 conda install nlopt petsc4py petsc mumps-mpi=5.1.2=h5bebb2f_1007 mpi4py scipy $MPI
-#conda install numpy || return #scipy includes numpy
-# conda install scipy || return
-# conda install mpi4py || return
-# conda install petsc4py petsc || return
-# conda install nlopt || return
 
 # pip install these as the conda installs downgrade pytest on python3.4
 pip install pytest || return
@@ -86,8 +84,10 @@ pip install coveralls || return
 git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || return
 cd libensemble/ || return
 pip install -e . || return
+python conda/install-balsam.py
+export BALSAM_DB_PATH=~/test-balsam
 
-libensemble/tests/run-tests.sh
+./libensemble/tests/run-tests.sh -z
 
 echo -e "\n\nScript completed...\n\n"
 set +ex

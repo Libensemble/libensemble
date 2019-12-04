@@ -19,7 +19,7 @@ import numpy as np
 from libensemble.libE import libE
 from support import nan_func as sim_f, aposmm_gen_out as gen_out
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 n = 2
@@ -33,18 +33,18 @@ gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int)]
 gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f', 'f_i', 'returned'],
              'out': gen_out,
-             'lb': -2*np.ones(n),
-             'ub': 2*np.ones(n),
-             'initial_sample_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': True}
+             'user': {'initial_sample_size': 5,
+                      'lb': -2*np.ones(n),
+                      'ub': 2*np.ones(n),
+                      'num_active_gens': 1}
+             }
 
 if nworkers == 3:
-    gen_specs['single_component_at_a_time'] = True
-    gen_specs['components'] = 1
-    gen_specs['combine_component_func'] = np.linalg.norm
+    gen_specs['user']['single_component_at_a_time'] = True
+    gen_specs['user']['components'] = 1
+    gen_specs['user']['combine_component_func'] = np.linalg.norm
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 100, 'elapsed_wallclock_time': 300}

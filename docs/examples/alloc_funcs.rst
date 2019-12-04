@@ -13,7 +13,7 @@ give_sim_work_first
 .. automodule:: give_sim_work_first
   :members:
   :undoc-members:
-  
+
 fast_alloc
 ----------
 .. automodule:: fast_alloc
@@ -37,5 +37,3 @@ start_persistent_local_opt_gens
 .. automodule:: start_persistent_local_opt_gens
   :members:
   :undoc-members:
-  
-  

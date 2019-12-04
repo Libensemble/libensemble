@@ -7,12 +7,12 @@ from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
 def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
     """
     """
-    ub = gen_specs['ub']
-    lb = gen_specs['lb']
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
     n = len(lb)
     comm = libE_info['comm']
-    subbatch_size = gen_specs['subbatch_size']
-    num_subbatches = gen_specs['num_subbatches']
+    subbatch_size = gen_specs['user']['subbatch_size']
+    num_subbatches = gen_specs['user']['num_subbatches']
 
     # Receive information from the manager (or a STOP_TAG)
     batch = -1

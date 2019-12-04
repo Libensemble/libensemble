@@ -9,6 +9,7 @@ export RUN_UNIT_TESTS=true    #Recommended for pre-push / CI tests
 export RUN_COV_TESTS=true     #Provide coverage report
 export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
 export RUN_PEP_TESTS=false     #Code syle conventions
+export RUN_ONLY_MPI=false
 
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
@@ -162,7 +163,6 @@ cleanup() {
 
 #-----------------------------------------------------------------------------------------
 
-
 #Parse Options
 #set -x
 
@@ -179,7 +179,7 @@ RTEST_SHOW_OUT_ERR=false
 
 usage() {
   echo -e "\nUsage:"
-  echo "  $0 [-hcsurz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
+  echo "  $0 [-hcsurmz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
@@ -188,6 +188,7 @@ usage() {
   echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"
   echo "  -u              Run only the unit tests"
   echo "  -r              Run only the regression tests"
+  echo "  -m              Run the regression tests only using MPI"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -n {name}       Supply a name to this test run"
@@ -196,7 +197,7 @@ usage() {
   exit 1
 }
 
-while getopts ":p:n:a:hcszur" opt; do
+while getopts ":p:n:a:hcszurm" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -229,6 +230,10 @@ while getopts ":p:n:a:hcszur" opt; do
     r)
       echo "Running only the regression tests"
       export RUN_UNIT_TESTS=false
+      ;;
+    m)
+      echo "Running only the MPI regression tests"
+      export RUN_ONLY_MPI=true
       ;;
     h)
       usage
@@ -273,7 +278,6 @@ if [[ $root_found == "false" ]]; then
   done
 fi;
 
-
 if [ $CLEAN_ONLY = "true" ]; then
   if [ "$root_found" = true ]; then
     cleanup
@@ -302,12 +306,13 @@ hint_colour=$(tput bold;tput setaf 4) #blue
 # Exit code 5:  No tests were collected
 
 tput bold
-#echo -e "\nRunning $RUN_PREFIX libensemble Test-suite .......\n"
-echo -e "\n************** Running: Libensemble Test-Suite **************\n"
+#echo -e "\nRunning $RUN_PREFIX libEnsemble Test-suite .......\n"
+echo -e "\n************** Running: libEnsemble Test-Suite **************\n"
 tput sgr 0
 echo -e "Selected:"
 [ $RUN_UNIT_TESTS = "true" ] && echo -e "Unit Tests"
 [ $RUN_REG_TESTS = "true" ]  && echo -e "Regression Tests"
+[ $RUN_ONLY_MPI = "true" ]  && echo -e "Only MPI Regression Tests"
 [ $RUN_COV_TESTS = "true" ]  && echo -e "Including coverage analysis"
 [ $RUN_PEP_TESTS = "true" ]  && echo -e "PEP Code Standard Tests (static code test)"
 
@@ -316,13 +321,11 @@ COV_LINE_PARALLEL=''
 if [ $RUN_COV_TESTS = "true" ]; then
    COV_LINE_SERIAL='--cov --cov-report html:cov_unit'
    #COV_LINE_PARALLEL='-m coverage run --parallel-mode --rcfile=../.coveragerc' #running in sub-dirs
-   COV_LINE_PARALLEL='-m coverage run --parallel-mode' #running in regression dir itself
+   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing' #running in regression dir itself
 
    #include branch coverage? eg. flags if never jumped a statement block... [see .coveragerc file]
    #COV_LINE_PARALLEL='-m coverage run --branch --parallel-mode'
 fi;
-
-
 
 if [ "$root_found" = true ]; then
 
@@ -361,7 +364,6 @@ if [ "$root_found" = true ]; then
   fi;
   cd $ROOT_DIR/
 
-
   # Run Regression Tests -----------------------------------------------------------------
 
   if [ "$RUN_REG_TESTS" = true ]; then
@@ -378,7 +380,8 @@ if [ "$root_found" = true ]; then
 
     TIMEOUT=""
     if [ -x "$(command -v timeout)" ] ; then
-        TIMEOUT="timeout 60s"
+        # TIMEOUT="timeout 60s"
+        TIMEOUT=""
     fi
     #Build any sim/gen source code dependencies here .....
 
@@ -411,6 +414,10 @@ if [ "$root_found" = true ]; then
       COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
       for LAUNCHER in $COMMS_LIST
       do
+        if [ "$RUN_ONLY_MPI" = true ] && [ "$LAUNCHER" != mpi ]; then
+          echo "Skipping non MPI testnumber 5"
+          continue
+        fi
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
         for NPROCS in $NPROCS_LIST
@@ -489,7 +496,6 @@ if [ "$root_found" = true ]; then
 
     # ********* End Loop over regression tests *********
 
-
     cd $ROOT_DIR/$REG_TEST_SUBDIR
 
     #Create Coverage Reports ----------------------------------------------
@@ -535,7 +541,6 @@ if [ "$root_found" = true ]; then
       fi;
     fi;
 
-
     #All reg tests - summary ----------------------------------------------
     if [ "$code" -eq "0" ]; then
       echo
@@ -572,7 +577,6 @@ if [ "$root_found" = true ]; then
     fi;
 
   fi; #$RUN_REG_TESTS
-
 
   # Run Code standards Tests -----------------------------------------
   cd $ROOT_DIR

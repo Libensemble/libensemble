@@ -10,35 +10,36 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     the persistent generator have been returned from the simulation evaluation,
     then this information is given back to the persistent generator.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py``
+    .. seealso::
+        `test_6-hump_camel_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py>`_
     """
 
     Work = {}
     gen_count = count_persis_gens(W)
 
-    # If i is idle, but in persistent mode, and its calculated values have
+    # If i is in persistent mode, and any of its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
-        if np.all(H['returned'][gen_inds]):
+        if np.any(np.logical_and(H['returned'][gen_inds], ~H['given_back'][gen_inds])):
             last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
             inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
             gen_work(Work, i,
-                     sim_specs['in'] + [n[0] for n in sim_specs['out']],
+                     sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
                      np.atleast_1d(inds_of_last_batch_from_gen), persis_info[i], persistent=True)
+
+            H['given_back'][inds_of_last_batch_from_gen] = True
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):
-
-            # perform sim evaluations from existing runs (if they exist).
+            # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
             sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
-            # Finally, generate points since there is nothing else to do.
+            # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
             gen_work(Work, i, gen_specs['in'], [], persis_info[i],
                      persistent=True)

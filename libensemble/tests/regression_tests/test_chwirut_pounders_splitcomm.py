@@ -21,11 +21,12 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream, mpi_comm_split
+from libensemble.tests.regression_tests.common import mpi_comm_split
+from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 num_comms = 2  # Must have atleast num_comms*2 processors
 nworkers, is_master, libE_specs, _ = parse_args()
-libE_specs['comm'], color = mpi_comm_split(num_comms)
+libE_specs['comm'], sub_comm_number = mpi_comm_split(num_comms)
 is_master = (libE_specs['comm'].Get_rank() == 0)
 
 # Declare the run parameters/functions
@@ -36,7 +37,8 @@ budget = 10
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('fvec', float, m)],
-             'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             'user': {'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             }
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 
@@ -44,18 +46,18 @@ gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out]+['f', 'fvec', 'returned'],
              'out': gen_out,
-             'initial_sample_size': 5,
-             'num_active_gens': 1,
-             'batch_mode': True,
-             'lb': (-2-np.pi/10)*np.ones(n),
-             'ub': 2*np.ones(n),
-             'localopt_method': 'pounders',
-             'dist_to_bound_multiple': 0.5,
-             'components': m}
+             'user': {'initial_sample_size': 5,
+                      'num_active_gens': 1,
+                      'lb': (-2-np.pi/10)*np.ones(n),
+                      'ub': 2*np.ones(n),
+                      'localopt_method': 'pounders',
+                      'dist_to_bound_multiple': 0.5,
+                      'components': m}
+             }
 
-gen_specs.update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
+gen_specs['user'].update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 
-persis_info = per_worker_stream(persis_info, nworkers + 1)
+persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 
@@ -72,5 +74,5 @@ if is_master:
     J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
     assert np.linalg.norm(J) < 2000
 
-    outname = os.path.splitext(__file__)[0] + '_color' + str(color)
+    outname = os.path.splitext(__file__)[0] + '_sub_comm' + str(sub_comm_number)
     save_libE_output(H, persis_info, outname, nworkers)

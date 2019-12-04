@@ -26,10 +26,10 @@ def test_failing_localopt_method():
 
     hist.H['returned'] = 1
 
-    gen_specs_0['localopt_method'] = 'BADNAME'
+    gen_specs_0['user']['localopt_method'] = 'BADNAME'
 
     try:
-        al.advance_local_run(hist.H, gen_specs_0, 0, 0, {'run_order': {0: [0, 1]}})
+        al.advance_local_run(hist.H, gen_specs_0['user'], 0, 0, {'run_order': {0: [0, 1]}})
     except al.APOSMMException:
         assert 1, "Failed like it should have"
     else:
@@ -41,9 +41,9 @@ def test_exception_raising():
     hist.H['returned'] = 1
 
     for method in ['LN_SBPLX', 'pounders', 'scipy_COBYLA']:
-        gen_specs_0['localopt_method'] = method
+        gen_specs_0['user']['localopt_method'] = method
 
-        out = al.advance_local_run(hist.H, gen_specs_0, 0, 0, {'run_order': {0: [0, 1]}})
+        out = al.advance_local_run(hist.H, gen_specs_0['user'], 0, 0, {'run_order': {0: [0, 1]}})
 
         assert out[0] == 0, "Failed like it should have"
 
@@ -100,11 +100,11 @@ def test_localopt_error_saving():
     H['f'] = np.random.uniform(0, 1, 4)
     H['returned'] = True
     H['local_pt'][1:] = True
-    gen_specs_0['initial_sample_size'] = 1
-    gen_specs_0['localopt_method'] = 'scipy_COBYLA'
-    gen_specs_0['tol'] = 0.1
-    gen_specs_0['ub'] = np.ones(2)
-    gen_specs_0['lb'] = np.zeros(2)
+    gen_specs_0['user']['initial_sample_size'] = 1
+    gen_specs_0['user']['localopt_method'] = 'scipy_COBYLA'
+    gen_specs_0['user']['tol'] = 0.1
+    gen_specs_0['user']['ub'] = np.ones(2)
+    gen_specs_0['user']['lb'] = np.zeros(2)
 
     persis_info_1 = {'run_order': {0: [1, 2, 3]},
                      'old_runs': {},

@@ -15,8 +15,8 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
     performs a system call with a given number of nodes and ranks per node
     using a machinefile (to show one way of evaluating a compiled simulation).
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py``
+    .. seealso::
+        `test_6-hump_camel_with_different_nodes_uniform_sample.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py>`_
     """
 
     from mpi4py import MPI
@@ -34,7 +34,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
 
         with open(machinefilename, 'w') as f:
             for rank in ranks_involved:
-                b = sim_specs['nodelist'][rank] + '\n'
+                b = sim_specs['user']['nodelist'][rank] + '\n'
                 f.write(b*H['ranks_per_node'][i])
 
         outfile_name = "outfile_" + machinefilename + ".txt"
@@ -57,11 +57,11 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a collection of points given in ``H['x']``.
     Additionally evaluates the gradient if ``'grad'`` is a field in
-    ``sim_specs['out']`` and pauses for ``sim_specs['pause_time']]`` if
+    ``sim_specs['out']`` and pauses for ``sim_specs['user']['pause_time']]`` if
     defined.
 
-    :See:
-        ``/libensemble/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py``
+    .. seealso::
+        `test_6-hump_camel_aposmm_LD_MMA.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py>`_
     """
 
     batch = len(H['x'])
@@ -73,8 +73,8 @@ def six_hump_camel(H, persis_info, sim_specs, _):
         if 'grad' in O.dtype.names:
             O['grad'][i] = six_hump_camel_grad(x)
 
-        if 'pause_time' in sim_specs:
-            time.sleep(sim_specs['pause_time'])
+        if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
+            time.sleep(sim_specs['user']['pause_time'])
 
     return O, persis_info
 
@@ -83,16 +83,16 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a single point ``x``.
 
-    :See:
-        ``/libensemble/libensemble/tests/regression_tests/test_fast_alloc.py``
+    .. seealso::
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_
     """
 
     O = np.zeros(1, dtype=sim_specs['out'])
 
     O['f'] = six_hump_camel_func(x[0][0])
 
-    if 'pause_time' in sim_specs:
-        time.sleep(sim_specs['pause_time'])
+    if 'pause_time' in sim_specs['user']:
+        time.sleep(sim_specs['user']['pause_time'])
 
     return O, persis_info
 

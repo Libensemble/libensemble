@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 job_timing = False
 
 
-def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
+def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
     """Evaluate calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
@@ -49,6 +49,9 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
     gen_specs: dict
         Parameters/information for generation calculations
 
+    libE_specs: dict
+        Parameters/information for libE operations
+
     workerID: int
         Manager assigned worker ID (if None, default is comm.rank)
 
@@ -56,7 +59,7 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
         Whether to send logging over comm
     """
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile_worker'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -69,10 +72,10 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
         worker_logging_config(comm, workerID)
 
     # Set up and run worker
-    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
+    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     worker.run()
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile_worker'):
         pr.disable()
         profile_state_fname = 'worker_%d.prof' % (workerID)
 
@@ -120,7 +123,7 @@ class Worker:
         Stack holding directory structure of this Worker
     """
 
-    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs):
+    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
         """Initialise new worker object.
 
         """
@@ -128,6 +131,7 @@ class Worker:
         self.dtypes = dtypes
         self.workerID = workerID
         self.sim_specs = sim_specs
+        self.libE_specs = libE_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self.loc_stack = None  # Worker._make_sim_worker_dir(sim_specs, workerID)
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
@@ -135,13 +139,13 @@ class Worker:
         Worker._set_job_controller(self.workerID, self.comm)
 
     @staticmethod
-    def _make_sim_worker_dir(sim_specs, workerID, locs=None):
-        "Create a dir for sim workers if 'sim_dir' is in sim_specs"
+    def _make_sim_worker_dir(libE_specs, workerID, locs=None):
+        "Create a dir for sim workers if 'sim_dir' is in libE_specs"
         locs = locs or LocationStack()
-        if 'sim_dir' in sim_specs:
-            sim_dir = sim_specs['sim_dir'].rstrip('/')
-            prefix = sim_specs.get('sim_dir_prefix')
-            suffix = sim_specs.get('sim_dir_suffix', '')
+        if 'sim_dir' in libE_specs:
+            sim_dir = libE_specs['sim_dir'].rstrip('/')
+            prefix = libE_specs.get('sim_dir_prefix')
+            suffix = libE_specs.get('sim_dir_suffix', '')
             if suffix != '':
                 suffix = '_' + suffix
             worker_dir = "{}{}_worker{}".format(sim_dir, suffix, workerID)
@@ -216,7 +220,7 @@ class Worker:
                         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
                 elif calc_type == EVAL_SIM_TAG and not self.loc_stack:
-                    self.loc_stack = Worker._make_sim_worker_dir(self.sim_specs, self.workerID)
+                    self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
                     with self.loc_stack.loc(calc_type):
                         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
@@ -246,13 +250,13 @@ class Worker:
                            calc_type_strings[calc_type],
                            timer,
                            job.timer,
-                           calc_status_strings.get(calc_status, "Completed"))
+                           calc_status_strings.get(calc_status, "Not set"))
             else:
                 calc_msg = "Calc {:5d}: {} {} Status: {}".\
                     format(calc_id,
                            calc_type_strings[calc_type],
                            timer,
-                           calc_status_strings.get(calc_status, "Completed"))
+                           calc_status_strings.get(calc_status, "Not set"))
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
@@ -320,5 +324,5 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            if self.sim_specs.get('clean_jobs') and self.loc_stack is not None:
+            if self.libE_specs.get('clean_jobs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()

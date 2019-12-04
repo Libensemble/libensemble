@@ -32,12 +32,12 @@ if myrank == 0:
     if not os.path.isdir(sim_path):
         try:
             os.mkdir(sim_path)
-        except:
+        except Exception as e:
+            print(e)
             raise("Cannot make simulation directory %s" % sim_path)
 MPI.COMM_WORLD.Barrier()  # Ensure output dir created
 
 print("Host job rank is %d Output dir is %s" % (myrank, sim_dir))
-
 
 start = time.time()
 for sim_id in range(steps):
@@ -79,7 +79,6 @@ for sim_id in range(steps):
         print("Completed job: %s rank=%d  time=%f" % (jobname, myrank, time.time()-start))
     else:
         print("Job not completed: %s rank=%d  time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
-
 
 end = time.time()
 print("Done: rank=%d  time=%f" % (myrank, end-start))
