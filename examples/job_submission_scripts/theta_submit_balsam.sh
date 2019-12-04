@@ -34,7 +34,6 @@ export WORKFLOW_NAME=libe_workflow
 # Script must be set up to receive as argument.
 export LIBE_WALLCLOCK=$(($BALSAM_WALLCLOCK-3))
 
-
 # libEnsemble calling script arguments (some alternatives shown)
 
 # No args. All defined in calling script
@@ -45,7 +44,6 @@ export LIBE_WALLCLOCK=$(($BALSAM_WALLCLOCK-3))
 
 # If calling script takes wall-clock as positional arg and uses utils.parse_args()
 export SCRIPT_ARGS="$LIBE_WALLCLOCK --comms mpi --nworkers $NUM_WORKERS"
-
 
 # Name of Conda environment
 export CONDA_ENV_NAME=<conda_env_name>
