@@ -9,7 +9,7 @@ may occur when using libEnsemble.
   controller).
 * Local comms mode (multiprocessing) may fail if MPI is initialized before
   forking processors. This is thought to be responsible for issues combining
-  with PETSc.
+  multiprocessing with PETSc on some platforms.
 * Remote detection of logical cores via LSB_HOSTS (e.g., Summit) returns number
   of physical cores as SMT info not available.
 * TCP mode does not support:
