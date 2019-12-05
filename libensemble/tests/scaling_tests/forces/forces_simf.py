@@ -67,7 +67,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # At this point you will be in the sim directory (really worker dir) for this worker (eg. sim_1).
     # The simdir below is created for each job for this worker.
     # Any input needs to be copied into this directory. Currently there is none.
-
     # simdir = simdir_basename + '_' + keys[0] + '_' + str(seed)
     # simdir = make_unique_simdir(simdir)
     # os.mkdir(simdir)

@@ -33,6 +33,11 @@ Specifications for libEnsemble::
         'profile_worker' [Boolean] :
             Profile using cProfile. Default: False
 
+.. note::
+    The ``sim_dir_prefix`` and ``sim_dir`` options can indicate working
+    directories on local node or scratch storage. This may produce performance
+    benefits on I/O heavy simulations, but will use more space.
+
 .. seealso::
   Example ``libE_specs`` from the forces_ scaling test, completely populated::
 

@@ -1,8 +1,6 @@
 import numpy as np
 import copy
 
-__all__ = ['nan_func', 'write_func']
-
 branin_vals_and_minima = np.array([[-3.14159, 12.275, 0.397887],
                                    [3.14159, 2.275, 0.397887],
                                    [9.42478, 2.475, 0.397887]])
