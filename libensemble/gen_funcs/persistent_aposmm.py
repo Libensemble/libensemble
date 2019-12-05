@@ -97,12 +97,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
       distance to the nearest boundary should the initial step size be in
       localopt runs
-    - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs
-      with smallest observed function value are given priority
     - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
       (0 or 1 results in uniform sampling)
-    - ``'min_batch_size' [int]``: Lower bound on the number of points given
-      every time APOSMM is called
     - ``'mu' [float]``: Distance from the boundary that all localopt starting
       points must satisfy
     - ``'nu' [float]``: Distance from identified minima that all starting
@@ -883,6 +879,10 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
         start_inds = list(sample_start_inds)+local_start_inds2
     else:
         start_inds = list(sample_start_inds)+local_start_inds2
+
+    # Sort the starting inds by their function value
+    inds = np.argsort(H['f'][start_inds])
+    start_inds = np.array(start_inds)[inds].tolist()
 
     return start_inds
 
