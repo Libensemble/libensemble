@@ -15,6 +15,7 @@
 
 import numpy as np
 import os
+import time
 
 from libensemble.libE import libE
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
@@ -48,13 +49,17 @@ if is_master:
     print("\nlibEnsemble with random sampling has generated enough points")
 
     prof_files = ['worker_{}.prof'.format(i+1) for i in range(nworkers)]
+
+    # Ensure profile writes complete before checking
+    time.sleep(0.5)
+
     for file in prof_files:
         assert file in os.listdir(), 'Expected profile {} not found after run'.format(file)
         with open(file, 'r') as f:
             data = f.read().split()
             num_calls = int(data[0])
             num_worker_funcs_profiled = sum(['libE_worker' in i for i in data])
-        assert num_calls >= 600, 'Insufficient number of function calls ' + \
+        assert num_calls >= 400, 'Insufficient number of function calls ' + \
             'recorded: ' + num_calls
         assert num_worker_funcs_profiled >= 8, 'Insufficient number of ' + \
             'libE_worker functions profiled: ' + num_worker_funcs_profiled
