@@ -214,6 +214,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     send_mgr_worker_msg(comm, local_H[:user_specs['initial_sample_size']][[i[0] for i in gen_specs['out']]])
 
     tag = None
+    first_pass = True
     while 1:
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
@@ -221,7 +222,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             clean_up_and_stop(local_H, local_opters, run_order)
             break
 
-        n_s = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
+        n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
 
         new_opt_inds_to_send_mgr = []
         new_inds_to_send_mgr = []
@@ -272,10 +273,15 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 total_runs += 1
 
-        if len(new_inds_to_send_mgr) == 0:
-            persis_info = add_k_sample_points_to_local_H(1, user_specs, persis_info, n,
-                                                         comm, local_H, sim_id_to_child_indices)
-            new_inds_to_send_mgr.append(len(local_H)-1)
+        if first_pass:
+            num_to_send = user_specs.get('num_pts_first_pass', 1)
+            first_pass = False
+        else:
+            num_to_send = n_r-len(new_inds_to_send_mgr)
+
+        if num_to_send > 0:
+            persis_info = add_k_sample_points_to_local_H(num_to_send, user_specs, persis_info, n, comm, local_H, sim_id_to_child_indices)
+            new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_to_send, len(local_H)))
 
         send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
 
@@ -627,11 +633,12 @@ def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in):
 
     local_H['returned'][Work['libE_info']['H_rows']] = True
     n_s += np.sum(~local_H[Work['libE_info']['H_rows']]['local_pt'])
+    n_r = len(Work['libE_info']['H_rows'])
 
     # dist -> distance
     update_history_dist(local_H, n)
 
-    return n_s
+    return n_s, n_r
 
 
 def add_to_local_H(local_H, pts, user_specs, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
