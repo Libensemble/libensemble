@@ -101,8 +101,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       with smallest observed function value are given priority
     - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
       (0 or 1 results in uniform sampling)
-    - ``'min_batch_size' [int]``: Lower bound on the number of points given
-      every time APOSMM is called
     - ``'mu' [float]``: Distance from the boundary that all localopt starting
       points must satisfy
     - ``'nu' [float]``: Distance from identified minima that all starting
@@ -910,28 +908,12 @@ def initialize_APOSMM(H, user_specs, libE_info):
         `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
     n = len(user_specs['ub'])
-
     n_s = 0
 
-    if 'rk_const' in user_specs:
-        rk_c = user_specs['rk_const']
-    else:
-        rk_c = ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi)
-
-    if 'lhs_divisions' in user_specs:
-        ld = user_specs['lhs_divisions']
-    else:
-        ld = 0
-
-    if 'mu' in user_specs:
-        mu = user_specs['mu']
-    else:
-        mu = 1e-4
-
-    if 'nu' in user_specs:
-        nu = user_specs['nu']
-    else:
-        nu = 0
+    rk_c = user_specs.get('rk_const', ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi))
+    ld = user_specs.get('lhs_divisions', 0)
+    mu = user_specs.get('mu', 1e-4)
+    nu = user_specs.get('nu', 0)
 
     comm = libE_info['comm']
 
