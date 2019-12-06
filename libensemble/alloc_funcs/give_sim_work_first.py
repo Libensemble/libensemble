@@ -10,7 +10,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     completed or running does it start (at most ``gen_specs['user']['num_active_gens']``)
     generator instances.
 
-    Allows for a ``gen_specs['user']['batch_mode']`` where no generation
+    Allows for a ``alloc_specs['user']['batch_mode']`` where no generation
     work is given out unless all entries in ``H`` are returned.
 
     Allows for ``blocking`` of workers that are not active, for example, so
