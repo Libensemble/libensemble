@@ -57,10 +57,7 @@ if is_master:
         assert file in os.listdir(), 'Expected profile {} not found after run'.format(file)
         with open(file, 'r') as f:
             data = f.read().split()
-            num_calls = int(data[0])
             num_worker_funcs_profiled = sum(['libE_worker' in i for i in data])
-        assert num_calls >= 400, 'Insufficient number of function calls ' + \
-            'recorded: ' + str(num_calls)
         assert num_worker_funcs_profiled >= 8, 'Insufficient number of ' + \
             'libE_worker functions profiled: ' + str(num_worker_funcs_profiled)
 
