@@ -60,8 +60,8 @@ if is_master:
             num_calls = int(data[0])
             num_worker_funcs_profiled = sum(['libE_worker' in i for i in data])
         assert num_calls >= 400, 'Insufficient number of function calls ' + \
-            'recorded: ' + num_calls
+            'recorded: ' + str(num_calls)
         assert num_worker_funcs_profiled >= 8, 'Insufficient number of ' + \
-            'libE_worker functions profiled: ' + num_worker_funcs_profiled
+            'libE_worker functions profiled: ' + str(num_worker_funcs_profiled)
 
         os.remove(file)
