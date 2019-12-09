@@ -25,11 +25,12 @@ from libensemble.utils import parse_args, add_unique_random_streams
 
 
 def cleanup(dir):
+    here = os.getcwd()
     for i in os.listdir(dir):
         if 'test_sim_dir' in i:
             os.chdir(dir)
             shutil.rmtree(i)
-            os.chdir('..')
+            os.chdir(here)
 
 
 nworkers, is_master, libE_specs, _ = parse_args()
