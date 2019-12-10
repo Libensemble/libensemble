@@ -15,7 +15,14 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def register_loc(self, key, dirname, prefix=None, srcdir=None):
+    def sim_dir_symlink(self, srcdir, dirname):
+        fullsrc = os.path.abspath(srcdir)
+        fulldst = os.path.abspath(dirname)
+        for item in os.listdir(srcdir):
+            os.symlink(os.path.join(fullsrc, item), os.path.join(fulldst, item))
+
+
+    def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False):
         """Register a new location in the dictionary.
 
         Parameters
@@ -43,11 +50,15 @@ class LocationStack:
         if srcdir is not None:
             assert ~os.path.isdir(dirname), \
                 "Directory {} already exists".format(dirname)
-            shutil.copytree(srcdir, dirname)
+            if link:
+                self.sim_dir_symlink(srcdir, dirname)
+            else:
+                shutil.copytree(srcdir, dirname)
         else:
             if dirname:
                 os.mkdir(dirname)
         return dirname
+
 
     def push_loc(self, key):
         """Push a location from the dictionary."""
