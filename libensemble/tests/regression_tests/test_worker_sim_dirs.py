@@ -50,15 +50,15 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 sim_dir = './test_sim_dir'
 ensemble_dir = './ensemble'
 
-if is_master:
-    cleanup(ensemble_dir)
-
 for dir in [sim_dir, ensemble_dir]:
     if is_master and not os.path.isdir(dir):
         try:
             os.mkdir(dir)
         except FileExistsError:
             pass
+
+if is_master:
+    cleanup(ensemble_dir)
 
 libE_specs['sim_dir'] = sim_dir
 libE_specs['do_worker_dir'] = True
