@@ -224,7 +224,7 @@ class Worker:
                 self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
 
             with self.loc_stack.loc(calc_type):
-                new_dir = 'sim_' + uuid.uuid4().hex[:8]
+                new_dir = calc_type_strings[calc_type] + '_' + uuid.uuid4().hex[:8]
                 os.mkdir(new_dir); here = os.getcwd(); os.chdir(new_dir)
                 out = calc(calc_in, Work['persis_info'], Work['libE_info'])
                 os.chdir(here)
