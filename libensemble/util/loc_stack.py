@@ -44,6 +44,9 @@ class LocationStack:
             assert ~os.path.isdir(dirname), \
                 "Directory {} already exists".format(dirname)
             shutil.copytree(srcdir, dirname)
+        else:
+            if dirname:
+                os.mkdir(dirname)
         return dirname
 
     def push_loc(self, key):
