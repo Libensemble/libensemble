@@ -19,8 +19,9 @@ class LocationStack:
     def sim_dir_symlink(self, srcdir, destdir):
         """ Inspired by https://stackoverflow.com/a/9793699 """
         for src_path in glob('{}/*'.format(srcdir)):
-            os.symlink(os.path.relpath(src_path, destdir),
-                os.path.join(destdir, os.path.basename(src_path)))
+            relative_path = os.path.relpath(src_path, destdir)
+            link_dest_path = os.path.join(destdir, os.path.basename(src_path))
+            os.symlink(relative_path, link_dest_path)
 
 
     def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False):

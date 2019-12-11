@@ -63,6 +63,7 @@ if is_master:
 libE_specs['sim_dir'] = sim_dir
 libE_specs['do_worker_dir'] = True
 libE_specs['sim_dir_prefix'] = ensemble_dir
+libE_specs['sym_link_to_input'] = True
 
 # Tell libEnsemble when to stop
 exit_criteria = {'sim_max': 21}

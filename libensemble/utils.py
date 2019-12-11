@@ -69,6 +69,7 @@ allowed_libE_spec_keys = ['comms',               #
                           'sim_dir_prefix',      #
                           'sim_dir_suffix',      #
                           'do_worker_dir',       #
+                          'sym_link_to_input',   #
                           'clean_jobs',          #
                           'save_every_k_sims',   #
                           'save_every_k_gens',   #

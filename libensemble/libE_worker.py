@@ -147,6 +147,7 @@ class Worker:
             sim_dir = libE_specs['sim_dir'].rstrip('/')
             prefix = libE_specs.get('sim_dir_prefix')
             suffix = libE_specs.get('sim_dir_suffix', '')
+            do_symlink = libE_specs.get('sym_link_to_input', False)
             if suffix != '':
                 suffix = '_' + suffix
             if libE_specs.get('do_worker_dir'):
@@ -157,7 +158,7 @@ class Worker:
                              .format(sim_dir, suffix, workerID,
                                      uuid.uuid4().hex[:8])
             locs.register_loc(EVAL_SIM_TAG, worker_dir,
-                              prefix=prefix, srcdir=sim_dir)
+                              prefix=prefix, srcdir=sim_dir, link=do_symlink)
         return locs
 
     @staticmethod
