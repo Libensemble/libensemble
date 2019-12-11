@@ -68,11 +68,11 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 1000}
 
 filename = 'H0_to_be_reloaded.npz'
-try: 
+try:
     # Load in previous history, but delete points that weren't returned
     H = np.load('H0_to_be_reloaded.npz', allow_pickle=True)['H']
     H0 = np.delete(H, np.where(H['returned'] == 0))
-except:
+except OSError:
     H0 = []
 
 # Perform the run
