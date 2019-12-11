@@ -2,7 +2,6 @@
 libensemble utility class -- manages timer
 """
 
-import time
 import datetime
 
 
@@ -45,12 +44,14 @@ class Timer:
     @property
     def date_start(self):
         """Return a string representing the start datetime."""
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.tstart / 1000)) + '.' + str(self.tstart)[-3:]
+        start_time = datetime.date.fromtimestamp(self.tstart / 1000)
+        return start_time.strftime("%Y-%m-%d %H:%M:%S") + '.' + str(self.tstart)[-3:]
 
     @property
     def date_end(self):
         """Return a string representing the end datetime."""
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.tend / 1000)) + '.' + str(self.tend)[-3:]
+        end_time = datetime.date.fromtimestamp(self.tend / 1000)
+        return end_time.strftime("%Y-%m-%d %H:%M:%S") + '.' + str(self.tend)[-3:]
 
     @property
     def elapsed(self):
