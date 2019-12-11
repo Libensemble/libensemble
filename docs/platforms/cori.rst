@@ -41,6 +41,17 @@ likely use the most to run jobs are ``srun`` and ``sbatch`` for running
 interactively and batch, respectively. libEnsemble runs on the compute nodes
 on Cori using either ``multi-processing`` or ``mpi4py``.
 
+.. note::
+    While it is possible to submit jobs from the user $HOME directory this
+    is likely to perform very poorly, especially for large ensembles. Users
+    should prefereably submit the libEnsemble calling script from the user
+    $SCRATCH (/global/cscratch1/sd/<YourUserName>) directory (fastest but
+    regularly purged) or the project directory. You cannot run under the
+    /global/common/ filesystem as this is read-only, but any imported
+    codes (including libEnsemble and gen/sim functions) are best imported
+    from there, especially at when running at scale.
+    See instructions in `scaling Python`_ for more information.
+
 Interactive Runs
 ^^^^^^^^^^^^^^^^
 
