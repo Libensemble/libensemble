@@ -5,6 +5,7 @@ libensemble utility class -- manages timer
 import time
 import datetime
 
+
 # https://stackoverflow.com/questions/5998245/get-current-time-in-milliseconds-in-python
 def TimestampMillisec64():
     return int((datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds() * 1000)

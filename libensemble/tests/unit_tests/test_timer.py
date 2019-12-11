@@ -48,7 +48,7 @@ def test_timer():
 
     time_end = time.time() - time_start + time_mid
 
-    assert total1>= 1 and total1 <= time_end, \
+    assert total1 >= 1 and total1 <= time_end, \
         "Check cumulative timing (active)."
     assert timer.total >= 1 and timer.total <= time_end, \
         "Check cumulative timing (not active)."
