@@ -27,7 +27,8 @@ def test_timer():
     # Use external wall-clock time for upper limit to allow for system overhead
     # (e.g. virtualization, or sharing machine with other tasks)
     # assert (e1 >= 0.5) and (e1 <= 0.6), "Check timed sleep seems correct"
-    assert (e1 >= 0.5) and (e1 < time_mid), "Check timed sleep within boundaries"
+
+    assert (e1/1000 >= 0.5) and (e1/1000 < time_mid), "Check timed sleep within boundaries"
     assert e2 >= e1, "Check timer order."
     assert e2 == e3, "Check elapsed time stable when timer inactive."
 
@@ -48,9 +49,9 @@ def test_timer():
 
     time_end = time.time() - time_start + time_mid
 
-    assert total1 >= 1 and total1 <= time_end, \
+    assert total1/1000 >= 1 and total1/1000 <= time_end, \
         "Check cumulative timing (active)."
-    assert timer.total >= 1 and timer.total <= time_end, \
+    assert timer.total/1000 >= 1 and timer.total/1000 <= time_end, \
         "Check cumulative timing (not active)."
 
 

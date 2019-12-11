@@ -55,24 +55,11 @@ class Timer:
     def elapsed(self):
         """Return time since last start (active) or in most recent interval."""
         etime = self.tend if not self.timing else TimestampMillisec64()
-        return (etime-self.tstart) / 1000
-
-    @property
-    def m_elapsed(self):
-        """Return time in milliseconds since last start (active) or in most recent interval."""
-        etime = self.tend if not self.timing else TimestampMillisec64()
         return etime-self.tstart
 
     @property
     def total(self):
         """Return the total time since last start."""
-        if self.timing:
-            return (self.tcum + self.elapsed) / 1000
-        return self.tcum / 1000
-
-    @property
-    def m_total(self):
-        """Return the total time in milliseconds since last start."""
         if self.timing:
             return self.tcum + self.elapsed
         return self.tcum
