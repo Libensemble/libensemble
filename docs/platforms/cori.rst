@@ -3,7 +3,7 @@ Cori
 ====
 
 Cori_ is a Cray XC40 located at NERSC, featuring both Intel Haswell
-and Knights Landing compute nodes. It uses the SLURM schedular to submit
+and Knights Landing compute nodes. It uses the SLURM scheduler to submit
 jobs from login nodes to run on the compute nodes.
 
 Cori does not allow more than one MPI application per compute node.
@@ -17,7 +17,7 @@ Begin by loading the Python 3 Anaconda_ module::
 
 In many cases this may provide all the dependent packages you need (including
 mpi4py). Note that these packages are installed under the ``/global/common``
-filesystem. This performs best for imported Python packages.
+file system. This performs best for imported Python packages.
 
 Installing libEnsemble
 ----------------------
@@ -39,7 +39,7 @@ recommended to pip install there, for performance::
     pip install --install-option="--prefix=$PREFIX_PATH" libensemble
 
 For the latter option, to ensure you pick up from this install you will need
-to prepend to your PYTHONPATH when running (check the exact pythonX.Y version)::
+to prepend to your ``PYTHONPATH`` when running (check the exact ``pythonX.Y`` version)::
 
     export PYTHONPATH=$PREFIX_PATH/lib/<pythonX.Y>/site-packages:$PYTHONPATH
 
@@ -61,8 +61,8 @@ into the environment.
     (my_env) user@cori07:~$ pip install libensemble
 
 Again, it is preferable to create your Conda environment under the ``common``
-filesystem. This can be done by modifying your ``~/.condarc`` file.
-E.g. Add the following lines::
+file system. This can be done by modifying your ``~/.condarc`` file.
+For example, add the lines::
 
     envs_dirs:
       - /path/to/my/conda_envs
@@ -83,12 +83,12 @@ interactively and batch, respectively. libEnsemble runs on the compute nodes
 on Cori using either ``multi-processing`` or ``mpi4py``.
 
 .. note::
-    While it is possible to submit jobs from the user ``$HOME`` filesystem, this
+    While it is possible to submit jobs from the user ``$HOME`` file system, this
     is likely to perform very poorly, especially for large ensembles. Users
     should preferably submit their calling script from the user
     $SCRATCH (``/global/cscratch1/sd/<YourUserName>``) directory (fastest but
     regularly purged) or the project directory (``/project/projectdirs/<project_name>/``).
-    You cannot run and create output under the ``/global/common/`` filesystem
+    You cannot run and create output under the ``/global/common/`` file system
     as this is read-only from compute nodes, but any imported codes (including
     libEnsemble and gen/sim functions) are best imported from there, especially
     when running at scale.
@@ -102,7 +102,7 @@ You can allocate four Knights Landing nodes for thirty minutes through the follo
     salloc -N 4 -C knl -q interactive -t 00:30:00
 
 Ensure that the Python 3 Anaconda module module is loaded. If you have installed
-libensemble under the ``common`` filesystem, ensure PYTHONPATH is set (as above).
+libEnsemble under the ``common`` file system, ensure ``PYTHONPATH`` is set (as above).
 
 With your nodes allocated, queue your job to start with four MPI ranks::
 
@@ -114,7 +114,7 @@ user applications with the job-controller or a job-launch command.
 
 This is an example of running in :doc:`centralized<platforms_index>` mode and,
 if using the :doc:`job_controller<../job_controller/jc_index>`, it should
-be intiated with ``central_mode=True``. libEnsemble must be run in central mode
+be initiated with ``central_mode=True``. libEnsemble must be run in central mode
 on Cori as jobs cannot share nodes.
 
 Batch Runs
@@ -122,7 +122,7 @@ Batch Runs
 
 Batch scripts specify run-settings using ``#SBATCH`` statements. A simple example
 for a libEnsemble use-case running in :doc:`centralized<platforms_index>` MPI
-mode on KNL nodes resembles the following (add PYTHONPATH lines if necessary):
+mode on KNL nodes resembles the following (add ``PYTHONPATH`` lines if necessary):
 
 .. code-block:: bash
     :linenos:
@@ -148,7 +148,7 @@ on Cori becomes::
 
     sbatch myscript.sh
 
-If you wish to run in multi-processing (local) mode instead of using mpi4py,
+If you wish to run in multi-processing (local) mode instead of using ``mpi4py``,
 and your calling script uses the :doc:`parse_args()<../utilities>` function,
 then the run line in the above script would be::
 
