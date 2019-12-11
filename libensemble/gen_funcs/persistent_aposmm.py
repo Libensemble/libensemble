@@ -911,25 +911,10 @@ def initialize_APOSMM(H, user_specs, libE_info):
     """
     n = len(user_specs['ub'])
 
-    if 'rk_const' in user_specs:
-        rk_c = user_specs['rk_const']
-    else:
-        rk_c = ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi)
-
-    if 'lhs_divisions' in user_specs:
-        ld = user_specs['lhs_divisions']
-    else:
-        ld = 0
-
-    if 'mu' in user_specs:
-        mu = user_specs['mu']
-    else:
-        mu = 1e-4
-
-    if 'nu' in user_specs:
-        nu = user_specs['nu']
-    else:
-        nu = 0
+    rk_c = user_specs.get('rk_const', ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi))
+    ld = user_specs.get('lhs_divisions', 0)
+    mu = user_specs.get('mu', 1e-4)
+    nu = user_specs.get('nu', 0)
 
     comm = libE_info['comm']
 
