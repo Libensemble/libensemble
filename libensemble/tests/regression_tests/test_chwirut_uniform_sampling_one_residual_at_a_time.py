@@ -58,7 +58,6 @@ gen_specs = {'gen_f': gen_f,
              'user': {'gen_batch_size': 2,
                       'single_component_at_a_time': True,
                       'combine_component_func': lambda x: np.sum(np.power(x, 2)),
-                      'num_active_gens': 1,
                       'lb': (-2-np.pi/10)*np.ones(n),
                       'ub': 2*np.ones(n),
                       'components': m}
@@ -68,6 +67,7 @@ alloc_specs = {'alloc_f': give_sim_work_first,  # Allocation function
                'out': [('allocated', bool)],    # Output fields (included in History)
                'user': {'stop_on_NaNs': True,   # Should alloc preempt evals
                         'batch_mode': True,     # Wait until all sim evals are done
+                        'num_active_gens': 1,   # Only allow one active generator
                         'stop_partial_fvec_eval': True}  # Should alloc preempt evals
                }
 # end_alloc_specs_rst_tag
