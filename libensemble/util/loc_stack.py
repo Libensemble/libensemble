@@ -4,6 +4,7 @@ libensemble utility class -- keeps a stack of directory locations.
 
 import os
 import shutil
+from glob import glob
 
 
 class LocationStack:
@@ -15,11 +16,11 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def sim_dir_symlink(self, srcdir, dirname):
-        fullsrc = os.path.abspath(srcdir)
-        fulldst = os.path.abspath(dirname)
-        for item in os.listdir(srcdir):
-            os.symlink(os.path.join(fullsrc, item), os.path.join(fulldst, item))
+    def sim_dir_symlink(self, srcdir, destdir):
+        """ Inspired by https://stackoverflow.com/a/9793699 """
+        for src_path in glob('{}/*'.format(srcdir)):
+            os.symlink(os.path.relpath(src_path, destdir),
+                os.path.join(destdir, os.path.basename(src_path)))
 
 
     def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False):
