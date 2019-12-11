@@ -17,6 +17,12 @@
 export EXE=libE_calling_script.py
 export NUM_WORKERS=4
 
+# Ensure anaconda Python module is loaded
+module load python/3.7-anaconda-2019.07
+
+# If libensemble is installed under common (set to your install location and python version)
+export PYTHONPATH=/global/common/software/<my_project>/<user_name>/packages/lib/python3.7/site-packages:$PYTHONPATH
+
 # Overcommit will allow ntasks up to the no. of contexts on one node (eg. 320 on Bebop)
 srun --overcommit --ntasks=$(($NUM_WORKERS+1)) --nodes=1 python $EXE
 
