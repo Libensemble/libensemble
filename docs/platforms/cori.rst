@@ -3,7 +3,7 @@ Cori
 ====
 
 Cori_ is a Cray XC40 located at NERSC, featuring both Intel Haswell
-and Knights Landing compute nodes. It uses the SLURM schedular to submit
+and Knights Landing compute nodes. It uses the SLURM scheduler to submit
 jobs from login nodes to run on the compute nodes.
 
 Cori does not allow more than one MPI application per compute node.
@@ -58,7 +58,7 @@ user applications with the job-controller or a job-launch command.
 
 This is an example of running in :doc:`centralized<platforms_index>` mode and,
 if using the :doc:`job_controller<../job_controller/mpi_controller>`, it should
-be intiated with ``central_mode=True``. libEnsemble must be run in central mode
+be initiated with ``central_mode=True``. libEnsemble must be run in central mode
 on Cori as jobs cannot share nodes.
 
 Batch Runs

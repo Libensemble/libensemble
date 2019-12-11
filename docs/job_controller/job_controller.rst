@@ -37,7 +37,7 @@ Following is a list of job status and configuration attributes that can be
 retrieved from a job.
 
 :NOTE: These should not be set directly. Jobs are launched by the job
-       controller and job information can be queired through the job attributes
+       controller and job information can be queried through the job attributes
        below and the query functions.
 
 Job Status attributes include:
@@ -47,7 +47,7 @@ Job Status attributes include:
 :job.process: (process obj) The process object used by the underlying process manager (e.g., return value of subprocess.Popen)
 :job.errcode: (int) The errorcode/return code used by the underlying process manager
 :job.finished: (Boolean) True means job has finished running - not whether was successful
-:job.success: (Boolean) Did job complete succesfully (e.g., returncode is zero)
+:job.success: (Boolean) Did job complete successfully (e.g., the returncode is zero)
 :job.runtime: (int) Time in seconds that job has been running.
 :job.total_time: (int) Total time from job submission to completion (only available when job is finished).
 

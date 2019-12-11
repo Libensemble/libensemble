@@ -19,7 +19,7 @@ https://stackoverflow.com/questions/6286571/are-git-forks-actually-git-clones
 Upstream, in this case, is the official Spack repository on GitHub. Origin is
 your fork on GitHub and Local Machine is your local clone (from your fork).
 
-Make sure ``SPACK_ROOT`` is set and spack binary is in your path::
+Make sure ``SPACK_ROOT`` is set and Spack binary is in your path::
 
     export SPACK_ROOT=<PATH/TO/LOCAL/SPACK/REPO>
     export PATH=$SPACK_ROOT/bin:$PATH
@@ -40,7 +40,7 @@ Now to update (the main develop branch)
 ---------------------------------------
 
 You will now update your local machine from the upstream repo (if in doubt -
-make a copy of local repo in your filestystem before doing the following).
+make a copy of local repo in your file system before doing the following).
 
 Check upstream remote is present::
 
@@ -77,14 +77,14 @@ You can optionally create a branch to make changes on. This may be a good idea, 
 you have multiple packages, to make separate branches for each package.
 
 See the Spack [packaging](https://spack.readthedocs.io/en/latest/packaging_guide.html) and
-[contibution](https://spack.readthedocs.io/en/latest/contribution_guide.html) guides for more info.
+[contribution](https://spack.readthedocs.io/en/latest/contribution_guide.html) guides for more info.
 
 Quick example to update libEnsemble::
 
     git branch update_libensemble
     git checkout update_libensemble
 
-This will open the libEnsemble ``package.py`` file in your editor (given by env variable EDITOR)::
+This will open the libEnsemble ``package.py`` file in your editor (given by environment variable ``EDITOR``)::
 
     spack edit py-libensemble  # SPACK_ROOT must be set (see above) (python packages use "py-" prefix)
 
@@ -96,7 +96,8 @@ Get the tarball (see PyPI instructions), for the new release and use::
 
     sha256sum libensemble-*.tar.gz
 
-Update the ``package.py`` file by pasting in the new checksum lines (and make sure url line points to latest version).
+Update the ``package.py`` file by pasting in the new checksum lines (and make
+sure the URL line points to the latest version).
 Also update any dependencies for the new version.
 
 Check package::
