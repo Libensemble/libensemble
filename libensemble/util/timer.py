@@ -44,13 +44,13 @@ class Timer:
     @property
     def date_start(self):
         """Return a string representing the start datetime."""
-        start_time = datetime.date.fromtimestamp(self.tstart / 1000)
+        start_time = datetime.datetime.fromtimestamp(self.tstart / 1000)
         return start_time.strftime("%Y-%m-%d %H:%M:%S") + '.' + str(self.tstart)[-3:]
 
     @property
     def date_end(self):
         """Return a string representing the end datetime."""
-        end_time = datetime.date.fromtimestamp(self.tend / 1000)
+        end_time = datetime.datetime.fromtimestamp(self.tend / 1000)
         return end_time.strftime("%Y-%m-%d %H:%M:%S") + '.' + str(self.tend)[-3:]
 
     @property
