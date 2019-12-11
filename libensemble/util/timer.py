@@ -2,7 +2,12 @@
 libensemble utility class -- manages timer
 """
 
-import time
+import datetime
+
+
+# https://stackoverflow.com/questions/5998245/get-current-time-in-milliseconds-in-python
+def TimestampMillisec64():
+    return int((datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds() * 1000)
 
 
 class Timer:
@@ -33,40 +38,42 @@ class Timer:
 
     def __str__(self):
         """Return a string representation of the timer."""
-        return ("Time: {0:.2f} Start: {1} End: {2}".
+        return ("Time: {0:.3f} Start: {1} End: {2}".
                 format(self.total, self.date_start, self.date_end))
 
     @property
     def date_start(self):
         """Return a string representing the start datetime."""
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.tstart))
+        start_time = datetime.datetime.fromtimestamp(self.tstart / 1000)
+        return start_time.strftime("%Y-%m-%d %H:%M:%S") + '.' + str(self.tstart)[-3:]
 
     @property
     def date_end(self):
         """Return a string representing the end datetime."""
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.tend))
+        end_time = datetime.datetime.fromtimestamp(self.tend / 1000)
+        return end_time.strftime("%Y-%m-%d %H:%M:%S") + '.' + str(self.tend)[-3:]
 
     @property
     def elapsed(self):
         """Return time since last start (active) or in most recent interval."""
-        etime = self.tend if not self.timing else time.time()
-        return etime-self.tstart
+        etime = self.tend if not self.timing else TimestampMillisec64()
+        return (etime - self.tstart) / 1000
 
     @property
     def total(self):
         """Return the total time since last start."""
         if self.timing:
-            return self.tcum + self.elapsed
-        return self.tcum
+            return self.tcum / 1000 + self.elapsed  # second term divided above
+        return self.tcum / 1000
 
     def start(self):
         """Start the timer."""
-        self.tstart = time.time()
+        self.tstart = TimestampMillisec64()
         self.timing = True
 
     def stop(self):
         """Stop the timer."""
-        self.tend = time.time()
+        self.tend = TimestampMillisec64()
         self.timing = False
         self.tcum += (self.tend-self.tstart)
 
