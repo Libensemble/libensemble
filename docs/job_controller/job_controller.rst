@@ -36,7 +36,7 @@ Job Attributes
 Following is a list of job status and configuration attributes that can be
 retrieved from a job.
 
-:NOTE: These should not be set directly. Jobs are launched by the job
+.. note:: These should not be set directly. Jobs are launched by the job
        controller and job information can be queried through the job attributes
        below and the query functions.
 
