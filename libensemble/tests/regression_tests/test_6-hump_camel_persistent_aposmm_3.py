@@ -52,14 +52,13 @@ gen_specs = {'gen_f': gen_f,
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                       'grtol': 1e-4,
                       'gatol': 1e-4,
-                      'num_active_gens': 1,
                       'dist_to_bound_multiple': 0.5,
                       'max_active_runs': 6,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
