@@ -38,7 +38,7 @@ class Timer:
 
     def __str__(self):
         """Return a string representation of the timer."""
-        return ("Time: {0:.2f} Start: {1} End: {2}".
+        return ("Time: {0:.3f} Start: {1} End: {2}".
                 format(self.total, self.date_start, self.date_end))
 
     @property
