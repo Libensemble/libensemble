@@ -48,9 +48,10 @@ gen_specs = {'gen_f': gen_f,
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 sim_dir = './test_sim_dir'
+dir_to_symlink = './test_sim_dir/symlink_this'
 ensemble_dir = './ensemble'
 
-for dir in [sim_dir, ensemble_dir]:
+for dir in [sim_dir, dir_to_symlink, ensemble_dir]:
     if is_master and not os.path.isdir(dir):
         try:
             os.mkdir(dir)
