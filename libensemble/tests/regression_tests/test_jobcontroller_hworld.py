@@ -78,7 +78,6 @@ gen_specs = {'gen_f': gen_f,
              'user': {'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
                       'gen_batch_size': nworkers,
-                      'num_active_gens': 1,
                       }
              }
 

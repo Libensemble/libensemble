@@ -59,7 +59,6 @@ gen_specs = {'gen_f': gen_f,
                      ('x_on_cube', float, n)],
              'user': {'initial_batch_size': 5,
                       'max_ranks_per_node': 8,
-                      'num_active_gens': 1,
                       'give_all_with_same_priority': True,
                       'max_num_nodes': nworkers,  # Used in uniform_random_sample_with_different_nodes_and_ranks,
                       'lb': np.array([-3, -2]),
@@ -68,11 +67,12 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': give_sim_work_first,
                'out': [('allocated', bool)],
-               'user': {'batch_mode': False}}
+               'user': {'batch_mode': False,
+                        'num_active_gens': 2}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
