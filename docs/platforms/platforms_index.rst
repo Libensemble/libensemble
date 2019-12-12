@@ -32,7 +32,7 @@ other workers directly on one or more allocated nodes:
 
 Due to this factor, libEnsemble on Theta and Summit approaches centralized mode
 differently. On these machines, libEnsemble is run centralized on either a
-compute-node with the support of Balsam_, a frontend MOM
+compute-node with the support of Balsam_, a front-end MOM
 (Machine-Oriented Mini-server) node on Theta, or a launch node on Summit.
 
 Read more about configuring and launching libEnsemble on some HPC systems:

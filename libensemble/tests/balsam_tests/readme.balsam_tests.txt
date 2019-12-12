@@ -1,4 +1,4 @@
-List of balsam test jobs for libensemble.
+List of balsam test jobs for libEnsemble.
 
 test_balsam_1__runjobs.py:
 Launches parallel parent job. Each task iterates over a loop launching sub-jobs
@@ -13,6 +13,6 @@ will kill any such jobs in the database at the time of the kill. Note that if a
 job has not yet been added to database at the time of the kill, it will still
 run.
 
-Note that test3 exploits the fact that balsam is built on a django database,
-and all django functionality for manipulating the database can easily be
+Note that test3 exploits the fact that balsam is built on a Django database,
+and all Django functionality for manipulating the database can easily be
 exposed.

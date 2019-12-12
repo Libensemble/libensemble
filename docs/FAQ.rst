@@ -66,7 +66,7 @@ HPC Errors and Questions
 **Why does libEnsemble hang on certain systems when running with MPI?**
 
 This may occur if matching probes, which mpi4py uses by default, are not supported
-by the communications fabric. This has been observed with Intels Truescale (TMI)
+by the communications fabric. This has been observed with Intel's Truescale (TMI)
 fabric at time of writing. This can be solved by switching fabrics or disabling
 matching probes before the MPI module is first imported.
 

@@ -35,6 +35,6 @@ Example. To increase resilience against launch failures::
     jobctrl.max_launch_attempts = 10
     jobctrl.fail_time = 5
 
-Note that an the re-try delay on launches starts at 5 seconds and increments by
+Note that the retry delay on launches starts at 5 seconds and increments by
 5 seconds for each retry. So the 4th re-try will wait for 20 seconds before
 re-launching.

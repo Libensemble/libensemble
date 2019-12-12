@@ -1,7 +1,7 @@
 Example User Functions and Calling Scripts
 ==========================================
 
-Example generation, simulation, and alloction functions for libEnsemble, as
+Example generation, simulation, and allocation functions for libEnsemble, as
 well as example calling scripts.
 
 .. toctree::
