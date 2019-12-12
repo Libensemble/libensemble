@@ -83,7 +83,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'libEnsemble'
-copyright = '2019, Jeffrey Larson'
+copyright = '2012, Jeffrey Larson'
 author = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -91,7 +91,7 @@ author = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-
 # built documents.
 #
 # The short X.Y version.
-version = '0.5.2'
+version = '0.5.7'
 # The full version, including alpha/beta/rc tags.
 release = '0.5.2'
 
