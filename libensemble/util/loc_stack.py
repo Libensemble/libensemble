@@ -19,7 +19,7 @@ class LocationStack:
     def sim_dir_symlink(self, srcdir, destdir):
         """ Inspired by https://stackoverflow.com/a/9793699 """
         if not os.path.isdir(destdir):
-            os.mkdir(destdir)
+            os.makedirs(destdir)
         for src_path in glob('{}/*'.format(srcdir)):
             relative_path = os.path.relpath(src_path, destdir)
             link_dest_path = os.path.join(destdir, os.path.basename(src_path))

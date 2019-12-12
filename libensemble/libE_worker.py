@@ -145,7 +145,7 @@ class Worker:
         locs = locs or LocationStack()
         if 'sim_dir' in libE_specs:
             sim_dir = libE_specs['sim_dir'].rstrip('/')
-            prefix = libE_specs.get('sim_dir_prefix')
+            prefix = libE_specs.get('sim_dir_prefix', './ensemble')
             suffix = libE_specs.get('sim_dir_suffix', '')
             do_symlink = libE_specs.get('sym_link_to_input', False)
             if suffix != '':
