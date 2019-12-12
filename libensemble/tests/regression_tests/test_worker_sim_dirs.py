@@ -53,7 +53,7 @@ if os.path.isdir(ensemble):
 
 libE_specs['sim_dir'] = sim_dir
 libE_specs['do_worker_dir'] = True
-libE_specs['sim_dir_prefix'] = ensemble # 'ensemble' by default if not defined
+libE_specs['sim_dir_prefix'] = ensemble  # 'ensemble' by default if not defined
 libE_specs['sym_link_to_input'] = True
 
 exit_criteria = {'sim_max': 21}
