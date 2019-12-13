@@ -149,18 +149,17 @@ class Worker:
             sim_dir = libE_specs['sim_dir'].rstrip('/')
             prefix = libE_specs.get('sim_dir_prefix', './ensemble')
             suffix = libE_specs.get('sim_dir_suffix', '')
-            # do_symlink = libE_specs.get('sym_link_to_input', False)
+            do_symlink = libE_specs.get('sym_link_to_input', False)
             if suffix != '':
                 suffix = '_' + suffix
             if libE_specs.get('do_worker_dir'):
-                worker_dir = "{}{}_worker{}" \
-                             .format(sim_dir, suffix, workerID)
+                worker_dir = "{}{}_worker{}".format(sim_dir, suffix, workerID)
+                do_symlink = False
             else:
-                worker_dir = "{}{}_worker{}-{}" \
-                             .format(sim_dir, suffix, workerID,
-                                     uuid.uuid4().hex[:8])
-            locs.register_loc(EVAL_SIM_TAG, worker_dir,
-                              prefix=prefix, srcdir=sim_dir)  #, link=do_symlink)
+                worker_dir = "{}{}_worker{}-{}".format(sim_dir, suffix, workerID,
+                                                       uuid.uuid4().hex[:8])
+            locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix,
+                              srcdir=sim_dir, link=do_symlink)
         return locs
 
     @staticmethod
@@ -225,16 +224,13 @@ class Worker:
             if not self.loc_stack:
                 self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
 
-            #sim_dir = os.path.abspath(self.libE_specs['sim_dir'].rstrip('/'))
-            prefix = os.path.abspath(self.libE_specs.get('sim_dir_prefix', './ensemble'))
             do_symlink = self.libE_specs.get('sym_link_to_input', False)
+            hexstr = uuid.uuid4().hex[:8]
+            calc_dir = calc_type_strings[calc_type] + '_' + hexstr
+            self.calc_dirs.append(calc_dir)
 
             with self.loc_stack.loc(calc_type):
-                hexstr = uuid.uuid4().hex[:8]
-                calc_dir = calc_type_strings[calc_type] + '_' + hexstr
-                self.calc_dirs.append(calc_dir)
-                calc_dir_prefix = os.getcwd()
-                self.loc_stack.register_loc(hexstr, calc_dir, srcdir=calc_dir_prefix,
+                self.loc_stack.register_loc(hexstr, calc_dir, srcdir=os.getcwd(),  # Current directory already changed
                                             link=do_symlink, ignore=self.calc_dirs)
                 with self.loc_stack.loc(hexstr):
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])

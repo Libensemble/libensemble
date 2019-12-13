@@ -42,7 +42,7 @@ dir_to_symlink = './test_sim_dir/symlink_this'
 ensemble = './test_ensemble'
 
 libE_specs['sim_dir'] = sim_dir
-libE_specs['do_worker_dir'] = False
+libE_specs['do_worker_dir'] = True
 libE_specs['sim_dir_prefix'] = ensemble  # 'ensemble' by default if not defined
 libE_specs['sym_link_to_input'] = True
 
@@ -67,4 +67,4 @@ if is_master:
         'Num worker directories ({}) does not match number of workers ({}).'\
         .format(dir_sum, nworkers)
 
-    #shutil.rmtree(ensemble)
+    shutil.rmtree(ensemble)

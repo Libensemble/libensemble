@@ -16,18 +16,26 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def sim_dir_symlink(self, srcdir, destdir, ignore):
+    def copy_or_symlink(self, srcdir, destdir, ignore, link):
         """ Inspired by https://stackoverflow.com/a/9793699 """
         if not os.path.isdir(destdir):
             os.makedirs(destdir)
-        for src_path in glob('{}/*'.format(srcdir)):
-            base_src_path = os.path.basename(src_path)
-            if base_src_path not in ignore:
-                relative_path = os.path.relpath(src_path, destdir)
-                link_dest_path = os.path.join(destdir, base_src_path)
-                os.symlink(relative_path, link_dest_path)
+        for file_path in glob('{}/*'.format(srcdir)):
 
-    def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False, ignore=None):
+            src_base = os.path.basename(file_path)
+            relative_path_from_dest = os.path.relpath(file_path, destdir)
+            dest_path = os.path.join(destdir, src_base)
+
+            if src_base not in ignore:
+                if link:
+                    os.symlink(relative_path_from_dest, dest_path)
+                else:
+                    if os.path.isdir(file_path):
+                        shutil.copytree(file_path, dest_path)
+                    else:
+                        shutil.copy(file_path, dest_path)
+
+    def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False, ignore=[]):
         """Register a new location in the dictionary.
 
         Parameters
@@ -47,6 +55,12 @@ class LocationStack:
             Name of a source directory to populate the new location.
             If srcdir is not None, the directory should not yet exist.
             srcdir is not relative to prefix.
+
+        link: boolean:
+            Create symlinks instead of copying files to new location.
+
+        ignore: list:
+            Currently only used with link option. Don't symlink these files.
         """
         if prefix is not None:
             prefix = os.path.expanduser(prefix)
@@ -56,10 +70,7 @@ class LocationStack:
         if srcdir is not None:
             assert ~os.path.isdir(dirname), \
                 "Directory {} already exists".format(dirname)
-            if link:
-                self.sim_dir_symlink(srcdir, dirname, ignore)
-            else:
-                shutil.copytree(srcdir, dirname)
+            self.copy_or_symlink(srcdir, dirname, ignore, link)
         else:
             if dirname:
                 os.mkdir(dirname)
