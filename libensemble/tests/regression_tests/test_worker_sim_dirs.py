@@ -53,7 +53,7 @@ for dir in [sim_dir, dir_to_symlink]:
         except FileExistsError:
             pass
 
-if os.path.isdir(ensemble):
+if if_master and os.path.isdir(ensemble):
     shutil.rmtree(ensemble)
 
 exit_criteria = {'sim_max': 21}
