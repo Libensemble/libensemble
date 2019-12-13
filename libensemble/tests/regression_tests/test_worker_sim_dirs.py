@@ -41,6 +41,11 @@ sim_dir = './test_sim_dir'
 dir_to_symlink = './test_sim_dir/symlink_this'
 ensemble = './test_ensemble'
 
+libE_specs['sim_dir'] = sim_dir
+libE_specs['do_worker_dir'] = False
+libE_specs['sim_dir_prefix'] = ensemble  # 'ensemble' by default if not defined
+libE_specs['sym_link_to_input'] = True
+
 for dir in [sim_dir, dir_to_symlink]:
     if is_master and not os.path.isdir(dir):
         try:
@@ -50,11 +55,6 @@ for dir in [sim_dir, dir_to_symlink]:
 
 if os.path.isdir(ensemble):
     shutil.rmtree(ensemble)
-
-libE_specs['sim_dir'] = sim_dir
-libE_specs['do_worker_dir'] = True
-libE_specs['sim_dir_prefix'] = ensemble  # 'ensemble' by default if not defined
-libE_specs['sym_link_to_input'] = True
 
 exit_criteria = {'sim_max': 21}
 
@@ -67,4 +67,4 @@ if is_master:
         'Num worker directories ({}) does not match number of workers ({}).'\
         .format(dir_sum, nworkers)
 
-    shutil.rmtree(ensemble)
+    #shutil.rmtree(ensemble)

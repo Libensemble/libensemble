@@ -16,16 +16,18 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def sim_dir_symlink(self, srcdir, destdir):
+    def sim_dir_symlink(self, srcdir, destdir, ignore):
         """ Inspired by https://stackoverflow.com/a/9793699 """
         if not os.path.isdir(destdir):
             os.makedirs(destdir)
         for src_path in glob('{}/*'.format(srcdir)):
-            relative_path = os.path.relpath(src_path, destdir)
-            link_dest_path = os.path.join(destdir, os.path.basename(src_path))
-            os.symlink(relative_path, link_dest_path)
+            base_src_path = os.path.basename(src_path)
+            if base_src_path not in ignore:
+                relative_path = os.path.relpath(src_path, destdir)
+                link_dest_path = os.path.join(destdir, base_src_path)
+                os.symlink(relative_path, link_dest_path)
 
-    def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False):
+    def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False, ignore=None):
         """Register a new location in the dictionary.
 
         Parameters
@@ -49,12 +51,13 @@ class LocationStack:
         if prefix is not None:
             prefix = os.path.expanduser(prefix)
             dirname = os.path.join(prefix, os.path.basename(dirname))
+
         self.dirs[key] = dirname
         if srcdir is not None:
             assert ~os.path.isdir(dirname), \
                 "Directory {} already exists".format(dirname)
             if link:
-                self.sim_dir_symlink(srcdir, dirname)
+                self.sim_dir_symlink(srcdir, dirname, ignore)
             else:
                 shutil.copytree(srcdir, dirname)
         else:
