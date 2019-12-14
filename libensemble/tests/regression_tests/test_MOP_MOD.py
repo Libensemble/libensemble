@@ -32,8 +32,8 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.mop_funcs import dtlz2 as func
-#from libensemble.sim_funcs.mop_funcs import conv_mop as func
+#from libensemble.sim_funcs.mop_funcs import dtlz2 as func
+from libensemble.sim_funcs.mop_funcs import convex_mop as func
 from libensemble.gen_funcs.mop_mod import mop_mod_gen as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
@@ -65,8 +65,9 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'num_obj': num_objs,
              'gen_f': gen_f,
              'in': ['x', 'f'],
-             'gen_batch_size': 36,
-             'first_batch_size': 900,
+             'search_batch_size': 72,
+             'opt_batch_size': 36,
+             'first_batch_size': 500,
              'num_active_gens': 1,
              'batch_mode': True,
              'out': [('x', float, num_dims)],
