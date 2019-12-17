@@ -134,7 +134,7 @@ def check_gen_specs(gen_specs):
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
-    if 'in' in gen_specs: 
+    if 'in' in gen_specs:
         assert all(isinstance(i, str) for i in gen_specs['in']), \
             "Entries in gen_specs['in'] must be strings. Also can't be lists or tuples of strings."
 
