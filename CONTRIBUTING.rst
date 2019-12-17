@@ -24,7 +24,7 @@ will add issues, as appropriate, to the project board at:
 
 By convention, user branch names should have a <type>/<name> format, where
 example types are feature, bugfix, testing, docs, and experimental.
-Administrators may take a hotfix branch from the the master, which will be
+Administrators may take a hotfix branch from the master, which will be
 merged into master (as a patch) and develop. Administrators may also take a
 release branch off develop and merge into master and develop for a release.
 Most branches should relate to an issue.

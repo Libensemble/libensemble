@@ -43,7 +43,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
          persis_info={},
          alloc_specs={'alloc_f': give_sim_work_first,
                       'out': [('allocated', bool)],
-                      'user': {'batch_mode': True}},
+                      'user': {'batch_mode': True, 'num_active_gens': 1}},
          libE_specs={},
          H0=[]):
     """

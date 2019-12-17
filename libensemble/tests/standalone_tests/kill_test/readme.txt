@@ -17,7 +17,7 @@ Launching MPI jobs which write from each MPI task, at regular intervals, to an
 output file (see sleep_and_print.c).
 
 This test launches a job, then kills after a few seconds, and then monitors
-output file to see if output continues. If the first job is succesfully killed,
+output file to see if output continues. If the first job is successfully killed,
 a second is launched and the test repeated.
 
 Instructions
@@ -32,7 +32,7 @@ Either run on local node - or create an allocation of nodes and run::
 
     python killtest.py <kill_type> <num_nodes> <num_procs_per_node>
 
-where kill_type currently is 1 or 2. [1. is the original kill - 2. is using
+where kill_type currently is 1 or 2. [1 is the original kill - 2 is using
 group ID approach]
 
 E.g Single node with 4 processes:

@@ -9,7 +9,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
     are given. If all entries in `H` have been given a be evaluated, a worker
     is told to call the generator function, provided this wouldn't result in
-    more than ``gen_specs['user']['num_active_gen']`` active generators. Also allows
+    more than ``alloc_specs['user']['num_active_gen']`` active generators. Also allows
     for a 'batch_mode'.
 
     When there are multiple objective components, this allocation function
@@ -105,7 +105,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 i, idle_workers = idle_workers[0], idle_workers[1:]
                 sim_work(Work, i, sim_specs['in'], [next_row], [])
 
-        elif gen_count < gen_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')
@@ -134,7 +134,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             persis_info['last_worker'] = i
 
-        elif gen_count >= gen_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
             idle_workers = []
 
     return Work, persis_info
