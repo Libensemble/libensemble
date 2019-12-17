@@ -120,6 +120,9 @@ def check_sim_specs(sim_specs):
     assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'out']]), \
         "sim_specs must contain 'sim_f', 'in', 'out'"
 
+    assert all(isinstance(i, str) for i in sim_specs['in']), \
+        "Entries in sim_specs['in'] must be strings. Also can't be lists or tuples of strings."
+
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
     assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
 
@@ -130,6 +133,10 @@ def check_sim_specs(sim_specs):
 def check_gen_specs(gen_specs):
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
+
+    if 'in' in gen_specs: 
+        assert all(isinstance(i, str) for i in gen_specs['in']), \
+            "Entries in gen_specs['in'] must be strings. Also can't be lists or tuples of strings."
 
     for k in gen_specs.keys():
         assert k in allowed_gen_spec_keys, "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k, allowed_gen_spec_keys)

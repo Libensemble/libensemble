@@ -69,10 +69,6 @@ def manager_main(hist, libE_specs, alloc_specs,
     if 'in' not in gen_specs:
         gen_specs['in'] = []
 
-    assert 'in' in sim_specs, "sim_specs must have 'in' field"
-
-    assert all(isinstance(i, str) for i in gen_specs['in'] + sim_specs['in']), "Entries in sim_specs['in'] and gen_specs['in'] must be strings. Also can't be lists or tuples of strings."
-
     # Send dtypes to workers
     dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
               EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
