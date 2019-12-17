@@ -158,7 +158,7 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 def check_H(H0, sim_specs, alloc_specs, gen_specs):
     if len(H0):
         # Set up dummy history to see if it agrees with H0
-        Dummy_H = np.zeros(1 + len(H0), dtype=libE_fields + list(set(sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], []))))  # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
+        Dummy_H = np.zeros(1 + len(H0), dtype=list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], []))))  # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
 
         fields = H0.dtype.names
 

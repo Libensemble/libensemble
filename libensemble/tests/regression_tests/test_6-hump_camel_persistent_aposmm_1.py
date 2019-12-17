@@ -47,28 +47,37 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
            ('local_min', bool), ('local_pt', bool)]
 
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min'],
              'out': gen_out,
-             'user': {'initial_sample_size': 100,
+             'user': {'initial_sample_size': nworkers-1,
                       'sample_points': np.round(six_hump_camel_minima, 1),
                       'localopt_method': 'LD_MMA',
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                       'xtol_rel': 1e-6,
                       'ftol_rel': 1e-6,
                       'max_active_runs': 6,
+                      'num_pts_first_pass': nworkers-1,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True, 'num_active_gens': 1}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 1000}
 
+filename = 'H0_to_be_reloaded.npz'
+try:
+    # Load in previous history, but delete points that weren't returned
+    H = np.load('H0_to_be_reloaded.npz', allow_pickle=True)['H']
+    H0 = np.delete(H, np.where(H['returned'] == 0))
+except OSError:
+    H0 = []
+
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+                            alloc_specs, libE_specs, H0=H0)
 
 if is_master:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
