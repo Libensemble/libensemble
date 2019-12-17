@@ -16,7 +16,7 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def copy_or_symlink(self, srcdir, destdir, ignore, link):
+    def copy_or_symlink(self, srcdir, destdir, input_files, link):
         """ Inspired by https://stackoverflow.com/a/9793699 """
         if not os.path.isdir(destdir):
             os.makedirs(destdir)
@@ -26,7 +26,7 @@ class LocationStack:
             relative_path_from_dest = os.path.relpath(file_path, destdir)
             dest_path = os.path.join(destdir, src_base)
 
-            if src_base not in ignore:
+            if src_base in input_files:
                 if link:
                     os.symlink(relative_path_from_dest, dest_path)
                 else:
@@ -35,7 +35,7 @@ class LocationStack:
                     else:
                         shutil.copy(file_path, dest_path)
 
-    def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False, ignore=[]):
+    def register_loc(self, key, dirname, prefix=None, srcdir=None, link=False, input_files=[]):
         """Register a new location in the dictionary.
 
         Parameters
@@ -59,8 +59,9 @@ class LocationStack:
         link: boolean:
             Create symlinks instead of copying files to new location.
 
-        ignore: list:
-            Currently only used with link option. Don't symlink these files.
+        input_files: list:
+            Currently only used with link option. Copy/symlink
+            exactly these files
         """
         if prefix is not None:
             prefix = os.path.expanduser(prefix)
@@ -70,10 +71,9 @@ class LocationStack:
         if srcdir is not None:
             assert ~os.path.isdir(dirname), \
                 "Directory {} already exists".format(dirname)
-            self.copy_or_symlink(srcdir, dirname, ignore, link)
+            self.copy_or_symlink(srcdir, dirname, input_files, link)
         else:
-            if dirname:
-                os.mkdir(dirname)
+            os.mkdir(dirname)
         return dirname
 
     def push_loc(self, key):

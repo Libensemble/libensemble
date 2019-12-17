@@ -90,7 +90,6 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
 # Worker Class
 ######################################################################
 
-
 class WorkerErrMsg:
 
     def __init__(self, msg, exc):
@@ -136,7 +135,6 @@ class Worker:
         self.libE_specs = libE_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self.loc_stack = None
-        self.calc_dirs = []
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
         Worker._set_job_controller(self.workerID, self.comm)
@@ -149,6 +147,7 @@ class Worker:
             sim_dir = libE_specs['sim_dir'].rstrip('/')
             prefix = libE_specs.get('sim_dir_prefix', './ensemble')
             suffix = libE_specs.get('sim_dir_suffix', '')
+            input_files = libE_specs.get('input_files', os.listdir(sim_dir))
             do_symlink = libE_specs.get('sym_link_to_input', False)
             if suffix != '':
                 suffix = '_' + suffix
@@ -158,8 +157,15 @@ class Worker:
             else:
                 worker_dir = "{}{}_worker{}-{}".format(sim_dir, suffix, workerID,
                                                        uuid.uuid4().hex[:8])
+                try:
+                    locs.copy_or_symlink(sim_dir, prefix, input_files, False)
+                except FileExistsError:
+                    pass
+                sim_dir = prefix
+
             locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix,
-                              srcdir=sim_dir, link=do_symlink)
+                              srcdir=sim_dir, link=do_symlink,
+                              input_files=input_files)
         return locs
 
     @staticmethod
@@ -225,13 +231,15 @@ class Worker:
                 self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
 
             do_symlink = self.libE_specs.get('sym_link_to_input', False)
+            sim_dir = self.libE_specs['sim_dir'].rstrip('/')
+            input_files = self.libE_specs.get('input_files', os.listdir(sim_dir))
             hexstr = uuid.uuid4().hex[:8]
             calc_dir = calc_type_strings[calc_type] + '_' + hexstr
-            self.calc_dirs.append(calc_dir)
 
             with self.loc_stack.loc(calc_type):
-                self.loc_stack.register_loc(hexstr, calc_dir, srcdir=os.getcwd(),  # Current directory already changed
-                                            link=do_symlink, ignore=self.calc_dirs)
+                # Current directory immediately switches
+                self.loc_stack.register_loc(hexstr, calc_dir, srcdir=os.getcwd(),
+                                            link=do_symlink, input_files=input_files)
                 with self.loc_stack.loc(hexstr):
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
