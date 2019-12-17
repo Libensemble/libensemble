@@ -34,7 +34,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             if np.any(returned_but_not_given):
                 inds_to_give = np.where(returned_but_not_given)[0]
 
-                gen_work(Work, i, [n[0] for n in sim_specs['out']] + [n[0] for n in gen_specs['out']],
+                gen_work(Work, i, ['f'] + [n[0] for n in gen_specs['out']],
                          np.atleast_1d(inds_to_give), persis_info[i], persistent=True)
 
                 H['given_back'][inds_to_give] = True
