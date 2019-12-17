@@ -144,11 +144,13 @@ class Worker:
         "Create a dir for sim workers if 'sim_dir' is in libE_specs"
         locs = locs or LocationStack()
         if 'sim_dir' in libE_specs:
+
             sim_dir = libE_specs['sim_dir'].rstrip('/')
             prefix = libE_specs.get('sim_dir_prefix', './ensemble')
             suffix = libE_specs.get('sim_dir_suffix', '')
             input_files = libE_specs.get('input_files', os.listdir(sim_dir))
             do_symlink = libE_specs.get('sym_link_to_input', False)
+
             if suffix != '':
                 suffix = '_' + suffix
             if libE_specs.get('do_worker_dir'):
@@ -166,6 +168,7 @@ class Worker:
             locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix,
                               srcdir=sim_dir, link=do_symlink,
                               input_files=input_files)
+
         return locs
 
     @staticmethod
@@ -201,38 +204,16 @@ class Worker:
             return False
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
-        """Determines choice for implementing sim_dir structure,
-        then performs calculation.
+        "Determines choice forsim_dir structure, then performs calculation."
 
-        If performing a sim calculation, make a directory in which
-        to perform work (and do so). If 'do_worker_dir' is a
-        libE_specs parameter, reuse a worker-specific directory or
-        create one if the worker doesn't have one yet.
-        Otherwise continue with (presumably) gen work.
-
-        Parameters
-        ----------
-
-        Work: dictionary
-            :ref:`(example)<datastruct-work-dict>`
-
-        calc_type: string
-            sim or gen
-
-        calc: function
-            which sim_f or gen_f runner to call
-
-        calc_in: numpy structured array
-            Rows from the :ref:`history array<datastruct-history-array>`
-            for processing
-        """
         if self.libE_specs.get('do_worker_dir'):
             if not self.loc_stack:
                 self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
 
-            do_symlink = self.libE_specs.get('sym_link_to_input', False)
             sim_dir = self.libE_specs['sim_dir'].rstrip('/')
             input_files = self.libE_specs.get('input_files', os.listdir(sim_dir))
+            do_symlink = self.libE_specs.get('sym_link_to_input', False)
+
             hexstr = uuid.uuid4().hex[:8]
             calc_dir = calc_type_strings[calc_type] + '_' + hexstr
 
