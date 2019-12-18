@@ -35,14 +35,14 @@ gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('x', float, (2,))],
              'user': {'gen_batch_size': 5,
-                      'num_active_gens': 1,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
 alloc_specs = {'alloc_f': give_sim_work_first,
                'out': [('allocated', bool)],
-               'user': {'batch_mode': False}}
+               'user': {'batch_mode': False,
+                        'num_active_gens': 2}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

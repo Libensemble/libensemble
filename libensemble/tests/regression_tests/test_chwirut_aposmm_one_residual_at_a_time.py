@@ -43,7 +43,6 @@ gen_specs = {'gen_f': gen_f,
              'in': [o[0] for o in gen_out] + ['f_i', 'returned'],
              'out': gen_out,
              'user': {'initial_sample_size': 5,
-                      'num_active_gens': 1,
                       'lb': LB,
                       'ub': UB,
                       'localopt_method': 'pounders',
@@ -61,6 +60,7 @@ alloc_specs = {'alloc_f': alloc_f,
                'out': [('allocated', bool)],
                'user': {'stop_on_NaNs': True,
                         'batch_mode': True,
+                        'num_active_gens': 1,
                         'stop_partial_fvec_eval': True}
                }
 

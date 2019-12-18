@@ -52,14 +52,13 @@ gen_specs = {'gen_f': gen_f,
                       'xatol': 1e-5,
                       'nu': 1e-8,
                       'mu': 1e-8,
-                      'num_active_gens': 1,
                       'dist_to_bound_multiple': 0.01,
                       'max_active_runs': 6,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

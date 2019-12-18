@@ -52,8 +52,7 @@ gen_specs = {'gen_f': uniform_random_sample,
              'out': [('x', float, (2,))],
              'user': {'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
-                      'gen_batch_size': nworkers,
-                      'num_active_gens': 1}
+                      'gen_batch_size': nworkers}
              }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
