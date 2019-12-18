@@ -20,6 +20,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     Work = {}
     if persis_info.get('first_call', True):
         assert np.all(H['given']), "Initial points in H have never been given."
+        assert np.all(H['given_back']), "Initial points in H have never been given_back."
         assert np.all(H['returned']), "Initial points in H have never been returned."
         persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
 
