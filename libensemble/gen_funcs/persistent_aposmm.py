@@ -20,6 +20,7 @@ from mpi4py import MPI
 from math import log, gamma, pi, sqrt
 
 import nlopt
+import dfols
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 from libensemble.gen_funcs.support import send_mgr_worker_msg
@@ -309,6 +310,8 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_tao
         elif user_specs['localopt_method'] in ['scipy_Nelder-Mead']:
             run_local_opt = run_local_scipy_opt
+        elif user_specs['localopt_method'] in ['dfols']:
+            run_local_opt = run_local_dfols
 
         # }}}
 
@@ -320,7 +323,7 @@ class LocalOptInterfacer(object):
         self.process.start()
         self.is_running = True
         self.parent_can_read.wait()
-        assert np.allclose(self.comm_queue.get(), x0)
+        assert np.allclose(self.comm_queue.get(), x0), "The first point requested by this run does not match the starting point. Exiting"
 
     def iterate(self, data):
         """
@@ -442,7 +445,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
 # {{{ SciPy optimization
 
-def scipy_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs):
+def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs):
     comm_queue.put(x)
     # print('[Child]: Parent should no longer wait.', flush=True)
     parent_can_read.set()
@@ -470,7 +473,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
 
     method = user_specs['localopt_method'][6:]
     # print('[Child]: Started my optimization', flush=True)
-    res = sp_opt.minimize(lambda x: scipy_callback_fun(x, comm_queue,
+    res = sp_opt.minimize(lambda x: scipy_dfols_callback_fun(x, comm_queue,
                           child_can_read, parent_can_read, user_specs), x0,
                           method=method, options={'maxiter': 10, 'fatol': user_specs['fatol'], 'xatol': user_specs['xatol']})
 
@@ -482,6 +485,36 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     #         exit_code = 1
 
     x_opt = res['x']
+
+    # FIXME: Need to do something with the exit codes.
+    # print(exit_code)
+
+    # print('[Child]: I have converged.', flush=True)
+    comm_queue.put(ConvergedMsg(x_opt))
+    parent_can_read.set()
+
+# }}}
+
+
+# {{{ DFO-LS optimization
+
+def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+
+    # Define bound constraints (lower <= x <= upper)
+    lb = np.zeros(len(x0))
+    ub = np.ones(len(x0))
+
+    # Set random seed (for reproducibility)
+    np.random.seed(0)
+
+    # Care must be taken here because a too-large initial step causes DFO-LS to move the starting point!
+    dist_to_bound = min(min(ub-x0), min(x0-lb))
+    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small"
+
+    # Call DFO-LS
+    soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs), x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound)
+
+    x_opt = soln.x
 
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
@@ -968,7 +1001,7 @@ def initialize_children(user_specs):
     elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
                                            'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
         fields_to_pass = ['x_on_cube', 'f']
-    elif user_specs['localopt_method'] in ['pounders']:
+    elif user_specs['localopt_method'] in ['pounders', 'dfols']:
         fields_to_pass = ['x_on_cube', 'fvec']
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(user_specs['localopt_method']))
@@ -996,8 +1029,8 @@ def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H,
 def clean_up_and_stop(local_H, local_opters, run_order):
     # FIXME: This has to be a clean exit.
 
-    print('[Parent]: The optimal points are:\n',
-          local_H[np.where(local_H['local_min'])]['x'], flush=True)
+    print('[Parent]: The optimal points and values are:\n',
+          local_H[np.where(local_H['local_min'])][['x', 'f']], flush=True)
 
     for i, p in local_opters.items():
         p.destroy(local_H['x_on_cube'][run_order[i][-1]])
