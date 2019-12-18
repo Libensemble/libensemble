@@ -9,7 +9,7 @@ Supply persistent information to libEnsemble::
         Dictionary containing persistent info
 
 Holds data that is passed to and from workers updating some state information. A typical example
-is a randon number generator to be used in consecutive calls to a generator.
+is a random number generator to be used in consecutive calls to a generator.
 
 If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``. This functionality
 can be used to, for example, pass a random stream back to the manager to be included in future work

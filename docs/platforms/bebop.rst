@@ -59,7 +59,7 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 the workers to launch calculations with the job-controller or a job-launch command.
 This is an example of running in :doc:`centralized<platforms_index>` mode and,
 if using the :doc:`job_controller<../job_controller/mpi_controller>`, it should
-be intiated with ``central_mode=True``
+be initiated with ``central_mode=True``
 
 .. note::
     When performing a :doc:`distributed<platforms_index>` MPI libEnsemble run

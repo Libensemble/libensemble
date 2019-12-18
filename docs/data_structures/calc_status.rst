@@ -5,7 +5,7 @@ calc_status
 
 The ``calc_status`` is an integer attribute with named (enumerated) values and
 a corresponding description that can be used in :ref:`sim_f<api_sim_f>` or
-:ref:`gen_f<api_gen_f>` functions to capture the status of a calcuation. This
+:ref:`gen_f<api_gen_f>` functions to capture the status of a calculation. This
 is returned to the manager and printed to the ``libE_stats.txt`` file. Only the
 status values ``FINISHED_PERSISTENT_SIM_TAG`` and
 ``FINISHED_PERSISTENT_GEN_TAG`` are currently used by the manager,  but others

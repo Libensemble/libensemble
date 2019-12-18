@@ -97,12 +97,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
       distance to the nearest boundary should the initial step size be in
       localopt runs
-    - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs
-      with smallest observed function value are given priority
     - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
       (0 or 1 results in uniform sampling)
-    - ``'min_batch_size' [int]``: Lower bound on the number of points given
-      every time APOSMM is called
     - ``'mu' [float]``: Distance from the boundary that all localopt starting
       points must satisfy
     - ``'nu' [float]``: Distance from identified minima that all starting
@@ -211,9 +207,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info = add_k_sample_points_to_local_H(user_specs['initial_sample_size'], user_specs,
                                                  persis_info, n, comm, local_H,
                                                  sim_id_to_child_indices)
-    send_mgr_worker_msg(comm, local_H[:user_specs['initial_sample_size']][[i[0] for i in gen_specs['out']]])
+    send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
 
     tag = None
+    first_pass = True
     while 1:
         tag, Work, calc_in = get_mgr_worker_msg(comm)
 
@@ -221,7 +218,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             clean_up_and_stop(local_H, local_opters, run_order)
             break
 
-        n_s = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
+        n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
 
         new_opt_inds_to_send_mgr = []
         new_inds_to_send_mgr = []
@@ -272,10 +269,15 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 total_runs += 1
 
-        if len(new_inds_to_send_mgr) == 0:
-            persis_info = add_k_sample_points_to_local_H(1, user_specs, persis_info, n,
-                                                         comm, local_H, sim_id_to_child_indices)
-            new_inds_to_send_mgr.append(len(local_H)-1)
+        if first_pass:
+            num_to_send = user_specs.get('num_pts_first_pass', 1)
+            first_pass = False
+        else:
+            num_to_send = n_r-len(new_inds_to_send_mgr)
+
+        if num_to_send > 0:
+            persis_info = add_k_sample_points_to_local_H(num_to_send, user_specs, persis_info, n, comm, local_H, sim_id_to_child_indices)
+            new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_to_send, len(local_H)))
 
         send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
 
@@ -627,11 +629,12 @@ def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in):
 
     local_H['returned'][Work['libE_info']['H_rows']] = True
     n_s += np.sum(~local_H[Work['libE_info']['H_rows']]['local_pt'])
+    n_r = len(Work['libE_info']['H_rows'])
 
     # dist -> distance
     update_history_dist(local_H, n)
 
-    return n_s
+    return n_s, n_r
 
 
 def add_to_local_H(local_H, pts, user_specs, local_flag=0, sorted_run_inds=[], run=[], on_cube=True):
@@ -877,6 +880,10 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
     else:
         start_inds = list(sample_start_inds)+local_start_inds2
 
+    # Sort the starting inds by their function value
+    inds = np.argsort(H['f'][start_inds])
+    start_inds = np.array(start_inds)[inds].tolist()
+
     return start_inds
 
 
@@ -904,27 +911,10 @@ def initialize_APOSMM(H, user_specs, libE_info):
     """
     n = len(user_specs['ub'])
 
-    n_s = 0
-
-    if 'rk_const' in user_specs:
-        rk_c = user_specs['rk_const']
-    else:
-        rk_c = ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi)
-
-    if 'lhs_divisions' in user_specs:
-        ld = user_specs['lhs_divisions']
-    else:
-        ld = 0
-
-    if 'mu' in user_specs:
-        mu = user_specs['mu']
-    else:
-        mu = 1e-4
-
-    if 'nu' in user_specs:
-        nu = user_specs['nu']
-    else:
-        nu = 0
+    rk_c = user_specs.get('rk_const', ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi))
+    ld = user_specs.get('lhs_divisions', 0)
+    mu = user_specs.get('mu', 1e-4)
+    nu = user_specs.get('nu', 0)
 
     comm = libE_info['comm']
 
@@ -951,7 +941,13 @@ def initialize_APOSMM(H, user_specs, libE_info):
     if 'components' in user_specs:
         local_H_fields += [('fvec', float, user_specs['components'])]
 
-    local_H = np.empty(0, dtype=local_H_fields)
+    local_H = np.zeros(len(H), dtype=local_H_fields)
+
+    if len(H):
+        for field in H.dtype.names:
+            local_H[field][:len(H)] = H[field]
+
+    n_s = np.sum(~local_H['local_pt'])
 
     return n, n_s, rk_c, ld, mu, nu, comm, local_H
 
