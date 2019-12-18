@@ -204,7 +204,7 @@ class Worker:
             return False
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
-        "Determines choice forsim_dir structure, then performs calculation."
+        "Determines choice for sim_dir structure, then performs calculation."
 
         if self.libE_specs.get('do_worker_dir'):
             if not self.loc_stack:

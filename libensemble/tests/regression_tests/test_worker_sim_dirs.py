@@ -69,7 +69,7 @@ if is_master:
         'Number of worker directories ({}) does not match number of workers ({}).'\
         .format(dir_sum, nworkers)
 
-    # shutil.rmtree(w_ensemble)
+    shutil.rmtree(w_ensemble)
 
 # --- Second Round - Test without worker-dirs ---
 libE_specs['do_worker_dir'] = False
@@ -84,4 +84,4 @@ if is_master:
         'Number of sim directories ({}) does not match max number of simulations ({}).'\
         .format(dir_sum, exit_criteria['sim_max'])
 
-    # shutil.rmtree(c_ensemble)
+    shutil.rmtree(c_ensemble)
