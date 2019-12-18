@@ -195,9 +195,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                                                      sim_id_to_child_indices)
         send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
         something_sent = True
-    else: 
+    else:
         something_sent = False
-        
+
 
     tag = None
     first_pass = True
@@ -205,7 +205,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         new_opt_inds_to_send_mgr = []
         new_inds_to_send_mgr = []
 
-        if something_sent:  
+        if something_sent:
             tag, Work, calc_in = get_mgr_worker_msg(comm)
 
             if tag in [STOP_TAG, PERSIS_STOP]:
@@ -655,7 +655,7 @@ def add_to_local_H(local_H, pts, user_specs, local_flag=0, sorted_run_inds=[], r
     local_H['sim_id'][-num_pts:] = np.arange(len_local_H, len_local_H+num_pts)
     local_H['local_pt'][-num_pts:] = local_flag
 
-    initialize_dists_and_inds(local_H,num_pts) 
+    initialize_dists_and_inds(local_H,num_pts)
 
     if local_flag:
         local_H['num_active_runs'][-num_pts] += 1
@@ -938,7 +938,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     if len(H):
         for field in H.dtype.names:
             local_H[field][:len(H)] = H[field]
-            
+
         assert 'sim_id' in H.dtype.names, "Must give 'sim_id' to persistent_aposmm in gen_specs['in']"
         assert 'returned' in H.dtype.names, "Must give 'returned' status to persistent_aposmm in gen_specs['in']"
 
@@ -971,7 +971,7 @@ def initialize_children(user_specs):
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(user_specs['localopt_method']))
 
-    return local_opters, sim_id_to_child_indices, run_order, total_runs, fields_to_pass 
+    return local_opters, sim_id_to_child_indices, run_order, total_runs, fields_to_pass
 
 def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_indices):
 

@@ -183,7 +183,7 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
             'H0 contains unreturned or invalid points'
 
         # Fail if points in prior history don't have a sim_id.
-        assert('sim_id' in fields), 'Points in H0 must have sim_ids' 
+        assert('sim_id' in fields), 'Points in H0 must have sim_ids'
 
         # Check dimensional compatibility of fields
         for field in fields:
