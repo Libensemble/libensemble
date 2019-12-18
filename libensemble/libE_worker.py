@@ -217,14 +217,13 @@ class Worker:
             hexstr = uuid.uuid4().hex[:8]
             calc_dir = calc_type_strings[calc_type] + '_' + hexstr
 
-            with self.loc_stack.loc(calc_type):
-                # Current directory immediately switches
+            with self.loc_stack.loc(calc_type):   # Switch to Worker directory
                 self.loc_stack.register_loc(hexstr, calc_dir, srcdir=os.getcwd(),
                                             link=do_symlink, input_files=input_files)
-                with self.loc_stack.loc(hexstr):
+                with self.loc_stack.loc(hexstr):  # Switch to Calc directory
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
-        else:
+        else:  # Switch to temporary Calc directory
             with Worker._make_sim_worker_dir(self.libE_specs, self.workerID).loc(calc_type):
                 out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 

@@ -25,6 +25,27 @@ from libensemble.utils import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
+sim_dir = './test_sim_dir'
+dir_to_symlink = './test_sim_dir/symlink_this'
+w_ensemble = './w_ensemble'
+c_ensemble = './c_ensemble'
+
+for dir in [sim_dir, dir_to_symlink]:
+    if is_master and not os.path.isdir(dir):
+        try:
+            os.mkdir(dir)
+        except FileExistsError:
+            pass
+
+for dir in [w_ensemble, c_ensemble]:
+    if is_master and os.path.isdir(dir):
+        shutil.rmtree(dir)
+
+libE_specs['sim_dir'] = sim_dir
+libE_specs['do_worker_dir'] = True
+libE_specs['sim_dir_prefix'] = w_ensemble  # 'ensemble' by default if not defined
+libE_specs['sym_link_to_input'] = True
+
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_specs = {'gen_f': gen_f,
@@ -37,48 +58,30 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-sim_dir = './test_sim_dir'
-dir_to_symlink = './test_sim_dir/symlink_this'
-ensemble = './test_ensemble'
-
-libE_specs['sim_dir'] = sim_dir
-libE_specs['do_worker_dir'] = True
-libE_specs['sim_dir_prefix'] = ensemble  # 'ensemble' by default if not defined
-libE_specs['sym_link_to_input'] = True
-
-for dir in [sim_dir, dir_to_symlink]:
-    if is_master and not os.path.isdir(dir):
-        try:
-            os.mkdir(dir)
-        except FileExistsError:
-            pass
-
-if is_master and os.path.isdir(ensemble):
-    shutil.rmtree(ensemble)
-
 exit_criteria = {'sim_max': 21}
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    dir_sum = sum(['test_sim_dir_worker' in i for i in os.listdir(ensemble)])
+    dir_sum = sum(['test_sim_dir_worker' in i for i in os.listdir(w_ensemble)])
     assert dir_sum == nworkers, \
         'Number of worker directories ({}) does not match number of workers ({}).'\
         .format(dir_sum, nworkers)
 
-    shutil.rmtree(ensemble)
+    # shutil.rmtree(w_ensemble)
 
 # --- Second Round - Test without worker-dirs ---
 libE_specs['do_worker_dir'] = False
+libE_specs['sim_dir_prefix'] = c_ensemble
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    dir_sum = sum(['test_sim_dir_worker' in i for i in os.listdir(ensemble)])
+    dir_sum = sum(['test_sim_dir_worker' in i for i in os.listdir(c_ensemble)])
     assert dir_sum == exit_criteria['sim_max'], \
         'Number of sim directories ({}) does not match max number of simulations ({}).'\
         .format(dir_sum, exit_criteria['sim_max'])
 
-    shutil.rmtree(ensemble)
+    # shutil.rmtree(c_ensemble)
