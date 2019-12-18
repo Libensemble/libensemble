@@ -16,8 +16,20 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
+    def perform_op(self, link, file_path, relative_path_from_dest, dest_path):
+        """ Perform copying or symlinking """
+        if link:
+            os.symlink(relative_path_from_dest, dest_path)
+        else:
+            if os.path.isdir(file_path):
+                shutil.copytree(file_path, dest_path)
+            else:
+                shutil.copy(file_path, dest_path)
+
     def copy_or_symlink(self, srcdir, destdir, input_files, link):
-        """ Inspired by https://stackoverflow.com/a/9793699 """
+        """ Inspired by https://stackoverflow.com/a/9793699.
+        Determine filepaths, basenames, and components needed for copying
+        """
         if not os.path.isdir(destdir):
             os.makedirs(destdir)
         for file_path in glob('{}/*'.format(srcdir)):
@@ -26,14 +38,11 @@ class LocationStack:
             relative_path_from_dest = os.path.relpath(file_path, destdir)
             dest_path = os.path.join(destdir, src_base)
 
-            if src_base in input_files:
-                if link:
-                    os.symlink(relative_path_from_dest, dest_path)
-                else:
-                    if os.path.isdir(file_path):
-                        shutil.copytree(file_path, dest_path)
-                    else:
-                        shutil.copy(file_path, dest_path)
+            if len(input_files) > 0:
+                if src_base in input_files:
+                    self.perform_op(link, file_path, relative_path_from_dest, dest_path)
+            else:
+                self.perform_op(link, file_path, relative_path_from_dest, dest_path)
 
     def register_loc(self, key, dirname, prefix=None, srcdir=None, input_files=[], link=False):
         """Register a new location in the dictionary.
@@ -73,7 +82,8 @@ class LocationStack:
                 "Directory {} already exists".format(dirname)
             self.copy_or_symlink(srcdir, dirname, input_files, link)
         else:
-            os.mkdir(dirname)
+            if dirname:
+                os.mkdir(dirname)
         return dirname
 
     def push_loc(self, key):
