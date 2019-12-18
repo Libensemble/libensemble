@@ -185,14 +185,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     user_specs = gen_specs['user']
 
     n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
-    local_opters, sim_id_to_child_indices, run_order, total_runs, fields_to_pass = initialize_children(user_specs)
+    local_opters, sim_id_to_child_inds, run_order, total_runs, fields_to_pass = initialize_children(user_specs)
 
     if user_specs['initial_sample_size'] != 0:
         # Send our initial sample. We don't need to check that n_s is large enough:
         # the alloc_func only returns when the initial sample has function values.
         persis_info = add_k_sample_points_to_local_H(user_specs['initial_sample_size'], user_specs,
                                                      persis_info, n, comm, local_H,
-                                                     sim_id_to_child_indices)
+                                                     sim_id_to_child_inds)
         send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
         something_sent = True
     else:
@@ -214,9 +214,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
 
             for row in calc_in:
-                if sim_id_to_child_indices.get(row['sim_id']):
+                if sim_id_to_child_inds.get(row['sim_id']):
                     # Point came from a child local opt run
-                    for child_idx in sim_id_to_child_indices[row['sim_id']]:
+                    for child_idx in sim_id_to_child_inds[row['sim_id']]:
                         x_new = local_opters[child_idx].iterate(row[fields_to_pass])
                         if isinstance(x_new, ConvergedMsg):
                             x_opt = x_new.x
@@ -228,10 +228,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                             new_inds_to_send_mgr.append(len(local_H)-1)
 
                             run_order[child_idx].append(local_H[-1]['sim_id'])
-                            if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                                sim_id_to_child_indices[local_H[-1]['sim_id']] += (child_idx, )
+                            if local_H[-1]['sim_id'] in sim_id_to_child_inds:
+                                sim_id_to_child_inds[local_H[-1]['sim_id']] += (child_idx, )
                             else:
-                                sim_id_to_child_indices[local_H[-1]['sim_id']] = (child_idx, )
+                                sim_id_to_child_inds[local_H[-1]['sim_id']] = (child_idx, )
 
         starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
 
@@ -253,22 +253,22 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 run_order[total_runs] = [ind, local_H[-1]['sim_id']]
 
-                if local_H[-1]['sim_id'] in sim_id_to_child_indices:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] += (total_runs, )
+                if local_H[-1]['sim_id'] in sim_id_to_child_inds:
+                    sim_id_to_child_inds[local_H[-1]['sim_id']] += (total_runs, )
                 else:
-                    sim_id_to_child_indices[local_H[-1]['sim_id']] = (total_runs, )
+                    sim_id_to_child_inds[local_H[-1]['sim_id']] = (total_runs, )
 
                 total_runs += 1
 
         if first_pass:
-            num_to_send = user_specs.get('num_pts_first_pass', 1) - len(new_inds_to_send_mgr)
+            num_samples_needed = user_specs.get('num_pts_first_pass', 1) - len(new_inds_to_send_mgr)
             first_pass = False
         else:
-            num_to_send = n_r-len(new_inds_to_send_mgr)
+            num_samples_needed = n_r-len(new_inds_to_send_mgr)
 
-        if num_to_send > 0:
-            persis_info = add_k_sample_points_to_local_H(num_to_send, user_specs, persis_info, n, comm, local_H, sim_id_to_child_indices)
-            new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_to_send, len(local_H)))
+        if num_samples_needed > 0:
+            persis_info = add_k_sample_points_to_local_H(num_samples_needed, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds)
+            new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_samples_needed, len(local_H)))
 
         send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
         something_sent = True
@@ -960,7 +960,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
 def initialize_children(user_specs):
     """ Initialize stuff for localopt children """
     local_opters = {}
-    sim_id_to_child_indices = {}
+    sim_id_to_child_inds = {}
     run_order = {}
     total_runs = 0
     if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
@@ -973,10 +973,10 @@ def initialize_children(user_specs):
     else:
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(user_specs['localopt_method']))
 
-    return local_opters, sim_id_to_child_indices, run_order, total_runs, fields_to_pass
+    return local_opters, sim_id_to_child_inds, run_order, total_runs, fields_to_pass
 
 
-def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_indices):
+def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds):
 
     if 'sample_points' in user_specs:
         v = np.sum(~local_H['local_pt'])  # Number of sample points so far
