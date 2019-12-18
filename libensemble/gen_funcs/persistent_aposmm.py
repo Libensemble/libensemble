@@ -187,7 +187,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
     local_opters, sim_id_to_child_indices, run_order, total_runs, fields_to_pass = initialize_children(user_specs)
 
-    if user_specs['initial_sample_size']!=0:
+    if user_specs['initial_sample_size'] != 0:
         # Send our initial sample. We don't need to check that n_s is large enough:
         # the alloc_func only returns when the initial sample has function values.
         persis_info = add_k_sample_points_to_local_H(user_specs['initial_sample_size'], user_specs,
@@ -197,7 +197,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         something_sent = True
     else:
         something_sent = False
-
 
     tag = None
     first_pass = True
@@ -655,17 +654,19 @@ def add_to_local_H(local_H, pts, user_specs, local_flag=0, sorted_run_inds=[], r
     local_H['sim_id'][-num_pts:] = np.arange(len_local_H, len_local_H+num_pts)
     local_H['local_pt'][-num_pts:] = local_flag
 
-    initialize_dists_and_inds(local_H,num_pts)
+    initialize_dists_and_inds(local_H, num_pts)
 
     if local_flag:
         local_H['num_active_runs'][-num_pts] += 1
 
-def initialize_dists_and_inds(local_H,num_pts):
+
+def initialize_dists_and_inds(local_H, num_pts):
     local_H['dist_to_unit_bounds'][-num_pts:] = np.inf
     local_H['dist_to_better_l'][-num_pts:] = np.inf
     local_H['dist_to_better_s'][-num_pts:] = np.inf
     local_H['ind_of_better_l'][-num_pts:] = -1
     local_H['ind_of_better_s'][-num_pts:] = -1
+
 
 def update_history_dist(H, n):
     """
@@ -942,11 +943,11 @@ def initialize_APOSMM(H, user_specs, libE_info):
         assert 'sim_id' in H.dtype.names, "Must give 'sim_id' to persistent_aposmm in gen_specs['in']"
         assert 'returned' in H.dtype.names, "Must give 'returned' status to persistent_aposmm in gen_specs['in']"
 
-        over_written_fields = ['dist_to_unit_bounds','dist_to_better_l','dist_to_better_s','ind_of_better_l','ind_of_better_s']
+        over_written_fields = ['dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l', 'ind_of_better_s']
         if any([i in H.dtype.names for i in over_written_fields]):
             print("persistent_aposmm ignores any given values in these fields: " + over_written_fields)
 
-        initialize_dists_and_inds(local_H,len(H))
+        initialize_dists_and_inds(local_H, len(H))
 
         # Update after receving initial points
         update_history_dist(local_H, n)
@@ -954,6 +955,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     n_s = np.sum(~local_H['local_pt'])
 
     return n, n_s, rk_c, ld, mu, nu, comm, local_H
+
 
 def initialize_children(user_specs):
     """ Initialize stuff for localopt children """
@@ -972,6 +974,7 @@ def initialize_children(user_specs):
         raise NotImplementedError("Unknown local optimization method " "'{}'.".format(user_specs['localopt_method']))
 
     return local_opters, sim_id_to_child_indices, run_order, total_runs, fields_to_pass
+
 
 def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_indices):
 
