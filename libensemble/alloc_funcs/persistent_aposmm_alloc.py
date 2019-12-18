@@ -22,12 +22,12 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         assert np.all(H['given']), "Initial points in H have never been given."
         assert np.all(H['returned']), "Initial points in H have never been returned."
         persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
-        if 'grad' in [n[0] for n in sim_specs['out']]: 
+        if 'grad' in [n[0] for n in sim_specs['out']]:
             persis_info['fields_to_give_back'] += ['grad']
 
         persis_info['samples_in_H0'] = sum(H['local_pt'] == 0)
         persis_info['next_to_give'] = len(H)  #
-        persis_info['first_call'] = False 
+        persis_info['first_call'] = False
 
     # If any persistent worker's calculated values have returned, give them back.
     for i in avail_worker_ids(W, persistent=True):
