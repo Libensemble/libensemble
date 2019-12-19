@@ -5,7 +5,6 @@ libEnsemble worker class
 
 import socket
 import logging
-import uuid
 import os
 import logging.handlers
 from itertools import count
@@ -140,25 +139,26 @@ class Worker:
         Worker._set_job_controller(self.workerID, self.comm)
 
     @staticmethod
-    def _make_calc_or_worker_dir(libE_specs, workerID, locs=None):
+    def _make_calc_or_worker_dir(libE_specs, workerID, current_H_rows, calc_type=None, locs=None):
         "Create a dir for sim workers if 'sim_input_dir' is in libE_specs"
         locs = locs or LocationStack()
         if 'sim_input_dir' in libE_specs:
 
             sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
             prefix = libE_specs.get('ensemble_dir', './ensemble')
-            suffix = libE_specs.get('calc_dir_suffix', '')
+            suffix = libE_specs.get('ensemble_dir_suffix', '')
             input_files = libE_specs.get('input_files', os.listdir(sim_input_dir))
             do_symlink = libE_specs.get('symlink_input_files', False)
 
             if suffix != '':
                 suffix = '_' + suffix
+                prefix += suffix
+
             if libE_specs.get('use_worker_dirs'):
-                worker_dir = "{}{}_worker{}".format(sim_input_dir, suffix, workerID)
+                worker_dir = "worker" + str(workerID)
                 do_symlink = False
             else:
-                worker_dir = "{}{}_worker{}-{}".format(sim_input_dir, suffix, workerID,
-                                                       uuid.uuid4().hex[:8])
+                worker_dir = "{}{}-worker{}".format(calc_type, current_H_rows, workerID)
                 try:
                     locs.copy_or_symlink(sim_input_dir, prefix, input_files, False)
                 except FileExistsError:
@@ -206,25 +206,26 @@ class Worker:
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_input_dir structure, then performs calculation."
 
+        current_H_rows = Work['libE_info']['H_rows'].item()
+
         if self.libE_specs.get('use_worker_dirs'):
             if not self.loc_stack:
-                self.loc_stack = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID)
+                self.loc_stack = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID, current_H_rows)
 
             sim_input_dir = self.libE_specs['sim_input_dir'].rstrip('/')
             input_files = self.libE_specs.get('input_files', os.listdir(sim_input_dir))
             do_symlink = self.libE_specs.get('symlink_input_files', False)
 
-            hexstr = uuid.uuid4().hex[:8]
-            calc_dir = calc_type_strings[calc_type] + '_' + hexstr
+            calc_dir = calc_type_strings[calc_type] + str(current_H_rows)
 
             with self.loc_stack.loc(calc_type):   # Switch to Worker directory
-                self.loc_stack.register_loc(hexstr, calc_dir, srcdir=os.getcwd(),
+                self.loc_stack.register_loc(calc_dir, calc_dir, srcdir=os.getcwd(),
                                             link=do_symlink, input_files=input_files)
-                with self.loc_stack.loc(hexstr):  # Switch to Calc directory
+                with self.loc_stack.loc(calc_dir):  # Switch to Calc directory
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
         else:  # Switch to temporary Calc directory
-            with Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID).loc(calc_type):
+            with Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID, current_H_rows, calc_type_strings[calc_type]).loc(calc_type):
                 out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
         return out

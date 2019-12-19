@@ -68,7 +68,7 @@ allowed_libE_spec_keys = ['comms',               #
                           'sim_input_dir',       #
                           'input_files',         #
                           'ensemble_dir',        #
-                          'calc_dir_suffix',     #
+                          'ensemble_dir_suffix', #
                           'use_worker_dirs',     #
                           'symlink_input_files', #
                           'clean_jobs',          #

@@ -28,7 +28,7 @@ Specifications for libEnsemble::
             Clean up calc_dirs after libEnsemble completes. Default: False
         'ensemble_dir' [str] :
             A prefix path specifying where to create sim directories
-        'calc_dir_suffix' [str] :
+        'ensemble_dir_suffix' [str] :
             A suffix to add to worker copies of sim_input_dir to distinguish runs.
         'profile_worker' [Boolean] :
             Profile using cProfile. Default: False

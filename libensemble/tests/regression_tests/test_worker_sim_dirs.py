@@ -64,12 +64,12 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    dir_sum = sum(['test_sim_input_dir_worker' in i for i in os.listdir(w_ensemble)])
+    dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
     assert dir_sum == nworkers, \
         'Number of worker directories ({}) does not match number of workers ({}).'\
         .format(dir_sum, nworkers)
 
-    shutil.rmtree(w_ensemble)
+    # shutil.rmtree(w_ensemble)
 
 # --- Second Round - Test without worker-dirs ---
 libE_specs['use_worker_dirs'] = False
@@ -79,9 +79,9 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    dir_sum = sum(['test_sim_input_dir_worker' in i for i in os.listdir(c_ensemble)])
+    dir_sum = sum(['worker' in i for i in os.listdir(c_ensemble)])
     assert dir_sum == exit_criteria['sim_max'], \
         'Number of sim directories ({}) does not match max number of simulations ({}).'\
         .format(dir_sum, exit_criteria['sim_max'])
 
-    shutil.rmtree(c_ensemble)
+    # shutil.rmtree(c_ensemble)
