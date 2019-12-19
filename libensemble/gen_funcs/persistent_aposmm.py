@@ -302,8 +302,7 @@ class LocalOptInterfacer(object):
         else:
             self.grad0 = None
 
-        # {{{ setting the local optimization method
-
+        # Setting the local optimization method
         if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
             run_local_opt = run_local_nlopt
         elif user_specs['localopt_method'] in ['pounders', 'blmvm']:
@@ -312,8 +311,6 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_scipy_opt
         elif user_specs['localopt_method'] in ['dfols']:
             run_local_opt = run_local_dfols
-
-        # }}}
 
         self.parent_can_read.clear()
         self.process = Process(target=run_local_opt, args=(user_specs,
@@ -376,27 +373,6 @@ class LocalOptInterfacer(object):
         self.is_running = False
 
 
-# {{{ NLOPT for local opt
-
-def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, user_specs):
-    comm_queue.put(x)
-    parent_can_read.set()
-    child_can_read.wait()
-    if user_specs['localopt_method'] in ['LD_MMA']:
-        x_recv, f_recv, grad_recv = comm_queue.get()
-        grad[:] = grad_recv
-    else:
-        assert user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
-                                                 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
-        x_recv, f_recv = comm_queue.get()
-
-    assert np.array_equal(x, x_recv), "The point I gave is not the point I got back!"
-
-    child_can_read.clear()
-
-    return f_recv
-
-
 def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
     # print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(user_specs['ub'])
@@ -440,24 +416,6 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
 
-# }}}
-
-
-# {{{ SciPy optimization
-
-def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs):
-    comm_queue.put(x)
-    # print('[Child]: Parent should no longer wait.', flush=True)
-    parent_can_read.set()
-    # print('[Child]: I have started waiting', flush=True)
-    child_can_read.wait()
-    # print('[Child]: Wohooo.. I am free folks', flush=True)
-    x_recv, f_x_recv, = comm_queue.get()
-
-    assert np.array_equal(x, x_recv), "The point I gave is not the point I got back!"
-    child_can_read.clear()
-    return f_x_recv
-
 
 def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
 
@@ -493,10 +451,6 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
 
-# }}}
-
-
-# {{{ DFO-LS optimization
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
 
@@ -522,45 +476,6 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # print('[Child]: I have converged.', flush=True)
     comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
-
-# }}}
-
-
-# {{{ TAO routines for local opt
-
-def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs):
-    comm_queue.put(x.array_r)
-    # print('[Child]: I just put x_on_cube =', x.array, flush=True)
-    # print('[Child]: Parent should no longer wait.', flush=True)
-    parent_can_read.set()
-    # print('[Child]: I have started waiting', flush=True)
-    child_can_read.wait()
-    # print('[Child]: Wohooo.. I am free folks', flush=True)
-    x_recv, f_recv, = comm_queue.get()
-
-    assert np.array_equal(x.array_r, x_recv), "The point I gave is not the point I got back!"
-
-    f.array[:] = f_recv
-    child_can_read.clear()
-    return f
-
-
-def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs):
-
-    comm_queue.put(x.array_r)
-    # print('[Child]: I just put x_on_cube =', x.array, flush=True)
-    # print('[Child]: Parent should no longer wait.', flush=True)
-    parent_can_read.set()
-    # print('[Child]: I have started waiting', flush=True)
-    child_can_read.wait()
-    # print('[Child]: Wohooo.. I am free folks', flush=True)
-    x_recv, f_recv, grad_recv = comm_queue.get()
-
-    assert np.array_equal(x.array_r, x_recv), "The point I gave is not the point I got back!"
-
-    g.array[:] = grad_recv
-    child_can_read.clear()
-    return f_recv
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -644,7 +559,67 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
 
     # FIXME: What do we do about the exit_code?
 
-# }}}
+
+# Callback functions and routines
+def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, user_specs):
+
+    if user_specs['localopt_method'] in ['LD_MMA']:
+        x_recv, f_recv, grad_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
+        grad[:] = grad_recv
+    else:
+        assert user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
+                                                 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
+        x_recv, f_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
+
+    return f_recv
+
+
+def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs):
+
+    x_recv, f_x_recv, = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
+
+    return f_x_recv
+
+
+def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs):
+
+    x_recv, f_recv, = put_set_wait_get(x.array_r, comm_queue, parent_can_read, child_can_read)
+    f.array[:] = f_recv
+
+    return f
+
+
+def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs):
+
+    x_recv, f_recv, grad_recv = put_set_wait_get(x.array_r, comm_queue, parent_can_read, child_can_read)
+    g.array[:] = grad_recv
+
+    return f_recv
+
+
+def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read):
+    """This routine is used by children process callback functions. It:
+    - puts x into a comm_queue,
+    - tells the parent it can read,
+    - tells the child to wait
+    - receives the values put in the comm_queue by the parent
+    - checks that the first value received matches x
+    - removes the wait on the child
+    - returns values"""
+
+    comm_queue.put(x)
+    # print('[Child]: I just put x_on_cube =', x.array, flush=True)
+    # print('[Child]: Parent should no longer wait.', flush=True)
+    parent_can_read.set()
+    # print('[Child]: I have started waiting', flush=True)
+    child_can_read.wait()
+    # print('[Child]: Wohooo.. I am free folks', flush=True)
+    values = comm_queue.get()
+    child_can_read.clear()
+
+    assert np.array_equal(x, values[0]), "The point I gave is not the point I got back!"
+
+    return values
 
 
 def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in):
@@ -982,7 +957,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
 
         initialize_dists_and_inds(local_H, len(H))
 
-        # Update after receving initial points
+        # Update after receiving initial points
         update_history_dist(local_H, n)
 
     n_s = np.sum(~local_H['local_pt'])
