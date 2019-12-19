@@ -43,7 +43,7 @@ This can happen when libEnsemble tries to create sim directories that already ex
 or libEnsemble is launched with ``mpiexec`` when the ``libE_specs['comms']`` option is
 set to ``local``.
 
-To create differently named sim directories, you can use the ``sim_dir_suffix``
+To create differently named sim directories, you can use the ``calc_dir_suffix``
 option in :ref:`sim_specs<datastruct-sim-specs>`.
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**

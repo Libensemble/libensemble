@@ -20,21 +20,21 @@ Specifications for libEnsemble::
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int] :
             Save history array to file after every k generated points.
-        'sim_dir' [str] :
-            Name of simulation directory which will be copied for each sim calc
-        'do_worker_dir' [bool] :
+        'sim_input_dir' [str] :
+            Name of directory which will be copied for each sim calc
+        'use_worker_dirs' [bool] :
             Instead of copying sim dir for each calc, create a copy for each worker.
         'clean_jobs' [bool] :
-            Clean up sim_dirs after libEnsemble completes. Default: False
-        'sim_dir_prefix' [str] :
+            Clean up calc_dirs after libEnsemble completes. Default: False
+        'ensemble_dir' [str] :
             A prefix path specifying where to create sim directories
-        'sim_dir_suffix' [str] :
-            A suffix to add to worker copies of sim_dir to distinguish runs.
+        'calc_dir_suffix' [str] :
+            A suffix to add to worker copies of sim_input_dir to distinguish runs.
         'profile_worker' [Boolean] :
             Profile using cProfile. Default: False
 
 .. note::
-    The ``sim_dir_prefix`` and ``sim_dir`` options can indicate working
+    The ``ensemble_dir`` and ``sim_input_dir`` options can indicate working
     directories on local node or scratch storage. This may produce performance
     benefits on I/O heavy simulations, but will use more space.
 
@@ -44,7 +44,7 @@ Specifications for libEnsemble::
       libE_specs = {'comm': MPI.COMM_WORLD,
                     'comms': 'mpi',
                     'save_every_k_gens': 1000,
-                    'sim_dir': './sim',
+                    'sim_input_dir': './sim',
                     'profile_worker': False}
 
 .. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py

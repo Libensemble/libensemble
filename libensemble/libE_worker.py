@@ -140,33 +140,33 @@ class Worker:
         Worker._set_job_controller(self.workerID, self.comm)
 
     @staticmethod
-    def _make_sim_worker_dir(libE_specs, workerID, locs=None):
-        "Create a dir for sim workers if 'sim_dir' is in libE_specs"
+    def _make_calc_or_worker_dir(libE_specs, workerID, locs=None):
+        "Create a dir for sim workers if 'sim_input_dir' is in libE_specs"
         locs = locs or LocationStack()
-        if 'sim_dir' in libE_specs:
+        if 'sim_input_dir' in libE_specs:
 
-            sim_dir = libE_specs['sim_dir'].rstrip('/')
-            prefix = libE_specs.get('sim_dir_prefix', './ensemble')
-            suffix = libE_specs.get('sim_dir_suffix', '')
-            input_files = libE_specs.get('input_files', os.listdir(sim_dir))
-            do_symlink = libE_specs.get('sym_link_to_input', False)
+            sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
+            prefix = libE_specs.get('ensemble_dir', './ensemble')
+            suffix = libE_specs.get('calc_dir_suffix', '')
+            input_files = libE_specs.get('input_files', os.listdir(sim_input_dir))
+            do_symlink = libE_specs.get('symlink_input_files', False)
 
             if suffix != '':
                 suffix = '_' + suffix
-            if libE_specs.get('do_worker_dir'):
-                worker_dir = "{}{}_worker{}".format(sim_dir, suffix, workerID)
+            if libE_specs.get('use_worker_dirs'):
+                worker_dir = "{}{}_worker{}".format(sim_input_dir, suffix, workerID)
                 do_symlink = False
             else:
-                worker_dir = "{}{}_worker{}-{}".format(sim_dir, suffix, workerID,
+                worker_dir = "{}{}_worker{}-{}".format(sim_input_dir, suffix, workerID,
                                                        uuid.uuid4().hex[:8])
                 try:
-                    locs.copy_or_symlink(sim_dir, prefix, input_files, False)
+                    locs.copy_or_symlink(sim_input_dir, prefix, input_files, False)
                 except FileExistsError:
                     pass
-                sim_dir = prefix
+                sim_input_dir = prefix
 
             locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix,
-                              srcdir=sim_dir, link=do_symlink,
+                              srcdir=sim_input_dir, link=do_symlink,
                               input_files=input_files)
 
         return locs
@@ -204,15 +204,15 @@ class Worker:
             return False
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
-        "Determines choice for sim_dir structure, then performs calculation."
+        "Determines choice for sim_input_dir structure, then performs calculation."
 
-        if self.libE_specs.get('do_worker_dir'):
+        if self.libE_specs.get('use_worker_dirs'):
             if not self.loc_stack:
-                self.loc_stack = Worker._make_sim_worker_dir(self.libE_specs, self.workerID)
+                self.loc_stack = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID)
 
-            sim_dir = self.libE_specs['sim_dir'].rstrip('/')
-            input_files = self.libE_specs.get('input_files', os.listdir(sim_dir))
-            do_symlink = self.libE_specs.get('sym_link_to_input', False)
+            sim_input_dir = self.libE_specs['sim_input_dir'].rstrip('/')
+            input_files = self.libE_specs.get('input_files', os.listdir(sim_input_dir))
+            do_symlink = self.libE_specs.get('symlink_input_files', False)
 
             hexstr = uuid.uuid4().hex[:8]
             calc_dir = calc_type_strings[calc_type] + '_' + hexstr
@@ -224,7 +224,7 @@ class Worker:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
         else:  # Switch to temporary Calc directory
-            with Worker._make_sim_worker_dir(self.libE_specs, self.workerID).loc(calc_type):
+            with Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID).loc(calc_type):
                 out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
         return out

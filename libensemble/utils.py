@@ -65,12 +65,12 @@ allowed_libE_spec_keys = ['comms',               #
                           'nworkers',            #
                           'worker_cmd',          #
                           'abort_on_exception',  #
-                          'sim_dir',             #
+                          'sim_input_dir',       #
                           'input_files',         #
-                          'sim_dir_prefix',      #
-                          'sim_dir_suffix',      #
-                          'do_worker_dir',       #
-                          'sym_link_to_input',   #
+                          'ensemble_dir',        #
+                          'calc_dir_suffix',     #
+                          'use_worker_dirs',     #
+                          'symlink_input_files', #
                           'clean_jobs',          #
                           'save_every_k_sims',   #
                           'save_every_k_gens',   #
