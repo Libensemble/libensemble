@@ -72,7 +72,18 @@ if is_master:
     # # Calculating the Jacobian at local_minima (though this information was not used by DFO-LS)
     # from libensemble.sim_funcs.chwirut1 import EvaluateFunction, EvaluateJacobian
     # for i in np.where(H['local_min'])[0]:
+
     #     F = EvaluateFunction(H['x'][i])
     #     J = EvaluateJacobian(H['x'][i])
-    #     d = np.linalg.solve(np.dot(J.T,J),np.dot(J.T,F))
-    #     print(d)
+    #     u = gen_specs['user']['ub']-H['x'][i]
+    #     l = H['x'][i]-gen_specs['user']['lb']
+    #     if np.any(u <= 1e-7) or np.any(l <= 1e-7):
+    #         grad = -2*np.dot(J.T,F)
+    #         assert np.all(grad[u<=1e-7] >= 0)
+    #         assert np.all(grad[l<=1e-7] <= 0)
+
+    #         if not np.all(grad[np.logical_and(u>=1e-7,l>=1e-7)] <= 1e-5):
+    #             import ipdb; ipdb.set_trace()
+    #     else: 
+    #         d = np.linalg.solve(np.dot(J.T,J),np.dot(J.T,F))
+    #         assert np.linalg.norm(d) <= 1e-5
