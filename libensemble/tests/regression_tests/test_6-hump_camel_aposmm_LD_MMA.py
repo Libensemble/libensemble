@@ -107,8 +107,7 @@ for run in range(3):
 
     if is_master:
         if flag != 0:
-            print("Exit was not on convergence (code {})".format(flag))
-            sys.stdout.flush()
+            print("Exit was not on convergence (code {})".format(flag), flush=True)
             libE_abort()
 
         tol = 1e-5
@@ -117,8 +116,7 @@ for run in range(3):
             # 1) We use their values to test APOSMM has identified all minima
             # 2) We use their approximate values to ensure APOSMM evaluates a
             #    point in each minima's basin of attraction.
-            print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)))
-            sys.stdout.flush()
+            print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
             if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) > tol:
                 libE_abort()
 
