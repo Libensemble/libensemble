@@ -948,6 +948,11 @@ def initialize_APOSMM(H, user_specs, libE_info):
         for field in H.dtype.names:
             local_H[field][:len(H)] = H[field]
 
+        if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
+            assert 'grad' in H.dtype.names, "Must give 'grad' values to persistent_aposmm in gen_specs['in'] when using 'localopt_method'" + user_specs['localopt_method']
+            assert not np.all(local_H['grad'] == 0), "All 'grad' values are zero for the given points."
+
+        assert 'f' in H.dtype.names, "Must give 'f' values to persistent_aposmm in gen_specs['in']"
         assert 'sim_id' in H.dtype.names, "Must give 'sim_id' to persistent_aposmm in gen_specs['in']"
         assert 'returned' in H.dtype.names, "Must give 'returned' status to persistent_aposmm in gen_specs['in']"
 
