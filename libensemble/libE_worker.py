@@ -212,7 +212,6 @@ class Worker:
         else:
             return '-'.join([str(i) for i in work_H_rows.tolist()])
 
-
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_input_dir structure, then performs calculation."
 
