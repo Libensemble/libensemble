@@ -9,7 +9,6 @@ Larson in the summer of 2019.
 """
 __all__ = ['initialize_APOSMM', 'decide_where_to_start_localopt', 'update_history_dist']
 
-import sys
 import numpy as np
 from scipy.spatial.distance import cdist
 from scipy import optimize as sp_opt
@@ -755,7 +754,7 @@ def update_history_optimal(x_opt, H, run_inds):
     tol_x1 = 1e-15
     if dists[ind] > tol_x1:
         print("Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]))
-        print("Check that the local optimizer is working correctly") 
+        print("Check that the local optimizer is working correctly")
         print(x_opt)
         print(run_inds, flush=True)
 
@@ -769,7 +768,7 @@ def update_history_optimal(x_opt, H, run_inds):
               "a 'local_min' to prevent APOSMM from starting another run "
               "immediately from these points.".format(sum(failsafe), tol_x2))
         print("Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
-        print("Check that the local optimizer is working correctly", flush=True) 
+        print("Check that the local optimizer is working correctly", flush=True)
         H['local_min'][run_inds[failsafe]] = 1
 
     H['local_min'][opt_ind] = 1
