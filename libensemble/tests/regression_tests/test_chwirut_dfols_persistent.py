@@ -57,7 +57,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 3000}
+exit_criteria = {'sim_max': 10000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
