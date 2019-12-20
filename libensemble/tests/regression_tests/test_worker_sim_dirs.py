@@ -27,10 +27,11 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 sim_input_dir = './test_sim_input_dir'
 dir_to_symlink = './test_sim_input_dir/symlink_this'
+dir_not_to_symlink = './test_sim_input_dir/not_this'
 w_ensemble = './w_ensemble'
 c_ensemble = './c_ensemble'
 
-for dir in [sim_input_dir, dir_to_symlink]:
+for dir in [sim_input_dir, dir_to_symlink, dir_not_to_symlink]:
     if is_master and not os.path.isdir(dir):
         try:
             os.mkdir(dir)
@@ -45,6 +46,7 @@ libE_specs['sim_input_dir'] = sim_input_dir
 libE_specs['use_worker_dirs'] = True
 libE_specs['ensemble_dir'] = w_ensemble
 libE_specs['symlink_input_files'] = True
+libE_specs['input_files'] = ['symlink_this']
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
