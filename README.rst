@@ -83,6 +83,7 @@ The example simulation and generation functions and tests require the following:
 
 * SciPy_
 * petsc4py_
+* DFLO-LS_
 * PETSc_ - This can optionally be installed by pip along with petsc4py
 * NLopt_ - Installed with `shared libraries enabled`_.
 
@@ -219,6 +220,7 @@ Resources
 
 .. _Balsam: https://www.alcf.anl.gov/balsam
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _DFLO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
