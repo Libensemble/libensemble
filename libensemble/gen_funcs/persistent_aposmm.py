@@ -752,20 +752,24 @@ def update_history_optimal(x_opt, H, run_inds):
     ind = np.argmin(dists)
     opt_ind = run_inds[ind]
 
-    if dists[ind] > 1e-15:
-        print("Dist from x_opt to closest point is:"+str(dists[ind]))
-        print("Report this!")
+    tol_x1 = 1e-15
+    if dists[ind] > tol_x1:
+        print("Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]))
+        print("Check that the local optimizer is working correctly") 
         print(x_opt)
-        print(run_inds)
-        sys.stdout.flush()
-    assert dists[ind] <= 1e-15, "Closest point to x_opt not within 1e-15?"
+        print(run_inds, flush=True)
 
-    failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < 1e-8)
+    assert dists[ind] <= tol_x1, "Closest point to x_opt not within {}?".format(tol_x1)
+
+    tol_x2 = 1e-8
+    failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < tol_x2)
     if np.any(failsafe):
-        # Rare event, but want to not start another run next to a minimum
-        print('Marking more than 1 point in this run as a min!')
-        print("Report this!")
-        sys.stdout.flush()
+        print("This run has {} point(s) with smaller 'f' value within {} of "
+              "the point ruled to be the run minimum. \nMarking all as being "
+              "a 'local_min' to prevent APOSMM from starting another run "
+              "immediately from these points.".format(sum(failsafe), tol_x2))
+        print("Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
+        print("Check that the local optimizer is working correctly", flush=True) 
         H['local_min'][run_inds[failsafe]] = 1
 
     H['local_min'][opt_ind] = 1
