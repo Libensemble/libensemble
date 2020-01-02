@@ -147,8 +147,11 @@ class Worker:
             sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
             prefix = libE_specs.get('ensemble_dir', './ensemble')
             suffix = libE_specs.get('ensemble_dir_suffix', '')
-            input_files = libE_specs.get('input_files', os.listdir(sim_input_dir))
-            do_symlink = libE_specs.get('symlink_input_files', False)
+            copy_files = libE_specs.get('copy_input_files', os.listdir(sim_input_dir))
+            symlink_files = libE_specs.get('symlink_input_files', [])
+
+            assert not any([file in symlink_files for file in copy_files]), \
+                "Collisions between files to symlink and files to copy to output directories."
 
             if suffix != '':
                 suffix = '_' + suffix
@@ -156,18 +159,20 @@ class Worker:
 
             if libE_specs.get('use_worker_dirs'):
                 worker_dir = "worker" + str(workerID)
-                do_symlink = False
+                locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix, srcdir=sim_input_dir, copy_files=os.listdir(sim_input_dir))
             else:
                 worker_dir = "{}{}-worker{}".format(calc_type, H_rows, workerID)
+
                 try:
-                    locs.copy_or_symlink(sim_input_dir, prefix, input_files, False)
+                    locs.copy_or_symlink(sim_input_dir, prefix, os.listdir(sim_input_dir), [])
                 except FileExistsError:
                     pass
                 sim_input_dir = prefix
 
-            locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix,
-                              srcdir=sim_input_dir, link=do_symlink,
-                              input_files=input_files)
+                locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix,
+                                  srcdir=sim_input_dir,
+                                  copy_files=copy_files,
+                                  symlink_files=symlink_files)
 
         return locs
 
@@ -222,14 +227,23 @@ class Worker:
                 self.loc_stack = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID, H_rows)
 
             sim_input_dir = self.libE_specs['sim_input_dir'].rstrip('/')
-            input_files = self.libE_specs.get('input_files', os.listdir(sim_input_dir))
-            do_symlink = self.libE_specs.get('symlink_input_files', False)
+            full_input_dir = os.path.realpath(sim_input_dir)
+
+            copy_files = self.libE_specs.get('copy_input_files', os.listdir(sim_input_dir))
+            symlink_files = self.libE_specs.get('symlink_input_files', [])
 
             calc_dir = calc_type_strings[calc_type] + str(H_rows)
 
             with self.loc_stack.loc(calc_type):   # Switch to Worker directory
+
+                try:  # Copy over all inputs to workers.
+                    self.loc_stack.copy_or_symlink(full_input_dir, os.getcwd(), os.listdir(full_input_dir), [])
+                except FileExistsError:
+                    pass
+
                 self.loc_stack.register_loc(calc_dir, calc_dir, srcdir=os.getcwd(),
-                                            link=do_symlink, input_files=input_files)
+                                            copy_files=copy_files,
+                                            symlink_files=symlink_files)
                 with self.loc_stack.loc(calc_dir):  # Switch to Calc directory
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 

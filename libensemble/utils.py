@@ -66,7 +66,7 @@ allowed_libE_spec_keys = ['comms',                #
                           'worker_cmd',           #
                           'abort_on_exception',   #
                           'sim_input_dir',        #
-                          'input_files',          #
+                          'copy_input_files',     #
                           'ensemble_dir',         #
                           'ensemble_dir_suffix',  #
                           'use_worker_dirs',      #
