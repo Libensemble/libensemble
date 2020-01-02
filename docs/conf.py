@@ -91,7 +91,7 @@ latex_doc = 'latex_index'
 
 # General information about the project.
 project = 'libEnsemble'
-copyright = '2019 Argonne National Laboratory'
+copyright = '2020 Argonne National Laboratory'
 author = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro'
 
 # The version info for the project you're documenting, acts as replacement for

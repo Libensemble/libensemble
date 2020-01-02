@@ -212,7 +212,7 @@ Resources
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
     number      = {Revision 0.6.0},
-    year        = {2019},
+    year        = {2020},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
