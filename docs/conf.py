@@ -93,6 +93,7 @@ latex_doc = 'latex_index'
 project = 'libEnsemble'
 copyright = '2020 Argonne National Laboratory'
 author = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro'
+today_fmt = '%B %-d, %Y'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
