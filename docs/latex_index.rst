@@ -1,5 +1,9 @@
 .. libEnsemble documentation master file for the latex build
 
+=====
+Dummy
+=====
+
 .. toctree::
    :maxdepth: 3
 

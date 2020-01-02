@@ -128,7 +128,7 @@ to ``pdb``. How well this works varies by system::
 
 Actually, yes! The job controller type only determines how libEnsemble workers
 launch and interact with user applications, and is independent of ``comms`` chosen
-for manager-worker communications.
+for manager/worker communications.
 
 macOS-specific Errors
 ---------------------
