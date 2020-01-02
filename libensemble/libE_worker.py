@@ -154,7 +154,7 @@ class Worker:
 
             assert not any([file in symlink_files for file in copy_files]), \
                 "Collisions between files to symlink" + \
-                    " and files to copy to output directories."
+                " and files to copy to output directories."
 
             if suffix != '':
                 suffix = '_' + suffix

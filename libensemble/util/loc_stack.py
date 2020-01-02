@@ -18,7 +18,7 @@ class LocationStack:
 
     def perform_op(self, type, file_path, relative_path_from_dest, dest_path):
         """ Perform copying or symlinking """
-        if type is 'link':
+        if type == 'link':
             os.symlink(relative_path_from_dest, dest_path)
         else:
             if os.path.isdir(file_path):
@@ -47,9 +47,8 @@ class LocationStack:
 
             self.perform_op(type, file_path, relative_path_from_dest, dest_path)
 
-
     def register_loc(self, key, dirname, prefix=None, srcdir=None, copy_files=[],
-     symlink_files=[]):
+                     symlink_files=[]):
         """Register a new location in the dictionary.
 
         Parameters
