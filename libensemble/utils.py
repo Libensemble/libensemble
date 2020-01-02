@@ -56,25 +56,26 @@ allowed_alloc_spec_keys = ['alloc_f',  #
                            'out',      #
                            'user']     #
 
-allowed_libE_spec_keys = ['comms',                #
-                          'comm',                 #
-                          'ip',                   #
-                          'port',                 #
-                          'authkey',              #
-                          'workerID',             #
-                          'nworkers',             #
-                          'worker_cmd',           #
-                          'abort_on_exception',   #
-                          'sim_input_dir',        #
-                          'copy_input_files',     #
-                          'ensemble_dir',         #
-                          'ensemble_dir_suffix',  #
-                          'use_worker_dirs',      #
-                          'symlink_input_files',  #
-                          'clean_jobs',           #
-                          'save_every_k_sims',    #
-                          'save_every_k_gens',    #
-                          'profile_worker']       #
+allowed_libE_spec_keys = ['comms',                  #
+                          'comm',                   #
+                          'ip',                     #
+                          'port',                   #
+                          'authkey',                #
+                          'workerID',               #
+                          'nworkers',               #
+                          'worker_cmd',             #
+                          'abort_on_exception',     #
+                          'sim_input_dir',          #
+                          'copy_input_files',       #
+                          'copy_input_per_worker',  #
+                          'ensemble_dir',           #
+                          'ensemble_dir_suffix',    #
+                          'use_worker_dirs',        #
+                          'symlink_input_files',    #
+                          'clean_jobs',             #
+                          'save_every_k_sims',      #
+                          'save_every_k_gens',      #
+                          'profile_worker']         #
 
 # ==================== Common input checking =================================
 _USER_SIM_ID_WARNING = \
