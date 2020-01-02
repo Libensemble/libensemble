@@ -1,7 +1,5 @@
 .. libEnsemble documentation master file for the latex build
 
-.. include:: welcome.rst
-
 .. toctree::
    :maxdepth: 3
 
