@@ -78,10 +78,8 @@ def _get_local_cpu_resources():
 
 def _print_local_cpu_resources():
     """Print logical and physical cores on the local node"""
-    import sys
     cores_info = _get_local_cpu_resources()
-    print(cores_info[0], cores_info[1])
-    sys.stdout.flush()
+    print(cores_info[0], cores_info[1], flush=True)
 
 
 def _get_remote_cpu_resources(launcher):

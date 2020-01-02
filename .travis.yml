@@ -62,6 +62,7 @@ install:
   - conda install libblas libopenblas # Prevent 'File exists' error
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   - pip install flake8       # Conda installs downgrade pytest on python3.4
+  - pip install DFO-LS
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout

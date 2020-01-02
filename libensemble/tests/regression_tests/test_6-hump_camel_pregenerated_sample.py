@@ -28,9 +28,10 @@ sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_specs = {}
 
-H0 = np.zeros(100, dtype=[('x', float, 2)])
+H0 = np.zeros(100, dtype=[('x', float, 2), ('sim_id', int)])
 np.random.seed(0)
 H0['x'] = np.random.uniform(0, 1, (100, 2))
+H0['sim_id'] = range(100)
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, 2)]}
 
@@ -43,5 +44,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 
 if is_master:
     assert len(H) == len(H0)
+    assert np.array_equal(H0['x'], H['x'])
+    assert np.all(H['returned'])
     print("\nlibEnsemble correctly didn't add anything to initial sample")
     save_libE_output(H, persis_info, __file__, nworkers)

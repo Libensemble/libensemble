@@ -80,26 +80,26 @@ class History:
 
     def update_history_f(self, D):
         """
-        Updates the history (in place) after new points have been evaluated
+        Updates the history after points have been evaluated
         """
 
         new_inds = D['libE_info']['H_rows']  # The list of rows (as a numpy array)
-        H_0 = D['calc_out']
+        returned_H = D['calc_out']
 
         for j, ind in enumerate(new_inds):
-            for field in H_0.dtype.names:
+            for field in returned_H.dtype.names:
 
-                if np.isscalar(H_0[field][j]):
-                    self.H[field][ind] = H_0[field][j]
+                if np.isscalar(returned_H[field][j]):
+                    self.H[field][ind] = returned_H[field][j]
                 else:
                     # len or np.size
-                    H0_size = len(H_0[field][j])
+                    H0_size = len(returned_H[field][j])
                     assert H0_size <= len(self.H[field][ind]), "History update Error: Too many values received for " + field
                     assert H0_size, "History update Error: No values in this field " + field
                     if H0_size == len(self.H[field][ind]):
-                        self.H[field][ind] = H_0[field][j]  # ref
+                        self.H[field][ind] = returned_H[field][j]  # ref
                     else:
-                        self.H[field][ind][:H0_size] = H_0[field][j]  # Slice View
+                        self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
             self.H['returned'][ind] = True
             self.sim_count += 1

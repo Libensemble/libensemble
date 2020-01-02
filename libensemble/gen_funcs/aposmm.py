@@ -462,16 +462,14 @@ def update_history_optimal(x_opt, H, run_inds):
         print("Dist from x_opt to closest point is:"+str(dists[ind]))
         print("Report this!")
         print(x_opt)
-        print(run_inds)
-        sys.stdout.flush()
+        print(run_inds, flush=True)
     assert dists[ind] <= 1e-15, "Closest point to x_opt not within 1e-15?"
 
     failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < 1e-8)
     if np.any(failsafe):
         # Rare event, but want to not start another run next to a minimum
         print('Marking more than 1 point in this run as a min!')
-        print("Report this!")
-        sys.stdout.flush()
+        print("Report this!", flush=True)
         H['local_min'][run_inds[failsafe]] = 1
 
     H['local_min'][opt_ind] = 1
@@ -951,14 +949,13 @@ def display_exception(e):
     traceback.print_tb(tb)  # Fixed format
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
-    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text))
+    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text), flush=True)
 
     # PETSc/TAO errors are printed in the following manner:
     if hasattr(e, '_traceback_'):
         print('The error was:')
         for i in e._traceback_:
-            print(i)
-    sys.stdout.flush()
+            print(i, flush=True)
 
 
 # if __name__ == "__main__":
