@@ -38,8 +38,9 @@ class LocationStack:
             relative_path_from_dest = os.path.relpath(file_path, destdir)
             dest_path = os.path.join(destdir, src_base)
 
-            if src_base not in copy_files and src_base not in symlink_files:
-                continue
+            if len(copy_files) > 0 and len(symlink_files) > 0:
+                if src_base not in copy_files and src_base not in symlink_files:
+                    continue
 
             type = 'copy'
             if src_base in symlink_files:
