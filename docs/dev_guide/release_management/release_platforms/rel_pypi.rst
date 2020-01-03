@@ -25,7 +25,9 @@ Upload (you will need username/password here)::
     twine upload dist/*
 
 If you now run ::
+
     pip install libensemble
+
 it should find the new version.
 
 It should also be visible here:

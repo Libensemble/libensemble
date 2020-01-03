@@ -36,7 +36,7 @@ launched in the ``sim_f``. Note the use of the ``parse_args()`` and
     :emphasize-lines: 16, 39-92
 
 Six-Hump-Camel Persistent APOSMM
-------------------------------
+--------------------------------
 
 This example is also from the regression tests and demonstrates configuring a
 persistent run via a custom allocation function.
