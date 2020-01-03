@@ -1,7 +1,7 @@
 Example Job Submission Scripts
 ==============================
 
-Below are some example job-submission scripts used to configure and launch libEnsemble
+Below are example job-submission scripts used to configure and launch libEnsemble
 on a variety of high-powered systems. See :doc:`here<platforms_index>` for more
 information about the respective systems and configuration.
 

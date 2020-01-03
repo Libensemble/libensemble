@@ -71,7 +71,7 @@ For example, add the lines::
 The env_prompt line ensures the whole directory path is not prepended to
 your prompt (The ({name}) here is literal, do not substitute).
 
-If highly parallel runs experience long start-up delays consider the NERSC
+If highly parallel runs experience long start-up delays, consider the NERSC
 documentation on `scaling Python`_.
 
 Job Submission
@@ -112,16 +112,16 @@ This line launches libEnsemble with a manager and **three** workers to one
 allocated compute node, with three nodes available for the workers to launch
 user applications with the job-controller or a job-launch command.
 
-This is an example of running in :doc:`centralized<platforms_index>` mode and,
+This is an example of running in :doc:`centralized<platforms_index>` mode;
 if using the :doc:`job_controller<../job_controller/jc_index>`, it should
 be initiated with ``central_mode=True``. libEnsemble must be run in central mode
-on Cori as jobs cannot share nodes.
+on Cori because jobs cannot share nodes.
 
 Batch Runs
 ^^^^^^^^^^
 
-Batch scripts specify run-settings using ``#SBATCH`` statements. A simple example
-for a libEnsemble use-case running in :doc:`centralized<platforms_index>` MPI
+Batch scripts specify run settings using ``#SBATCH`` statements. A simple example
+for a libEnsemble use case running in :doc:`centralized<platforms_index>` MPI
 mode on KNL nodes resembles the following (add ``PYTHONPATH`` lines if necessary):
 
 .. code-block:: bash
@@ -144,12 +144,12 @@ mode on KNL nodes resembles the following (add ``PYTHONPATH`` lines if necessary
     srun --ntasks 5 --nodes=1 python calling_script.py
 
 With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
-on Cori becomes::
+on Cori is achieved by running ::
 
     sbatch myscript.sh
 
-If you wish to run in multi-processing (local) mode instead of using ``mpi4py``,
-and your calling script uses the :doc:`parse_args()<../utilities>` function,
+If you wish to run in multiprocessing (local) mode instead of using ``mpi4py``
+and if your calling script uses the :doc:`parse_args()<../utilities>` function,
 then the run line in the above script would be::
 
     python calling_script.py --comms local --nworkers 4
