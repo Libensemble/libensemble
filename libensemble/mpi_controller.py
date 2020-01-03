@@ -60,19 +60,19 @@ class MPIJobController(JobController):
 
         nodelist_env_cobalt: String, optional
             The environment variable giving a node list in Cobalt format
-            (Default: Uses COBALT_PARTNAME) Note: This is queried only 
+            (Default: Uses COBALT_PARTNAME) Note: This is queried only
             if a worker_list file is not provided and
             auto_resources=True.
 
         nodelist_env_lsf: String, optional
             The environment variable giving a node list in LSF format
-            (Default: Uses LSB_HOSTS) Note: This is queried only 
+            (Default: Uses LSB_HOSTS) Note: This is queried only
             if a worker_list file is not provided and
             auto_resources=True.
 
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form
-            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only 
+            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
             if a worker_list file is not provided and auto_resources=True.
 
         """

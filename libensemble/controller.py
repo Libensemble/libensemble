@@ -1,5 +1,5 @@
 """
-This module contains a 
+This module contains a
 ``job_controller`` and ``job``. The class ``JobController`` is a base class and not
 intended for direct use. Instead one of the inherited classes should be used. Inherited
 classes include MPI and Balsam variants. A ``job_controller`` can create and manage

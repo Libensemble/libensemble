@@ -60,7 +60,7 @@ needs_sphinx = '2.0'
 # ones.
 extensions = ['sphinxcontrib.bibtex',
               'sphinx.ext.autodoc',
-              'sphinx.ext.napoleon', 
+              'sphinx.ext.napoleon',
               # 'sphinx.ext.autosectionlabel',
               # 'sphinx.ext.intersphinx',
               'sphinx.ext.imgconverter']

@@ -22,7 +22,7 @@ because of system factors.
 Functions are also provided to access and interrogate files in the job's working directory.
 
 Various back-end mechanisms may be used by the job_controller to best interact
-with each system, including proxy launchers or job management systems such as 
+with each system, including proxy launchers or job management systems such as
 Balsam_. Currently, these job_controllers launch at the application level within
 an existing resource pool. However, submissions to a batch scheduler may be
 supported in the future.

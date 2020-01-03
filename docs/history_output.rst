@@ -53,7 +53,7 @@ Two other libEnsemble files produced by default:
   append output. Messages at or above MANAGER_WARNING are also copied to stderr
   to alert the user promptly. For more info, see :doc:`Logging<logging>`.
 
-.. note:: 
+.. note::
   The ``postproc_scripts`` directory, in the libEnsemble project root directory,
   contains scripts to compare outputs and create plots based on the ensemble output.
 

@@ -129,7 +129,7 @@ Theta features one default production queue, ``default``, and two debug queues,
 Module and environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In order to ensure proper functioning of libEnsemble, including the ability to kill running jobs, 
+In order to ensure proper functioning of libEnsemble, including the ability to kill running jobs,
 the following environment variable should be set::
 
     export PMI_NO_FORK=1
