@@ -123,7 +123,7 @@ libEnsemble on Summit becomes::
 
     $ bsub myscript.sh
 
-Launching user applications from libEnsemble Workers
+Launching User Applications from libEnsemble Workers
 ----------------------------------------------------
 
 Only the launch nodes can submit MPI runs to the compute nodes via ``jsrun``.

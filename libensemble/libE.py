@@ -102,8 +102,8 @@ def libE(sim_specs, gen_specs, exit_criteria,
     exit_flag: :obj:`int`
 
         Flag containing final job status
-        
-        .. code-block:: 
+
+        .. code-block::
 
             0 = No errors
             1 = Exception occured

@@ -1,12 +1,11 @@
 """
-Module to launch and control running jobs.
-
-Contains job_controller and job. The class JobController is a base class and not
+This module contains a 
+``job_controller`` and ``job``. The class ``JobController`` is a base class and not
 intended for direct use. Instead one of the inherited classes should be used. Inherited
-classes include MPI and Balsam variants. A job_controller can create and manage
-multiple jobs. The worker or user-side code can issue and manage jobs using the launch,
-poll and kill functions. Job attributes are queried to determine status. Functions are
-also provided to access and interrogate files in the job's working directory.
+classes include MPI and Balsam variants. A ``job_controller`` can create and manage
+multiple ``jobs``. The worker or user-side code can issue and manage ``jobs`` using the launch,
+poll and kill functions. ``Job`` attributes are queried to determine status. Functions are
+also provided to access and interrogate files in the ``job``'s working directory.
 
 """
 
@@ -56,10 +55,10 @@ def jassert(test, *args):
 
 class Application:
     """An application is an executable user-program
-    (e.g. Implementing a sim/gen function)."""
+    (e.g., implementing a sim/gen function)."""
 
     def __init__(self, full_path, calc_type='sim', desc=None):
-        """Instantiate a new Application instance."""
+        """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
         self.calc_dir, self.exe = os.path.split(full_path)
@@ -71,7 +70,7 @@ class Application:
 
 class Job:
     """
-    Manage the creation, configuration and status of a launchable job.
+    Manages the creation, configuration and status of a launchable job
 
     """
 
@@ -117,16 +116,16 @@ class Job:
         self.total_time = None  # Time from job submission until polled as finished.
 
     def workdir_exists(self):
-        """Returns True if the job's workdir exists"""
+        """Returns true if the job's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
 
     def file_exists_in_workdir(self, filename):
-        """Returns True if the named file exists in the job's workdir"""
+        """Returns true if the named file exists in the job's workdir"""
         return (self.workdir
                 and os.path.exists(os.path.join(self.workdir, filename)))
 
     def read_file_in_workdir(self, filename):
-        """Open and reads the named file in the job's workdir """
+        """Opens and reads the named file in the job's workdir """
         path = os.path.join(self.workdir, filename)
         if not os.path.exists(path):
             raise ValueError("{} not found in working directory".
@@ -135,19 +134,19 @@ class Job:
             return f.read()
 
     def stdout_exists(self):
-        """Returns True if the job's stdout file exists in the workdir"""
+        """Returns true if the job's stdout file exists in the workdir"""
         return self.file_exists_in_workdir(self.stdout)
 
     def read_stdout(self):
-        """Open and reads the job's stdout file in the job's workdir"""
+        """Opens and reads the job's stdout file in the job's workdir"""
         return self.read_file_in_workdir(self.stdout)
 
     def stderr_exists(self):
-        """Returns True if the job's stderr file exists in the workdir"""
+        """Returns true if the job's stderr file exists in the workdir"""
         return self.file_exists_in_workdir(self.stderr)
 
     def read_stderr(self):
-        """Open and reads the job's stderr file in the job's workdir"""
+        """Opens and reads the job's stderr file in the job's workdir"""
         return self.read_file_in_workdir(self.stderr)
 
     def calc_job_timing(self):
@@ -201,7 +200,7 @@ class Job:
 
         Sends SIGTERM, waits for a period of <wait_time> for graceful
         termination, then sends a hard kill with SIGKILL.  If <wait_time>
-        is 0, we go immediately to SIGKILL; if <wait_time> is None, we
+        is 0, we go immediately to SIGKILL; if <wait_time> is none, we
         never do a SIGKILL.
         """
         if self.finished:
@@ -288,16 +287,16 @@ class JobController:
 
     @property
     def sim_default_app(self):
-        """Return the default simulation app."""
+        """Returns the default simulation app"""
         return self.default_apps['sim']
 
     @property
     def gen_default_app(self):
-        """Return the default generator app."""
+        """Returns the default generator app"""
         return self.default_apps['gen']
 
     def default_app(self, calc_type):
-        "Get the default app for a given calc type."
+        "Gets the default app for a given calc type."
         app = self.default_apps.get(calc_type)
         jassert(calc_type in ['sim', 'gen'],
                 "Unrecognized calculation type", calc_type)
@@ -311,14 +310,14 @@ class JobController:
         ----------
 
         full_path: String
-            The full path of the user application to be registered.
+            The full path of the user application to be registered
 
         calc_type: String
             Calculation type: Is this application part of a 'sim'
-            or 'gen' function.
+            or 'gen' function
 
         desc: String, optional
-            Description of this application.
+            Description of this application
 
         """
         jassert(calc_type in self.default_apps,
@@ -372,6 +371,6 @@ class JobController:
         job.poll()
 
     def kill(self, job):
-        "Kill a job"
+        "Kills a job"
         jassert(isinstance(job, Job), "Invalid job has been provided")
         job.kill(self.wait_time)

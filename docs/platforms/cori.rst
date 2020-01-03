@@ -8,7 +8,7 @@ jobs from login nodes to run on the compute nodes.
 
 Cori does not allow more than one MPI application per compute node.
 
-Configuring Python and installation
+Configuring Python and Installation
 -----------------------------------
 
 Begin by loading the Python 3 Anaconda_ module::

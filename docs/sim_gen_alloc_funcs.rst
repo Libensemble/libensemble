@@ -65,14 +65,14 @@ Returns:
 ********
 
   **H**: :obj:`numpy structured array`
-  with keys/value-sizes matching those in sim_specs['out'].
+  with keys/value-sizes matching those in sim_specs['out']
   :doc:`(example)<data_structures/history_array>`
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
 
   **calc_status**: :obj:`int`, optional.
-  Provides a job status to the Manager and the libE_stats.txt file.
+  Provides a job status to the manager and the libE_stats.txt file
   :doc:`(example)<data_structures/calc_status>`
 
 gen_f API
@@ -102,14 +102,14 @@ Returns:
 ********
 
   **H**: :obj:`numpy structured array`
-  with keys/value-sizes matching those in gen_specs['out'].
+  with keys/value-sizes matching those in gen_specs['out']
   :doc:`(example)<data_structures/history_array>`
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
 
   **calc_status**: :obj:`int`, optional.
-  Provides a job status to the Manager and the libE_stats.txt file.
+  Provides a job status to the manager and the libE_stats.txt file
   :doc:`(example)<data_structures/calc_status>`
 
 alloc_f API

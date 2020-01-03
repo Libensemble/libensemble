@@ -130,7 +130,7 @@ Actually, yes! The job controller type only determines how libEnsemble workers
 launch and interact with user applications, and is independent of ``comms`` chosen
 for manager/worker communications.
 
-macOS-specific Errors
+macOS-Specific Errors
 ---------------------
 
 **"Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
