@@ -19,7 +19,7 @@ Begin by loading the Python 3 Anaconda module::
 
     $ module load python
 
-You can now create and activate your own custom Conda_ environment::
+You can now create and activate your own custom conda_ environment::
 
     conda create --name myenv python=3.7
     export PYTHONNOUSERSITE=1 # Make sure get python from conda env
@@ -95,10 +95,10 @@ convenience function from libEnsemble's :doc:`utils module<../utilities>`.
     module load python
     module load gcc
 
-    # Name of Conda environment
+    # Name of conda environment
     export CONDA_ENV_NAME=my_env
 
-    # Activate Conda environment
+    # Activate conda environment
     export PYTHONNOUSERSITE=1
     source activate $CONDA_ENV_NAME
 
@@ -141,5 +141,5 @@ See the OLCF guides_ for more information about Summit.
 .. _Summit: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
 .. _LSF: https://www.olcf.ornl.gov/wp-content/uploads/2018/12/summit_workshop_fuson.pdf
 .. _guides: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
-.. _Conda: https://conda.io/en/latest/
+.. _conda: https://conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/

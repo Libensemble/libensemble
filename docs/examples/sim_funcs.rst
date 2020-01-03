@@ -4,7 +4,7 @@ Simulation Functions
 Below are example simulation functions available in libEnsemble.
 
 .. IMPORTANT::
-  See the API for simulation functions :ref:`here<api_sim_f>`
+  See the API for simulation functions :ref:`here<api_sim_f>`.
 
 six_hump_camel
 --------------

@@ -18,7 +18,7 @@ Begin by loading the Python 3 Miniconda_ module::
 
     $ module load miniconda-3/latest
 
-Create a Conda_ virtual environment, cloning the base environment. This
+Create a conda_ virtual environment, cloning the base environment. This
 environment will contain mpi4py_ and many other packages you may find useful::
 
     $ conda create --name my_env --clone $MINICONDA_INSTALL_PATH
@@ -27,14 +27,14 @@ environment will contain mpi4py_ and many other packages you may find useful::
     The "executing transaction" step of creating your new environment may take a while!
 
 Following a successful environment creation, the prompt will suggest activating
-your new environment immediately. A Conda error may result; follow the on-screen
-instructions to configure your shell with Conda.
+your new environment immediately. A conda error may result; follow the on-screen
+instructions to configure your shell with conda.
 
 Activate your virtual environment with ::
 
     $ conda activate my_env
 
-More information_ on using Conda on Theta is also available.
+More information_ on using conda on Theta is also available.
 
 Installing libEnsemble and Balsam
 ---------------------------------
@@ -178,10 +178,10 @@ convenience function from libEnsemble's :doc:`utils module<../utilities>`.
     # Load conda module
     module load miniconda-3/latest
 
-    # Name of Conda environment
+    # Name of conda environment
     export CONDA_ENV_NAME=my_env
 
-    # Activate Conda environment
+    # Activate conda environment
     export PYTHONNOUSERSITE=1
     source activate $CONDA_ENV_NAME
 
@@ -245,7 +245,7 @@ Here is an example Balsam submission script:
     #Tell libE manager to stop workers, dump timing.dat and exit after time.
     export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
 
-    # Name of Conda environment
+    # Name of conda environment
     export CONDA_ENV_NAME=my_env
 
     # Conda location - theta specific
@@ -322,6 +322,6 @@ Read the documentation for Balsam here_.
 .. _guides: https://www.alcf.anl.gov/user-guides/computational-systems
 .. _here: https://balsam.readthedocs.io/en/latest/
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
-.. _Conda: https://conda.io/en/latest/
+.. _conda: https://conda.io/en/latest/
 .. _information: https://www.alcf.anl.gov/user-guides/conda
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/

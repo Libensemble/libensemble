@@ -47,11 +47,11 @@ If libEnsemble is not found, ensure that local paths are being used with::
 
     export PYTHONNOUSERSITE=0
 
-2. Create a Conda environment
+2. Create a conda environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As an alternative to using an external pip install, you can create your own
-Conda_ environment in which to install libEnsemble and all dependencies.
+conda_ environment in which to install libEnsemble and all dependencies.
 If using ``mpi4py``, installation will need to be done using the
 `specific instructions from NERSC`_. libEnsemble can then be pip installed
 into the environment.
@@ -60,7 +60,7 @@ into the environment.
 
     (my_env) user@cori07:~$ pip install libensemble
 
-Again, it is preferable to create your Conda environment under the ``common``
+Again, it is preferable to create your conda environment under the ``common``
 file system. This can be done by modifying your ``~/.condarc`` file.
 For example, add the lines::
 
@@ -187,7 +187,7 @@ See the NERSC Cori docs here_ for more information about Cori.
 
 .. _Cori: https://docs.nersc.gov/systems/cori/
 .. _Anaconda: https://www.anaconda.com/distribution/
-.. _Conda: https://conda.io/en/latest/
+.. _conda: https://conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _Slurm: https://slurm.schedmd.com/
 .. _here: https://docs.nersc.gov/jobs/

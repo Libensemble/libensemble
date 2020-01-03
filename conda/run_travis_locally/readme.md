@@ -114,7 +114,7 @@ To save the modified container as an image (with your changes to filesystem):
 
 Note: This will not by default save your environment variables
 
-First to check running containers (ie. running server - whether or not you are in a session):
+First to check running containers (i.e., running server - whether or not you are in a session):
 
     docker ps
 

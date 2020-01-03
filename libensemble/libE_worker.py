@@ -32,7 +32,7 @@ job_timing = False
 
 
 def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
-    """Evaluate calculations given to it by the manager.
+    """Evaluates calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
     and communicates results. This routine also creates and writes to
@@ -98,7 +98,7 @@ class WorkerErrMsg:
 
 class Worker:
 
-    """The Worker Class provides methods for controlling sim and gen funcs
+    """The worker class provides methods for controlling sim and gen funcs
 
     **Object Attributes:**
 
@@ -124,7 +124,7 @@ class Worker:
     """
 
     def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
-        """Initialise new worker object.
+        """Initializes new worker object
 
         """
         self.comm = comm
@@ -140,7 +140,7 @@ class Worker:
 
     @staticmethod
     def _make_sim_worker_dir(libE_specs, workerID, locs=None):
-        "Create a dir for sim workers if 'sim_dir' is in libE_specs"
+        "Creates a dir for sim workers if 'sim_dir' is in libE_specs"
         locs = locs or LocationStack()
         if 'sim_dir' in libE_specs:
             sim_dir = libE_specs['sim_dir'].rstrip('/')
@@ -155,19 +155,19 @@ class Worker:
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
-        "Create functions to run a sim or gen"
+        "Creates functions to run a sim or gen"
 
         sim_f = sim_specs['sim_f']
 
         def run_sim(calc_in, persis_info, libE_info):
-            "Call the sim func."
+            "Calls the sim func."
             return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
-                "Call the gen func."
+                "Calls the gen func."
                 return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
             run_gen = []
@@ -176,7 +176,7 @@ class Worker:
 
     @staticmethod
     def _set_job_controller(workerID, comm):
-        "Optional -- set worker ID in the job controller, return if set"
+        "Optional - sets worker ID in the job controller, return if set"
         jobctl = JobController.controller
         if isinstance(jobctl, JobController):
             jobctl.set_worker_info(comm, workerID)
@@ -186,7 +186,7 @@ class Worker:
             return False
 
     def _handle_calc(self, Work, calc_in):
-        """Run a calculation on this worker object.
+        """Runs a calculation on this worker object.
 
         This routine calls the user calculations. Exceptions are caught,
         dumped to the summary file, and raised.
@@ -261,7 +261,7 @@ class Worker:
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
     def _recv_H_rows(self, Work):
-        "Unpack Work request and receiv any history rows we need."
+        "Unpacks Work request and receives any history rows"
 
         libE_info = Work['libE_info']
         calc_type = Work['tag']
@@ -278,7 +278,7 @@ class Worker:
         return libE_info, calc_type, calc_in
 
     def _handle(self, Work):
-        "Handle a work request from the manager."
+        "Handles a work request from the manager"
 
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
@@ -301,7 +301,7 @@ class Worker:
                 'calc_type': calc_type}
 
     def run(self):
-        "Run the main worker loop."
+        "Runs the main worker loop."
 
         try:
             logger.info("Worker {} initiated on node {}".

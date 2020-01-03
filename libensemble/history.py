@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 class History:
 
-    """The History Class provides methods for managing the history array.
+    """The history class provides methods for managing the history array.
 
     **Object Attributes:**
 
-    These are set on initialisation.
+    These are set on initialization.
 
     :ivar numpy_structured_array H:
         History array storing rows for each point. Field names are in
@@ -26,7 +26,7 @@ class History:
         Starting index for this ensemble (after H0 read in)
 
     :ivar int index:
-        Where libEnsemble should start filling in H
+        Index where libEnsemble should start filling in H
 
     :ivar int given_count:
         Number of points given to sim fuctions (according to H)
@@ -35,7 +35,7 @@ class History:
         Number of points evaluated  (according to H)
 
     Note that index, given_count and sim_count reflect the total number of points
-    in H, and therefore include those prepended to H in addition to the current run.
+    in H and therefore include those prepended to H in addition to the current run.
 
     """
 
@@ -173,8 +173,8 @@ class History:
 
     def grow_H(self, k):
         """
-        libEnsemble is requesting k rows be added to H because the gen_func produced
-        more points than rows in H.
+        Adds k rows to H in response to gen_f producing more points than
+        available rows in H.
 
         Parameters
         ----------
