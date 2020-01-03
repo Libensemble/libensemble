@@ -71,7 +71,7 @@ if is_master:
     dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
     assert dir_sum == nworkers, \
         'Number of worker dirs ({}) does not match nworkers ({}).'\
-            .format(dir_sum, nworkers)
+        .format(dir_sum, nworkers)
 
     shutil.rmtree(w_ensemble)
 
@@ -86,6 +86,6 @@ if is_master:
     dir_sum = sum(['worker' in i for i in os.listdir(c_ensemble)])
     assert dir_sum == exit_criteria['sim_max'], \
         'Number of sim directories ({}) does not match sim_max ({}).'\
-            .format(dir_sum, exit_criteria['sim_max'])
+        .format(dir_sum, exit_criteria['sim_max'])
 
     shutil.rmtree(c_ensemble)
