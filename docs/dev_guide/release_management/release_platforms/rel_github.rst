@@ -20,5 +20,5 @@ be in ``docs/release_notes.rst``. The release notes should be copied only for th
 current release, starting from the date. Hint: To see example of raw input,
 click *edit* next to one of the previous releases.
 
-Note that unlike some platforms (e.g. PyPI), GitHub releases can be edited or
+Note that unlike some platforms (e.g., PyPI), GitHub releases can be edited or
 deleted once created.
