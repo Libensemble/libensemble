@@ -53,6 +53,14 @@ Other libEnsemble files produced by default are:
   Messages at or above MANAGER_WARNING are also copied to stderr to alert
   the user promptly. For more info, see :doc:`Logging<logging>`.
 
+Output and Working-Directory Structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+libEnsemble features configurable output and working-directory structures for
+flexibly storing results at every step of a calculation, or directing workers to
+perform calculations on separate filesystems. This is helpful for users
+performing I/O-heavy work that want to take advantage of separate high-speed scratch
+spaces or disks.
+
 Output Analysis
 ^^^^^^^^^^^^^^^
 The ``postproc_scripts`` directory, in the libEnsemble project root directory,

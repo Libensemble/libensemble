@@ -30,6 +30,12 @@ Specifications for libEnsemble::
             A prefix path specifying where to create sim directories
         'ensemble_dir_suffix' [str] :
             A suffix to add to worker copies of sim_input_dir to distinguish runs.
+        'copy_input_files' [list] :
+            List of filenames to copy from the input dir. Ignore all others.
+        'symlink_input_files' [list] :
+            List of filenames to symlink instead of copy.
+        'copy_input_to_parent' [bool] :
+            Copy all input files to the parent dirs containing calc dirs. Default: False
         'profile_worker' [Boolean] :
             Profile using cProfile. Default: False
 
