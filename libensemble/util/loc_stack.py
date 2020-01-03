@@ -38,7 +38,7 @@ class LocationStack:
             relative_path_from_dest = os.path.relpath(file_path, destdir)
             dest_path = os.path.join(destdir, src_base)
 
-            if len(copy_files) > 0 and len(symlink_files) > 0:
+            if len(copy_files) > 0 or len(symlink_files) > 0:
                 if src_base not in copy_files and src_base not in symlink_files:
                     continue
 
@@ -88,7 +88,7 @@ class LocationStack:
             self.copy_or_symlink(srcdir, dirname, copy_files, symlink_files)
         else:
             if dirname:
-                os.mkdir(dirname)
+                os.makedirs(dirname)
         return dirname
 
     def push_loc(self, key):

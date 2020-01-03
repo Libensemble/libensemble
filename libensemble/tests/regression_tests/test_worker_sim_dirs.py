@@ -48,7 +48,7 @@ libE_specs['use_worker_dirs'] = True
 libE_specs['ensemble_dir'] = w_ensemble
 libE_specs['symlink_input_files'] = ['symlink_this']
 libE_specs['copy_input_files'] = ['copy_this']
-libE_specs['copy_input_per_worker'] = True
+libE_specs['copy_input_to_parent'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
@@ -70,8 +70,8 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 if is_master:
     dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
     assert dir_sum == nworkers, \
-        'Number of worker directories ({}) does not match number of workers ({}).'\
-        .format(dir_sum, nworkers)
+        'Number of worker dirs ({}) does not match nworkers ({}).'\
+            .format(dir_sum, nworkers)
 
     shutil.rmtree(w_ensemble)
 
@@ -85,7 +85,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 if is_master:
     dir_sum = sum(['worker' in i for i in os.listdir(c_ensemble)])
     assert dir_sum == exit_criteria['sim_max'], \
-        'Number of sim directories ({}) does not match max number of simulations ({}).'\
-        .format(dir_sum, exit_criteria['sim_max'])
+        'Number of sim directories ({}) does not match sim_max ({}).'\
+            .format(dir_sum, exit_criteria['sim_max'])
 
     shutil.rmtree(c_ensemble)
