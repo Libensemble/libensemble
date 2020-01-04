@@ -128,7 +128,7 @@ Simulator function
 Next, we'll write our :ref:`sim_f<api_sim_f>` or simulator function. Simulator
 functions perform calculations based on values from the generator function.
 The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which serves
-a purpose similar that for to ``gen_specs``.
+a purpose similar to the ``gen_specs`` dictionary.
 
 Create a new Python file named ``simulator.py``. Write the following:
 
