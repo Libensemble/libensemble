@@ -23,7 +23,7 @@ Specifications for libEnsemble::
         'sim_input_dir' [str] :
             Name of directory which will be copied for each sim calc
         'use_worker_dirs' [bool] :
-            Instead of copying sim dir for each calc, create a copy for each worker.
+            Divide calc_dirs into per_worker parent directories.
         'clean_jobs' [bool] :
             Clean up calc_dirs after libEnsemble completes. Default: False
         'ensemble_dir' [str] :

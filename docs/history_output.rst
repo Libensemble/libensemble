@@ -55,11 +55,59 @@ Other libEnsemble files produced by default are:
 
 Output and Working-Directory Structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-libEnsemble features configurable output and working-directory structures for
+libEnsemble features configurable output and working-directory structuring for
 flexibly storing results at every step of a calculation, or directing workers to
 perform calculations on separate filesystems. This is helpful for users
-performing I/O-heavy work that want to take advantage of separate high-speed scratch
-spaces or disks.
+performing I/O-heavy simulations who may want to take advantage of separate
+high-speed scratch spaces or disks.
+
+Each time a worker begins a simulation routine, libEnsemble copies a
+specified input directory and its contents to a new location. The worker
+will then perform its work inside this new directory. How these directories are
+copied or labeled is configurable through settings
+in :ref:`libE_specs<datastruct-libe-specs>`. Each setting will be described in
+detail here.
+
+``'sim_input_dir'``: The directory to be copied. Specify this
+option to enable these features::
+
+    libE_specs['sim_input_dir'] = './my_input'
+
+
+``'ensemble_dir'``: Where to write directory copies. If not specified, writes directories to a new directory named ``ensemble`` in the current working directory::
+
+      libE_specs['ensemble_dir'] = '/scratch/current_run/my_ensemble'
+
+
+``'use_worker_dirs'``: Boolean. If enabled, libEnsemble also creates per-worker directories to store the directories use by each worker. Particularly useful for organization when running with potentially hundreds of workers or simulations with many steps, and may produce performance benefits.
+
+    Default organization with ``'use_worker_dirs'`` unspecified::
+
+        - /my_ensemble
+            - /sim0-worker1
+            - /sim1-worker2
+            - /sim2-worker3
+            - /sim3-worker4
+            - /sim4-worker1
+            - /sim5-worker2
+            ...
+
+    Organization with ``libE_specs['use_worker_dirs'] = True``::
+
+        - /my_ensemble
+            - /worker1
+                - /sim0
+                - /sim4
+                - /sim8
+                ...
+            - /worker2
+            - /worker3
+            - /worker4
+            ...
+
+See the regression test ``test_worker_sim_dirs.py`` for examples of many of
+these settings.
+
 
 Output Analysis
 ^^^^^^^^^^^^^^^
