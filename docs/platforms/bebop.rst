@@ -68,7 +68,7 @@ be initiated with ``central_mode=True``
     allocated nodes. The manager and first worker run together on a node.
 
 If you would like to interact directly with the compute nodes via a shell,
-the following shows starting a bash session on a Knights Landing node
+the following starts a bash session on a Knights Landing node
 for thirty minutes::
 
     srun --pty -A [username OR project] -p knl -t 00:30:00 /bin/bash
