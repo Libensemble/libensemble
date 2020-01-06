@@ -89,3 +89,4 @@ if is_master:
         .format(dir_sum, exit_criteria['sim_max'])
 
     shutil.rmtree(c_ensemble)
+    shutil.rmtree(sim_input_dir)

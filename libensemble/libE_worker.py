@@ -147,13 +147,13 @@ class Worker:
             sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
             prefix = libE_specs.get('ensemble_dir', './ensemble')
             suffix = libE_specs.get('ensemble_dir_suffix', '')
-            copy_files = libE_specs.get('copy_input_files', [])
+            copy_files = libE_specs.get('copy_input_files', os.listdir(sim_input_dir))
             copy_parent = libE_specs.get('copy_input_to_parent', False)
             symlink_files = libE_specs.get('symlink_input_files', [])
 
-            assert not any([file in symlink_files for file in copy_files]), \
-                "Collisions detected between files to symlink and files to " + \
-                "copy to output directories."
+            # assert not any([file in symlink_files for file in copy_files]), \
+            #     "Collisions detected between files to symlink and files to " + \
+            #     "copy to output directories."
 
             if suffix != '':
                 suffix = '_' + suffix
@@ -171,8 +171,6 @@ class Worker:
                                              os.listdir(sim_input_dir), [])
                     except FileExistsError:
                         pass
-
-                    copy_files = os.listdir(sim_input_dir)
                     sim_input_dir = prefix
 
                 locs.register_loc(EVAL_SIM_TAG, worker_dir, prefix=prefix,
@@ -244,17 +242,16 @@ class Worker:
             calc_dir = calc_type_strings[calc_type] + str(H_rows)
 
             with self.loc_stack.loc(calc_type):   # Switch to Worker directory
-
                 if copy_parent:
-                    try:  # Copy over all inputs to workers.
+                    try:
                         self.loc_stack.copy_or_symlink(full_input_dir, os.getcwd(),
-                                                       copy_files, [])
+                                                       os.listdir(full_input_dir), [])
                     except FileExistsError:
                         pass
-
                     full_input_dir = os.getcwd()
 
-                self.loc_stack.register_loc(calc_dir, calc_dir, srcdir=full_input_dir,
+                self.loc_stack.register_loc(calc_dir, calc_dir,
+                                            srcdir=full_input_dir,
                                             copy_files=copy_files,
                                             symlink_files=symlink_files)
 
