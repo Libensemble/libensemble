@@ -66,20 +66,25 @@ specified input directory and its contents to a new location. The worker
 will then perform its work inside this new directory. How these directories are
 copied or labeled is configurable through settings
 in :ref:`libE_specs<datastruct-libe-specs>`. Each setting will be described in
-detail here.
+detail here:
 
-``'sim_input_dir'``: The directory to be copied. Specify this
-option to enable these features::
+* ``'sim_input_dir'``: The directory to be copied. Specify this
+  option to enable these features::
 
     libE_specs['sim_input_dir'] = './my_input'
 
 
-``'ensemble_dir'``: Where to write directory copies. If not specified, writes directories to a new directory named ``ensemble`` in the current working directory::
+* ``'ensemble_dir'``: Where to write directory copies. If not specified, writes
+  directories to a new directory named ``ensemble`` in the current working
+  directory::
 
       libE_specs['ensemble_dir'] = '/scratch/current_run/my_ensemble'
 
 
-``'use_worker_dirs'``: Boolean. If enabled, libEnsemble also creates per-worker directories to store the directories use by each worker. Particularly useful for organization when running with potentially hundreds of workers or simulations with many steps, and may produce performance benefits.
+* ``'use_worker_dirs'``: Boolean. If enabled, libEnsemble also creates
+  per-worker directories to store the directories use by each worker.
+  Particularly useful for organization when running with potentially hundreds
+  of workers or simulations with many steps, and may produce performance benefits.
 
     Default organization with ``'use_worker_dirs'`` unspecified::
 
@@ -105,9 +110,28 @@ option to enable these features::
             - /worker4
             ...
 
+* ``'copy_input_files'``: A list of filenames to exclusively copy from the input
+  directory to each calculation directory. With this setting specified, all other
+  files in the input directory will be ignored unless specified in
+  ``'symlink_input_files'`` (described next)::
+
+      libE_specs['copy_input_files'] = ['only_copy_this']
+
+* ``'symlink_input_files'``: A list of filenames. Of the files copied from the
+  input directory into each calculation directory, create symlinks for these
+  files instead of copies::
+
+    libE_specs['symlink_input_files'] = ['symlink_this']
+
+* ``'copy_input_to_parent'``: Boolean. Also copy input-directory contents to
+  whichever directories directly contain simulation-directories. By default, this
+  is the ensemble directory. If ``'use_worker_dirs'`` is ``True``, then this is
+  each worker directory. This also changes the behavior of
+  ``'symlink_input_files'`` so calculation-directory symlinks refer to these
+  copies instead of the input directory.
+
 See the regression test ``test_worker_sim_dirs.py`` for examples of many of
 these settings.
-
 
 Output Analysis
 ^^^^^^^^^^^^^^^
