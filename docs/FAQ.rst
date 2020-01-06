@@ -97,8 +97,8 @@ nodes, while launching all sub-jobs onto other nodes.
 
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
 
-This has been observed with the OFA fabric and usually indicates MPI messages
-aren't being received correctly when using mpi4py. The solution
+This has been observed with the OFA fabric when using mpi4py and usually
+indicates MPI messages aren't being received correctly. The solution
 is to either switch fabric or turn off matching probes. See the answer for "Why
 does libEnsemble hang on certain systems when running with MPI?"
 

@@ -234,8 +234,8 @@ That's it! Now that these files are complete, we can run our simulation.
   $ python3 calling_script.py
 
 If everything ran perfectly and you included the above print statements, you
-should get something similar to the following output for ``H``. The columns might
-be rearranged as follows.
+should get something similar to the following output for ``H`` (although the
+columns might be rearranged).
 
 .. code-block::
 

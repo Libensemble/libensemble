@@ -45,7 +45,7 @@ Release 0.5.2
 * Code has been restructured to meet xSDK package policies for interoperable ECP software (version 0.5.0). #208
 * The use of MPI.COMM_WORLD has been removed. Uses a duplicate of COMM_WORLD if no communicator passed (any process not in communicator returns with an exit code of 3). #108
 * All output from libEnsemble goes via logger. MANAGER_WARNING level added. This level and above are echoed to stderr by default. API option to change echo level.
-* Simulation directories are created only as required and are suffixed by _worker. #146
+* Simulation directories are created only during sim_f calls are suffixed by _worker. #146
 * New user function libE.check_inputs() can be used to check valid configuration of inputs. Can be called in serial or under MPI (see libE API). #65
 * Installation option has been added to install dependencies used in tests ``pip install libensemble[extras]``
 * A profiling option has been added to sim_specs. #170
