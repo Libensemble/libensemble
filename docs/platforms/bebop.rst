@@ -2,7 +2,7 @@
 Bebop
 =====
 
-Bebop_ is a Cray CS400 cluster available in the Laboratory Computing Resouces
+Bebop_ is a Cray CS400 cluster with Intel Broadwell and Knights Landing compute nodes available in the Laboratory Computing Resources
 Center (LCRC) at Argonne National
 Laboratory, featuring both Intel Broadwell and Knights Landing compute nodes.
 
