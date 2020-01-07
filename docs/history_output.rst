@@ -94,7 +94,6 @@ detail here:
             - /sim2-worker3
             - /sim3-worker4
             - /sim4-worker1
-            - /sim5-worker2
             ...
 
     Organization with ``libE_specs['use_worker_dirs'] = True``::
@@ -115,26 +114,59 @@ detail here:
   files in the input directory will be ignored unless specified in
   ``'symlink_input_files'`` (described next)::
 
-      libE_specs['copy_input_files'] = ['only_copy_this']
+      libE_specs['copy_input_files'] = ['copy_this']
+
+        - /input_directory
+            - /copy_this
+            - /not_this
+
+        - /my_ensemble
+            - /sim0-worker1
+                - /copy_this
+            - /sim1-worker2
+            ...
 
 * ``'symlink_input_files'``: A list of filenames. Of the files copied from the
   input directory into each calculation directory, create symlinks for these
-  files instead of copies::
+  files instead, pointing to the source in the input directory::
 
     libE_specs['symlink_input_files'] = ['symlink_this']
 
-* ``'copy_input_to_parent'``: Boolean. Also copy input-directory contents to
-  whichever directories directly contain simulation-directories. By default, this
+    - /input_directory
+        - /copy_this
+        - /symlink_this
+
+    - /my_ensemble
+        - /sim0-worker1
+            - /copy_this
+            - /symlink_this@ -> ../../input_directory/symlink_this
+        - /sim1-worker2
+        ...
+
+* ``'copy_input_to_parent'``: Boolean. Also copy input directory contents to
+  whichever directories directly contain calculation directories. By default, this
   is the ensemble directory. If ``'use_worker_dirs'`` is ``True``, then this is
   each worker directory. This also changes the behavior of
-  ``'symlink_input_files'`` so calculation-directory symlinks refer to these
-  copies instead of the input directory.
+  ``'symlink_input_files'`` so calculation directory symlinks refer to these
+  copies instead of those in the input directory::
 
-* ``'clean_ensemble_dirs'``: Boolean. Following libEnsemble execution clean all
+    - /input_directory
+        - /copy_this
+        - /symlink_this
+
+    - /my_ensemble
+        - /copy_this
+        - /symlink_this
+        - /sim0-worker1
+              - /copy_this
+              - /symlink_this@ -> ../symlink_this
+          - /sim1-worker2
+          ...
+
+* ``'clean_ensemble_dirs'``: Boolean. Following libEnsemble execution, clean all
   worker and calculation directories and their contents from the output ensemble
-  directory.
-
-
+  directory. Copied input is currently not removed if using ``'copy_input_to_parent'``
+  and not ``'use_worker_dirs'``.
 
 See the regression test ``test_worker_sim_dirs.py`` for examples of many of
 these settings.
