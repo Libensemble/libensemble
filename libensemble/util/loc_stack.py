@@ -67,12 +67,11 @@ class LocationStack:
             If srcdir is not None, the directory should not yet exist.
             srcdir is not relative to prefix.
 
-        link: boolean:
-            Create symlinks instead of copying files to new location.
+        copy_files: list:
+            Copy only these files to the destination directory.
 
-        input_files: list:
-            Currently only used with link option. Copy/symlink
-            exactly these files
+        symlink_files: list:
+            Of all the files copied to the destination, symlink these instead.
         """
         if prefix is not None:
             prefix = os.path.expanduser(prefix)

@@ -55,16 +55,16 @@ Other libEnsemble files produced by default are:
 
 Output and Working-Directory Structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-libEnsemble features configurable output and working-directory structuring for
-flexibly storing results at every step of a calculation, or directing workers to
-perform calculations on separate filesystems. This is helpful for users
-performing I/O-heavy simulations who may want to take advantage of separate
-high-speed scratch spaces or disks.
+libEnsemble features configurable output and working directory structuring for
+storing results at every step of a calculation, or directing workers to
+perform calculations in separate filesystems or directories. This is helpful for
+users performing I/O-heavy simulations who may want to take advantage of high-speed
+scratch spaces or disks.
 
-Each time a worker begins a simulation routine, libEnsemble copies a
+Each time a worker initiates a simulation routine, libEnsemble copies a
 specified input directory and its contents to a new location. The worker
-will then perform its work inside this new directory. How these directories are
-copied or labeled is configurable through settings
+will run inside this new directory for the duration of the routine. How these
+directories are copied or labeled is configurable through settings
 in :ref:`libE_specs<datastruct-libe-specs>`. Each setting will be described in
 detail here:
 

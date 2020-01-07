@@ -40,9 +40,10 @@ Specifications for libEnsemble::
             Profile using cProfile. Default: False
 
 .. note::
-    The ``ensemble_dir`` and ``sim_input_dir`` options can indicate working
+    The ``ensemble_dir`` and ``sim_input_dir`` options can create working
     directories on local node or scratch storage. This may produce performance
-    benefits on I/O heavy simulations, but will use more space.
+    benefits on I/O heavy simulations, but will use more space if other options
+    like ``copy_input_files`` or ``symlink_input_files`` aren't used.
 
 .. seealso::
   Example ``libE_specs`` from the forces_ scaling test, completely populated::
