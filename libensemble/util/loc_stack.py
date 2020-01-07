@@ -16,37 +16,34 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def perform_op(self, type, file_path, relative_path_from_dest, dest_path):
-        """ Perform copying or symlinking """
-        if type == 'link':
-            os.symlink(relative_path_from_dest, dest_path)
-        else:
-            if os.path.isdir(file_path):
-                shutil.copytree(file_path, dest_path)
-            else:
-                shutil.copy(file_path, dest_path)
-
     def copy_or_symlink(self, srcdir, destdir, copy_files=[], symlink_files=[]):
         """ Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
-        if not os.path.isdir(destdir):
-            os.makedirs(destdir)
-        for file_path in glob('{}/*'.format(srcdir)):
+        try:
+            if not os.path.isdir(destdir):
+                os.makedirs(destdir)
+            for file_path in glob('{}/*'.format(srcdir)):
 
-            src_base = os.path.basename(file_path)
-            relative_path_from_dest = os.path.relpath(file_path, destdir)
-            dest_path = os.path.join(destdir, src_base)
+                src_base = os.path.basename(file_path)
+                rel_dest_path = os.path.relpath(file_path, destdir)
+                dest_path = os.path.join(destdir, src_base)
 
-            if len(copy_files) > 0 or len(symlink_files) > 0:
-                if src_base not in copy_files and src_base not in symlink_files:
-                    continue
+                if len(copy_files) > 0 or len(symlink_files) > 0:
+                    if src_base not in copy_files and src_base not in symlink_files:
+                        continue
 
-            type = 'copy'
-            if src_base in symlink_files:
-                type = 'link'
+                if src_base in symlink_files:
+                    os.symlink(rel_dest_path, dest_path)
 
-            self.perform_op(type, file_path, relative_path_from_dest, dest_path)
+                else:
+                    if os.path.isdir(file_path):
+                        shutil.copytree(file_path, dest_path)
+                    else:
+                        shutil.copy(file_path, dest_path)
+
+        except FileExistsError:
+            pass
 
     def register_loc(self, key, dirname, prefix=None, srcdir=None, copy_files=[],
                      symlink_files=[]):
@@ -87,7 +84,7 @@ class LocationStack:
                 "Directory {} already exists".format(dirname)
             self.copy_or_symlink(srcdir, dirname, copy_files, symlink_files)
         else:
-            if dirname:
+            if dirname and not os.path.isdir(dirname):
                 os.makedirs(dirname)
         return dirname
 

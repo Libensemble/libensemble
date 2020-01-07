@@ -32,7 +32,7 @@ dir_to_ignore = './test_sim_input_dir/not_this'
 w_ensemble = './w_ensemble'
 c_ensemble = './c_ensemble'
 
-for dir in [sim_input_dir, dir_to_symlink, dir_to_ignore]:
+for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
     if is_master and not os.path.isdir(dir):
         try:
             os.mkdir(dir)
@@ -49,6 +49,7 @@ libE_specs['ensemble_dir'] = w_ensemble
 libE_specs['symlink_input_files'] = ['symlink_this']
 libE_specs['copy_input_files'] = ['copy_this']
 libE_specs['copy_input_to_parent'] = True
+# libE_specs['clean_jobs'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
