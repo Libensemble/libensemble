@@ -49,7 +49,7 @@ libE_specs['ensemble_dir'] = w_ensemble
 libE_specs['symlink_input_files'] = ['symlink_this']
 libE_specs['copy_input_files'] = ['copy_this']
 libE_specs['copy_input_to_parent'] = True
-# libE_specs['clean_jobs'] = True
+# libE_specs['clean_ensemble_dirs'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 

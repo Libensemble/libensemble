@@ -24,7 +24,7 @@ Specifications for libEnsemble::
             Name of directory which will be copied for each sim calc
         'use_worker_dirs' [bool] :
             Divide calc_dirs into per_worker parent directories.
-        'clean_jobs' [bool] :
+        'clean_ensemble_dirs' [bool] :
             Clean up calc_dirs after libEnsemble completes. Default: False
         'ensemble_dir' [str] :
             A prefix path specifying where to create sim directories

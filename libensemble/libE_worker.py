@@ -231,7 +231,8 @@ class Worker:
         H_rows = Worker._extract_H_ranges(Work)
         calc_str = calc_type_strings[calc_type]
 
-        calc_dir = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID, H_rows, calc_str, self.loc_stack)
+        calc_dir = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID,
+                                                   H_rows, calc_str, self.loc_stack)
 
         if self.libE_specs.get('use_worker_dirs'):
             with self.loc_stack.loc(self.workerID):   # Switch to Worker directory
@@ -375,5 +376,5 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            if self.libE_specs.get('clean_jobs') and self.loc_stack is not None:
+            if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()

@@ -67,12 +67,12 @@ allowed_libE_spec_keys = ['comms',                  #
                           'abort_on_exception',     #
                           'sim_input_dir',          #
                           'copy_input_files',       #
-                          'copy_input_to_parent',  #
+                          'copy_input_to_parent',   #
                           'ensemble_dir',           #
                           'ensemble_dir_suffix',    #
                           'use_worker_dirs',        #
                           'symlink_input_files',    #
-                          'clean_jobs',             #
+                          'clean_ensemble_dirs',    #
                           'save_every_k_sims',      #
                           'save_every_k_gens',      #
                           'profile_worker']         #

@@ -130,6 +130,12 @@ detail here:
   ``'symlink_input_files'`` so calculation-directory symlinks refer to these
   copies instead of the input directory.
 
+* ``'clean_ensemble_dirs'``: Boolean. Following libEnsemble execution clean all
+  worker and calculation directories and their contents from the output ensemble
+  directory.
+
+
+
 See the regression test ``test_worker_sim_dirs.py`` for examples of many of
 these settings.
 
