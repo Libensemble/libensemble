@@ -1,5 +1,15 @@
 """
-Module to launch and control running jobs with Balsam.
+This module launches and controls the running of jobs with Balsam.
+
+.. note:: Balsam is supported only when using ``mpi`` comms and requires Python 3.6 or higher.
+
+In order to create a Balsam job controller, the calling script should contain ::
+
+    jobctr = BalsamJobController()
+
+The Balsam job controller inherits from the MPI job controller. See the
+:doc:`MPIJobController<mpi_controller>` for shared API. Any differences are
+shown below.
 
 """
 
@@ -22,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class BalsamJob(Job):
-    """Wraps a Balsam Job from the Balsam service.
+    """Wraps a Balsam Job from the Balsam service
 
     The same attributes and query routines are implemented.
 

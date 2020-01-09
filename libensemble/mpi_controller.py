@@ -1,6 +1,11 @@
 """
-Module to launch and control running MPI jobs.
+This module launches and controls the running of MPI jobs.
 
+In order to create an MPI job controller, the calling script should contain ::
+
+    jobctl = MPIJobController()
+
+See the controller API below for optional arguments.
 """
 
 import os
@@ -32,42 +37,42 @@ class MPIJobController(JobController):
         have been created.
 
         This is typically created in the user calling script. If
-        auto_resources is True, an evaluation of system resources is
+        auto_resources is true, an evaluation of system resources is
         performance during this call.
 
         Parameters
         ----------
 
         auto_resources: boolean, optional
-            Auto-detect available processor resources and assign to jobs
+            Autodetect available processor resources and assign to jobs
             if not explicitly provided on launch.
 
         central_mode, boolean, optional
-            If true, then running in central mode, else distributed.
-            Central mode means libE processes (manager and workers) are
+            If true, then running in central mode, otherwise in distributed
+            mode. Central mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
-            Distributed mode means Workers share nodes with applications.
+            Distributed mode means workers share nodes with applications.
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format
-            (Default: Uses SLURM_NODELIST).  Note: This is only queried if
+            (Default: Uses SLURM_NODELIST).  Note: This is queried only if
             a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_cobalt: String, optional
             The environment variable giving a node list in Cobalt format
-            (Default: Uses COBALT_PARTNAME) Note: This is only queried
+            (Default: Uses COBALT_PARTNAME) Note: This is queried only
             if a worker_list file is not provided and
             auto_resources=True.
 
         nodelist_env_lsf: String, optional
             The environment variable giving a node list in LSF format
-            (Default: Uses LSB_HOSTS) Note: This is only queried
+            (Default: Uses LSB_HOSTS) Note: This is queried only
             if a worker_list file is not provided and
             auto_resources=True.
 
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form
-            format (Default: Uses LSB_MCPU_HOSTS) Note: This is only queried
+            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
             if a worker_list file is not provided and auto_resources=True.
 
         """
@@ -106,9 +111,9 @@ class MPIJobController(JobController):
                              nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
     def add_comm_info(self, libE_nodes, serial_setup):
-        """Add comms specific information to controller
+        """Adds comm-specific information to controller.
 
-        Updates resources information if auto_resources is True.
+        Updates resources information if auto_resources is true.
         """
         if self.auto_resources:
             self.resources.add_comm_info(libE_nodes=libE_nodes)
@@ -165,54 +170,54 @@ class MPIJobController(JobController):
             The calculation type: 'sim' or 'gen'
 
         num_procs: int, optional
-            The total number of MPI tasks on which to launch the job.
+            The total number of MPI tasks on which to launch the job
 
         num_nodes: int, optional
-            The number of nodes on which to launch the job.
+            The number of nodes on which to launch the job
 
         ranks_per_node: int, optional
-            The ranks per node for this job.
+            The ranks per node for this job
 
         machinefile: string, optional
-            Name of a machinefile for this job to use.
+            Name of a machinefile for this job to use
 
         app_args: string, optional
             A string of the application arguments to be added to job
-            launch command line.
+            launch command line
 
         stdout: string, optional
-            A standard output filename.
+            A standard output filename
 
         stderr: string, optional
-            A standard error filename.
+            A standard error filename
 
         stage_inout: string, optional
-            A directory to copy files from. Default will take from
-            current directory.
+            A directory to copy files from; default will take from
+            current directory
 
         hyperthreads: boolean, optional
             Whether to launch MPI tasks to hyperthreads
 
         test: boolean, optional
-            Whether this is a test - No job will be launched. Instead
-            runline is printed to logger (At INFO level).
+            Whether this is a test - no job will be launched; instead
+            runline is printed to logger (at INFO level)
 
         wait_on_run: boolean, optional
             Whether to wait for job to be polled as RUNNING (or other
-            active/end state) before continuing.
+            active/end state) before continuing
 
 
         Returns
         -------
 
         job: obj: Job
-            The lauched job object.
+            The lauched job object
 
 
-        Note that if some combination of num_procs, num_nodes and
-        ranks_per_node are provided, these will be honored if
+        Note that if some combination of num_procs, num_nodes, and
+        ranks_per_node is provided, these will be honored if
         possible. If resource detection is on and these are omitted,
-        then the available resources will be divided amongst workers.
+        then the available resources will be divided among workers.
         """
 
         app = self.default_app(calc_type)

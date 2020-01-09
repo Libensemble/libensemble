@@ -1,5 +1,5 @@
 """
-Manage libensemble resources related to MPI jobs launched from nodes.
+Manages libensemble resources related to MPI jobs launched from nodes.
 """
 
 import os
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class MPIResources(Resources):
-    """Manage resources provided to MPI jobs launched from workers."""
+    """Manages resources provided to MPI jobs launched from workers."""
 
     @staticmethod
     def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
@@ -51,14 +51,14 @@ class MPIResources(Resources):
 
     def get_resources(self, num_procs=None, num_nodes=None,
                       ranks_per_node=None, hyperthreads=False):
-        """Reconciles user supplied options with available Worker
+        """Reconciles user-supplied options with available worker
         resources to produce run configuration.
 
-        Detects resources available to worker, checks if an existing
-        user supplied config is valid, and fills in any missing config
-        information (ie. num_procs/num_nodes/ranks_per_node)
+        Detects resources available to worker, checks whether an existing
+        user-supplied config is valid, and fills in any missing config
+        information (i.e., num_procs/num_nodes/ranks_per_node)
 
-        User supplied config options are honored, and an exception is
+        User-supplied config options are honored, and an exception is
         raised if these are infeasible.
         """
 
@@ -126,7 +126,7 @@ class MPIResources(Resources):
     def create_machinefile(self, machinefile=None, num_procs=None,
                            num_nodes=None, ranks_per_node=None,
                            hyperthreads=False):
-        """Create a machinefile based on user supplied config options,
+        """Creates a machinefile based on user-supplied config options,
         completed by detected machine resources"""
 
         machinefile = machinefile or 'machinefile'
@@ -149,7 +149,7 @@ class MPIResources(Resources):
         return built_mfile, num_procs, num_nodes, ranks_per_node
 
     def get_hostlist(self):
-        """Create a hostlist based on user supplied config options,
+        """Creates a hostlist based on user-supplied config options,
         completed by detected machine resources"""
         node_list = self.worker_resources.local_nodelist
         hostlist_str = ",".join([str(x) for x in node_list])

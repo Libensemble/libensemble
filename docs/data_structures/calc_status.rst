@@ -10,7 +10,7 @@ is returned to the manager and printed to the ``libE_stats.txt`` file. Only the
 status values ``FINISHED_PERSISTENT_SIM_TAG`` and
 ``FINISHED_PERSISTENT_GEN_TAG`` are currently used by the manager,  but others
 can still provide a useful summary in libE_stats.txt. The user determines the
-status of the calculation, as it could include multiple application runs. It
+status of the calculation, since it could include multiple application runs. It
 can be added as a third return variable in sim_f or gen_f functions.
 The calc_status codes are in the ``libensemble.message_numbers`` module.
 
@@ -52,7 +52,7 @@ Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_in
     return output, persis_info, calc_status
 
 See forces_simf.py_ for a complete example.
-See uniform_or_localopt.py_ for an example of using *FINISHED_PERSISTENT_GEN_TAG*
+See uniform_or_localopt.py_ for an example of using ``FINISHED_PERSISTENT_GEN_TAG``.
 
 Available values:
 
@@ -60,7 +60,7 @@ Available values:
     :start-after: first_calc_status_rst_tag
     :end-before: last_calc_status_rst_tag
 
-The corresponding messages printed to the ``libE_stats.txt`` file are:
+The corresponding messages printed to the ``libE_stats.txt`` file:
 
 ..  literalinclude:: ../../libensemble/message_numbers.py
     :start-at: calc_status_strings

@@ -58,15 +58,14 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     When using libEnsemble to do individual objective component evaluations,
     APOSMM will return ``gen_specs['user']['components']`` copies of each point, but
-    the component=0 entry of each point will only be considered when
+    the component=0 entry of each point will be considered only when
 
     - deciding where to start a run,
-    - best nearby point,
-    - storing the order of the points is the run
+    - determining the best nearby point,
+    - storing the order of the points in the run, or
     - storing the combined objective function value
-    - etc
 
-    Necessary quantities in ``gen_specs['user']`` are:
+    Necessary quantities in ``gen_specs['user']`` are
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
@@ -76,14 +75,14 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods)
 
-    Optional ``gen_specs['user']`` entries are:
+    Optional ``gen_specs['user']`` entries are as follows
 
     - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
     - ``'combine_component_func' [func]``: Function to combine obj components
     - ``'components' [int]``: Number of objective components
-    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
-      distance to the nearest boundary should the initial step size be in
-      localopt runs
+    - ``'dist_to_bound_multiple' [float in (0,1]]``: Fraction of the
+      distance to the nearest boundary to be used for the initial step size be
+      in localopt runs
     - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs
       with smallest observed function value are given priority
     - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
@@ -99,7 +98,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
-    And ``gen_specs['user']`` convergence tolerances for NLopt, PETSc/TAO, SciPy
+    The following are ``gen_specs['user']`` convergence tolerances for NLopt, PETSc/TAO, SciPy
 
     - ``'fatol' [float]``:
     - ``'ftol_abs' [float]``:
@@ -111,15 +110,15 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'tol' [float]``:
 
 
-    As a default, APOSMM starts a local optimization runs from a point that:
+    As a default, APOSMM starts a local optimization run from a point that
 
     - is not in an active local optimization run,
     - is more than ``mu`` from the boundary (in the unit-cube domain),
-    - is more than ``nu`` from identified minima (in the unit-cube domain),
+    - is more than ``nu`` from identified minima (in the unit-cube domain), and
     - does not have a better point within a distance ``r_k`` of it.
 
     If the above results in more than ``'max_active_runs'`` being advanced, the
-    best point in each run is determined and the dist_to_better is computed
+    best point in each run is determined, and the dist_to_better is computed
     (with inf being the value for the best run). Then those
     ``'max_active_runs'`` runs with largest dist_to_better are advanced
     (breaking ties arbitrarily).
@@ -131,7 +130,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     :Note:
         APOSMM critically uses ``persis_info`` to store information about
         active runs, order of points in each run, etc. The allocation function
-        must ensure it's always given.
+        must ensure that it is always given.
 
     .. seealso::
         `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
@@ -731,13 +730,13 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     """
     Finds points in the history that satisfy the conditions (S1-S5 and L1-L8) in
     Table 1 of the `APOSMM paper <https://doi.org/10.1007/s12532-017-0131-4>`_
-    This method first identifies sample points satisfying S2-S5, and then
+    This method first identifies sample points satisfying S2-S5 and then
     identifies all localopt points that satisfy L1-L7.
     We then start from any sample point also satisfying S1.
     We do not check condition L8 currently.
 
     We don't consider points in the history that have not returned from
-    computation, or that have a ``nan`` value. Also, note that ``mu`` and ``nu``
+    computation or that have a ``nan`` value. Also, note that ``mu`` and ``nu``
     implicitly depend on the scaling that is happening with the domain. That
     is, adjusting the initial domain can make a run start (or not start) at
     a point that didn't (or did) previously.

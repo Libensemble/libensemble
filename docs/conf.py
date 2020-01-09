@@ -58,7 +58,13 @@ needs_sphinx = '2.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinxcontrib.bibtex','sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
+extensions = ['sphinxcontrib.bibtex',
+              'sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
+              # 'sphinx.ext.autosectionlabel',
+              # 'sphinx.ext.intersphinx',
+              'sphinx.ext.imgconverter']
+# autosectionlabel_prefix_document = True
 # extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
 #breathe_projects = { "libEnsemble": "../code/src/xml/" }
 #breathe_default_project = "libEnsemble"
@@ -93,6 +99,7 @@ latex_doc = 'latex_index'
 project = 'libEnsemble'
 copyright = '2020 Argonne National Laboratory'
 author = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro'
+today_fmt = '%B %-d, %Y'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

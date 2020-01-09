@@ -1,37 +1,37 @@
 Job Controller Overview
 =======================
 
-Users who wish to launch jobs to a system from a :ref:`sim_f<api_sim_f>` (or :ref:`gen_f<api_gen_f>`),
+Users who wish to launch jobs to a system from a :ref:`sim_f<api_sim_f>` (or :ref:`gen_f<api_gen_f>`)
 running on a worker have several options.
 
 Typically, an MPI job could be initialized with a subprocess call to
 ``mpirun`` or an alternative launcher such as ``aprun`` or ``jsrun``. The ``sim_f``
 may then monitor this job, check output, and possibly kill the job. We use "job"
 to represent an application launch to the system, which may be a supercomputer,
-cluster, or other provision of compute resources.
+cluster, or other compute resource.
 
 A **job_controller** interface is provided by libEnsemble to remove the burden of
 system interaction from the user and ease writing portable user scripts that
 launch applications. The job_controller provides the key functions: ``launch()``,
-``poll()`` and ``kill()``. Job attributes can be queried to determine status after
-each poll. To implement these functions, libEnsemble auto-detects system criteria
+``poll()``, and ``kill()``. Job attributes can be queried to determine status after
+each poll. To implement these functions, libEnsemble autodetects system criteria
 such as the MPI launcher and mechanisms to poll and kill jobs on supported systems.
-libEnsemble's job_controller is resilient, and can re-launch jobs that fail due
-to system factors.
+libEnsemble's job_controller is resilient and can relaunch jobs that fail
+because of system factors.
 
 Functions are also provided to access and interrogate files in the job's working directory.
 
 Various back-end mechanisms may be used by the job_controller to best interact
-with each system, including proxy launchers or job management systems like
+with each system, including proxy launchers or job management systems such as
 Balsam_. Currently, these job_controllers launch at the application level within
 an existing resource pool. However, submissions to a batch scheduler may be
 supported in the future.
 
-In a calling script, a job_controller object is created and the executable
+In a calling script, a job_controller object is created, and the executable
 generator or simulation applications are registered to it for launch. If an
-alternative job_controller like Balsam will be used, then the applications can be
-registered like in the example below. Once in the user-side worker code (sim/gen func),
-an MPI based job_controller can be retrieved without any need to specify the type.
+alternative job_controller like Balsam is used, then the applications can be
+registered as in the example below. Once in the user-side worker code (sim/gen func),
+an MPI-based job_controller can be retrieved without any need to specify the type.
 
 **Example usage (code runnable with or without a Balsam backend):**
 
@@ -86,10 +86,8 @@ In user sim func::
 
 See the :doc:`job_controller<job_controller>` interface for API.
 
-For a more realistic example see:
-
-- libensemble/tests/scaling_tests/forces/
-
-which launches the forces.x application as an MPI job.
+For a more realistic example see
+the :doc:`Electrostatic Forces example <../examples/calling_scripts>`,
+which launches the ``forces.x`` application as an MPI job.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/

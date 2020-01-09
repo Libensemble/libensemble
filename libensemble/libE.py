@@ -1,15 +1,15 @@
 """
-This is the outer libEnsemble routine.
+The libE module is the outer libEnsemble routine.
 
 This module sets up the manager and the team of workers, configured according
-to the contents of the ``libE_specs`` dictionary. The Manager/Worker
-communications scheme used within libEnsemble is parsed from the ``comms`` key
+to the contents of the ``libE_specs`` dictionary. The manager/worker
+communications scheme used in libEnsemble is parsed from the ``comms`` key
 if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
 ``tcp``. MPI is the default; if no communicator is specified, a duplicate of
 COMM_WORLD will be used.
 
 If an exception is encountered by the manager or workers, the history array
-is dumped to file and MPI abort is called.
+is dumped to file, and MPI abort is called.
 """
 
 __all__ = ['libE']
@@ -101,12 +101,14 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     exit_flag: :obj:`int`
 
-        Flag containing final job status::
+        Flag containing final job status
 
-        0 = No errors
-        1 = Exception occured
-        2 = Manager timed out and ended simulation
-        3 = Current process is not in libEnsemble MPI communicator
+        .. code-block::
+
+            0 = No errors
+            1 = Exception occured
+            2 = Manager timed out and ended simulation
+            3 = Current process is not in libEnsemble MPI communicator
     """
 
     # Set default comms

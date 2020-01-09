@@ -8,12 +8,11 @@ from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_star
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
-    This allocation function will:
+    This allocation function will do the following:
 
     - Start up a persistent generator that is a local opt run at the first point
-      identified by APOSMM's decide_where_to_start_localopt.
-    - It will only do this if at least one worker will be left to perform
-      simulation evaluations.
+      identified by APOSMM's decide_where_to_start_localopt. Note, it will do
+      this only if at least one worker will be left to perform simulation evaluations.
     - If multiple starting points are available, the one with smallest function
       value is chosen.
     - If no candidate starting points exist, points from existing runs will be

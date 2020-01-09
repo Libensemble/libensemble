@@ -11,7 +11,7 @@ import time
 
 def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, libE_info):
     """
-    Evaluates the six hump camel for a collection of points given in ``H['x']``, but also
+    Evaluates the six hump camel for a collection of points given in ``H['x']`` but also
     performs a system call with a given number of nodes and ranks per node
     using a machinefile (to show one way of evaluating a compiled simulation).
 
