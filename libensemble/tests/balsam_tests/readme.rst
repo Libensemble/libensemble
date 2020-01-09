@@ -8,10 +8,10 @@ Currently this can be found in the ``docs/`` subdirectory of the ``hpc-edge-serv
 repository. The documentation is in Sphinx format.
 
 Theta:
-If the instructions are followed to set up a Conda environment called balsam,
+If the instructions are followed to set up a conda environment called balsam,
 then the script env_setup_theta.sh, under the balsam tests directory, can be sourced
 in future logins for theta. Or modified for other platforms. In some platforms
-you may need to only activate the Balsam Conda environment.
+you may need to only activate the Balsam conda environment.
 
 -----------------------------------------
 Quickstart - Balsam tests for libEnsemble
@@ -231,7 +231,7 @@ Interactive sessions can be launched as:
 This would be a 60 minute interactive session with 5 nodes. You must have a
 project code.
 
-You will need to load the Conda environment in the interactive session - or source the
+You will need to load the conda environment in the interactive session - or source the
 script env_setup_theta.sh.
 
 At time of writing theta does not log you out of interactive sessions. But jobs

@@ -1,6 +1,8 @@
 .. libEnsemble documentation master file for the latex build
 
-.. include:: welcome.rst
+=====
+Dummy
+=====
 
 .. toctree::
    :maxdepth: 3
@@ -12,6 +14,9 @@
 Developer's Guide
 =================
 
+This section contains further information for those interested in adding
+features to libEnsemble.
+
 .. toctree::
    :maxdepth: 3
 
@@ -21,6 +26,9 @@ Developer's Guide
 
 Appendices
 ==========
+
+This section contains tutorials, frequently asked questions, examples, and
+other libEnsemble information.
 
 .. toctree::
    :maxdepth: 3

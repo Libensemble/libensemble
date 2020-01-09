@@ -20,7 +20,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
     simulation is requested by the allocation function.
 
   * The tuples in ``sim_specs['out']`` are entered into the master
-    :ref:`history array<datastruct-history-array>`
+    :ref:`history array<datastruct-history-array>`.
 
 .. seealso::
 
@@ -38,7 +38,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
 
   - run_libe_forces.py_ has a longer ``sim_specs`` declaration with a number of
     user-specific fields. These are given to the corresponding sim_f, which
-    can be found at forces_simf.py_
+    can be found at forces_simf.py_.
 
   ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces.py
       :start-at: sim_f

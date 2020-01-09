@@ -1,3 +1,8 @@
+"""
+The libEnsemble utilities module assists in writing consistent calling scripts
+and user functions.
+"""
+
 __all__ = ['check_inputs', 'parse_args', 'save_libE_output', 'add_unique_random_streams']
 
 import os
@@ -88,7 +93,7 @@ _USER_SIM_ID_WARNING = \
 
 
 def _check_consistent_field(name, field0, field1):
-    "Check that new field (field1) is compatible with an old field (field0)."
+    "Checks that new field (field1) is compatible with an old field (field0)."
     assert field0.ndim == field1.ndim, \
         "H0 and H have different ndim for field {}".format(name)
     assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \
@@ -196,9 +201,9 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
 
 def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
     """
-    Check if the libEnsemble arguments are of the correct data type and contain
-    sufficient information to perform a run. There is no return value. An
-    exception is raised if any of the checks fail.
+    Checks whether the libEnsemble arguments are of the correct data type and
+    contain sufficient information to perform a run. There is no return value.
+    An exception is raised if any of the checks fail.
 
     .. code-block:: python
 
@@ -220,7 +225,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
 
     serial_check : :obj:`boolean`
 
-        If True, assumes running a serial check. This means, for example,
+        If true, assumes running a serial check. This means, for example,
         the details of current MPI communicator are not checked (can be
         run with libE_specs{'comm': 'mpi'} without running through mpiexec.
 
@@ -275,7 +280,7 @@ parser.add_argument('--tester_args', type=str, nargs='*',
 
 
 def _mpi_parse_args(args):
-    "Parse arguments for MPI comms."
+    "Parses arguments for MPI comms."
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_master = MPI.COMM_WORLD.Get_rank() == 0
@@ -284,14 +289,14 @@ def _mpi_parse_args(args):
 
 
 def _local_parse_args(args):
-    "Parse arguments for forked processes using multiprocessing."
+    "Parses arguments for forked processes using multiprocessing."
     nworkers = args.nworkers or 4
     libE_specs = {'nworkers': nworkers, 'comms': 'local'}
     return nworkers, True, libE_specs, args.tester_args
 
 
 def _tcp_parse_args(args):
-    "Parse arguments for local TCP connections"
+    "Parses arguments for local TCP connections"
     nworkers = args.nworkers or 4
     cmd = [
         sys.executable, sys.argv[0], "--comms", "client", "--server",
@@ -303,7 +308,7 @@ def _tcp_parse_args(args):
 
 
 def _ssh_parse_args(args):
-    "Parse arguments for SSH with reverse tunnel."
+    "Parses arguments for SSH with reverse tunnel."
     nworkers = len(args.workers)
     worker_pwd = args.worker_pwd or os.getcwd()
     script_dir, script_name = os.path.split(sys.argv[0])
@@ -326,7 +331,7 @@ def _ssh_parse_args(args):
 
 
 def _client_parse_args(args):
-    "Parse arguments for a TCP client."
+    "Parses arguments for a TCP client."
     nworkers = args.nworkers or 4
     ip, port, authkey = args.server
     libE_specs = {'ip': ip,
@@ -340,7 +345,7 @@ def _client_parse_args(args):
 
 def parse_args():
     """
-    Parses command line arguments.
+    Parses command-line arguments.
 
     .. code-block:: python
 
@@ -369,7 +374,7 @@ def parse_args():
         Number of workers libEnsemble will inititate
 
     is_master: :obj:`boolean`
-        Indicate if the current process is the manager process
+        Indicates whether the current process is the manager process
 
     libE_specs: :obj:`dict`
         Settings and specifications for libEnsemble
@@ -397,7 +402,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess='Run completed
     """
     Writes out history array and persis_info to files.
 
-    Format: <user_script>_results_History_length=<history_length>_evals=<Completed evals>_ranks=<nworkers>
+    Format: <calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>
 
     .. code-block:: python
 
@@ -418,7 +423,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess='Run completed
 
     calling_file  : :obj:`string`
 
-        Name of user calling script (or user chosen name) to prefix output files.
+        Name of user-calling script (or user chosen name) to prefix output files.
         The convention is to send __file__ from user calling script.
 
     nworkers: :obj:`int`

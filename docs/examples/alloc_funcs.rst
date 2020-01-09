@@ -4,7 +4,7 @@ Allocation Functions
 Below are example allocation functions available in libEnsemble.
 
 .. IMPORTANT::
-  See the API for allocation functions :ref:`here<api_alloc_f>`
+  See the API for allocation functions :ref:`here<api_alloc_f>`.
 
 .. note:: The default alloc_func is give_sim_work_first.
 

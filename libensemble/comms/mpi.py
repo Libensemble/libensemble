@@ -14,7 +14,7 @@ class MPIComm(Comm):
 
     The MPIComm object provides the same message queue pair abstraction as the
     other comm objects.  In order to provide nonblocking queue semantics
-    (i.e. send returns immediately after putting the message in an internal
+    (i.e., send returns immediately after putting the message in an internal
     queue rather than after it is 'in the system'), we use the MPI isend.
     Because of how mpi4py is implemented, the isend call immediately creates
     a pickle in a separate buffer, which is associated with the request
