@@ -19,6 +19,7 @@
    :caption: Tutorials:
 
    tutorials/local_sine_tutorial
+   tutorials/jobcontroller_forces_tutorial
    examples/examples_index
 
 .. toctree::
