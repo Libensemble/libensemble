@@ -17,11 +17,15 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     Work = {}
     gen_count = count_persis_gens(W)
 
-    # If i is in persistent mode, and any of its calculated values have
+    if len(H) and gen_count == 0:
+        # The one persistent worker is done. Exiting
+        return Work, persis_info, 1
+
+    # If i is in persistent mode, and all of its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
-        if np.any(np.logical_and(H['returned'][gen_inds], ~H['given_back'][gen_inds])):
+        if np.all(H['returned'][gen_inds]):
             last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
             inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
             gen_work(Work, i,
@@ -44,4 +48,4 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             gen_work(Work, i, gen_specs['in'], [], persis_info[i],
                      persistent=True)
 
-    return Work, persis_info
+    return Work, persis_info, 0

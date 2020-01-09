@@ -362,7 +362,17 @@ class Manager:
     def _alloc_work(self, H, persis_info):
         "Calls work allocation function from alloc_specs"
         alloc_f = self.alloc_specs['alloc_f']
-        return alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+        output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+
+        if len(output) == 2:
+            output = output + ((0,))
+
+        assert len(output) == 3, "alloc_f must return three outputs."
+        assert isinstance(output[0], dict), "First alloc_f output must be a dictionary"
+        assert isinstance(output[1], dict), "Second alloc_f output must be a dictionary"
+        assert output[2] in [0, 1], "Third alloc_f output must be 0 or 1."
+
+        return output
 
     def run(self, persis_info):
         "Runs the manager"
@@ -374,8 +384,11 @@ class Manager:
             while not self.term_test():
                 persis_info = self._receive_from_workers(persis_info)
                 if any(self.W['active'] == 0):
-                    Work, persis_info = self._alloc_work(self.hist.trim_H(),
-                                                         persis_info)
+                    Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
+                                                               persis_info)
+                    if flag:
+                        break
+
                     for w in Work:
                         if self.term_test():
                             break
@@ -383,7 +396,7 @@ class Manager:
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(self.W['active'] != 0), \
-                    "Should not wait for workers when all workers are idle."
+                    "alloc_f did not return any work, although all workers are idle."
 
         finally:
             # Return persis_info, exit_flag, elapsed time
