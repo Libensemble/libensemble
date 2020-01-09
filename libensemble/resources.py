@@ -1,5 +1,5 @@
 """
-Module for detecting and returning system resources
+This module detects and returns system resources
 
 """
 
@@ -22,21 +22,21 @@ class ResourcesException(Exception):
 
 
 class Resources:
-    """Provide system resources to libEnsemble and job controller.
+    """Provides system resources to libEnsemble and job controller.
 
-    This is intialised when the job_controller is created with auto_resources set to True.
+    This is intialized when the job_controller is created with auto_resources set to true.
 
     **Object Attributes:**
 
-    These are set on initialisation.
+    These are set on initialization.
 
-    :ivar string top_level_dir: Directory where searches for worker_list file.
-    :ivar boolean central_mode: If true, then running in central mode, else distributed.
-    :ivar EnvResources env_resources: An object storing environment variables used by resources.
+    :ivar string top_level_dir: Directory where searches for worker_list file
+    :ivar boolean central_mode: If true, then running in central mode; otherwise distributed
+    :ivar EnvResources env_resources: An object storing environment variables used by resources
     :ivar list global_nodelist: A list of all nodes available for running user applications
-    :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node.
-    :ivar int physical_cores_avail_per_node: Physical cores available on a node.
-    :ivar WorkerResources worker_resources: An object that can contain worker specific resources.
+    :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
+    :ivar int physical_cores_avail_per_node: Physical cores available on a node
+    :ivar WorkerResources worker_resources: An object that can contain worker specific resources
     """
 
     def __init__(self, top_level_dir=None, central_mode=False, launcher=None,
@@ -45,9 +45,9 @@ class Resources:
                  nodelist_env_lsf=None,
                  nodelist_env_lsf_shortform=None):
 
-        """Initialise new Resources instance
+        """Initializes a new Resources instance
 
-        Works out the compute resources available for current allocation, including
+        Determines the compute resources available for current allocation, including
         node list and cores/hardware threads available within nodes.
 
         Parameters
@@ -57,30 +57,30 @@ class Resources:
             Directory libEnsemble runs in (default is current working directory)
 
         central_mode: boolean, optional
-            If true, then running in central mode, else distributed.
+            If true, then running in central mode, otherwise distributed.
             Central mode means libE processes (manager and workers) are grouped together and
             do not share nodes with applications. Distributed mode means Workers share nodes
             with applications.
 
         launcher: String, optional
-            The name of the job launcher such as mpirun or aprun. This may be used to obtain
-            intra-node information by launching a probing job onto the compute nodes.
+            The name of the job launcher, such as mpirun or aprun. This may be used to obtain
+            intranode information by launching a probing job onto the compute nodes.
             If not present, the local node will be used to obtain this information.
 
         nodelist_env_slurm: String, optional
-            The environment variable giving a node list in Slurm format (Default: Uses SLURM_NODELIST)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
+            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_cobalt: String, optional
-            The environment variable giving a node list in Cobalt format (Default: Uses COBALT_PARTNAME)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in Cobalt format (Default: uses COBALT_PARTNAME).
+            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf: String, optional
-            The environment variable giving a node list in LSF format (Default: Uses LSB_HOSTS)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in LSF format (Default: uses LSB_HOSTS).
+            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf_shortform: String, optional
-            The environment variable giving a node list in LSF short-form format (Default: Uses LSB_MCPU_HOSTS)
+            The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS)
             Note: This is only queried if a worker_list file is not provided and auto_resources=True.
 
         """
@@ -112,7 +112,7 @@ class Resources:
         self.worker_resources = None
 
     def add_comm_info(self, libE_nodes):
-        """Add comms specific information to resources
+        """Adds comms-specific information to resources
 
         Removes libEnsemble nodes from nodelist if in central_mode.
         """
@@ -172,13 +172,13 @@ class Resources:
     # This is for central mode where libE nodes will not share with app nodes
     @staticmethod
     def remove_nodes(global_nodelist_in, remove_list):
-        """Any nodes in remove_list are removed from the global nodelist"""
+        """Removes any nodes in remove_list from the global nodelist"""
         global_nodelist = list(filter(lambda x: x not in remove_list, global_nodelist_in))
         return global_nodelist
 
     @staticmethod
     def best_split(a, n):
-        """Create the most even split of list a into n parts and return list of lists"""
+        """Creates the most even split of list a into n parts and return list of lists"""
         k, m = divmod(len(a), n)
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
@@ -186,7 +186,7 @@ class Resources:
     def get_global_nodelist(rundir=None,
                             env_resources=None):
         """
-        Return the list of nodes available to all libEnsemble workers
+        Returns the list of nodes available to all libEnsemble workers.
 
         If a worker_list file exists this is used, otherwise the environment
         is interrogated for a node list. If a dedicated manager node is used,
@@ -228,13 +228,13 @@ class WorkerResources:
     :ivar int workerID: workerID
     :ivar list local_nodelist: A list of all nodes assigned to this worker
     :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number)
-    :ivar int workers_per_node: The number of workers per node (if using sub-node workers)
+    :ivar int workers_per_node: The number of workers per node (if using subnode workers)
     """
 
     def __init__(self, workerID, comm, resources):
-        """Initialise new WorkerResources instance
+        """Initializes a new WorkerResources instance
 
-        Works out the compute resources available for current worker, including
+        Determines the compute resources available for current worker, including
         node list and cores/hardware threads available within nodes.
 
         Parameters
@@ -244,10 +244,10 @@ class WorkerResources:
             workerID of current process
 
         comm: Comm
-            The Comm object for Manager/Worker communications.
+            The Comm object for manager/worker communications
 
         resources: Resources
-            A Resources object containing global nodelist and intra-node information.
+            A Resources object containing global nodelist and intranode information
 
         """
         self.num_workers = comm.get_num_workers()
@@ -258,7 +258,7 @@ class WorkerResources:
 
     @staticmethod
     def get_workers_on_a_node(num_workers, resources):
-        """ Returns the number of workers that can be placed on each node"""
+        """Returns the number of workers that can be placed on each node"""
         num_nodes = len(resources.global_nodelist)
         # Round up if theres a remainder
         workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)

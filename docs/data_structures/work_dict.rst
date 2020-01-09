@@ -3,8 +3,8 @@
 work dictionary
 ===============
 
-Dictionary with integer keys ``i`` and dictionary values to be given to worker ``i``.
-``Work[i]`` has the following form::
+The work dictionary contains integer keys ``i`` and dictionary values to be
+given to worker ``i``. ``Work[i]`` has the following form::
 
     Work[i]: [dict]:
 
@@ -20,7 +20,7 @@ Dictionary with integer keys ``i`` and dictionary values to be given to worker `
         'persistent' [bool]: True if worker 'i' will enter persistent mode
 
 .. seealso::
-  For allocation functions giving Work dictionaries using persistent workers,
+  For allocation functions giving work dictionaries using persistent workers,
   see `start_only_persistent.py`_ or `start_persistent_local_opt_gens.py`_.
   For a use case where the allocation and generator functions combine to do
   simulation evaluations with different resources (blocking some workers), see

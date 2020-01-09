@@ -2,8 +2,9 @@
 Bebop
 =====
 
-Bebop_ is a Cray CS400 cluster available within LCRC at Argonne National
-Laboratory, featuring both Intel Broadwell and Knights Landing compute nodes.
+Bebop_ is a Cray CS400 cluster with Intel Broadwell and Knights Landing compute nodes available in the Laboratory Computing Resources
+Center (LCRC) at Argonne National
+Laboratory.
 
 Configuring Python
 ------------------
@@ -12,7 +13,7 @@ Begin by loading the Python 3 Anaconda_ module::
 
     module load anaconda3
 
-Create a Conda_ virtual environment in which to install libEnsemble and all
+Create a conda_ virtual environment in which to install libEnsemble and all
 dependencies::
 
     conda config --add channels intel
@@ -24,13 +25,13 @@ Installing libEnsemble and Dependencies
 
 You should have an indication that the virtual environment is activated.
 Install mpi4py_ and libEnsemble in this environment, making sure to reference
-the pre-installed Intel MPI Compiler. Your prompt should be similar to the
+the preinstalled Intel MPI compiler. Your prompt should be similar to the
 following block:
 
 .. code-block:: console
 
-    (my_env) user@beboplogin4:~$ CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
-    (my_env) user@beboplogin4:~$ pip install libensemble
+    (my_env) user@login:~$ CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
+    (my_env) user@login:~$ pip install libensemble
 
 Job Submission
 --------------
@@ -57,30 +58,30 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 ``mpirun`` should also work. This line launches libEnsemble with a manager and
 **three** workers to one allocated compute node, with three nodes available for
 the workers to launch calculations with the job-controller or a job-launch command.
-This is an example of running in :doc:`centralized<platforms_index>` mode and,
+This is an example of running in :doc:`centralized<platforms_index>` mode, and,
 if using the :doc:`job_controller<../job_controller/mpi_controller>`, it should
 be initiated with ``central_mode=True``
 
 .. note::
     When performing a :doc:`distributed<platforms_index>` MPI libEnsemble run
     and not oversubscribing, specify one more MPI process than the number of
-    allocated nodes. The Manager and first worker run together on a node.
+    allocated nodes. The manager and first worker run together on a node.
 
 If you would like to interact directly with the compute nodes via a shell,
-the following showcases starting a bash session on a Knights Landing node
+the following starts a bash session on a Knights Landing node
 for thirty minutes::
 
     srun --pty -A [username OR project] -p knl -t 00:30:00 /bin/bash
 
 .. note::
-    You will need to re-activate your conda virtual environment and reload your
+    You will need to reactivate your conda virtual environment and reload your
     modules! Configuring this routine to occur automatically is recommended.
 
 Batch Runs
 ^^^^^^^^^^
 
-Batch scripts specify run-settings using ``#SBATCH`` statements. A simple example
-for a libEnsemble use-case running in :doc:`distributed<platforms_index>` MPI
+Batch scripts specify run settings using ``#SBATCH`` statements. A simple example
+for a libEnsemble use case running in :doc:`distributed<platforms_index>` MPI
 mode on Broadwell nodes resembles the following:
 
 .. code-block:: bash
@@ -104,7 +105,7 @@ mode on Broadwell nodes resembles the following:
     srun --ntasks 5 python calling_script.py
 
 With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
-on Bebop becomes::
+on Bebop is achieved by running ::
 
     sbatch myscript.sh
 
@@ -114,8 +115,8 @@ are also given in the examples_ directory.
 Debugging Strategies
 --------------------
 
-View the status of your submitted jobs with ``squeue`` and cancel jobs with
-``scancel [Job ID]``.
+View the status of your submitted jobs with ``squeue``, and cancel jobs with
+``scancel <Job ID>``.
 
 Additional Information
 ----------------------
@@ -124,7 +125,7 @@ See the LCRC Bebop docs here_ for more information about Bebop.
 
 .. _Bebop: https://www.lcrc.anl.gov/systems/resources/bebop/
 .. _Anaconda: https://www.anaconda.com/distribution/
-.. _Conda: https://conda.io/en/latest/
+.. _conda: https://conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _Slurm: https://slurm.schedmd.com/
 .. _here: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-bebop/

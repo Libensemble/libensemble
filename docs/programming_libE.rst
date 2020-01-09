@@ -1,6 +1,8 @@
 Programming with libEnsemble
 ============================
 
+We now give greater detail in programming with libEnsemble.
+
 .. toctree::
    libe_module
    history_output
