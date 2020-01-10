@@ -32,6 +32,13 @@ dir_to_ignore = './test_sim_input_dir/not_this'
 w_ensemble = './w_ensemble'
 c_ensemble = './c_ensemble'
 
+def cleanup(dirs):
+    for dir in dirs:
+        if is_master and os.path.isdir(dir):
+            shutil.rmtree(dir)
+
+cleanup([w_ensemble, c_ensemble])
+
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
     if is_master and not os.path.isdir(dir):
         try:
@@ -39,15 +46,11 @@ for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
         except FileExistsError:
             pass
 
-for dir in [w_ensemble, c_ensemble]:
-    if is_master and os.path.isdir(dir):
-        shutil.rmtree(dir)
-
 libE_specs['sim_input_dir'] = sim_input_dir
-libE_specs['use_worker_dirs'] = True
 libE_specs['ensemble_dir'] = w_ensemble
-libE_specs['symlink_input_files'] = ['symlink_this']
+libE_specs['use_worker_dirs'] = True
 libE_specs['copy_input_files'] = ['copy_this']
+libE_specs['symlink_input_files'] = ['symlink_this']
 libE_specs['copy_input_to_parent'] = True
 # libE_specs['clean_ensemble_dirs'] = True
 
@@ -69,12 +72,31 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
+    assert os.path.isdir(w_ensemble), 'Ensemble directory {} not created.'\
+                                      .format(w_ensemble)
     dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
     assert dir_sum == nworkers, \
         'Number of worker dirs ({}) does not match nworkers ({}).'\
         .format(dir_sum, nworkers)
 
-    shutil.rmtree(w_ensemble)
+    input_copied = []
+    parent_copied = []
+
+    for object in os.walk(w_ensemble):
+        basedir = object[0].split('/')[-1]
+        if basedir.startswith('sim'):
+            input_copied.append(all([file in object[1] for file in \
+                                    libE_specs['copy_input_files'] + \
+                                    libE_specs['symlink_input_files']]))
+        elif basedir.startswith('worker'):
+            parent_copied.append(all([file in object[1] for file in \
+                                 os.listdir(sim_input_dir)]))
+
+    assert all(input_copied), \
+        'Exact input files not copied or symlinked to each calculation directory'
+    assert all(parent_copied), \
+        'All input files not copied to worker directories'
+
 
 # --- Second Round - Test without worker-dirs ---
 libE_specs['use_worker_dirs'] = False
@@ -84,10 +106,24 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
+    assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
     dir_sum = sum(['worker' in i for i in os.listdir(c_ensemble)])
     assert dir_sum == exit_criteria['sim_max'], \
         'Number of sim directories ({}) does not match sim_max ({}).'\
         .format(dir_sum, exit_criteria['sim_max'])
 
-    shutil.rmtree(c_ensemble)
-    shutil.rmtree(sim_input_dir)
+    input_copied = []
+
+    for object in os.walk(c_ensemble):
+        basedir = object[0].split('/')[-1]
+        if basedir.startswith('sim'):
+            input_copied.append(all([file in object[1] for file in \
+                                    libE_specs['copy_input_files'] + \
+                                    libE_specs['symlink_input_files']]))
+
+    assert all(input_copied), \
+        'Exact input files not copied or symlinked to each calculation directory'
+    assert all([file in os.listdir(c_ensemble) for file in os.listdir(sim_input_dir)]), \
+        'All input files not copied to ensemble directory.'
+
+    cleanup([w_ensemble, c_ensemble, sim_input_dir])
