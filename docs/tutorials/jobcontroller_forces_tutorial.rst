@@ -1,6 +1,6 @@
-============================================================
-Using the Job Controller to launch Electrostatic Simulations
-============================================================
+=================================================
+Electrostatic Simulations Job Controller Tutorial
+=================================================
 
 This tutorial demonstrates libEnsemble's additional capability to launch and
 monitor external scripts or user applications within simulation or generator
@@ -20,7 +20,7 @@ controller was developed to directly address these issues.
 Getting Started
 ---------------
 
-This simulation source ``forces.c`` can be obtained directly from the libEnsemble
+The simulation source code ``forces.c`` can be obtained directly from the libEnsemble
  repository here_.
 
 Assuming MPI and its C compiler ``mpicc`` are installed on your system, compile
@@ -30,7 +30,52 @@ Assuming MPI and its C compiler ``mpicc`` are installed on your system, compile
 
     $ mpicc -O3 -o forces.x forces.c -lm
 
+Calling script
+--------------
 
+Lets begin by writing our calling script to parameterize our simulation and generation
+functions and call libEnsemble. Create an empty Python file and type (or copy and
+paste...) the following:
+
+.. code-block:: python
+    :linenos:
+    :emphasize-lines: 23
+
+    #!/usr/bin/env python
+    import os
+    import numpy as np
+    from forces_simf import run_forces  # Sim func from current dir
+
+    from libensemble.libE import libE
+    from libensemble.gen_funcs.sampling import uniform_random_sample
+    from libensemble.utils import parse_args, add_unique_random_streams
+    from libensemble.mpi_controller import MPIJobController
+
+    nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
+
+    # Create job_controller and register sim to it
+    jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
+
+    # Create empty simulation input directory
+    if not os.path.isdir('./sim'):
+        os.mkdir('./sim')
+
+    # Register simulation executable with job controller
+    sim_app = os.path.join(os.getcwd(), 'forces.x')
+    jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+
+On line 4 we import our not-yet-written ``sim_f``. The next four libEnsemble
+statements import the primary :doc:`libE<../libe_module>` function, our ``gen_f``,
+two convenience functions, and the job controller.
+
+To quickly define and populate the number of workers, if the current process is
+the master process, and ``libE_specs``, we include a call to ``parse_args()``.
+We next create a job controller object instance.
+
+libEnsemble has the capability to perform and write every simulation "step" in
+a separate directory for organizational and potential I/O speed benefits. libEnsemble
+copies a source directory and its contents to create these simulation directories.
+For our purposes, an empty directory ``./sim`` is sufficient.
 
 Job Controller Variants
 -----------------------
