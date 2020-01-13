@@ -199,7 +199,6 @@ class Worker:
 
         return prefix, calc_dir
 
-
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
         "Creates functions to run a sim or gen"
@@ -260,7 +259,7 @@ class Worker:
             else:
                 with self.loc_stack.loc(calc_dir):        # Switch to Calc directory
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-                    
+
             return out
 
         return calc(calc_in, Work['persis_info'], Work['libE_info'])
