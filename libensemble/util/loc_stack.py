@@ -31,18 +31,16 @@ class LocationStack:
             if len(copy_files) > 0 or len(symlink_files) > 0:
                 if src_base not in copy_files and src_base not in symlink_files:
                     continue
-
-            if src_base in symlink_files:
-                try:
+            try:
+                if src_base in symlink_files:
                     os.symlink(rel_dest_path, dest_path)
-                except FileExistsError:
-                    continue
-
-            else:
-                if os.path.isdir(file_path):
-                    shutil.copytree(file_path, dest_path, dirs_exist_ok=True)
                 else:
-                    shutil.copy(file_path, dest_path)
+                    if os.path.isdir(file_path):
+                        shutil.copytree(file_path, dest_path)
+                    else:
+                        shutil.copy(file_path, dest_path)
+            except FileExistsError:
+                continue
 
     def register_loc(self, key, dirname, prefix=None, srcdir=None, copy_files=[],
                      symlink_files=[]):
