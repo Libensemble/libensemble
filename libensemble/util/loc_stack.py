@@ -44,8 +44,6 @@ class LocationStack:
                 else:
                     shutil.copy(file_path, dest_path)
 
-
-
     def register_loc(self, key, dirname, prefix=None, srcdir=None, copy_files=[],
                      symlink_files=[]):
         """Register a new location in the dictionary.
