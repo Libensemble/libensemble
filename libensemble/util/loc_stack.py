@@ -20,19 +20,18 @@ class LocationStack:
         """ Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
-        try:
-            if not os.path.isdir(destdir):
-                os.makedirs(destdir)
-            for file_path in glob('{}/*'.format(srcdir)):
+        if not os.path.isdir(destdir):
+            os.makedirs(destdir)
+        for file_path in glob('{}/*'.format(srcdir)):
 
-                src_base = os.path.basename(file_path)
-                rel_dest_path = os.path.relpath(file_path, destdir)
-                dest_path = os.path.join(destdir, src_base)
+            src_base = os.path.basename(file_path)
+            rel_dest_path = os.path.relpath(file_path, destdir)
+            dest_path = os.path.join(destdir, src_base)
 
-                if len(copy_files) > 0 or len(symlink_files) > 0:
-                    if src_base not in copy_files and src_base not in symlink_files:
-                        continue
-
+            if len(copy_files) > 0 or len(symlink_files) > 0:
+                if src_base not in copy_files and src_base not in symlink_files:
+                    continue
+            try:
                 if src_base in symlink_files:
                     os.symlink(rel_dest_path, dest_path)
 
@@ -42,8 +41,8 @@ class LocationStack:
                     else:
                         shutil.copy(file_path, dest_path)
 
-        except FileExistsError:
-            pass
+            except FileExistsError:
+                continue
 
     def register_loc(self, key, dirname, prefix=None, srcdir=None, copy_files=[],
                      symlink_files=[]):

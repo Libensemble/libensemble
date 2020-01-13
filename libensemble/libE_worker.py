@@ -133,11 +133,18 @@ class Worker:
         self.workerID = workerID
         self.sim_specs = sim_specs
         self.libE_specs = libE_specs
+        self.prefix = None
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self.loc_stack = None
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
         Worker._set_job_controller(self.workerID, self.comm)
+
+    @staticmethod
+    def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
+        locs.copy_or_symlink(sim_input_dir, calc_prefix,
+                             os.listdir(sim_input_dir), [])
+        open(os.path.join(calc_prefix, stgfile), 'w')
 
     @staticmethod
     def _make_calc_or_worker_dir(libE_specs, workerID, H_rows, calc_str, locs):
@@ -161,16 +168,31 @@ class Worker:
                 worker_path = os.path.abspath(os.path.join(prefix, worker_dir))
                 calc_dir = calc_str + str(H_rows)
                 calc_prefix = worker_path
-
                 locs.register_loc(workerID, worker_dir, prefix=prefix)
 
             else:
                 calc_dir = "{}{}-worker{}".format(calc_str, H_rows, workerID)
                 calc_prefix = prefix
 
+            if not os.path.isdir(calc_prefix):
+                try:
+                    os.makedirs(calc_prefix)
+                except FileExistsError:
+                    pass
+
             if copy_parent:
-                locs.copy_or_symlink(sim_input_dir, calc_prefix,
-                                     os.listdir(sim_input_dir), [])
+                stgfile = '.COPY_PARENT_STAGED'
+                staged = lambda prefix: stgfile in os.listdir(prefix)
+
+                if not do_work_dirs:
+                    while not staged(calc_prefix):
+                        if workerID == 1:
+                            Worker._stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile)
+
+                else:
+                    if not staged(calc_prefix):
+                        Worker._stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile)
+
                 sim_input_dir = prefix
                 if do_work_dirs:
                     sim_input_dir = worker_path
@@ -180,7 +202,7 @@ class Worker:
                               copy_files=copy_files,
                               symlink_files=symlink_files)
 
-            return calc_dir
+            return prefix, calc_dir
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
@@ -232,7 +254,7 @@ class Worker:
         H_rows = Worker._extract_H_ranges(Work)
         calc_str = calc_type_strings[calc_type]
 
-        calc_dir = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID,
+        self.prefix, calc_dir = Worker._make_calc_or_worker_dir(self.libE_specs, self.workerID,
                                                    H_rows, calc_str, self.loc_stack)
 
         if self.libE_specs.get('use_worker_dirs'):
@@ -377,5 +399,12 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
+            if self.libE_specs.get('sim_input_dir'):
+                for prefix, _, file in os.walk(self.prefix):
+                    if file == ['.COPY_PARENT_STAGED']:
+                        try:
+                            os.remove(os.path.join(prefix, file[0]))
+                        except FileNotFoundError:
+                            continue
             if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()

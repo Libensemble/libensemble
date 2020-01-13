@@ -82,14 +82,14 @@ if is_master:
     input_copied = []
     parent_copied = []
 
-    for object in os.walk(w_ensemble):
-        basedir = object[0].split('/')[-1]
+    for base, files, _ in os.walk(w_ensemble):
+        basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            input_copied.append(all([file in object[1] for file in \
+            input_copied.append(all([j in files for j in \
                                     libE_specs['copy_input_files'] + \
                                     libE_specs['symlink_input_files']]))
         elif basedir.startswith('worker'):
-            parent_copied.append(all([file in object[1] for file in \
+            parent_copied.append(all([j in files for j in \
                                  os.listdir(sim_input_dir)]))
 
     assert all(input_copied), \
@@ -114,10 +114,10 @@ if is_master:
 
     input_copied = []
 
-    for object in os.walk(c_ensemble):
-        basedir = object[0].split('/')[-1]
+    for base, files, _ in os.walk(c_ensemble):
+        basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            input_copied.append(all([file in object[1] for file in \
+            input_copied.append(all([j in files for j in \
                                     libE_specs['copy_input_files'] + \
                                     libE_specs['symlink_input_files']]))
 
