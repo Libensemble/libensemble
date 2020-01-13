@@ -32,19 +32,18 @@ dir_to_ignore = './test_sim_input_dir/not_this'
 w_ensemble = './w_ensemble'
 c_ensemble = './c_ensemble'
 
+
 def cleanup(dirs):
     for dir in dirs:
         if is_master and os.path.isdir(dir):
             shutil.rmtree(dir)
 
+
 cleanup([w_ensemble, c_ensemble])
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
     if is_master and not os.path.isdir(dir):
-        try:
-            os.mkdir(dir)
-        except FileExistsError:
-            pass
+        os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_input_dir'] = sim_input_dir
 libE_specs['ensemble_dir'] = w_ensemble
@@ -85,11 +84,11 @@ if is_master:
     for base, files, _ in os.walk(w_ensemble):
         basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            input_copied.append(all([j in files for j in \
-                                    libE_specs['copy_input_files'] + \
+            input_copied.append(all([j in files for j in
+                                    libE_specs['copy_input_files'] +
                                     libE_specs['symlink_input_files']]))
         elif basedir.startswith('worker'):
-            parent_copied.append(all([j in files for j in \
+            parent_copied.append(all([j in files for j in
                                  os.listdir(sim_input_dir)]))
 
     assert all(input_copied), \
@@ -117,8 +116,8 @@ if is_master:
     for base, files, _ in os.walk(c_ensemble):
         basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            input_copied.append(all([j in files for j in \
-                                    libE_specs['copy_input_files'] + \
+            input_copied.append(all([j in files for j in
+                                    libE_specs['copy_input_files'] +
                                     libE_specs['symlink_input_files']]))
 
     assert all(input_copied), \

@@ -21,7 +21,7 @@ class LocationStack:
         Determine paths, basenames, and conditions for copying/symlinking
         """
         if not os.path.isdir(destdir):
-            os.makedirs(destdir)
+            os.makedirs(destdir, exist_ok=True)
         for file_path in glob('{}/*'.format(srcdir)):
 
             src_base = os.path.basename(file_path)
