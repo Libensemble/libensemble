@@ -149,56 +149,56 @@ class Worker:
     @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
         "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
-        if 'sim_input_dir' in libE_specs:
 
-            sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
-            prefix = libE_specs.get('ensemble_dir', './ensemble')
-            suffix = libE_specs.get('ensemble_dir_suffix', '')
-            copy_files = libE_specs.get('copy_input_files', os.listdir(sim_input_dir))
-            copy_parent = libE_specs.get('copy_input_to_parent', False)
-            symlink_files = libE_specs.get('symlink_input_files', [])
-            do_work_dirs = libE_specs.get('use_worker_dirs', False)
+        sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
+        prefix = libE_specs.get('ensemble_dir', './ensemble')
+        suffix = libE_specs.get('ensemble_dir_suffix', '')
+        copy_files = libE_specs.get('copy_input_files', os.listdir(sim_input_dir))
+        copy_parent = libE_specs.get('copy_input_to_parent', False)
+        symlink_files = libE_specs.get('symlink_input_files', [])
+        do_work_dirs = libE_specs.get('use_worker_dirs', False)
 
-            if suffix != '':
-                suffix = '_' + suffix
-                prefix += suffix
+        if suffix != '':
+            suffix = '_' + suffix
+            prefix += suffix
 
-            if do_work_dirs:
-                worker_dir = "worker" + str(workerID)
-                worker_path = os.path.abspath(os.path.join(prefix, worker_dir))
-                calc_dir = calc_str + str(H_rows)
-                locs.register_loc(workerID, worker_dir, prefix=prefix)
-                calc_prefix = worker_path
+        if do_work_dirs:
+            worker_dir = "worker" + str(workerID)
+            worker_path = os.path.abspath(os.path.join(prefix, worker_dir))
+            calc_dir = calc_str + str(H_rows)
+            locs.register_loc(workerID, worker_dir, prefix=prefix)
+            calc_prefix = worker_path
 
-            else:
-                calc_dir = "{}{}-worker{}".format(calc_str, H_rows, workerID)
-                if not os.path.isdir(prefix):
-                    os.makedirs(prefix, exist_ok=True)
-                calc_prefix = prefix
+        else:
+            calc_dir = "{}{}-worker{}".format(calc_str, H_rows, workerID)
+            if not os.path.isdir(prefix):
+                os.makedirs(prefix, exist_ok=True)
+            calc_prefix = prefix
 
-            if copy_parent:
-                stgfile = '.COPY_PARENT_STAGED'
-                staged = lambda prefix: stgfile in os.listdir(prefix)
+        if copy_parent:
+            stgfile = '.COPY_PARENT_STAGED'
+            staged = lambda prefix: stgfile in os.listdir(prefix)
 
-                if not do_work_dirs:
-                    while not staged(calc_prefix):
-                        if workerID == 1:
-                            Worker._stage_and_indicate(locs, sim_input_dir,
-                                                       calc_prefix, stgfile)
-                    sim_input_dir = prefix
-
-                else:
-                    if not staged(calc_prefix):
+            if not do_work_dirs:
+                while not staged(calc_prefix):
+                    if workerID == 1:
                         Worker._stage_and_indicate(locs, sim_input_dir,
                                                    calc_prefix, stgfile)
-                    sim_input_dir = worker_path
+                sim_input_dir = prefix
 
-            locs.register_loc(calc_dir, calc_dir, prefix=calc_prefix,
-                              srcdir=sim_input_dir,
-                              copy_files=copy_files,
-                              symlink_files=symlink_files)
+            else:
+                if not staged(calc_prefix):
+                    Worker._stage_and_indicate(locs, sim_input_dir,
+                                               calc_prefix, stgfile)
+                sim_input_dir = worker_path
 
-            return prefix, calc_dir
+        locs.register_loc(calc_dir, calc_dir, prefix=calc_prefix,
+                          srcdir=sim_input_dir,
+                          copy_files=copy_files,
+                          symlink_files=symlink_files)
+
+        return prefix, calc_dir
+
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
@@ -250,19 +250,20 @@ class Worker:
         H_rows = Worker._extract_H_ranges(Work)
         calc_str = calc_type_strings[calc_type]
 
-        self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
-                                                      H_rows, calc_str, self.loc_stack)
-
-        if self.libE_specs.get('use_worker_dirs'):
-            with self.loc_stack.loc(self.workerID):   # Switch to Worker directory
-                with self.loc_stack.loc(calc_dir):    # Switch to Calc directory
+        if 'sim_input_dir' in self.libE_specs:
+            self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
+                                                          H_rows, calc_str, self.loc_stack)
+            if self.libE_specs.get('use_worker_dirs'):
+                with self.loc_stack.loc(self.workerID):   # Switch to Worker directory
+                    with self.loc_stack.loc(calc_dir):    # Switch to Calc directory
+                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+            else:
+                with self.loc_stack.loc(calc_dir):        # Switch to Calc directory
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+                    
+            return out
 
-        else:
-            with self.loc_stack.loc(calc_dir):        # Switch to Calc directory
-                out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-
-        return out
+        return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
     def _handle_calc(self, Work, calc_in):
         """Runs a calculation on this worker object.
