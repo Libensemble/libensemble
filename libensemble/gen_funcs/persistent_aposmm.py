@@ -310,6 +310,8 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_scipy_opt
         elif user_specs['localopt_method'] in ['dfols']:
             run_local_opt = run_local_dfols
+        elif user_specs['localopt_method'] in ['external_localopt']:
+            run_local_opt = run_external_localopt
 
         self.parent_can_read.clear()
         self.process = Process(target=run_local_opt, args=(user_specs,
@@ -447,6 +449,53 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     # print(exit_code)
 
     # print('[Child]: I have converged.', flush=True)
+    comm_queue.put(ConvergedMsg(x_opt))
+    parent_can_read.set()
+
+
+def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+
+    import subprocess
+    import os
+    from uuid import uuid4
+
+    run_id = uuid4().hex
+
+    x_file = 'x_' + run_id + '.txt'
+    y_file = 'y_' + run_id + '.txt'
+    x_done_file = 'x_done_' + run_id + '.txt'
+    y_done_file = 'y_done_' + run_id + '.txt'
+    opt_file = 'opt_' + run_id + '.txt'
+
+    cmd = ["/home/jlarson/software/MATLAB/R2019a/bin/matlab",
+           "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
+           "x0=" + str(x0) + ";"
+           "opt_file='" + opt_file + "';"
+           "x_file='" + x_file + "';"
+           "y_file='" + y_file + "';"
+           "x_done_file='" + x_done_file + "';"
+           "y_done_file='" + y_done_file + "';"
+           "call_matlab_script"]
+
+    p = subprocess.Popen(cmd, shell=False, stdout=subprocess.DEVNULL)
+
+    while p.poll() is None:  # Process still going
+        if os.path.isfile(x_done_file):  # x file exists
+            x = np.loadtxt(x_file)
+            os.remove(x_done_file)
+
+            x_recv, f_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
+
+            np.savetxt(y_file, [f_recv])
+            np.savetxt(y_done_file, [1])
+
+    x_opt = np.loadtxt(opt_file)
+
+    for f in [x_file, y_file, opt_file]:
+        os.remove(f)
+
+    print(x_opt)
+
     comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
 
@@ -616,7 +665,7 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read):
     values = comm_queue.get()
     child_can_read.clear()
 
-    assert np.array_equal(x, values[0]), "The point I gave is not the point I got back!"
+    assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back!"
 
     return values
 
@@ -982,7 +1031,8 @@ def initialize_children(user_specs):
     if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
-                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
+                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead',
+                                           'external_localopt']:
         fields_to_pass = ['x_on_cube', 'f']
     elif user_specs['localopt_method'] in ['pounders', 'dfols']:
         fields_to_pass = ['x_on_cube', 'fvec']
