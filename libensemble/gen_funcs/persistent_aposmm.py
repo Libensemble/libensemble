@@ -211,7 +211,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 clean_up_and_stop(local_H, local_opters, run_order)
                 break
 
-            n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
+            n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
 
             for row in calc_in:
                 if sim_id_to_child_inds.get(row['sim_id']):
@@ -670,7 +670,11 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read):
     return values
 
 
-def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in):
+def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass):
+
+    for name in ['f', 'x_on_cube', 'grad', 'fvec']:
+        if name in fields_to_pass:
+            assert name in calc_in.dtype.names, name + " must be returned to persistent_aposmm for localopt_method" + user_specs['localopt_method']
 
     for name in calc_in.dtype.names:
         local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
