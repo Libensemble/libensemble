@@ -114,7 +114,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         else:
             print("Warning: Job {} in unknown state {}. Error code {}".format(job.name, job.state, job.errcode))
 
-    os.chdir('../')
+    # os.chdir('../')
 
     time.sleep(0.2)
     try:

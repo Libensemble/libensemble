@@ -76,7 +76,7 @@ class LocationStack:
 
         self.dirs[key] = dirname
         if srcdir is not None:
-            assert ~os.path.isdir(dirname), \
+            assert not os.path.isdir(dirname), \
                 "Directory {} already exists".format(dirname)
             self.copy_or_symlink(srcdir, dirname, copy_files, symlink_files)
         else:
