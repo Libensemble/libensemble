@@ -487,7 +487,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
             x_recv, f_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
 
             np.savetxt(y_file, [f_recv])
-            np.savetxt(y_done_file, [1])
+            open(y_done_file, 'w').close()
 
     x_opt = np.loadtxt(opt_file)
 
