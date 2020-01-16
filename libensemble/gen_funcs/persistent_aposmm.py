@@ -468,7 +468,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
     opt_file = 'opt_' + run_id + '.txt'
 
     # cmd = ["matlab", "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
-    cmd = ["octave", "--eval",
+    cmd = ["octave", "--no-gui", "--eval",
            "x0=" + str(x0) + ";"
            "opt_file='" + opt_file + "';"
            "x_file='" + x_file + "';"
