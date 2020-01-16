@@ -4,10 +4,16 @@
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms local
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
+#
+# This test uses an external local optimization method within a persistent
+# APOSMM instance. Points are passed to/from the localopt method using files
+# with run-specific hashes. These hashes are currently generated using uuid,
+# which may not be thread safe on some systems (e.g., Travis-CI). This was
+# resolved by not using 'local' communication; we therefore recommend using
+# 'mpi' communication when using persistent_aposmm with an external localopt
+# method.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -29,6 +35,9 @@ from time import time
 np.set_printoptions(precision=16)
 
 nworkers, is_master, libE_specs, _ = parse_args()
+
+if libE_specs['comms'] != 'mpi':
+    sys.exit("We recommend using 'mpi' communication when using persistent_aposmm with an external localopt.")
 
 if is_master:
     start_time = time()
