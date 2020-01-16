@@ -53,13 +53,13 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         COMPILERS=clang_osx-64;
         MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
-        brew install octave
+        brew install octave;
     else
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
-        sudo add-apt-repository -y ppa:octave/stable
-        sudo apt-get update -qq
-        sudo apt install -y octave
+        sudo add-apt-repository -y ppa:octave/stable;
+        sudo apt-get update -qq;
+        sudo apt install -y octave;
     fi
 
   - conda install $COMPILERS
