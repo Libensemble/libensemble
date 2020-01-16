@@ -31,6 +31,7 @@ cache:
   apt: true
 
 before_install:
+  - sudo apt install -y octave
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-MacOSX-x86_64.sh -O miniconda.sh;
     else

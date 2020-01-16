@@ -75,7 +75,7 @@ if is_master:
     # minima "jump out", even when 'sim_max' is increased. (Matlab's fminsearch
     # has a smaller initial simplex and appears to be less susceptible to
     # this.)
-    minima = minima[:2]  
+    minima = minima[:2]
     tol = 1e-3
     for m in minima:
         # The minima are known on this test problem.
