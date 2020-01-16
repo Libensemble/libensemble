@@ -413,9 +413,8 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # FIXME: Do we need to do something of the final 'x_opt'?
     # print('[Child]: Started my optimization', flush=True)
     x_opt = opt.optimize(x0)
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
+
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -448,9 +447,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
 
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -468,7 +465,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
     opt_file = 'opt_' + run_id + '.txt'
 
     # cmd = ["matlab", "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
-    cmd = ["octave", "--no-gui", "--eval",
+    cmd = ["octave", "--no-window-system", "--eval",
            "x0=" + str(x0) + ";"
            "opt_file='" + opt_file + "';"
            "x_file='" + x_file + "';"
@@ -494,10 +491,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
     for f in [x_file, y_file, opt_file]:
         os.remove(f)
 
-    print(x_opt)
-
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -521,9 +515,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
 
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -600,12 +592,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     x.destroy()
     tao.destroy()
 
-    # FIXME: Do we need to do something of the final 'x_opt'?
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
-
-    # FIXME: What do we do about the exit_code?
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 # Callback functions and routines
@@ -643,6 +630,13 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
     g.array[:] = grad_recv
 
     return f_recv
+
+
+def finish_queue(x_opt, comm_queue, parent_can_read):
+
+    print('x_opt', x_opt, flush=True)
+    comm_queue.put(ConvergedMsg(x_opt))
+    parent_can_read.set()
 
 
 def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read):
