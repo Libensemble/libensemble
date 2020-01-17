@@ -6,6 +6,7 @@ libEnsemble worker class
 import socket
 import logging
 import os
+import shutil
 import logging.handlers
 from itertools import count
 from traceback import format_exc
@@ -133,6 +134,7 @@ class Worker:
         self.workerID = workerID
         self.sim_specs = sim_specs
         self.libE_specs = libE_specs
+        self.startdir = os.getcwd()
         self.prefix = ""
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self.loc_stack = None
@@ -402,6 +404,10 @@ class Worker:
                             os.remove(os.path.join(prefix, file[0]))
                         except FileNotFoundError:
                             continue
+                if self.libE_specs.get('copy_back_output'):
+                    numbered_prefix = os.path.basename(self.prefix) + str(self.workerID)
+                    copy_back_dest = os.path.join(self.startdir, numbered_prefix)
+                    shutil.copytree(self.prefix, copy_back_dest, symlinks=True)
 
             if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()

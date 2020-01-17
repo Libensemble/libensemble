@@ -66,6 +66,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'clean_ensemble_dirs',    #
                           'comm',                   #
                           'comms',                  #
+                          'copy_back_output',       #
                           'copy_input_files',       #
                           'copy_input_to_parent',   #
                           'ensemble_dir',           #

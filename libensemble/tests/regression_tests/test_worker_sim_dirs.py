@@ -51,6 +51,7 @@ libE_specs['use_worker_dirs'] = True
 libE_specs['copy_input_files'] = ['copy_this']
 libE_specs['symlink_input_files'] = ['symlink_this']
 libE_specs['copy_input_to_parent'] = True
+libE_specs['copy_back_output'] = True
 # libE_specs['clean_ensemble_dirs'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
@@ -126,3 +127,5 @@ if is_master:
         'All input files not copied to ensemble directory.'
 
     cleanup([w_ensemble, c_ensemble, sim_input_dir])
+    cleanup([file for file in os.listdir('.') if file.startswith(os.path.basename(w_ensemble))] +
+            [file for file in os.listdir('.') if file.startswith(os.path.basename(c_ensemble))])
