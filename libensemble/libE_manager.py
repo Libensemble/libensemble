@@ -5,6 +5,7 @@ libEnsemble manager routines
 
 import sys
 import os
+import glob
 import logging
 import socket
 import numpy as np
@@ -179,6 +180,8 @@ class Manager:
         count = k*(count//k)
         filename = fname.format(self.date_start,count)
         if not os.path.isfile(filename) and count > 0:
+            for old_file in glob.glob(fname.format(self.date_start,'*')):
+                os.remove(old_file)
             np.save(filename, self.hist.H)
 
     def _save_every_k_sims(self):
