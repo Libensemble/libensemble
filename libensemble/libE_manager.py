@@ -5,6 +5,7 @@ libEnsemble manager routines
 
 import sys
 import os
+import glob
 import logging
 import socket
 import numpy as np
@@ -117,6 +118,7 @@ class Manager:
         """Initializes the manager"""
         timer = Timer()
         timer.start()
+        self.date_start = timer.date_start.replace(' ', '_')
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -176,19 +178,21 @@ class Manager:
     def _save_every_k(self, fname, count, k):
         "Saves history every kth step"
         count = k*(count//k)
-        filename = fname.format(count)
+        filename = fname.format(self.date_start, count)
         if not os.path.isfile(filename) and count > 0:
+            for old_file in glob.glob(fname.format(self.date_start, '*')):
+                os.remove(old_file)
             np.save(filename, self.hist.H)
 
     def _save_every_k_sims(self):
         "Saves history every kth sim step"
-        self._save_every_k('libE_history_after_sim_{}.npy',
+        self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
                            self.hist.sim_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
         "Saves history every kth gen step"
-        self._save_every_k('libE_history_after_gen_{}.npy',
+        self._save_every_k('libE_history_for_run_starting_{}_after_gen_{}.npy',
                            self.hist.index,
                            self.libE_specs['save_every_k_gens'])
 
