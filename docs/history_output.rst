@@ -73,13 +73,11 @@ detail here:
 
     libE_specs['sim_input_dir'] = './my_input'
 
-
 * ``'ensemble_dir'``: Where to write directory copies. If not specified, writes
   directories to a new directory named ``ensemble`` in the current working
   directory::
 
       libE_specs['ensemble_dir'] = '/scratch/current_run/my_ensemble'
-
 
 * ``'use_worker_dirs'``: Boolean. If enabled, libEnsemble also creates
   per-worker directories to store the directories use by each worker.
