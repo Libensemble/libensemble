@@ -405,9 +405,12 @@ class Worker:
                         except FileNotFoundError:
                             continue
                 if self.libE_specs.get('copy_back_output'):
-                    numbered_prefix = os.path.basename(self.prefix) + str(self.workerID)
-                    copy_back_dest = os.path.join(self.startdir, numbered_prefix)
-                    shutil.copytree(self.prefix, copy_back_dest, symlinks=True)
+                    hosted_prefix = os.path.basename(self.prefix) + '_' + os.uname().nodename
+                    copy_back_dest = os.path.join(self.startdir, hosted_prefix)
+                    try:
+                        shutil.copytree(self.prefix, copy_back_dest, symlinks=True)
+                    except FileExistsError:
+                        shutil.copytree(self.prefix, copy_back_dest + '_w' + str(self.workerID), symlinks=True)
 
             if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()
