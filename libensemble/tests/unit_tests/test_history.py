@@ -117,9 +117,9 @@ def test_trim_H():
 
 def test_update_history_x_in_Oempty():
     hist, sim_specs, gen_specs, _, _ = setup.hist_setup2()
-    O = np.zeros(0, dtype=gen_specs['out'])
+    H_o = np.zeros(0, dtype=gen_specs['out'])
     gen_worker = 1
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     assert np.array_equal(hist.H, wrs2), "H Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
@@ -137,10 +137,10 @@ def test_update_history_x_in():
 
     size = 1
     gen_worker = 2
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = single_rand
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = single_rand
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     assert isclose(single_rand, hist.H['x'][0])
     assert hist.given_count == 0
     assert hist.index == 1
@@ -148,10 +148,10 @@ def test_update_history_x_in():
 
     size = 6
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
     for field in exp_x.dtype.names:
@@ -164,10 +164,10 @@ def test_update_history_x_in():
     # Force H to grow when add points
     size = 3
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     # Compare by column
     exp_x = exp_x_in_setup2
     for field in exp_x.dtype.names:
@@ -189,11 +189,11 @@ def test_update_history_x_in_sim_ids():
 
     size = 1
     gen_worker = 2
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = single_rand
-    O['sim_id'] = 0
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = single_rand
+    H_o['sim_id'] = 0
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     assert isclose(single_rand, hist.H['x'][0])
     assert hist.given_count == 0
     assert hist.index == 1
@@ -201,10 +201,10 @@ def test_update_history_x_in_sim_ids():
 
     size = 6
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
-    O['sim_id'] = range(1, 7)
-    hist.update_history_x_in(gen_worker, O)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
+    H_o['sim_id'] = range(1, 7)
+    hist.update_history_x_in(gen_worker, H_o)
 
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
@@ -218,11 +218,11 @@ def test_update_history_x_in_sim_ids():
     # Force H to grow when add points
     size = 3
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
-    O['sim_id'] = range(7, 10)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
+    H_o['sim_id'] = range(7, 10)
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     # Compare by column
     exp_x = exp_x_in_setup2
     for field in exp_x.dtype.names:
