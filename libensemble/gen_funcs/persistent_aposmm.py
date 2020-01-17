@@ -211,7 +211,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 clean_up_and_stop(local_H, local_opters, run_order)
                 break
 
-            n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in)
+            n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
 
             for row in calc_in:
                 if sim_id_to_child_inds.get(row['sim_id']):
@@ -310,6 +310,8 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_scipy_opt
         elif user_specs['localopt_method'] in ['dfols']:
             run_local_opt = run_local_dfols
+        elif user_specs['localopt_method'] in ['external_localopt']:
+            run_local_opt = run_external_localopt
 
         self.parent_can_read.clear()
         self.process = Process(target=run_local_opt, args=(user_specs,
@@ -411,9 +413,8 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # FIXME: Do we need to do something of the final 'x_opt'?
     # print('[Child]: Started my optimization', flush=True)
     x_opt = opt.optimize(x0)
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
+
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -446,9 +447,51 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
 
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
+    finish_queue(x_opt, comm_queue, parent_can_read)
+
+
+def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+
+    import subprocess
+    import os
+    from uuid import uuid4
+
+    run_id = uuid4().hex
+
+    x_file = 'x_' + run_id + '.txt'
+    y_file = 'y_' + run_id + '.txt'
+    x_done_file = 'x_done_' + run_id + '.txt'
+    y_done_file = 'y_done_' + run_id + '.txt'
+    opt_file = 'opt_' + run_id + '.txt'
+
+    # cmd = ["matlab", "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
+    cmd = ["octave", "--no-window-system", "--eval",
+           "x0=" + str(x0) + ";"
+           "opt_file='" + opt_file + "';"
+           "x_file='" + x_file + "';"
+           "y_file='" + y_file + "';"
+           "x_done_file='" + x_done_file + "';"
+           "y_done_file='" + y_done_file + "';"
+           "call_matlab_octave_script"]
+
+    p = subprocess.Popen(cmd, shell=False, stdout=subprocess.DEVNULL)
+
+    while p.poll() is None:  # Process still going
+        if os.path.isfile(x_done_file):  # x file exists
+            x = np.loadtxt(x_file)
+            os.remove(x_done_file)
+
+            x_recv, f_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
+
+            np.savetxt(y_file, [f_recv])
+            open(y_done_file, 'w').close()
+
+    x_opt = np.loadtxt(opt_file)
+
+    for f in [x_file, y_file, opt_file]:
+        os.remove(f)
+
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -472,9 +515,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
 
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -551,12 +592,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     x.destroy()
     tao.destroy()
 
-    # FIXME: Do we need to do something of the final 'x_opt'?
-    # print('[Child]: I have converged.', flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
-    parent_can_read.set()
-
-    # FIXME: What do we do about the exit_code?
+    finish_queue(x_opt, comm_queue, parent_can_read)
 
 
 # Callback functions and routines
@@ -596,6 +632,13 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
     return f_recv
 
 
+def finish_queue(x_opt, comm_queue, parent_can_read):
+
+    print('x_opt', x_opt, flush=True)
+    comm_queue.put(ConvergedMsg(x_opt))
+    parent_can_read.set()
+
+
 def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read):
     """This routine is used by children process callback functions. It:
     - puts x into a comm_queue,
@@ -616,12 +659,16 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read):
     values = comm_queue.get()
     child_can_read.clear()
 
-    assert np.array_equal(x, values[0]), "The point I gave is not the point I got back!"
+    assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back!"
 
     return values
 
 
-def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in):
+def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass):
+
+    for name in ['f', 'x_on_cube', 'grad', 'fvec']:
+        if name in fields_to_pass:
+            assert name in calc_in.dtype.names, name + " must be returned to persistent_aposmm for localopt_method" + user_specs['localopt_method']
 
     for name in calc_in.dtype.names:
         local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
@@ -982,7 +1029,8 @@ def initialize_children(user_specs):
     if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
-                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead']:
+                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead',
+                                           'external_localopt']:
         fields_to_pass = ['x_on_cube', 'f']
     elif user_specs['localopt_method'] in ['pounders', 'dfols']:
         fields_to_pass = ['x_on_cube', 'fvec']
