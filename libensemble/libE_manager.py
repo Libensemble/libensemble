@@ -118,7 +118,7 @@ class Manager:
         """Initializes the manager"""
         timer = Timer()
         timer.start()
-        self.date_start = timer.date_start.replace(' ','_')
+        self.date_start = timer.date_start.replace(' ', '_')
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -178,9 +178,9 @@ class Manager:
     def _save_every_k(self, fname, count, k):
         "Saves history every kth step"
         count = k*(count//k)
-        filename = fname.format(self.date_start,count)
+        filename = fname.format(self.date_start, count)
         if not os.path.isfile(filename) and count > 0:
-            for old_file in glob.glob(fname.format(self.date_start,'*')):
+            for old_file in glob.glob(fname.format(self.date_start, '*')):
                 os.remove(old_file)
             np.save(filename, self.hist.H)
 
