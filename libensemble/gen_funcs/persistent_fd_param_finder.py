@@ -23,7 +23,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     h = 1  # Starting finite difference parameter
 
     # Send batches until a stop tag is received or we are happy with h
-    O = np.zeros(kmax*n, dtype=gen_specs['out'])
+    H_o = np.zeros(kmax*n, dtype=gen_specs['out'])
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
 
@@ -33,8 +33,8 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
                 requested_points[ind] = x + (k+1)*h*np.eye(n)[i]
                 ind += 1
 
-        O['x'] = requested_points
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, O)
+        H_o['x'] = requested_points
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
 
         # returned_values = calc_in['f']
         # print(returned_values)
@@ -45,4 +45,4 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
         else:
             h = 0.5*h
 
-    return O, persis_info, tag
+    return H_o, persis_info, tag

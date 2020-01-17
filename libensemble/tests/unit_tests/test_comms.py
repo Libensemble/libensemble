@@ -219,8 +219,8 @@ def test_comm_eval():
 
     inq.put(('worker_avail', 3))
     inq.put(('queued', 1))
-    O = np.zeros(2, dtype=gen_specs['out'])
-    promises = gcomm.request(O)
+    H_o = np.zeros(2, dtype=gen_specs['out'])
+    promises = gcomm.request(H_o)
 
     assert len(promises) == 2
     assert gcomm.workers == 3

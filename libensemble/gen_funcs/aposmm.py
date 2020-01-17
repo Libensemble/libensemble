@@ -151,7 +151,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     n_s:              the number of complete evaluations of sampled points
     updated_inds:     indices of H that have been updated (and so all their
                       information must be sent back to libE manager to update)
-    O:                new points to be sent back to the history
+    H_o:                new points to be sent back to the history
 
 
     When re-running a local opt method to get the next point:
@@ -179,7 +179,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     """
 
-    n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
+    n, n_s, c_flag, H_o, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
     if n_s < gen_specs['user']['initial_sample_size']:
@@ -255,15 +255,15 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             else:
                 # Check if x_new is already being requested (a check if it's in
                 # H is performed inside advance_local_run)
-                match_ind = np.where(np.equal(x_new, O['x_on_cube']).all(1))[0]
+                match_ind = np.where(np.equal(x_new, H_o['x_on_cube']).all(1))[0]
                 if len(match_ind) == 0:
-                    persis_info = add_to_O(O, x_new, H, gen_specs, c_flag,
-                                           persis_info, local_flag=1,
-                                           sorted_run_inds=sorted_run_inds,
-                                           run=run)
+                    persis_info = add_to_Out(H_o, x_new, H, gen_specs, c_flag,
+                                             persis_info, local_flag=1,
+                                             sorted_run_inds=sorted_run_inds,
+                                             run=run)
                 else:
-                    assert len(match_ind) == 1, "The same point is in O twice"
-                    persis_info['run_order'][run].append(O['sim_id'][match_ind[0]])
+                    assert len(match_ind) == 1, "The same point is in H_o twice"
+                    persis_info['run_order'][run].append(H_o['sim_id'][match_ind[0]])
 
         for i in inactive_runs:
             old_run = persis_info['run_order'].pop(i)  # Deletes all run info
@@ -272,39 +272,39 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     if len(H) == 0:
         samples_needed = gen_specs['user']['initial_sample_size']
     elif 'min_batch_size' in gen_specs['user']:
-        samples_needed = gen_specs['user']['min_batch_size']-len(O)
+        samples_needed = gen_specs['user']['min_batch_size']-len(H_o)
     else:
-        samples_needed = int(not bool(len(O)))  # 1 if len(O)==0, 0 otherwise
+        samples_needed = int(not bool(len(H_o)))  # 1 if len(H_o)==0, 0 otherwise
 
     if samples_needed > 0 and 'sample_points' in gen_specs['user']:
         v = np.sum(~H['local_pt'])  # Number of sample points so far
         sampled_points = gen_specs['user']['sample_points'][v:v+samples_needed]
         on_cube = False  # Assume points are on original domain, not unit cube
         if len(sampled_points):
-            persis_info = add_to_O(O, sampled_points, H, gen_specs,
-                                   c_flag, persis_info, on_cube=on_cube)
+            persis_info = add_to_Out(H_o, sampled_points, H, gen_specs,
+                                     c_flag, persis_info, on_cube=on_cube)
         samples_needed = samples_needed-len(sampled_points)
 
     if samples_needed > 0:
         sampled_points = persis_info['rand_stream'].uniform(0, 1, (samples_needed, n))
         on_cube = True
-        persis_info = add_to_O(O, sampled_points, H, gen_specs, c_flag,
-                               persis_info, on_cube=on_cube)
+        persis_info = add_to_Out(H_o, sampled_points, H, gen_specs, c_flag,
+                                 persis_info, on_cube=on_cube)
 
-    O = np.append(H[np.array(list(updated_inds), dtype=int)][[o[0] for o in gen_specs['out']]], O)
+    H_o = np.append(H[np.array(list(updated_inds), dtype=int)][[o[0] for o in gen_specs['out']]], H_o)
 
-    return O, persis_info
+    return H_o, persis_info
 
 
-def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
-             sorted_run_inds=[], run=[], on_cube=True):
+def add_to_Out(H_o, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
+               sorted_run_inds=[], run=[], on_cube=True):
     """
-    Adds points to O, the numpy structured array to be sent back to the manager
+    Adds points to H_o, the numpy structured array to be sent back to the manager
     """
 
     assert not local_flag or len(pts) == 1, "Can't > 1 local points"
 
-    original_len_O = len(O)
+    original_len_O = len(H_o)
 
     len_H = len(H)
     ub = gen_specs['user']['ub']
@@ -318,37 +318,37 @@ def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
 
     num_pts = len(pts)
 
-    O.resize(len(O)+num_pts, refcheck=False)  # Adds num_pts rows of zeros to O
+    H_o.resize(len(H_o)+num_pts, refcheck=False)  # Adds num_pts rows of zeros to H_o
 
     if on_cube:
-        O['x_on_cube'][-num_pts:] = pts
-        O['x'][-num_pts:] = pts*(ub-lb)+lb
+        H_o['x_on_cube'][-num_pts:] = pts
+        H_o['x'][-num_pts:] = pts*(ub-lb)+lb
     else:
-        O['x_on_cube'][-num_pts:] = (pts-lb)/(ub-lb)
-        O['x'][-num_pts:] = pts
+        H_o['x_on_cube'][-num_pts:] = (pts-lb)/(ub-lb)
+        H_o['x'][-num_pts:] = pts
 
-    O['sim_id'][-num_pts:] = np.arange(len_H+original_len_O, len_H+original_len_O+num_pts)
-    O['local_pt'][-num_pts:] = local_flag
+    H_o['sim_id'][-num_pts:] = np.arange(len_H+original_len_O, len_H+original_len_O+num_pts)
+    H_o['local_pt'][-num_pts:] = local_flag
 
-    O['dist_to_unit_bounds'][-num_pts:] = np.inf
-    O['dist_to_better_l'][-num_pts:] = np.inf
-    O['dist_to_better_s'][-num_pts:] = np.inf
-    O['ind_of_better_l'][-num_pts:] = -1
-    O['ind_of_better_s'][-num_pts:] = -1
+    H_o['dist_to_unit_bounds'][-num_pts:] = np.inf
+    H_o['dist_to_better_l'][-num_pts:] = np.inf
+    H_o['dist_to_better_s'][-num_pts:] = np.inf
+    H_o['ind_of_better_l'][-num_pts:] = -1
+    H_o['ind_of_better_s'][-num_pts:] = -1
 
     if c_flag:
-        O['obj_component'][-num_pts:] = np.tile(range(0, m), (1, num_pts//m))
-        O['pt_id'][-num_pts:] = pt_ids
+        H_o['obj_component'][-num_pts:] = np.tile(range(0, m), (1, num_pts//m))
+        H_o['pt_id'][-num_pts:] = pt_ids
 
     if local_flag:
-        O['num_active_runs'][-num_pts] += 1
-        # O['priority'][-num_pts:] = 1
-        # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
+        H_o['num_active_runs'][-num_pts] += 1
+        # H_o['priority'][-num_pts:] = 1
+        # H_o['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
         if 'high_priority_to_best_localopt_runs' in gen_specs['user'] and gen_specs['user']['high_priority_to_best_localopt_runs']:
-            O['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
+            H_o['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
         else:
-            O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0, 1, num_pts)
-        persis_info['run_order'][run].append(O[-num_pts]['sim_id'])
+            H_o['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0, 1, num_pts)
+        persis_info['run_order'][run].append(H_o[-num_pts]['sim_id'])
     else:
         if c_flag:
             # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
@@ -361,8 +361,8 @@ def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
                 p_tmp = -np.inf*np.ones(num_pts)
             else:
                 p_tmp = persis_info['rand_stream'].uniform(0, 1, num_pts)
-        O['priority'][-num_pts:] = p_tmp
-        # O['priority'][-num_pts:] = 1
+        H_o['priority'][-num_pts:] = p_tmp
+        # H_o['priority'][-num_pts:] = 1
 
     return persis_info
 
