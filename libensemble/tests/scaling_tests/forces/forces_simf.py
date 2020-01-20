@@ -1,5 +1,6 @@
 import os
 import time
+import subprocess
 import numpy as np
 
 from libensemble.controller import JobController
@@ -75,7 +76,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
     # job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
-
+    subprocess.Popen('srun mkdir -p {}'.format(os.getcwd()).split())
     if cores:
         job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
     else:

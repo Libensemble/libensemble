@@ -73,16 +73,22 @@ detail here:
 
     libE_specs['sim_input_dir'] = './my_input'
 
-* ``'ensemble_dir'``: Where to write directory copies. If not specified, writes
-  directories to a new directory named ``ensemble`` in the current working
-  directory::
+* ``'ensemble_dir'``: Where to write directory copies. This location is where each
+  worker will perform it's work, so a scratch space is recommended if
+  performing I/O-heavy calculations. If not specified, writes directories to a
+  new directory named ``ensemble`` in the current working directory::
 
       libE_specs['ensemble_dir'] = '/scratch/current_run/my_ensemble'
 
+.. note::
+    If running libEnsemble centralized and using per-node instead of global
+    scratch spaces, make sure to create the matching ensemble directory on the
+    other node prior to a job controller launch.
+
 * ``'use_worker_dirs'``: Boolean. If enabled, libEnsemble also creates
-  per-worker directories to store the directories use by each worker.
+  per-worker directories to store the calculation-directories used by each worker.
   Particularly useful for organization when running with potentially hundreds
-  of workers or simulations with many steps, and may produce performance benefits.
+  of workers on global scratch spaces, and may produce performance benefits.
 
     Default organization with ``'use_worker_dirs'`` unspecified::
 
@@ -160,6 +166,10 @@ detail here:
               - /symlink_this@ -> ../symlink_this
           - /sim1-worker2
           ...
+
+* ``'copy_back_output'``: Boolean. Following libEnsemble execution, copy the contents
+of the ensemble directory back to the directory where libEnsemble was originally
+launched, labeled by node.
 
 * ``'clean_ensemble_dirs'``: Boolean. Following libEnsemble execution, clean all
   worker and calculation directories and their contents from the output ensemble
