@@ -39,6 +39,7 @@ def cleanup(dirs):
         if is_master and os.path.isdir(dir):
             shutil.rmtree(dir)
 
+
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
     if is_master and not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
