@@ -242,6 +242,25 @@ class Worker:
         else:
             return '-'.join([str(i) for i in work_H_rows.tolist()])
 
+    def _clean_out_copy_back(self):
+        """ Cleanup indication file & copy output to init dir, if specified"""
+        if self.libE_specs.get('copy_input_to_parent'):
+            for prefix, _, file in os.walk(self.prefix):
+                if file == ['.COPY_PARENT_STAGED']:
+                    try:
+                        os.remove(os.path.join(prefix, file[0]))
+                    except FileNotFoundError:
+                        continue
+        if self.libE_specs.get('copy_back_output'):
+            hosted_prefix = os.path.basename(self.prefix) + '_' + os.uname().nodename
+            copy_back_dest = os.path.join(self.startdir, hosted_prefix)
+            if os.path.isdir(copy_back_dest):
+                return
+            try:
+                shutil.copytree(self.prefix, copy_back_dest, symlinks=True)
+            except FileExistsError:
+                pass
+
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_input_dir structure, then performs calculation."
 
@@ -398,19 +417,7 @@ class Worker:
             self.comm.kill_pending()
         finally:
             if self.libE_specs.get('sim_input_dir') and os.path.isdir(self.prefix):
-                for prefix, _, file in os.walk(self.prefix):
-                    if file == ['.COPY_PARENT_STAGED']:
-                        try:
-                            os.remove(os.path.join(prefix, file[0]))
-                        except FileNotFoundError:
-                            continue
-                if self.libE_specs.get('copy_back_output'):
-                    hosted_prefix = os.path.basename(self.prefix) + '_' + os.uname().nodename
-                    copy_back_dest = os.path.join(self.startdir, hosted_prefix)
-                    try:
-                        shutil.copytree(self.prefix, copy_back_dest, symlinks=True)
-                    except FileExistsError:
-                        shutil.copytree(self.prefix, copy_back_dest + '_w' + str(self.workerID), symlinks=True)
+                self._clean_out_copy_back()
 
             if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()
