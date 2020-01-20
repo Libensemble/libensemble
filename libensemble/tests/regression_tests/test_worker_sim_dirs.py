@@ -16,6 +16,7 @@
 
 import numpy as np
 import os
+import time
 import shutil
 
 from libensemble.libE import libE
@@ -37,9 +38,6 @@ def cleanup(dirs):
     for dir in dirs:
         if is_master and os.path.isdir(dir):
             shutil.rmtree(dir)
-
-
-cleanup([w_ensemble, c_ensemble])
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
     if is_master and not os.path.isdir(dir):
@@ -126,6 +124,8 @@ if is_master:
     assert all([file in os.listdir(c_ensemble) for file in os.listdir(sim_input_dir)]), \
         'All input files not copied to ensemble directory.'
 
-    cleanup([w_ensemble, c_ensemble, sim_input_dir])
+    time.sleep(1)
+
     cleanup([file for file in os.listdir('.') if file.startswith(os.path.basename(w_ensemble))] +
-            [file for file in os.listdir('.') if file.startswith(os.path.basename(c_ensemble))])
+            [file for file in os.listdir('.') if file.startswith(os.path.basename(c_ensemble))] +
+            [sim_input_dir])
