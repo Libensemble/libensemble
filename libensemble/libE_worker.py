@@ -183,7 +183,7 @@ class Worker:
 
             if not do_work_dirs:
                 while not staged(calc_prefix):
-                    if workerID == 1:
+                    if workerID == 1: # THIS BUG WILL SHOW UP IN TESTING
                         Worker._stage_and_indicate(locs, sim_input_dir,
                                                    calc_prefix, stgfile)
                 sim_input_dir = prefix
@@ -242,24 +242,35 @@ class Worker:
         else:
             return '-'.join([str(i) for i in work_H_rows.tolist()])
 
+    @staticmethod
+    def _better_copytree(src, dst, symlinks=False):
+        """ Because shutil.copytree can't copy contents to already-existing dir """
+        for item in os.listdir(src):
+            try:
+                s = os.path.join(src, item)
+                d = os.path.join(dst, item)
+                if os.path.isdir(s):
+                    shutil.copytree(s, d, symlinks)
+                else:
+                    shutil.copy2(s, d)
+            except FileExistsError:
+                continue
+
     def _clean_out_copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
         if self.libE_specs.get('copy_input_to_parent'):
             for prefix, _, file in os.walk(self.prefix):
                 if file == ['.COPY_PARENT_STAGED']:
                     try:
-                        os.remove(os.path.join(prefix, file[0]))
+                        os.remove(os.path.join(prefix, file.pop()))
                     except FileNotFoundError:
                         continue
+
         if self.libE_specs.get('copy_back_output'):
-            hosted_prefix = os.path.basename(self.prefix) + '_' + os.uname().nodename
-            copy_back_dest = os.path.join(self.startdir, hosted_prefix)
-            if os.path.isdir(copy_back_dest):
-                return
-            try:
-                shutil.copytree(self.prefix, copy_back_dest, symlinks=True)
-            except FileExistsError:
-                pass
+            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix)
+                                        + '_back')
+            assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
+            Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_input_dir structure, then performs calculation."

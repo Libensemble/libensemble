@@ -133,6 +133,25 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
+        if libE_specs.get('copy_back_output'):
+            self.copybackdir = Manager.make_copyback_dir(libE_specs)
+
+    @staticmethod
+    def make_copyback_dir(libE_specs):
+        copybackdir = os.path.basename(libE_specs.get('ensemble_dir',
+                                       './ensemble')) + '_back'
+        if not os.path.isdir(copybackdir):
+            os.makedirs(copybackdir)
+        else:
+            count = 1
+            while True:
+                try:
+                    os.makedirs(copybackdir+str(count))
+                    break
+                except FileExistsError:
+                    count += 1
+        return copybackdir
+
     # --- Termination logic routines
 
     def term_test_wallclock(self, max_elapsed):
