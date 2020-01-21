@@ -258,19 +258,20 @@ class Worker:
 
     def _clean_out_copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
-        if self.libE_specs.get('copy_input_to_parent'):
-            for prefix, _, file in os.walk(self.prefix):
-                if file == ['.COPY_PARENT_STAGED']:
-                    try:
-                        os.remove(os.path.join(prefix, file.pop()))
-                    except FileNotFoundError:
-                        continue
+        if self.libE_specs.get('sim_input_dir') and os.path.isdir(self.prefix):
+            if self.libE_specs.get('copy_input_to_parent'):
+                for prefix, _, file in os.walk(self.prefix):
+                    if file == ['.COPY_PARENT_STAGED']:
+                        try:
+                            os.remove(os.path.join(prefix, file.pop()))
+                        except FileNotFoundError:
+                            continue
 
-        if self.libE_specs.get('copy_back_output'):
-            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix)
-                                       + '_back')
-            assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
-            Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
+            if self.libE_specs.get('copy_back_output'):
+                copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix)
+                                           + '_back')
+                assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
+                Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_input_dir structure, then performs calculation."
@@ -424,11 +425,10 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
+            self._clean_out_copy_back()
         else:
             self.comm.kill_pending()
         finally:
-            if self.libE_specs.get('sim_input_dir') and os.path.isdir(self.prefix):
-                self._clean_out_copy_back()
-
+            self._clean_out_copy_back()
             if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
                 self.loc_stack.clean_locs()
