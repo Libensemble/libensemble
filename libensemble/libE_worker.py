@@ -183,7 +183,7 @@ class Worker:
 
             if not do_work_dirs:
                 while not staged(calc_prefix):
-                    if workerID == 1: # THIS BUG WILL SHOW UP IN TESTING
+                    if workerID == 1:  # THIS BUG WILL SHOW UP IN TESTING
                         Worker._stage_and_indicate(locs, sim_input_dir,
                                                    calc_prefix, stgfile)
                 sim_input_dir = prefix
@@ -268,7 +268,7 @@ class Worker:
 
         if self.libE_specs.get('copy_back_output'):
             copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix)
-                                        + '_back')
+                                       + '_back')
             assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
             Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
 
