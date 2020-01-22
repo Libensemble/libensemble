@@ -183,9 +183,8 @@ class Worker:
 
             if not do_work_dirs:
                 while not staged(calc_prefix):
-                    if workerID == 1:  # THIS BUG WILL SHOW UP IN TESTING
-                        Worker._stage_and_indicate(locs, sim_input_dir,
-                                                   calc_prefix, stgfile)
+                    Worker._stage_and_indicate(locs, sim_input_dir,
+                                               calc_prefix, stgfile)
                 sim_input_dir = prefix
 
             else:
