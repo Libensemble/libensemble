@@ -262,7 +262,7 @@ class Worker:
                 for prefix, _, file in os.walk(self.prefix):
                     if file == ['.COPY_PARENT_STAGED']:
                         try:
-                            os.remove(os.path.join(prefix, file.pop()))
+                            os.remove(os.path.join(prefix, file[0]]))
                         except FileNotFoundError:
                             continue
 
