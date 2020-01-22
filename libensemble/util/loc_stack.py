@@ -25,7 +25,7 @@ class LocationStack:
         for file_path in glob('{}/*'.format(srcdir)):
 
             src_base = os.path.basename(file_path)
-            rel_dest_path = os.path.relpath(file_path, destdir)
+            src_path = os.path.abspath(file_path)
             dest_path = os.path.join(destdir, src_base)
 
             if len(copy_files) > 0 or len(symlink_files) > 0:
@@ -33,12 +33,12 @@ class LocationStack:
                     continue
             try:
                 if src_base in symlink_files:
-                    os.symlink(rel_dest_path, dest_path)
+                    os.symlink(src_path, dest_path)
                 else:
                     if os.path.isdir(file_path):
-                        shutil.copytree(file_path, dest_path)
+                        shutil.copytree(src_path, dest_path)
                     else:
-                        shutil.copy(file_path, dest_path)
+                        shutil.copy(src_path, dest_path)
             except FileExistsError:
                 continue
 
