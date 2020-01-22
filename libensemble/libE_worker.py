@@ -260,9 +260,9 @@ class Worker:
         if self.libE_specs.get('sim_input_dir') and os.path.isdir(self.prefix):
             if self.libE_specs.get('copy_input_to_parent'):
                 for prefix, _, file in os.walk(self.prefix):
-                    if file == ['.COPY_PARENT_STAGED']:
+                    if '.COPY_PARENT_STAGED' in file:
                         try:
-                            os.remove(os.path.join(prefix, file[0]]))
+                            os.remove(os.path.join(prefix, '.COPY_PARENT_STAGED'))
                         except FileNotFoundError:
                             continue
 
