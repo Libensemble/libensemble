@@ -143,7 +143,7 @@ detail here:
     - /my_ensemble
         - /sim0-worker1
             - /copy_this
-            - /symlink_this@ -> ../../input_directory/symlink_this
+            - /symlink_this@ -> /path/input_directory/symlink_this
         - /sim1-worker2
         ...
 
@@ -163,13 +163,18 @@ detail here:
         - /symlink_this
         - /sim0-worker1
               - /copy_this
-              - /symlink_this@ -> ../symlink_this
+              - /symlink_this@ -> /path/symlink_this
           - /sim1-worker2
           ...
 
 * ``'copy_back_output'``: Boolean. Following libEnsemble execution, copy the contents
-of the ensemble directory back to the directory where libEnsemble was originally
-launched, labeled by node.
+  of the ensemble directory back to the directory where libEnsemble was originally
+  launched.
+
+.. note::
+    Using ``'copy_back_output'`` with ``'symlink_input_files'`` and ``'copy_input_to_parent'``
+    may break symlinks in the copied-back directory because the symlinks referred
+    to copies stored on each node's local scratch during execution.
 
 * ``'clean_ensemble_dirs'``: Boolean. Following libEnsemble execution, clean all
   worker and calculation directories and their contents from the output ensemble
