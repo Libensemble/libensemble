@@ -1,6 +1,6 @@
-==========================
-Simple Local Sine Tutorial
-==========================
+================================
+Simple Sine with Multiprocessing
+================================
 
 This introductory tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's
