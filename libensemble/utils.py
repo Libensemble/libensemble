@@ -61,23 +61,27 @@ allowed_alloc_spec_keys = ['alloc_f',  #
                            'out',      #
                            'user']     #
 
-allowed_libE_spec_keys = ['comms',               #
-                          'comm',                #
-                          'ip',                  #
-                          'port',                #
-                          'authkey',             #
-                          'workerID',            #
-                          'nworkers',          #
-                          'worker_cmd',          #
-                          'abort_on_exception',  #
-                          'sim_dir',             #
-                          'sim_dir_prefix',      #
-                          'sim_dir_suffix',      #
-                          'clean_jobs',          #
-                          'save_every_k_sims',   #
-                          'save_every_k_gens',   #
-                          'profile_worker']      #
-
+allowed_libE_spec_keys = ['abort_on_exception',     #
+                          'authkey',                #
+                          'clean_ensemble_dirs',    #
+                          'comm',                   #
+                          'comms',                  #
+                          'copy_back_output',       #
+                          'copy_input_files',       #
+                          'copy_input_to_parent',   #
+                          'ensemble_dir',           #
+                          'ensemble_dir_suffix',    #
+                          'ip',                     #
+                          'nworkers',               #
+                          'port',                   #
+                          'profile_worker',         #
+                          'save_every_k_gens',      #
+                          'save_every_k_sims',      #
+                          'sim_input_dir',          #
+                          'symlink_input_files',    #
+                          'use_worker_dirs',        #
+                          'workerID',               #
+                          'worker_cmd']             #
 # ==================== Common input checking =================================
 _USER_SIM_ID_WARNING = \
     ('\n' + 79*'*' + '\n' +
