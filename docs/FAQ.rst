@@ -13,8 +13,8 @@ Common Errors
 **I keep getting "Manager only - must be at least one worker (2 MPI tasks)" when
 running with multiprocessing and multiple workers specified.**
 
-If your calling script code was switched from MPI to multiprocessing, make sure that
-libE_specs is populated with ``comms: local`` and ``nworkers: [num]``.
+If your calling script code was recently switched from MPI to multiprocessing,
+make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers: [num]``.
 
 **What does "AssertionError: Should not wait for workers when all workers are idle."
 mean?**
@@ -27,7 +27,7 @@ This may also occur with two processes if you are using a persistent generator.
 The generator will occupy the one worker, leaving none to run simulation functions.
 
 **I keep getting: "Not enough processors per worker to honor arguments." when
-using the job controller. Can I launch jobs anyway?**
+using the job controller. Can I launch jobs to allocated processors anyway?**
 
 Automatic partitioning of resources can be disabled if you want to oversubscribe
 (often if testing on a local machine) by configuring the job controller with
@@ -40,13 +40,13 @@ which will attempt to use all hyperthreads/SMT threads available if set to ``Tru
 
 **FileExistsError: [Errno 17] File exists: './sim_worker1'**
 
-This can happen when libEnsemble tries to create sim directories that already exist,
-or when libEnsemble is launched with ``mpiexec`` when the ``libE_specs['comms']`` option is
-set to ``local``.
+This can happen when libEnsemble tries to create ensemble or simulation directories
+that already exist, or when libEnsemble is launched with ``mpiexec`` when the
+``libE_specs['comms']`` option is set to ``local``.
 
-To create uniquely-named ensemble directories, you can set the ``ensemble_dir_suffix``
-option in :ref:`sim_specs<datastruct-sim-specs>` to a hash or an incrementing value,
-for example.
+To create uniquely-named ensemble directories, set the ``ensemble_dir_suffix``
+option in :doc:`libE_specs<history_output>` to some unique value.
+Alternatively, append some unique value to ``libE_specs['ensemble_dir']``
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
@@ -67,10 +67,11 @@ HPC Errors and Questions
 
 **Why does libEnsemble hang on certain systems when running with MPI?**
 
-This may occur if matching probes, which mpi4py uses by default, are not supported
-by the communications fabric. This has been observed with Intel's Truescale (TMI)
-fabric at the time of writing. This can be solved by switching fabrics or disabling
-matching probes before the MPI module is first imported.
+Another symptom may be the manager only communicating with Worker 1. This issue
+may occur if matching probes, which mpi4py uses by default, are not supported
+by the communications fabric, like Intel's Truescale (TMI) fabric. This can be
+solved by switching fabrics or disabling matching probes before the MPI module
+is first imported.
 
 Add these two lines BEFORE ``from mpi4py import MPI``::
 
@@ -128,7 +129,7 @@ to ``pdb``. How well this works varies by system. ::
 
 **Can I use the MPI Job Controller when running libEnsemble with multiprocessing?**
 
-Actually, yes! The job controller type determines only how libEnsemble workers
+Yes. The job controller type determines only how libEnsemble workers
 launch and interact with user applications and is independent of ``comms`` chosen
 for manager/worker communications.
 
@@ -158,4 +159,4 @@ Following a failed wheel build for PETSc, the installation process may freeze wh
 attempting to configure PETSc with the local Fortran compiler if it doesn't exist.
 Run the above command again after disabling Fortran configuring with ``export PETSC_CONFIGURE_OPTIONS='--with-fc=0'``.
 The wheel build will still fail, but PETSc and petsc4py should still install
-successfully via setup.py after some time.
+successfully via ``setup.py`` after some time.
