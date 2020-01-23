@@ -29,7 +29,7 @@ Go to balsam_tests directory run setup script:
   ./setup_balsam_tests.py
 
 This will register the applications and jobs in the database. If work_dir and
-sim_dir paths are correct, it can be run from anywhere.
+sim_input_dir paths are correct, it can be run from anywhere.
 
 **ii) Launch the jobs**
 

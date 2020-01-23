@@ -1,5 +1,6 @@
 import os
 import time
+import subprocess
 import numpy as np
 
 from libensemble.controller import JobController
@@ -46,8 +47,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     calc_status = 0  # Returns to worker
 
     x = H['x']
-    simdir_basename = sim_specs['user']['simdir_basename']
-    keys = sim_specs['user']['keys']
+    # simdir_basename = sim_specs['user']['simdir_basename']
+    # keys = sim_specs['user']['keys']
     sim_particles = sim_specs['user']['sim_particles']
     sim_timesteps = sim_specs['user']['sim_timesteps']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
@@ -67,15 +68,15 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # At this point you will be in the sim directory (really worker dir) for this worker (eg. sim_1).
     # The simdir below is created for each job for this worker.
     # Any input needs to be copied into this directory. Currently there is none.
-    simdir = simdir_basename + '_' + keys[0] + '_' + str(seed)
-    simdir = make_unique_simdir(simdir)
-    os.mkdir(simdir)
-    os.chdir(simdir)
+    # simdir = simdir_basename + '_' + keys[0] + '_' + str(seed)
+    # simdir = make_unique_simdir(simdir)
+    # os.mkdir(simdir)
+    # os.chdir(simdir)
     jobctl = JobController.controller  # Get JobController
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
     # job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
-
+    subprocess.Popen('pdsh -w {} mkdir -p {}'.format(os.environ['SLURM_JOB_NODELIST'], os.getcwd()).split())
     if cores:
         job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
     else:
@@ -114,7 +115,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         else:
             print("Warning: Job {} in unknown state {}. Error code {}".format(job.name, job.state, job.errcode))
 
-    os.chdir('../')
+    # os.chdir('../')
 
     time.sleep(0.2)
     try:

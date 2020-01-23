@@ -17,6 +17,14 @@ def nan_func(calc_in, persis_info, sim_specs, libE_info):
     return (H, persis_info)
 
 
+def write_func(calc_in, persis_info, sim_specs, libE_info):
+    out = np.zeros(1, dtype=sim_specs['out'])
+    out['f'] = calc_in['x']
+    with open('test_out.txt', 'a') as f:
+        f.write('sim_f received: {}\n'.format(out['f']))
+    return out, persis_info
+
+
 uniform_or_localopt_gen_out = [('priority', float),
                                ('local_pt', bool),
                                ('known_to_aposmm', bool),

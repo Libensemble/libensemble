@@ -4,6 +4,7 @@ libensemble utility class -- keeps a stack of directory locations.
 
 import os
 import shutil
+from glob import glob
 
 
 class LocationStack:
@@ -15,7 +16,34 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def register_loc(self, key, dirname, prefix=None, srcdir=None):
+    def copy_or_symlink(self, srcdir, destdir, copy_files=[], symlink_files=[]):
+        """ Inspired by https://stackoverflow.com/a/9793699.
+        Determine paths, basenames, and conditions for copying/symlinking
+        """
+        if not os.path.isdir(destdir):
+            os.makedirs(destdir, exist_ok=True)
+        for file_path in glob('{}/*'.format(srcdir)):
+
+            src_base = os.path.basename(file_path)
+            src_path = os.path.abspath(file_path)
+            dest_path = os.path.join(destdir, src_base)
+
+            if len(copy_files) > 0 or len(symlink_files) > 0:
+                if src_base not in copy_files and src_base not in symlink_files:
+                    continue
+            try:
+                if src_base in symlink_files:
+                    os.symlink(src_path, dest_path)
+                else:
+                    if os.path.isdir(file_path):
+                        shutil.copytree(src_path, dest_path)
+                    else:
+                        shutil.copy(src_path, dest_path)
+            except FileExistsError:
+                continue
+
+    def register_loc(self, key, dirname, prefix=None, srcdir=None, copy_files=[],
+                     symlink_files=[]):
         """Register a new location in the dictionary.
 
         Parameters
@@ -35,15 +63,25 @@ class LocationStack:
             Name of a source directory to populate the new location.
             If srcdir is not None, the directory should not yet exist.
             srcdir is not relative to prefix.
+
+        copy_files: list:
+            Copy only these files to the destination directory.
+
+        symlink_files: list:
+            Of all the files copied to the destination, symlink these instead.
         """
         if prefix is not None:
             prefix = os.path.expanduser(prefix)
             dirname = os.path.join(prefix, os.path.basename(dirname))
+
         self.dirs[key] = dirname
         if srcdir is not None:
-            assert ~os.path.isdir(dirname), \
+            assert not os.path.isdir(dirname), \
                 "Directory {} already exists".format(dirname)
-            shutil.copytree(srcdir, dirname)
+            self.copy_or_symlink(srcdir, dirname, copy_files, symlink_files)
+        else:
+            if dirname and not os.path.isdir(dirname):
+                os.makedirs(dirname)
         return dirname
 
     def push_loc(self, key):
