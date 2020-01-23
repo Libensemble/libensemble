@@ -54,7 +54,7 @@ def xtest_launch():
 
     # Launch finite loop, wait for termination
     process = launcher.launch([py_exe, "launch_busy.py", "0", "0.1"])
-    assert launcher.process_is_stopped(process, 0.5), "Process should have stopped earlier."
+    assert launcher.process_is_stopped(process, 1.5), "Process should have stopped earlier."
 
     # Try simple kill
     process = launcher.launch([py_exe, "launch_busy.py", "1"])

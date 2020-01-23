@@ -5,6 +5,7 @@ libEnsemble manager routines
 
 import sys
 import os
+import glob
 import logging
 import socket
 import numpy as np
@@ -117,6 +118,7 @@ class Manager:
         """Initializes the manager"""
         timer = Timer()
         timer.start()
+        self.date_start = timer.date_start.replace(' ', '_')
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -176,19 +178,21 @@ class Manager:
     def _save_every_k(self, fname, count, k):
         "Saves history every kth step"
         count = k*(count//k)
-        filename = fname.format(count)
+        filename = fname.format(self.date_start, count)
         if not os.path.isfile(filename) and count > 0:
+            for old_file in glob.glob(fname.format(self.date_start, '*')):
+                os.remove(old_file)
             np.save(filename, self.hist.H)
 
     def _save_every_k_sims(self):
         "Saves history every kth sim step"
-        self._save_every_k('libE_history_after_sim_{}.npy',
+        self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
                            self.hist.sim_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
         "Saves history every kth gen step"
-        self._save_every_k('libE_history_after_gen_{}.npy',
+        self._save_every_k('libE_history_for_run_starting_{}_after_gen_{}.npy',
                            self.hist.index,
                            self.libE_specs['save_every_k_gens'])
 
@@ -362,7 +366,17 @@ class Manager:
     def _alloc_work(self, H, persis_info):
         "Calls work allocation function from alloc_specs"
         alloc_f = self.alloc_specs['alloc_f']
-        return alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+        output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+
+        if len(output) == 2:
+            output = output + ((0,))
+
+        assert len(output) == 3, "alloc_f must return three outputs."
+        assert isinstance(output[0], dict), "First alloc_f output must be a dictionary"
+        assert isinstance(output[1], dict), "Second alloc_f output must be a dictionary"
+        assert output[2] in [0, 1], "Third alloc_f output must be 0 or 1."
+
+        return output
 
     def run(self, persis_info):
         "Runs the manager"
@@ -374,8 +388,11 @@ class Manager:
             while not self.term_test():
                 persis_info = self._receive_from_workers(persis_info)
                 if any(self.W['active'] == 0):
-                    Work, persis_info = self._alloc_work(self.hist.trim_H(),
-                                                         persis_info)
+                    Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
+                                                               persis_info)
+                    if flag:
+                        break
+
                     for w in Work:
                         if self.term_test():
                             break
@@ -383,7 +400,7 @@ class Manager:
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(self.W['active'] != 0), \
-                    "Should not wait for workers when all workers are idle."
+                    "alloc_f did not return any work, although all workers are idle."
 
         finally:
             # Return persis_info, exit_flag, elapsed time
