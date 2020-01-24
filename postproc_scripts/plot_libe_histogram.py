@@ -102,10 +102,12 @@ else:
 title = 'libEnsemble histogram of ' + calc_type  + ' times' + ' (' + str(active_line_count) + ' user calcs)'  +  str(num_bins) + ' bins'
 
 plt.title(title)
-plt.xlabel('Calc run-time (sec)')
-plt.ylabel('Count')
+plt.xlabel('Calculation run time (sec)',fontsize=14)
+plt.ylabel('Count',fontsize=14)
 plt.grid(True)
-plt.legend(loc='best')
+plt.legend(loc='best',fontsize=14)
 
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
 #plt.show()
-plt.savefig('hist_completed_v_killed.png')
+plt.savefig('hist_completed_v_killed.png',bbox='tight', transparent=True)
