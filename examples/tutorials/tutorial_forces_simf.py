@@ -7,6 +7,7 @@ from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
 
 MAX_SEED = 32767
 
+
 def perturb(particles, seed, max_fraction):
     """Modify particle count"""
     seed_fraction = seed/MAX_SEED
@@ -25,6 +26,7 @@ def read_last_line(filepath):
     except Exception:
         line = ""  # In case file is empty or not yet created
     return line
+
 
 def run_forces(H, persis_info, sim_specs, libE_info):
     calc_status = 0
@@ -59,7 +61,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     line = None
 
     poll_interval = 1
-    while not job.finished :
+    while not job.finished:
         line = read_last_line(filepath)
         if line == "kill":
             job.kill()
