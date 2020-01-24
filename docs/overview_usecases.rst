@@ -41,8 +41,9 @@ to support) and plan to have examples of:
   produce a new mesh. libEnsemble can ensure that the calculated meshes can be
   used by multiple simulations without requiring movement of data.
 
-* A user is attempting to sample a simulation ``sim_f`` at some parameter
-  values, many of which will cause the simulation to fail. libEnsemble can stop
+* A user wants to evaluate a simulation ``sim_f`` with different sets of
+  parameters, each drawn from a set of possible values. Some parameter values
+  are known to cause the simulation to fail. libEnsemble can stop
   unresponsive evaluations and recover computational resources for future
   evaluations. The ``gen_f`` can possibly update the sampling after discovering
   regions where evaluations of ``sim_f`` fail.
