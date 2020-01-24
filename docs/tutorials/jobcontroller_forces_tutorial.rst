@@ -77,12 +77,12 @@ We'll register our simulation with the job controller to it and use the same
 instance within our ``sim_f``.
 
 libEnsemble can perform and write every simulation "step" in a separate directory
-for organization and potential I/O speed benefits. libEnsemble copies a source
+for organization and potential I/O benefits. In this example, libEnsemble copies a source
 directory and its contents to create these simulation directories.
 For our purposes, an empty directory ``./sim`` is sufficient.
 
-Next we have our :ref:`sim_specs<datastruct-sim-specs>` and
-:ref:`gen_specs<datastruct-gen-specs>`:
+Next define the :ref:`sim_specs<datastruct-sim-specs>` and
+:ref:`gen_specs<datastruct-gen-specs>` data structures:
 
 .. code-block:: python
     :linenos:
@@ -113,12 +113,12 @@ Next we have our :ref:`sim_specs<datastruct-sim-specs>` and
                  }
 
 These dictionaries configure our generation function ``gen_f`` and our simulation
-function ``sim_f``, referred to as ``uniform_random_sample`` and ``run_forces``,
-respectively. Our ``gen_f`` will be used primarily to generate random seeds for
-initializing the simulation within our ``sim_f``.
+function ``sim_f``, respectively, as the ``uniform_random_sample`` and
+``run_forces`` functions. Our ``gen_f`` will generate random seeds when
+initializing each ``sim_f`` call.
 
 After some additions to ``libE_specs`` and defining our ``exit_criteria`` and
-``persis_info``, we conclude our calling script with a call to the main
+``persis_info``, our script calls the main
 :doc:`libE<../libe_module>` routine:
 
  .. code-block:: python
@@ -138,12 +138,11 @@ Simulation Function
 -------------------
 
 Our ``sim_f`` is where we'll configure and launch our compiled simulation
-code using libEnsemble's Job Controller. We will poll this job's state while it runs,
+code using libEnsemble's job controller. We will poll this job's state while it runs,
 and once we've detected it has finished we will send any results or exit statuses
 back to the manager.
 
-Create another empty Python file named ``forces_simf.py`` and start by writing
-or pasting the following:
+Create another Python file named ``forces_simf.py`` containing:
 
 .. code-block:: python
     :linenos:
@@ -176,14 +175,13 @@ or pasting the following:
             line = ""  # In case file is empty or not yet created
         return line
 
-We use libEnsemble's built-in message number tags in place of indescriptive
-integers. ``perturb()`` is used to randomize the work-load of particle calculations
-for testing purposes. Our compiled code outputs forces values and statuses with
-a ``.stat`` file; the second function parses that file.
-
+We use libEnsemble's message number tags to communicate the worker's status to
+the manager. For testing purposes, the ``perturb()`` function randomizes the
+resources used for each calculation. The second function parses 
+forces values and statuses in the ``.stat`` file produced by our rompiled code.
 Now we can write the actual ``sim_f``. We'll first write the function definition,
 extract our parameters from ``sim_specs``, define a random seed, and use
-``perturb()`` to variate our particle counts.
+``perturb()`` to randomize our particle counts.
 
 .. code-block:: python
     :linenos:
@@ -227,17 +225,17 @@ Next we will instantiate our job controller and launch our registered applicatio
 
 In each job controller ``launch()`` routine, we define the type of calculation being
 performed, optionally the number of processors to run the job on, additional
-arguments for the simulation code, and files to write ``stdout`` and ``stderr``
-output to. ``wait_on_run`` forces ``sim_f`` execution to pause until the job
+arguments for the simulation code, and files for ``stdout`` and ``stderr``
+output. The ``wait_on_run`` argument forces ``sim_f`` execution to pause until the job
 is confirmed to be running. See the :doc:`docs<../job_controller/mpi_controller>`
 for more information about these and other options.
 
-The rest of the code in our ``sim_f`` involves regularly polling the :ref:`job<job_tag>`'s
-various dynamically updated attributes for its status, determining if a successful
-run occurred after the job completes, then formatting and returning our output data
+The rest of our ``sim_f`` polls the :ref:`job<job_tag>`'s
+dynamically updated attributes for its status, determines if a successful
+run occurred after the job completes, then formats and returns the output data
 to the manager.
 
-Poll the job and kill it in certain circumstances:
+We can poll the job and kill it in certain circumstances:
 
 .. code-block:: python
     :linenos:
@@ -302,9 +300,9 @@ Load output data from our job and return to the libEnsemble manager:
 Job Controller Variants
 -----------------------
 
-libEnsemble features two variants of its Job Controller that perform identical
-functions, but are meant to run on different system architectures. For most uses,
-the MPI variant will be satisfactory. Some systems like ALCF's Theta require an
+libEnsemble features two variants of its job controller that perform identical
+functions, but are designed for running on different systems. For most uses,
+the MPI variant will be satisfactory; some systems, such as ALCF's Theta, require an
 additional scheduling utility called Balsam_ running on a separate node
 for job submission to function properly. The Balsam Job Controller variant interacts
 with Balsam for this purpose. The only user-facing difference between the two is
