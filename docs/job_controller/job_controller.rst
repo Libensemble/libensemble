@@ -15,6 +15,8 @@ See the controller APIs for optional arguments.
    mpi_controller
    balsam_controller
 
+.. _job_tag:
+
 Job Class
 ---------
 
