@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import numpy as np
-from forces_simf import run_forces  # Sim func from current dir
+from slim_forces_simf import run_forces  # Sim func from current dir
 
 from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample
@@ -11,7 +11,7 @@ from libensemble.mpi_controller import MPIJobController
 nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
 # Create job_controller and register sim to it
-jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
+jobctrl = MPIJobController(auto_resources=False)  # Use auto_resources=False to oversubscribe
 
 # Create empty simulation input directory
 if not os.path.isdir('./sim'):
@@ -48,7 +48,7 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
              }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-libE_specs['sim_dir'] = './sim'         # Sim dir to be copied for each worker
+libE_specs['sim_input_dir'] = './sim'         # Sim dir to be copied for each worker
 
 exit_criteria = {'sim_max': 8}
 

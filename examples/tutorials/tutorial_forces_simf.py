@@ -74,7 +74,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
             print("Job {} completed".format(job.name))
             calc_status = WORKER_DONE
             if read_last_line(filepath) == "kill":
-                print("Warning: Job completed although marked as a bad run (kill flag set in forces.stat)")
+                print("Warning: Job complete but marked bad (kill flag in forces.stat)")
         elif job.state == 'FAILED':
             print("Warning: Job {} failed: Error code {}".format(job.name, job.errcode))
             calc_status = JOB_FAILED

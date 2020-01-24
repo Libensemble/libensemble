@@ -1,6 +1,6 @@
-================================
-Simple Sine with Multiprocessing
-================================
+==================================
+Multiprocessing with a Simple Sine
+==================================
 
 This introductory tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's
