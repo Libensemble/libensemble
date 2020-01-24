@@ -2,20 +2,21 @@
 Job Controller with Electrostatic Forces
 ========================================
 
-This tutorial describes and teaches libEnsemble's additional capability to launch
+This tutorial highlights libEnsemble's capability to launch
 and monitor external scripts or user applications within simulation or generator
-functions using the :doc:`Job Controller<../job_controller/overview>`. In this tutorial,
-we register an external C simulation for particle electrostatic forces in
-our calling script then launch and poll it within our ``sim_f``. This allows us
+functions using the :doc:`job controller<../job_controller/overview>`. In this tutorial,
+our calling script registers an external C simulation that calculate
+electrostatic forces between a collection of particles. The ``sim_f``
+calculation then launches and polls external calculation. This allows us
 to scale our C simulation using libEnsemble without rewriting it as a Python
 ``sim_f``.
 
-While traditional Python ``subprocess`` calls or high-performance
-mechanisms like ``jsrun`` or ``aprun`` can successfully submit applications for
-processing, hardcoding these routines as-is into a ``sim_f`` isn't portable.
+It is often possible to use ``subprocess`` calls from Python or system-specific 
+commands such as ``jsrun`` or ``aprun`` to run calculations. Unfortunately,
+hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
-support submitting additional jobs from compute nodes. libEnsemble's job
-controller was developed to directly address these issues.
+allow running jobs to submitting additional jobs from the compute nodes.
+libEnsemble's job controller was developed to directly address such issues.
 
 Getting Started
 ---------------
@@ -23,7 +24,7 @@ Getting Started
 The simulation source code ``forces.c`` can be obtained directly from the
 libEnsemble repository here_.
 
-Assuming MPI and its C compiler ``mpicc`` are installed on your system, compile
+Assuming MPI and its C compiler ``mpicc`` are available, compile
 ``forces.c`` into an executable (``forces.x``) with:
 
 .. code-block:: bash
@@ -33,9 +34,8 @@ Assuming MPI and its C compiler ``mpicc`` are installed on your system, compile
 Calling Script
 --------------
 
-Lets begin by writing our calling script to parameterize our simulation and
-generation functions and call libEnsemble. Create an empty Python file and type
-(or copy and paste...) the following:
+Let's begin by writing our calling script to parameterize our simulation and
+generation functions and call libEnsemble. Create Python file containing:
 
 .. code-block:: python
     :linenos:
@@ -66,14 +66,15 @@ generation functions and call libEnsemble. Create an empty Python file and type
 
 On line 4 we import our not-yet-written ``sim_f``. We also import necessary
 libEnsemble components and some :doc:`convenience functions<../utilities>`.
-
-We can quickly define the number of workers, if the current process is the master
-process and :ref:`libE_specs<datastruct-libe-specs>` with a call to the
-``parse_args()`` convenience function.
+For example, our script can use the number of workers (``nworkers``), a boolean
+determining if the process is the master process (``is_master``), and a default
+:ref:`libE_specs<datastruct-libe-specs>` with a call to the ``parse_args()``
+convenience function.
 
 Next we define our job controller class instance. This instance can be customized
 with many of the settings defined :doc:`here<../job_controller/mpi_controller>`.
-We'll register our simulation to it and use the same instance within our ``sim_f``.
+We'll register our simulation with the job controller to it and use the same
+instance within our ``sim_f``.
 
 libEnsemble can perform and write every simulation "step" in a separate directory
 for organization and potential I/O speed benefits. libEnsemble copies a source
