@@ -7,15 +7,14 @@ and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`job controller<../job_controller/overview>`. In this tutorial,
 our calling script registers an external C executable that simulates
 electrostatic forces between a collection of particles. The ``sim_f``
-routine then launches and polls this executable. This allows us
-to scale our C application using libEnsemble without rewriting it as a Python
-``sim_f``.
+routine then launches and polls this executable.
 
-It is often possible to use ``subprocess`` calls from Python or system-specific
-commands such as ``jsrun`` or ``aprun`` to run calculations. Unfortunately,
+It is possible to use ``subprocess`` calls from Python to issue
+commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
 hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
-allow running jobs to submitting additional jobs from the compute nodes.
+allow running jobs to submit additional jobs from the compute nodes. On these
+systems a proxy launch mechanism (such as Balsam) is required.
 libEnsemble's job controller was developed to directly address such issues.
 
 Getting Started
@@ -73,13 +72,13 @@ convenience function.
 
 Next we define our job controller class instance. This instance can be customized
 with many of the settings defined :doc:`here<../job_controller/mpi_controller>`.
-We'll register our simulation with the job controller to it and use the same
+We'll register our simulation with the job controller and use the same
 instance within our ``sim_f``.
 
-libEnsemble can perform and write every simulation "step" in a separate directory
-for organization and potential I/O benefits. In this example, libEnsemble copies a source
-directory and its contents to create these simulation directories.
-For our purposes, an empty directory ``./sim`` is sufficient.
+libEnsemble can perform and write every simulation (within the ensemble) in a
+separate directory for organization and potential I/O benefits. In this example,
+libEnsemble copies a source directory and its contents to create these simulation
+directories. For our purposes, an empty directory ``./sim`` is sufficient.
 
 Next define the :ref:`sim_specs<datastruct-sim-specs>` and
 :ref:`gen_specs<datastruct-gen-specs>` data structures:
@@ -301,11 +300,14 @@ Job Controller Variants
 
 libEnsemble features two variants of its job controller that perform identical
 functions, but are designed for running on different systems. For most uses,
-the MPI variant will be satisfactory; some systems, such as ALCF's Theta, require an
-additional scheduling utility called Balsam_ running on a separate node
-for job submission to function properly. The Balsam Job Controller variant interacts
+the MPI variant will be satisfactory. However, some systems, such as ALCF's Theta
+do not support MPI launches from compute nodes. On these systems libEnsemble is
+run either on launch nodes or using a proxy launch mechanism to submit
+jobs from compute nodes. One such mechanism is a scheduling utility called
+Balsam_ which runs on a separate node. The Balsam Job Controller variant interacts
 with Balsam for this purpose. The only user-facing difference between the two is
 which controller is imported and called within a calling script.
+
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
