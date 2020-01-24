@@ -5,10 +5,10 @@ Job Controller with Electrostatic Forces
 This tutorial highlights libEnsemble's capability to launch
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`job controller<../job_controller/overview>`. In this tutorial,
-our calling script registers an external C simulation that calculate
+our calling script registers an external C executable that simulates
 electrostatic forces between a collection of particles. The ``sim_f``
-calculation then launches and polls external calculation. This allows us
-to scale our C simulation using libEnsemble without rewriting it as a Python
+routine then launches and polls this executable. This allows us
+to scale our C application using libEnsemble without rewriting it as a Python
 ``sim_f``.
 
 It is often possible to use ``subprocess`` calls from Python or system-specific
@@ -35,7 +35,7 @@ Calling Script
 --------------
 
 Let's begin by writing our calling script to parameterize our simulation and
-generation functions and call libEnsemble. Create Python file containing:
+generation functions and call libEnsemble. Create a Python file containing:
 
 .. code-block:: python
     :linenos:
@@ -177,7 +177,7 @@ Create another Python file named ``forces_simf.py`` containing:
 We use libEnsemble's message number tags to communicate the worker's status to
 the manager. For testing purposes, the ``perturb()`` function randomizes the
 resources used for each calculation. The second function parses
-forces values and statuses in the ``.stat`` file produced by our rompiled code.
+forces values and statuses in the ``.stat`` file produced by our compiled code.
 Now we can write the actual ``sim_f``. We'll first write the function definition,
 extract our parameters from ``sim_specs``, define a random seed, and use
 ``perturb()`` to randomize our particle counts.
@@ -225,7 +225,7 @@ Next we will instantiate our job controller and launch our registered applicatio
 In each job controller ``launch()`` routine, we define the type of calculation being
 performed, optionally the number of processors to run the job on, additional
 arguments for the simulation code, and files for ``stdout`` and ``stderr``
-output. The ``wait_on_run`` argument forces ``sim_f`` execution to pause until the job
+output. The ``wait_on_run`` argument pauses ``sim_f`` execution until the job
 is confirmed to be running. See the :doc:`docs<../job_controller/mpi_controller>`
 for more information about these and other options.
 
