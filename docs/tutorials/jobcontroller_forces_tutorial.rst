@@ -11,7 +11,7 @@ calculation then launches and polls external calculation. This allows us
 to scale our C simulation using libEnsemble without rewriting it as a Python
 ``sim_f``.
 
-It is often possible to use ``subprocess`` calls from Python or system-specific 
+It is often possible to use ``subprocess`` calls from Python or system-specific
 commands such as ``jsrun`` or ``aprun`` to run calculations. Unfortunately,
 hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
@@ -165,7 +165,6 @@ Create another Python file named ``forces_simf.py`` containing:
         new_particles = particles + delta
         return int(new_particles)
 
-
     def read_last_line(filepath):
         """Read last line of statfile"""
         try:
@@ -177,7 +176,7 @@ Create another Python file named ``forces_simf.py`` containing:
 
 We use libEnsemble's message number tags to communicate the worker's status to
 the manager. For testing purposes, the ``perturb()`` function randomizes the
-resources used for each calculation. The second function parses 
+resources used for each calculation. The second function parses
 forces values and statuses in the ``.stat`` file produced by our rompiled code.
 Now we can write the actual ``sim_f``. We'll first write the function definition,
 extract our parameters from ``sim_specs``, define a random seed, and use
@@ -307,7 +306,6 @@ additional scheduling utility called Balsam_ running on a separate node
 for job submission to function properly. The Balsam Job Controller variant interacts
 with Balsam for this purpose. The only user-facing difference between the two is
 which controller is imported and called within a calling script.
-
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
