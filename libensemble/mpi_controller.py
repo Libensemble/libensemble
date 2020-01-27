@@ -13,7 +13,7 @@ import logging
 import time
 
 import libensemble.util.launcher as launcher
-from libensemble.mpi_resources import MPIResources
+from libensemble.resources.mpi_resources import MPIResources
 from libensemble.controller import JobController, Job, jassert
 
 logger = logging.getLogger(__name__)

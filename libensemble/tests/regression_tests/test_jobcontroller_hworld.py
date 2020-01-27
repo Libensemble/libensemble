@@ -16,7 +16,7 @@ import multiprocessing
 # Import libEnsemble items for this test
 # from libensemble.calc_info import CalcInfo
 # from libensemble.controller import JobController
-# from libensemble.resources import Resources
+# from libensemble.resources.resources import Resources
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f

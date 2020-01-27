@@ -18,7 +18,7 @@ import logging
 import time
 import datetime
 
-from libensemble.mpi_resources import MPIResources
+from libensemble.resources.mpi_resources import MPIResources
 from libensemble.controller import \
     Job, JobControllerException, jassert, STATES
 from libensemble.mpi_controller import MPIJobController

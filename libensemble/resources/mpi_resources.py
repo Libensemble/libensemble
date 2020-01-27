@@ -5,7 +5,7 @@ Manages libensemble resources related to MPI jobs launched from nodes.
 import os
 import logging
 
-from libensemble.resources import Resources, ResourcesException
+from libensemble.resources.resources import Resources, ResourcesException
 
 
 def rassert(test, *args):

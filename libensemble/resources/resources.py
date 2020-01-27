@@ -9,8 +9,8 @@ import logging
 import itertools
 import subprocess
 # from collections import OrderedDict
-from libensemble import node_resources
-from libensemble.env_resources import EnvResources
+from libensemble.resources import node_resources
+from libensemble.resources.env_resources import EnvResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

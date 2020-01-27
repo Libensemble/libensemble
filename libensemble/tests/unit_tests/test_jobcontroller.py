@@ -6,7 +6,7 @@ import sys
 import time
 import pytest
 import socket
-from libensemble.resources import ResourcesException
+from libensemble.resources.resources import ResourcesException
 from libensemble.controller import JobController, JobControllerException
 from libensemble.controller import NOT_STARTED_STATES
 
