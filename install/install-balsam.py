@@ -26,10 +26,10 @@ def install_balsam():
 
 
 def move_test_balsam(balsam_test):
-    # Moves specified test from /conda to /regression_tests
+    # Moves specified test from /install to /regression_tests
     reg_dir_with_btest = './libensemble/tests/regression_tests/' + balsam_test
     if not os.path.isfile(reg_dir_with_btest):
-        os.rename('./conda/' + balsam_test, reg_dir_with_btest)
+        os.rename('./install/' + balsam_test, reg_dir_with_btest)
 
 
 def configure_coverage():
@@ -49,4 +49,4 @@ if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
     install_balsam()
     move_test_balsam('test_balsam_hworld.py')
     configure_coverage()
-    subprocess.run('./conda/configure-balsam-test.sh'.split())
+    subprocess.run('./install/configure-balsam-test.sh'.split())
