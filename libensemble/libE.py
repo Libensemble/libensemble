@@ -27,7 +27,7 @@ from libensemble.util.timer import Timer
 from libensemble.history import History
 from libensemble.libE_manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
@@ -41,9 +41,7 @@ logger = logging.getLogger(__name__)
 
 def libE(sim_specs, gen_specs, exit_criteria,
          persis_info={},
-         alloc_specs={'alloc_f': give_sim_work_first,
-                      'out': [('allocated', bool)],
-                      'user': {'batch_mode': True, 'num_active_gens': 1}},
+         alloc_specs={},
          libE_specs={},
          H0=[]):
     """
@@ -110,6 +108,10 @@ def libE(sim_specs, gen_specs, exit_criteria,
             2 = Manager timed out and ended simulation
             3 = Current process is not in libEnsemble MPI communicator
     """
+
+    # Set default alloc_specs
+    if not alloc_specs:
+        alloc_specs = alloc_defaults.alloc_specs
 
     # Set default comms
     if 'comms' not in libE_specs:
