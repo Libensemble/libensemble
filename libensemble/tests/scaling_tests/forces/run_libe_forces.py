@@ -37,10 +37,10 @@ if not os.path.isdir('./sim'):
 
 # Create job_controller and register sim to it.
 if USE_BALSAM:
-    from libensemble.balsam_controller import BalsamJobController
+    from libensemble.executors.balsam_controller import BalsamJobController
     jobctrl = BalsamJobController()  # Use auto_resources=False to oversubscribe
 else:
-    from libensemble.mpi_controller import MPIJobController
+    from libensemble.executors.mpi_controller import MPIJobController
     jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 

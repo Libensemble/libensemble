@@ -21,7 +21,7 @@ from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
 from libensemble.util.loc_stack import LocationStack
 from libensemble.util.timer import Timer
-from libensemble.controller import JobController
+from libensemble.executors.controller import JobController
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 import cProfile

@@ -14,7 +14,7 @@ import time
 
 import libensemble.util.launcher as launcher
 from libensemble.resources.mpi_resources import MPIResources
-from libensemble.controller import JobController, Job, jassert
+from libensemble.executors.controller import JobController, Job, jassert
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

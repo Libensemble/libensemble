@@ -15,7 +15,7 @@ import multiprocessing
 
 # Import libEnsemble items for this test
 # from libensemble.calc_info import CalcInfo
-# from libensemble.controller import JobController
+# from libensemble.executors.controller import JobController
 # from libensemble.resources.resources import Resources
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
 from libensemble.libE import libE
@@ -54,10 +54,10 @@ if not os.path.isfile(sim_app):
     build_simfunc()
 
 if USE_BALSAM:
-    from libensemble.balsam_controller import BalsamJobController
+    from libensemble.executors.balsam_controller import BalsamJobController
     jobctrl = BalsamJobController(auto_resources=use_auto_resources)
 else:
-    from libensemble.mpi_controller import MPIJobController
+    from libensemble.executors.mpi_controller import MPIJobController
     jobctrl = MPIJobController(auto_resources=use_auto_resources)
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 

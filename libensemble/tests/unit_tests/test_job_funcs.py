@@ -2,8 +2,8 @@ import os
 import shutil
 import time
 
-from libensemble.controller import Job, JobController, JobControllerException
-from libensemble.mpi_controller import MPIJobController
+from libensemble.executors.controller import Job, JobController, JobControllerException
+from libensemble.executors.mpi_controller import MPIJobController
 
 
 def setup_module(module):

@@ -6,7 +6,7 @@ import numpy as np
 import mpi4py
 from mpi4py import MPI
 
-from libensemble.balsam_controller import BalsamJobController
+from libensemble.executors.balsam_controller import BalsamJobController
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.job_control_hworld import job_control_hworld

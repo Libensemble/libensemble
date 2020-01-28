@@ -2,7 +2,7 @@
 # Test of job controller module for libensemble
 # Test does not require running full libensemble
 import os
-from libensemble.controller import JobController
+from libensemble.executors.controller import JobController
 
 
 def build_simfunc():
@@ -31,10 +31,10 @@ USE_BALSAM = False  # Take as arg
 
 # Create and add exes to registry
 if USE_BALSAM:
-    from libensemble.balsam_controller import BalsamJobController
+    from libensemble.executors.balsam_controller import BalsamJobController
     jobctrl = BalsamJobController()
 else:
-    from libensemble.mpi_controller import MPIJobController
+    from libensemble.executors.mpi_controller import MPIJobController
     jobctrl = MPIJobController()
 
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')

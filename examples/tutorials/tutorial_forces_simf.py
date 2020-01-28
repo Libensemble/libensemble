@@ -2,7 +2,7 @@ import os
 import time
 import numpy as np
 
-from libensemble.controller import JobController
+from libensemble.executors.controller import JobController
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
 
 MAX_SEED = 32767

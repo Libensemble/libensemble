@@ -6,7 +6,7 @@
 
 # Test does not require running full libensemble
 import os
-from libensemble.controller import JobController
+from libensemble.executors.controller import JobController
 
 
 def build_simfunc():
@@ -37,7 +37,7 @@ if USE_BALSAM:
     from libensemble.baslam_controller import BalsamJobController
     jobctrl = BalsamJobController()
 else:
-    from libensemble.mpi_controller import MPIJobController
+    from libensemble.executors.mpi_controller import MPIJobController
     jobctrl = MPIJobController()
 
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')

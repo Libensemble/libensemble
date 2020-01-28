@@ -48,7 +48,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
     from libensemble.utils import parse_args, add_unique_random_streams
-    from libensemble.mpi_controller import MPIJobController
+    from libensemble.executors.mpi_controller import MPIJobController
 
     nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
@@ -150,7 +150,7 @@ Create another Python file named ``forces_simf.py`` containing:
     import time
     import numpy as np
 
-    from libensemble.controller import JobController
+    from libensemble.executors.controller import JobController
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
 
     MAX_SEED = 32767

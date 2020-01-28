@@ -31,7 +31,7 @@ from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
-from libensemble.controller import JobController
+from libensemble.executors.controller import JobController
 from libensemble.utils import check_inputs, _USER_SIM_ID_WARNING
 
 logger = logging.getLogger(__name__)

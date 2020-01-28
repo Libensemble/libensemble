@@ -1,4 +1,4 @@
-from libensemble.mpi_controller import MPIJobController
+from libensemble.executors.mpi_controller import MPIJobController
 from libensemble.message_numbers import UNSET_TAG, WORKER_KILL_ON_ERR, MAN_SIGNAL_FINISH, WORKER_DONE, JOB_FAILED, WORKER_KILL_ON_TIMEOUT
 import numpy as np
 

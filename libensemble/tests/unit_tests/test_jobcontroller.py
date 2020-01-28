@@ -7,8 +7,8 @@ import time
 import pytest
 import socket
 from libensemble.resources.resources import ResourcesException
-from libensemble.controller import JobController, JobControllerException
-from libensemble.controller import NOT_STARTED_STATES
+from libensemble.executors.controller import JobController, JobControllerException
+from libensemble.executors.controller import NOT_STARTED_STATES
 
 
 USE_BALSAM = False
@@ -56,10 +56,10 @@ def setup_job_controller():
         build_simfunc()
 
     if USE_BALSAM:
-        from libensemble.balsam_controller import BalsamJobController
+        from libensemble.executors.balsam_controller import BalsamJobController
         jobctrl = BalsamJobController(auto_resources=False)
     else:
-        from libensemble.mpi_controller import MPIJobController
+        from libensemble.executors.mpi_controller import MPIJobController
         jobctrl = MPIJobController(auto_resources=False)
 
     jobctrl.register_calc(full_path=sim_app, calc_type='sim')
@@ -71,10 +71,10 @@ def setup_job_controller_noreg():
         build_simfunc()
 
     if USE_BALSAM:
-        from libensemble.balsam_controller import BalsamJobController
+        from libensemble.executors.balsam_controller import BalsamJobController
         jobctrl = BalsamJobController(auto_resources=False)
     else:
-        from libensemble.mpi_controller import MPIJobController
+        from libensemble.executors.mpi_controller import MPIJobController
         jobctrl = MPIJobController(auto_resources=False)
 
     jobctrl.register_calc(full_path=sim_app, calc_type='sim')
@@ -86,10 +86,10 @@ def setup_job_controller_noapp():
         build_simfunc()
 
     if USE_BALSAM:
-        from libensemble.balsam_controller import BalsamJobController
+        from libensemble.executors.balsam_controller import BalsamJobController
         jobctrl = BalsamJobController(auto_resources=False)
     else:
-        from libensemble.mpi_controller import MPIJobController
+        from libensemble.executors.mpi_controller import MPIJobController
         jobctrl = MPIJobController(auto_resources=False)
         if jobctrl.workerID is not None:
             sys.exit("Something went wrong in creating JobController")
@@ -457,7 +457,7 @@ def test_launch_no_app():
 
 
 def test_kill_job_with_no_launch():
-    from libensemble.controller import Job
+    from libensemble.executors.controller import Job
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller
@@ -483,7 +483,7 @@ def test_kill_job_with_no_launch():
 
 
 def test_poll_job_with_no_launch():
-    from libensemble.controller import Job
+    from libensemble.executors.controller import Job
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_job_controller()
     jobctl = JobController.controller

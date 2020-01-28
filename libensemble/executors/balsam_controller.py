@@ -19,9 +19,9 @@ import time
 import datetime
 
 from libensemble.resources.mpi_resources import MPIResources
-from libensemble.controller import \
+from libensemble.executors.controller import \
     Job, JobControllerException, jassert, STATES
-from libensemble.mpi_controller import MPIJobController
+from libensemble.executors.mpi_controller import MPIJobController
 
 import balsam.launcher.dag as dag
 from balsam.core import models
