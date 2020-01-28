@@ -19,6 +19,6 @@ chwirut
   :undoc-members:
 
 task_control_hworld
-------------------
+-------------------
 .. automodule:: task_control_hworld
   :members:

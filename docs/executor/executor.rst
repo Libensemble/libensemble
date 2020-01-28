@@ -17,23 +17,23 @@ See the executor APIs for optional arguments.
 
 .. _task_tag:
 
-Job Class
----------
+Task Class
+----------
 
-Jobs are created and returned through the executor ``submit()`` function. Jobs
-can be polled and killed with the respective poll and kill functions. Job
+Tasks are created and returned through the executor ``submit()`` function. Tasks
+can be polled and killed with the respective poll and kill functions. Task
 information can be queried through the task attributes below and the query
 functions. Note that the task attributes are updated only when they are
 polled/killed (or through other task or executor functions).
 
-.. autoclass:: Job
+.. autoclass:: Task
   :members:
   :exclude-members: calc_task_timing,check_poll
 ..  :member-order: bysource
 ..  :members: poll, kill, workdir_exists, file_exists_in_workdir, read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr
 
-Job Attributes
---------------
+Task Attributes
+---------------
 
 Following is a list of task status and configuration attributes that can be
 retrieved from a task.
@@ -42,7 +42,7 @@ retrieved from a task.
        executor, and task information can be queried through the task attributes
        below and the query functions.
 
-Job status attributes include the following:
+Task status attributes include the following:
 
 :task.state: (string) The task status. One of ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
 

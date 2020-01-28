@@ -42,11 +42,14 @@ sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.append(os.path.abspath('../libensemble'))
 ##sys.path.append(os.path.abspath('../libensemble'))
+sys.path.append(os.path.abspath('../libensemble/executors'))
+sys.path.append(os.path.abspath('../libensemble/resources'))
 sys.path.append(os.path.abspath('../libensemble/alloc_funcs'))
 sys.path.append(os.path.abspath('../libensemble/gen_funcs'))
 sys.path.append(os.path.abspath('../libensemble/sim_funcs'))
 sys.path.append(os.path.abspath('../libensemble/comms'))
 sys.path.append(os.path.abspath('../libensemble/util'))
+
 # print(sys.path)
 
 # -- General configuration ------------------------------------------------

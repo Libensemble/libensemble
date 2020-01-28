@@ -113,7 +113,7 @@ allocated compute node, with three nodes available for the workers to launch
 user applications with the executor or a job-launch command.
 
 This is an example of running in :doc:`centralized<platforms_index>` mode;
-if using the :doc:`executor<../executor/jc_index>`, it should
+if using the :doc:`executor<../executor/ex_index>`, it should
 be initiated with ``central_mode=True``. libEnsemble must be run in central mode
 on Cori because jobs cannot share nodes.
 
