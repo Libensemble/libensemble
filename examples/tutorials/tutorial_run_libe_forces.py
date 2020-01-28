@@ -10,14 +10,14 @@ from libensemble.executors.mpi_controller import MPIJobController
 
 nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
-# Create job_controller and register sim to it
+# Create executor and register sim to it
 jobctrl = MPIJobController(auto_resources=False)  # Use auto_resources=False to oversubscribe
 
 # Create empty simulation input directory
 if not os.path.isdir('./sim'):
     os.mkdir('./sim')
 
-# Register simulation executable with job controller
+# Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), 'forces.x')
 jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 

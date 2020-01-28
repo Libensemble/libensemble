@@ -1,7 +1,7 @@
 Kill tests
 ==========
 
-Launching MPI jobs which write at regular intervals to an output file (see sleep_and_print.c).
+Launching MPI tasks which write at regular intervals to an output file (see sleep_and_print.c).
 
 This test launches a job, then kills after a few seconds, and then monitors
 file to see if output continues. If the first job is successfully killed, a

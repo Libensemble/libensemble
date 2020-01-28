@@ -1,11 +1,11 @@
 """
-This module launches and controls the running of MPI jobs.
+This module launches and controls the running of MPI tasks.
 
-In order to create an MPI job controller, the calling script should contain ::
+In order to create an MPI executor, the calling script should contain ::
 
-    jobctl = MPIJobController()
+    exctr = MPI_Executor()
 
-See the controller API below for optional arguments.
+See the executor API below for optional arguments.
 """
 
 import os
@@ -14,15 +14,15 @@ import time
 
 import libensemble.util.launcher as launcher
 from libensemble.resources.mpi_resources import MPIResources
-from libensemble.executors.controller import JobController, Job, jassert
+from libensemble.executors.executor import Executor, Task, jassert
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
 
-class MPIJobController(JobController):
-    """The MPI job_controller can create, poll and kill runnable MPI jobs
+class MPI_Executor(Executor):
+    """The MPI executor can create, poll and kill runnable MPI tasks
     """
 
     def __init__(self, auto_resources=True, central_mode=False,
@@ -30,9 +30,9 @@ class MPIJobController(JobController):
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
                  nodelist_env_lsf_shortform=None):
-        """Instantiate a new JobController instance.
+        """Instantiate a new Executor instance.
 
-        A new JobController object is created with an application
+        A new Executor object is created with an application
         registry and configuration attributes. A registry object must
         have been created.
 
@@ -44,7 +44,7 @@ class MPIJobController(JobController):
         ----------
 
         auto_resources: boolean, optional
-            Autodetect available processor resources and assign to jobs
+            Autodetect available processor resources and assign to tasks
             if not explicitly provided on launch.
 
         central_mode, boolean, optional
@@ -77,7 +77,7 @@ class MPIJobController(JobController):
 
         """
 
-        JobController.__init__(self)
+        Executor.__init__(self)
         self.max_launch_attempts = 5
         self.fail_time = 2
         self.auto_resources = auto_resources
@@ -111,7 +111,7 @@ class MPIJobController(JobController):
                              nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
     def add_comm_info(self, libE_nodes, serial_setup):
-        """Adds comm-specific information to controller.
+        """Adds comm-specific information to executor.
 
         Updates resources information if auto_resources is true.
         """
@@ -146,7 +146,7 @@ class MPIJobController(JobController):
 
         else:
             num_procs, num_nodes, ranks_per_node = \
-                MPIResources.job_partition(num_procs, num_nodes,
+                MPIResources.task_partition(num_procs, num_nodes,
                                            ranks_per_node, machinefile)
 
         return {'num_procs': num_procs,
@@ -159,9 +159,9 @@ class MPIJobController(JobController):
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, test=False, wait_on_run=False):
-        """Creates a new job, and either launches or schedules launch.
+        """Creates a new task, and either launches or schedules launch.
 
-        The created job object is returned.
+        The created task object is returned.
 
         Parameters
         ----------
@@ -170,19 +170,19 @@ class MPIJobController(JobController):
             The calculation type: 'sim' or 'gen'
 
         num_procs: int, optional
-            The total number of MPI tasks on which to launch the job
+            The total number of MPI tasks on which to launch the task
 
         num_nodes: int, optional
-            The number of nodes on which to launch the job
+            The number of nodes on which to launch the task
 
         ranks_per_node: int, optional
-            The ranks per node for this job
+            The ranks per node for this task
 
         machinefile: string, optional
-            Name of a machinefile for this job to use
+            Name of a machinefile for this task to use
 
         app_args: string, optional
-            A string of the application arguments to be added to job
+            A string of the application arguments to be added to task
             launch command line
 
         stdout: string, optional
@@ -199,19 +199,19 @@ class MPIJobController(JobController):
             Whether to launch MPI tasks to hyperthreads
 
         test: boolean, optional
-            Whether this is a test - no job will be launched; instead
+            Whether this is a test - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
         wait_on_run: boolean, optional
-            Whether to wait for job to be polled as RUNNING (or other
+            Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
 
         Returns
         -------
 
-        job: obj: Job
-            The lauched job object
+        task: obj: Task
+            The lauched task object
 
 
         Note that if some combination of num_procs, num_nodes, and
@@ -222,18 +222,18 @@ class MPIJobController(JobController):
 
         app = self.default_app(calc_type)
         default_workdir = os.getcwd()
-        job = Job(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this "
-                           "job_controller - runs in-place")
+                           "executor - runs in-place")
 
         mpi_specs = self._get_mpi_specs(num_procs, num_nodes, ranks_per_node,
                                         machinefile, hyperthreads)
         runline = launcher.form_command(self.mpi_command, mpi_specs)
-        runline.append(job.app.full_path)
-        if job.app_args is not None:
-            runline.extend(job.app_args.split())
+        runline.append(task.app.full_path)
+        if task.app_args is not None:
+            runline.extend(task.app_args.split())
 
         if test:
             logger.info('Test (No launch) Runline: {}'.format(' '.join(runline)))
@@ -247,44 +247,44 @@ class MPIJobController(JobController):
                 retry = False
                 try:
                     retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
-                    logger.info("Launching job {}{}: {}".
-                                format(job.name, retry_string, " ".join(runline)))
+                    logger.info("Launching task {}{}: {}".
+                                format(task.name, retry_string, " ".join(runline)))
 
-                    job.process = launcher.launch(runline, cwd='./',
-                                                  stdout=open(job.stdout, 'w'),
-                                                  stderr=open(job.stderr, 'w'),
+                    task.process = launcher.launch(runline, cwd='./',
+                                                  stdout=open(task.stdout, 'w'),
+                                                  stderr=open(task.stderr, 'w'),
                                                   start_new_session=subgroup_launch)
                 except Exception as e:
-                    logger.warning('job {} launch command failed on try {} with error {}'.format(job.name, retry_count, e))
+                    logger.warning('task {} launch command failed on try {} with error {}'.format(task.name, retry_count, e))
                     retry = True
                     retry_count += 1
                 else:
                     if (wait_on_run):
-                        self._wait_on_run(job, self.fail_time)
+                        self._wait_on_run(task, self.fail_time)
 
-                    if job.state == 'FAILED':
-                        logger.warning('job {} failed within fail_time on try {} with err code {}'.format(job.name, retry_count, job.errcode))
+                    if task.state == 'FAILED':
+                        logger.warning('task {} failed within fail_time on try {} with err code {}'.format(task.name, retry_count, task.errcode))
                         retry = True
                         retry_count += 1
 
                 if retry and retry_count < self.max_launch_attempts:
-                    # retry_count += 1 # Do not want to reset job if not going to retry.
-                    logger.debug('Retry number {} for job {}')
+                    # retry_count += 1 # Do not want to reset task if not going to retry.
+                    logger.debug('Retry number {} for task {}')
                     time.sleep(retry_count*5)
-                    job.reset()  # Note: Some cases may require user cleanup - currently not supported (could use callback)
+                    task.reset()  # Note: Some cases may require user cleanup - currently not supported (could use callback)
                 else:
                     break
 
-            if not job.timer.timing:
-                job.timer.start()
-                job.launch_time = job.timer.tstart  # Time not date - may not need if using timer.
+            if not task.timer.timing:
+                task.timer.start()
+                task.launch_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            self.list_of_jobs.append(job)
+            self.list_of_tasks.append(task)
 
-        return job
+        return task
 
     def set_worker_info(self, comm, workerid=None):
-        """Sets info for this job_controller"""
+        """Sets info for this executor"""
         self.workerID = workerid
         if self.workerID and self.auto_resources:
             self.resources.set_worker_resources(self.workerID, comm)

@@ -9,7 +9,7 @@ high-performance machines.
 Across allocated compute nodes, libEnsemble's flexible architecture lends itself
 best to two general modes of worker distributions. The first mode we refer
 to as **centralized** mode, where the libEnsemble manager and worker processes
-are grouped on one or more nodes but through the libEnsemble job-controller or a
+are grouped on one or more nodes but through the libEnsemble executor or a
 job-launch command can execute calculations on the other allocated nodes:
 
 .. image:: ../images/centralized_Bb.png

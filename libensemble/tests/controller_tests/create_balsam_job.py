@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
 """
-Script to clean database and create top level app/job for Balsam tests
+Script to clean database and create top level app/task for Balsam tests
 
-This creates only the parent job, not the sim/gen (they are created
+This creates only the parent task, not the sim/gen (they are created
 in libEnsemble).
 
 Run this before each run to ensure database is in correct state
 
-Usage: ./create_balsam_job.py <script_name>
-eg: ./create_balsam_job.py test_jobcontroller.py
+Usage: ./create_balsam_task.py <script_name>
+eg: ./create_balsam_task.py test_taskexecutor.py
 
-This is equivalent to creating an app and job using <balsam app> and <balsam job> on the commdand line
+This is equivalent to creating an app and task using <balsam app> and <balsam task> on the commdand line
 
-To check create app and job do:
+To check create app and task do:
 balsam ls apps
-balsam ls jobs
+balsam ls tasks
 """
 
 import os
@@ -25,10 +25,10 @@ import balsam.launcher.dag as dag
 from balsam.service import models
 
 
-def del_jobs():
-    """ Deletes all jobs """
-    Job = models.BalsamJob
-    deletion_objs = Job.objects.all()
+def del_tasks():
+    """ Deletes all tasks """
+    Task = models.BalsamTask
+    deletion_objs = Task.objects.all()
     deletion_objs.delete()
 
 
@@ -47,7 +47,7 @@ def add_app(name, exepath, desc):
 # import balsam.launcher.dag as dag
 stage_in = os.getcwd()
 
-default_script = 'test_jobcontroller.py'
+default_script = 'test_taskexecutor.py'
 
 # if script provided use that - else default
 if len(sys.argv) > 1:
@@ -68,14 +68,14 @@ if not app_exists:
     app_desc = 'Test ' + script
     add_app(app_name, app_path, app_desc)
 
-# Delete existing jobs
-del_jobs()
+# Delete existing tasks
+del_tasks()
 
-# Add the job
-job = dag.add_job(name='job_' + script_basename,
+# Add the task
+task = dag.add_task(name='task_' + script_basename,
                   workflow="libe_workflow",  # add arg for this
                   application=app_name,
-                  # application_args=job.app_args,
+                  # application_args=task.app_args,
                   num_nodes=1,
                   ranks_per_node=1,
                   stage_in_url="local:/" + stage_in,

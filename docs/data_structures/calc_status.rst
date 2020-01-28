@@ -14,7 +14,7 @@ status of the calculation, since it could include multiple application runs. It
 can be added as a third return variable in sim_f or gen_f functions.
 The calc_status codes are in the ``libensemble.message_numbers`` module.
 
-Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_index>` in sim_f:
+Example of ``calc_status`` used along with :ref:`executor<executor_index>` in sim_f:
 
 .. code-block:: python
   :linenos:
@@ -22,28 +22,28 @@ Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_in
 
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
 
-    job = jobctl.launch(calc_type='sim', num_procs=cores, wait_on_run=True)
+    task = exctr.launch(calc_type='sim', num_procs=cores, wait_on_run=True)
     calc_status = UNSET_TAG
     poll_interval = 1  # secs
-    while(not job.finished):
-        if job.runtime > time_limit:
-            job.kill()  # Timeout
+    while(not task.finished):
+        if task.runtime > time_limit:
+            task.kill()  # Timeout
         else:
             time.sleep(poll_interval)
-            job.poll()
+            task.poll()
 
-    if job.finished:
-        if job.state == 'FINISHED':
-            print("Job {} completed".format(job.name))
+    if task.finished:
+        if task.state == 'FINISHED':
+            print("Job {} completed".format(task.name))
             calc_status = WORKER_DONE
-        elif job.state == 'FAILED':
-            print("Warning: Job {} failed: Error code {}".format(job.name, job.errcode))
+        elif task.state == 'FAILED':
+            print("Warning: Job {} failed: Error code {}".format(task.name, task.errcode))
             calc_status = JOB_FAILED
-        elif job.state == 'USER_KILLED':
-            print("Warning: Job {} has been killed".format(job.name))
+        elif task.state == 'USER_KILLED':
+            print("Warning: Job {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
-            print("Warning: Job {} in unknown state {}. Error code {}".format(job.name, job.state, job.errcode))
+            print("Warning: Job {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     outspecs = sim_specs['out']
     output = np.zeros(1, dtype=outspecs)

@@ -1,14 +1,14 @@
 """
-This module launches and controls the running of jobs with Balsam.
+This module launches and controls the running of tasks with Balsam.
 
 .. note:: Balsam is supported only when using ``mpi`` comms and requires Python 3.6 or higher.
 
-In order to create a Balsam job controller, the calling script should contain ::
+In order to create a Balsam executor, the calling script should contain ::
 
-    jobctr = BalsamJobController()
+    exctr = Balsam_MPI_Executor()
 
-The Balsam job controller inherits from the MPI job controller. See the
-:doc:`MPIJobController<mpi_controller>` for shared API. Any differences are
+The Balsam executor inherits from the MPI executor. See the
+:doc:`MPI_Executor<mpi_executor>` for shared API. Any differences are
 shown below.
 
 """
@@ -19,9 +19,9 @@ import time
 import datetime
 
 from libensemble.resources.mpi_resources import MPIResources
-from libensemble.executors.controller import \
-    Job, JobControllerException, jassert, STATES
-from libensemble.executors.mpi_controller import MPIJobController
+from libensemble.executors.executor import \
+    Task, ExecutorException, jassert, STATES
+from libensemble.executors.mpi_executor import MPI_Executor
 
 import balsam.launcher.dag as dag
 from balsam.core import models
@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-class BalsamJob(Job):
-    """Wraps a Balsam Job from the Balsam service
+class BalsamTask(Task):
+    """Wraps a Balsam Task from the Balsam service
 
     The same attributes and query routines are implemented.
 
@@ -40,14 +40,14 @@ class BalsamJob(Job):
 
     def __init__(self, app=None, app_args=None, workdir=None,
                  stdout=None, stderr=None, workerid=None):
-        """Instantiate a new BalsamJob instance.
+        """Instantiate a new BalsamTask instance.
 
-        A new BalsamJob object is created with an id, status and
+        A new BalsamTask object is created with an id, status and
         configuration attributes.  This will normally be created by the
-        job_controller on a launch.
+        executor on a launch.
         """
         # May want to override workdir with Balsam value when it exists
-        Job.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
+        Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
     def read_file_in_workdir(self, filename):
         return self.process.read_file_in_workdir(filename)
@@ -59,10 +59,10 @@ class BalsamJob(Job):
         return self.process.read_file_in_workdir(self.stderr)
 
     def _get_time_since_balsam_launch(self):
-        """Return time since balam job entered RUNNING state"""
+        """Return time since balsam task entered RUNNING state"""
 
-        # If wait_on_run then can could calculate runtime same a base controller
-        # but otherwise that will return time from job submission. Get from Balsam.
+        # If wait_on_run then can could calculate runtime same a base executor
+        # but otherwise that will return time from task submission. Get from Balsam.
 
         # self.runtime = self.process.runtime_seconds # Only reports at end of run currently
         balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
@@ -72,48 +72,48 @@ class BalsamJob(Job):
         else:
             return 0
 
-    def calc_job_timing(self):
-        """Calculate timing information for this job"""
+    def calc_task_timing(self):
+        """Calculate timing information for this task"""
 
         # Get runtime from Balsam
         self.runtime = self._get_time_since_balsam_launch()
 
         if self.launch_time is None:
-            logger.warning("Cannot calc job total_time - launch time not set")
+            logger.warning("Cannot calc task total_time - launch time not set")
             return
 
         if self.total_time is None:
             self.total_time = time.time() - self.launch_time
 
     def poll(self):
-        """Polls and updates the status attributes of the supplied job"""
+        """Polls and updates the status attributes of the supplied task"""
         if not self.check_poll():
             return
 
-        # Get current state of jobs from Balsam database
+        # Get current state of tasks from Balsam database
         self.process.refresh_from_db()
         balsam_state = self.process.state
         self.runtime = self._get_time_since_balsam_launch()
 
         if balsam_state in models.END_STATES:
             self.finished = True
-            self.calc_job_timing()
+            self.calc_task_timing()
             self.workdir = self.workdir or self.process.working_directory
-            self.success = (balsam_state == 'JOB_FINISHED')
+            self.success = (balsam_state == 'TASK_FINISHED')
             # self.errcode - requested feature from Balsam devs
 
-            if balsam_state == 'JOB_FINISHED':
+            if balsam_state == 'TASK_FINISHED':
                 self.state = 'FINISHED'
             elif balsam_state == 'PARENT_KILLED':  # Not currently used
                 self.state = 'USER_KILLED'
             elif balsam_state in STATES:  # In my states
                 self.state = balsam_state
             else:
-                logger.warning("Job finished, but in unrecognized "
+                logger.warning("Task finished, but in unrecognized "
                                "Balsam state {}".format(balsam_state))
                 self.state = 'UNKNOWN'
 
-            logger.info("Job {} ended with state {}".
+            logger.info("Task {} ended with state {}".
                         format(self.name, self.state))
 
         elif balsam_state in models.ACTIVE_STATES:
@@ -125,36 +125,36 @@ class BalsamJob(Job):
             self.state = 'WAITING'
 
         else:
-            raise JobControllerException(
-                "Job state returned from Balsam is not in known list of "
-                "Balsam states. Job state is {}".format(balsam_state))
+            raise ExecutorException(
+                "Task state returned from Balsam is not in known list of "
+                "Balsam states. Task state is {}".format(balsam_state))
 
     def kill(self, wait_time=None):
-        """ Kills or cancels the supplied job """
+        """ Kills or cancels the supplied task """
 
         dag.kill(self.process)
 
         # Could have Wait here and check with Balsam its killed -
         # but not implemented yet.
 
-        logger.info("Killing job {}".format(self.name))
+        logger.info("Killing task {}".format(self.name))
         self.state = 'USER_KILLED'
         self.finished = True
-        self.calc_job_timing()
+        self.calc_task_timing()
 
 
-class BalsamJobController(MPIJobController):
-    """Inherits from MPIJobController and wraps the Balsam job management service
+class Balsam_MPI_Executor(MPI_Executor):
+    """Inherits from MPI_Executor and wraps the Balsam task management service
 
-    .. note::  Job kills are not configurable in the Balsam job_controller.
+    .. note::  Task kills are not configurable in the Balsam executor.
 
     """
     def __init__(self, auto_resources=True, central_mode=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None,
                  nodelist_env_lsf=None, nodelist_env_lsf_shortform=None):
-        """Instantiate a new BalsamJobController instance.
+        """Instantiate a new Balsam_MPI_Executor instance.
 
-        A new BalsamJobController object is created with an application
+        A new Balsam_MPI_Executor object is created with an application
         registry and configuration attributes
         """
 
@@ -171,8 +171,8 @@ class BalsamJobController(MPIJobController):
 
     def _serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
-        BalsamJobController.del_apps()
-        BalsamJobController.del_jobs()
+        Balsam_MPI_Executor.del_apps()
+        Balsam_MPI_Executor.del_tasks()
 
         for calc_type in self.default_apps:
             if self.default_apps[calc_type] is not None:
@@ -195,20 +195,20 @@ class BalsamJobController(MPIJobController):
                 deletion_objs.delete()
 
     @staticmethod
-    def del_jobs():
-        """Deletes all Balsam jobs whose names contains .simfunc or .genfunc"""
+    def del_tasks():
+        """Deletes all Balsam tasks whose names contains .simfunc or .genfunc"""
         for app_type in ['.simfunc', '.genfunc']:
-            deletion_objs = models.BalsamJob.objects.filter(
+            deletion_objs = models.BalsamTask.objects.filter(
                 name__contains=app_type)
             if deletion_objs:
-                for del_job in deletion_objs.iterator():
-                    logger.debug("Deleting job {}".format(del_job.name))
+                for del_task in deletion_objs.iterator():
+                    logger.debug("Deleting task {}".format(del_task.name))
                 deletion_objs.delete()
 
         # May be able to use union function - to combine - see queryset help.
         # Eg (not tested)
-        # del_simfuncs = Job.objects.filter(name__contains='.simfunc')
-        # del_genfuncs = Job.objects.filter(name__contains='.genfunc')
+        # del_simfuncs = Task.objects.filter(name__contains='.simfunc')
+        # del_genfuncs = Task.objects.filter(name__contains='.genfunc')
         # deletion_objs = deletion_objs.union()
 
     @staticmethod
@@ -228,10 +228,10 @@ class BalsamJobController(MPIJobController):
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, test=False, wait_on_run=False):
-        """Creates a new job, and either launches or schedules to launch
-        in the job controller
+        """Creates a new task, and either launches or schedules to launch
+        in the executor
 
-        The created job object is returned.
+        The created task object is returned.
         """
         app = self.default_app(calc_type)
 
@@ -244,10 +244,10 @@ class BalsamJobController(MPIJobController):
             jassert(num_procs or num_nodes or ranks_per_node,
                     "No procs/nodes provided - aborting")
 
-        # Set num_procs, num_nodes and ranks_per_node for this job
+        # Set num_procs, num_nodes and ranks_per_node for this task
 
         # Without resource detection
-        # num_procs, num_nodes, ranks_per_node = JobController.job_partition(num_procs, num_nodes, ranks_per_node)  # Note: not included machinefile option
+        # num_procs, num_nodes, ranks_per_node = Executor.task_partition(num_procs, num_nodes, ranks_per_node)  # Note: not included machinefile option
 
         # With resource detection (may do only if under-specified?? though that will not tell if larger than possible
         # for static allocation - but Balsam does allow dynamic allocation if too large!!
@@ -261,7 +261,7 @@ class BalsamJobController(MPIJobController):
         else:
             # Without resource detection (note: not included machinefile option)
             num_procs, num_nodes, ranks_per_node = \
-                MPIResources.job_partition(num_procs, num_nodes, ranks_per_node)
+                MPIResources.task_partition(num_procs, num_nodes, ranks_per_node)
 
         # temp - while balsam does not accept a standard out name
         if stdout is not None or stderr is not None:
@@ -273,40 +273,40 @@ class BalsamJobController(MPIJobController):
         # Will be possible to override with arg when implemented
         # (or can have option to let Balsam assign)
         default_workdir = os.getcwd()
-        job = BalsamJob(app, app_args, default_workdir,
+        task = BalsamTask(app, app_args, default_workdir,
                         stdout, stderr, self.workerID)
 
         # This is not used with Balsam for run-time as this would include wait time
         # Again considering changing launch to submit - or whatever I chose before.....
-        # job.launch_time = time.time()  # Not good for timing job - as I dont know when it finishes - only poll/kill est.
+        # task.launch_time = time.time()  # Not good for timing task - as I dont know when it finishes - only poll/kill est.
 
-        add_job_args = {'name': job.name,
+        add_task_args = {'name': task.name,
                         'workflow': "libe_workflow",  # add arg for this
                         'user_workdir': default_workdir,  # add arg for this
                         'application': app.name,
-                        'args': job.app_args,
+                        'args': task.app_args,
                         'num_nodes': num_nodes,
                         'ranks_per_node': ranks_per_node}
 
         if stage_inout is not None:
             # For now hardcode staging - for testing
-            add_job_args['stage_in_url'] = "local:" + stage_inout + "/*"
-            add_job_args['stage_out_url'] = "local:" + stage_inout
-            add_job_args['stage_out_files'] = "*.out"
+            add_task_args['stage_in_url'] = "local:" + stage_inout + "/*"
+            add_task_args['stage_out_url'] = "local:" + stage_inout
+            add_task_args['stage_out_files'] = "*.out"
 
-        job.process = dag.add_job(**add_job_args)
+        task.process = dag.add_task(**add_task_args)
 
         if (wait_on_run):
-            self._wait_on_run(job)
+            self._wait_on_run(task)
 
-        if not job.timer.timing:
-            job.timer.start()
-            job.launch_time = job.timer.tstart  # Time not date - may not need if using timer.
+        if not task.timer.timing:
+            task.timer.start()
+            task.launch_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-        logger.info("Added job to Balsam database {}: "
+        logger.info("Added task to Balsam database {}: "
                     "nodes {} ppn {}".
-                    format(job.name, num_nodes, ranks_per_node))
+                    format(task.name, num_nodes, ranks_per_node))
 
-        # job.workdir = job.process.working_directory  # Might not be set yet!!!!
-        self.list_of_jobs.append(job)
-        return job
+        # task.workdir = task.process.working_directory  # Might not be set yet!!!!
+        self.list_of_tasks.append(task)
+        return task

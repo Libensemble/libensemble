@@ -10,7 +10,7 @@
 
 # To be run with central job management
 # - Manager and workers run on one node (or a dedicated set of nodes).
-# - Workers submit jobs to the rest of the nodes in the pool.
+# - Workers submit tasks to the rest of the nodes in the pool.
 
 # Name of calling script
 export EXE=run_libe_forces.py
@@ -21,7 +21,7 @@ export NUM_WORKERS=127
 # Wallclock for libE job in minutes (supplied to Balsam - make at least several mins smaller than wallclock for this submission to ensure job is launched)
 export LIBE_WALLCLOCK=25
 
-# Name of working directory where Balsam places running jobs/output (inside the database directory)
+# Name of working directory where Balsam places running tasks/output (inside the database directory)
 export WORKFLOW_NAME=libe_workflow
 
 # export SCRIPT_ARGS='' #Default No args
@@ -56,9 +56,9 @@ module unload xalt
 
 . balsamactivate $DBASE_NAME
 
-# Make sure no existing apps/jobs
+# Make sure no existing apps/tasks
 balsam rm apps --all --force
-balsam rm jobs --all --force
+balsam rm tasks --all --force
 wait
 sleep 3
 
@@ -74,7 +74,7 @@ SCRIPT_BASENAME=${EXE%.*}
 NUM_NODES=2
 RANKS_PER_NODE=64
 
-# All jobs
+# All tasks
 OUT_FILES_TO_RETURN="*.out *.txt *.log"
 
 balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"

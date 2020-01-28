@@ -1,5 +1,5 @@
 """
-Manages libensemble resources related to MPI jobs launched from nodes.
+Manages libensemble resources related to MPI tasks launched from nodes.
 """
 
 import os
@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class MPIResources(Resources):
-    """Manages resources provided to MPI jobs launched from workers."""
+    """Manages resources provided to MPI tasks launched from workers."""
 
     @staticmethod
-    def job_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
+    def task_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
         """Takes provided nprocs/nodes/ranks and outputs working
         configuration of procs/nodes/ranks or error"""
 
@@ -93,7 +93,7 @@ class MPIResources(Resources):
         # Checks config is consistent and sufficient to express
         # - does not check actual resources
         num_procs, num_nodes, ranks_per_node = \
-            MPIResources.job_partition(num_procs, num_nodes, ranks_per_node)
+            MPIResources.task_partition(num_procs, num_nodes, ranks_per_node)
 
         # Could just downgrade to those available with warning - for now error
         rassert(num_nodes <= local_node_count,

@@ -35,14 +35,14 @@ if not os.path.isfile('forces.x'):
 if not os.path.isdir('./sim'):
     os.mkdir('./sim')
 
-# Create job_controller and register sim to it.
+# Create executor and register sim to it.
 if USE_BALSAM:
-    from libensemble.executors.balsam_controller import BalsamJobController
-    jobctrl = BalsamJobController()  # Use auto_resources=False to oversubscribe
+    from libensemble.executors.balsam_executor import Balsam_MPI_Executor
+    exctr = Balsam_MPI_Executor()  # Use auto_resources=False to oversubscribe
 else:
-    from libensemble.executors.mpi_controller import MPIJobController
-    jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
-jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+    from libensemble.executors.mpi_executor import MPI_Executor
+    exctr = MPI_Executor()  # Use auto_resources=False to oversubscribe
+exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 

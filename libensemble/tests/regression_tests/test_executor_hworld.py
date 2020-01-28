@@ -1,10 +1,10 @@
 # """
-# Runs libEnsemble testing the job controller functionality.
+# Runs libEnsemble testing the executor functionality.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_jobcontroller_hworld.py
-#    python3 test_jobcontroller_hworld.py --nworkers 3 --comms local
-#    python3 test_jobcontroller_hworld.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_taskexecutor_hworld.py
+#    python3 test_taskexecutor_hworld.py --nworkers 3 --comms local
+#    python3 test_taskexecutor_hworld.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
@@ -15,11 +15,11 @@ import multiprocessing
 
 # Import libEnsemble items for this test
 # from libensemble.calc_info import CalcInfo
-# from libensemble.executors.controller import JobController
+# from libensemble.executors.executor import Executor
 # from libensemble.resources.resources import Resources
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
+from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
-from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
+from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.utils import parse_args, add_unique_random_streams
 from libensemble.tests.regression_tests.common import build_simfunc
@@ -32,11 +32,11 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 USE_BALSAM = False
 
-cores_per_job = 1
+cores_per_task = 1
 logical_cores = multiprocessing.cpu_count()
-cores_all_jobs = nworkers*cores_per_job
+cores_all_tasks = nworkers*cores_per_task
 
-if cores_all_jobs > logical_cores:
+if cores_all_tasks > logical_cores:
     use_auto_resources = False
     mess_resources = 'Oversubscribing - auto_resources set to False'
 elif libE_specs.get('comms', False) == 'tcp':
@@ -47,19 +47,19 @@ else:
     mess_resources = 'Auto_resources set to True'
 
 if is_master:
-    print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_jobs, logical_cores, mess_resources))
+    print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_tasks, logical_cores, mess_resources))
 
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
 if USE_BALSAM:
-    from libensemble.executors.balsam_controller import BalsamJobController
-    jobctrl = BalsamJobController(auto_resources=use_auto_resources)
+    from libensemble.executors.balsam_executor import Balsam_MPI_Executor
+    exctr = Balsam_MPI_Executor(auto_resources=use_auto_resources)
 else:
-    from libensemble.executors.mpi_controller import MPIJobController
-    jobctrl = MPIJobController(auto_resources=use_auto_resources)
-jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+    from libensemble.executors.mpi_executor import MPI_Executor
+    exctr = MPI_Executor(auto_resources=use_auto_resources)
+exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # if nworkers == 3:
 #    CalcInfo.keep_worker_stat_files = True # Testing this functionality
@@ -69,7 +69,7 @@ jobctrl.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'user': {'cores': cores_per_job}
+             'user': {'cores': cores_per_task}
              }
 
 gen_specs = {'gen_f': gen_f,
@@ -90,13 +90,13 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
 if is_master:
-    print('\nChecking expected job status against Workers ...\n')
+    print('\nChecking expected task status against Workers ...\n')
 
     # Expected list: Last is zero as will not be entered into H array on
     # manager kill - but should show in the summary file.
     # Repeat expected lists nworkers times and compare with list of status's
     # received from workers
-    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED, 0])
+    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     # For debug
@@ -106,10 +106,10 @@ if is_master:
     assert np.array_equal(H['cstat'], calc_status_list), "Error - unexpected calc status. Received: " + str(H['cstat'])
 
     # Check summary file:
-    print('Checking expected job status against job summary file ...\n')
+    print('Checking expected task status against task summary file ...\n')
 
-    calc_desc_list_in = ['Completed', 'Worker killed job on Error',
-                         'Worker killed job on Timeout', 'Job Failed',
+    calc_desc_list_in = ['Completed', 'Worker killed task on Error',
+                         'Worker killed task on Timeout', 'Task Failed',
                          'Manager killed on finish']
 
     # Repeat N times for N workers and insert Completed at start for generator

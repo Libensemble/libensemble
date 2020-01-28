@@ -1,11 +1,11 @@
 """
 This module contains a
-``job_controller`` and ``job``. The class ``JobController`` is a base class and not
+``executor`` and ``task``. The class ``Executor`` is a base class and not
 intended for direct use. Instead one of the inherited classes should be used. Inherited
-classes include MPI and Balsam variants. A ``job_controller`` can create and manage
-multiple ``jobs``. The worker or user-side code can issue and manage ``jobs`` using the launch,
-poll and kill functions. ``Job`` attributes are queried to determine status. Functions are
-also provided to access and interrogate files in the ``job``'s working directory.
+classes include MPI and Balsam variants. A ``executor`` can create and manage
+multiple ``tasks``. The worker or user-side code can issue and manage ``tasks`` using the launch,
+poll and kill functions. ``Task`` attributes are queried to determine status. Functions are
+also provided to access and interrogate files in the ``task``'s working directory.
 
 """
 
@@ -16,7 +16,7 @@ import time
 
 from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 import libensemble.util.launcher as launcher
-from libensemble.util.timer import JobTimer
+from libensemble.util.timer import TaskTimer
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -43,14 +43,14 @@ FAILED
 '''.split()
 
 
-class JobControllerException(Exception):
-    "Raised for any exception in the JobController"
+class ExecutorException(Exception):
+    "Raised for any exception in the Executor"
 
 
 def jassert(test, *args):
-    "Version of assert that raises a JobControllerException"
+    "Version of assert that raises a ExecutorException"
     if not test:
-        raise JobControllerException(*args)
+        raise ExecutorException(*args)
 
 
 class Application:
@@ -63,14 +63,14 @@ class Application:
         self.calc_type = calc_type
         self.calc_dir, self.exe = os.path.split(full_path)
 
-        # Use this name to delete jobs in database - see del_apps(), del_jobs()
+        # Use this name to delete tasks in database - see del_apps(), del_tasks()
         self.name = self.exe + '.' + self.calc_type + 'func'
         self.desc = desc or (self.exe + ' ' + self.calc_type + ' function')
 
 
-class Job:
+class Task:
     """
-    Manages the creation, configuration and status of a launchable job
+    Manages the creation, configuration and status of a launchable task
 
     """
 
@@ -78,16 +78,16 @@ class Job:
 
     def __init__(self, app=None, app_args=None, workdir=None,
                  stdout=None, stderr=None, workerid=None):
-        """Instantiate a new Job instance.
+        """Instantiate a new Task instance.
 
-        A new job object is created with an id, status and configuration
-        attributes.  This will normally be created by the job_controller
+        A new task object is created with an id, status and configuration
+        attributes.  This will normally be created by the executor
         on a launch
         """
-        self.id = next(Job.newid)
+        self.id = next(Task.newid)
 
         self.reset()  # Set status attributes
-        self.timer = JobTimer()
+        self.timer = TaskTimer()
 
         # Run attributes
         self.app = app
@@ -95,11 +95,11 @@ class Job:
         self.workerID = workerid
 
         jassert(app is not None,
-                "Job must be created with an app - no app found for job {}".
+                "Task must be created with an app - no app found for task {}".
                 format(self.id))
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
-        self.name = "job_{}{}_{}".format(app.name, worker_name, self.id)
+        self.name = "task_{}{}_{}".format(app.name, worker_name, self.id)
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
@@ -109,23 +109,23 @@ class Job:
         self.state = 'CREATED'
         self.process = None
         self.errcode = None
-        self.finished = False  # True means job ran, not that it succeeded
+        self.finished = False  # True means task ran, not that it succeeded
         self.success = False
         self.launch_time = None
-        self.runtime = 0  # Time since job started to latest poll (or finished).
-        self.total_time = None  # Time from job submission until polled as finished.
+        self.runtime = 0  # Time since task started to latest poll (or finished).
+        self.total_time = None  # Time from task submission until polled as finished.
 
     def workdir_exists(self):
-        """Returns true if the job's workdir exists"""
+        """Returns true if the task's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
 
     def file_exists_in_workdir(self, filename):
-        """Returns true if the named file exists in the job's workdir"""
+        """Returns true if the named file exists in the task's workdir"""
         return (self.workdir
                 and os.path.exists(os.path.join(self.workdir, filename)))
 
     def read_file_in_workdir(self, filename):
-        """Opens and reads the named file in the job's workdir """
+        """Opens and reads the named file in the task's workdir """
         path = os.path.join(self.workdir, filename)
         if not os.path.exists(path):
             raise ValueError("{} not found in working directory".
@@ -134,51 +134,51 @@ class Job:
             return f.read()
 
     def stdout_exists(self):
-        """Returns true if the job's stdout file exists in the workdir"""
+        """Returns true if the task's stdout file exists in the workdir"""
         return self.file_exists_in_workdir(self.stdout)
 
     def read_stdout(self):
-        """Opens and reads the job's stdout file in the job's workdir"""
+        """Opens and reads the task's stdout file in the task's workdir"""
         return self.read_file_in_workdir(self.stdout)
 
     def stderr_exists(self):
-        """Returns true if the job's stderr file exists in the workdir"""
+        """Returns true if the task's stderr file exists in the workdir"""
         return self.file_exists_in_workdir(self.stderr)
 
     def read_stderr(self):
-        """Opens and reads the job's stderr file in the job's workdir"""
+        """Opens and reads the task's stderr file in the task's workdir"""
         return self.read_file_in_workdir(self.stderr)
 
-    def calc_job_timing(self):
-        """Calculate timing information for this job"""
+    def calc_task_timing(self):
+        """Calculate timing information for this task"""
         if self.launch_time is None:
-            logger.warning("Cannot calc job timing - launch time not set")
+            logger.warning("Cannot calc task timing - launch time not set")
             return
 
         # Do not update if total_time is already set
         if self.total_time is None:
             self.timer.stop()
             self.runtime = self.timer.elapsed
-            self.total_time = self.runtime  # For direct launched jobs
+            self.total_time = self.runtime  # For direct launched tasks
 
     def check_poll(self):
-        """Check whether polling this job makes sense."""
+        """Check whether polling this task makes sense."""
         jassert(self.process is not None,
-                "Polled job {} has no process ID - check jobs been launched".
+                "Polled task {} has no process ID - check tasks been launched".
                 format(self.name))
         if self.finished:
-            logger.warning("Polled job {} has already finished. "
+            logger.warning("Polled task {} has already finished. "
                            "Not re-polling. Status is {}".
                            format(self.name, self.state))
             return False
         return True
 
     def poll(self):
-        """Polls and updates the status attributes of the job"""
+        """Polls and updates the status attributes of the task"""
         if not self.check_poll():
             return
 
-        # Poll the job
+        # Poll the task
         poll = self.process.poll()
         if poll is None:
             self.state = 'RUNNING'
@@ -186,17 +186,17 @@ class Job:
             return
 
         self.finished = True
-        self.calc_job_timing()
+        self.calc_task_timing()
 
         # Want to be more fine-grained about non-success (fail vs user kill?)
         self.errcode = self.process.returncode
         self.success = (self.errcode == 0)
         self.state = 'FINISHED' if self.success else 'FAILED'
-        logger.info("Job {} finished with errcode {} ({})".
+        logger.info("Task {} finished with errcode {} ({})".
                     format(self.name, self.errcode, self.state))
 
     def kill(self, wait_time=60):
-        """Kills or cancels the supplied job
+        """Kills or cancels the supplied task
 
         Sends SIGTERM, waits for a period of <wait_time> for graceful
         termination, then sends a hard kill with SIGKILL.  If <wait_time>
@@ -204,69 +204,69 @@ class Job:
         never do a SIGKILL.
         """
         if self.finished:
-            logger.warning("Trying to kill job that is no longer running. "
-                           "Job {}: Status is {}".format(self.name, self.state))
+            logger.warning("Trying to kill task that is no longer running. "
+                           "Task {}: Status is {}".format(self.name, self.state))
             return
 
         if self.process is None:
             time.sleep(0.2)
             jassert(self.process is not None,
-                    "Attempting to kill job {} that has no process ID - "
-                    "check jobs been launched".format(self.name))
+                    "Attempting to kill task {} that has no process ID - "
+                    "check tasks been launched".format(self.name))
 
-        logger.info("Killing job {}".format(self.name))
+        logger.info("Killing task {}".format(self.name))
         launcher.cancel(self.process, wait_time)
         self.state = 'USER_KILLED'
         self.finished = True
-        self.calc_job_timing()
+        self.calc_task_timing()
 
 
-class JobController:
-    """The job_controller can create, poll and kill runnable jobs
+class Executor:
+    """The executor can create, poll and kill runnable tasks
 
     **Class Attributes:**
 
-    :cvar JobController: controller: The default job_controller.
+    :cvar Executor: executor: The default executor.
 
     **Object Attributes:**
 
     :ivar int wait_time: Timeout period for hard kill
-    :ivar list list_of_jobs: A list of jobs created in this job controller
-    :ivar int workerID: The workerID associated with this job controller
+    :ivar list list_of_tasks: A list of tasks created in this executor
+    :ivar int workerID: The workerID associated with this executor
 
     """
 
-    controller = None
+    executor = None
 
-    def _wait_on_run(self, job, fail_time=None):
+    def _wait_on_run(self, task, fail_time=None):
         '''Called by launch when wait_on_run is True.
 
-        Blocks until job polls as having started.
-        If fail_time is supplied, will also block until either job is in an
+        Blocks until task polls as having started.
+        If fail_time is supplied, will also block until either task is in an
         end state or fail_time has expired.
         '''
         start = time.time()
-        job.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
-        job.launch_time = job.timer.tstart
-        while job.state in NOT_STARTED_STATES:
+        task.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
+        task.launch_time = task.timer.tstart
+        while task.state in NOT_STARTED_STATES:
             time.sleep(0.2)
-            job.poll()
-        logger.debug("Job {} polled as {} after {} seconds".format(job.name, job.state, time.time()-start))
-        if not job.finished:
-            job.timer.start()
-            job.launch_time = job.timer.tstart
+            task.poll()
+        logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time()-start))
+        if not task.finished:
+            task.timer.start()
+            task.launch_time = task.timer.tstart
             if fail_time:
-                remaining = fail_time - job.timer.elapsed
-                while job.state not in END_STATES and remaining > 0:
+                remaining = fail_time - task.timer.elapsed
+                while task.state not in END_STATES and remaining > 0:
                     time.sleep(min(1.0, remaining))
-                    job.poll()
-                    remaining = fail_time - job.timer.elapsed
-                logger.debug("After {} seconds: job {} polled as {}".format(job.timer.elapsed, job.name, job.state))
+                    task.poll()
+                    remaining = fail_time - task.timer.elapsed
+                logger.debug("After {} seconds: task {} polled as {}".format(task.timer.elapsed, task.name, task.state))
 
     def __init__(self):
-        """Instantiate a new JobController instance.
+        """Instantiate a new Executor instance.
 
-        A new JobController object is created with an application
+        A new Executor object is created with an application
         registry and configuration attributes.
 
         This is typically created in the user calling script. If
@@ -278,9 +278,9 @@ class JobController:
         self.default_apps = {'sim': None, 'gen': None}
 
         self.wait_time = 60
-        self.list_of_jobs = []
+        self.list_of_tasks = []
         self.workerID = None
-        JobController.controller = self
+        Executor.executor = self
 
     def _serial_setup(self):
         pass  # To be overloaded
@@ -329,7 +329,7 @@ class JobController:
     def manager_poll(self, comm):
         """ Polls for a manager signal
 
-        The job controller manager_signal attribute will be updated.
+        The executor manager_signal attribute will be updated.
 
         """
 
@@ -351,26 +351,26 @@ class JobController:
                            "ignoring".format(man_signal))
         comm.push_back(mtag)
 
-    def get_job(self, jobid):
-        """ Returns the job object for the supplied job ID """
-        job = next((j for j in self.list_of_jobs if j.id == jobid), None)
-        if job is None:
-            logger.warning("Job {} not found in joblist".format(jobid))
-        return job
+    def get_task(self, taskid):
+        """ Returns the task object for the supplied task ID """
+        task = next((j for j in self.list_of_tasks if j.id == taskid), None)
+        if task is None:
+            logger.warning("Task {} not found in tasklist".format(taskid))
+        return task
 
     def set_workerID(self, workerid):
-        """Sets the worker ID for this job_controller"""
+        """Sets the worker ID for this executor"""
         self.workerID = workerid
 
     def set_worker_info(self, workerid=None):
-        """Sets info for this job_controller"""
+        """Sets info for this executor"""
         self.workerID = workerid
 
-    def poll(self, job):
-        "Polls a job"
-        job.poll()
+    def poll(self, task):
+        "Polls a task"
+        task.poll()
 
-    def kill(self, job):
-        "Kills a job"
-        jassert(isinstance(job, Job), "Invalid job has been provided")
-        job.kill(self.wait_time)
+    def kill(self, task):
+        "Kills a task"
+        jassert(isinstance(task, Task), "Invalid task has been provided")
+        task.kill(self.wait_time)

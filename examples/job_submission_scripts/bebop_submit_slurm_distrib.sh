@@ -11,7 +11,7 @@
 #   Workers are evenly spread over nodes and manager added to the first node.
 #   Requires even distribution - either multiple workers per node or nodes per worker
 #   Option for manager to have a dedicated node.
-#   Use of job controller will ensure workers co-locate jobs with workers
+#   Use of executor will ensure workers co-locate tasks with workers
 
 # User to edit these variables
 export EXE=libE_calling_script.py

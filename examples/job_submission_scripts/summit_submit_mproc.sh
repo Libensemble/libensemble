@@ -10,7 +10,7 @@
 
 # To be run with central job management
 # - Manager and workers run on launch node.
-# - Workers submit jobs to the compute nodes in the allocation.
+# - Workers submit tasks to the compute nodes in the allocation.
 
 # Name of calling script-
 export EXE=libE_calling_script.py

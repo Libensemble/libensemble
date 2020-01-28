@@ -1,4 +1,4 @@
-# This script is submitted as an app and job to Balsam. The job submission is
+# This script is submitted as an app and task to Balsam. The task submission is
 #   via 'balsam launch' executed in the test_balsam_hworld.py script.
 
 import os
@@ -6,10 +6,10 @@ import numpy as np
 import mpi4py
 from mpi4py import MPI
 
-from libensemble.executors.balsam_controller import BalsamJobController
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
+from libensemble.executors.balsam_executor import Balsam_MPI_Executor
+from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
-from libensemble.sim_funcs.job_control_hworld import job_control_hworld
+from libensemble.sim_funcs.executor_hworld import executor_hworld
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.utils import add_unique_random_streams
 
@@ -19,7 +19,7 @@ mpi4py.rc.recv_mprobe = False  # Disable matching probes
 # Slighty different due to working directory not being /regression_tests
 def build_simfunc():
     import subprocess
-    print('Balsam job launched in: {}'.format(os.getcwd()))
+    print('Balsam task launched in: {}'.format(os.getcwd()))
     buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
     subprocess.check_call(buildstring.split())
 
@@ -33,19 +33,19 @@ libE_specs = {'comm': MPI.COMM_WORLD,
 nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_master = MPI.COMM_WORLD.Get_rank() == 0
 
-cores_per_job = 1
+cores_per_task = 1
 
 sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-jobctrl = BalsamJobController(auto_resources=False)
-jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+exctr = Balsam_MPI_Executor(auto_resources=False)
+exctr.register_calc(full_path=sim_app, calc_type='sim')
 
-sim_specs = {'sim_f': job_control_hworld,
+sim_specs = {'sim_f': executor_hworld,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'user': {'cores': cores_per_job}}
+             'user': {'cores': cores_per_task}}
 
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
@@ -64,10 +64,10 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    print('\nChecking expected job status against Workers ...\n')
+    print('\nChecking expected task status against Workers ...\n')
     calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR,
                                       WORKER_KILL_ON_TIMEOUT,
-                                      JOB_FAILED, 0])
+                                      TASK_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     print("Expecting: {}".format(calc_status_list))
@@ -76,10 +76,10 @@ if is_master:
     assert np.array_equal(H['cstat'], calc_status_list), "Error - unexpected calc status. Received: " + str(H['cstat'])
 
     # Check summary file:
-    print('Checking expected job status against job summary file ...\n')
+    print('Checking expected task status against task summary file ...\n')
 
-    calc_desc_list_in = ['Completed', 'Worker killed job on Error',
-                         'Worker killed job on Timeout', 'Job Failed',
+    calc_desc_list_in = ['Completed', 'Worker killed task on Error',
+                         'Worker killed task on Timeout', 'Task Failed',
                          'Manager killed on finish']
 
     # Repeat N times for N workers and insert Completed at start for generator

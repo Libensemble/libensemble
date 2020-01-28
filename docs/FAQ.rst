@@ -27,15 +27,15 @@ This may also occur with two processes if you are using a persistent generator.
 The generator will occupy the one worker, leaving none to run simulation functions.
 
 **I keep getting: "Not enough processors per worker to honor arguments." when
-using the job controller. Can I launch jobs to allocated processors anyway?**
+using the executor. Can I launch tasks to allocated processors anyway?**
 
 Automatic partitioning of resources can be disabled if you want to oversubscribe
-(often if testing on a local machine) by configuring the job controller with
+(often if testing on a local machine) by configuring the executor with
 ``auto_resources=False``. For example::
 
-    jobctrl = MPIJobController(auto_resources=False)
+    exctr = MPIExecutor(auto_resources=False)
 
-Note that the job_controller ``.launch()`` method has a parameter ``hyperthreads``
+Note that the executor ``.launch()`` method has a parameter ``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``.
 
 **FileExistsError: [Errno 17] File exists: './sim_worker1'**
@@ -83,19 +83,20 @@ Also see https://software.intel.com/en-us/articles/python-mpi4py-on-intel-true-s
 **can't open hfi unit: -1 (err=23)**
 **[13] MPI startup(): tmi fabric is not available and fallback fabric is not enabled**
 
-This may occur on TMI when libEnsemble Python processes have been launched to a node and these,
-in turn, launch jobs on the node; creating too many processes for the available contexts. Note that
-while processes can share contexts, the system is confused by the fact that there are two
-phases: first libEnsemble processes and then subprocesses to run user jobs. The solution is to
-either reduce the number processes running or to specify a fallback fabric through environment
-variables::
+This may occur on TMI when libEnsemble Python processes have been launched to a
+node and these, in turn, launch tasks on the node; creating too many processes
+for the available contexts. Note that while processes can share contexts, the
+system is confused by the fact that there are two phases: first libEnsemble
+processes and then subprocesses to run user tasks. The solution is to either
+reduce the number of processes running or to specify a fallback fabric through
+environment variables::
 
     unset I_MPI_FABRICS
     export I_MPI_FABRICS_LIST=tmi,tcp
     export I_MPI_FALLBACK=1
 
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
-nodes, while launching all sub-jobs onto other nodes.
+nodes, while launching all sub-tasks onto other nodes.
 
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
 
@@ -127,9 +128,9 @@ to ``pdb``. How well this works varies by system. ::
 
 .. _xQuartz: https://www.xquartz.org/
 
-**Can I use the MPI Job Controller when running libEnsemble with multiprocessing?**
+**Can I use the MPI Executor when running libEnsemble with multiprocessing?**
 
-Yes. The job controller type determines only how libEnsemble workers
+Yes. The executor type determines only how libEnsemble workers
 launch and interact with user applications and is independent of ``comms`` chosen
 for manager/worker communications.
 
@@ -142,15 +143,15 @@ Resolve this by appending ``127.0.0.1   [your hostname]`` to /etc/hosts.
 Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this
 error.
 
-**How do I stop the Firewall Security popups when running with the Job Controller?**
+**How do I stop the Firewall Security popups when running with the Executor?**
 
 There are several ways to address this nuisance, but all involve trial and error.
 An easy (but insecure) solution is temporarily disabling the firewall through
-System Preferences -> Security & Privacy -> Firewall -> Turn Off Firewall. Alternatively,
-adding a firewall "Allow incoming connections" rule can be attempted for the offending
-job controller executable. We've had limited success running
+System Preferences -> Security & Privacy -> Firewall -> Turn Off Firewall.
+Alternatively, adding a firewall "Allow incoming connections" rule can be
+attempted for the offending executor executable. We've had limited success running
 ``sudo codesign --force --deep --sign - /path/to/application.app``
-on our Job Controller executables, then confirming the next alerts for the executable
+on our Executor executables, then confirming the next alerts for the executable
 and ``mpiexec.hydra``.
 
 **Frozen PETSc installation following a failed wheel build with** ``pip install petsc petsc4py``

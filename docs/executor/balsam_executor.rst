@@ -1,10 +1,10 @@
-Balsam Job Controller
-=====================
+Balsam Executor
+===============
 
-.. automodule:: balsam_controller
+.. automodule:: balsam_executor
   :no-undoc-members:
 
-.. autoclass:: BalsamJobController
+.. autoclass:: BalsamExecutor
   :show-inheritance:
 ..  :inherited-members:
 ..  :member-order: bysource

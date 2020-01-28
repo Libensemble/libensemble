@@ -83,7 +83,7 @@ def _print_local_cpu_resources():
 
 
 def _get_remote_cpu_resources(launcher):
-    """Launchs a probe job to obtain logical and physical cores on remote node"""
+    """Launchs a probe task to obtain logical and physical cores on remote node"""
     import subprocess
     output = subprocess.check_output([launcher, 'python', __file__])
     return output.decode()

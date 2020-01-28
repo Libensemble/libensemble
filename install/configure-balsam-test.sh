@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Run this script between each repeated local run of the Balsam
-#   job_control_hworld_balsam test in the base libensemble directory.
+#   test_balsam_hworld test in the base libensemble directory.
 #   Besides ensuring that postgres and the generated Balsam db have the proper
-#   permissions, this script flushes previous apps and jobs in the db before
+#   permissions, this script flushes previous apps and tasks in the db before
 #   submitting the test_balsam_hworld app/job script.
 #
 #   Most of this comes from scaling_tests/forces/balsam_local.sh
@@ -28,7 +28,7 @@ source balsamactivate test-balsam
 
 # Refresh DB
 balsam rm apps --all --force
-balsam rm jobs --all --force
+balsam rm tasks --all --force
 
 # Submit script_test_balsam_hworld as app
 balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"

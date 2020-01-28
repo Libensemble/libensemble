@@ -29,5 +29,5 @@ per-file-ignores =
         libensemble/libensemble/__init__.py:F401
         # Need to turn of matching probes (before other imports) on some
         # systems/versions of MPI:
-        libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
-        libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
+        libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_tasks.py:E402
+        libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_tasks.py:E402

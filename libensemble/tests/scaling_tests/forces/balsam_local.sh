@@ -3,7 +3,7 @@
 # You need to have followed the instructions to install balsam and set-up/activate a database.
 # https://github.com/balsam-alcf/balsam
 
-# The running jobs can be seen inside the setup database dir <DIR>/data/libe_workflow/
+# The running tasks can be seen inside the setup database dir <DIR>/data/libe_workflow/
 
 # Name of calling script
 export EXE=run_libe_forces.py
@@ -11,7 +11,7 @@ export EXE=run_libe_forces.py
 # Number of workers.
 export NUM_WORKERS=2
 
-# Name of working directory where Balsam places running jobs/output (inside the database directory)
+# Name of working directory where Balsam places running tasks/output (inside the database directory)
 export WORKFLOW_NAME=libe_workflow
 
 export SCRIPT_ARGS=$NUM_WORKERS
@@ -22,9 +22,9 @@ export LIBE_WALLCLOCK=5 # Balsam timeout in mins
 export THIS_DIR=$PWD
 export SCRIPT_BASENAME=${EXE%.*}
 
-# Delete any apps/jobs in Balsam
+# Delete any apps/tasks in Balsam
 balsam rm apps --all --force
-balsam rm jobs --all --force
+balsam rm tasks --all --force
 
 # Register your libEnsemble calling script as an app.
 balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"

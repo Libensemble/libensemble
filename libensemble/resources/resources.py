@@ -22,9 +22,9 @@ class ResourcesException(Exception):
 
 
 class Resources:
-    """Provides system resources to libEnsemble and job controller.
+    """Provides system resources to libEnsemble and executor.
 
-    This is intialized when the job_controller is created with auto_resources set to true.
+    This is intialized when the executor is created with auto_resources set to true.
 
     **Object Attributes:**
 
@@ -63,8 +63,8 @@ class Resources:
             with applications.
 
         launcher: String, optional
-            The name of the job launcher, such as mpirun or aprun. This may be used to obtain
-            intranode information by launching a probing job onto the compute nodes.
+            The name of the task launcher, such as mpirun or aprun. This may be used to obtain
+            intranode information by launching a probing task onto the compute nodes.
             If not present, the local node will be used to obtain this information.
 
         nodelist_env_slurm: String, optional
@@ -122,7 +122,7 @@ class Resources:
             if self.central_mode and len(self.global_nodelist) > 1:
                 self.global_nodelist = Resources.remove_nodes(self.global_nodelist, self.libE_nodes)
                 if not self.global_nodelist:
-                    logger.warning("Warning. Node-list for sub-jobs is empty. Remove central_mode or add nodes")
+                    logger.warning("Warning. Node-list for sub-tasks is empty. Remove central_mode or add nodes")
 
     def set_worker_resources(self, workerid, comm):
         self.worker_resources = WorkerResources(workerid, comm, self)
@@ -218,7 +218,7 @@ class Resources:
 
 
 class WorkerResources:
-    """Provide system resources per worker to libEnsemble and job controller.
+    """Provide system resources per worker to libEnsemble and executor.
 
     **Object Attributes:**
 

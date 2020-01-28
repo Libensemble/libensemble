@@ -18,7 +18,7 @@ chwirut
   :members:
   :undoc-members:
 
-job_control_hworld
+task_control_hworld
 ------------------
-.. automodule:: job_control_hworld
+.. automodule:: task_control_hworld
   :members:

@@ -20,7 +20,7 @@ omit =
     */unit_tests_logger/*
     */regression_tests/*
     */sim_funcs/helloworld.py
-    */balsam_controller.py
+    */balsam_executor.py
 #    */sim_funcs/*
 #    */gen_funcs/*
 exclude_lines =

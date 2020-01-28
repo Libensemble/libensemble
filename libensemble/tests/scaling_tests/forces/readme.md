@@ -53,7 +53,7 @@ Then to test locally, run the `balsam_local.sh` script. The default runs with 2 
 
     ./balsam_local.sh
 
-The running jobs can be seen inside the balsam database dir `<DIR>/data/libe_workflow/`.
+The running tasks can be seen inside the balsam database dir `<DIR>/data/libe_workflow/`.
 While the key output files will be copied back to the run dir at completion. Also see
 the log in `<DIR>/log` if there are any issues. To run on batch systems, see the example
 scripts such as `theta_submit_balsam.sh`.
@@ -83,7 +83,7 @@ The included scripts are.
 
 * theta_submit_balsam.sh:
 
-  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit jobs via Balsam.
+  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit tasks via Balsam.
 
 #### Plotting Options
 
@@ -96,10 +96,10 @@ If either of the plotting options in the submission scripts are set to true, the
 
 Adjusting the node/core/worker count.: The NUM_WORKERS variable is only
 currently used if libEnsemble is running on one node, in which case it should
-be one less than the number of nodes in the job allocation (leaving one
+be one less than the number of nodes in the task allocation (leaving one
 dedicated node to run libEnsemble). If more workers are used then the variables
 NUM_NODES and RANKS_PER_NODE need to be explicitly set (these are for
 libEnsemble which will require one task for the manager and the rest will be
 workers). The total node allocation (in the COBALT -n directive) will need to
 be the number of nodes for libEnsemble + number of nodes for each worker to
-launch jobs to.
+launch tasks to.

@@ -28,10 +28,10 @@ Go to balsam_tests directory run setup script:
   cd libensemble/code/tests/balsam_tests
   ./setup_balsam_tests.py
 
-This will register the applications and jobs in the database. If work_dir and
+This will register the applications and tasks in the database. If work_dir and
 sim_input_dir paths are correct, it can be run from anywhere.
 
-**ii) Launch the jobs**
+**ii) Launch the tasks**
 
 In an interactive session (or a batch script) run the launcher:
 
@@ -39,7 +39,7 @@ In an interactive session (or a batch script) run the launcher:
 
   balsam launcher --consume-all
 
-Note: You will need at least 2 nodes, one for parent job and one for user apps,
+Note: You will need at least 2 nodes, one for parent task and one for user apps,
 if you are on a machine where the scheduler does not split nodes. However, it
 is recommended that 5 nodes are used for good concurrency.
 
@@ -73,7 +73,7 @@ Register tests:
 
 .. code-block:: bash
 
-    balsam app --name test_balsam_1__runjobs     --exec test_balsam_1__runjobs.py     --desc "Run balsam test 1"
+    balsam app --name test_balsam_1__runtasks     --exec test_balsam_1__runtasks.py     --desc "Run balsam test 1"
 
     balsam app --name test_balsam_2__workerkill  --exec test_balsam_2__workerkill.py  --desc "Run balsam test 2"
 
@@ -100,62 +100,62 @@ To clean:
 
   balsam rm apps --all
 
-2 Register job/s
+2 Register task/s
 ----------------
 
-This is the job you intend to run. It will reference an application you have
+This is the task you intend to run. It will reference an application you have
 set up.
 
-For example, set up job for test_balsam_1:
+For example, set up task for test_balsam_1:
 
-Where WORK_DIR is set to output directory for job.
+Where WORK_DIR is set to output directory for task.
 
 .. code-block:: bash
 
-  balsam job --name job_test_balsam_1__runjobs
+  balsam task --name task_test_balsam_1__runtasks
                --workflow libe_workflow
                --application test_balsam_1
                --wall-min 1 --num-nodes 1 --ranks-per-node 4
-               --url-out="local:$WORK_DIR" --stage-out-files="job_test_balsam_1__runjobs*"
+               --url-out="local:$WORK_DIR" --stage-out-files="task_test_balsam_1__runtasks*"
 
-A working directory is set up when the job is run - by default under the balsam
-space e.g.,: hpc-edge-service/data/balsamjobs/ Under this directory a workflow
+A working directory is set up when the task is run - by default under the balsam
+space e.g.,: hpc-edge-service/data/balsamtasks/ Under this directory a workflow
 directory is created (e.g., libe_workflow in above case). From there, files to
 keep are staged out as specified by directory in --url-out (use local: for file
 directory). The files to stage out are specified by --stage-out-files.
 A log will also be created when run under hpc-edge-service/log/
 
-The standard output will go to file <jobname>.out. So in above case this will
-be job_balsam1.out which will be staged out to $WORKDIR
+The standard output will go to file <taskname>.out. So in above case this will
+be task_balsam1.out which will be staged out to $WORKDIR
 
 In this case 4 ranks per node and 1 node are selected. This is for running on
 the parent application (e.g., libEnsemble). This does not constrain the running
 of sub-apps (e.g., helloworld), which will use the full allocation available.
 
-Note that the user jobs (launched in a libEnsemble job) are registered from
+Note that the user tasks (launched in a libEnsemble task) are registered from
 within the code. For staging out files, the output directory needs to somehow
 be accessible to the code. For the tests here, this is simply the directory of
 the test scripts (accessed via the __file__ variable in python). Search for
-dag.add_job in test scripts (e.g., test_balsam_1__runjobs.py)
+dag.add_task in test scripts (e.g., test_balsam_1__runtasks.py)
 
-To list jobs:
+To list tasks:
 
 .. code-block:: bash
 
-  balsam ls jobs
+  balsam ls tasks
 
 To clean:
 
 .. code-block:: bash
 
-  balsam rm jobs --all
+  balsam rm tasks --all
 
-3 Launch job/s
+3 Launch task/s
 --------------
 
 In an interactive session (or a batch script) run the launcher:
 
-Launch all jobs:
+Launch all tasks:
 
 .. code-block:: bash
 
@@ -167,55 +167,55 @@ For other launcher options:
 
   balsam launcher -h
 
-4 Reset jobs
+4 Reset tasks
 ------------
 
 A script to reset the tests is available: reset_balsam_tests.py
 
 This script can be modified easily. However, to reset from the command line -
-without removing and re-adding jobs you can do the following.
+without removing and re-adding tasks you can do the following.
 
-Note: After running tests the balsam job database will contain something like
-the following (job_ids abbreviated for space):
+Note: After running tests the balsam task database will contain something like
+the following (task_ids abbreviated for space):
 
 .. code-block:: bash
 
-  $ balsam ls jobs
+  $ balsam ls tasks
 
 ::
 
-     job_id            | name                            | workflow       | application    | latest update
+     task_id            | name                            | workflow       | application    | latest update
     -------------------------------------------------------------------------------------------------------------
-     29add031-8e7c-... | job_balsam1                     | libe_workflow  | test_balsam_1  | [01-30-2018 18:57:47 JOB_FINISHED]
-     9ca5f106-3fb5-... | outfile_for_sim_id_0_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:18 JOB_FINISHED]
-     6a607a91-782c-... | outfile_for_sim_id_0_ranks0.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:31 JOB_FINISHED]
-     3638ee63-0ecc-... | outfile_for_sim_id_0_ranks2.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:44 JOB_FINISHED]
-     a2f08c72-fc0c-... | outfile_for_sim_id_0_ranks1.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:57 JOB_FINISHED]
-     183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 JOB_FINISHED]
+     29add031-8e7c-... | task_balsam1                     | libe_workflow  | test_balsam_1  | [01-30-2018 18:57:47 TASK_FINISHED]
+     9ca5f106-3fb5-... | outfile_for_sim_id_0_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:18 TASK_FINISHED]
+     6a607a91-782c-... | outfile_for_sim_id_0_ranks0.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:31 TASK_FINISHED]
+     3638ee63-0ecc-... | outfile_for_sim_id_0_ranks2.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:44 TASK_FINISHED]
+     a2f08c72-fc0c-... | outfile_for_sim_id_0_ranks1.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:57 TASK_FINISHED]
+     183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 TASK_FINISHED]
     ..................
 
-To remove only the generated jobs you can just use a sub-string of the job name eg:
+To remove only the generated tasks you can just use a sub-string of the task name eg:
 
 .. code-block:: bash
 
-  balsam rm jobs --name outfile
+  balsam rm tasks --name outfile
 
 .. code-block:: bash
 
-  $ balsam ls jobs
+  $ balsam ls tasks
 
 ::
 
-     job_id            | name             | workflow        | application      | latest update
+     task_id            | name             | workflow        | application      | latest update
     -----------------------------------------------------------------------------------------------------------------------
-     29add031-8e7c-... | job_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 JOB_FINISHED]
+     29add031-8e7c-... | task_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 TASK_FINISHED]
 
-To run again - change status attribute to READY (you need to specify job_id -
+To run again - change status attribute to READY (you need to specify task_id -
 an abbreviation is OK) For example:
 
 .. code-block:: bash
 
-  balsam modify jobs 29ad --attr state --value READY
+  balsam modify tasks 29ad --attr state --value READY
 
 Now you are ready to re-run.
 
@@ -234,7 +234,7 @@ project code.
 You will need to load the conda environment in the interactive session - or source the
 script env_setup_theta.sh.
 
-At time of writing theta does not log you out of interactive sessions. But jobs
+At time of writing theta does not log you out of interactive sessions. But tasks
 launched after time is up will not work.
 
 To see time remaining:

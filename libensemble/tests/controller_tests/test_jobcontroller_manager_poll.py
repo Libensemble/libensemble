@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 # ********************* NOT YET IMPLEMENTED ***********************
-# ********************* Interface demo: see jobctl.manager_poll(job)
+# ********************* Interface demo: see exctr.manager_poll(task)
 
-# Test of job controller module for libensemble:
+# Test of executor module for libensemble:
 #  Detecting manager kill signal
 #  This keeps MPI out of user code and is portable across different
 #  worker concurrency schemes (MPI/threading/multiprocessing)
@@ -11,7 +11,7 @@
 # Test does not require running full libensemble
 
 import os
-from libensemble.executors.controller import JobController
+from libensemble.executors.executor import Executor
 
 
 def build_simfunc():
@@ -27,7 +27,7 @@ def build_simfunc():
 # --------------- Calling script ------------------------------------------
 
 # sim_app = 'simdir/my_simjob.x'
-# gen_app = 'gendir/my_genjob.x'
+# gen_app = 'gendir/my_gentask.x'
 
 # temp
 sim_app = './my_simjob.x'
@@ -40,84 +40,84 @@ USE_BALSAM = False  # Take as arg
 
 # Create and add exes to registry
 if USE_BALSAM:
-    from libensemble.executors.balsam_controller import BalsamJobController
-    jobctrl = BalsamJobController()
+    from libensemble.executors.balsam_executor import Balsam_MPI_Executor
+    exctr = Balsam_MPI_Executor()
 else:
-    from libensemble.executors.mpi_controller import MPIJobController
-    jobctrl = MPIJobController()
+    from libensemble.executors.mpi_executor import MPI_Executor
+    exctr = MPI_Executor()
 
-jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # Alternative to IF could be using eg. fstring to specify: e.g:
-# JOB_CONTROLLER = 'Balsam'
-# registry = f"{JOB_CONTROLLER}Register()"
+# EXECUTOR = 'Balsam'
+# registry = f"{EXECUTOR}Register()"
 
 
 # --------------- Worker: sim func ----------------------------------------
 # Should work with Balsam or not
 
-def polling_loop(jobctl, job, timeout_sec=20.0, delay=2.0):
+def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
     import time
     start = time.time()
 
     while time.time() - start < timeout_sec:
 
-        jobctl.manager_poll(job)
+        exctr.manager_poll(task)
 
-        if job.manager_signal == 'kill':
-            print('Manager has sent kill signal - killing job')
-            jobctl.kill(job)
+        if task.manager_signal == 'kill':
+            print('Manager has sent kill signal - killing task')
+            exctr.kill(task)
 
         # In future might support other manager signals eg:
-        elif job.manager_signal == 'pause':
-            # checkpoint_job()
+        elif task.manager_signal == 'pause':
+            # checkpoint_task()
             pass
 
         time.sleep(delay)
         print('Polling at time', time.time() - start)
-        job.poll()
-        if job.finished:
+        task.poll()
+        if task.finished:
             break
-        elif job.state == 'WAITING':
-            print('Job waiting to launch')
-        elif job.state == 'RUNNING':
-            print('Job still running ....')
+        elif task.state == 'WAITING':
+            print('Task waiting to launch')
+        elif task.state == 'RUNNING':
+            print('Task still running ....')
 
-    if job.finished:
-        if job.state == 'FINISHED':
-            print('Job finished succesfully. Status:', job.state)
-        elif job.state == 'FAILED':
-            print('Job failed. Status:', job.state)
-        elif job.state == 'USER_KILLED':
-            print('Job has been killed. Status:', job.state)
+    if task.finished:
+        if task.state == 'FINISHED':
+            print('Task finished succesfully. Status:', task.state)
+        elif task.state == 'FAILED':
+            print('Task failed. Status:', task.state)
+        elif task.state == 'USER_KILLED':
+            print('Task has been killed. Status:', task.state)
         else:
-            print('Job status:', job.state)
+            print('Task status:', task.state)
     else:
-        print("Job timed out")
-        jobctl.kill(job)
-        if job.finished:
+        print("Task timed out")
+        exctr.kill(task)
+        if task.finished:
             print('Now killed')
             # double check
-            job.poll()
-            print('Job state is', job.state)
+            task.poll()
+            print('Task state is', task.state)
 
 
 # Tests
 # ********************* NOT YET IMPLEMENTED ***********************
 
-# From worker call JobController by different name to ensure getting registered app from JobController
-jobctl = JobController.controller
+# From worker call Executor by different name to ensure getting registered app from Executor
+exctr = Executor.executor
 
 print('\nTest 1 - should complete succesfully with status FINISHED :\n')
 cores = 4
 args_for_sim = 'sleep 5'
 
-job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-polling_loop(jobctl, job)
+task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+polling_loop(exctr, task)
 
-print('\nTest 2 - Job should be MANAGER_KILLED \n')
+print('\nTest 2 - Task should be MANAGER_KILLED \n')
 cores = 4
 args_for_sim = 'sleep 5'
 
-job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-polling_loop(jobctl, job)
+task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+polling_loop(exctr, task)

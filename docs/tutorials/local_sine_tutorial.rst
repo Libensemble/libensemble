@@ -17,7 +17,7 @@ libEnsemble initializes a *manager* process and as many *worker* processes as th
 user requests. The manager coordinates data transfer between workers and assigns
 each unit of work, consisting of a ``gen_f`` or ``sim_f`` function to run and
 accompanying data. These functions can perform their work in-line with Python or by
-launching and controlling user applications with a :ref:`job controller<jobcontroller_index>`.
+launching and controlling user applications with a :ref:`executor<executor_index>`.
 Workers then pass results back to the manager.
 
 For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python

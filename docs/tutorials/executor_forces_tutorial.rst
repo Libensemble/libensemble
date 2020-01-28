@@ -1,10 +1,10 @@
-========================================
-Job Controller with Electrostatic Forces
-========================================
+==================================
+Executor with Electrostatic Forces
+==================================
 
 This tutorial highlights libEnsemble's capability to launch
 and monitor external scripts or user applications within simulation or generator
-functions using the :doc:`job controller<../job_controller/overview>`. In this tutorial,
+functions using the :doc:`executor<../executor/overview>`. In this tutorial,
 our calling script registers an external C executable that simulates
 electrostatic forces between a collection of particles. The ``sim_f``
 routine then launches and polls this executable.
@@ -13,9 +13,9 @@ It is possible to use ``subprocess`` calls from Python to issue
 commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
 hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
-allow running jobs to submit additional jobs from the compute nodes. On these
+allow running tasks to submit additional tasks from the compute nodes. On these
 systems a proxy launch mechanism (such as Balsam) is required.
-libEnsemble's job controller was developed to directly address such issues.
+libEnsemble's executor was developed to directly address such issues.
 
 Getting Started
 ---------------
@@ -48,20 +48,20 @@ generation functions and call libEnsemble. Create a Python file containing:
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
     from libensemble.utils import parse_args, add_unique_random_streams
-    from libensemble.executors.mpi_controller import MPIJobController
+    from libensemble.executors.mpi_executor import MPIExecutor
 
     nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
-    # Create job_controller and register sim to it
-    jobctrl = MPIJobController()  # Use auto_resources=False to oversubscribe
+    # Create executor and register sim to it
+    taskctrl = MPIExecutor()  # Use auto_resources=False to oversubscribe
 
     # Create empty simulation input directory
     if not os.path.isdir('./sim'):
         os.mkdir('./sim')
 
-    # Register simulation executable with job controller
+    # Register simulation executable with executor
     sim_app = os.path.join(os.getcwd(), 'forces.x')
-    jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+    taskctrl.register_calc(full_path=sim_app, calc_type='sim')
 
 On line 4 we import our not-yet-written ``sim_f``. We also import necessary
 libEnsemble components and some :doc:`convenience functions<../utilities>`.
@@ -70,9 +70,9 @@ determining if the process is the master process (``is_master``), and a default
 :ref:`libE_specs<datastruct-libe-specs>` with a call to the ``parse_args()``
 convenience function.
 
-Next we define our job controller class instance. This instance can be customized
-with many of the settings defined :doc:`here<../job_controller/mpi_controller>`.
-We'll register our simulation with the job controller and use the same
+Next we define our executor class instance. This instance can be customized
+with many of the settings defined :doc:`here<../executor/mpi_executor>`.
+We'll register our simulation with the executor and use the same
 instance within our ``sim_f``.
 
 libEnsemble can perform and write every simulation (within the ensemble) in a
@@ -137,7 +137,7 @@ Simulation Function
 -------------------
 
 Our ``sim_f`` is where we'll configure and launch our compiled simulation
-code using libEnsemble's job controller. We will poll this job's state while it runs,
+code using libEnsemble's executor. We will poll this task's state while it runs,
 and once we've detected it has finished we will send any results or exit statuses
 back to the manager.
 
@@ -150,7 +150,7 @@ Create another Python file named ``forces_simf.py`` containing:
     import time
     import numpy as np
 
-    from libensemble.executors.controller import JobController
+    from libensemble.executors.executor import Executor
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
 
     MAX_SEED = 32767
@@ -201,39 +201,39 @@ extract our parameters from ``sim_specs``, define a random seed, and use
         # To give a random variance of work-load
         sim_particles = perturb(sim_particles, seed, particle_variance)
 
-Next we will instantiate our job controller and launch our registered application.
+Next we will instantiate our executor and launch our registered application.
 
 .. code-block:: python
     :linenos:
     :emphasize-lines: 2,9,10,12,13
 
-        # Use pre-defined job controller object
-        jobctl = JobController.controller
+        # Use pre-defined executor object
+        exctr = Executor.executor
 
         # Arguments for our registered simulation
         args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
 
-        # Launch our simulation using the job controller
+        # Launch our simulation using the executor
         if cores:
-            job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args,
+            task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args,
                                 stdout='out.txt', stderr='err.txt', wait_on_run=True)
         else:
-            job = jobctl.launch(calc_type='sim', app_args=args, stdout='out.txt',
+            task = exctr.launch(calc_type='sim', app_args=args, stdout='out.txt',
                                 stderr='err.txt', wait_on_run=True)
 
-In each job controller ``launch()`` routine, we define the type of calculation being
-performed, optionally the number of processors to run the job on, additional
+In each executor ``launch()`` routine, we define the type of calculation being
+performed, optionally the number of processors to run the task on, additional
 arguments for the simulation code, and files for ``stdout`` and ``stderr``
-output. The ``wait_on_run`` argument pauses ``sim_f`` execution until the job
-is confirmed to be running. See the :doc:`docs<../job_controller/mpi_controller>`
+output. The ``wait_on_run`` argument pauses ``sim_f`` execution until the task
+is confirmed to be running. See the :doc:`docs<../executor/mpi_executor>`
 for more information about these and other options.
 
-The rest of our ``sim_f`` polls the :ref:`job<job_tag>`'s
+The rest of our ``sim_f`` polls the :ref:`task<task_tag>`'s
 dynamically updated attributes for its status, determines if a successful
-run occurred after the job completes, then formats and returns the output data
+run occurred after the task completes, then formats and returns the output data
 to the manager.
 
-We can poll the job and kill it in certain circumstances:
+We can poll the task and kill it in certain circumstances:
 
 .. code-block:: python
     :linenos:
@@ -241,43 +241,43 @@ We can poll the job and kill it in certain circumstances:
 
         # Stat file to check for bad runs
         statfile = 'forces.stat'
-        filepath = os.path.join(job.workdir, statfile)
+        filepath = os.path.join(task.workdir, statfile)
         line = None
 
         poll_interval = 1
-        while not job.finished :
-            line = read_last_line(filepath)  # Parse some output from the job
+        while not task.finished :
+            line = read_last_line(filepath)  # Parse some output from the task
             if line == "kill":
-                job.kill()
-            elif job.runtime > time_limit:
-                job.kill()
+                task.kill()
+            elif task.runtime > time_limit:
+                task.kill()
             else:
                 time.sleep(poll_interval)
-                job.poll()                   # updates the job's attributes
+                task.poll()                   # updates the task's attributes
 
-Once our job finishes, adjust ``calc_status`` (our "exit code") and report to the
-user based on the job's final state:
+Once our task finishes, adjust ``calc_status`` (our "exit code") and report to the
+user based on the task's final state:
 
 .. code-block:: python
     :linenos:
     :emphasize-lines: 1-3,7,8,10,11,14
 
-        if job.finished:
-            if job.state == 'FINISHED':
-                print("Job {} completed".format(job.name))
+        if task.finished:
+            if task.state == 'FINISHED':
+                print("Job {} completed".format(task.name))
                 calc_status = WORKER_DONE
                 if read_last_line(filepath) == "kill":
                     print("Warning: Job complete but marked bad (kill flag in forces.stat)")
-            elif job.state == 'FAILED':
-                print("Warning: Job {} failed: Error code {}".format(job.name, job.errcode))
+            elif task.state == 'FAILED':
+                print("Warning: Job {} failed: Error code {}".format(task.name, task.errcode))
                 calc_status = JOB_FAILED
-            elif job.state == 'USER_KILLED':
-                print("Warning: Job {} has been killed".format(job.name))
+            elif task.state == 'USER_KILLED':
+                print("Warning: Job {} has been killed".format(task.name))
                 calc_status = WORKER_KILL
             else:
-                print("Warning: Job {} in unknown state {}. Error code {}".format(job.name, job.state, job.errcode))
+                print("Warning: Job {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
-Load output data from our job and return to the libEnsemble manager:
+Load output data from our task and return to the libEnsemble manager:
 
 .. code-block:: python
     :linenos:
@@ -295,18 +295,18 @@ Load output data from our job and return to the libEnsemble manager:
 
         return output, persis_info, calc_status
 
-Job Controller Variants
+Executor Variants
 -----------------------
 
-libEnsemble features two variants of its job controller that perform identical
+libEnsemble features two variants of its executor that perform identical
 functions, but are designed for running on different systems. For most uses,
 the MPI variant will be satisfactory. However, some systems, such as ALCF's Theta
 do not support MPI launches from compute nodes. On these systems libEnsemble is
 run either on launch nodes or using a proxy launch mechanism to submit
-jobs from compute nodes. One such mechanism is a scheduling utility called
-Balsam_ which runs on a separate node. The Balsam Job Controller variant interacts
+tasks from compute nodes. One such mechanism is a scheduling utility called
+Balsam_ which runs on a separate node. The Balsam Executor variant interacts
 with Balsam for this purpose. The only user-facing difference between the two is
-which controller is imported and called within a calling script.
+which executor is imported and called within a calling script.
 
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c

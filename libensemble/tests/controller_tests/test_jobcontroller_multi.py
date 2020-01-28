@@ -1,12 +1,12 @@
-# Test of job controller running multiple jobs for libensemble. Could support
-# hybrid mode - including, eg. running multi jobs per node (launched locally),
+# Test of executor running multiple tasks for libensemble. Could support
+# hybrid mode - including, eg. running multi tasks per node (launched locally),
 # or simply sharing burden on central system/consecutive pipes to balsam
 # database - could enable use of threads if supply run-directories rather than
 # assuming in-place runs etc....
 
 # Test does not require running full libensemble
 import os
-from libensemble.executors.controller import JobController
+from libensemble.executors.executor import Executor
 
 
 def build_simfunc():
@@ -21,7 +21,7 @@ def build_simfunc():
 
 # --------------- Calling script ---------------------------------------------------------------
 # sim_app = 'simdir/my_simjob.x'
-# gen_app = 'gendir/my_genjob.x'
+# gen_app = 'gendir/my_gentask.x'
 
 # temp
 sim_app = './my_simjob.x'
@@ -34,111 +34,111 @@ USE_BALSAM = False  # Take as arg
 
 # Create and add exes to registry
 if USE_BALSAM:
-    from libensemble.baslam_controller import BalsamJobController
-    jobctrl = BalsamJobController()
+    from libensemble.baslam_executor import Balsam_MPI_Executor
+    exctr = Balsam_MPI_Executor()
 else:
-    from libensemble.executors.mpi_controller import MPIJobController
-    jobctrl = MPIJobController()
+    from libensemble.executors.mpi_executor import MPI_Executor
+    exctr = MPI_Executor()
 
-jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # Alternative to IF could be using eg. fstring to specify: e.g:
-# JOB_CONTROLLER = 'Balsam'
-# registry = f"{JOB_CONTROLLER}Register()"
+# EXECUTOR = 'Balsam'
+# registry = f"{EXECUTOR}Register()"
 
 # --------------- Worker: sim func -------------------------------------------------------------
 # Should work with Balsam or not
 
-# Can also use an internal iterable list of jobs in JOB_CONTROLLER - along with all_done func etc...
+# Can also use an internal iterable list of tasks in EXECUTOR - along with all_done func etc...
 
 
-def polling_loop(jobctl, job_list, timeout_sec=40.0, delay=1.0):
+def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
     import time
     start = time.time()
 
     while time.time() - start < timeout_sec:
 
-        # Test all done - (return list of not-finished jobs and test if empty)
-        active_list = [job for job in job_list if not job.finished]
+        # Test all done - (return list of not-finished tasks and test if empty)
+        active_list = [task for task in task_list if not task.finished]
         if not active_list:
             break
 
-        for job in job_list:
-            if not job.finished:
+        for task in task_list:
+            if not task.finished:
                 time.sleep(delay)
-                print('Polling job {0} at time {1}'.
-                      format(job.id, time.time() - start))
-                job.poll()
+                print('Polling task {0} at time {1}'.
+                      format(task.id, time.time() - start))
+                task.poll()
 
-                if job.finished:
+                if task.finished:
                     continue
-                elif job.state == 'WAITING':
-                    print('Job {0} waiting to launch'.format(job.id))
-                elif job.state == 'RUNNING':
-                    print('Job {0} still running ....'.format(job.id))
+                elif task.state == 'WAITING':
+                    print('Task {0} waiting to launch'.format(task.id))
+                elif task.state == 'RUNNING':
+                    print('Task {0} still running ....'.format(task.id))
 
                 # Check output file for error
-                if job.stdout_exists():
-                    if 'Error' in job.read_stdout():
+                if task.stdout_exists():
+                    if 'Error' in task.read_stdout():
                         print("Found (deliberate) Error in ouput file - "
-                              "cancelling job {}".format(job.id))
-                        jobctl.kill(job)
+                              "cancelling task {}".format(task.id))
+                        exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
                         continue
 
                 # But if I want to do something different -
                 #  I want to make a file - no function for THAT!
-                # But you can get all the job attributes!
+                # But you can get all the task attributes!
                 # Uncomment to test
-                # path = os.path.join(job.workdir,'newfile'+str(time.time()))
+                # path = os.path.join(task.workdir,'newfile'+str(time.time()))
                 # open(path, 'a')
 
     print('Loop time', time.time() - start)
 
-    for job in job_list:
-        if job.finished:
-            if job.state == 'FINISHED':
-                print('Job {0} finished succesfully. Status: {1}'.
-                      format(job.id, job.state))
-            elif job.state == 'FAILED':
-                print('Job {0} failed. Status: {1}'.
-                      format(job.id, job.state))
-            elif job.state == 'USER_KILLED':
-                print('Job {0} has been killed. Status: {1}'.
-                      format(job.id, job.state))
+    for task in task_list:
+        if task.finished:
+            if task.state == 'FINISHED':
+                print('Task {0} finished succesfully. Status: {1}'.
+                      format(task.id, task.state))
+            elif task.state == 'FAILED':
+                print('Task {0} failed. Status: {1}'.
+                      format(task.id, task.state))
+            elif task.state == 'USER_KILLED':
+                print('Task {0} has been killed. Status: {1}'.
+                      format(task.id, task.state))
             else:
-                print('Job {0} status: {1}'.format(job.id, job.state))
+                print('Task {0} status: {1}'.format(task.id, task.state))
         else:
-            print('Job {0} timed out. Status: {1}'.format(job.id, job.state))
-            jobctl.kill(job)
-            if job.finished:
-                print('Job {0} Now killed. Status: {1}'.
-                      format(job.id, job.state))
+            print('Task {0} timed out. Status: {1}'.format(task.id, task.state))
+            exctr.kill(task)
+            if task.finished:
+                print('Task {0} Now killed. Status: {1}'.
+                      format(task.id, task.state))
                 # double check
-                job.poll()
-                print('Job {0} state is {1}'.format(job.id, job.state))
+                task.poll()
+                print('Task {0} state is {1}'.format(task.id, task.state))
 
 
 # Tests
 
-# From worker call JobController by different name to ensure getting registered
-# app from JobController
-jobctl = JobController.controller
+# From worker call Executor by different name to ensure getting registered
+# app from Executor
+exctr = Executor.executor
 
 
-print('\nTest 1 - 3 jobs should complete succesfully with status FINISHED :\n')
+print('\nTest 1 - 3 tasks should complete succesfully with status FINISHED :\n')
 
-job_list = []
+task_list = []
 cores = 4
 
 for j in range(3):
-    # Could allow launch to generate outfile names based on job.id
+    # Could allow launch to generate outfile names based on task.id
     # outfilename = 'out_' + str(j) + '.txt'
     sleeptime = 6 + j*3  # Change args
     args_for_sim = 'sleep' + ' ' + str(sleeptime)
     rundir = 'run_' + str(sleeptime)
-    job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    job_list.append(job)
+    task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    task_list.append(task)
 
 
-polling_loop(jobctl, job_list)
+polling_loop(exctr, task_list)

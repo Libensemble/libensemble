@@ -2,8 +2,8 @@ import os
 import time
 import numpy as np
 
-from libensemble.executors.controller import JobController
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
+from libensemble.executors.executor import Executor
+from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 MAX_SEED = 32767
 
@@ -65,60 +65,60 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     print('seed: {}   particles: {}'.format(seed, sim_particles))
 
     # At this point you will be in the sim directory (really worker dir) for this worker (eg. sim_1).
-    # The simdir below is created for each job for this worker.
+    # The simdir below is created for each task for this worker.
     # Any input needs to be copied into this directory. Currently there is none.
     # simdir = simdir_basename + '_' + keys[0] + '_' + str(seed)
     # simdir = make_unique_simdir(simdir)
     # os.mkdir(simdir)
     # os.chdir(simdir)
-    jobctl = JobController.controller  # Get JobController
+    exctr = Executor.executor  # Get Executor
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
-    # job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
+    # task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
     if cores:
-        job = jobctl.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
+        task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
     else:
-        job = jobctl.launch(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)  # Auto-partition
+        task = exctr.launch(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)  # Auto-partition
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
-    filepath = os.path.join(job.workdir, statfile)
+    filepath = os.path.join(task.workdir, statfile)
     line = None
 
     poll_interval = 1  # secs
-    while(not job.finished):
+    while(not task.finished):
         # Read last line of statfile
         line = read_last_line(filepath)
         if line == "kill":
-            job.kill()  # Bad run
-        elif job.runtime > time_limit:
-            job.kill()  # Timeout
+            task.kill()  # Bad run
+        elif task.runtime > time_limit:
+            task.kill()  # Timeout
         else:
             time.sleep(poll_interval)
-            job.poll()
+            task.poll()
 
-    if job.finished:
-        if job.state == 'FINISHED':
-            print("Job {} completed".format(job.name))
+    if task.finished:
+        if task.state == 'FINISHED':
+            print("Task {} completed".format(task.name))
             calc_status = WORKER_DONE
             if read_last_line(filepath) == "kill":
                 # Generally mark as complete if want results (completed after poll - before readline)
-                print("Warning: Job completed although marked as a bad run (kill flag set in forces.stat)")
-        elif job.state == 'FAILED':
-            print("Warning: Job {} failed: Error code {}".format(job.name, job.errcode))
-            calc_status = JOB_FAILED
-        elif job.state == 'USER_KILLED':
-            print("Warning: Job {} has been killed".format(job.name))
+                print("Warning: Task completed although marked as a bad run (kill flag set in forces.stat)")
+        elif task.state == 'FAILED':
+            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+            calc_status = TASK_FAILED
+        elif task.state == 'USER_KILLED':
+            print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
-            print("Warning: Job {} in unknown state {}. Error code {}".format(job.name, job.state, job.errcode))
+            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     # os.chdir('../')
 
     time.sleep(0.2)
     try:
         data = np.loadtxt(filepath)
-        # job.read_file_in_workdir(statfile)
+        # task.read_file_in_workdir(statfile)
         final_energy = data[-1]
     except Exception:
         final_energy = np.nan

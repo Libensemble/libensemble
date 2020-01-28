@@ -2,8 +2,8 @@
 
 import balsam.launcher.dag as dag
 
-dag.BalsamJob.objects.filter(name__contains='outfile').delete()
+dag.BalsamTask.objects.filter(name__contains='outfile').delete()
 
-for job in dag.BalsamJob.objects.filter(name__contains='job_test_balsam'):
-    job.update_state('CREATED')
-    job.save()
+for task in dag.BalsamTask.objects.filter(name__contains='task_test_balsam'):
+    task.update_state('CREATED')
+    task.save()

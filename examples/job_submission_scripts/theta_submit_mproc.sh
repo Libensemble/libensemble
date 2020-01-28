@@ -3,7 +3,7 @@
 #COBALT -O libE_mproc_MOM
 #COBALT -n 4
 #COBALT -q debug-flat-quad # Up to 8 nodes only
-##COBALT -q default # For large jobs >=128 nodes
+##COBALT -q default # For large tasks >=128 nodes
 ##COBALT -A <project code>
 
 # Script to run libEnsemble using multiprocessing on launch nodes.
@@ -11,7 +11,7 @@
 
 # To be run with central job management
 # - Manager and workers run on launch node.
-# - Workers submit jobs to the compute nodes in the allocation.
+# - Workers submit tasks to the compute nodes in the allocation.
 
 # Name of calling script
 export EXE=libE_calling_script.py

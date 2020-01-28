@@ -11,7 +11,7 @@
 # Launch script for running in central mode with mpi4py.
 #   libEnsemble will run on a dedicated node (or nodes).
 #   The remaining nodes in the allocation will be dedicated to worker launched apps.
-#   Use job_controller with auto-resources=True and central_mode=True.
+#   Use executor with auto-resources=True and central_mode=True.
 
 # User to edit these variables
 export EXE=libE_calling_script.py
