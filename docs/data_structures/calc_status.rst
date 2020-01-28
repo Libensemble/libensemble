@@ -22,7 +22,7 @@ Example of ``calc_status`` used along with :ref:`executor<executor_index>` in si
 
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
 
-    task = exctr.launch(calc_type='sim', num_procs=cores, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', num_procs=cores, wait_on_run=True)
     calc_status = UNSET_TAG
     poll_interval = 1  # secs
     while(not task.finished):

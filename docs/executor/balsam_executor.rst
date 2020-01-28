@@ -8,7 +8,7 @@ Balsam Executor
   :show-inheritance:
 ..  :inherited-members:
 ..  :member-order: bysource
-..  :members: __init__, launch, poll, manager_poll, kill, set_kill_mode
+..  :members: __init__, submit, poll, manager_poll, kill, set_kill_mode
 
 .. autoclass:: BalsamJob
   :show-inheritance:

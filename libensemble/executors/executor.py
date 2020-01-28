@@ -3,7 +3,7 @@ This module contains a
 ``executor`` and ``task``. The class ``Executor`` is a base class and not
 intended for direct use. Instead one of the inherited classes should be used. Inherited
 classes include MPI and Balsam variants. A ``executor`` can create and manage
-multiple ``tasks``. The worker or user-side code can issue and manage ``tasks`` using the launch,
+multiple ``tasks``. The worker or user-side code can issue and manage ``tasks`` using the submit,
 poll and kill functions. ``Task`` attributes are queried to determine status. Functions are
 also provided to access and interrogate files in the ``task``'s working directory.
 
@@ -82,7 +82,7 @@ class Task:
 
         A new task object is created with an id, status and configuration
         attributes.  This will normally be created by the executor
-        on a launch
+        on a submission
         """
         self.id = next(Task.newid)
 
@@ -152,7 +152,7 @@ class Task:
     def calc_task_timing(self):
         """Calculate timing information for this task"""
         if self.launch_time is None:
-            logger.warning("Cannot calc task timing - launch time not set")
+            logger.warning("Cannot calc task timing - submit time not set")
             return
 
         # Do not update if total_time is already set
@@ -239,7 +239,7 @@ class Executor:
     executor = None
 
     def _wait_on_run(self, task, fail_time=None):
-        '''Called by launch when wait_on_run is True.
+        '''Called by submit when wait_on_run is True.
 
         Blocks until task polls as having started.
         If fail_time is supplied, will also block until either task is in an

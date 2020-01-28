@@ -45,7 +45,7 @@ class MPI_Executor(Executor):
 
         auto_resources: boolean, optional
             Autodetect available processor resources and assign to tasks
-            if not explicitly provided on launch.
+            if not explicitly provided on submission.
 
         central_mode, boolean, optional
             If true, then running in central mode, otherwise in distributed
@@ -155,11 +155,11 @@ class MPI_Executor(Executor):
                 'machinefile': machinefile,
                 'hostlist': hostlist}
 
-    def launch(self, calc_type, num_procs=None, num_nodes=None,
+    def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, test=False, wait_on_run=False):
-        """Creates a new task, and either launches or schedules launch.
+        """Creates a new task, and either executes or schedules execution.
 
         The created task object is returned.
 
@@ -170,10 +170,10 @@ class MPI_Executor(Executor):
             The calculation type: 'sim' or 'gen'
 
         num_procs: int, optional
-            The total number of MPI tasks on which to launch the task
+            The total number of MPI tasks on which to submit the task
 
         num_nodes: int, optional
-            The number of nodes on which to launch the task
+            The number of nodes on which to submit the task
 
         ranks_per_node: int, optional
             The ranks per node for this task
@@ -183,7 +183,7 @@ class MPI_Executor(Executor):
 
         app_args: string, optional
             A string of the application arguments to be added to task
-            launch command line
+            submit command line
 
         stdout: string, optional
             A standard output filename
@@ -196,7 +196,7 @@ class MPI_Executor(Executor):
             current directory
 
         hyperthreads: boolean, optional
-            Whether to launch MPI tasks to hyperthreads
+            Whether to submit MPI tasks to hyperthreads
 
         test: boolean, optional
             Whether this is a test - no task will be launched; instead
@@ -236,7 +236,7 @@ class MPI_Executor(Executor):
             runline.extend(task.app_args.split())
 
         if test:
-            logger.info('Test (No launch) Runline: {}'.format(' '.join(runline)))
+            logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
         else:
             subgroup_launch = True
             if self.mpi_launch_type in ['aprun', 'srun']:
@@ -250,12 +250,12 @@ class MPI_Executor(Executor):
                     logger.info("Launching task {}{}: {}".
                                 format(task.name, retry_string, " ".join(runline)))
 
-                    task.process = launcher.launch(runline, cwd='./',
+                    task.process = launcher.submit(runline, cwd='./',
                                                   stdout=open(task.stdout, 'w'),
                                                   stderr=open(task.stderr, 'w'),
                                                   start_new_session=subgroup_launch)
                 except Exception as e:
-                    logger.warning('task {} launch command failed on try {} with error {}'.format(task.name, retry_count, e))
+                    logger.warning('task {} submit command failed on try {} with error {}'.format(task.name, retry_count, e))
                     retry = True
                     retry_count += 1
                 else:

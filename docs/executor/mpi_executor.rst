@@ -11,7 +11,7 @@ MPI Executor
   .. automethod:: __init__
 
 ..  :member-order: bysource
-..  :members: __init__, register_calc, launch, manager_poll
+..  :members: __init__, register_calc, submit, manager_poll
 
 Class-specific attributes
 -------------------------
@@ -20,10 +20,10 @@ Class-specific attributes can be set directly to alter the behavior of the MPI
 executor. However, they should be used with caution, because they may not
 be implemented in other executors.
 
-:max_launch_attempts: (int) Maximum number of launch attempts for a given task. *Default: 5*.
+:max_submit_attempts: (int) Maximum number of submission attempts for a given task. *Default: 5*.
 :fail_time: (int) *Only if wait_on_run is set.* Maximum run time to failure in seconds that results in relaunch. *Default: 2*.
 
-Example. To increase resilience against launch failures::
+Example. To increase resilience against submission failures::
 
     taskctrl = MPIExecutor()
     taskctrl.max_launch_attempts = 10

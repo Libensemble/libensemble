@@ -79,7 +79,7 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
         if task.finished:
             break
         elif task.state == 'WAITING':
-            print('Task waiting to launch')
+            print('Task waiting to execute')
         elif task.state == 'RUNNING':
             print('Task still running ....')
 
@@ -112,12 +112,12 @@ print('\nTest 1 - should complete succesfully with status FINISHED :\n')
 cores = 4
 args_for_sim = 'sleep 5'
 
-task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
 polling_loop(exctr, task)
 
 print('\nTest 2 - Task should be MANAGER_KILLED \n')
 cores = 4
 args_for_sim = 'sleep 5'
 
-task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
 polling_loop(exctr, task)

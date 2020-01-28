@@ -20,7 +20,7 @@ See the executor APIs for optional arguments.
 Job Class
 ---------
 
-Jobs are created and returned through the executor launch function. Jobs
+Jobs are created and returned through the executor ``submit()`` function. Jobs
 can be polled and killed with the respective poll and kill functions. Job
 information can be queried through the task attributes below and the query
 functions. Note that the task attributes are updated only when they are

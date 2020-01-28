@@ -73,7 +73,7 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
                 if task.finished:
                     continue
                 elif task.state == 'WAITING':
-                    print('Task {0} waiting to launch'.format(task.id))
+                    print('Task {0} waiting to execute'.format(task.id))
                 elif task.state == 'RUNNING':
                     print('Task {0} still running ....'.format(task.id))
 
@@ -132,12 +132,12 @@ task_list = []
 cores = 4
 
 for j in range(3):
-    # Could allow launch to generate outfile names based on task.id
+    # Could allow submission to generate outfile names based on task.id
     # outfilename = 'out_' + str(j) + '.txt'
     sleeptime = 6 + j*3  # Change args
     args_for_sim = 'sleep' + ' ' + str(sleeptime)
     rundir = 'run_' + str(sleeptime)
-    task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     task_list.append(task)
 
 

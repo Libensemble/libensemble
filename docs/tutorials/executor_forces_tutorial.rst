@@ -2,7 +2,7 @@
 Executor with Electrostatic Forces
 ==================================
 
-This tutorial highlights libEnsemble's capability to launch
+This tutorial highlights libEnsemble's capability to execute
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`executor<../executor/overview>`. In this tutorial,
 our calling script registers an external C executable that simulates
@@ -48,12 +48,12 @@ generation functions and call libEnsemble. Create a Python file containing:
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
     from libensemble.utils import parse_args, add_unique_random_streams
-    from libensemble.executors.mpi_executor import MPIExecutor
+    from libensemble.executors.mpi_executor import MPI_Executor
 
     nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
     # Create executor and register sim to it
-    taskctrl = MPIExecutor()  # Use auto_resources=False to oversubscribe
+    taskctrl = MPI_Executor()  # Use auto_resources=False to oversubscribe
 
     # Create empty simulation input directory
     if not os.path.isdir('./sim'):
@@ -136,7 +136,7 @@ After some additions to ``libE_specs`` and defining our ``exit_criteria`` and
 Simulation Function
 -------------------
 
-Our ``sim_f`` is where we'll configure and launch our compiled simulation
+Our ``sim_f`` is where we'll configure and execute our compiled simulation
 code using libEnsemble's executor. We will poll this task's state while it runs,
 and once we've detected it has finished we will send any results or exit statuses
 back to the manager.
@@ -201,7 +201,7 @@ extract our parameters from ``sim_specs``, define a random seed, and use
         # To give a random variance of work-load
         sim_particles = perturb(sim_particles, seed, particle_variance)
 
-Next we will instantiate our executor and launch our registered application.
+Next we will instantiate our executor and  our registered application.
 
 .. code-block:: python
     :linenos:
@@ -213,15 +213,15 @@ Next we will instantiate our executor and launch our registered application.
         # Arguments for our registered simulation
         args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
 
-        # Launch our simulation using the executor
+        # Submit our simulation for execution using the executor
         if cores:
-            task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args,
+            task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
                                 stdout='out.txt', stderr='err.txt', wait_on_run=True)
         else:
-            task = exctr.launch(calc_type='sim', app_args=args, stdout='out.txt',
+            task = exctr.submit(calc_type='sim', app_args=args, stdout='out.txt',
                                 stderr='err.txt', wait_on_run=True)
 
-In each executor ``launch()`` routine, we define the type of calculation being
+In each executor ``submit()`` routine, we define the type of calculation being
 performed, optionally the number of processors to run the task on, additional
 arguments for the simulation code, and files for ``stdout`` and ``stderr``
 output. The ``wait_on_run`` argument pauses ``sim_f`` execution until the task

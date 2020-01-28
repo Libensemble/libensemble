@@ -34,7 +34,7 @@ print("Running Kill test with program", user_code)
 print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type, num_nodes, num_procs_per_node))
 
 
-# Create common components of launch line (currently all of it)
+# Create common components of submit line (currently all of it)
 
 # Am I in an aprun environment
 launcher = 'mpich'  # Includes mpich based - eg. intelmpi

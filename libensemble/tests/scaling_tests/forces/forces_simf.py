@@ -74,11 +74,11 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     exctr = Executor.executor  # Get Executor
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
-    # task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
+    # task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
     if cores:
-        task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
     else:
-        task = exctr.launch(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)  # Auto-partition
+        task = exctr.submit(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)  # Auto-partition
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'

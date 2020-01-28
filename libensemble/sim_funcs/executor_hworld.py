@@ -86,7 +86,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_specs):
         args_for_sim = 'sleep 18'  # Manager kill - if signal received else completes
         timeout = 20.0
 
-    task = exctr.launch(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
     task, calc_status = polling_loop(comm, exctr, task, timeout)
 
     # assert task.finished, "task.finished should be True. Returned " + str(task.finished)

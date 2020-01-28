@@ -44,7 +44,7 @@ class BalsamTask(Task):
 
         A new BalsamTask object is created with an id, status and
         configuration attributes.  This will normally be created by the
-        executor on a launch.
+        executor on a submission.
         """
         # May want to override workdir with Balsam value when it exists
         Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
@@ -58,7 +58,7 @@ class BalsamTask(Task):
     def read_stderr(self):
         return self.process.read_file_in_workdir(self.stderr)
 
-    def _get_time_since_balsam_launch(self):
+    def _get_time_since_balsam_submit(self):
         """Return time since balsam task entered RUNNING state"""
 
         # If wait_on_run then can could calculate runtime same a base executor
@@ -76,10 +76,10 @@ class BalsamTask(Task):
         """Calculate timing information for this task"""
 
         # Get runtime from Balsam
-        self.runtime = self._get_time_since_balsam_launch()
+        self.runtime = self._get_time_since_balsam_submit()
 
         if self.launch_time is None:
-            logger.warning("Cannot calc task total_time - launch time not set")
+            logger.warning("Cannot calc task total_time - submit time not set")
             return
 
         if self.total_time is None:
@@ -93,7 +93,7 @@ class BalsamTask(Task):
         # Get current state of tasks from Balsam database
         self.process.refresh_from_db()
         balsam_state = self.process.state
-        self.runtime = self._get_time_since_balsam_launch()
+        self.runtime = self._get_time_since_balsam_submit()
 
         if balsam_state in models.END_STATES:
             self.finished = True
@@ -224,11 +224,11 @@ class Balsam_MPI_Executor(MPI_Executor):
         app.save()
         logger.debug("Added App {}".format(app.name))
 
-    def launch(self, calc_type, num_procs=None, num_nodes=None,
+    def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, test=False, wait_on_run=False):
-        """Creates a new task, and either launches or schedules to launch
+        """Creates a new task, and either executes or schedules to execute
         in the executor
 
         The created task object is returned.
@@ -277,7 +277,7 @@ class Balsam_MPI_Executor(MPI_Executor):
                         stdout, stderr, self.workerID)
 
         # This is not used with Balsam for run-time as this would include wait time
-        # Again considering changing launch to submit - or whatever I chose before.....
+        # Again considering changing launch to submit - or whatever I chose before..... (1/28/20 - Wish granted!)
         # task.launch_time = time.time()  # Not good for timing task - as I dont know when it finishes - only poll/kill est.
 
         add_task_args = {'name': task.name,
