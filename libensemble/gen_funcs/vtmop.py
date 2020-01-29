@@ -1,5 +1,5 @@
 """
-Wrapper for the MOP_MOD genfuncs drivers, for solving multiobjective
+Wrapper for the VTMOP genfuncs drivers, for solving multiobjective
 optimization problems with arbitrary number of objectives.
 """
 import numpy as np
@@ -7,14 +7,14 @@ from scipy.io import FortranFile  # for reading/writing unformatted binary data
 from os import system  # for issuing batch commands
 
 
-def mop_mod_gen(H, persis_info, gen_specs, _):
+def vtmop_gen(H, persis_info, gen_specs, _):
     """
     This generator function solves multiobjective optimization problems
     with d design variables (subject to simple bound constraints) and
-    p objectives using MOP_MOD.
+    p objectives using VTMOP.
 
-    This requires that MOP_MOD be installed and in the system PATH.
-    To do so, download MOP_MOD (contact thchang@vt.edu), and use the
+    This requires that VTMOP be installed and in the system PATH.
+    To do so, download VTMOP (contact thchang@vt.edu), and use the
     command
 
     $ make genfuncs
@@ -23,7 +23,7 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
 
     $ export PATH=$PATH:`pwd`
 
-    from the MOP_MOD source/build directory to add MOP_MOD to your system
+    from the VTMOP source/build directory to add VTMOP to your system
     PATH.
 
     This generator alternates between generating large batches of size
@@ -35,9 +35,9 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     is inferred from len(gen_specs['ub']). gen_specs['num_obj']
     specifies the number of objectives.
 
-    Several unformatted binary files (mop.io, mop.dat, and mop.chkpt) will
-    be generated in the calling directory to pass information between
-    libEnsemble and MOP_MOD. 
+    Several unformatted binary files (vtmop.io, vtmop.dat, and vtmop.chkpt)
+    will be generated in the calling directory to pass information between
+    libEnsemble and VTMOP. 
     """
     # First get the problem dimensions and data
     ub = gen_specs['ub']  # upper bounds
@@ -50,23 +50,23 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
     n = np.size(H['f'][:, 0])  # size of database in the history array
 
     if len(H) == 0:
-        # Write initialization data to the mop.io file for MOP_INIT
-        fp1 = FortranFile('mop.io', 'w')
+        # Write initialization data to the vtmop.io file for VTMOP_INIT
+        fp1 = FortranFile('vtmop.io', 'w')
         fp1.write_record(np.array([np.int32(d), np.int32(p), np.int32(inb)]))
         fp1.write_record(np.array([np.array(lb, dtype=np.float64),
                          np.array(ub, dtype=np.float64)]))
         fp1.close()
-        system("mop_initializer")
+        system("vtmop_initializer")
     else:
-        # Write unformatted problem dimensions to the mop.io file
-        fp1 = FortranFile('mop.io', 'w')
+        # Write unformatted problem dimensions to the vtmop.io file
+        fp1 = FortranFile('vtmop.io', 'w')
         fp1.write_record(np.array([np.int32(d), np.int32(p), np.int32(n),
                          np.int32(snb), np.int32(onb)]))
         fp1.write_record(np.array([np.array(lb, dtype=np.float64),
                          np.array(ub, dtype=np.float64)]))
         fp1.close()
-        # Write unformatted history to the mop.dat file, to be read by MOP_MOD
-        fp2 = FortranFile('mop.dat', 'w')
+        # Write unformatted history to the vtmop.dat file, to be read by VTMOP
+        fp2 = FortranFile('vtmop.dat', 'w')
         fp2.write_record(np.array([np.int32(d), np.int32(p)]))
         for i in range(n):
             toadd = np.zeros(d+p)
@@ -77,11 +77,11 @@ def mop_mod_gen(H, persis_info, gen_specs, _):
             #if (np.float64((H['f'][i,:]) == np.zeros(p)).all()):
             #    print('here')
         fp2.close()
-        # Call MOP_MOD from command line
-        system("mop_generator")
+        # Call VTMOP from command line
+        system("vtmop_generator")
 
-    # Read unformatted list of candidates from mop.io file
-    fp1 = FortranFile('mop.io', 'r')
+    # Read unformatted list of candidates from vtmop.io file
+    fp1 = FortranFile('vtmop.io', 'r')
     cand_pts = fp1.read_record(np.float64)
     fp1.close()
 

@@ -1,18 +1,18 @@
 # """
-# Runs libEnsemble on a 3-objective problem using the MOP_MOD package.
+# Runs libEnsemble on a 3-objective problem using the VTMOP package.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_MOP_MOD.py
-#    python3 test_MOP_MOD.py --nworkers 3 --comms local
-#    python3 test_MOP_MOD.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_VTMOP.py
+#    python3 test_VTMOP.py --nworkers 3 --comms local
+#    python3 test_VTMOP.py --nworkers 3 --comms tcp
 #
-# This requires that MOP_MOD be installed. Contact thchang@vt.edu for a copy.
+# This requires that VTMOP be installed. Contact thchang@vt.edu for a copy.
 # To build, use  : $ make genfuncs
 # To add to path : $ export PATH=$PATH:`pwd` (from src/build directory)
 #
-# The wrapper for MOP_MOD is in gen_funcs/mop_mod.py
+# The wrapper for VTMOP is in gen_funcs/mop_mod.py
 # Running this test will generate 3 unformatted binary files mop.io, mop.dat,
-# and mop.chkpt in the working directory, for sharing data between MOP_MOD
+# and mop.chkpt in the working directory, for sharing data between VTMOP
 # and libE.
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -34,7 +34,7 @@ import numpy as np
 from libensemble.libE import libE
 #from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 from libensemble.sim_funcs.mop_funcs import convex_mop as func
-from libensemble.gen_funcs.mop_mod import mop_mod_gen as gen_f
+from libensemble.gen_funcs.vtmop import vtmop_gen as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
