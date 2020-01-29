@@ -198,7 +198,7 @@ class Balsam_MPI_Executor(MPI_Executor):
     def del_tasks():
         """Deletes all Balsam tasks whose names contains .simfunc or .genfunc"""
         for app_type in ['.simfunc', '.genfunc']:
-            deletion_objs = models.BalsamTask.objects.filter(
+            deletion_objs = models.BalsamJob.objects.filter(
                 name__contains=app_type)
             if deletion_objs:
                 for del_task in deletion_objs.iterator():
