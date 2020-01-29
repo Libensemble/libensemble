@@ -186,12 +186,12 @@ the following (job_ids abbreviated for space):
 
      job_id            | name                            | workflow       | application    | latest update
     -------------------------------------------------------------------------------------------------------------
-     29add031-8e7c-... | job_balsam1                     | libe_workflow  | test_balsam_1  | [01-30-2018 18:57:47 TASK_FINISHED]
-     9ca5f106-3fb5-... | outfile_for_sim_id_0_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:18 TASK_FINISHED]
-     6a607a91-782c-... | outfile_for_sim_id_0_ranks0.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:31 TASK_FINISHED]
-     3638ee63-0ecc-... | outfile_for_sim_id_0_ranks2.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:44 TASK_FINISHED]
-     a2f08c72-fc0c-... | outfile_for_sim_id_0_ranks1.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:57 TASK_FINISHED]
-     183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 TASK_FINISHED]
+     29add031-8e7c-... | job_balsam1                     | libe_workflow  | test_balsam_1  | [01-30-2018 18:57:47 JOB_FINISHED]
+     9ca5f106-3fb5-... | outfile_for_sim_id_0_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:18 JOB_FINISHED]
+     6a607a91-782c-... | outfile_for_sim_id_0_ranks0.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:31 JOB_FINISHED]
+     3638ee63-0ecc-... | outfile_for_sim_id_0_ranks2.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:44 JOB_FINISHED]
+     a2f08c72-fc0c-... | outfile_for_sim_id_0_ranks1.txt | libe_workflow  | helloworld     | [01-30-2018 18:55:57 JOB_FINISHED]
+     183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 JOB_FINISHED]
     ..................
 
 To remove only the generated jobs you can just use a sub-string of the job name eg:
@@ -208,7 +208,7 @@ To remove only the generated jobs you can just use a sub-string of the job name 
 
      job_id            | name             | workflow        | application      | latest update
     -----------------------------------------------------------------------------------------------------------------------
-     29add031-8e7c-... | job_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 TASK_FINISHED]
+     29add031-8e7c-... | job_balsam1      | libe_workflow   | test_balsam_1    | [01-30-2018 18:57:47 JOB_FINISHED]
 
 To run again - change status attribute to READY (you need to specify job_id -
 an abbreviation is OK) For example:

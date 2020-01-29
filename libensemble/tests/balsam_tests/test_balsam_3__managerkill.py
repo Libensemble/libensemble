@@ -61,7 +61,7 @@ for sim_id in range(steps):
             BalsamJob = dag.BalsamJob
 
             # If job already finished will stage out results
-            # pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3_for_sim_id_1').exclude(state='TASK_FINISHED')
+            # pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3_for_sim_id_1').exclude(state='JOB_FINISHED')
 
             # If job already finished will NOT stage out results - once classed as USER_KILLED
             pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3_for_sim_id_1')
@@ -74,7 +74,7 @@ for sim_id in range(steps):
 
             print("Number of jobs should be killed: ", num_pending)
 
-    success = poll_until_state(current_job, 'TASK_FINISHED')  # OR job killed
+    success = poll_until_state(current_job, 'JOB_FINISHED')  # OR job killed
     if success:
         print("Completed job: %s rank=%d  time=%f" % (jobname, myrank, time.time()-start))
     else:

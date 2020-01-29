@@ -50,7 +50,7 @@ for sim_id in range(steps):
                               stage_out_url="local:" + sim_path,
                               stage_out_files=jobname + ".out")
 
-    success = poll_until_state(current_job, 'TASK_FINISHED')  # OR job killed
+    success = poll_until_state(current_job, 'JOB_FINISHED')  # OR job killed
     if success:
         print("Completed job: %s rank=%d  time=%f" % (jobname, myrank, time.time()-start))
     else:

@@ -99,10 +99,10 @@ class BalsamTask(Task):
             self.finished = True
             self.calc_task_timing()
             self.workdir = self.workdir or self.process.working_directory
-            self.success = (balsam_state == 'TASK_FINISHED')
+            self.success = (balsam_state == 'JOB_FINISHED')
             # self.errcode - requested feature from Balsam devs
 
-            if balsam_state == 'TASK_FINISHED':
+            if balsam_state == 'JOB_FINISHED':
                 self.state = 'FINISHED'
             elif balsam_state == 'PARENT_KILLED':  # Not currently used
                 self.state = 'USER_KILLED'
