@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-""" Script to set up apps and tasks for balsam tests """
+""" Script to set up apps and jobs for balsam tests """
 
 # Note: To see use of command line interface see bash_scripts/setup_balsam_tests.sh script.
-#       Currently that script does not create deps between tasks so may run simultaneously
-#       This script tests setup within python (could in theory be integrated with task!)
+#       Currently that script does not create deps between jobs so may run simultaneously
+#       This script tests setup within python (could in theory be integrated with job!)
 
 import os
 import sys
@@ -50,7 +50,7 @@ sim_app = "helloworld.py"
 num_nodes = 1
 ranks_per_node = 4
 
-task_list = ['test_balsam_1__runtasks.py',
+job_list = ['test_balsam_1__runjobs.py',
             'test_balsam_2__workerkill.py',
             'test_balsam_3__managerkill.py']
 
@@ -58,7 +58,7 @@ task_list = ['test_balsam_1__runtasks.py',
 # Currently think only CLI interface for this stuff??
 # Check for empty database if poss
 run_cmd("balsam rm apps --all", True)
-run_cmd("balsam rm tasks --all", True)
+run_cmd("balsam rm jobs --all", True)
 
 # Add user apps - eg helloworld.py
 sim_app_name = os.path.splitext(sim_app)[0]  # rm .py extension
@@ -68,40 +68,40 @@ run_line = sys.executable + ' ' + sim_app_path
 add_app(sim_app_name, run_line, sim_app_desc)
 
 
-# Add test tasks apps and tasks - and set to run one at a time
-prev_task_name = None
+# Add test jobs apps and jobs - and set to run one at a time
+prev_job_name = None
 
-for task in task_list:
+for job in job_list:
 
-    app_name = os.path.splitext(task)[0]
-    app_path = os.path.join(work_dir, task)
+    app_name = os.path.splitext(job)[0]
+    app_path = os.path.join(work_dir, job)
     app_desc = 'Run ' + app_name
     run_line = sys.executable + ' ' + app_path
     add_app(app_name, run_line, app_desc)
 
-    task_name = 'task_' + app_name
-    dag.add_task(name=task_name,
+    job_name = 'job_' + app_name
+    dag.add_job(name=job_name,
                 workflow="libe_workflow",
                 application=app_name,
                 num_nodes=num_nodes,
                 ranks_per_node=ranks_per_node,
                 stage_out_url="local:" + work_dir,
-                stage_out_files=task_name + ".out")
+                stage_out_files=job_name + ".out")
 
-    # Add dependency between tasks so run one at a time.
-    if prev_task_name:
+    # Add dependency between jobs so run one at a time.
+    if prev_job_name:
         BalsamTask = dag.BalsamTask
-        parent = BalsamTask.objects.get(name=prev_task_name)
-        child = BalsamTask.objects.get(name=task_name)
+        parent = BalsamTask.objects.get(name=prev_job_name)
+        child = BalsamTask.objects.get(name=job_name)
         dag.add_dependency(parent, child)
 
-    prev_task_name = task_name
+    prev_job_name = job_name
 
 
 # Check how to do in API - until then use CLI
 run_cmd("balsam ls apps", True)
-run_cmd("balsam ls tasks", True)
+run_cmd("balsam ls jobs", True)
 
 print("")
-run_cmd("echo -e To launch tasks run: balsam launcher --consume-all")
+run_cmd("echo -e To launch jobs run: balsam launcher --consume-all")
 print("")

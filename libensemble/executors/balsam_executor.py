@@ -274,19 +274,19 @@ class Balsam_MPI_Executor(MPI_Executor):
         # (or can have option to let Balsam assign)
         default_workdir = os.getcwd()
         task = BalsamTask(app, app_args, default_workdir,
-                        stdout, stderr, self.workerID)
+                          stdout, stderr, self.workerID)
 
         # This is not used with Balsam for run-time as this would include wait time
         # Again considering changing launch to submit - or whatever I chose before..... (1/28/20 - Wish granted!)
         # task.launch_time = time.time()  # Not good for timing task - as I dont know when it finishes - only poll/kill est.
 
         add_task_args = {'name': task.name,
-                        'workflow': "libe_workflow",  # add arg for this
-                        'user_workdir': default_workdir,  # add arg for this
-                        'application': app.name,
-                        'args': task.app_args,
-                        'num_nodes': num_nodes,
-                        'ranks_per_node': ranks_per_node}
+                         'workflow': "libe_workflow",  # add arg for this
+                         'user_workdir': default_workdir,  # add arg for this
+                         'application': app.name,
+                         'args': task.app_args,
+                         'num_nodes': num_nodes,
+                         'ranks_per_node': ranks_per_node}
 
         if stage_inout is not None:
             # For now hardcode staging - for testing
@@ -294,7 +294,7 @@ class Balsam_MPI_Executor(MPI_Executor):
             add_task_args['stage_out_url'] = "local:" + stage_inout
             add_task_args['stage_out_files'] = "*.out"
 
-        task.process = dag.add_task(**add_task_args)
+        task.process = dag.add_job(**add_task_args)
 
         if (wait_on_run):
             self._wait_on_run(task)

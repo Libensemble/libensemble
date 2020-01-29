@@ -147,7 +147,7 @@ class MPI_Executor(Executor):
         else:
             num_procs, num_nodes, ranks_per_node = \
                 MPIResources.task_partition(num_procs, num_nodes,
-                                           ranks_per_node, machinefile)
+                                            ranks_per_node, machinefile)
 
         return {'num_procs': num_procs,
                 'num_nodes': num_nodes,
@@ -251,9 +251,9 @@ class MPI_Executor(Executor):
                                 format(task.name, retry_string, " ".join(runline)))
 
                     task.process = launcher.submit(runline, cwd='./',
-                                                  stdout=open(task.stdout, 'w'),
-                                                  stderr=open(task.stderr, 'w'),
-                                                  start_new_session=subgroup_launch)
+                                                   stdout=open(task.stdout, 'w'),
+                                                   stderr=open(task.stderr, 'w'),
+                                                   start_new_session=subgroup_launch)
                 except Exception as e:
                     logger.warning('task {} submit command failed on try {} with error {}'.format(task.name, retry_count, e))
                     retry = True

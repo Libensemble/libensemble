@@ -6,16 +6,16 @@ from mpi4py import MPI
 import balsam.launcher.dag as dag
 
 
-def poll_until_state(task, state, timeout_sec=120.0, delay=2.0):
+def poll_until_state(job, state, timeout_sec=120.0, delay=2.0):
     start = time.time()
     while time.time() - start < timeout_sec:
         time.sleep(delay)
-        task.refresh_from_db()
-        if task.state == state:
+        job.refresh_from_db()
+        if job.state == state:
             return True
-        elif task.state == 'USER_KILLED':
+        elif job.state == 'USER_KILLED':
             return False
-    raise RuntimeError("Task %s failed to reach state %s in %.1f seconds" % (task.cute_id, state, timeout_sec))
+    raise RuntimeError("Task %s failed to reach state %s in %.1f seconds" % (job.cute_id, state, timeout_sec))
 
 
 myrank = MPI.COMM_WORLD.Get_rank()
@@ -37,28 +37,28 @@ if myrank == 0:
             raise("Cannot make simulation directory %s" % sim_path)
 MPI.COMM_WORLD.Barrier()  # Ensure output dir created
 
-print("Host task rank is %d Output dir is %s" % (myrank, sim_input_dir))
+print("Host job rank is %d Output dir is %s" % (myrank, sim_input_dir))
 
 start = time.time()
 for sim_id in range(steps):
-    taskname = 'outfile_t2_' + 'for_sim_id_' + str(sim_id) + '_ranks_' + str(myrank) + '.txt'
+    jobname = 'outfile_t2_' + 'for_sim_id_' + str(sim_id) + '_ranks_' + str(myrank) + '.txt'
 
-    current_task = dag.add_task(name=taskname,
+    current_job = dag.add_job(name=jobname,
                               workflow="libe_workflow",
                               application="helloworld",
                               application_args=str(sleep_time),
                               num_nodes=1,
                               ranks_per_node=8,
                               stage_out_url="local:" + sim_path,
-                              stage_out_files=taskname + ".out")
+                              stage_out_files=jobname + ".out")
     if sim_id == 1:
-        dag.kill(current_task)
+        dag.kill(current_job)
 
-    success = poll_until_state(current_task, 'TASK_FINISHED')  # OR task killed
+    success = poll_until_state(current_job, 'TASK_FINISHED')  # OR job killed
     if success:
-        print("Completed task: %s rank=%d  time=%f" % (taskname, myrank, time.time()-start))
+        print("Completed job: %s rank=%d  time=%f" % (jobname, myrank, time.time()-start))
     else:
-        print("Task not completed: %s rank=%d  time=%f Status" % (taskname, myrank, time.time()-start), current_task.state)
+        print("Task not completed: %s rank=%d  time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
 
 end = time.time()
 print("Done: rank=%d  time=%f" % (myrank, end-start))
