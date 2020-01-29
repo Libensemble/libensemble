@@ -3,7 +3,7 @@
 #COBALT -O libE_mproc_MOM
 #COBALT -n 4
 #COBALT -q debug-flat-quad # Up to 8 nodes only
-##COBALT -q default # For large tasks >=128 nodes
+##COBALT -q default # For large jobs >=128 nodes
 ##COBALT -A <project code>
 
 # Script to run libEnsemble using multiprocessing on launch nodes.

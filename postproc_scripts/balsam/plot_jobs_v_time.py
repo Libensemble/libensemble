@@ -18,4 +18,4 @@ myFmt = mdates.DateFormatter('%H:%M')
 ax.xaxis.set_major_formatter(myFmt)
 fig.autofmt_xdate()
 
-plt.savefig('balsam_tasks_v_time.png')
+plt.savefig('balsam_jobs_v_time.png')

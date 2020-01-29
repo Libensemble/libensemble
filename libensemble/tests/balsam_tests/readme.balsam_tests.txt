@@ -1,7 +1,7 @@
 List of balsam test jobs for libEnsemble.
 
 test_balsam_1__runjobs.py:
-Launches parallel parent job. Each jobs iterates over a loop launching sub-jobs
+Launches parallel parent job. Each job iterates over a loop launching sub-jobs
 and waiting for completion. Does 3 iterations by default.
 
 test_balsam_2__workerkill.py:

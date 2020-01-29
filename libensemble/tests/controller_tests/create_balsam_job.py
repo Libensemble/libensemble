@@ -72,12 +72,12 @@ if not app_exists:
 del_jobs()
 
 # Add the job
-job = dag.add_jobs(name='job_' + script_basename,
-                   workflow="libe_workflow",  # add arg for this
-                   application=app_name,
-                   # application_args=job.app_args,
-                   num_nodes=1,
-                   ranks_per_node=1,
-                   stage_in_url="local:/" + stage_in,
-                   stage_out_url="local:/" + stage_in,  # same as in
-                   stage_out_files="*.out")
+job = dag.add_job(name='job_' + script_basename,
+                  workflow="libe_workflow",  # add arg for this
+                  application=app_name,
+                  # application_args=job.app_args,
+                  num_nodes=1,
+                  ranks_per_node=1,
+                  stage_in_url="local:/" + stage_in,
+                  stage_out_url="local:/" + stage_in,  # same as in
+                  stage_out_files="*.out")

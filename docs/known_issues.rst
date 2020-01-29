@@ -5,7 +5,7 @@ The following selection describes known bugs, errors, or other difficulties that
 may occur when using libEnsemble.
 
 * OpenMPI does not work with direct MPI task launches in mpi4py comms mode, since
-  it does not support nested MPI launches. Use either local mode or the Balsam task
+  it does not support nested MPI launches. Use either local mode or the Balsam 
   executor.
 * Local comms mode (multiprocessing) may fail if MPI is initialized before
   forking processors. This is thought to be responsible for issues combining

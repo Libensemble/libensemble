@@ -32,7 +32,7 @@ set.balsam.database.sh. You can modify the database location in the script.
 
 3. Check in test script the USE_BALSAM = True
 
-4. To reset tasks before each run. Create a test app/job by running create_balsam_job.py for desired test E.g:
+4. To reset jobs before each run. Create a test app/job by running create_balsam_job.py for desired test E.g:
 
 > ./create_balsam_job.py test_jobexecutor.py
 
@@ -42,7 +42,7 @@ You can see the created app/job by running:
 
 and:
 
-> balsam ls tasks
+> balsam ls jobs
 
 5. Run tasks using the balsam launcher E.g:
 
@@ -50,5 +50,5 @@ and:
 
 Note: On systems like Theta only one job can be launched per node. You will
 need at least 2 nodes. The first will run the parent script. The test
-test_jobexecutor_multi.py launches 3 sub-tasks which Balsam will launch as
+test_jobexecutor_multi.py launches 3 sub-jobs which Balsam will launch as
 nodes become available. To run all 3 concurrently would require 4 nodes.

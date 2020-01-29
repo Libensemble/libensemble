@@ -1,4 +1,4 @@
-# This script is submitted as an app and task to Balsam. The task submission is
+# This script is submitted as an app and job to Balsam. The job submission is
 #   via 'balsam launch' executed in the test_balsam_hworld.py script.
 
 import os
@@ -19,7 +19,7 @@ mpi4py.rc.recv_mprobe = False  # Disable matching probes
 # Slighty different due to working directory not being /regression_tests
 def build_simfunc():
     import subprocess
-    print('Balsam task launched in: {}'.format(os.getcwd()))
+    print('Balsam job launched in: {}'.format(os.getcwd()))
     buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
     subprocess.check_call(buildstring.split())
 

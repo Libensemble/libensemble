@@ -13,7 +13,7 @@ It is possible to use ``subprocess`` calls from Python to issue
 commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
 hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
-allow running tasks to submit additional tasks from the compute nodes. On these
+allow running jobs to submit additional jobs from the compute nodes. On these
 systems a proxy launch mechanism (such as Balsam) is required.
 libEnsemble's executor was developed to directly address such issues.
 
@@ -53,7 +53,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
     # Create executor and register sim to it
-    taskctrl = MPI_Executor()  # Use auto_resources=False to oversubscribe
+    exctr = MPI_Executor()  # Use auto_resources=False to oversubscribe
 
     # Create empty simulation input directory
     if not os.path.isdir('./sim'):
@@ -61,7 +61,7 @@ generation functions and call libEnsemble. Create a Python file containing:
 
     # Register simulation executable with executor
     sim_app = os.path.join(os.getcwd(), 'forces.x')
-    taskctrl.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 On line 4 we import our not-yet-written ``sim_f``. We also import necessary
 libEnsemble components and some :doc:`convenience functions<../utilities>`.
@@ -136,10 +136,10 @@ After some additions to ``libE_specs`` and defining our ``exit_criteria`` and
 Simulation Function
 -------------------
 
-Our ``sim_f`` is where we'll configure and execute our compiled simulation
-code using libEnsemble's executor. We will poll this task's state while it runs,
-and once we've detected it has finished we will send any results or exit statuses
-back to the manager.
+Our ``sim_f`` is where we'll use libEnsemble's executor to configure and submit
+for execution our compiled simulation code. We will poll this task's state while
+it runs, and once we've detected it has finished we will send any results or
+exit statuses back to the manager.
 
 Create another Python file named ``forces_simf.py`` containing:
 
@@ -201,7 +201,8 @@ extract our parameters from ``sim_specs``, define a random seed, and use
         # To give a random variance of work-load
         sim_particles = perturb(sim_particles, seed, particle_variance)
 
-Next we will instantiate our executor and  our registered application.
+Next we will instantiate our executor and submit our registered application for
+execution.
 
 .. code-block:: python
     :linenos:
@@ -213,7 +214,7 @@ Next we will instantiate our executor and  our registered application.
         # Arguments for our registered simulation
         args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
 
-        # Submit our simulation for execution using the executor
+        # Submit our simulation for execution.
         if cores:
             task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
                                 stdout='out.txt', stderr='err.txt', wait_on_run=True)
@@ -296,14 +297,14 @@ Load output data from our task and return to the libEnsemble manager:
         return output, persis_info, calc_status
 
 Executor Variants
------------------------
+-----------------
 
 libEnsemble features two variants of its executor that perform identical
 functions, but are designed for running on different systems. For most uses,
 the MPI variant will be satisfactory. However, some systems, such as ALCF's Theta
 do not support MPI launches from compute nodes. On these systems libEnsemble is
-run either on launch nodes or using a proxy launch mechanism to submit
-tasks from compute nodes. One such mechanism is a scheduling utility called
+run either on launch nodes or uses a proxy launch mechanism to submit
+sub-jobs from compute nodes. One such mechanism is a scheduling utility called
 Balsam_ which runs on a separate node. The Balsam Executor variant interacts
 with Balsam for this purpose. The only user-facing difference between the two is
 which executor is imported and called within a calling script.

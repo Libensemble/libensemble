@@ -49,7 +49,6 @@ sys.path.append(os.path.abspath('../libensemble/comms'))
 sys.path.append(os.path.abspath('../libensemble/util'))
 sys.path.append(os.path.abspath('../libensemble/executors'))
 sys.path.append(os.path.abspath('../libensemble/resources'))
-
 # print(sys.path)
 
 # -- General configuration ------------------------------------------------

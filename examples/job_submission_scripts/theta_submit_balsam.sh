@@ -3,7 +3,7 @@
 #COBALT -O libE_MPI_balsam
 #COBALT -n 5 # No. nodes
 #COBALT -q debug-flat-quad # Up to 8 nodes only
-##COBALT -q default # For large tasks >=128 nodes
+##COBALT -q default # For large jobs >=128 nodes
 ##COBALT -A <project code>
 
 # Script to launch libEnsemble using Balsam.
@@ -27,7 +27,7 @@ export NUM_WORKERS=4
 # Balsam wall-clock in minutes - make few mins smaller than batch wallclock
 export BALSAM_WALLCLOCK=25
 
-# Name of working directory within database where Balsam places running tasks/output
+# Name of working directory within database where Balsam places running jobs/output
 export WORKFLOW_NAME=libe_workflow
 
 # Wall-clock in mins for libE (allow clean shutdown).
@@ -81,7 +81,7 @@ wait
 
 # Make sure no existing apps/tasks registered to database
 balsam rm apps --all --force
-balsam rm tasks --all --force
+balsam rm jobs --all --force
 wait
 sleep 3
 

@@ -21,7 +21,7 @@ def build_simfunc():
 
 # --------------- Calling script ---------------------------------------------------------------
 # sim_app = 'simdir/my_simjob.x'
-# gen_app = 'gendir/my_gentask.x'
+# gen_app = 'gendir/my_genjob.x'
 
 # temp
 sim_app = './my_simjob.x'

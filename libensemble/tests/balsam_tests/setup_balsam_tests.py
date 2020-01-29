@@ -90,9 +90,9 @@ for job in job_list:
 
     # Add dependency between jobs so run one at a time.
     if prev_job_name:
-        BalsamTask = dag.BalsamTask
-        parent = BalsamTask.objects.get(name=prev_job_name)
-        child = BalsamTask.objects.get(name=job_name)
+        BalsamJob = dag.BalsamJob
+        parent = BalsamJob.objects.get(name=prev_job_name)
+        child = BalsamJob.objects.get(name=job_name)
         dag.add_dependency(parent, child)
 
     prev_job_name = job_name

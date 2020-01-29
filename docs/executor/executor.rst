@@ -38,9 +38,9 @@ Task Attributes
 Following is a list of task status and configuration attributes that can be
 retrieved from a task.
 
-.. note:: These should not be set directly. Jobs are launched by the task
-       executor, and task information can be queried through the task attributes
-       below and the query functions.
+.. note:: These should not be set directly. Tasks are launched by the executor,
+    and task information can be queried through the task attributes
+    below and the query functions.
 
 Task status attributes include the following:
 

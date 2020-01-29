@@ -149,7 +149,7 @@ There are several ways to address this nuisance, but all involve trial and error
 An easy (but insecure) solution is temporarily disabling the firewall through
 System Preferences -> Security & Privacy -> Firewall -> Turn Off Firewall.
 Alternatively, adding a firewall "Allow incoming connections" rule can be
-attempted for the offending executor executable. We've had limited success running
+attempted for the offending executable. We've had limited success running
 ``sudo codesign --force --deep --sign - /path/to/application.app``
 on our Executor executables, then confirming the next alerts for the executable
 and ``mpiexec.hydra``.

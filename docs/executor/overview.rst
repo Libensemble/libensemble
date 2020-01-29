@@ -42,12 +42,12 @@ In calling function::
 
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import BalsamExecutor
-        taskctrl = BalsamExecutor()
+        exctr = BalsamExecutor()
     else:
         from libensemble.executors.mpi_executor import MPI_Executor
-        taskctrl = MPI_Executor()
+        exctr = MPI_Executor()
 
-    taskctrl.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 In user sim func::
 

@@ -21,7 +21,7 @@ export NUM_WORKERS=127
 # Wallclock for libE job in minutes (supplied to Balsam - make at least several mins smaller than wallclock for this submission to ensure job is launched)
 export LIBE_WALLCLOCK=25
 
-# Name of working directory where Balsam places running tasks/output (inside the database directory)
+# Name of working directory where Balsam places running jobs/output (inside the database directory)
 export WORKFLOW_NAME=libe_workflow
 
 # export SCRIPT_ARGS='' #Default No args
@@ -56,9 +56,9 @@ module unload xalt
 
 . balsamactivate $DBASE_NAME
 
-# Make sure no existing apps/tasks
+# Make sure no existing apps/jobs
 balsam rm apps --all --force
-balsam rm tasks --all --force
+balsam rm jobs --all --force
 wait
 sleep 3
 

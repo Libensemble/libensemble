@@ -2,7 +2,7 @@ import os
 import time
 import numpy as np
 
-from libensemble.executors.controller import JobController
+from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
 
 MAX_SEED = 32767
@@ -47,44 +47,44 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # This is to give a random variance of work-load
     sim_particles = perturb(sim_particles, seed, particle_variance)
 
-    jobctl = JobController.controller
+    exctr = Executor.executor
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
     if cores:
-        job = jobctl.submit(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
     else:
-        job = jobctl.submit(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
+        task = exctr.submit(calc_type='sim', app_args=args, stdout='out.txt', stderr='err.txt', wait_on_run=True)
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
-    filepath = os.path.join(job.workdir, statfile)
+    filepath = os.path.join(task.workdir, statfile)
     line = None
 
     poll_interval = 1
-    while not job.finished:
+    while not task.finished:
         line = read_last_line(filepath)
         if line == "kill":
-            job.kill()
-        elif job.runtime > time_limit:
-            job.kill()
+            task.kill()
+        elif task.runtime > time_limit:
+            task.kill()
         else:
             time.sleep(poll_interval)
-            job.poll()
+            task.poll()
 
-    if job.finished:
-        if job.state == 'FINISHED':
-            print("Job {} completed".format(job.name))
+    if task.finished:
+        if task.state == 'FINISHED':
+            print("Task {} completed".format(task.name))
             calc_status = WORKER_DONE
             if read_last_line(filepath) == "kill":
-                print("Warning: Job complete but marked bad (kill flag in forces.stat)")
-        elif job.state == 'FAILED':
-            print("Warning: Job {} failed: Error code {}".format(job.name, job.errcode))
+                print("Warning: Task complete but marked bad (kill flag in forces.stat)")
+        elif task.state == 'FAILED':
+            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
             calc_status = JOB_FAILED
-        elif job.state == 'USER_KILLED':
-            print("Warning: Job {} has been killed".format(job.name))
+        elif task.state == 'USER_KILLED':
+            print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
-            print("Warning: Job {} in unknown state {}. Error code {}".format(job.name, job.state, job.errcode))
+            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     time.sleep(0.2)
     try:

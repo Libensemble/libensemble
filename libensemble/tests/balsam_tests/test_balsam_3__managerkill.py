@@ -58,13 +58,13 @@ for sim_id in range(steps):
             # kill all sim_id 1 pending jobs in database
             time.sleep(0.5)
 
-            BalsamTask = dag.BalsamTask
+            BalsamJob = dag.BalsamJob
 
             # If job already finished will stage out results
-            # pending_sim1_jobs = BalsamTask.objects.filter(name__contains='t3_for_sim_id_1').exclude(state='TASK_FINISHED')
+            # pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3_for_sim_id_1').exclude(state='TASK_FINISHED')
 
             # If job already finished will NOT stage out results - once classed as USER_KILLED
-            pending_sim1_jobs = BalsamTask.objects.filter(name__contains='t3_for_sim_id_1')
+            pending_sim1_jobs = BalsamJob.objects.filter(name__contains='t3_for_sim_id_1')
 
             num_pending = pending_sim1_jobs.count()  # will only kill if already in database
 

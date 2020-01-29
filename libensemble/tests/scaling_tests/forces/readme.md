@@ -83,7 +83,7 @@ The included scripts are.
 
 * theta_submit_balsam.sh:
 
-  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit tasks via Balsam.
+  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and submit jobs via Balsam.
 
 #### Plotting Options
 
@@ -96,10 +96,10 @@ If either of the plotting options in the submission scripts are set to true, the
 
 Adjusting the node/core/worker count.: The NUM_WORKERS variable is only
 currently used if libEnsemble is running on one node, in which case it should
-be one less than the number of nodes in the task allocation (leaving one
+be one less than the number of nodes in the job allocation (leaving one
 dedicated node to run libEnsemble). If more workers are used then the variables
 NUM_NODES and RANKS_PER_NODE need to be explicitly set (these are for
 libEnsemble which will require one task for the manager and the rest will be
 workers). The total node allocation (in the COBALT -n directive) will need to
 be the number of nodes for libEnsemble + number of nodes for each worker to
-launch tasks to.
+launch jobs to.
