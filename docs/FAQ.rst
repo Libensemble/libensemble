@@ -33,7 +33,7 @@ Automatic partitioning of resources can be disabled if you want to oversubscribe
 (often if testing on a local machine) by configuring the executor with
 ``auto_resources=False``. For example::
 
-    exctr = MPIExecutor(auto_resources=False)
+    exctr = MPI_Executor(auto_resources=False)
 
 Note that the executor ``.submit()`` method has a parameter ``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``.

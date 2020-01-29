@@ -1,6 +1,6 @@
 Resources Module
 ================
-.. automodule:: resources
+.. automodule:: resources.resources
 ..   :members: Resources
 
 .. autoclass:: Resources

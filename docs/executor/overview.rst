@@ -7,10 +7,10 @@ running on a worker have several options.
 Typically, an MPI task could be initialized with a subprocess call to
 ``mpirun`` or an alternative launcher such as ``aprun`` or ``jsrun``. The ``sim_f``
 may then monitor this task, check output, and possibly kill the task. We use "task"
-to represent an application submission to the system, which may be a supercomputer,
-cluster, or other compute resource.
+to represent an application submission by libEnsemble to the system, which may
+be a supercomputer, cluster, or other compute resource.
 
-A **executor** interface is provided by libEnsemble to remove the burden of
+An **executor** interface is provided by libEnsemble to remove the burden of
 system interaction from the user and ease writing portable user scripts that
 launch applications. The executor provides the key functions: ``submit()``,
 ``poll()``, and ``kill()``. Job attributes can be queried to determine status after
@@ -27,7 +27,7 @@ Balsam_. Currently, these executors launch at the application level within
 an existing resource pool. However, submissions to a batch scheduler may be
 supported in the future.
 
-In a calling script, a executor object is created, and the executable
+In a calling script, an executor object is created, and the executable
 generator or simulation applications are registered to it for submission. If an
 alternative executor like Balsam is used, then the applications can be
 registered as in the example below. Once in the user-side worker code (sim/gen func),
@@ -44,8 +44,8 @@ In calling function::
         from libensemble.executors.balsam_executor import BalsamExecutor
         taskctrl = BalsamExecutor()
     else:
-        from libensemble.executors.mpi_executor import MPIExecutor
-        taskctrl = MPIExecutor()
+        from libensemble.executors.mpi_executor import MPI_Executor
+        taskctrl = MPI_Executor()
 
     taskctrl.register_calc(full_path=sim_app, calc_type='sim')
 
@@ -54,7 +54,7 @@ In user sim func::
     import time
 
     # Will return executor (whether MPI or inherited such as Balsam).
-    exctr = MPIExecutor.executor
+    exctr = Executor.executor
 
     task = exctr.submit(calc_type='sim', num_procs=8, app_args='input.txt',
                         stdout='out.txt', stderr='err.txt')
