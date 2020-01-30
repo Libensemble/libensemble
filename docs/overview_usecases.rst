@@ -68,3 +68,25 @@ to support) and plan to have examples of:
 Combinations of these use cases are supported as well. An example of
 such a combination is using libEnsemble to solve an optimization problem that
 relies on simulations that fail frequently.
+
+Glossary
+~~~~~~~~
+
+Here we define some terms used throughout libEnsemble's code and documentation.
+Although many of these terms seem straight-forward, defining such terms assists
+with keeping confusion to a minimum when communicating about libEnsemble and
+it's capabilities.
+
+* **Execute**: Directly run a program on the closest machine or node.
+
+* **Job**: Generally overarching unit of work submitted, scheduled, or queued, then launched. May contain one or more tasks.
+
+* **Launch**: Initiate or execute some program or process.
+
+* **Manager**: Single process directed to facilitate communication between other processes.
+
+* **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be launched.
+
+* **Tasks**: Sub-processes or independent units of work. Many tasks make up a job.
+
+* **Worker**: An additional process responsible for performing units of work, which may include submitting or executing tasks.
