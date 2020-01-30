@@ -84,7 +84,7 @@ Also see https://software.intel.com/en-us/articles/python-mpi4py-on-intel-true-s
 **[13] MPI startup(): tmi fabric is not available and fallback fabric is not enabled**
 
 This may occur on TMI when libEnsemble Python processes have been launched to a
-node and these, in turn, launch tasks on the node; creating too many processes
+node and these, in turn, execute tasks on the node; creating too many processes
 for the available contexts. Note that while processes can share contexts, the
 system is confused by the fact that there are two phases: first libEnsemble
 processes and then subprocesses to run user tasks. The solution is to either
@@ -96,7 +96,7 @@ environment variables::
     export I_MPI_FALLBACK=1
 
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
-nodes, while launching all sub-tasks onto other nodes.
+nodes, while launching all tasks onto other nodes.
 
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
 
