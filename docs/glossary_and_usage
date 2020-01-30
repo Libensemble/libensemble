@@ -1,0 +1,16 @@
+execute: 
+
+launch: 
+
+sumbit: 
+
+jobs: 
+
+tasks:
+
+worker: Smallest unit? (How is this different from Balsam?)
+
+
+
+Questions: 
+- Are workers "launched"? Only in the TCP case? 
