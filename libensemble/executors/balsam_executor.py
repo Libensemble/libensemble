@@ -78,12 +78,12 @@ class BalsamTask(Task):
         # Get runtime from Balsam
         self.runtime = self._get_time_since_balsam_submit()
 
-        if self.launch_time is None:
+        if self.submit_time is None:
             logger.warning("Cannot calc task total_time - submit time not set")
             return
 
         if self.total_time is None:
-            self.total_time = time.time() - self.launch_time
+            self.total_time = time.time() - self.submit_time
 
     def poll(self):
         """Polls and updates the status attributes of the supplied task"""
@@ -278,7 +278,7 @@ class Balsam_MPI_Executor(MPI_Executor):
 
         # This is not used with Balsam for run-time as this would include wait time
         # Again considering changing launch to submit - or whatever I chose before..... (1/28/20 - Wish granted!)
-        # task.launch_time = time.time()  # Not good for timing task - as I dont know when it finishes - only poll/kill est.
+        # task.submit_time = time.time()  # Not good for timing task - as I dont know when it finishes - only poll/kill est.
 
         add_task_args = {'name': task.name,
                          'workflow': "libe_workflow",  # add arg for this
@@ -301,7 +301,7 @@ class Balsam_MPI_Executor(MPI_Executor):
 
         if not task.timer.timing:
             task.timer.start()
-            task.launch_time = task.timer.tstart  # Time not date - may not need if using timer.
+            task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
         logger.info("Added task to Balsam database {}: "
                     "nodes {} ppn {}".

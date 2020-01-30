@@ -277,7 +277,7 @@ class MPI_Executor(Executor):
 
             if not task.timer.timing:
                 task.timer.start()
-                task.launch_time = task.timer.tstart  # Time not date - may not need if using timer.
+                task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
             self.list_of_tasks.append(task)
 

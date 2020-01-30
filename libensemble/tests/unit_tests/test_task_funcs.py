@@ -115,10 +115,10 @@ def test_task_funcs():
     assert not wd_exist
 
     # Check timing
-    assert not task2.launch_time and not task2.runtime and not task2.total_time
+    assert not task2.submit_time and not task2.runtime and not task2.total_time
     task2.calc_task_timing()
-    assert not task2.launch_time and not task2.runtime and not task2.total_time
-    task2.launch_time = time.time()
+    assert not task2.submit_time and not task2.runtime and not task2.total_time
+    task2.submit_time = time.time()
     task2.calc_task_timing()
     assert task2.runtime is not None and task2.runtime == task2.total_time
     save_runtime, save_total_time = task2.runtime, task2.total_time

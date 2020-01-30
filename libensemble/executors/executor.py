@@ -111,7 +111,7 @@ class Task:
         self.errcode = None
         self.finished = False  # True means task ran, not that it succeeded
         self.success = False
-        self.launch_time = None
+        self.submit_time = None
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
 
@@ -151,7 +151,7 @@ class Task:
 
     def calc_task_timing(self):
         """Calculate timing information for this task"""
-        if self.launch_time is None:
+        if self.submit_time is None:
             logger.warning("Cannot calc task timing - submit time not set")
             return
 
@@ -247,14 +247,14 @@ class Executor:
         '''
         start = time.time()
         task.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
-        task.launch_time = task.timer.tstart
+        task.submit_time = task.timer.tstart
         while task.state in NOT_STARTED_STATES:
             time.sleep(0.2)
             task.poll()
         logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time()-start))
         if not task.finished:
             task.timer.start()
-            task.launch_time = task.timer.tstart
+            task.submit_time = task.timer.tstart
             if fail_time:
                 remaining = fail_time - task.timer.elapsed
                 while task.state not in END_STATES and remaining > 0:

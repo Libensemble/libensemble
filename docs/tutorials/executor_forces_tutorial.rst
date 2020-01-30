@@ -265,18 +265,18 @@ user based on the task's final state:
 
         if task.finished:
             if task.state == 'FINISHED':
-                print("Job {} completed".format(task.name))
+                print("Task {} completed".format(task.name))
                 calc_status = WORKER_DONE
                 if read_last_line(filepath) == "kill":
-                    print("Warning: Job complete but marked bad (kill flag in forces.stat)")
+                    print("Warning: Task complete but marked bad (kill flag in forces.stat)")
             elif task.state == 'FAILED':
-                print("Warning: Job {} failed: Error code {}".format(task.name, task.errcode))
-                calc_status = JOB_FAILED
+                print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+                calc_status = TASK_FAILED
             elif task.state == 'USER_KILLED':
-                print("Warning: Job {} has been killed".format(task.name))
+                print("Warning: Task {} has been killed".format(task.name))
                 calc_status = WORKER_KILL
             else:
-                print("Warning: Job {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+                print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
 Load output data from our task and return to the libEnsemble manager:
 
@@ -304,7 +304,7 @@ functions, but are designed for running on different systems. For most uses,
 the MPI variant will be satisfactory. However, some systems, such as ALCF's Theta
 do not support MPI launches from compute nodes. On these systems libEnsemble is
 run either on launch nodes or uses a proxy launch mechanism to submit
-sub-jobs from compute nodes. One such mechanism is a scheduling utility called
+tasks from compute nodes. One such mechanism is a scheduling utility called
 Balsam_ which runs on a separate node. The Balsam Executor variant interacts
 with Balsam for this purpose. The only user-facing difference between the two is
 which executor is imported and called within a calling script.
