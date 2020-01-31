@@ -110,7 +110,7 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 
 This line launches libEnsemble with a manager and **three** workers to one
 allocated compute node, with three nodes available for the workers to launch
-user applications with the executor or a job-launch command.
+user applications with the executor or a job-submission command.
 
 This is an example of running in :doc:`centralized<platforms_index>` mode;
 if using the :doc:`executor<../executor/ex_index>`, it should

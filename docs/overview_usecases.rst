@@ -77,9 +77,9 @@ Although many of these terms seem straight-forward, defining such terms assists
 with keeping confusion to a minimum when communicating about libEnsemble and
 it's capabilities.
 
-* **Execute**: Directly run a program on the closest machine or node.
+* **Execute / Run**: Start a program on a machine or node.
 
-* **Job**: Generally overarching unit of work submitted, scheduled, or queued, then launched. May contain one or more tasks.
+* **Job**: Generally overarching unit of work submitted, scheduled, or queued, then launched, oftentimes on a remote machine. May contain one or more tasks.
 
 * **Launch**: Initiate or execute some program or process.
 
