@@ -77,16 +77,16 @@ Although many of these terms seem straight-forward, defining such terms assists
 with keeping confusion to a minimum when communicating about libEnsemble and
 it's capabilities.
 
-* **Execute / Run**: Start a program on a machine or node.
+* **Manager**: Single process directed to facilitate communication between other processes. Within libEnsemble, the *Manager* process configures and passes work to and from the workers.
 
-* **Job**: Generally overarching unit of work submitted, scheduled, or queued, then launched, oftentimes on a remote machine. May contain one or more tasks.
+* **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be launched. When using the libEnsemble executor, a *submitted* task is executed immediately or queued for execution.
 
-* **Launch**: Initiate or execute some program or process.
+* **Tasks**: Sub-processes or independent units of work. Workers perform *tasks* as directed by the manager; tasks may include submitting external programs for execution using the executor.
 
-* **Manager**: Single process directed to facilitate communication between other processes.
+* **Worker**: An additional process responsible for performing units of work, which may include submitting or executing tasks. *Worker* processes run generation and simulation routines, submit additional tasks for execution, and pass results to the manager.
 
-* **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be launched.
+.. * **Execute / Run**: Start a program on a machine or node.
 
-* **Tasks**: Sub-processes or independent units of work. Many tasks make up a job.
+.. * **Job**: Generally overarching unit of work submitted, scheduled, or queued, then launched, oftentimes on a remote machine. May contain one or more tasks.
 
-* **Worker**: An additional process responsible for performing units of work, which may include submitting or executing tasks.
+.. * **Launch**: Initiate or execute some program or process.

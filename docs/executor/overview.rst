@@ -13,7 +13,7 @@ be a supercomputer, cluster, or other compute resource.
 An **executor** interface is provided by libEnsemble to remove the burden of
 system interaction from the user and ease writing portable user scripts that
 launch applications. The executor provides the key functions: ``submit()``,
-``poll()``, and ``kill()``. Job attributes can be queried to determine status after
+``poll()``, and ``kill()``. Task attributes can be queried to determine status after
 each poll. To implement these functions, libEnsemble autodetects system criteria
 such as the MPI launcher and mechanisms to poll and kill tasks on supported systems.
 libEnsemble's executor is resilient and can relaunch tasks that fail
@@ -89,5 +89,10 @@ See the :doc:`executor<executor>` interface for API.
 For a more realistic example see
 the :doc:`Electrostatic Forces example <../examples/calling_scripts>`,
 which launches the ``forces.x`` application as an MPI task.
+
+.. note::
+    Applications or tasks submitted via the Balsam executor are referred to as
+    **"jobs"** within Balsam, including within Balsam's database and when
+    describing the state of a completed submission.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
