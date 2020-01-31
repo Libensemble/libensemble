@@ -204,7 +204,7 @@ inputs and outputs from those functions to expect.
 Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
 dictionary that, in this tutorial, contains  a ``RandomState()`` random stream for
 uniform random sampling. We populate that dictionary here using a utility from
-the :doc:`utils module<../utilities>`. We then specify the circumstances
+the :doc:`tools module<../utilities>`. We then specify the circumstances
 where libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
 
 .. code-block:: python

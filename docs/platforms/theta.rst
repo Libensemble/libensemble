@@ -162,7 +162,7 @@ Batch Runs
 Batch scripts specify run settings using ``#COBALT`` statements. The following
 simple example depicts configuring and launching libEnsemble to a MOM node with
 multiprocessing. This script also assumes the user is using the ``parse_args()``
-convenience function from libEnsemble's :doc:`utils module<../utilities>`.
+convenience function from libEnsemble's :doc:`tools module<../utilities>`.
 
 .. code-block:: bash
 

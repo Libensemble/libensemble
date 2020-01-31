@@ -26,5 +26,5 @@ export PYTHONPATH=/global/common/software/<my_project>/<user_name>/packages/lib/
 # Overcommit will allow ntasks up to the no. of contexts on one node (eg. 320 on Bebop)
 srun --overcommit --ntasks=$(($NUM_WORKERS+1)) --nodes=1 python $EXE
 
-# To use local mode instead of mpi4py (with utils.parse_args())
+# To use local mode instead of mpi4py (with tools.parse_args())
 # python calling_script.py --comms local --nworkers $NUM_WORKERS

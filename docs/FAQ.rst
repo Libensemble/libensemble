@@ -119,10 +119,10 @@ to launch an xterm terminal window specific to each process. Mac users will
 need to install xQuartz_.
 
 If running in ``local`` mode, try using one of the ``ForkablePdb``
-routines in ``libensemble/util/forkpdb.py`` to set breakpoints and debug similarly
+routines in ``libensemble.tools`` to set breakpoints and debug similarly
 to ``pdb``. How well this works varies by system. ::
 
-    from libensemble.util.forkpdb import ForkablePdb
+    from libensemble.tools import ForkablePdb
     ForkablePdb().set_trace()
 
 .. _xQuartz: https://www.xquartz.org/
