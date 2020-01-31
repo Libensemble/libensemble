@@ -20,7 +20,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000 as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.mpi_controller import MPIJobController  # Only used to get workerID in float_x1000
 jobctrl = MPIJobController(auto_resources=False)
 

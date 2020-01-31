@@ -20,7 +20,7 @@ import time
 from libensemble.libE import libE
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
-from libensemble.utils import parse_args, add_unique_random_streams
+from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 

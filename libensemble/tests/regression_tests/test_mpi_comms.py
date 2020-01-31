@@ -9,7 +9,7 @@
 
 from mpi4py import MPI
 from libensemble.comms.mpi import MPIComm, Timeout
-from libensemble.utils import parse_args
+from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi

@@ -207,7 +207,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=No
 
     .. code-block:: python
 
-        from libensemble.utils import check_inputs
+        from libensemble.tools import check_inputs
         check_inputs(sim_specs=my_sim_specs, gen_specs=my_gen_specs, exit_criteria=ec)
 
     Parameters
@@ -349,7 +349,7 @@ def parse_args():
 
     .. code-block:: python
 
-        from libensemble.utils import parse_args
+        from libensemble.tools import parse_args
         nworkers, is_master, libE_specs, misc_args = parse_args()
 
     From the shell::

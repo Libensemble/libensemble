@@ -2,7 +2,7 @@ import numpy as np
 import time
 import logging
 
-from libensemble.utils import libE_fields
+from libensemble.tools import libE_fields
 
 logger = logging.getLogger(__name__)
 

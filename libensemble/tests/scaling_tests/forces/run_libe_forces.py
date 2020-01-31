@@ -6,7 +6,7 @@ from forces_simf import run_forces  # Sim func from current dir
 # Import libEnsemble modules
 from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample
-from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 from libensemble import libE_logger
 libE_logger.set_level('INFO')  # Info is now default - but shows usage.

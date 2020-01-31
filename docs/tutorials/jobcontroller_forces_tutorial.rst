@@ -47,7 +47,7 @@ generation functions and call libEnsemble. Create a Python file containing:
 
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
-    from libensemble.utils import parse_args, add_unique_random_streams
+    from libensemble.tools import parse_args, add_unique_random_streams
     from libensemble.mpi_controller import MPIJobController
 
     nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function

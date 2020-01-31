@@ -12,7 +12,7 @@ import os
 import logging
 import time
 
-import libensemble.util.launcher as launcher
+import libensemble.utils.launcher as launcher
 from libensemble.mpi_resources import MPIResources
 from libensemble.controller import JobController, Job, jassert
 
