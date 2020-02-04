@@ -22,22 +22,22 @@ def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_spe
     if len(H) == 0:
         b = gen_specs['user']['initial_batch_size']
 
-        O = np.zeros(b, dtype=gen_specs['out'])
+        H_o = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0, b):
             x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
-            O['x'][i] = x
-            O['num_nodes'][i] = 1
-            O['ranks_per_node'][i] = 16
-            O['priority'] = 1
+            H_o['x'][i] = x
+            H_o['num_nodes'][i] = 1
+            H_o['ranks_per_node'][i] = 16
+            H_o['priority'] = 1
 
     else:
-        O = np.zeros(1, dtype=gen_specs['out'])
-        O['x'] = len(H)*np.ones(n)
-        O['num_nodes'] = np.random.randint(1, gen_specs['user']['max_num_nodes']+1)
-        O['ranks_per_node'] = np.random.randint(1, gen_specs['user']['max_ranks_per_node']+1)
-        O['priority'] = 10*O['num_nodes']
+        H_o = np.zeros(1, dtype=gen_specs['out'])
+        H_o['x'] = len(H)*np.ones(n)
+        H_o['num_nodes'] = np.random.randint(1, gen_specs['user']['max_num_nodes']+1)
+        H_o['ranks_per_node'] = np.random.randint(1, gen_specs['user']['max_ranks_per_node']+1)
+        H_o['priority'] = 10*H_o['num_nodes']
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
@@ -56,17 +56,17 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
     m = gen_specs['user']['components']
     b = gen_specs['user']['gen_batch_size']
 
-    O = np.zeros(b*m, dtype=gen_specs['out'])
+    H_o = np.zeros(b*m, dtype=gen_specs['out'])
     for i in range(0, b):
         x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
 
-        O['x'][i*m:(i+1)*m, :] = np.tile(x, (m, 1))
-        O['priority'][i*m:(i+1)*m] = persis_info['rand_stream'].uniform(0, 1, m)
-        O['obj_component'][i*m:(i+1)*m] = np.arange(0, m)
+        H_o['x'][i*m:(i+1)*m, :] = np.tile(x, (m, 1))
+        H_o['priority'][i*m:(i+1)*m] = persis_info['rand_stream'].uniform(0, 1, m)
+        H_o['obj_component'][i*m:(i+1)*m] = np.arange(0, m)
 
-        O['pt_id'][i*m:(i+1)*m] = len(H)//m+i
+        H_o['pt_id'][i*m:(i+1)*m] = len(H)//m+i
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def uniform_random_sample(H, persis_info, gen_specs, _):
@@ -83,11 +83,11 @@ def uniform_random_sample(H, persis_info, gen_specs, _):
     n = len(lb)
     b = gen_specs['user']['gen_batch_size']
 
-    O = np.zeros(b, dtype=gen_specs['out'])
+    H_o = np.zeros(b, dtype=gen_specs['out'])
 
-    O['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+    H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def latin_hypercube_sample(H, persis_info, gen_specs, _):
@@ -102,13 +102,13 @@ def latin_hypercube_sample(H, persis_info, gen_specs, _):
     n = len(lb)
     b = gen_specs['user']['gen_batch_size']
 
-    O = np.zeros(b, dtype=gen_specs['out'])
+    H_o = np.zeros(b, dtype=gen_specs['out'])
 
     A = lhs_sample(n, b)
 
-    O['x'] = A*(ub-lb)+lb
+    H_o['x'] = A*(ub-lb)+lb
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def lhs_sample(n, k):

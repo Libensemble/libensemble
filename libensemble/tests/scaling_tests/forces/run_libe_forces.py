@@ -30,8 +30,8 @@ if not os.path.isfile('forces.x'):
         import subprocess
         subprocess.check_call(['./build_forces.sh'])
 
-# Normally the sim_dir will exist with common input which is copied for each worker. Here it starts empty.
-# Create if no ./sim dir. See libE_specs['sim_dir']
+# Normally the sim_input_dir will exist with common input which is copied for each worker. Here it starts empty.
+# Create if no ./sim dir. See libE_specs['sim_input_dir']
 if not os.path.isdir('./sim'):
     os.mkdir('./sim')
 
@@ -74,8 +74,9 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
              }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-libE_specs['sim_dir'] = './sim'         # Sim dir to be copied for each worker
+libE_specs['sim_input_dir'] = './sim'         # Sim dir to be copied for each worker
 libE_specs['profile_worker'] = False    # Whether to have libE profile on
+libE_specs['use_worker_dirs'] = False     # JC overwrites output if one worker does each sim
 
 # Maximum number of simulations
 sim_max = 8

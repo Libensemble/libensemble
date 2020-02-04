@@ -20,10 +20,11 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from math import gamma, pi, sqrt
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f, six_hump_camel_func, six_hump_camel_grad
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -33,10 +34,6 @@ if is_master:
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
-
-six_hump_camel_minima = np.array([[-0.089842, 0.712656], [0.089842, -0.712656],
-                                  [-1.70361, 0.796084], [1.70361, -0.796084],
-                                  [-1.6071, -0.568651], [1.6071, 0.568651]])
 
 n = 2
 sim_specs = {'sim_f': sim_f,
@@ -49,8 +46,7 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
 gen_specs = {'gen_f': gen_f,
              'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min'],
              'out': gen_out,
-             'user': {'initial_sample_size': nworkers-1,
-                      'sample_points': np.round(six_hump_camel_minima, 1),
+             'user': {'initial_sample_size': 0,  # Don't need to do evaluations because simulating the sampling already being done
                       'localopt_method': 'LD_MMA',
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                       'xtol_rel': 1e-6,
@@ -67,13 +63,21 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 1000}
 
-filename = 'H0_to_be_reloaded.npz'
-try:
-    # Load in previous history, but delete points that weren't returned
-    H = np.load('H0_to_be_reloaded.npz', allow_pickle=True)['H']
-    H0 = np.delete(H, np.where(H['returned'] == 0))
-except OSError:
-    H0 = []
+# Load in "already completed" set of 'x','f','grad' values to give to libE/persistent_aposmm
+sample_size = len(minima)
+
+H0 = np.zeros(sample_size, dtype=[('x', float, n), ('grad', float, n), ('sim_id', int),
+                                  ('x_on_cube', float, n), ('returned', bool),
+                                  ('f', float), ('given_back', bool), ('given', bool)])
+
+H0['x'] = np.round(minima, 1)
+H0['x_on_cube'] = (H0['x']-gen_specs['user']['lb']) / (gen_specs['user']['ub']-gen_specs['user']['lb'])
+H0['sim_id'] = range(sample_size)
+H0[['given', 'given_back', 'returned']] = True
+
+for i in range(sample_size):
+    H0['f'][i] = six_hump_camel_func(H0['x'][i])
+    H0['grad'][i] = six_hump_camel_grad(H0['x'][i])
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
@@ -84,7 +88,7 @@ if is_master:
     print('[Manager]: Time taken =', time() - start_time, flush=True)
 
     tol = 1e-5
-    for m in six_hump_camel_minima:
+    for m in minima:
         # The minima are known on this test problem.
         # We use their values to test APOSMM has identified all minima
         print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)

@@ -1,5 +1,5 @@
 """
-Module for detecting and returning intra-node resources
+This module for detects and returns intranode resources
 
 """
 
@@ -17,7 +17,7 @@ def _open_binary(fname, **kwargs):
 
 
 def _cpu_count_physical():
-    """Returns the number of physical cores on the node."""
+    """Returns the number of physical cores on the node"""
     mapping = {}
     current_info = {}
     # macOS method for physical cpus
@@ -45,10 +45,10 @@ def _cpu_count_physical():
 def get_cpu_cores(hyperthreads=False):
     """Returns the number of cores on the node.
 
-    If hyperthreads is true, this is the logical cpu cores, else
+    If hyperthreads is true, this is the logical CPU cores; else
     the physical cores are returned.
 
-    Note: This returns cores available on the current node - will
+    Note: This returns cores available on the current node. It will
     not work for systems of multiple node types
     """
     try:
@@ -70,29 +70,27 @@ def get_cpu_cores(hyperthreads=False):
 
 
 def _get_local_cpu_resources():
-    """Return logical and physical cores on the local node"""
+    """Returns logical and physical cores on the local node"""
     logical_cores_avail_per_node = get_cpu_cores(hyperthreads=True)
     physical_cores_avail_per_node = get_cpu_cores(hyperthreads=False)
     return (logical_cores_avail_per_node, physical_cores_avail_per_node)
 
 
 def _print_local_cpu_resources():
-    """Print logical and physical cores on the local node"""
-    import sys
+    """Prints logical and physical cores on the local node"""
     cores_info = _get_local_cpu_resources()
-    print(cores_info[0], cores_info[1])
-    sys.stdout.flush()
+    print(cores_info[0], cores_info[1], flush=True)
 
 
 def _get_remote_cpu_resources(launcher):
-    """Launch a probe job to obtain logical and physical cores on remote node"""
+    """Launchs a probe job to obtain logical and physical cores on remote node"""
     import subprocess
     output = subprocess.check_output([launcher, 'python', __file__])
     return output.decode()
 
 
 def _get_cpu_resources_from_env(env_resources=None):
-    """Return logical and physical cores per node by querying environment or None"""
+    """Returns logical and physical cores per node by querying environment or None"""
 
     if not env_resources:
         return None

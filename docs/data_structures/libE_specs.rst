@@ -20,16 +20,30 @@ Specifications for libEnsemble::
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int] :
             Save history array to file after every k generated points.
-        'sim_dir' [str] :
-            Name of simulation directory which will be copied for each worker
-        'clean_jobs' [bool] :
-            Clean up sim_dirs after libEnsemble completes. Default: False
-        'sim_dir_prefix' [str] :
+        'sim_input_dir' [str] :
+            Name of directory which will be copied for each sim calc
+        'use_worker_dirs' [bool] :
+            Divide calc_dirs into per_worker parent directories.
+        'clean_ensemble_dirs' [bool] :
+            Clean up calc_dirs after libEnsemble completes. Default: False
+        'ensemble_dir' [str] :
             A prefix path specifying where to create sim directories
-        'sim_dir_suffix' [str] :
-            A suffix to add to worker copies of sim_dir to distinguish runs.
+        'ensemble_dir_suffix' [str] :
+            A suffix to add to worker copies of sim_input_dir to distinguish runs.
+        'copy_input_files' [list] :
+            List of filenames to copy from the input dir. Ignore all others.
+        'symlink_input_files' [list] :
+            List of filenames to symlink instead of copy.
+        'copy_input_to_parent' [bool] :
+            Copy all input files to the parent dirs containing calc dirs. Default: False
         'profile_worker' [Boolean] :
             Profile using cProfile. Default: False
+
+.. note::
+    The ``ensemble_dir`` and ``sim_input_dir`` options can create working
+    directories on local node or scratch storage. This may produce performance
+    benefits on I/O heavy simulations, but will use more space if other options
+    like ``copy_input_files`` or ``symlink_input_files`` aren't used.
 
 .. seealso::
   Example ``libE_specs`` from the forces_ scaling test, completely populated::
@@ -37,7 +51,7 @@ Specifications for libEnsemble::
       libE_specs = {'comm': MPI.COMM_WORLD,
                     'comms': 'mpi',
                     'save_every_k_gens': 1000,
-                    'sim_dir': './sim',
+                    'sim_input_dir': './sim',
                     'profile_worker': False}
 
 .. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py

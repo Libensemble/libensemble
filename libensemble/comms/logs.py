@@ -112,7 +112,7 @@ def manager_logging_config():
     if not logconfig.logger_set:
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
-        fh = logging.FileHandler(logconfig.filename)
+        fh = logging.FileHandler(logconfig.filename, mode='w')
         fh.addFilter(wfilter)
         fh.setFormatter(formatter)
         logger = logging.getLogger(logconfig.name)

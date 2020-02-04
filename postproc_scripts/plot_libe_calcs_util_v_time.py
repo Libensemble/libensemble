@@ -51,6 +51,8 @@ import matplotlib
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-final.plot(x='datetime',y='count')
+final.plot(x='datetime',y='count',legend=None,linewidth=2,fontsize=12)
+plt.xlabel('Time',fontsize=14)
+plt.ylabel('Active calculations',fontsize=14)
 #plt._show()
-plt.savefig('calcs_util_v_time.png')
+plt.savefig('calcs_util_v_time.png',bbox='tight',transparent=True)

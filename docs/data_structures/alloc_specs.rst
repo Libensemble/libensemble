@@ -3,7 +3,7 @@
 alloc_specs
 ===========
 
-Allocation function specifications to be set in user calling script and passed
+Allocation function specifications to be set in the user calling script and passed
 to main ``libE()`` routine::
 
     alloc_specs: [dict, optional] :
@@ -14,13 +14,23 @@ to main ``libE()`` routine::
             Default: None
         'out' [list of tuples] :
             Default: [('allocated',bool)]
-        'user' [dict]
+        'user' [dict] :
             Default: {'batch_mode': True}
 
 .. note::
+  * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`.
+  * libEnsemble uses the following defaults if the user doesn't provide their own ``alloc_specs``:
 
-  * The alloc_specs has the default keys as given above, but may be overidden by the user.
-  * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`
+  ..  literalinclude:: ../../libensemble/alloc_funcs/defaults.py
+      :end-before: end_alloc_specs_rst_tag
+      :caption: /libensemble/alloc_funcs/defaults.py
+
+  * Users can import and adjust these defaults using:
+
+  ..  code-block:: python
+
+      from libensemble.alloc_funcs import defaults
+      alloc_specs = defaults.alloc_specs
 
 .. seealso::
   - `test_chwirut_uniform_sampling_one_residual_at_a_time.py`_ specifies fields

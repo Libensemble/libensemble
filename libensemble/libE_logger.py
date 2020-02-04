@@ -19,13 +19,13 @@ LogConfig(__package__)
 
 
 def set_level(level):
-    """Set libEnsemble logging level"""
+    """Sets libEnsemble logging level"""
     logs = LogConfig.config
     logs.set_level(level)
 
 
 def get_level():
-    """Return libEnsemble logging level"""
+    """Returns libEnsemble logging level"""
     logs = LogConfig.config
     return logs.log_level
 
@@ -47,6 +47,6 @@ def set_stderr_level(level):
 
 
 def get_stderr_level():
-    """ Return libEnsemble stderr logging level """
+    """ Returns libEnsemble stderr logging level """
     logs = LogConfig.config
     return logs.stderr_level

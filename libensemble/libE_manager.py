@@ -5,6 +5,7 @@ libEnsemble manager routines
 
 import sys
 import os
+import glob
 import logging
 import socket
 import numpy as np
@@ -39,7 +40,7 @@ def manager_main(hist, libE_specs, alloc_specs,
     ----------
 
     hist: :obj:`History`
-        A libEnsemble History type object.
+        A libEnsemble history type object.
 
     libE_specs: :obj:`dict`
         Specifications for libEnsemble
@@ -92,7 +93,7 @@ def manager_main(hist, libE_specs, alloc_specs,
 
 
 def filter_nans(array):
-    "Filter out NaNs from a numpy array."
+    "Filters out NaNs from a numpy array"
     return array[~np.isnan(array)]
 
 
@@ -114,9 +115,10 @@ class Manager:
     def __init__(self, hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria,
                  wcomms=[]):
-        """Initialize the manager."""
+        """Initializes the manager"""
         timer = Timer()
         timer.start()
+        self.date_start = timer.date_start.replace(' ', '_')
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -133,29 +135,48 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
+        if libE_specs.get('copy_back_output'):
+            self.copybackdir = Manager.make_copyback_dir(libE_specs)
+
+    @staticmethod
+    def make_copyback_dir(libE_specs):
+        copybackdir = os.path.basename(libE_specs.get('ensemble_dir',
+                                       './ensemble')) + '_back'
+        if not os.path.isdir(copybackdir):
+            os.makedirs(copybackdir)
+        else:
+            count = 1
+            while True:
+                try:
+                    os.makedirs(copybackdir+str(count))
+                    break
+                except FileExistsError:
+                    count += 1
+        return copybackdir
+
     # --- Termination logic routines
 
     def term_test_wallclock(self, max_elapsed):
-        """Check against wallclock timeout"""
+        """Checks against wallclock timeout"""
         return self.elapsed() >= max_elapsed
 
     def term_test_sim_max(self, sim_max):
-        """Check against max simulations"""
+        """Checks against max simulations"""
         return self.hist.given_count >= sim_max + self.hist.offset
 
     def term_test_gen_max(self, gen_max):
-        """Check against max generator calls."""
+        """Checks against max generator calls"""
         return self.hist.index >= gen_max + self.hist.offset
 
     def term_test_stop_val(self, stop_val):
-        """Check against stop value criterion."""
+        """Checks against stop value criterion"""
         key, val = stop_val
         H = self.hist.H
         idx = self.hist.index
         return np.any(filter_nans(H[key][:idx]) <= val)
 
     def term_test(self, logged=True):
-        """Check termination criteria"""
+        """Checks termination criteria"""
         for retval, key, testf in self.term_tests:
             if key in self.exit_criteria:
                 if testf(self.exit_criteria[key]):
@@ -167,39 +188,42 @@ class Manager:
     # --- Low-level communication routines
 
     def _kill_workers(self):
-        """Kill the workers"""
+        """Kills the workers"""
         for w in self.W['worker_id']:
             self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_FINISH)
 
     # --- Checkpointing logic
 
     def _save_every_k(self, fname, count, k):
-        "Save history every kth step."
+        "Saves history every kth step"
         count = k*(count//k)
-        filename = fname.format(count)
+        filename = fname.format(self.date_start, count)
         if not os.path.isfile(filename) and count > 0:
+            for old_file in glob.glob(fname.format(self.date_start, '*')):
+                os.remove(old_file)
             np.save(filename, self.hist.H)
 
     def _save_every_k_sims(self):
-        "Save history every kth sim step."
-        self._save_every_k('libE_history_after_sim_{}.npy',
+        "Saves history every kth sim step"
+        self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
                            self.hist.sim_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
-        "Save history every kth gen step."
-        self._save_every_k('libE_history_after_gen_{}.npy',
+        "Saves history every kth gen step"
+        self._save_every_k('libE_history_for_run_starting_{}_after_gen_{}.npy',
                            self.hist.index,
                            self.libE_specs['save_every_k_gens'])
 
     # --- Handle outgoing messages to workers (work orders from alloc)
 
     def _check_work_order(self, Work, w):
-        """Check validity of an allocation function order.
+        """Checks validity of an allocation function order
         """
         assert w != 0, "Can't send to worker 0; this is the manager."
         assert self.W[w-1]['active'] == 0, \
-            "Allocation function requested work to an already active worker."
+            "Allocation function requested work be sent to to worker %d, an "\
+            "already active worker." % w
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
@@ -213,7 +237,7 @@ class Manager:
                 "be sent to worker={}.".format(diff_fields, w)
 
     def _send_work_order(self, Work, w):
-        """Send an allocation function order to a worker.
+        """Sends an allocation function order to a worker
         """
         logger.debug("Manager sending work unit to worker {}".format(w))
         self.wcomms[w-1].send(Work['tag'], Work)
@@ -222,7 +246,7 @@ class Manager:
             self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
     def _update_state_on_alloc(self, Work, w):
-        """Update worker active/idle status following an allocation order."""
+        """Updates a workers' active/idle status following an allocation order"""
 
         self.W[w-1]['active'] = Work['tag']
         if 'libE_info' in Work and 'persistent' in Work['libE_info']:
@@ -243,7 +267,7 @@ class Manager:
 
     @staticmethod
     def _check_received_calc(D_recv):
-        "Check the type and status fields on a receive calculation."
+        "Checks the type and status fields on a receive calculation"
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
@@ -263,7 +287,7 @@ class Manager:
             "Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
-        """Receive calculation output from workers. Loops over all
+        """Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
         communticate. If any output is received, all other workers are
         looped back over.
@@ -283,7 +307,7 @@ class Manager:
         return persis_info
 
     def _update_state_on_worker_msg(self, persis_info, D_recv, w):
-        """Update history and worker info on worker message.
+        """Updates history and worker info on worker message
         """
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
@@ -314,7 +338,7 @@ class Manager:
             persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w):
-        """Handle a message from worker w.
+        """Handles a message from worker w
         """
         logger.debug("Manager receiving from Worker: {}".format(w))
         try:
@@ -359,12 +383,22 @@ class Manager:
     # --- Main loop
 
     def _alloc_work(self, H, persis_info):
-        "Call work allocation function from alloc_specs"
+        "Calls work allocation function from alloc_specs"
         alloc_f = self.alloc_specs['alloc_f']
-        return alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+        output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+
+        if len(output) == 2:
+            output = output + ((0,))
+
+        assert len(output) == 3, "alloc_f must return three outputs."
+        assert isinstance(output[0], dict), "First alloc_f output must be a dictionary"
+        assert isinstance(output[1], dict), "Second alloc_f output must be a dictionary"
+        assert output[2] in [0, 1], "Third alloc_f output must be 0 or 1."
+
+        return output
 
     def run(self, persis_info):
-        "Run the manager."
+        "Runs the manager"
         logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
@@ -373,8 +407,11 @@ class Manager:
             while not self.term_test():
                 persis_info = self._receive_from_workers(persis_info)
                 if any(self.W['active'] == 0):
-                    Work, persis_info = self._alloc_work(self.hist.trim_H(),
-                                                         persis_info)
+                    Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
+                                                               persis_info)
+                    if flag:
+                        break
+
                     for w in Work:
                         if self.term_test():
                             break
@@ -382,7 +419,7 @@ class Manager:
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(self.W['active'] != 0), \
-                    "Should not wait for workers when all workers are idle."
+                    "alloc_f did not return any work, although all workers are idle."
 
         finally:
             # Return persis_info, exit_flag, elapsed time

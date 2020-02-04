@@ -1,15 +1,15 @@
 """
-This is the outer libEnsemble routine.
+The libE module is the outer libEnsemble routine.
 
 This module sets up the manager and the team of workers, configured according
-to the contents of the ``libE_specs`` dictionary. The Manager/Worker
-communications scheme used within libEnsemble is parsed from the ``comms`` key
+to the contents of the ``libE_specs`` dictionary. The manager/worker
+communications scheme used in libEnsemble is parsed from the ``comms`` key
 if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
 ``tcp``. MPI is the default; if no communicator is specified, a duplicate of
 COMM_WORLD will be used.
 
 If an exception is encountered by the manager or workers, the history array
-is dumped to file and MPI abort is called.
+is dumped to file, and MPI abort is called.
 """
 
 __all__ = ['libE']
@@ -27,7 +27,7 @@ from libensemble.util.timer import Timer
 from libensemble.history import History
 from libensemble.libE_manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
@@ -41,9 +41,7 @@ logger = logging.getLogger(__name__)
 
 def libE(sim_specs, gen_specs, exit_criteria,
          persis_info={},
-         alloc_specs={'alloc_f': give_sim_work_first,
-                      'out': [('allocated', bool)],
-                      'user': {'batch_mode': True, 'num_active_gens': 1}},
+         alloc_specs={},
          libE_specs={},
          H0=[]):
     """
@@ -101,13 +99,19 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     exit_flag: :obj:`int`
 
-        Flag containing final job status::
+        Flag containing final job status
 
-        0 = No errors
-        1 = Exception occured
-        2 = Manager timed out and ended simulation
-        3 = Current process is not in libEnsemble MPI communicator
+        .. code-block::
+
+            0 = No errors
+            1 = Exception occured
+            2 = Manager timed out and ended simulation
+            3 = Current process is not in libEnsemble MPI communicator
     """
+
+    # Set default alloc_specs
+    if not alloc_specs:
+        alloc_specs = alloc_defaults.alloc_specs
 
     # Set default comms
     if 'comms' not in libE_specs:

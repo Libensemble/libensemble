@@ -5,7 +5,7 @@ Below are example calling scripts used to populate specifications for each user
 function and libEnsemble before initiating libEnsemble via the primary ``libE()``
 call. The primary libEnsemble-relevant portions have been highlighted in each
 example. Non-highlighted portions may include setup routines, compilation steps
-for user-applications, or output processing. The first two scripts correspond to
+for user applications, or output processing. The first two scripts correspond to
 random sampling calculations, while the third corresponds to an optimization routine.
 
 Local Sine Tutorial
@@ -24,7 +24,7 @@ Electrostatic Forces with Job Controller
 ----------------------------------------
 
 This example is from a test for evaluating the scaling capabilities of libEnsemble
-by calculating particle electrostatic forces through a user-application. This
+by calculating particle electrostatic forces through a user application. This
 application is registered with either the MPI or Balsam job controller, then
 launched in the ``sim_f``. Note the use of the ``parse_args()`` and
 ``save_libE_output()`` convenience functions from the :doc:`utilities<../utilities>`.
@@ -35,10 +35,10 @@ launched in the ``sim_f``. Note the use of the ``parse_args()`` and
     :linenos:
     :emphasize-lines: 16, 39-92
 
-6-Hump-Camel Persistent APOSMM
-------------------------------
+Six-Hump-Camel Persistent APOSMM
+--------------------------------
 
-This example is also from the regression tests, and demonstrates configuring a
+This example is also from the regression tests and demonstrates configuring a
 persistent run via a custom allocation function.
 
 ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py

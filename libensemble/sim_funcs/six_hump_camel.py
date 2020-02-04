@@ -11,7 +11,7 @@ import time
 
 def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, libE_info):
     """
-    Evaluates the six hump camel for a collection of points given in ``H['x']``, but also
+    Evaluates the six hump camel for a collection of points given in ``H['x']`` but also
     performs a system call with a given number of nodes and ranks per node
     using a machinefile (to show one way of evaluating a compiled simulation).
 
@@ -21,7 +21,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
 
     from mpi4py import MPI
     batch = len(H['x'])
-    O = np.zeros(batch, dtype=sim_specs['out'])
+    H_o = np.zeros(batch, dtype=sim_specs['out'])
 
     for i, x in enumerate(H['x']):
 
@@ -44,13 +44,13 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         call_str = ["mpiexec", "-np", str(H[i]['ranks_per_node']*len(ranks_involved)), "-machinefile", machinefilename, "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
         subprocess.call(call_str, stdout=open(outfile_name, 'w'), shell=False)
 
-        O['f'][i] = six_hump_camel_func(x)
+        H_o['f'][i] = six_hump_camel_func(x)
 
         # v = np.random.uniform(0, 10)
         # print('About to sleep for :' + str(v))
         # time.sleep(v)
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def six_hump_camel(H, persis_info, sim_specs, _):
@@ -65,18 +65,18 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     """
 
     batch = len(H['x'])
-    O = np.zeros(batch, dtype=sim_specs['out'])
+    H_o = np.zeros(batch, dtype=sim_specs['out'])
 
     for i, x in enumerate(H['x']):
-        O['f'][i] = six_hump_camel_func(x)
+        H_o['f'][i] = six_hump_camel_func(x)
 
-        if 'grad' in O.dtype.names:
-            O['grad'][i] = six_hump_camel_grad(x)
+        if 'grad' in H_o.dtype.names:
+            H_o['grad'][i] = six_hump_camel_grad(x)
 
         if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
             time.sleep(sim_specs['user']['pause_time'])
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def six_hump_camel_simple(x, persis_info, sim_specs, _):
@@ -87,14 +87,14 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_
     """
 
-    O = np.zeros(1, dtype=sim_specs['out'])
+    H_o = np.zeros(1, dtype=sim_specs['out'])
 
-    O['f'] = six_hump_camel_func(x[0][0])
+    H_o['f'] = six_hump_camel_func(x[0][0])
 
     if 'pause_time' in sim_specs['user']:
         time.sleep(sim_specs['user']['pause_time'])
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def six_hump_camel_func(x):

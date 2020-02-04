@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 class History:
 
-    """The History Class provides methods for managing the history array.
+    """The history class provides methods for managing the history array.
 
     **Object Attributes:**
 
-    These are set on initialisation.
+    These are set on initialization.
 
     :ivar numpy_structured_array H:
         History array storing rows for each point. Field names are in
@@ -26,7 +26,7 @@ class History:
         Starting index for this ensemble (after H0 read in)
 
     :ivar int index:
-        Where libEnsemble should start filling in H
+        Index where libEnsemble should start filling in H
 
     :ivar int given_count:
         Number of points given to sim fuctions (according to H)
@@ -35,7 +35,7 @@ class History:
         Number of points evaluated  (according to H)
 
     Note that index, given_count and sim_count reflect the total number of points
-    in H, and therefore include those prepended to H in addition to the current run.
+    in H and therefore include those prepended to H in addition to the current run.
 
     """
 
@@ -80,26 +80,26 @@ class History:
 
     def update_history_f(self, D):
         """
-        Updates the history (in place) after new points have been evaluated
+        Updates the history after points have been evaluated
         """
 
         new_inds = D['libE_info']['H_rows']  # The list of rows (as a numpy array)
-        H_0 = D['calc_out']
+        returned_H = D['calc_out']
 
         for j, ind in enumerate(new_inds):
-            for field in H_0.dtype.names:
+            for field in returned_H.dtype.names:
 
-                if np.isscalar(H_0[field][j]):
-                    self.H[field][ind] = H_0[field][j]
+                if np.isscalar(returned_H[field][j]):
+                    self.H[field][ind] = returned_H[field][j]
                 else:
                     # len or np.size
-                    H0_size = len(H_0[field][j])
+                    H0_size = len(returned_H[field][j])
                     assert H0_size <= len(self.H[field][ind]), "History update Error: Too many values received for " + field
                     assert H0_size, "History update Error: No values in this field " + field
                     if H0_size == len(self.H[field][ind]):
-                        self.H[field][ind] = H_0[field][j]  # ref
+                        self.H[field][ind] = returned_H[field][j]  # ref
                     else:
-                        self.H[field][ind][:H0_size] = H_0[field][j]  # Slice View
+                        self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
             self.H['returned'][ind] = True
             self.sim_count += 1
@@ -173,8 +173,8 @@ class History:
 
     def grow_H(self, k):
         """
-        libEnsemble is requesting k rows be added to H because the gen_func produced
-        more points than rows in H.
+        Adds k rows to H in response to gen_f producing more points than
+        available rows in H.
 
         Parameters
         ----------

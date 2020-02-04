@@ -1,6 +1,5 @@
 """
-Module for storing environment variables for use in resource detection
-
+This module stores environment variables for use in resource detection
 """
 
 import os
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class EnvResources:
-    """Store environment variables to query for system resource information
+    """Stores environment variables to query for system resource information
 
     **Class Attributes:**
 
@@ -22,10 +21,10 @@ class EnvResources:
 
     **Object Attributes:**
 
-    These are set on initialisation.
+    These are set on initialization.
 
-    :ivar dict nodelists: Env. variable names to query for nodelists by schedular.
-    :ivar dict ndlist_funcs: Functions to extract nodelists from environment by schedular.
+    :ivar dict nodelists: Environment variable names to query for nodelists by schedular
+    :ivar dict ndlist_funcs: Functions to extract nodelists from environment by schedular
     """
 
     default_nodelist_env_slurm = 'SLURM_NODELIST'
@@ -39,28 +38,29 @@ class EnvResources:
                  nodelist_env_lsf=None,
                  nodelist_env_lsf_shortform=None):
 
-        """Initialise new EnvResources instance
+        """Initializes a new EnvResources instance
 
         Determines the environment variables to query for resource
         information. These are either provided or given defaults.
 
         Parameters
+        ----------
 
         nodelist_env_slurm: String, optional
-            The environment variable giving a node list in Slurm format (Default: Uses SLURM_NODELIST)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
+            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_cobalt: String, optional
-            The environment variable giving a node list in Cobalt format (Default: Uses COBALT_PARTNAME)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in Cobalt format (Default: uses COBALT_PARTNAME).
+            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf: String, optional
-            The environment variable giving a node list in LSF format (Default: Uses LSB_HOSTS)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in LSF format (Default: uses LSB_HOSTS).
+            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf_shortform: String, optional
-            The environment variable giving a node list in LSF short-form format (Default: Uses LSB_MCPU_HOSTS)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS).
+            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
         """
 
         self.schedular = None
@@ -77,7 +77,7 @@ class EnvResources:
         self.ndlist_funcs['LSF_shortform'] = EnvResources.get_lsf_nodelist_frm_shortform
 
     def get_nodelist(self):
-        """Return nodelist from environment or an empty list"""
+        """Returns nodelist from environment or an empty list"""
         for env, env_var in self.nodelists.items():
             if os.environ.get(env_var):
                 self.schedular = env
@@ -88,14 +88,14 @@ class EnvResources:
         return []
 
     def abbrev_nodenames(self, node_list):
-        """Return nodelist with entries in abbreviated form"""
+        """Returns nodelist with entries in abbreviated form"""
         if self.schedular == 'Cobalt':
             return EnvResources.cobalt_abbrev_nodenames(node_list)
         return node_list
 
     @staticmethod
     def _range_split(s):
-        """Split ID range string."""
+        """Splits ID range string"""
         ab = s.split("-", 1)
         nnum_len = len(ab[0])
         a = int(ab[0])
@@ -107,7 +107,7 @@ class EnvResources:
 
     @staticmethod
     def _noderange_append(prefix, nidstr):
-        """Format and append nodes to overall nodelist"""
+        """Formats and appends nodes to overall nodelist"""
         nidlst = []
         for nidgroup in nidstr.split(','):
             a, b, nnum_len = EnvResources._range_split(nidgroup)
@@ -117,7 +117,7 @@ class EnvResources:
 
     @staticmethod
     def get_slurm_nodelist(node_list_env):
-        """Get global libEnsemble nodelist from the Slurm environment"""
+        """Gets global libEnsemble nodelist from the Slurm environment"""
         fullstr = os.environ[node_list_env]
         if not fullstr:
             return []
@@ -143,7 +143,7 @@ class EnvResources:
 
     @staticmethod
     def get_cobalt_nodelist(node_list_env):
-        """Get global libEnsemble nodelist from the Cobalt environment"""
+        """Gets global libEnsemble nodelist from the Cobalt environment"""
         nidlst = []
         nidstr = os.environ[node_list_env]
         if not nidstr:
@@ -156,14 +156,14 @@ class EnvResources:
 
     @staticmethod
     def cobalt_abbrev_nodenames(node_list, prefix='nid'):
-        """Return nodelist with prefix and leading zeros stripped"""
+        """Returns nodelist with prefix and leading zeros stripped"""
         newlist = [s.lstrip(prefix) for s in node_list]
         newlist = [s.lstrip('0') for s in newlist]
         return newlist
 
     @staticmethod
     def get_lsf_nodelist(node_list_env):
-        """Get global libEnsemble nodelist from the LSF environment"""
+        """Gets global libEnsemble nodelist from the LSF environment"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()
         # unique_entries = list(set(entries)) # This will not retain order
@@ -173,7 +173,7 @@ class EnvResources:
 
     @staticmethod
     def get_lsf_nodelist_frm_shortform(node_list_env):
-        """Get global libEnsemble nodelist from the LSF environment from short-form version"""
+        """Gets global libEnsemble nodelist from the LSF environment from short-form version"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()
         iter_list = iter(entries)

@@ -63,7 +63,7 @@ def polling_loop(comm, jobctl, job, timeout_sec=3.0, delay=0.3):
 
 
 def job_control_hworld(H, persis_info, sim_specs, libE_specs):
-    """ Test of launching and polling job and exiting on job finish"""
+    """ Tests launching and polling job and exiting on job finish"""
     jobctl = MPIJobController.controller
     cores = sim_specs['user']['cores']
     comm = libE_specs['comm']
@@ -94,18 +94,18 @@ def job_control_hworld(H, persis_info, sim_specs, libE_specs):
 
     # This is temp - return something - so doing six_hump_camel_func again...
     batch = len(H['x'])
-    O = np.zeros(batch, dtype=sim_specs['out'])
+    H_o = np.zeros(batch, dtype=sim_specs['out'])
     for i, x in enumerate(H['x']):
-        O['f'][i] = six_hump_camel_func(x)
+        H_o['f'][i] = six_hump_camel_func(x)
 
     # This is just for testing at calling script level - status of each job
-    O['cstat'] = calc_status
+    H_o['cstat'] = calc_status
 
     # v = np.random.uniform(0, 10)
     # print('About to sleep for :' + str(v))
     # time.sleep(v)
 
-    return O, persis_info, calc_status
+    return H_o, persis_info, calc_status
 
 
 def six_hump_camel_func(x):

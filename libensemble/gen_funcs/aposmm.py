@@ -58,15 +58,14 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     When using libEnsemble to do individual objective component evaluations,
     APOSMM will return ``gen_specs['user']['components']`` copies of each point, but
-    the component=0 entry of each point will only be considered when
+    the component=0 entry of each point will be considered only when
 
     - deciding where to start a run,
-    - best nearby point,
-    - storing the order of the points is the run
+    - determining the best nearby point,
+    - storing the order of the points in the run, or
     - storing the combined objective function value
-    - etc
 
-    Necessary quantities in ``gen_specs['user']`` are:
+    Necessary quantities in ``gen_specs['user']`` are
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
@@ -76,14 +75,14 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods)
 
-    Optional ``gen_specs['user']`` entries are:
+    Optional ``gen_specs['user']`` entries are as follows
 
     - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
     - ``'combine_component_func' [func]``: Function to combine obj components
     - ``'components' [int]``: Number of objective components
-    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
-      distance to the nearest boundary should the initial step size be in
-      localopt runs
+    - ``'dist_to_bound_multiple' [float in (0,1]]``: Fraction of the
+      distance to the nearest boundary to be used for the initial step size be
+      in localopt runs
     - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs
       with smallest observed function value are given priority
     - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
@@ -99,7 +98,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
-    And ``gen_specs['user']`` convergence tolerances for NLopt, PETSc/TAO, SciPy
+    The following are ``gen_specs['user']`` convergence tolerances for NLopt, PETSc/TAO, SciPy
 
     - ``'fatol' [float]``:
     - ``'ftol_abs' [float]``:
@@ -111,15 +110,15 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'tol' [float]``:
 
 
-    As a default, APOSMM starts a local optimization runs from a point that:
+    As a default, APOSMM starts a local optimization run from a point that
 
     - is not in an active local optimization run,
     - is more than ``mu`` from the boundary (in the unit-cube domain),
-    - is more than ``nu`` from identified minima (in the unit-cube domain),
+    - is more than ``nu`` from identified minima (in the unit-cube domain), and
     - does not have a better point within a distance ``r_k`` of it.
 
     If the above results in more than ``'max_active_runs'`` being advanced, the
-    best point in each run is determined and the dist_to_better is computed
+    best point in each run is determined, and the dist_to_better is computed
     (with inf being the value for the best run). Then those
     ``'max_active_runs'`` runs with largest dist_to_better are advanced
     (breaking ties arbitrarily).
@@ -131,7 +130,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     :Note:
         APOSMM critically uses ``persis_info`` to store information about
         active runs, order of points in each run, etc. The allocation function
-        must ensure it's always given.
+        must ensure that it is always given.
 
     .. seealso::
         `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
@@ -152,7 +151,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     n_s:              the number of complete evaluations of sampled points
     updated_inds:     indices of H that have been updated (and so all their
                       information must be sent back to libE manager to update)
-    O:                new points to be sent back to the history
+    H_o:                new points to be sent back to the history
 
 
     When re-running a local opt method to get the next point:
@@ -180,7 +179,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     """
 
-    n, n_s, c_flag, O, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
+    n, n_s, c_flag, H_o, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
     if n_s < gen_specs['user']['initial_sample_size']:
@@ -256,15 +255,15 @@ def aposmm_logic(H, persis_info, gen_specs, _):
             else:
                 # Check if x_new is already being requested (a check if it's in
                 # H is performed inside advance_local_run)
-                match_ind = np.where(np.equal(x_new, O['x_on_cube']).all(1))[0]
+                match_ind = np.where(np.equal(x_new, H_o['x_on_cube']).all(1))[0]
                 if len(match_ind) == 0:
-                    persis_info = add_to_O(O, x_new, H, gen_specs, c_flag,
-                                           persis_info, local_flag=1,
-                                           sorted_run_inds=sorted_run_inds,
-                                           run=run)
+                    persis_info = add_to_Out(H_o, x_new, H, gen_specs, c_flag,
+                                             persis_info, local_flag=1,
+                                             sorted_run_inds=sorted_run_inds,
+                                             run=run)
                 else:
-                    assert len(match_ind) == 1, "The same point is in O twice"
-                    persis_info['run_order'][run].append(O['sim_id'][match_ind[0]])
+                    assert len(match_ind) == 1, "The same point is in H_o twice"
+                    persis_info['run_order'][run].append(H_o['sim_id'][match_ind[0]])
 
         for i in inactive_runs:
             old_run = persis_info['run_order'].pop(i)  # Deletes all run info
@@ -273,39 +272,39 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     if len(H) == 0:
         samples_needed = gen_specs['user']['initial_sample_size']
     elif 'min_batch_size' in gen_specs['user']:
-        samples_needed = gen_specs['user']['min_batch_size']-len(O)
+        samples_needed = gen_specs['user']['min_batch_size']-len(H_o)
     else:
-        samples_needed = int(not bool(len(O)))  # 1 if len(O)==0, 0 otherwise
+        samples_needed = int(not bool(len(H_o)))  # 1 if len(H_o)==0, 0 otherwise
 
     if samples_needed > 0 and 'sample_points' in gen_specs['user']:
         v = np.sum(~H['local_pt'])  # Number of sample points so far
         sampled_points = gen_specs['user']['sample_points'][v:v+samples_needed]
         on_cube = False  # Assume points are on original domain, not unit cube
         if len(sampled_points):
-            persis_info = add_to_O(O, sampled_points, H, gen_specs,
-                                   c_flag, persis_info, on_cube=on_cube)
+            persis_info = add_to_Out(H_o, sampled_points, H, gen_specs,
+                                     c_flag, persis_info, on_cube=on_cube)
         samples_needed = samples_needed-len(sampled_points)
 
     if samples_needed > 0:
         sampled_points = persis_info['rand_stream'].uniform(0, 1, (samples_needed, n))
         on_cube = True
-        persis_info = add_to_O(O, sampled_points, H, gen_specs, c_flag,
-                               persis_info, on_cube=on_cube)
+        persis_info = add_to_Out(H_o, sampled_points, H, gen_specs, c_flag,
+                                 persis_info, on_cube=on_cube)
 
-    O = np.append(H[np.array(list(updated_inds), dtype=int)][[o[0] for o in gen_specs['out']]], O)
+    H_o = np.append(H[np.array(list(updated_inds), dtype=int)][[o[0] for o in gen_specs['out']]], H_o)
 
-    return O, persis_info
+    return H_o, persis_info
 
 
-def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
-             sorted_run_inds=[], run=[], on_cube=True):
+def add_to_Out(H_o, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
+               sorted_run_inds=[], run=[], on_cube=True):
     """
-    Adds points to O, the numpy structured array to be sent back to the manager
+    Adds points to H_o, the numpy structured array to be sent back to the manager
     """
 
     assert not local_flag or len(pts) == 1, "Can't > 1 local points"
 
-    original_len_O = len(O)
+    original_len_O = len(H_o)
 
     len_H = len(H)
     ub = gen_specs['user']['ub']
@@ -319,37 +318,37 @@ def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
 
     num_pts = len(pts)
 
-    O.resize(len(O)+num_pts, refcheck=False)  # Adds num_pts rows of zeros to O
+    H_o.resize(len(H_o)+num_pts, refcheck=False)  # Adds num_pts rows of zeros to H_o
 
     if on_cube:
-        O['x_on_cube'][-num_pts:] = pts
-        O['x'][-num_pts:] = pts*(ub-lb)+lb
+        H_o['x_on_cube'][-num_pts:] = pts
+        H_o['x'][-num_pts:] = pts*(ub-lb)+lb
     else:
-        O['x_on_cube'][-num_pts:] = (pts-lb)/(ub-lb)
-        O['x'][-num_pts:] = pts
+        H_o['x_on_cube'][-num_pts:] = (pts-lb)/(ub-lb)
+        H_o['x'][-num_pts:] = pts
 
-    O['sim_id'][-num_pts:] = np.arange(len_H+original_len_O, len_H+original_len_O+num_pts)
-    O['local_pt'][-num_pts:] = local_flag
+    H_o['sim_id'][-num_pts:] = np.arange(len_H+original_len_O, len_H+original_len_O+num_pts)
+    H_o['local_pt'][-num_pts:] = local_flag
 
-    O['dist_to_unit_bounds'][-num_pts:] = np.inf
-    O['dist_to_better_l'][-num_pts:] = np.inf
-    O['dist_to_better_s'][-num_pts:] = np.inf
-    O['ind_of_better_l'][-num_pts:] = -1
-    O['ind_of_better_s'][-num_pts:] = -1
+    H_o['dist_to_unit_bounds'][-num_pts:] = np.inf
+    H_o['dist_to_better_l'][-num_pts:] = np.inf
+    H_o['dist_to_better_s'][-num_pts:] = np.inf
+    H_o['ind_of_better_l'][-num_pts:] = -1
+    H_o['ind_of_better_s'][-num_pts:] = -1
 
     if c_flag:
-        O['obj_component'][-num_pts:] = np.tile(range(0, m), (1, num_pts//m))
-        O['pt_id'][-num_pts:] = pt_ids
+        H_o['obj_component'][-num_pts:] = np.tile(range(0, m), (1, num_pts//m))
+        H_o['pt_id'][-num_pts:] = pt_ids
 
     if local_flag:
-        O['num_active_runs'][-num_pts] += 1
-        # O['priority'][-num_pts:] = 1
-        # O['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
+        H_o['num_active_runs'][-num_pts] += 1
+        # H_o['priority'][-num_pts:] = 1
+        # H_o['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
         if 'high_priority_to_best_localopt_runs' in gen_specs['user'] and gen_specs['user']['high_priority_to_best_localopt_runs']:
-            O['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
+            H_o['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
         else:
-            O['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0, 1, num_pts)
-        persis_info['run_order'][run].append(O[-num_pts]['sim_id'])
+            H_o['priority'][-num_pts:] = persis_info['rand_stream'].uniform(0, 1, num_pts)
+        persis_info['run_order'][run].append(H_o[-num_pts]['sim_id'])
     else:
         if c_flag:
             # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
@@ -362,8 +361,8 @@ def add_to_O(O, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
                 p_tmp = -np.inf*np.ones(num_pts)
             else:
                 p_tmp = persis_info['rand_stream'].uniform(0, 1, num_pts)
-        O['priority'][-num_pts:] = p_tmp
-        # O['priority'][-num_pts:] = 1
+        H_o['priority'][-num_pts:] = p_tmp
+        # H_o['priority'][-num_pts:] = 1
 
     return persis_info
 
@@ -462,16 +461,14 @@ def update_history_optimal(x_opt, H, run_inds):
         print("Dist from x_opt to closest point is:"+str(dists[ind]))
         print("Report this!")
         print(x_opt)
-        print(run_inds)
-        sys.stdout.flush()
+        print(run_inds, flush=True)
     assert dists[ind] <= 1e-15, "Closest point to x_opt not within 1e-15?"
 
     failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < 1e-8)
     if np.any(failsafe):
         # Rare event, but want to not start another run next to a minimum
         print('Marking more than 1 point in this run as a min!')
-        print("Report this!")
-        sys.stdout.flush()
+        print("Report this!", flush=True)
         H['local_min'][run_inds[failsafe]] = 1
 
     H['local_min'][opt_ind] = 1
@@ -733,13 +730,13 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     """
     Finds points in the history that satisfy the conditions (S1-S5 and L1-L8) in
     Table 1 of the `APOSMM paper <https://doi.org/10.1007/s12532-017-0131-4>`_
-    This method first identifies sample points satisfying S2-S5, and then
+    This method first identifies sample points satisfying S2-S5 and then
     identifies all localopt points that satisfy L1-L7.
     We then start from any sample point also satisfying S1.
     We do not check condition L8 currently.
 
     We don't consider points in the history that have not returned from
-    computation, or that have a ``nan`` value. Also, note that ``mu`` and ``nu``
+    computation or that have a ``nan`` value. Also, note that ``mu`` and ``nu``
     implicitly depend on the scaling that is happening with the domain. That
     is, adjusting the initial domain can make a run start (or not start) at
     a point that didn't (or did) previously.
@@ -951,14 +948,13 @@ def display_exception(e):
     traceback.print_tb(tb)  # Fixed format
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
-    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text))
+    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text), flush=True)
 
     # PETSc/TAO errors are printed in the following manner:
     if hasattr(e, '_traceback_'):
         print('The error was:')
         for i in e._traceback_:
-            print(i)
-    sys.stdout.flush()
+            print(i, flush=True)
 
 
 # if __name__ == "__main__":
