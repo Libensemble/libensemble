@@ -1,6 +1,6 @@
 # """
 # Runs libEnsemble with the persistent generator that finds an appropriate
-# finite-difference parameter for the sim_f mapping from R^n to R^m around the
+# finite-difference parameter for the sim_f mapping from R^n to R^p around the
 # point x.
 #
 # Execute via one of the following commands (e.g. 3 workers):
@@ -18,7 +18,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.noisy_vector_mapping import func_wrapper as sim_f
 from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_fd_persistent import finite_diff_alloc as alloc_f
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -27,16 +27,22 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-m = 3
+p = 3
+
 sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float, m)]}
+             'in': ['x', 'f_ind'],
+             'out': [('f_val', float)]}
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'out': [('x', float, (n,))],
-             'user': {'x': np.array([1.23, -0.12]),
-                      'kmax': 10}
+             'out': [('x', float, (n,)), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
+             'user': {'x0': np.array([1.23,4.56]),
+                      'nf': 10,
+                      'p': p,
+                      # 'noise_h_mat': 1e-10*np.ones((n,p)),
+                      'noise_h_mat': 1e-1*np.ones((n,p)),
+                      'maxnoiseits': 3
+                      }
              }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
