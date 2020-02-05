@@ -5,14 +5,20 @@ from forces_simf import run_forces  # Sim func from current dir
 
 # Import libEnsemble modules
 from libensemble.libE import libE
-from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-
 from libensemble import libE_logger
-libE_logger.set_level('INFO')  # INFO is now default
 
 USE_BALSAM = False
+PERSIS_GEN = False
+
+if PERSIS_GEN:
+    from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
+    from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+else:
+    from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
+
+libE_logger.set_level('INFO')  # INFO is now default
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -58,7 +64,7 @@ sim_specs = {'sim_f': run_forces,         # Function whose output is being minim
 # end_sim_specs_rst_tag
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': uniform_random_sample,  # Generator function
+gen_specs = {'gen_f': gen_f,                  # Generator function
              'in': ['sim_id'],                # Generator input
              'out': [('x', float, (1,))],     # Name, type and size of data produced (must match sim_specs 'in')
              'user': {'lb': np.array([0]),             # Lower bound for random sample array (1D)
@@ -67,11 +73,20 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
                       }
              }
 
-alloc_specs = {'alloc_f': give_sim_work_first,
+alloc_specs = {'alloc_f': alloc_f,
                'out': [('allocated', bool)],
                'user': {'batch_mode': True,    # If true wait for all sims to process before generate more
                         'num_active_gens': 1}  # Only one active generator at a time
                }
+
+if PERSIS_GEN:
+    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+else:
+    alloc_specs = {'alloc_f': alloc_f,
+                   'out': [('allocated', bool)],
+                   'user': {'batch_mode': True,    # If true wait for all sims to process before generate more
+                            'num_active_gens': 1}  # Only one active generator at a time
+                   }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
 libE_specs['sim_input_dir'] = './sim'   # Sim dir to be copied for each worker
