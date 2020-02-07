@@ -25,17 +25,16 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # If i is in persistent mode, and all of its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
-        gen_inds = (H['gen_worker'] == i)
 
         # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
         # values complete.
         inds_not_sent_back = ~H['given_back']
         H_tmp = H[inds_not_sent_back]
 
-        inds_to_send = np.array([],dtype=int)
+        inds_to_send = np.array([], dtype=int)
         for x_ind in range(gen_specs['user']['n']):
             for f_ind in range(gen_specs['user']['p']):
-                inds = np.logical_and.reduce((H_tmp['x_ind']==x_ind, H_tmp['f_ind']==f_ind, H_tmp['returned']))
+                inds = np.logical_and.reduce((H_tmp['x_ind'] == x_ind, H_tmp['f_ind'] == f_ind, H_tmp['returned']))
                 if sum(inds) == gen_specs['user']['nf']:
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 

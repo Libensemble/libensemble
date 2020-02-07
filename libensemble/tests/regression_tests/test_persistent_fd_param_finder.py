@@ -26,7 +26,7 @@ nworkers, is_master, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-x0 = np.array([1.23,4.56])  # point about which we are calculating finite difference parameters
+x0 = np.array([1.23, 4.56])  # point about which we are calculating finite difference parameters
 f0 = noisy_function(x0)
 n = len(x0)
 p = len(f0)
@@ -36,14 +36,14 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f_val', float)]}
 
 gen_specs = {'gen_f': gen_f,
-             'in': ['n_ind','f_ind','x_ind'],
+             'in': ['n_ind', 'f_ind', 'x_ind'],
              'out': [('x', float, (n,)), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
              'user': {'x0': x0,
                       'f0': f0,
                       'nf': 10,
                       'p': p,
                       'n': n,
-                      'noise_h_mat': 1e-10*np.ones((n,p)),
+                      'noise_h_mat': 1e-10*np.ones((n, p)),
                       # 'maxnoiseits': 3
                       }
              }
@@ -60,6 +60,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 
 if is_master:
     assert len(H) < exit_criteria['gen_max'], "Problem didn't stop early, which should have been the case."
-    assert np.all(persis_info[1]['Fnoise']>0), "gen_f didn't find noise for all F_i components."
+    assert np.all(persis_info[1]['Fnoise'] > 0), "gen_f didn't find noise for all F_i components."
 
     save_libE_output(H, persis_info, __file__, nworkers)

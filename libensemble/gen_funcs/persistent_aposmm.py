@@ -466,7 +466,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
 
     # cmd = ["matlab", "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
     cmd = ["octave", "--no-window-system", "--eval",
-           "x0=[" + " ".join([ "{:18.18f}".format(x) for x in a ]) + "];"
+           "x0=[" + " ".join(["{:18.18f}".format(x) for x in x0]) + "];"
            "opt_file='" + opt_file + "';"
            "x_file='" + x_file + "';"
            "y_file='" + y_file + "';"
