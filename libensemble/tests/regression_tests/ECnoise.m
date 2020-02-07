@@ -15,12 +15,12 @@ function [fnoise,level,inform] = ECnoise(nf,fval)
 %  Noise will not be detected by this code if the function values differ
 %  in the first digit.
 %
-%  If noise is not detected, the user should increase or decrease the 
-%  spacing h according to the ouput value of inform.  In most cases, 
+%  If noise is not detected, the user should increase or decrease the
+%  spacing h according to the ouput value of inform.  In most cases,
 %  the subroutine detects noise with the initial value of h.
 %
 %  On exit:
-%    fnoise is set to an estimate of the function noise; 
+%    fnoise is set to an estimate of the function noise;
 %       fnoise is set to zero if noise is not detected.
 %
 %    level is set to estimates for the noise. The k-th entry is an
@@ -45,7 +45,7 @@ gamma = 1.0; % = gamma(0)
 
 % Compute the range of function values.
 fmin = min(fval);    fmax = max(fval);
-if (fmax-fmin)/max(abs(fmax),abs(fmin))>.1; 
+if (fmax-fmin)/max(abs(fmax),abs(fmin))>.1;
     inform = 3; return;
 end
 
@@ -54,17 +54,17 @@ for j = 1:nf-1
     for i = 1:nf-j
         fval(i) = fval(i+1) - fval(i);
     end
-    
+
     % h is too small only when half the function values are equal.
     if (j==1 && sum(fval(1:nf-1)==0)>=nf/2)
         inform = 2; return;
     end
-    
+
     gamma = 0.5*(j/(2*j-1))*gamma;
-    
+
     % Compute the estimates for the noise level.
     level(j) = sqrt(gamma*mean(fval(1:nf-j).^2));
-    
+
     % Determine differences in sign.
     emin = min(fval(1:nf-j));
     emax = max(fval(1:nf-j));

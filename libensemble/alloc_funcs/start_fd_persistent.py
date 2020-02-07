@@ -28,7 +28,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         gen_inds = (H['gen_worker'] == i)
 
         # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
-        # values complete. 
+        # values complete.
         inds_not_sent_back = ~H['given_back']
         H_tmp = H[inds_not_sent_back]
 
@@ -39,7 +39,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 if sum(inds) == gen_specs['user']['nf']:
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
-        if len(inds_to_send): 
+        if len(inds_to_send):
             gen_work(Work, i,
                      list(set(gen_specs['in'] + sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')])),
                      np.atleast_1d(inds_to_send), persis_info[i], persistent=True)

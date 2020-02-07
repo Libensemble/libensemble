@@ -27,8 +27,8 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 x0 = np.array([1.23,4.56])  # point about which we are calculating finite difference parameters
-f0 = noisy_function(x0) 
-n = len(x0)  
+f0 = noisy_function(x0)
+n = len(x0)
 p = len(f0)
 
 sim_specs = {'sim_f': sim_f,

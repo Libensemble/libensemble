@@ -23,8 +23,8 @@ def build_H0(x_f_pairs, gen_specs, noise_h_mat):
         for k in range(nf+1):
             if k != nf//2:
                 H0['x'][ind] = x0 + (k-nf/2)*noise_h_mat[i,j]*E[i]
-                H0['x_ind'][ind] = i 
-                H0['f_ind'][ind] = j 
+                H0['x_ind'][ind] = i
+                H0['f_ind'][ind] = j
                 H0['n_ind'][ind] = k
                 ind += 1
 
@@ -75,17 +75,17 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     # import matlab.engine
     # eng = matlab.engine.start_matlab()
 
-    # Send nf points for each (x_ind, f_ind) pair 
+    # Send nf points for each (x_ind, f_ind) pair
     while tag not in [STOP_TAG, PERSIS_STOP]:
         x_f_pairs = np.unique(calc_in[['x_ind','f_ind']])
         x_f_pairs_new = []
 
-        # Update Fhist0 
-        for i,j in x_f_pairs: 
+        # Update Fhist0
+        for i,j in x_f_pairs:
             for k in range(nf+1):
                 if k != nf/2:
                     Fhist0[i,j,k] = calc_in['f_val'][np.logical_and.reduce((calc_in['x_ind']==i, calc_in['f_ind']==j, calc_in['n_ind']==k))]
-            
+
             # Compute noise for (i,j):
             # [Fnoise(i,j),~,inform(i,j)] = ECnoise(nf-1,Fhist0(i,j,2:nf));
             # t = eng.ECnoise(nf+1,matlab.double(Fhist0[i,j,:nf+1]),nargout=3)
@@ -114,7 +114,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
                 else:
                     noise_h_mat[i,j] = noise_h_mat[i,j]*100  # and do evals using this noise_h_mat
             else:
-                # We have successfully identified the Fnoise 
+                # We have successfully identified the Fnoise
                 Fnoise[i,j] = np.loadtxt('fnoise.out')
 
             os.remove('inform.out')
