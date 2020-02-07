@@ -43,9 +43,8 @@ gen_specs = {'gen_f': gen_f,
                       'nf': 10,
                       'p': p,
                       'n': n,
-                      # 'noise_h_mat': 1e-10*np.ones((n,p)),
-                      'noise_h_mat': 1e-1*np.ones((n,p)),
-                      'maxnoiseits': 3
+                      'noise_h_mat': 1e-10*np.ones((n,p)),
+                      # 'maxnoiseits': 3
                       }
              }
 
@@ -61,5 +60,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 
 if is_master:
     assert len(H) < exit_criteria['gen_max'], "Problem didn't stop early, which should have been the case."
+    assert np.all(persis_info[1]['Fnoise']>0), "gen_f didn't find noise for all F_i components."
 
     save_libE_output(H, persis_info, __file__, nworkers)
