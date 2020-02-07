@@ -26,14 +26,25 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
-        if np.all(H['returned'][gen_inds]):
-            last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
-            inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
-            gen_work(Work, i,
-                     sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
-                     np.atleast_1d(inds_of_last_batch_from_gen), persis_info[i], persistent=True)
 
-            H['given_back'][inds_of_last_batch_from_gen] = True
+        # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
+        # values complete. 
+        inds_not_sent_back = ~H['given_back']
+        H_tmp = H[inds_not_sent_back]
+
+        inds_to_send = np.array([],dtype=int)
+        for x_ind in range(gen_specs['user']['n']):
+            for f_ind in range(gen_specs['user']['p']):
+                inds = np.logical_and.reduce((H_tmp['x_ind']==x_ind, H_tmp['f_ind']==f_ind, H_tmp['returned']))
+                if sum(inds) == gen_specs['user']['nf']:
+                    inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
+
+        if len(inds_to_send): 
+            gen_work(Work, i,
+                     list(set(gen_specs['in'] + sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')])),
+                     np.atleast_1d(inds_to_send), persis_info[i], persistent=True)
+
+            H['given_back'][inds_to_send] = True
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
