@@ -20,7 +20,6 @@ def func_wrapper(H, persis_info, sim_specs, libE_info):
 
     for i, x in enumerate(H['x']):
         H0['f_val'][i] = noisy_function(x)[H['f_ind'][i]]
-        print(x,flush=True)
 
     return H0, persis_info
 
