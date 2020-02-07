@@ -122,6 +122,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
 
         if np.all(inform==1):
             tag = FINISHED_PERSISTENT_GEN_TAG
+            persis_info['Fnoise'] = Fnoise
             break
 
         H0 = build_H0(x_f_pairs_new, gen_specs, noise_h_mat)
