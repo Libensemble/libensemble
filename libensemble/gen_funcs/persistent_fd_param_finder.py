@@ -113,12 +113,12 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
 
             if inform[i, j] >= 2:
                 # Mark as needing more points for this noise_h_mat value
-                # if iters[i,j] < maxnoiseits:
-                    iters[i,j] += 1
+                if iters[i, j] < maxnoiseits:
+                    iters[i, j] += 1
                     x_f_pairs_new.append((i, j))
 
                     if inform[i, j] == 3:
-                        noise_h_mat[i, j] = noise_h_mat[i, j]/100 
+                        noise_h_mat[i, j] = noise_h_mat[i, j]/100
                     else:
                         noise_h_mat[i, j] = noise_h_mat[i, j]*100
             else:
