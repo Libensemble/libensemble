@@ -48,7 +48,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     noise_h_mat = U['noise_h_mat']
     inform = np.zeros_like(noise_h_mat)
     Fnoise = np.zeros_like(noise_h_mat)
-    # maxnoiseits = U['maxnoiseits']
+    maxnoiseits = U['maxnoiseits']
 
     n = len(x0)
     Fhist0 = np.zeros((n, p, nf+1))
@@ -71,6 +71,8 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
 
     x_f_pairs = np.array(np.meshgrid(range(n), range(p))).T.reshape(-1, n)
     H0 = build_H0(x_f_pairs, gen_specs, noise_h_mat)
+
+    iters = np.ones_like(noise_h_mat)
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
 
@@ -110,11 +112,15 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
             inform[i, j] = np.loadtxt('inform.out')
 
             if inform[i, j] >= 2:
-                x_f_pairs_new.append((i, j))
-                if inform[i, j] == 3:
-                    noise_h_mat[i, j] = noise_h_mat[i, j]/100  # and do evals using this noise_h_mat
-                else:
-                    noise_h_mat[i, j] = noise_h_mat[i, j]*100  # and do evals using this noise_h_mat
+                # Mark as needing more points for this noise_h_mat value
+                # if iters[i,j] < maxnoiseits:
+                    iters[i,j] += 1
+                    x_f_pairs_new.append((i, j))
+
+                    if inform[i, j] == 3:
+                        noise_h_mat[i, j] = noise_h_mat[i, j]/100 
+                    else:
+                        noise_h_mat[i, j] = noise_h_mat[i, j]*100
             else:
                 # We have successfully identified the Fnoise
                 Fnoise[i, j] = np.loadtxt('fnoise.out')
