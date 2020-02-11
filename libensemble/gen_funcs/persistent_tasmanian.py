@@ -16,32 +16,33 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
     precisions = U['precisions']
     aPointOfInterest = U['x0']
 
-    aReferenceSolution = np.exp(-aPointOfInterest[0]**2) * np.cos(aPointOfInterest[1])
-
     tag = None
     for prec in precisions:
+        # Generate Tasmanian grid
         grid = Tasmanian.makeGlobalGrid(iNumInputs, iNumOutputs, prec,
                                         "iptotal", "clenshaw-curtis")
         aPoints = grid.getNeededPoints()
 
+        # Return the points of that need to be evaluated to the manager
         H0 = np.zeros(len(aPoints), dtype=gen_specs['out'])
         H0['x'] = aPoints
 
+        # Receive values from manager
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H0)
-
         if tag in [STOP_TAG, PERSIS_STOP]:
             break
-
-        import ipdb; ipdb.set_trace()
         aModelValues = calc_in['f'] 
+
+        # Update surroage on grid
         t = aModelValues.reshape((aModelValues.shape[0], iNumOutputs))
-        # aModelValues = np.exp(-aPoints[:,0]**2) * np.cos(aPoints[:,1])
+        t = t.flatten()
+        t = np.atleast_2d(t).T
         grid.loadNeededPoints(t)
 
-
-        # when using multiple points at once, evaluateBatch() is more efficient
+        # Evaluate grid 
         aResult = grid.evaluate(aPointOfInterest)
-        fError = np.abs(aResult[0] - aReferenceSolution)
+        
+        persis_info['aResult'] = aResult
 
     return H0, persis_info, tag
     

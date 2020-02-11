@@ -13,7 +13,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f, six_hump_camel_func
 from libensemble.gen_funcs.persistent_tasmanian import sparse_grid  as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
@@ -52,9 +52,10 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_master:
+    # import ipdb; ipdb.set_trace()
+    # six_hump_camel_func(gen_specs['x0'])
+    
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
     print('[Manager]: Time taken =', time() - start_time, flush=True)
-
-    import ipdb; ipdb.set_trace()
 
     save_libE_output(H, persis_info, __file__, nworkers)
