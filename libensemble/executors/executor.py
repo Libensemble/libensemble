@@ -1,5 +1,5 @@
 """
-This module contains a
+This module contains an
 ``executor`` and ``task``. The class ``Executor`` is a base class and not
 intended for direct use. Instead one of the inherited classes should be used. Inherited
 classes include MPI and Balsam variants. A ``executor`` can create and manage

@@ -16,7 +16,7 @@ that can perform calculations. libEnsemble's work is governed by three routines:
 
 Example ``gen_f``, ``sim_f``, ``alloc_f``, and calling scripts can be found in
 the ``examples/`` directory. In order to enable portability, an :doc:`executor<executor/overview>`
-interface is supplied for users to execute and monitor external scripts in their
+interface is supplied for users to execute and monitor external applications in their
 user-provided ``gen_f`` and ``sim_f`` routines.
 
 The default ``alloc_f`` tells each available worker to call ``sim_f`` with the

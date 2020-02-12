@@ -1,5 +1,5 @@
 """
-This module launches and controls the running of MPI tasks.
+This module launches and controls the running of MPI applications.
 
 In order to create an MPI executor, the calling script should contain ::
 
