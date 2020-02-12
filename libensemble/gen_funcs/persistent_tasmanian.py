@@ -8,6 +8,7 @@ import Tasmanian
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
 
+
 def sparse_grid(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
 
@@ -34,7 +35,7 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H0)
         if tag in [STOP_TAG, PERSIS_STOP]:
             break
-        aModelValues = calc_in['f'] 
+        aModelValues = calc_in['f']
 
         # Update surrogate on grid
         t = aModelValues.reshape((aModelValues.shape[0], iNumOutputs))
@@ -42,11 +43,10 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
         t = np.atleast_2d(t).T
         grid.loadNeededPoints(t)
 
-        # Evaluate grid 
+        # Evaluate grid
         aResult = grid.evaluate(aPointOfInterest)
-        
+
         persis_info['aResult'][prec] = aResult
 
     tag = FINISHED_PERSISTENT_GEN_TAG
     return H0, persis_info, tag
-    

@@ -308,6 +308,5 @@ Balsam_ which runs on a separate node. The Balsam Job Controller variant interac
 with Balsam for this purpose. The only user-facing difference between the two is
 which controller is imported and called within a calling script.
 
-
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
