@@ -16,13 +16,12 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     lb = gen_specs['user']['lb']
     n = len(lb)
     b = gen_specs['user']['gen_batch_size']
-    comm = libE_info['comm']
 
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs['out'])
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
     return H_o, persis_info, tag
