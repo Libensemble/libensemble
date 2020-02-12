@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import numpy as np
-from slim_forces_simf import run_forces  # Sim func from current dir
+from tutorial_forces_simf import run_forces  # Sim func from current dir
 
 from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample

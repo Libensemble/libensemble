@@ -309,6 +309,5 @@ Balsam_ which runs on a separate node. The Balsam Executor variant interacts
 with Balsam for this purpose. The only user-facing difference between the two is
 which executor is imported and called within a calling script.
 
-
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
