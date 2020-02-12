@@ -38,7 +38,7 @@ gen_specs = {'gen_f': gen_f,
              'user': {'NumInputs': n,  # Don't need to do evaluations because simulating the sampling already being done
                       'NumOutputs': 1,
                       'x0': np.array([0.3, 0.7]),
-                      'precisions': [6,12]}
+                      'precisions': [3, 6, 12]}
              }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
@@ -52,10 +52,8 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_master:
-    # import ipdb; ipdb.set_trace()
-    # six_hump_camel_func(gen_specs['x0'])
+    a = six_hump_camel_func(gen_specs['user']['x0'])
     
-    print('[Manager]:', H[np.where(H['local_min'])]['x'])
     print('[Manager]: Time taken =', time() - start_time, flush=True)
 
     save_libE_output(H, persis_info, __file__, nworkers)

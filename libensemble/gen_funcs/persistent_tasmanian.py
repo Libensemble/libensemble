@@ -5,7 +5,7 @@ https://github.com/ORNL/TASMANIAN/blob/master/InterfacePython/example_sparse_gri
 
 import numpy as np
 import Tasmanian
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
 
 def sparse_grid(H, persis_info, gen_specs, libE_info):
@@ -17,6 +17,9 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
     aPointOfInterest = U['x0']
 
     tag = None
+
+    persis_info['aResult'] = {}
+
     for prec in precisions:
         # Generate Tasmanian grid
         grid = Tasmanian.makeGlobalGrid(iNumInputs, iNumOutputs, prec,
@@ -33,7 +36,7 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
             break
         aModelValues = calc_in['f'] 
 
-        # Update surroage on grid
+        # Update surrogate on grid
         t = aModelValues.reshape((aModelValues.shape[0], iNumOutputs))
         t = t.flatten()
         t = np.atleast_2d(t).T
@@ -42,7 +45,8 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
         # Evaluate grid 
         aResult = grid.evaluate(aPointOfInterest)
         
-        persis_info['aResult'] = aResult
+        persis_info['aResult'][prec] = aResult
 
+    tag = FINISHED_PERSISTENT_GEN_TAG
     return H0, persis_info, tag
     
