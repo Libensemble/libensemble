@@ -69,6 +69,7 @@ install:
   - conda install libblas libopenblas # Prevent 'File exists' error
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   - pip install flake8       # Conda installs downgrade pytest on python3.4
+  - sudo apt-get install gfortran # For DFO-LS
   - pip install DFO-LS
   - pip install coverage==4.5.4
   - pip install pytest
