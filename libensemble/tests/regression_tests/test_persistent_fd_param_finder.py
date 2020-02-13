@@ -43,7 +43,7 @@ gen_specs = {'gen_f': gen_f,
                       'nf': 10,
                       'p': p,
                       'n': n,
-                      'noise_h_mat': 1e-10*np.ones((n, p)),
+                      'noise_h_mat': 1e-1*np.ones((n, p)),
                       'maxnoiseits': 3
                       }
              }
