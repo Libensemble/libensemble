@@ -27,23 +27,23 @@ def xtest_submit():
     py_exe = sys.executable or "python"
 
     # Launch infinite loop, pay attention to term
-    process = launcher.submit([py_exe, "launch_busy.py"])
+    process = launcher.launch([py_exe, "launch_busy.py"])
     assert not launcher.process_is_stopped(process, 0.1), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, ignore term
-    process = launcher.submit([py_exe, "launch_busy.py", "1"])
+    process = launcher.launch([py_exe, "launch_busy.py", "1"])
     assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, pay attention to term
-    process = launcher.submit([py_exe, "launch_busy.py"],
+    process = launcher.launch([py_exe, "launch_busy.py"],
                               start_new_session=True)
     assert not launcher.process_is_stopped(process, 0.1), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, ignore term
-    process = launcher.submit([py_exe, "launch_busy.py", "1"],
+    process = launcher.launch([py_exe, "launch_busy.py", "1"],
                               start_new_session=True)
     assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0.5)
@@ -53,11 +53,11 @@ def xtest_submit():
     assert not launcher.terminatepg(process), "Expected lookup error."
 
     # Launch finite loop, wait for termination
-    process = launcher.submit([py_exe, "launch_busy.py", "0", "0.1"])
+    process = launcher.launch([py_exe, "launch_busy.py", "0", "0.1"])
     assert launcher.process_is_stopped(process, 1.5), "Process should have stopped earlier."
 
     # Try simple kill
-    process = launcher.submit([py_exe, "launch_busy.py", "1"])
+    process = launcher.launch([py_exe, "launch_busy.py", "1"])
     assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0)
 

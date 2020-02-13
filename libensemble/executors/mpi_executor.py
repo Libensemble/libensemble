@@ -250,7 +250,7 @@ class MPI_Executor(Executor):
                     logger.info("Launching task {}{}: {}".
                                 format(task.name, retry_string, " ".join(runline)))
 
-                    task.process = launcher.submit(runline, cwd='./',
+                    task.process = launcher.launch(runline, cwd='./',
                                                    stdout=open(task.stdout, 'w'),
                                                    stderr=open(task.stderr, 'w'),
                                                    start_new_session=subgroup_launch)

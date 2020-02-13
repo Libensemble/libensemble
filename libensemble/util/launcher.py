@@ -26,7 +26,7 @@ def form_command(cmd_template, specs):
     return list(chain.from_iterable(filter(None, map(fill, cmd_template))))
 
 
-def submit(cmd_template, specs=None, **kwargs):
+def launch(cmd_template, specs=None, **kwargs):
     "Launch a new subprocess (with command templating and Python 3 help)."
     cmd = (form_command(cmd_template, specs) if specs is not None
            else cmd_template)
