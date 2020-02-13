@@ -43,7 +43,7 @@ gen_specs = {'gen_f': gen_f,
                       'nf': 10,
                       'p': p,
                       'n': n,
-                      'noise_h_mat': np.multiply(np.logspace(-16,-1,p),np.ones((n, p))),  # Chosen so ECNoise grows and shrinks
+                      'noise_h_mat': np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),  # Chosen so ECNoise grows and shrinks
                       'maxnoiseits': 3
                       }
              }
