@@ -4,7 +4,7 @@ MPI Executor
 .. automodule:: mpi_executor
   :no-undoc-members:
 
-.. autoclass:: MPI_Executor
+.. autoclass:: MPIExecutor
   :show-inheritance:
   :inherited-members:
 
@@ -25,7 +25,7 @@ be implemented in other executors.
 
 Example. To increase resilience against submission failures::
 
-    taskctrl = MPI_Executor()
+    taskctrl = MPIExecutor()
     taskctrl.max_launch_attempts = 10
     taskctrl.fail_time = 5
 

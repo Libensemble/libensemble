@@ -54,11 +54,11 @@ if not os.path.isfile(sim_app):
     build_simfunc()
 
 if USE_BALSAM:
-    from libensemble.executors.balsam_executor import Balsam_MPI_Executor
-    exctr = Balsam_MPI_Executor(auto_resources=use_auto_resources)
+    from libensemble.executors.balsam_executor import BalsamMPIExecutor
+    exctr = BalsamMPIExecutor(auto_resources=use_auto_resources)
 else:
-    from libensemble.executors.mpi_executor import MPI_Executor
-    exctr = MPI_Executor(auto_resources=use_auto_resources)
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor(auto_resources=use_auto_resources)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # if nworkers == 3:

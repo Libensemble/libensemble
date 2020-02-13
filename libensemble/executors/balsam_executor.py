@@ -5,10 +5,10 @@ This module launches and controls the running of tasks with Balsam.
 
 In order to create a Balsam executor, the calling script should contain ::
 
-    exctr = Balsam_MPI_Executor()
+    exctr = BalsamMPIExecutor()
 
 The Balsam executor inherits from the MPI executor. See the
-:doc:`MPI_Executor<mpi_executor>` for shared API. Any differences are
+:doc:`MPIExecutor<mpi_executor>` for shared API. Any differences are
 shown below.
 
 """
@@ -21,7 +21,7 @@ import datetime
 from libensemble.resources.mpi_resources import MPIResources
 from libensemble.executors.executor import \
     Task, ExecutorException, jassert, STATES
-from libensemble.executors.mpi_executor import MPI_Executor
+from libensemble.executors.mpi_executor import MPIExecutor
 
 import balsam.launcher.dag as dag
 from balsam.core import models
@@ -143,8 +143,8 @@ class BalsamTask(Task):
         self.calc_task_timing()
 
 
-class Balsam_MPI_Executor(MPI_Executor):
-    """Inherits from MPI_Executor and wraps the Balsam task management service
+class BalsamMPIExecutor(MPIExecutor):
+    """Inherits from MPIExecutor and wraps the Balsam task management service
 
     .. note::  Task kills are not configurable in the Balsam executor.
 
@@ -152,9 +152,9 @@ class Balsam_MPI_Executor(MPI_Executor):
     def __init__(self, auto_resources=True, central_mode=True,
                  nodelist_env_slurm=None, nodelist_env_cobalt=None,
                  nodelist_env_lsf=None, nodelist_env_lsf_shortform=None):
-        """Instantiate a new Balsam_MPI_Executor instance.
+        """Instantiate a new BalsamMPIExecutor instance.
 
-        A new Balsam_MPI_Executor object is created with an application
+        A new BalsamMPIExecutor object is created with an application
         registry and configuration attributes
         """
 
@@ -171,8 +171,8 @@ class Balsam_MPI_Executor(MPI_Executor):
 
     def _serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
-        Balsam_MPI_Executor.del_apps()
-        Balsam_MPI_Executor.del_tasks()
+        BalsamMPIExecutor.del_apps()
+        BalsamMPIExecutor.del_tasks()
 
         for calc_type in self.default_apps:
             if self.default_apps[calc_type] is not None:

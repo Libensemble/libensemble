@@ -6,7 +6,7 @@ import numpy as np
 import mpi4py
 from mpi4py import MPI
 
-from libensemble.executors.balsam_executor import Balsam_MPI_Executor
+from libensemble.executors.balsam_executor import BalsamMPIExecutor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld
@@ -39,7 +39,7 @@ sim_app = './my_simjob.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-exctr = Balsam_MPI_Executor(auto_resources=False)
+exctr = BalsamMPIExecutor(auto_resources=False)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 sim_specs = {'sim_f': executor_hworld,

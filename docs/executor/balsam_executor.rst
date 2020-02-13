@@ -4,7 +4,7 @@ Balsam Executor
 .. automodule:: balsam_executor
   :no-undoc-members:
 
-.. autoclass:: Balsam_MPI_Executor
+.. autoclass:: BalsamMPIExecutor
   :show-inheritance:
 ..  :inherited-members:
 ..  :member-order: bysource

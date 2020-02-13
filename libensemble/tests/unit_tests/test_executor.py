@@ -56,11 +56,11 @@ def setup_executor():
         build_simfunc()
 
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import Balsam_MPI_Executor
-        exctr = Balsam_MPI_Executor(auto_resources=False)
+        from libensemble.executors.balsam_executor import BalsamMPIExecutor
+        exctr = BalsamMPIExecutor(auto_resources=False)
     else:
-        from libensemble.executors.mpi_executor import MPI_Executor
-        exctr = MPI_Executor(auto_resources=False)
+        from libensemble.executors.mpi_executor import MPIExecutor
+        exctr = MPIExecutor(auto_resources=False)
 
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
@@ -71,11 +71,11 @@ def setup_executor_noreg():
         build_simfunc()
 
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import Balsam_MPI_Executor
-        exctr = Balsam_MPI_Executor(auto_resources=False)
+        from libensemble.executors.balsam_executor import BalsamMPIExecutor
+        exctr = BalsamMPIExecutor(auto_resources=False)
     else:
-        from libensemble.executors.mpi_executor import MPI_Executor
-        exctr = MPI_Executor(auto_resources=False)
+        from libensemble.executors.mpi_executor import MPIExecutor
+        exctr = MPIExecutor(auto_resources=False)
 
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
@@ -86,11 +86,11 @@ def setup_executor_noapp():
         build_simfunc()
 
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import Balsam_MPI_Executor
-        exctr = Balsam_MPI_Executor(auto_resources=False)
+        from libensemble.executors.balsam_executor import BalsamMPIExecutor
+        exctr = BalsamMPIExecutor(auto_resources=False)
     else:
-        from libensemble.executors.mpi_executor import MPI_Executor
-        exctr = MPI_Executor(auto_resources=False)
+        from libensemble.executors.mpi_executor import MPIExecutor
+        exctr = MPIExecutor(auto_resources=False)
         if exctr.workerID is not None:
             sys.exit("Something went wrong in creating Executor")
 

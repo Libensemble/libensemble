@@ -44,8 +44,8 @@ In calling function::
         from libensemble.executors.balsam_executor import BalsamExecutor
         exctr = BalsamExecutor()
     else:
-        from libensemble.executors.mpi_executor import MPI_Executor
-        exctr = MPI_Executor()
+        from libensemble.executors.mpi_executor import MPIExecutor
+        exctr = MPIExecutor()
 
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 

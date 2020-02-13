@@ -31,11 +31,11 @@ USE_BALSAM = False  # Take as arg
 
 # Create and add exes to registry
 if USE_BALSAM:
-    from libensemble.executors.balsam_executor import Balsam_MPI_Executor
-    exctr = Balsam_MPI_Executor()
+    from libensemble.executors.balsam_executor import BalsamMPIExecutor
+    exctr = BalsamMPIExecutor()
 else:
-    from libensemble.executors.mpi_executor import MPI_Executor
-    exctr = MPI_Executor()
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor()
 
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 

@@ -6,12 +6,12 @@ from tutorial_forces_simf import run_forces  # Sim func from current dir
 from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.utils import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPI_Executor
+from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
 # Create executor and register sim to it
-exctr = MPI_Executor(auto_resources=False)  # Use auto_resources=False to oversubscribe
+exctr = MPIExecutor(auto_resources=False)  # Use auto_resources=False to oversubscribe
 
 # Create empty simulation input directory
 if not os.path.isdir('./sim'):

@@ -3,7 +3,7 @@ import shutil
 import time
 
 from libensemble.executors.executor import Task, Executor, ExecutorException
-from libensemble.executors.mpi_executor import MPI_Executor
+from libensemble.executors.mpi_executor import MPIExecutor
 
 
 def setup_module(module):
@@ -29,7 +29,7 @@ def teardown_module(module):
 
 def test_task_funcs():
     dummyappname = os.getcwd() + '/myapp.x'
-    exctr = MPI_Executor(auto_resources=False)
+    exctr = MPIExecutor(auto_resources=False)
     exctr.register_calc(full_path=dummyappname, calc_type='gen', desc='A dummy calc')
     exctr.register_calc(full_path=dummyappname, calc_type='sim', desc='A dummy calc')
 

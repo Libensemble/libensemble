@@ -1,4 +1,4 @@
-from libensemble.executors.mpi_executor import MPI_Executor
+from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import UNSET_TAG, WORKER_KILL_ON_ERR, MAN_SIGNAL_FINISH, WORKER_DONE, TASK_FAILED, WORKER_KILL_ON_TIMEOUT
 import numpy as np
 
@@ -64,7 +64,7 @@ def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
 
 def executor_hworld(H, persis_info, sim_specs, libE_specs):
     """ Tests launching and polling task and exiting on task finish"""
-    exctr = MPI_Executor.executor
+    exctr = MPIExecutor.executor
     cores = sim_specs['user']['cores']
     comm = libE_specs['comm']
 

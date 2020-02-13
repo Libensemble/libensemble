@@ -3,7 +3,7 @@ This module launches and controls the running of MPI applications.
 
 In order to create an MPI executor, the calling script should contain ::
 
-    exctr = MPI_Executor()
+    exctr = MPIExecutor()
 
 See the executor API below for optional arguments.
 """
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-class MPI_Executor(Executor):
+class MPIExecutor(Executor):
     """The MPI executor can create, poll and kill runnable MPI tasks
     """
 
