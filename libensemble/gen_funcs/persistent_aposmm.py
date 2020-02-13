@@ -321,7 +321,7 @@ class LocalOptInterfacer(object):
         self.process.start()
         self.is_running = True
         self.parent_can_read.wait()
-        assert np.allclose(self.comm_queue.get(), x0), "The first point requested by this run does not match the starting point. Exiting"
+        assert np.allclose(self.comm_queue.get(), x0, rtol=1e-15, atol=1e-15), "The first point requested by this run does not match the starting point. Exiting"
 
     def iterate(self, data):
         """
@@ -466,7 +466,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
 
     # cmd = ["matlab", "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
     cmd = ["octave", "--no-window-system", "--eval",
-           "x0=" + str(x0) + ";"
+           "x0=[" + " ".join(["{:18.18f}".format(x) for x in x0]) + "];"
            "opt_file='" + opt_file + "';"
            "x_file='" + x_file + "';"
            "y_file='" + y_file + "';"
