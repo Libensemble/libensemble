@@ -476,8 +476,8 @@ def test_kill_task_with_no_submit():
     try:
         exctr.kill(task1)
     except ExecutorException as e:
-        assert e.args[0][:49] == 'Attempting to kill task task_my_simtask.x.simfunc_'
-        assert e.args[0][51:] == ' that has no process ID - check tasks been launched'
+        assert e.args[0][:50] == 'Attempting to kill task task_my_simtask.x.simfunc_'
+        assert e.args[0][52:] == ' that has no process ID - check tasks been launched'
     else:
         assert 0
 
@@ -494,8 +494,8 @@ def test_poll_task_with_no_submit():
     try:
         task1.poll()
     except ExecutorException as e:
-        assert e.args[0][:37] == 'Polled task task_my_simtask.x.simfunc_'
-        assert e.args[0][39:] == ' has no process ID - check tasks been launched'
+        assert e.args[0][:38] == 'Polled task task_my_simtask.x.simfunc_'
+        assert e.args[0][40:] == ' has no process ID - check tasks been launched'
     else:
         assert 0
 
