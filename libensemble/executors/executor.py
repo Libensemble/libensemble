@@ -16,7 +16,7 @@ import time
 
 from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 import libensemble.utils.launcher as launcher
-from libensemble.utils.timer import JobTimer
+from libensemble.utils.timer import TaskTimer
 
 
 logger = logging.getLogger(__name__)
