@@ -20,13 +20,13 @@ meant to run with Python's multiprocessing as the primary ``comms`` method.
     :linenos:
     :emphasize-lines: 8-28
 
-Electrostatic Forces with Job Controller
-----------------------------------------
+Electrostatic Forces with Executor
+----------------------------------
 
 This example is from a test for evaluating the scaling capabilities of libEnsemble
 by calculating particle electrostatic forces through a user application. This
-application is registered with either the MPI or Balsam job controller, then
-launched in the ``sim_f``. Note the use of the ``parse_args()`` and
+application is registered with either the MPI or Balsam executor, then submitted
+for execution in the ``sim_f``. Note the use of the ``parse_args()`` and
 ``save_libE_output()`` convenience functions from the :doc:`utilities<../utilities>`.
 
 ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces.py

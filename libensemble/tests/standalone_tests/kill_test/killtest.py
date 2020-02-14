@@ -7,13 +7,13 @@ import signal
 
 # Does not kill, even on laptop
 # kill 1
-def kill_job_1(process):
+def kill_task_1(process):
     process.kill()
     process.wait()
 
 
 # kill 2 - with  preexec_fn=os.setsid in subprocess
-def kill_job_2(process):
+def kill_task_2(process):
     os.killpg(os.getpgid(process.pid), signal.SIGKILL)
     process.wait()
 
@@ -34,7 +34,7 @@ print("Running Kill test with program", user_code)
 print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type, num_nodes, num_procs_per_node))
 
 
-# Create common components of launch line (currently all of it)
+# Create common components of submit line (currently all of it)
 
 # Am I in an aprun environment
 launcher = 'mpich'  # Includes mpich based - eg. intelmpi
@@ -54,7 +54,7 @@ elif launcher == 'aprun':
     mpicmd_numprocs = '-n'
     mpicmd_ppn = '-N'
 
-# As runline common to jobs currently - construct here.
+# As runline common to tasks currently - construct here.
 runline = []                             # E.g: 2 nodes run
 runline.append(mpicmd_launcher)          # mpirun
 runline.append(mpicmd_numprocs)          # mpirun -np
@@ -64,7 +64,7 @@ runline.append(str(num_procs_per_node))  # mpirun -np 8 --ppn 4
 runline.append(user_code)                # mpirun -np 8 --ppn 4 ./burn_time.x
 
 
-# print("Running killtest.py with job size {} procs".format(num_procs))
+# print("Running killtest.py with task size {} procs".format(num_procs))
 total_start_time = time.time()
 
 for run_num in range(2):
@@ -101,18 +101,18 @@ for run_num in range(2):
                 state = 'FAILED'
 
         if(time.time() - start_time > time_limit):
-            print('Killing job', run_num)
-            # kill_job(process, user_code)
+            print('Killing task', run_num)
+            # kill_task(process, user_code)
 
             if kill_type == 1:
-                kill_job_1(process)
+                kill_task_1(process)
             elif kill_type == 2:
-                kill_job_2(process)
+                kill_task_2(process)
             state = 'KILLED'
             finished = True
 
-    # Assert job killed
-    assert state == 'KILLED', "Job not registering as killed. State is: " + state
+    # Assert task killed
+    assert state == 'KILLED', "Task not registering as killed. State is: " + state
 
     # Checking if processes still running and producing output
     grace_period = 1    # Seconds after kill when first read last line
@@ -121,13 +121,13 @@ for run_num in range(2):
 
     time.sleep(grace_period)  # Give chance to kill
 
-    # Test if job is still producing output
+    # Test if task is still producing output
     with open(stdout, 'rb') as fh:
         line_on_kill = fh.readlines()[-1].decode().rstrip()
-    print("Last line after job kill:  {}".format(line_on_kill))
+    print("Last line after task kill:  {}".format(line_on_kill))
 
     if 'has finished' in line_on_kill:
-        raise Exception('Job may have already finished - test invalid')
+        raise Exception('Task may have already finished - test invalid')
 
     for recheck in range(1, num_rechecks+1):
         time.sleep(recheck_period)
@@ -136,11 +136,11 @@ for run_num in range(2):
         print("Last line after {} seconds: {}".format(recheck_period*recheck, lastline))
 
         if lastline != line_on_kill:
-            print("Job {} still producing output".format(run_num))
+            print("Task {} still producing output".format(run_num))
             # print("Last line check 1:", line_on_kill)
             # print("Last line check 2:", lastline)
             assert 0
 
 total_end_time = time.time()
 total_time = total_end_time - total_start_time
-print("\nJob kill test completed in {} seconds\n".format(total_time))
+print("\nTask kill test completed in {} seconds\n".format(total_time))

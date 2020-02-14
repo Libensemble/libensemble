@@ -16,7 +16,7 @@ from libensemble.message_numbers import \
     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
     STOP_TAG, UNSET_TAG, \
     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
-    JOB_FAILED, WORKER_DONE, \
+    TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
@@ -281,7 +281,7 @@ class Manager:
                                WORKER_KILL_ON_ERR,
                                WORKER_KILL_ON_TIMEOUT,
                                WORKER_KILL,
-                               JOB_FAILED,
+                               TASK_FAILED,
                                WORKER_DONE], \
             "Aborting: Unknown calculation status received. " \
             "Received status: {}".format(calc_status)

@@ -1,0 +1,17 @@
+execute: Directly run a program on the closest machine or node.
+
+launch: Initiate or execute some program or process.
+
+submit: Enqueue or indicate that one or more jobs or tasks needs to be launched.
+
+jobs: Generally overarching unit of work submitted, scheduled, or queued, then launched. May contain one or more tasks.
+
+tasks: Sub-processes or independent units of work. Many tasks make up a job.
+
+worker: Smallest unit? (How is this different from Balsam?)
+        - An additional process responsible for performing units of work, which may include submitting or executing tasks.
+
+
+
+Questions:
+- Are workers "launched"? Only in the TCP case?

@@ -2,14 +2,14 @@
 Using Balsam
 ============
 
-Note: To set up balsam - see instructions on setting up in balsam docs.
+Note: To set up Balsam - see instructions on setting up in Balsam docs.
 
 Currently this can be found in the ``docs/`` subdirectory of the ``hpc-edge-service``
 repository. The documentation is in Sphinx format.
 
 Theta:
-If the instructions are followed to set up a conda environment called balsam,
-then the script env_setup_theta.sh, under the balsam tests directory, can be sourced
+If the instructions are followed to set up a conda environment called Balsam,
+then the script env_setup_theta.sh, under the Balsam tests directory, can be sourced
 in future logins for theta. Or modified for other platforms. In some platforms
 you may need to only activate the Balsam conda environment.
 
@@ -17,11 +17,11 @@ you may need to only activate the Balsam conda environment.
 Quickstart - Balsam tests for libEnsemble
 -----------------------------------------
 
-Having set up balsam, the tests here can be run as follows.
+Having set up Balsam, the tests here can be run as follows.
 
 **i) Set up the tests**
 
-Go to balsam_tests directory run setup script:
+Go to ``balsam_tests`` directory run setup script:
 
 .. code-block:: bash
 
@@ -45,7 +45,7 @@ is recommended that 5 nodes are used for good concurrency.
 
 **iii) Output and reset**
 
-Output will go into test output directories inside the balsam_tests directory - they will be
+Output will go into test output directories inside the ``balsam_tests`` directory - they will be
 created on first run.
 
 To quickly reset the tests to run again use the reset (python) script:
@@ -63,11 +63,11 @@ General Usage
 1. Register applications
 ------------------------
 
-You must register with balsam the parent application (e.g., libEnsemble) and any
+You must register with Balsam the parent application (e.g., libEnsemble) and any
 user application (e.g., sim funcs/gen funcs).
 This only need be done once - unless, for example, the name of the application changes.
 
-Example (as used in tests) - run from within balsam_tests directory:
+Example (as used in tests) - run from within ``balsam_tests`` directory:
 
 Register tests:
 
@@ -86,7 +86,7 @@ Register user application that will be called inside tests:
     balsam app --name helloworld --exec ../../examples/sim_funcs/helloworld.py  --desc "Run helloworld user app"
 
 Note: The ``--exec arg`` is the location of the script or executable, and can be absolute
-or relative path (the balsam app command will convert it to a full path).
+or relative path (the ``balsam app`` command will convert it to a full path).
 
 To list apps:
 
@@ -118,8 +118,8 @@ Where WORK_DIR is set to output directory for job.
                --wall-min 1 --num-nodes 1 --ranks-per-node 4
                --url-out="local:$WORK_DIR" --stage-out-files="job_test_balsam_1__runjobs*"
 
-A working directory is set up when the job is run - by default under the balsam
-space e.g.,: hpc-edge-service/data/balsamjobs/ Under this directory a workflow
+A working directory is set up when the job is run - by default under the Balsam
+space e.g.,: ``hpc-edge-service/data/balsamjobs/`` Under this directory a workflow
 directory is created (e.g., libe_workflow in above case). From there, files to
 keep are staged out as specified by directory in --url-out (use local: for file
 directory). The files to stage out are specified by --stage-out-files.
@@ -132,7 +132,7 @@ In this case 4 ranks per node and 1 node are selected. This is for running on
 the parent application (e.g., libEnsemble). This does not constrain the running
 of sub-apps (e.g., helloworld), which will use the full allocation available.
 
-Note that the user jobs (launched in a libEnsemble job) are registered from
+Note that the user jobs (launched by libEnsemble) are registered from
 within the code. For staging out files, the output directory needs to somehow
 be accessible to the code. For the tests here, this is simply the directory of
 the test scripts (accessed via the __file__ variable in python). Search for
@@ -175,7 +175,7 @@ A script to reset the tests is available: reset_balsam_tests.py
 This script can be modified easily. However, to reset from the command line -
 without removing and re-adding jobs you can do the following.
 
-Note: After running tests the balsam job database will contain something like
+Note: After running tests the Balsam job database will contain something like
 the following (job_ids abbreviated for space):
 
 .. code-block:: bash
@@ -194,7 +194,7 @@ the following (job_ids abbreviated for space):
      183c5f01-a8df-... | outfile_for_sim_id_1_ranks3.txt | libe_workflow  | helloworld     | [01-30-2018 18:56:10 JOB_FINISHED]
     ..................
 
-To remove only the generated jobs you can just use a sub-string of the job name eg:
+To remove only the generated jobs you can just use a sub-string of the job name, for example:
 
 .. code-block:: bash
 

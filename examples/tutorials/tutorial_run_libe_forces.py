@@ -6,20 +6,20 @@ from tutorial_forces_simf import run_forces  # Sim func from current dir
 from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.utils import parse_args, add_unique_random_streams
-from libensemble.mpi_controller import MPIJobController
+from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 
-# Create job_controller and register sim to it
-jobctrl = MPIJobController(auto_resources=False)  # Use auto_resources=False to oversubscribe
+# Create executor and register sim to it
+exctr = MPIExecutor(auto_resources=False)  # Use auto_resources=False to oversubscribe
 
 # Create empty simulation input directory
 if not os.path.isdir('./sim'):
     os.mkdir('./sim')
 
-# Register simulation executable with job controller
+# Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), 'forces.x')
-jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # State the sim_f, its arguments, output, and parameters (and their sizes)
 sim_specs = {'sim_f': run_forces,         # sim_f, imported above

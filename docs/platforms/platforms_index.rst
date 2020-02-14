@@ -9,8 +9,8 @@ high-performance machines.
 Across allocated compute nodes, libEnsemble's flexible architecture lends itself
 best to two general modes of worker distributions. The first mode we refer
 to as **centralized** mode, where the libEnsemble manager and worker processes
-are grouped on one or more nodes but through the libEnsemble job-controller or a
-job-launch command can execute calculations on the other allocated nodes:
+are grouped on one or more nodes but through the libEnsemble executor or commands
+ like ``srun`` or ``aprun`` can execute calculations on the other allocated nodes:
 
 .. image:: ../images/centralized_Bb.png
     :alt: centralized
@@ -27,7 +27,7 @@ other workers directly on one or more allocated nodes:
 
 .. note::
 
-    Certain machines (e.g., Theta and Summit) that can submit MPI jobs only from
+    Certain machines (e.g., Theta and Summit) that can submit MPI applications only from
     specialized launch nodes do not support libEnsemble in distributed mode.
 
 Therefore, libEnsemble on Theta and Summit approaches centralized mode

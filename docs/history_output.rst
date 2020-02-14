@@ -175,7 +175,7 @@ detail here:
   worker and calculation directories and their contents from the output ensemble
   directory. Copied input is currently not removed if using ``'copy_input_to_parent'``
   and not ``'use_worker_dirs'`` If writing to local scratch spaces on compute nodes,
-  this data may be deleted anyway after the scheduled job finishes.
+  this data may be deleted anyway after the scheduled task finishes.
 
 See the regression test ``test_worker_sim_dirs.py`` for examples of many of
 these settings.

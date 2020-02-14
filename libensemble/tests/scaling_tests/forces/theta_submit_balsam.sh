@@ -10,7 +10,7 @@
 
 # To be run with central job management
 # - Manager and workers run on one node (or a dedicated set of nodes).
-# - Workers submit jobs to the rest of the nodes in the pool.
+# - Workers submit tasks to the rest of the nodes in the pool.
 
 # Name of calling script
 export EXE=run_libe_forces.py
@@ -74,7 +74,7 @@ SCRIPT_BASENAME=${EXE%.*}
 NUM_NODES=2
 RANKS_PER_NODE=64
 
-# All jobs
+# All tasks
 OUT_FILES_TO_RETURN="*.out *.txt *.log"
 
 balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
