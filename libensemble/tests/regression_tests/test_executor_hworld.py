@@ -49,7 +49,7 @@ else:
 if is_master:
     print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_tasks, logical_cores, mess_resources))
 
-sim_app = './my_simjob.x'
+sim_app = './my_simtask.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 

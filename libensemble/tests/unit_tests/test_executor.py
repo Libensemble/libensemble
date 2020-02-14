@@ -14,7 +14,7 @@ from libensemble.executors.executor import NOT_STARTED_STATES
 USE_BALSAM = False
 
 NCORES = 1
-sim_app = './my_simjob.x'
+sim_app = './my_simtask.x'
 
 
 def setup_module(module):
@@ -42,8 +42,8 @@ def build_simfunc():
     import subprocess
 
     # Build simfunc
-    # buildstring='mpif90 -o my_simjob.x my_simjob.f90' # On cray need to use ftn
-    buildstring = 'mpicc -o my_simjob.x simdir/my_simjob.c'
+    # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
+    buildstring = 'mpicc -o my_simtask.x simdir/my_simtask.c'
     # subprocess.run(buildstring.split(), check=True) # Python3.5+
     subprocess.check_call(buildstring.split())
 
@@ -51,7 +51,7 @@ def build_simfunc():
 # This would typically be in the user calling script
 # Cannot test auto_resources here - as no workers set up.
 def setup_executor():
-    # sim_app = './my_simjob.x'
+    # sim_app = './my_simtask.x'
     if not os.path.isfile(sim_app):
         build_simfunc()
 
@@ -66,7 +66,7 @@ def setup_executor():
 
 
 def setup_executor_noreg():
-    # sim_app = './my_simjob.x'
+    # sim_app = './my_simtask.x'
     if not os.path.isfile(sim_app):
         build_simfunc()
 
@@ -81,7 +81,7 @@ def setup_executor_noreg():
 
 
 def setup_executor_noapp():
-    # sim_app = './my_simjob.x'
+    # sim_app = './my_simtask.x'
     if not os.path.isfile(sim_app):
         build_simfunc()
 
@@ -476,7 +476,7 @@ def test_kill_task_with_no_submit():
     try:
         exctr.kill(task1)
     except ExecutorException as e:
-        assert e.args[0][:49] == 'Attempting to kill task task_my_simjob.x.simfunc_'
+        assert e.args[0][:49] == 'Attempting to kill task task_my_simtask.x.simfunc_'
         assert e.args[0][51:] == ' that has no process ID - check tasks been launched'
     else:
         assert 0
@@ -494,7 +494,7 @@ def test_poll_task_with_no_submit():
     try:
         task1.poll()
     except ExecutorException as e:
-        assert e.args[0][:37] == 'Polled task task_my_simjob.x.simfunc_'
+        assert e.args[0][:37] == 'Polled task task_my_simtask.x.simfunc_'
         assert e.args[0][39:] == ' has no process ID - check tasks been launched'
     else:
         assert 0

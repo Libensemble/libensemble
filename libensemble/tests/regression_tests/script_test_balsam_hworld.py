@@ -20,7 +20,7 @@ mpi4py.rc.recv_mprobe = False  # Disable matching probes
 def build_simfunc():
     import subprocess
     print('Balsam job launched in: {}'.format(os.getcwd()))
-    buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
+    buildstring = 'mpicc -o my_simtask.x libensemble/tests/unit_tests/simdir/my_simtask.c'
     subprocess.check_call(buildstring.split())
 
 
@@ -35,7 +35,7 @@ is_master = MPI.COMM_WORLD.Get_rank() == 0
 
 cores_per_task = 1
 
-sim_app = './my_simjob.x'
+sim_app = './my_simtask.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 

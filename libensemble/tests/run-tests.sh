@@ -135,8 +135,8 @@ cleanup() {
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
     filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
-    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
-    filelist=(task_my_simjob.x*.out);  [ -e ${filelist[0]} ] && rm task_my_simjob.x*.out
+    filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
+    filelist=(task_my_simtask.x*.out);  [ -e ${filelist[0]} ] && rm task_my_simtask.x*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
     filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile
@@ -152,10 +152,10 @@ cleanup() {
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
     filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
-    filelist=(task_my_simjob.x.*.out); [ -e ${filelist[0]} ] && rm task_my_simjob.x.*.out
+    filelist=(task_my_simtask.x.*.out); [ -e ${filelist[0]} ] && rm task_my_simtask.x.*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
-    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
+    filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
     filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
   cd $THISDIR
