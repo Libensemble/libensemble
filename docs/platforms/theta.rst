@@ -61,7 +61,7 @@ computations on systems such as Theta. Balsam can stage in tasks to a database h
 on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
 can also be submitted to Balsam for centralized execution on a compute-node.
 libEnsemble can then submit tasks to Balsam through libEnsemble's Balsam
-job-controller for execution on additional allocated nodes.
+executor for execution on additional allocated nodes.
 
 Load the Balsam module with ::
 
@@ -95,14 +95,14 @@ to execute on the MOM nodes.
 On Theta, libEnsemble can be launched to two locations:
 
     1. **A MOM Node**: All of libEnsemble's manager and worker processes
-    run on a front-end MOM node. libEnsemble's MPI job-controller takes
+    run on a front-end MOM node. libEnsemble's MPI executor takes
     responsibility for direct user-application submission to allocated compute nodes.
     libEnsemble must be configured to run with *multiprocessing* communications,
     since mpi4py isn't configured for use on the MOM nodes.
 
     2. **The Compute Nodes**: libEnsemble is submitted to Balsam, and all manager
     and worker processes are tasked to a back-end compute node. libEnsemble's
-    Balsam job controller interfaces with Balsam running on a MOM node for dynamic
+    Balsam executor interfaces with Balsam running on a MOM node for dynamic
     user-application submission to the compute nodes.
 
     .. image:: ../images/combined_ThS.png
@@ -112,12 +112,12 @@ On Theta, libEnsemble can be launched to two locations:
 
 When considering on which nodes to run libEnsemble, consider whether your user
 functions execute computationally expensive code or code built for specific
-architectures. Recall also that only the MOM nodes can launch MPI jobs.
+architectures. Recall also that only the MOM nodes can launch MPI applications.
 
 Although libEnsemble workers on the MOM nodes can technically submit
 user applications to the compute nodes directly via ``aprun`` within user functions, it
-is highly recommended that the aforementioned :doc:`job_controller<../job_controller/overview>`
-interface be used instead. The libEnsemble job controller features advantages such as
+is highly recommended that the aforementioned :doc:`executor<../executor/overview>`
+interface be used instead. The libEnsemble executor features advantages such as
 automatic resource detection, portability, launch failure resilience, and ease of use.
 
 Theta features one default production queue, ``default``, and two debug queues,
@@ -129,7 +129,7 @@ Theta features one default production queue, ``default``, and two debug queues,
 Module and environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In order to ensure proper functioning of libEnsemble, including the ability to kill running jobs,
+In order to ensure proper functioning of libEnsemble, including the ability to kill running tasks,
 the following environment variable should be set::
 
     export PMI_NO_FORK=1
@@ -148,7 +148,7 @@ to the following::
 
     $ qsub -A [project] -n 8 -q debug-cache-quad -t 60 -I
 
-This will place you on a MOM node. Then, to launch MPI jobs to the compute
+This will place you on a MOM node. Then, to launch jobs to the compute
 nodes, use ``aprun`` where you would use ``mpirun``.
 
 .. note::
@@ -204,7 +204,7 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
     # Required for python kills on Theta
     export PMI_NO_FORK=1
 
-    # Unload Theta modules that may interfere with job monitoring/kills
+    # Unload Theta modules that may interfere with task monitoring/kills
     module unload trackdeps
     module unload darshan
     module unload xalt
@@ -236,7 +236,7 @@ Here is an example Balsam submission script:
     # Number of workers.
     export NUM_WORKERS=128
 
-    # Wall-clock for libE job (supplied to Balsam)
+    # Wall-clock for entire libE run (supplied to Balsam)
     export LIBE_WALLCLOCK=45
 
     # Name of working directory where Balsam places running jobs/output
@@ -258,7 +258,7 @@ Here is an example Balsam submission script:
     # Required for python kills on Theta
     export PMI_NO_FORK=1
 
-    # Unload Theta modules that may interfere with job monitoring/kills
+    # Unload Theta modules that may interfere with task monitoring/kills
     module unload trackdeps
     module unload darshan
     module unload xalt

@@ -21,7 +21,7 @@ from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
-from libensemble.controller import JobController
+from libensemble.executors.executor import Executor
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 import cProfile
@@ -30,7 +30,7 @@ import pstats
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
-job_timing = False
+task_timing = False
 
 
 def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
@@ -140,7 +140,7 @@ class Worker:
         self.loc_stack = None
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
-        Worker._set_job_controller(self.workerID, self.comm)
+        Worker._set_executor(self.workerID, self.comm)
 
     @staticmethod
     def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
@@ -222,14 +222,14 @@ class Worker:
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
-    def _set_job_controller(workerID, comm):
-        "Optional - sets worker ID in the job controller, return if set"
-        jobctl = JobController.controller
-        if isinstance(jobctl, JobController):
-            jobctl.set_worker_info(comm, workerID)
+    def _set_executor(workerID, comm):
+        "Optional - sets worker ID in the executor, return if set"
+        exctr = Executor.executor
+        if isinstance(exctr, Executor):
+            exctr.set_worker_info(comm, workerID)
             return True
         else:
-            logger.info("No job_controller set on worker {}".format(workerID))
+            logger.info("No executor set on worker {}".format(workerID))
             return False
 
     @staticmethod
@@ -345,14 +345,14 @@ class Worker:
             raise
         finally:
             # This was meant to be handled by calc_stats module.
-            if job_timing and JobController.controller.list_of_jobs:
+            if task_timing and Executor.executor.list_of_tasks:
                 # Initially supporting one per calc. One line output.
-                job = JobController.controller.list_of_jobs[-1]
+                task = Executor.executor.list_of_tasks[-1]
                 calc_msg = "Calc {:5d}: {} {} {} Status: {}".\
                     format(calc_id,
                            calc_type_strings[calc_type],
                            timer,
-                           job.timer,
+                           task.timer,
                            calc_status_strings.get(calc_status, "Not set"))
             else:
                 calc_msg = "Calc {:5d}: {} {} Status: {}".\

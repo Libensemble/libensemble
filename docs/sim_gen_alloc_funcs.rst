@@ -72,7 +72,7 @@ Returns:
   :doc:`(example)<data_structures/persis_info>`
 
   **calc_status**: :obj:`int`, optional
-  Provides a job status to the manager and the libE_stats.txt file
+  Provides a task status to the manager and the libE_stats.txt file
   :doc:`(example)<data_structures/calc_status>`
 
 gen_f API
@@ -109,7 +109,7 @@ Returns:
   :doc:`(example)<data_structures/persis_info>`
 
   **calc_status**: :obj:`int`, optional
-  Provides a job status to the manager and the libE_stats.txt file
+  Provides a task status to the manager and the libE_stats.txt file
   :doc:`(example)<data_structures/calc_status>`
 
 alloc_f API
@@ -152,4 +152,4 @@ Returns:
   :doc:`(example)<data_structures/persis_info>`
 
   **stop_flag**: :obj:`int`, optional
-  Set to 1 if job should stop
+  Set to 1 if task should stop

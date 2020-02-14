@@ -70,18 +70,19 @@ install:
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   - pip install flake8       # Conda installs downgrade pytest on python3.4
   - pip install DFO-LS
+  - pip install scikit-build packaging Tasmanian --user
   - pip install coverage==4.5.4
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout
   - pip install mock
   - pip install coveralls
-  - python conda/find_mpi.py # Locate compilers. Confirm MPI library
+  - python install/find_mpi.py # Locate compilers. Confirm MPI library
   - mpiexec --version        # Show MPI library details
   - pip install -e .         # Installing libEnsemble
   - wget https://github.com/balsam-alcf/balsam/archive/0.3.5.1.tar.gz
   - mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
-  - python conda/install-balsam.py
+  - python install/install-balsam.py
 
 before_script:
   - flake8 libensemble

@@ -1,5 +1,5 @@
 import os
-from libensemble.env_resources import EnvResources
+from libensemble.resources.env_resources import EnvResources
 
 
 def setup_standalone_run():

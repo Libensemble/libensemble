@@ -1,7 +1,7 @@
 Kill tests
 ==========
 
-This is to test the killing of MPI jobs. There are two tests and different kill
+This is to test the killing of MPI tasks. There are two tests and different kill
 methods which can be selected on the command line. The aim is that kills in
 libEnsemble will be automatically configured to work correctly based on system
 detection. However, this test will show what type of kill works for a given
@@ -13,7 +13,7 @@ The default test (sleep_and_print), should automatically test if all processes
 of an MPI job are correctly killed and also that a second job can be launched
 and killed.
 
-Launching MPI jobs which write from each MPI task, at regular intervals, to an
+Launching MPI tasks which write from each MPI task, at regular intervals, to an
 output file (see sleep_and_print.c).
 
 This test launches a job, then kills after a few seconds, and then monitors

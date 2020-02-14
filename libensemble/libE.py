@@ -31,7 +31,7 @@ from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
-from libensemble.controller import JobController
+from libensemble.executors.executor import Executor
 from libensemble.tools import check_inputs, _USER_SIM_ID_WARNING
 
 logger = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     exit_flag: :obj:`int`
 
-        Flag containing final job status
+        Flag containing final task status
 
         .. code-block::
 
@@ -196,11 +196,11 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     is_master = (rank == 0)
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    jobctl = JobController.controller
-    if jobctl is not None:
+    exctr = Executor.executor
+    if exctr is not None:
         local_host = socket.gethostname()
         libE_nodes = set(comm.allgather(local_host))
-        jobctl.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+        exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
 
     # Run manager or worker code, depending
     if is_master:
@@ -273,10 +273,10 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     nworkers = libE_specs['nworkers']
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    jobctl = JobController.controller
-    if jobctl is not None:
+    exctr = Executor.executor
+    if exctr is not None:
         local_host = socket.gethostname()
-        jobctl.add_comm_info(libE_nodes=local_host, serial_setup=True)
+        exctr.add_comm_info(libE_nodes=local_host, serial_setup=True)
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -325,12 +325,12 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
 
     is_worker = True if 'workerID' in libE_specs else False
 
-    jobctl = JobController.controller
-    if jobctl is not None:
+    exctr = Executor.executor
+    if exctr is not None:
         local_host = socket.gethostname()
         # TCP does not currently support auto_resources but when does, assume
         # each TCP worker is in a different resource pool (only knowing local_host)
-        jobctl.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)
+        exctr.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)
 
     if 'workerID' in libE_specs:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)

@@ -1,7 +1,7 @@
 Kill tests
 ==========
 
-Launching MPI jobs and observing processes with top on each compute node:
+Launching MPI tasks and observing processes with top on each compute node:
 Note: This is NOT an automated test.
 
 Instructions
@@ -16,7 +16,7 @@ where kill_type currently is 1 or 2. [1 is the original kill - 2 is using group 
 Then observe "top" on target nodes for burn_time.x processes.
 
 The processes should appear, then disappear after first job killed, then appear and disappear after second job killed.
-Also output files for jobs (e.g. out_0.txt out_1.txt) should be created but empty (as job killed before output)
+Also output files for tasks (e.g. out_0.txt out_1.txt) should be created but empty (as job killed before output)
 If output files contain anything (e.g., "Sum =") - they were not killed before finishing.
 
 To kill remaining processes from command line use::

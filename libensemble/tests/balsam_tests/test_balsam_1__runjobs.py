@@ -13,7 +13,7 @@ def poll_until_state(job, state, timeout_sec=60.0, delay=2.0):
         job.refresh_from_db()
         if job.state == state:
             return True
-    raise RuntimeError("Job %s failed to reach state %s in %.1f seconds" % (job.cute_id, state, timeout_sec))
+    raise RuntimeError("Task %s failed to reach state %s in %.1f seconds" % (job.cute_id, state, timeout_sec))
 
 
 myrank = MPI.COMM_WORLD.Get_rank()
@@ -54,7 +54,7 @@ for sim_id in range(steps):
     if success:
         print("Completed job: %s rank=%d  time=%f" % (jobname, myrank, time.time()-start))
     else:
-        print("Job not completed: %s rank=%d  time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
+        print("Task not completed: %s rank=%d  time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
 
 end = time.time()
 print("Done: rank=%d  time=%f" % (myrank, end-start))

@@ -16,13 +16,12 @@ def func_wrapper(H, persis_info, sim_specs, libE_info):
     """
 
     batch = len(H['x'])
-    H_o = np.zeros(batch, dtype=sim_specs['out'])
+    H0 = np.zeros(batch, dtype=sim_specs['out'])
 
     for i, x in enumerate(H['x']):
+        H0['f_val'][i] = noisy_function(x)[H['f_ind'][i]]
 
-        H_o['f'][i] = noisy_function(x)
-
-    return H_o, persis_info
+    return H0, persis_info
 
 
 def noisy_function(x):

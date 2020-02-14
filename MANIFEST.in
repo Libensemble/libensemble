@@ -3,7 +3,7 @@ include *.cfg
 include *.rst
 include LICENSE
 include CONTRIBUTING
-include conda/*
+include install/*
 
 recursive-include libensemble *
 recursive-include examples *

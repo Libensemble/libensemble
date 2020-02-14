@@ -1,7 +1,7 @@
 import os
 import socket
-from libensemble.env_resources import EnvResources
-from libensemble.resources import Resources, WorkerResources, ResourcesException
+from libensemble.resources.env_resources import EnvResources
+from libensemble.resources.resources import Resources, WorkerResources, ResourcesException
 
 
 def setup_standalone_run():

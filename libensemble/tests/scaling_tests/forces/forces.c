@@ -318,7 +318,7 @@ int main(int argc, char **argv) {
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
-    double kill_rate = 0; // default proportion of jobs to kill
+    double kill_rate = 0; // default proportion of tasks to kill
 
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
@@ -345,7 +345,7 @@ int main(int argc, char **argv) {
     }
 
     if (argc >=5) {
-        kill_rate = atof(argv[4]); // Proportion of jobs to kill
+        kill_rate = atof(argv[4]); // Proportion of tasks to kill
         step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     }
 

@@ -16,7 +16,7 @@ from libensemble.message_numbers import \
     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
     STOP_TAG, UNSET_TAG, \
     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
-    JOB_FAILED, WORKER_DONE, \
+    TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
@@ -281,7 +281,7 @@ class Manager:
                                WORKER_KILL_ON_ERR,
                                WORKER_KILL_ON_TIMEOUT,
                                WORKER_KILL,
-                               JOB_FAILED,
+                               TASK_FAILED,
                                WORKER_DONE], \
             "Aborting: Unknown calculation status received. " \
             "Received status: {}".format(calc_status)
@@ -322,8 +322,8 @@ class Manager:
                 self.hist.update_history_f(D_recv)
             if calc_type == EVAL_GEN_TAG:
                 self.hist.update_history_x_in(w, D_recv['calc_out'])
-                assert len(D_recv['calc_out']) or np.any(self.W['active']), \
-                    "Gen must return work when is is the only thing active."
+                assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
+                    "Gen must return work when is is the only thing active and not persistent."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                 # Now a waiting, persistent worker
                 self.W[w-1]['persis_state'] = calc_type

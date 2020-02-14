@@ -10,7 +10,7 @@
 
 # To be run with central job management
 # - Manager and workers run on launch node.
-# - Workers submit jobs to the nodes in the job available.
+# - Workers submit tasks to the nodes in the job available.
 
 # Name of calling script-
 export EXE=run_libe_forces.py

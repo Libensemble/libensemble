@@ -6,9 +6,9 @@ from matplotlib import pyplot as plt
 
 fig, ax = plt.subplots()
 
-plt.title('Balsam: Jobs in waiting state v Date/Time')
+plt.title('Balsam: Tasks in waiting state v Date/Time')
 plt.xlabel('Time of Day (H:M)')
-plt.ylabel('Num. Jobs Waiting')
+plt.ylabel('Num. Tasks Waiting')
 
 times, waiting = models.job_waiting_report()
 plt.step(times, waiting, where='post')
