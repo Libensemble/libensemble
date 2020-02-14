@@ -46,7 +46,7 @@ then ``python`` and ``pip`` will work in place of ``python3`` and ``pip3``.
 .. _Python: https://www.python.org/
 
 For this tutorial, you need NumPy_ to perform calculations and (optionally)
-Matplotlib_ to visualize your results. Install libEnsemble and these other 
+Matplotlib_ to visualize your results. Install libEnsemble and these other
 libraries with
 
 .. code-block:: bash
