@@ -77,13 +77,22 @@ Although many of these terms seem straight-forward, defining such terms assists
 with keeping confusion to a minimum when communicating about libEnsemble and
 it's capabilities.
 
-* **Manager**: Single process directed to facilitate communication between other processes. Within libEnsemble, the *Manager* process configures and passes work to and from the workers.
+* **Manager**: Single libEnsemble process facilitating communication between
+  other processes. Within libEnsemble, the *Manager* process configures and
+  passes work to and from the workers.
 
-* **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be launched. When using the libEnsemble executor, a *submitted* task is executed immediately or queued for execution.
+* **Worker**: libEnsemble processes responsible for performing units of work,
+  which may include submitting or executing tasks. *Worker* processes run
+  generation and simulation routines, submit additional tasks for execution,
+  and return results to the manager.
 
-* **Tasks**: Sub-processes or independent units of work. Workers perform *tasks* as directed by the manager; tasks may include submitting external programs for execution using the executor.
+* **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be
+  launched. When using the libEnsemble executor, a *submitted* task is executed
+  immediately or queued for execution.
 
-* **Worker**: An additional process responsible for performing units of work, which may include submitting or executing tasks. *Worker* processes run generation and simulation routines, submit additional tasks for execution, and pass results to the manager.
+* **Tasks**: Sub-processes or independent units of work. Workers perform
+  *tasks* as directed by the manager; tasks may include submitting external
+  programs for execution using the executor.
 
 .. * **Execute / Run**: Start a program on a machine or node.
 
