@@ -166,7 +166,7 @@ Basic Usage
 ~~~~~~~~~~~
 
 The examples directory contains example libEnsemble calling scripts, simulation
-functions, generation functions, allocation functions, and job submission scripts.
+functions, generation functions, allocation functions, and libEnsemble submission scripts.
 
 The default manager/worker communications mode is MPI. The user script is
 launched as ::

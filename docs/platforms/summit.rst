@@ -56,7 +56,7 @@ important command is ``bsub`` for submitting batch scripts from the login nodes
 to execute on the launch nodes.
 
 It is recommended to run libEnsemble on the launch nodes (assuming workers are
-submitting MPI jobs) using the ``local`` communications mode (multiprocessing).
+submitting MPI applications) using the ``local`` communications mode (multiprocessing).
 In the future, Balsam may be used to run libEnsemble on compute nodes.
 
 Interactive Runs

@@ -12,7 +12,7 @@ file. They extract and plot information from that file.
   (with one-second sampling). Shows number of workers running user sim or gen
   functions over time.
 
-* ``plot_libe_runs_util_v_time.py``: Extracts launched job utilization v time
+* ``plot_libe_runs_util_v_time.py``: Extracts launched task utilization v time
   plot (with one second sampling). Shows number of workers with active tasks,
   launched via the executor, over time.
 

@@ -20,7 +20,7 @@ Example of ``calc_status`` used along with :ref:`executor<executor_index>` in si
   :linenos:
   :emphasize-lines: 4,16,19,22,30
 
-    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
+    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
     task = exctr.submit(calc_type='sim', num_procs=cores, wait_on_run=True)
     calc_status = UNSET_TAG
@@ -34,16 +34,16 @@ Example of ``calc_status`` used along with :ref:`executor<executor_index>` in si
 
     if task.finished:
         if task.state == 'FINISHED':
-            print("Job {} completed".format(task.name))
+            print("Task {} completed".format(task.name))
             calc_status = WORKER_DONE
         elif task.state == 'FAILED':
-            print("Warning: Job {} failed: Error code {}".format(task.name, task.errcode))
-            calc_status = JOB_FAILED
+            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+            calc_status = TASK_FAILED
         elif task.state == 'USER_KILLED':
-            print("Warning: Job {} has been killed".format(task.name))
+            print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
-            print("Warning: Job {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     outspecs = sim_specs['out']
     output = np.zeros(1, dtype=outspecs)

@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
+from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 MAX_SEED = 32767
 
@@ -79,7 +79,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
                 print("Warning: Task complete but marked bad (kill flag in forces.stat)")
         elif task.state == 'FAILED':
             print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
-            calc_status = JOB_FAILED
+            calc_status = TASK_FAILED
         elif task.state == 'USER_KILLED':
             print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL

@@ -13,7 +13,7 @@ It is possible to use ``subprocess`` calls from Python to issue
 commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
 hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
-allow running jobs to submit additional jobs from the compute nodes. On these
+allow libEnsemble to submit additional tasks from the compute nodes. On these
 systems a proxy launch mechanism (such as Balsam) is required.
 libEnsemble's executor was developed to directly address such issues.
 
@@ -151,7 +151,7 @@ Create another Python file named ``forces_simf.py`` containing:
     import numpy as np
 
     from libensemble.executors.executor import Executor
-    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
+    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
     MAX_SEED = 32767
 
