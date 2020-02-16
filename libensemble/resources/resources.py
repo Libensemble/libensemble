@@ -39,7 +39,10 @@ class Resources:
     :ivar WorkerResources worker_resources: An object that can contain worker specific resources
     """
 
-    def __init__(self, top_level_dir=None, central_mode=False, launcher=None,
+    def __init__(self, top_level_dir=None,
+                 central_mode=False,
+                 allow_oversubscribe=False,
+                 launcher=None,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
@@ -61,6 +64,11 @@ class Resources:
             Central mode means libE processes (manager and workers) are grouped together and
             do not share nodes with applications. Distributed mode means Workers share nodes
             with applications.
+
+        allow_oversubscribe: boolean, optional
+            If false, then resources will raise an error if task process
+            counts exceed the CPUs available to the worker, as detected by auto_resources. Larger node counts will always raise an error.
+            When auto_resources is off, this argument is ignored.
 
         launcher: String, optional
             The name of the job launcher, such as mpirun or aprun. This may be used to obtain
@@ -89,6 +97,7 @@ class Resources:
         self.central_mode = central_mode
         if self.central_mode:
             logger.debug('Running in central mode')
+        self.allow_oversubscribe = allow_oversubscribe
 
         self.env_resources = EnvResources(nodelist_env_slurm=nodelist_env_slurm,
                                           nodelist_env_cobalt=nodelist_env_cobalt,

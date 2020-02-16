@@ -95,26 +95,26 @@ class MPIResources(Resources):
         num_procs, num_nodes, ranks_per_node = \
             MPIResources.task_partition(num_procs, num_nodes, ranks_per_node)
 
-        # Could just downgrade to those available with warning - for now error
         rassert(num_nodes <= local_node_count,
                 "Not enough nodes to honor arguments. "
                 "Requested {}. Only {} available".
                 format(num_nodes, local_node_count))
 
-        rassert(ranks_per_node <= cores_avail_per_node,
-                "Not enough processors on a node to honor arguments. "
-                "Requested {}. Only {} available".
-                format(ranks_per_node, cores_avail_per_node))
+        if not self.allow_oversubscribe:
+            rassert(ranks_per_node <= cores_avail_per_node,
+                    "Not enough processors on a node to honor arguments. "
+                    "Requested {}. Only {} available".
+                    format(ranks_per_node, cores_avail_per_node))
 
-        rassert(ranks_per_node <= cores_avail_per_node_per_worker,
-                "Not enough processors per worker to honor arguments. "
-                "Requested {}. Only {} available".
-                format(ranks_per_node, cores_avail_per_node_per_worker))
+            rassert(ranks_per_node <= cores_avail_per_node_per_worker,
+                    "Not enough processors per worker to honor arguments. "
+                    "Requested {}. Only {} available".
+                    format(ranks_per_node, cores_avail_per_node_per_worker))
 
-        rassert(num_procs <= (cores_avail_per_node * local_node_count),
-                "Not enough procs to honor arguments. "
-                "Requested {}. Only {} available".
-                format(num_procs, cores_avail_per_node*local_node_count))
+            rassert(num_procs <= (cores_avail_per_node * local_node_count),
+                    "Not enough procs to honor arguments. "
+                    "Requested {}. Only {} available".
+                    format(num_procs, cores_avail_per_node*local_node_count))
 
         if num_nodes < local_node_count:
             logger.warning("User constraints mean fewer nodes being used "
