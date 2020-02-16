@@ -26,6 +26,11 @@ class MPIResources(Resources):
         """Takes provided nprocs/nodes/ranks and outputs working
         configuration of procs/nodes/ranks or error"""
 
+        # Convert to int if string is provided
+        num_procs = int(num_procs) if num_procs else None
+        num_nodes = int(num_nodes) if num_nodes else None
+        ranks_per_node = int(ranks_per_node) if ranks_per_node else None
+
         # If machinefile is provided - ignore everything else
         if machinefile:
             if num_procs or num_nodes or ranks_per_node:
