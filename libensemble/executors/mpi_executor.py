@@ -165,7 +165,7 @@ class MPIExecutor(Executor):
                 'machinefile': machinefile,
                 'hostlist': hostlist}
 
-    def submit(self, calc_type, prefix=None, num_procs=None, num_nodes=None,
+    def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, test=False, wait_on_run=False):
@@ -178,9 +178,6 @@ class MPIExecutor(Executor):
 
         calc_type: String
             The calculation type: 'sim' or 'gen'
-
-        prefix: String
-            A prefix inserted in launch line before the application name.
 
         num_procs: int, optional
             The total number of MPI tasks on which to submit the task
@@ -235,7 +232,7 @@ class MPIExecutor(Executor):
 
         app = self.default_app(calc_type)
         default_workdir = os.getcwd()
-        task = Task(prefix, app, app_args, default_workdir, stdout, stderr, self.workerID)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this "
@@ -245,8 +242,6 @@ class MPIExecutor(Executor):
                                         ranks_per_node,machinefile,
                                         hyperthreads)
         runline = launcher.form_command(self.mpi_command, mpi_specs)
-        if task.prefix is not None:
-            runline.append(task.prefix)
         runline.extend(task.app.full_path.split())
         if task.app_args is not None:
             runline.extend(task.app_args.split())
