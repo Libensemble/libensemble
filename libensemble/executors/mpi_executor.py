@@ -128,8 +128,9 @@ class MPIExecutor(Executor):
         if serial_setup:
             self._serial_setup()
 
-    def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
-                       machinefile, hyperthreads):
+    def _get_mpi_specs(self, task, num_procs, num_nodes,
+                       ranks_per_node, machinefile,
+                       hyperthreads):
         "Form the mpi_specs dictionary."
         hostlist = None
         if machinefile is None and self.auto_resources:
@@ -146,6 +147,7 @@ class MPIExecutor(Executor):
                 machinefile = "machinefile_autogen"
                 if self.workerID is not None:
                     machinefile += "_for_worker_{}".format(self.workerID)
+                machinefile += "_task_{}".format(task.id)
                 mfile_created, num_procs, num_nodes, ranks_per_node = \
                     self.resources.create_machinefile(
                         machinefile, num_procs, num_nodes,
@@ -239,8 +241,9 @@ class MPIExecutor(Executor):
             logger.warning("stage_inout option ignored in this "
                            "executor - runs in-place")
 
-        mpi_specs = self._get_mpi_specs(num_procs, num_nodes, ranks_per_node,
-                                        machinefile, hyperthreads)
+        mpi_specs = self._get_mpi_specs(task, num_procs, num_nodes,
+                                        ranks_per_node,machinefile,
+                                        hyperthreads)
         runline = launcher.form_command(self.mpi_command, mpi_specs)
         if task.prefix is not None:
             runline.append(task.prefix)

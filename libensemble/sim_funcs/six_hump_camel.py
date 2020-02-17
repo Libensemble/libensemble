@@ -42,7 +42,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
                 b = sim_specs['user']['nodelist'][rank] + '\n'
                 f.write(b*H['ranks_per_node'][i])
 
-        out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + '_workers='+'_'.join([str(r) for r in ranks_involved])
+        out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + '_workerteam='+'_'.join([str(r) for r in ranks_involved])
 
         outfile = out_name + ".out"
         errfile = out_name + ".err"
