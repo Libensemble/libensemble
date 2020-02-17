@@ -247,7 +247,7 @@ class MPIExecutor(Executor):
         runline = launcher.form_command(self.mpi_command, mpi_specs)
         if task.prefix is not None:
             runline.append(task.prefix)
-        runline.append(task.app.full_path)
+        runline.extend(task.app.full_path.split())
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 

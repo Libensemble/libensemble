@@ -10,6 +10,7 @@ also provided to access and interrogate files in the ``task``'s working director
 """
 
 import os
+import sys
 import logging
 import itertools
 import time
@@ -62,6 +63,9 @@ class Application:
         self.full_path = full_path
         self.calc_type = calc_type
         self.calc_dir, self.exe = os.path.split(full_path)
+
+        if self.exe.endswith('.py'):
+            self.full_path = ' '.join((sys.executable, full_path))
 
         # Use this name to delete tasks in database - see del_apps(), del_tasks()
         self.name = self.exe + '.' + self.calc_type + 'func'

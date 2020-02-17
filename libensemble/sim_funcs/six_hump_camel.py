@@ -53,7 +53,8 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         # subprocess.call(call_str, stdout=open(outfile_name, 'w'), shell=False)
 
         cores = str(H[i]['ranks_per_node']*len(ranks_involved))
-        task = exctr.submit(calc_type='sim', prefix='python', num_procs=cores, stdout=outfile, stderr=errfile, hyperthreads=True)
+        #task = exctr.submit(calc_type='sim', prefix='python', num_procs=cores, stdout=outfile, stderr=errfile, hyperthreads=True)
+        task = exctr.submit(calc_type='sim', num_procs=cores, stdout=outfile, stderr=errfile, hyperthreads=True)
 
         while(not task.finished):
             time.sleep(0.2)
