@@ -12,10 +12,9 @@
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 
-import sys
 from mpi4py import MPI
 import numpy as np
-import argparse
+import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -23,25 +22,24 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_r
 from libensemble.gen_funcs.sampling import uniform_random_sample_with_different_nodes_and_ranks as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-if libE_specs['comms'] != 'mpi':
-    # Can't do this one with processes either?  Wants a machine file.
-    sys.exit("This test only runs with MPI -- aborting...")
-
-# Parse arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('-m', '--mfile', action="store", dest='machinefile',
-                    help='A machine file containing ordered list of nodes required for each libE rank')
-args = parser.parse_args()
+libE_specs['sim_input_dir'] = './sim'
 
 try:
     libE_machinefile = open(args.machinefile).read().splitlines()
-except TypeError:
+except (TypeError, NameError):
     if is_master:
         print("WARNING: No machine file provided - defaulting to local node")
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
+
+sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
+exctr = MPIExecutor()  # Use auto_resources=False to oversubscribe
+exctr.register_calc(full_path=sim_app, calc_type='sim')
+
+# print('sim_app is {}'.format(sim_app))
 
 n = 2
 sim_specs = {'sim_f': sim_f,
@@ -68,11 +66,11 @@ gen_specs = {'gen_f': gen_f,
 alloc_specs = {'alloc_f': give_sim_work_first,
                'out': [('allocated', bool)],
                'user': {'batch_mode': False,
-                        'num_active_gens': 2}}
+                        'num_active_gens': 1}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
