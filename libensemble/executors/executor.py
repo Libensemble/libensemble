@@ -76,7 +76,7 @@ class Task:
 
     newid = itertools.count()
 
-    def __init__(self, app=None, app_args=None, workdir=None,
+    def __init__(self, prefix=None, app=None, app_args=None, workdir=None,
                  stdout=None, stderr=None, workerid=None):
         """Instantiate a new Task instance.
 
@@ -90,6 +90,7 @@ class Task:
         self.timer = TaskTimer()
 
         # Run attributes
+        self.prefix = prefix
         self.app = app
         self.app_args = app_args
         self.workerID = workerid
