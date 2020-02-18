@@ -27,7 +27,7 @@ class MPIExecutor(Executor):
 
     def __init__(self, auto_resources=True,
                  allow_oversubscribe=True,
-                 central_mode=True,
+                 central_mode=False,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
