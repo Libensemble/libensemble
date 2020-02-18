@@ -22,7 +22,7 @@ import traceback
 import numpy as np
 import pickle  # Only used when saving output on error
 
-import libensemble.utils.launcher as launcher
+from libensemble.utils import launcher
 from libensemble.utils.timer import Timer
 from libensemble.history import History
 from libensemble.libE_manager import manager_main, ManagerException
@@ -32,7 +32,8 @@ from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
-from libensemble.tools import check_inputs, _USER_SIM_ID_WARNING
+from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.tools.check_inputs import check_inputs
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
