@@ -1,4 +1,4 @@
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):

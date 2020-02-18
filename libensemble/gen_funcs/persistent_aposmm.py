@@ -22,8 +22,8 @@ import nlopt
 import dfols
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
-from libensemble.gen_funcs.support import send_mgr_worker_msg
-from libensemble.gen_funcs.support import get_mgr_worker_msg
+from libensemble.tools.gen_support import send_mgr_worker_msg
+from libensemble.tools.gen_support import get_mgr_worker_msg
 
 
 from multiprocessing import Event, Process, Queue
