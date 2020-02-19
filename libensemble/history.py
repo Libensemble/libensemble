@@ -20,7 +20,7 @@ class History:
 
     :ivar numpy_structured_array H:
         History array storing rows for each point. Field names are in
-        libensemble/tools.py
+        libensemble/tools/fields_keys.py
 
     :ivar int offset:
         Starting index for this ensemble (after H0 read in)

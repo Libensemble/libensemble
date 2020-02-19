@@ -39,10 +39,10 @@ export LIBE_WALLCLOCK=$(($BALSAM_WALLCLOCK-3))
 # No args. All defined in calling script
 # export SCRIPT_ARGS=''
 
-# If calling script is using tools.parse_args()
+# If calling script is using parse_args()
 # export SCRIPT_ARGS="--comms mpi --nworkers $NUM_WORKERS
 
-# If calling script takes wall-clock as positional arg and uses tools.parse_args()
+# If calling script takes wall-clock as positional arg and uses parse_args()
 export SCRIPT_ARGS="$LIBE_WALLCLOCK --comms mpi --nworkers $NUM_WORKERS"
 
 # Name of Conda environment

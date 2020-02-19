@@ -40,5 +40,5 @@ hash -r # Check no commands hashed (pip/python...)
 
 # Launch libE
 # python $EXE $NUM_WORKERS > out.txt 2>&1  # No args. All defined in calling script
-# python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If calling script is using tools.parse_args()
+# python $EXE $COMMS $NWORKERS > out.txt 2>&1  # If calling script is using parse_args()
 python $EXE $LIBE_WALLCLOCK $COMMS $NWORKERS > out.txt 2>&1 # If calling script takes wall-clock as positional arg.

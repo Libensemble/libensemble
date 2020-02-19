@@ -183,7 +183,7 @@ can then be run as a regular Python script::
     python myscript.py
 
 These options may be specified via the command line by using the ``parse_args()``
-convenience function within ``libensemble/tools.py``.
+convenience function within libEnsemble's ``tools`` module.
 
 See the `user guide`_ for more information.
 
