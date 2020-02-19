@@ -52,9 +52,12 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         # call_str = ["mpiexec", "-np", str(H[i]['ranks_per_node']*len(ranks_involved)), "-machinefile", machinefilename, "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
         # subprocess.call(call_str, stdout=open(outfile_name, 'w'), shell=False)
 
-        cores = str(H[i]['ranks_per_node']*len(ranks_involved))
-        #task = exctr.submit(calc_type='sim', prefix='python', num_procs=cores, stdout=outfile, stderr=errfile, hyperthreads=True)
-        task = exctr.submit(calc_type='sim', num_procs=cores, stdout=outfile, stderr=errfile, hyperthreads=True)
+        # Using cores - but will not use different nodes
+        # cores = str(H[i]['ranks_per_node']*len(ranks_involved))
+        # task = exctr.submit(calc_type='sim', num_procs=cores, stdout=outfile, stderr=errfile, hyperthreads=True)
+
+        # By giving Executor the machinefile (cores arg is not needed with machinefile)
+        task = exctr.submit(calc_type='sim', machinefile=machinefilename, stdout=outfile, stderr=errfile, hyperthreads=True)
 
         while(not task.finished):
             time.sleep(0.2)

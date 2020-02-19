@@ -12,9 +12,15 @@
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 
+# Disable matching probes to work on all fabrics
+import mpi4py
+mpi4py.rc.recv_mprobe = False
+
+import sys
 from mpi4py import MPI
 import numpy as np
 import pkg_resources
+import argparse
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -23,10 +29,22 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_with_different_
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble import libE_logger
+libE_logger.set_level('DEBUG')
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
 libE_specs['sim_input_dir'] = './sim'
+
+if libE_specs['comms'] != 'mpi':
+    # Can't do this one with processes either?  Wants a machine file.
+    sys.exit("This test only runs with MPI -- aborting...")
+
+# Parse arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('-m', '--mfile', action="store", dest='machinefile',
+                    help='A machine file containing ordered list of nodes required for each libE rank')
+args = parser.parse_args()
 
 try:
     libE_machinefile = open(args.machinefile).read().splitlines()
@@ -36,10 +54,8 @@ except (TypeError, NameError):
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
 sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
-exctr = MPIExecutor()  # Use auto_resources=False to oversubscribe
+exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, calc_type='sim')
-
-# print('sim_app is {}'.format(sim_app))
 
 n = 2
 sim_specs = {'sim_f': sim_f,
