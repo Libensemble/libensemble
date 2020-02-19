@@ -1,5 +1,3 @@
-# ============================= ForkablePDB ==================================
-
 # From https://stackoverflow.com/questions/4716533/how-to-attach-debugger-to-a-python-subproccess
 
 # Usage:
@@ -7,6 +5,7 @@
 # ForkablePdb().set_trace()
 
 import pdb
+import sys
 
 
 # Best implementation depends on system.
@@ -43,5 +42,3 @@ class ForkablePdb(pdb.Pdb):
 #             self.cmdloop()
 #         finally:
 #             sys.stdin = current_stdin
-
-# ========================== End ForkablePDB ==================================

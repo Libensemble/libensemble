@@ -1,5 +1,8 @@
 import sys
+import os
 import argparse
+
+from libensemble.tools.tools import logger
 
 # ==================== Command-line argument parsing ===========================
 

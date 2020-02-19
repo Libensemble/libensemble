@@ -3,13 +3,10 @@ The libEnsemble utilities module assists in writing consistent calling scripts
 and user functions.
 """
 
-# __all__ = ['libE_fields', 'save_libE_output', 'add_unique_random_streams']
-
 import os
 import sys
 import logging
 import numpy as np
-import argparse
 import pickle
 
 # Create logger
@@ -98,6 +95,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess='Run completed
         pickle.dump(persis_info, f)
 
 # ===================== per-process numpy random-streams =======================
+
 
 def add_unique_random_streams(persis_info, nstreams):
     """
