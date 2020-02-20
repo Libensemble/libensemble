@@ -382,8 +382,10 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
     lb = np.zeros(n)
     ub = np.ones(n)
-    opt.set_lower_bounds(lb)
-    opt.set_upper_bounds(ub)
+
+    if not user_specs.get('periodic'):
+        opt.set_lower_bounds(lb)
+        opt.set_upper_bounds(ub)
 
     # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0), min(x0-lb))
@@ -413,6 +415,9 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # FIXME: Do we need to do something of the final 'x_opt'?
     # print('[Child]: Started my optimization', flush=True)
     x_opt = opt.optimize(x0)
+
+    if user_specs.get('periodic'):
+        x_opt = x_opt  # Shift x_opt to be in the correct location in the unit cube (not the domain user_specs['lb'] - user_specs['ub'])
 
     finish_queue(x_opt, comm_queue, parent_can_read)
 
