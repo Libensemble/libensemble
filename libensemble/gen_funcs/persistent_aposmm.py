@@ -302,7 +302,7 @@ class LocalOptInterfacer(object):
             self.grad0 = None
 
         # Setting the local optimization method
-        if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']:
+        if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']:
             run_local_opt = run_local_nlopt
         elif user_specs['localopt_method'] in ['pounders', 'blmvm']:
             run_local_opt = run_local_tao
@@ -1033,7 +1033,7 @@ def initialize_children(user_specs):
     total_runs = 0
     if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
-    elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
+    elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA',
                                            'LN_NELDERMEAD', 'scipy_Nelder-Mead',
                                            'external_localopt']:
         fields_to_pass = ['x_on_cube', 'f']
