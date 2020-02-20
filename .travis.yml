@@ -24,7 +24,8 @@ jobs:
 
 addons:
     homebrew:
-        packages: octave
+        packages:
+        - octave
 
 services:
     - postgresql
