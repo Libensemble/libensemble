@@ -417,7 +417,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     x_opt = opt.optimize(x0)
 
     if user_specs.get('periodic'):
-        x_opt = x_opt  # Shift x_opt to be in the correct location in the unit cube (not the domain user_specs['lb'] - user_specs['ub'])
+        x_opt = x_opt % 1  # Shift x_opt to be in the correct location in the unit cube (not the domain user_specs['lb'] - user_specs['ub'])
 
     finish_queue(x_opt, comm_queue, parent_can_read)
 
