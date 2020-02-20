@@ -2,22 +2,20 @@
 Frequently Asked Questions
 ==========================
 
-The following are frequently asked questions.
-If you have any questions, feel free to contact us through Support_.
+If you have any additional questions, feel free to contact us through Support_.
 
 .. _Support: https://libensemble.readthedocs.io/en/latest/quickstart.html#support
 
 Common Errors
 -------------
 
-**I keep getting "Manager only - must be at least one worker (2 MPI tasks)" when
+**"Manager only - must be at least one worker (2 MPI tasks)" when
 running with multiprocessing and multiple workers specified.**
 
 If your calling script code was recently switched from MPI to multiprocessing,
 make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers: [num]``.
 
-**What does "AssertionError: Should not wait for workers when all workers are idle."
-mean?**
+**"AssertionError: Should not wait for workers when all workers are idle."**
 
 This error occurs when the manager is waiting although no workers are busy, or
 an MPI libEnsemble run was initiated with only one process, resulting in one
