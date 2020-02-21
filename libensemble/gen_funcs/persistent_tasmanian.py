@@ -6,7 +6,7 @@ https://github.com/ORNL/TASMANIAN/blob/master/InterfacePython/example_sparse_gri
 import numpy as np
 import Tasmanian
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 
 def sparse_grid(H, persis_info, gen_specs, libE_info):

@@ -1,5 +1,4 @@
 language: python
-sudo: required
 dist: xenial
 python:
   - 3.5
@@ -12,10 +11,10 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
-  matrix:
+  jobs:
     - MPI=mpich
 
-matrix:
+jobs:
   include:
     - os: osx
       osx_image: xcode10.1
@@ -25,7 +24,9 @@ matrix:
 
 addons:
     homebrew:
-        packages: octave
+        packages:
+        - octave
+        update: true
 
 services:
     - postgresql

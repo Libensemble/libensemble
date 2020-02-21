@@ -5,7 +5,7 @@ Unit test of timers for libensemble.
 """
 
 import time
-from libensemble.util.timer import Timer
+from libensemble.utils.timer import Timer
 
 
 def test_timer():

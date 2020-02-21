@@ -1,6 +1,6 @@
-Utilities
-=========
+Convenience Tools and Functions
+===============================
 
-.. automodule:: utils
+.. automodule:: tools
    :members:
    :no-undoc-members:

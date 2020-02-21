@@ -2,7 +2,7 @@ import numpy as np
 import time
 import logging
 
-from libensemble.utils import libE_fields
+from libensemble.tools.fields_keys import libE_fields
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class History:
 
     :ivar numpy_structured_array H:
         History array storing rows for each point. Field names are in
-        libensemble/utils.py
+        libensemble/tools/fields_keys.py
 
     :ivar int offset:
         Starting index for this ensemble (after H0 read in)

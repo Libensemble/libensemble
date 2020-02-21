@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 
-from libensemble.util.loc_stack import LocationStack
+from libensemble.utils.loc_stack import LocationStack
 
 
 def test_location_stack():

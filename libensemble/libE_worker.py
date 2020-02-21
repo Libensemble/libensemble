@@ -19,8 +19,8 @@ from libensemble.message_numbers import \
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
-from libensemble.util.loc_stack import LocationStack
-from libensemble.util.timer import Timer
+from libensemble.utils.loc_stack import LocationStack
+from libensemble.utils.timer import Timer
 from libensemble.executors.executor import Executor
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig

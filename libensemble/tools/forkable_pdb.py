@@ -1,11 +1,11 @@
 # From https://stackoverflow.com/questions/4716533/how-to-attach-debugger-to-a-python-subproccess
 
 # Usage:
-# from libensemble.util.forkpdb import ForkablePdb
+# from libensemble.tools import ForkablePdb
 # ForkablePdb().set_trace()
 
-import sys
 import pdb
+import sys
 
 
 # Best implementation depends on system.
