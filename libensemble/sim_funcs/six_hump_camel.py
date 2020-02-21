@@ -35,14 +35,14 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         else:
             ranks_involved = [MPI.COMM_WORLD.Get_rank()]
 
-        machinefilename = 'machinefile_for_sim_id=' + str(libE_info['H_rows'][i]) + '_workers='+'_'.join([str(r) for r in ranks_involved])
+        machinefilename = 'machinefile_for_sim_id=' + str(libE_info['H_rows'][i]) + '_resource_set='+'_'.join([str(r) for r in ranks_involved])
 
         with open(machinefilename, 'w') as f:
             for rank in ranks_involved:
                 b = sim_specs['user']['nodelist'][rank] + '\n'
                 f.write(b*H['ranks_per_node'][i])
 
-        out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + '_workerteam='+'_'.join([str(r) for r in ranks_involved])
+        out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + '_resource_set='+'_'.join([str(r) for r in ranks_involved])
 
         outfile = out_name + ".out"
         errfile = out_name + ".err"
@@ -53,25 +53,19 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
                 pass
 
         # Run directly -------------------------------------------------------
-
-        #dont need machines file and cores!!!!
-        #call_str = ["mpiexec", "-np", str(H[i]['ranks_per_node']*len(ranks_involved)), "-machinefile", machinefilename, "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
-
-        call_str = ["mpiexec", "-np", "-machinefile", machinefilename, "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
-        p = subprocess.call(call_str, stdout=open(outfile, 'w'), stderr=open(errfile, 'w'), shell=False)
-
-        if p.returncode == 0:
-            task_states.append('FINISHED')
-        else:
-            task_states.append('FAILED')
+        # call_str = ["mpiexec", "-machinefile", machinefilename, "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
+        # p = subprocess.call(call_str, stdout=open(outfile, 'w'), stderr=open(errfile, 'w'), shell=False)
+        # if p == 0:
+            # task_states.append('FINISHED')
+        # else:
+            # task_states.append('FAILED')
 
         # Run with Executor --------------------------------------------------
-        #task = exctr.submit(calc_type='sim', machinefile=machinefilename, stdout=outfile, stderr=errfile, hyperthreads=True)
-
-        #while(not task.finished):
-            #time.sleep(0.2)
-            #task.poll()
-        #task_states.append(task.state)
+        task = exctr.submit(calc_type='sim', machinefile=machinefilename, stdout=outfile, stderr=errfile, hyperthreads=True)
+        while(not task.finished):
+            time.sleep(0.2)
+            task.poll()
+        task_states.append(task.state)
 
         H_o['f'][i] = six_hump_camel_func(x)
 
