@@ -19,8 +19,6 @@ import logging
 import random
 import socket
 import traceback
-import numpy as np
-import pickle  # Only used when saving output on error
 
 import libensemble.util.launcher as launcher
 from libensemble.util.timer import Timer
@@ -448,6 +446,8 @@ def _report_manager_exception(hist, persis_info, mgr_exc=None):
     logger.error("Dumping ensemble history with {} sims evaluated:".
                  format(hist.sim_count))
 
+    # import numpy as np
+    # import pickle  # Only used when saving output on error
     # filename = 'libE_history_at_abort_' + str(hist.sim_count)
     # np.save(filename + '.npy', hist.trim_H())
     # with open(filename + '.pickle', "wb") as f:
