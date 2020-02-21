@@ -29,8 +29,8 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_with_different_
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble import libE_logger
-libE_logger.set_level('DEBUG')
+#from libensemble import libE_logger
+#libE_logger.set_level('DEBUG')
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
