@@ -43,7 +43,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'profile_worker',         #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #
-                          'save_H_on_abort',        #
+                          'save_H_and_persis_on_abort',        #
                           'sim_input_dir',          #
                           'symlink_input_files',    #
                           'use_worker_dirs',        #
