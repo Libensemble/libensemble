@@ -75,6 +75,14 @@ def test_manager_exception():
             os.remove(hfile_abort)
             os.remove(pfile_abort)
 
+            # Test that History and Pickle files NOT created when disabled
+            with pytest.raises(Exception):
+                libE(sim_specs, gen_specs, exit_criteria,
+                     libE_specs={'comm': fake_mpi, 'save_H_on_abort': False})
+                pytest.fail('Expected exception')
+            assert not os.path.isfile(hfile_abort), "History file dumped"
+            assert not os.path.isfile(pfile_abort), "Pickle file dumped"
+
 
 # Note - this could be combined now with above tests as fake_MPI prevents need for use of mock module
 # Only way that is better is that this will simply hit first code exception - (when fake_MPI tries to isend)
