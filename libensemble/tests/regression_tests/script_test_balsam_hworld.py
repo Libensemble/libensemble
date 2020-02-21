@@ -11,7 +11,7 @@ from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld
 from libensemble.gen_funcs.sampling import uniform_random_sample
-from libensemble.utils import add_unique_random_streams
+from libensemble.tools import add_unique_random_streams
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 

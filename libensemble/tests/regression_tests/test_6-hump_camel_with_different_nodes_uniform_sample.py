@@ -22,7 +22,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_ranks_and_nodes as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample_with_different_nodes_and_ranks as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 

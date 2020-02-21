@@ -1,7 +1,7 @@
 import numpy as np
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
-from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 
 def persistent_uniform(H, persis_info, gen_specs, libE_info):
