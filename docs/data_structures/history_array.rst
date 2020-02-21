@@ -13,7 +13,7 @@ Fields in ``H`` include those specified in ``sim_specs['out']``,
 
 Below are the protected fields used in ``H``:
 
-..  literalinclude:: ../../libensemble/utils.py
+..  literalinclude:: ../../libensemble/tools/fields_keys.py
     :start-at: libE_fields
     :end-before: end_libE_fields_rst_tag
 
@@ -26,6 +26,6 @@ Below are the protected fields used in ``H``:
   ``check_inputs()`` and calling it with their ``gen_specs``, ``alloc_specs``,
   and ``sim_specs`` as keyword arguments::
 
-      from libensemble.utils import check_inputs
+      from libensemble.tools import check_inputs
 
       check_inputs(H0=my_H, sim_specs=sim_specs, alloc_specs=alloc_specs, gen_specs=gen_specs)

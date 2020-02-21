@@ -3,7 +3,7 @@ import subprocess
 import os
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 
 def build_H0(x_f_pairs, gen_specs, noise_h_mat):

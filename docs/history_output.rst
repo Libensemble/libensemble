@@ -34,12 +34,13 @@ History and Log Files
 The history array :ref:`H<datastruct-history-array>` and
 :ref:`persis_info<datastruct-persis-info>` dictionary are returned to the user
 by libEnsemble.  If libEnsemble aborts on an exception, these structures are
-dumped to the respective files:
+dumped automatically to the respective files:
 
 * ``libE_history_at_abort_<sim_count>.npy``
 * ``libE_history_at_abort_<sim_count>.pickle``
 
-where ``sim_count`` is the number of points evaluated.
+where ``sim_count`` is the number of points evaluated. To suppress libEnsemble
+from producing these files, set ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
 
 Two other libEnsemble files produced by default:
 

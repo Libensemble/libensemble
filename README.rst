@@ -84,6 +84,7 @@ The example simulation and generation functions and tests require the following:
 * SciPy_
 * petsc4py_
 * DFO-LS_
+* Tasmanian_
 * NLopt_
 * PETSc_ - Can optionally be installed by pip along with petsc4py
 
@@ -183,7 +184,7 @@ can then be run as a regular Python script::
     python myscript.py
 
 These options may be specified via the command line by using the ``parse_args()``
-convenience function within ``libensemble/utils.py``.
+convenience function within libEnsemble's ``tools`` module.
 
 See the `user guide`_ for more information.
 
@@ -243,6 +244,7 @@ Resources
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
+.. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info

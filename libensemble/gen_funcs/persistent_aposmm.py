@@ -22,8 +22,8 @@ import nlopt
 import dfols
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
-from libensemble.gen_funcs.support import send_mgr_worker_msg
-from libensemble.gen_funcs.support import get_mgr_worker_msg
+from libensemble.tools.gen_support import send_mgr_worker_msg
+from libensemble.tools.gen_support import get_mgr_worker_msg
 
 
 from multiprocessing import Event, Process, Queue
@@ -508,7 +508,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small"
 
     # Call DFO-LS
-    soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs), x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound)
+    soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs), x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound, do_logging=False)
 
     x_opt = soln.x
 

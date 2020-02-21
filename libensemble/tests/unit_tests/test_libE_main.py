@@ -60,9 +60,11 @@ def test_manager_exception():
     remove_file_if_exists(hfile_abort)
     remove_file_if_exists(pfile_abort)
 
-    with mock.patch('libensemble.libE.manager_main') as managerMock:
+    with mock.patch('libensemble.libE_manager.manager_main') as managerMock:
         managerMock.side_effect = Exception
-        with mock.patch('libensemble.libE.comms_abort') as abortMock:
+        # Collision between libE.py and libE() (after mods to __init__.py) means
+        #   libensemble.libE.comms_abort tries to refer to the function, not file
+        with mock.patch('libensemble.comms_abort') as abortMock:
             abortMock.side_effect = Exception
             # Need fake MPI to get past the Manager only check and dump history
             with pytest.raises(Exception):
@@ -72,6 +74,14 @@ def test_manager_exception():
             assert os.path.isfile(pfile_abort), "Pickle file not dumped"
             os.remove(hfile_abort)
             os.remove(pfile_abort)
+
+            # Test that History and Pickle files NOT created when disabled
+            with pytest.raises(Exception):
+                libE(sim_specs, gen_specs, exit_criteria,
+                     libE_specs={'comm': fake_mpi, 'save_H_and_persis_on_abort': False})
+                pytest.fail('Expected exception')
+            assert not os.path.isfile(hfile_abort), "History file dumped"
+            assert not os.path.isfile(pfile_abort), "Pickle file dumped"
 
 
 # Note - this could be combined now with above tests as fake_MPI prevents need for use of mock module

@@ -3,7 +3,7 @@ __all__ = ['uniform_or_localopt']
 import numpy as np
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.gen_funcs.support import sendrecv_mgr_worker_msg
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 import nlopt
 

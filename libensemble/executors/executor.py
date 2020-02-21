@@ -16,8 +16,9 @@ import itertools
 import time
 
 from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
-import libensemble.util.launcher as launcher
-from libensemble.util.timer import TaskTimer
+import libensemble.utils.launcher as launcher
+from libensemble.utils.timer import TaskTimer
+
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
