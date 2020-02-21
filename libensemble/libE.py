@@ -137,6 +137,8 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
         logger.manager_warning(_USER_SIM_ID_WARNING)
 
+    save_H = libE_specs.get('save_H_and_persis_on_abort', True)
+
     try:
         persis_info, exit_flag, elapsed_time = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
@@ -144,12 +146,12 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         logger.info("libE_manager total time: {}".format(elapsed_time))
 
     except ManagerException as e:
-        _report_manager_exception(hist, persis_info, e)
+        _report_manager_exception(hist, persis_info, e, save_H=save_H)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
     except Exception:
-        _report_manager_exception(hist, persis_info)
+        _report_manager_exception(hist, persis_info, save_H=save_H)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
@@ -436,7 +438,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 # ==================== Additional Internal Functions ===========================
 
 
-def _report_manager_exception(hist, persis_info, mgr_exc=None):
+def _report_manager_exception(hist, persis_info, mgr_exc=None, save_H=True):
     "Write out exception manager exception to log."
     if mgr_exc is not None:
         from_line, msg, exc = mgr_exc.args
@@ -449,7 +451,8 @@ def _report_manager_exception(hist, persis_info, mgr_exc=None):
     logger.error("Dumping ensemble history with {} sims evaluated:".
                  format(hist.sim_count))
 
-    filename = 'libE_history_at_abort_' + str(hist.sim_count)
-    np.save(filename + '.npy', hist.trim_H())
-    with open(filename + '.pickle', "wb") as f:
-        pickle.dump(persis_info, f)
+    if save_H:
+        filename = 'libE_history_at_abort_' + str(hist.sim_count)
+        np.save(filename + '.npy', hist.trim_H())
+        with open(filename + '.pickle', "wb") as f:
+            pickle.dump(persis_info, f)
