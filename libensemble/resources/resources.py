@@ -67,7 +67,8 @@ class Resources:
 
         allow_oversubscribe: boolean, optional
             If false, then resources will raise an error if task process
-            counts exceed the CPUs available to the worker, as detected by auto_resources. Larger node counts will always raise an error.
+            counts exceed the CPUs available to the worker, as detected by
+            auto_resources. Larger node counts will always raise an error.
             When auto_resources is off, this argument is ignored.
 
         launcher: String, optional

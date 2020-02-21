@@ -51,7 +51,8 @@ class MPIExecutor(Executor):
 
         allow_oversubscribe: boolean, optional
             If true, the Executor will permit submission of tasks with a
-            higher processor count than the CPUs available to the worker as detected by auto_resources. Larger node counts are not allowed.
+            higher processor count than the CPUs available to the worker as
+            detected by auto_resources. Larger node counts are not allowed.
             When auto_resources is off, this argument is ignored.
 
         central_mode, boolean, optional
