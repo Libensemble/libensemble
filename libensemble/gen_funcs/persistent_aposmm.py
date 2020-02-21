@@ -607,7 +607,7 @@ def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, use
         x_recv, f_recv, grad_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
         grad[:] = grad_recv
     else:
-        assert user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA',
+        assert user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_NEWUOA',
                                                  'LN_COBYLA', 'LN_NELDERMEAD', 'LD_MMA']
         x_recv, f_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read)
 
