@@ -306,7 +306,7 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_nlopt
         elif user_specs['localopt_method'] in ['pounders', 'blmvm']:
             run_local_opt = run_local_tao
-        elif user_specs['localopt_method'] in ['scipy_Nelder-Mead']:
+        elif user_specs['localopt_method'] in ['scipy_Nelder-Mead', 'scipy_COBYLA']:
             run_local_opt = run_local_scipy_opt
         elif user_specs['localopt_method'] in ['dfols']:
             run_local_opt = run_local_dfols
@@ -1034,7 +1034,7 @@ def initialize_children(user_specs):
     if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA',
-                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead',
+                                           'LN_NELDERMEAD', 'scipy_Nelder-Mead', 'scipy_COBYLA',
                                            'external_localopt']:
         fields_to_pass = ['x_on_cube', 'f']
     elif user_specs['localopt_method'] in ['pounders', 'dfols']:
