@@ -239,7 +239,7 @@ class MPIExecutor(Executor):
                            "executor - runs in-place")
 
         mpi_specs = self._get_mpi_specs(task, num_procs, num_nodes,
-                                        ranks_per_node,machinefile,
+                                        ranks_per_node, machinefile,
                                         hyperthreads)
         runline = launcher.form_command(self.mpi_command, mpi_specs)
         runline.extend(task.app.full_path.split())

@@ -3,7 +3,7 @@ This module contains various versions that evaluate the six hump camel function.
 """
 __all__ = ['six_hump_camel_with_different_ranks_and_nodes', 'six_hump_camel', 'six_hump_camel_simple']
 
-import subprocess
+# import subprocess
 import os
 import numpy as np
 import time
