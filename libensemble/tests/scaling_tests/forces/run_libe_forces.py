@@ -40,10 +40,10 @@ os.makedirs('./sim', exist_ok=True)
 # Create executor and register sim to it.
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
-    exctr = BalsamMPIExecutor()  # Use auto_resources=False to oversubscribe
+    exctr = BalsamMPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor()  # Use auto_resources=False to oversubscribe
+    exctr = MPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.

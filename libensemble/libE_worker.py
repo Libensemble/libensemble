@@ -388,6 +388,8 @@ class Worker:
 
         # Call user function
         libE_info['comm'] = self.comm
+        libE_info['workerID'] = self.workerID
+        # libE_info['worker_team'] = [self.workerID] + libE_info.get('blocking', [])
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
         del libE_info['comm']
 

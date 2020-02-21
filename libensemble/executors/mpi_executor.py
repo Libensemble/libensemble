@@ -25,20 +25,22 @@ class MPIExecutor(Executor):
     """The MPI executor can create, poll and kill runnable MPI tasks
     """
 
-    def __init__(self, auto_resources=True, central_mode=False,
+    def __init__(self, auto_resources=True,
+                 allow_oversubscribe=True,
+                 central_mode=False,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
                  nodelist_env_lsf_shortform=None):
-        """Instantiate a new Executor instance.
+        """Instantiate a new MPIExecutor instance.
 
-        A new Executor object is created with an application
+        A new Executor MPIExecutor is created with an application
         registry and configuration attributes. A registry object must
         have been created.
 
         This is typically created in the user calling script. If
         auto_resources is true, an evaluation of system resources is
-        performance during this call.
+        performed during this call.
 
         Parameters
         ----------
@@ -46,6 +48,12 @@ class MPIExecutor(Executor):
         auto_resources: boolean, optional
             Autodetect available processor resources and assign to tasks
             if not explicitly provided on submission.
+
+        allow_oversubscribe: boolean, optional
+            If true, the Executor will permit submission of tasks with a
+            higher processor count than the CPUs available to the worker as
+            detected by auto_resources. Larger node counts are not allowed.
+            When auto_resources is off, this argument is ignored.
 
         central_mode, boolean, optional
             If true, then running in central mode, otherwise in distributed
@@ -104,6 +112,7 @@ class MPIExecutor(Executor):
             self.resources = \
                 MPIResources(top_level_dir=self.top_level_dir,
                              central_mode=central_mode,
+                             allow_oversubscribe=allow_oversubscribe,
                              launcher=self.mpi_command[0],
                              nodelist_env_slurm=nodelist_env_slurm,
                              nodelist_env_cobalt=nodelist_env_cobalt,
@@ -120,8 +129,9 @@ class MPIExecutor(Executor):
         if serial_setup:
             self._serial_setup()
 
-    def _get_mpi_specs(self, num_procs, num_nodes, ranks_per_node,
-                       machinefile, hyperthreads):
+    def _get_mpi_specs(self, task, num_procs, num_nodes,
+                       ranks_per_node, machinefile,
+                       hyperthreads):
         "Form the mpi_specs dictionary."
         hostlist = None
         if machinefile is None and self.auto_resources:
@@ -138,6 +148,7 @@ class MPIExecutor(Executor):
                 machinefile = "machinefile_autogen"
                 if self.workerID is not None:
                     machinefile += "_for_worker_{}".format(self.workerID)
+                machinefile += "_task_{}".format(task.id)
                 mfile_created, num_procs, num_nodes, ranks_per_node = \
                     self.resources.create_machinefile(
                         machinefile, num_procs, num_nodes,
@@ -228,10 +239,11 @@ class MPIExecutor(Executor):
             logger.warning("stage_inout option ignored in this "
                            "executor - runs in-place")
 
-        mpi_specs = self._get_mpi_specs(num_procs, num_nodes, ranks_per_node,
-                                        machinefile, hyperthreads)
+        mpi_specs = self._get_mpi_specs(task, num_procs, num_nodes,
+                                        ranks_per_node, machinefile,
+                                        hyperthreads)
         runline = launcher.form_command(self.mpi_command, mpi_specs)
-        runline.append(task.app.full_path)
+        runline.extend(task.app.full_path.split())
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 

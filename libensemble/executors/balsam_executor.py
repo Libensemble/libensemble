@@ -149,9 +149,13 @@ class BalsamMPIExecutor(MPIExecutor):
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
-    def __init__(self, auto_resources=True, central_mode=True,
-                 nodelist_env_slurm=None, nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None, nodelist_env_lsf_shortform=None):
+    def __init__(self, auto_resources=True,
+                 allow_oversubscribe=True,
+                 central_mode=True,
+                 nodelist_env_slurm=None,
+                 nodelist_env_cobalt=None,
+                 nodelist_env_lsf=None,
+                 nodelist_env_lsf_shortform=None):
         """Instantiate a new BalsamMPIExecutor instance.
 
         A new BalsamMPIExecutor object is created with an application
