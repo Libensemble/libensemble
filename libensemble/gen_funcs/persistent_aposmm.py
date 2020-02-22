@@ -438,7 +438,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     # print('[Child]: Started my optimization', flush=True)
     res = sp_opt.minimize(lambda x: scipy_dfols_callback_fun(x, comm_queue,
                           child_can_read, parent_can_read, user_specs), x0,
-                          method=method, options=user_specs['scipy_options'])
+                          method=method, **user_specs['scipy_kwargs'])
 
     # if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
     #     exit_code = 0
