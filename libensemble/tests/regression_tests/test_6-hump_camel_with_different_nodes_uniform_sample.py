@@ -22,6 +22,7 @@ from mpi4py import MPI
 import numpy as np
 import pkg_resources
 import argparse
+import shutil
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -32,6 +33,10 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_master, libE_specs, _ = parse_args()
+
+if is_master:
+    if os.path.isdir('./ensemble'):
+        shutil.rmtree('./ensemble')
 
 simdir = './sim'
 libE_specs['sim_input_dir'] = simdir
