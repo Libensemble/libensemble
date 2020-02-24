@@ -9,6 +9,7 @@ import os
 import shutil
 import logging.handlers
 from itertools import count
+from more_itertools import consecutive_groups
 from traceback import format_exc
 
 import numpy as np
@@ -172,7 +173,7 @@ class Worker:
             calc_prefix = worker_path
 
         else:
-            calc_dir = "{}{}-worker{}".format(calc_str, H_rows, workerID)
+            calc_dir = "{}{}_worker{}".format(calc_str, H_rows, workerID)
             if not os.path.isdir(prefix):
                 os.makedirs(prefix, exist_ok=True)
             calc_prefix = prefix
@@ -236,10 +237,17 @@ class Worker:
     def _extract_H_ranges(Work):
         """ Convert received H_rows into ranges for logging, labeling """
         work_H_rows = Work['libE_info']['H_rows']
-        if isinstance(work_H_rows, list):
+        if len(work_H_rows) == 1:
             return str(work_H_rows[0])
         else:
-            return '-'.join([str(i) for i in work_H_rows.tolist()])
+            cgroups = [list(g) for g in consecutive_groups(work_H_rows.tolist())]
+            ranges = []
+            for g in cgroups:
+                if len(g) == 1:
+                    ranges.append(str(g[0]))
+                else:
+                    ranges.append(str(g[0]) + '-' + str(g[-1]))
+            return '_'.join(ranges)
 
     @staticmethod
     def _better_copytree(src, dst, symlinks=False):
