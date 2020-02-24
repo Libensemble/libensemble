@@ -17,6 +17,7 @@ import mpi4py
 mpi4py.rc.recv_mprobe = False
 
 import sys
+import os
 from mpi4py import MPI
 import numpy as np
 import pkg_resources
@@ -32,7 +33,10 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-libE_specs['sim_input_dir'] = './sim'
+simdir = './sim'
+libE_specs['sim_input_dir'] = simdir
+if not os.path.isdir(simdir):
+    os.makedirs(simdir, exist_ok=True)
 
 if libE_specs['comms'] != 'mpi':
     # Can't do this one with processes either?  Wants a machine file.
