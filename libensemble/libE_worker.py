@@ -150,7 +150,7 @@ class Worker:
         compare two directories."""
         locs.copy_or_symlink(sim_input_dir, calc_prefix,
                              os.listdir(sim_input_dir), [])
-        open(os.path.join(calc_prefix, stgfile), 'w') # Empty file
+        open(os.path.join(calc_prefix, stgfile), 'w')  # Empty file
 
     @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
@@ -205,7 +205,7 @@ class Worker:
                 sim_input_dir = worker_path
 
         # Register calc dir with adjusted parent dir and source-file location
-        locs.register_loc(calc_dir, calc_dir, # Dir name also label in loc stack dict
+        locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
                           prefix=calc_prefix,
                           srcdir=sim_input_dir,
                           copy_files=copy_files,
@@ -256,9 +256,9 @@ class Worker:
             ranges = []
             for g in cgroups:
                 if len(g) == 1:
-                    ranges.append(str(g[0])) # Standalone H_row
+                    ranges.append(str(g[0]))  # Standalone H_row
                 else:
-                    ranges.append(str(g[0]) + '-' + str(g[-1])) # Start-End ranges
+                    ranges.append(str(g[0]) + '-' + str(g[-1]))  # Start-End ranges
             return '_'.join(ranges)
 
     @staticmethod
@@ -446,7 +446,7 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
-            self._clean_out_copy_back() # Copy back current results on Exception
+            self._clean_out_copy_back()  # Copy back current results on Exception
         else:
             self.comm.kill_pending()
         finally:
