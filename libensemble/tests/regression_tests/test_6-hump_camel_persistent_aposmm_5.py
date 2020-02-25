@@ -22,6 +22,7 @@
 
 import sys
 import numpy as np
+import shutil  # For copying the external_localopt script
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -63,6 +64,8 @@ gen_specs = {'gen_f': gen_f,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
+shutil.copy('./scripts_used_by_reg_tests/call_matlab_octave_script.m','./')
+shutil.copy('./scripts_used_by_reg_tests/wrapper_obj_fun.m','./')
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
