@@ -155,9 +155,11 @@ cleanup() {
     filelist=(task_my_simtask.x.*.out); [ -e ${filelist[0]} ] && rm task_my_simtask.x.*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
-    filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
+    filelist=(my_simtask.x);           [ -e ${filelist[0]} ] && rm my_simtask.x
     filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
+    filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
+    filelist=(sim_*);                  [ -e ${filelist[0]} ] && rm -r sim_*
   cd $THISDIR
 }
 

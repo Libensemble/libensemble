@@ -9,6 +9,7 @@ import os
 import shutil
 import logging.handlers
 from itertools import count
+from more_itertools import consecutive_groups
 from traceback import format_exc
 
 import numpy as np
@@ -144,9 +145,12 @@ class Worker:
 
     @staticmethod
     def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
+        """Copy files from input directory to calc prefix directory, create
+        indication file showing that staging has completed without having to
+        compare two directories."""
         locs.copy_or_symlink(sim_input_dir, calc_prefix,
                              os.listdir(sim_input_dir), [])
-        open(os.path.join(calc_prefix, stgfile), 'w')
+        open(os.path.join(calc_prefix, stgfile), 'w')  # Empty file
 
     @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
@@ -160,10 +164,12 @@ class Worker:
         symlink_files = libE_specs.get('symlink_input_files', [])
         do_work_dirs = libE_specs.get('use_worker_dirs', False)
 
+        # Customize ensemble directory with suffix
         if suffix != '':
             suffix = '_' + suffix
             prefix += suffix
 
+        # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
         if do_work_dirs:
             worker_dir = "worker" + str(workerID)
             worker_path = os.path.abspath(os.path.join(prefix, worker_dir))
@@ -171,29 +177,36 @@ class Worker:
             locs.register_loc(workerID, worker_dir, prefix=prefix)
             calc_prefix = worker_path
 
+        # Otherwise, ensemble_dir set as parent dir for sim dirs
         else:
-            calc_dir = "{}{}-worker{}".format(calc_str, H_rows, workerID)
+            calc_dir = "{}{}_worker{}".format(calc_str, H_rows, workerID)
             if not os.path.isdir(prefix):
                 os.makedirs(prefix, exist_ok=True)
             calc_prefix = prefix
 
+        # Copy input contents to parent dir, create stage indication file
         if copy_parent:
             stgfile = '.COPY_PARENT_STAGED'
             staged = lambda prefix: stgfile in os.listdir(prefix)
 
             if not do_work_dirs:
+                # Workers on same node shouldn't procede until copying complete
                 while not staged(calc_prefix):
                     Worker._stage_and_indicate(locs, sim_input_dir,
                                                calc_prefix, stgfile)
+                # Change source dir for symlinking or copying to ensemble dir
                 sim_input_dir = prefix
 
             else:
                 if not staged(calc_prefix):
                     Worker._stage_and_indicate(locs, sim_input_dir,
                                                calc_prefix, stgfile)
+                # Change source dir for symlinking or copying to worker dir
                 sim_input_dir = worker_path
 
-        locs.register_loc(calc_dir, calc_dir, prefix=calc_prefix,
+        # Register calc dir with adjusted parent dir and source-file location
+        locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
+                          prefix=calc_prefix,
                           srcdir=sim_input_dir,
                           copy_files=copy_files,
                           symlink_files=symlink_files)
@@ -236,10 +249,17 @@ class Worker:
     def _extract_H_ranges(Work):
         """ Convert received H_rows into ranges for logging, labeling """
         work_H_rows = Work['libE_info']['H_rows']
-        if isinstance(work_H_rows, list):
+        if len(work_H_rows) == 1:
             return str(work_H_rows[0])
         else:
-            return '-'.join([str(i) for i in work_H_rows.tolist()])
+            cgroups = [list(g) for g in consecutive_groups(work_H_rows.tolist())]
+            ranges = []
+            for g in cgroups:
+                if len(g) == 1:
+                    ranges.append(str(g[0]))  # Standalone H_row
+                else:
+                    ranges.append(str(g[0]) + '-' + str(g[-1]))  # Start-End ranges
+            return '_'.join(ranges)
 
     @staticmethod
     def _better_copytree(src, dst, symlinks=False):
@@ -267,8 +287,8 @@ class Worker:
                             continue
 
             if self.libE_specs.get('copy_back_output'):
-                copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix)
-                                           + '_back')
+                copybackdir = os.path.join(self.startdir,
+                                           os.path.basename(self.prefix) + '_back')
                 assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
                 Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
 
@@ -426,7 +446,7 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
-            self._clean_out_copy_back()
+            self._clean_out_copy_back()  # Copy back current results on Exception
         else:
             self.comm.kill_pending()
         finally:
