@@ -201,11 +201,12 @@ what inputs and outputs from those functions to expect.
                  'in': ['x'],                  # Input field names. 'x' from gen_f output
                  'out': [('y', float)]}        # sim_f output. 'y' = sine('x')
 
-Recall that each worker is assigned an entry in the :ref:`persis_info<datastruct-persis-info>`
-dictionary that, in this tutorial, contains  a ``RandomState()`` random stream for
-uniform random sampling. We populate that dictionary here using a utility from
-the :doc:`tools module<../utilities>`. We then specify the circumstances
-where libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
+Recall that each worker is assigned an entry in the
+:ref:`persis_info<datastruct-persis-info>`  dictionary that, in this tutorial,
+contains  a ``RandomState()`` random stream for uniform random sampling. We
+populate that dictionary here using a utility from the
+:doc:`tools module<../utilities>`. We then specify the circumstances where
+libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteria>`.
 
 .. code-block:: python
     :linenos:
@@ -255,8 +256,8 @@ Two additional log files should also have been created.
 libEnsemble, while ``libE_stats.txt`` contains a quick summary of all
 calculations performed.
 
-Here is graphed output using ``Matplotlib``, with entries colored by which worker
-performed the simulation:
+Here is graphed output using ``Matplotlib``, with entries colored by which
+worker performed the simulation:
 
 .. image:: ../images/sinex.png
   :alt: sine
@@ -299,10 +300,13 @@ manager and workers to be distributed over multiple nodes and works in some
 circumstances where Python's multiprocessing does not. In this section, we'll
 explore modifying the above code to use MPI instead of multiprocessing.
 
-We recommend MPICH_ for this tutorial, which can be found for a variety of systems
-here_. You also need ``mpi4py``, which can be downloaded via ``MPICC=$(which mpicc) pip3 install mpi4py``.
-If this doesn't work, try appending ``--user`` to the end of the command or
-ensure that MPI has been installed.
+We recommend the MPI distribution MPICH_ for this tutorial, which can be found
+for a variety of systems here_. You also need mpi4py_, which can be installed
+with ``pip3 install mpi4py``. If you'd like to use a specific version or
+distribution of MPI instead of MPICH, configure mpi4py with that MPI at
+installation with ``MPICC=<path/to/MPI_C_compiler> pip3 install mpi4py`` If this
+doesn't work, try appending ``--user`` to the end of the command. See the
+mpi4py_ docs for more information.
 
 Verify that MPI has installed correctly with ``mpirun --version``.
 
@@ -382,4 +386,5 @@ libEnsemble use-case within our
 
 .. _MPI: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _MPICH: https://www.mpich.org/
+.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/install.html
 .. _here: https://www.mpich.org/downloads/
