@@ -31,4 +31,4 @@ per-file-ignores =
         # systems/versions of MPI:
         libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
-        libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py:E402
+        libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py:E402

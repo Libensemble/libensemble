@@ -48,7 +48,7 @@ gen_specs = {'gen_f': gen_f,
                       'maxnoiseits': 3
                       }
              }
-shutil.copy('./scripts_used_by_reg_tests/ECnoise.m','./')
+shutil.copy('./scripts_used_by_reg_tests/ECnoise.m', './')
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
