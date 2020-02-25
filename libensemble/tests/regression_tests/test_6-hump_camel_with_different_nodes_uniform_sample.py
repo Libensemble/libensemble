@@ -22,7 +22,6 @@ from mpi4py import MPI
 import numpy as np
 import pkg_resources
 import argparse
-import shutil
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE

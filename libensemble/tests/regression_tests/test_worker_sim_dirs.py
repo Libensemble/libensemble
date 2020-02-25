@@ -17,7 +17,6 @@
 import numpy as np
 import os
 import time
-import shutil
 
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_func as sim_f
