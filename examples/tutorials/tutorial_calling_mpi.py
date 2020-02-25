@@ -48,4 +48,4 @@ if is_master:
     plt.xlabel('x')
     plt.ylabel('sine(x)')
     plt.legend(loc='lower right')
-    plt.show()
+    plt.savefig('tutorial_sines.png')

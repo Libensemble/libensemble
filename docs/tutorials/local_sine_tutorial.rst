@@ -27,8 +27,6 @@ need to write a new allocation function. All generated and simulated values
 alongside other parameters are stored in :ref:`H<datastruct-history-array>`,
 the history array.
 
-.. _libEnsemble: https://libensemble.readthedocs.io/en/latest/quickstart.html
-
 Getting started
 ---------------
 
@@ -257,8 +255,8 @@ Two additional log files should also have been created.
 libEnsemble, while ``libE_stats.txt`` contains a quick summary of all
 calculations performed.
 
-I graphed my output using Matplotlib, coloring entries by which worker performed
-the simulation:
+Here is graphed output using ``Matplotlib``, with entries colored by which worker
+performed the simulation:
 
 .. image:: ../images/sinex.png
   :alt: sine
@@ -283,7 +281,7 @@ script and run ``python3 calling_script.py`` again
   plt.xlabel('x')
   plt.ylabel('sine(x)')
   plt.legend(loc = 'lower right')
-  plt.show()
+  plt.savefig('tutorial_sines.png')
 
 ---
 
@@ -302,8 +300,9 @@ circumstances where Python's multiprocessing does not. In this section, we'll
 explore modifying the above code to use MPI instead of multiprocessing.
 
 We recommend MPICH_ for this tutorial, which can be found for a variety of systems
-here_. You also need mpi4py, which can be downloaded via ``pip3 install mpi4py``.
-If this doesn't work, try appending ``--user`` to the end of the command.
+here_. You also need ``mpi4py``, which can be downloaded via ``MPICC=$(which mpicc) pip3 install mpi4py``.
+If this doesn't work, try appending ``--user`` to the end of the command or
+ensure that MPI has been installed.
 
 Verify that MPI has installed correctly with ``mpirun --version``.
 
@@ -357,7 +356,7 @@ modify the bottom of the calling script like this:
         plt.xlabel('x')
         plt.ylabel('sine(x)')
         plt.legend(loc='lower right')
-        plt.show()
+        plt.savefig('tutorial_sines.png')
 
 With these changes in place, our libEnsemble code can be run with MPI by
 
