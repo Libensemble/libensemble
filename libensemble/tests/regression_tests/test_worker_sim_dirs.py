@@ -26,18 +26,13 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-sim_input_dir = './test_sim_input_dir'
-dir_to_copy = './test_sim_input_dir/copy_this'
-dir_to_symlink = './test_sim_input_dir/symlink_this'
-dir_to_ignore = './test_sim_input_dir/not_this'
-w_ensemble = './w_ensemble'
-c_ensemble = './c_ensemble'
 
-
-def cleanup(dirs):
-    for dir in dirs:
-        if is_master and os.path.isdir(dir):
-            shutil.rmtree(dir)
+sim_input_dir = './sim_input_dir_w' + str(nworkers) + '_' + libE_specs.get('comms')
+dir_to_copy = sim_input_dir + '/copy_this'
+dir_to_symlink = sim_input_dir + '/symlink_this'
+dir_to_ignore = sim_input_dir + '/not_this'
+w_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
+c_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
@@ -126,7 +121,3 @@ if is_master:
         'All input files not copied to ensemble directory.'
 
     time.sleep(1)
-
-    cleanup([file for file in os.listdir('.') if file.startswith(os.path.basename(w_ensemble))] +
-            [file for file in os.listdir('.') if file.startswith(os.path.basename(c_ensemble))] +
-            [sim_input_dir])
