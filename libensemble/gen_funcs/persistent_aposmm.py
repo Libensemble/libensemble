@@ -398,7 +398,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     else:
         opt.set_initial_step(dist_to_bound)
 
-    opt.set_maxeval(user_specs.get('run_max_eval',1000*n))
+    opt.set_maxeval(user_specs.get('run_max_eval', 1000*n))
 
     opt.set_min_objective(lambda x, grad: nlopt_callback_fun(x, grad,
                           comm_queue, child_can_read, parent_can_read,
@@ -573,7 +573,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     # Set everything for tao before solving
     # FIXME: Hard-coding 100 as the max funcs as couldn't find any other
     # sensible value.
-    PETSc.Options().setValue('-tao_max_funcs', str(user_specs.get('run_max_eval',1000*n)))
+    PETSc.Options().setValue('-tao_max_funcs', str(user_specs.get('run_max_eval', 1000*n)))
     tao.setFromOptions()
     tao.setVariableBounds((lb, ub))
     # tao.setObjectiveTolerances(fatol=user_specs['fatol'], frtol=user_specs['frtol'])
@@ -1041,7 +1041,7 @@ def initialize_children(user_specs):
     local_opters = {}
     sim_id_to_child_inds = {}
     run_order = {}
-    run_pts = {}  #This can differ from 'x_on_cube' if, for example, user_specs['periodic'] is True and run points are off the cube.
+    run_pts = {}  # This can differ from 'x_on_cube' if, for example, user_specs['periodic'] is True and run points are off the cube.
     total_runs = 0
     if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
