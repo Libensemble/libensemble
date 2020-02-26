@@ -449,7 +449,10 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     #         assert res['status'] == 0, "Unknown status for Nelder-Mead"
     #         exit_code = 1
 
-    x_opt = res['x']
+    if user_specs.get('periodic'):
+        x_opt = res['x'] % 1
+    else:
+        x_opt = res['x']
 
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
