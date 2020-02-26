@@ -398,8 +398,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     else:
         opt.set_initial_step(dist_to_bound)
 
-    # FIXME: Setting max evaluations = 100
-    opt.set_maxeval(100)
+    opt.set_maxeval(user_specs.get('run_max_eval',1000*n))
 
     opt.set_min_objective(lambda x, grad: nlopt_callback_fun(x, grad,
                           comm_queue, child_can_read, parent_can_read,
@@ -571,7 +570,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     # Set everything for tao before solving
     # FIXME: Hard-coding 100 as the max funcs as couldn't find any other
     # sensible value.
-    PETSc.Options().setValue('-tao_max_funcs', str(1000*n))
+    PETSc.Options().setValue('-tao_max_funcs', str(user_specs.get('run_max_eval',1000*n)))
     tao.setFromOptions()
     tao.setVariableBounds((lb, ub))
     # tao.setObjectiveTolerances(fatol=user_specs['fatol'], frtol=user_specs['frtol'])
