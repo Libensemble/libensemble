@@ -187,18 +187,17 @@ class Worker:
         # Copy input contents to parent dir, create stage indication file
         if copy_parent:
             stgfile = '.COPY_PARENT_STAGED'
-            staged = lambda prefix: stgfile in os.listdir(prefix)
 
             if not do_work_dirs:
                 # Workers on same node shouldn't procede until copying complete
-                while not staged(calc_prefix):
+                while stgfile not in os.listdir(calc_prefix):
                     Worker._stage_and_indicate(locs, sim_input_dir,
                                                calc_prefix, stgfile)
                 # Change source dir for symlinking or copying to ensemble dir
                 sim_input_dir = prefix
 
             else:
-                if not staged(calc_prefix):
+                if stgfile not in os.listdir(calc_prefix):
                     Worker._stage_and_indicate(locs, sim_input_dir,
                                                calc_prefix, stgfile)
                 # Change source dir for symlinking or copying to worker dir
