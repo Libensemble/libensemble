@@ -3,6 +3,7 @@ matplotlib.use('Agg')
 
 from balsam.core import models
 from matplotlib import pyplot as plt
+import matplotlib.dates as mdates
 
 fig, ax = plt.subplots()
 
@@ -13,7 +14,6 @@ plt.ylabel('Num. Tasks Waiting')
 times, waiting = models.job_waiting_report()
 plt.step(times, waiting, where='post')
 
-import matplotlib.dates as mdates
 myFmt = mdates.DateFormatter('%H:%M')
 ax.xaxis.set_major_formatter(myFmt)
 fig.autofmt_xdate()
