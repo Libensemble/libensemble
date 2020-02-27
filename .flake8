@@ -16,8 +16,6 @@ exclude =
         # Keeping bad python format to match PETSc source code
         libensemble/sim_funcs/chwirut1.py
         examples/sim_funcs/chwirut1.py
-        # Not checking these scripts yet
-        postproc_scripts
 
 # Note that you can use wildcard exceptions with something such as
 # libensemble/libensemble/tests/regression_tests/*:F401
@@ -30,3 +28,5 @@ per-file-ignores =
         libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py:E402
+        # Matplotlib needs something set before import
+        postproc_scripts/*:E402
