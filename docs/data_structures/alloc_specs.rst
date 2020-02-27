@@ -37,7 +37,7 @@ to main ``libE()`` routine::
     to be used by the allocation function ``give_sim_work_first`` from
     fast_alloc_and_pausing.py_.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py
       :start-at: alloc_specs
       :end-before: end_alloc_specs_rst_tag
 

@@ -41,7 +41,7 @@ Six-Hump-Camel Persistent APOSMM
 This example is also from the regression tests and demonstrates configuring a
 persistent run via a custom allocation function.
 
-..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py
+..  literalinclude:: ../../libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
     :language: python
     :caption: tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py
     :linenos:

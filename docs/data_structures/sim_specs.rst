@@ -32,7 +32,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
     example<gen-specs-exmple1>`).  Only the field name is required in
     ``sim_specs['in']``.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling.py
       :start-at: sim_specs
       :end-before: end_sim_specs_rst_tag
 
