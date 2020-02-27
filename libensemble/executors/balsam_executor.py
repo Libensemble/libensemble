@@ -250,8 +250,8 @@ class BalsamMPIExecutor(MPIExecutor):
 
         # Set num_procs, num_nodes and ranks_per_node for this task
 
-        # Without resource detection
-        # num_procs, num_nodes, ranks_per_node = Executor.task_partition(num_procs, num_nodes, ranks_per_node)  # Note: not included machinefile option
+        # Without resource detection  # Note: not included machinefile option
+        # num_procs, num_nodes, ranks_per_node = Executor.task_partition(num_procs, num_nodes, ranks_per_node)
 
         # With resource detection (may do only if under-specified?? though that will not tell if larger than possible
         # for static allocation - but Balsam does allow dynamic allocation if too large!!
@@ -282,7 +282,7 @@ class BalsamMPIExecutor(MPIExecutor):
 
         # This is not used with Balsam for run-time as this would include wait time
         # Again considering changing launch to submit - or whatever I chose before..... (1/28/20 - Wish granted!)
-        # task.submit_time = time.time()  # Not good for timing task - as I dont know when it finishes - only poll/kill est.
+        # task.submit_time = time.time()  # Don't know when it finishes, not good for timing task, only poll/kill est.
 
         add_task_args = {'name': task.name,
                          'workflow': "libe_workflow",  # add arg for this

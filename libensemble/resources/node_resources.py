@@ -63,7 +63,8 @@ def get_cpu_cores(hyperthreads=False):
             try:
                 ranks_per_node = _cpu_count_physical()
             except Exception as e:
-                logger.warning("Could not detect physical cores - Logical cores (with hyperthreads) returned - specify ranks_per_node to override. Exception {}".format(e))
+                logger.warning("Could not detect physical cores - Logical cores (with hyperthreads) "
+                               "returned - " "specify ranks_per_node to override. Exception {}".format(e))
                 import multiprocessing
                 ranks_per_node = multiprocessing.cpu_count()
     return ranks_per_node  # This is ranks available per node
