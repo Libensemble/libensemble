@@ -561,7 +561,6 @@ def set_up_and_run_scipy_minimize(Run_H, user_specs):
 
         return out
 
-    obj = lambda x: scipy_obj_fun(x, Run_H)
     x0 = Run_H['x_on_cube'][0]
 
     # Construct the bounds in the form of constraints
@@ -575,7 +574,7 @@ def set_up_and_run_scipy_minimize(Run_H, user_specs):
         cons.append(up)
 
     method = user_specs['localopt_method'][6:]
-    res = scipy_optimize.minimize(obj, x0, method=method, options={'maxiter': len(Run_H['x_on_cube'])+1, 'tol': user_specs['tol']})
+    res = scipy_optimize.minimize(lambda x: scipy_obj_fun(x, Run_H), x0, method=method, options={'maxiter': len(Run_H['x_on_cube'])+1, 'tol': user_specs['tol']})
 
     if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
         exit_code = 0
