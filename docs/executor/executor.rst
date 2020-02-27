@@ -44,9 +44,11 @@ retrieved from a task.
 
 Task status attributes include the following:
 
-:task.state: (string) The task status. One of ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
+:task.state: (string) The task status. One of
+             ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
 
-:task.process: (process obj) The process object used by the underlying process manager (e.g., return value of subprocess.Popen).
+:task.process: (process obj) The process object used by the underlying process
+               manager (e.g., return value of subprocess.Popen).
 :task.errcode: (int) The errorcode/return code used by the underlying process manager.
 :task.finished: (Boolean) True means task has finished running - not whether it was successful.
 :task.success: (Boolean) Did task complete successfully (e.g., the returncode is zero)?
