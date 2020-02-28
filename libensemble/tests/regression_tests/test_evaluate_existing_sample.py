@@ -18,7 +18,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.tools import parse_args, save_libE_output
 
@@ -28,12 +28,16 @@ sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_specs = {}
 
-H0 = np.zeros(100, dtype=[('x', float, 2), ('sim_id', int)])
-np.random.seed(0)
-H0['x'] = np.random.uniform(0, 1, (100, 2))
-H0['sim_id'] = range(100)
+n_samp = 1000
+n = 8
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, 2)]}
+H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('sim_id', int)])
+
+np.random.seed(0)
+H0['x'] = gen_borehole_input(n_samp)
+H0['sim_id'] = range(n_samp)
+
+alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, n)]}
 
 exit_criteria = {'sim_max': len(H0)}
 
