@@ -5,7 +5,7 @@ bounds = np.array([[63070, 115600],
                    [990, 1110],
                    [700, 820],
                    [0, np.inf],  # Not sure if the physics have a more meaningful upper bound
-                   [0, 0.2],  # I assume the radius can't be negative, but unsure about this upper bound
+                   [1, 1.2],  # Very low probability of being outside of this range
                    [9855, 12045],
                    [1120, 1680]])
 
@@ -57,14 +57,14 @@ def borehole_func(x):
     return (numer / (np.log(r/rw) * (1 + denom1 + denom2))).reshape(-1)
 
 
-def gen_Borehole_input(n):
+def gen_borehole_input(n):
     # generates and returns n inputs for the Borehole function, according to distributions
     # outlined in Harper and Gupta (1983).
     #
     # input:
     #   n: number of input to generate
     # output:
-    #   matrix of (n, 8), input to Borehole(x) function
+    #   matrix of (n, 8), input to borehole_func(x) function
 
     Tu = np.random.uniform(63070, 115600, n)
     Tl = np.random.uniform(63.1, 116, n)
