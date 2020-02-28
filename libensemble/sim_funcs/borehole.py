@@ -9,9 +9,6 @@ bounds = np.array([[63070, 115600],
                    [9855, 12045],
                    [1120, 1680]])
 
-lb = bounds[:, 0]
-ub = bounds[:, 1]
-
 
 def borehole(H, persis_info, sim_specs, _):
     """
@@ -42,7 +39,7 @@ def borehole_func(x):
     #   vector of dimension (n, 1), flow rate through the Borehole (m^3/year)
     #
 
-    assert np.all(x >= lb) and np.all(x <= ub), "Point not within bounds"
+    assert np.all(x >= bounds[:, 0]) and np.all(x <= bounds[:, 1]), "Point not within bounds"
 
     axis = 1
     if x.ndim == 1:
