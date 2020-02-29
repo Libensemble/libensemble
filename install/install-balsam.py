@@ -16,7 +16,8 @@ def install_balsam():
 
     # Replace old version of balsamactivate
     os.remove('balsamactivate')
-    subprocess.check_call('wget https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'.split())
+    url = 'https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'
+    subprocess.check_call(['wget', url])
 
     # Pip install Balsam
     os.chdir('../..')

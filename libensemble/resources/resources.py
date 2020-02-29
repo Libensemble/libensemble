@@ -293,7 +293,8 @@ class WorkerResources:
         sub_node_workers = (num_workers >= num_nodes)
         if sub_node_workers:
             workers_per_node = num_workers//num_nodes
-            global_nodelist = list(itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist))
+            dup_list = itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist)
+            global_nodelist = list(dup_list)
 
         # Currently require even split for distrib mode - to match machinefile - throw away remainder
         if distrib_mode and not sub_node_workers:
@@ -302,7 +303,8 @@ class WorkerResources:
             nodes_per_worker, remainder = divmod(num_nodes, num_workers)
             if remainder != 0:
                 # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
-                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. {} workers and {} nodes".format(num_workers, num_nodes))
+                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. "
+                               "{} workers and {} nodes".format(num_workers, num_nodes))
                 num_nodes = num_nodes - remainder
                 global_nodelist = global_nodelist[0:num_nodes]
 

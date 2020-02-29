@@ -22,7 +22,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         combine_component_func is larger than a known upper bound on the objective.
 
     .. seealso::
-        `test_chwirut_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py>`_
+        `test_chwirut_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
 
     Work = {}
@@ -74,7 +74,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
                     if np.all(H['returned'][a1]):
                         persis_info['complete'].add(pt_id)
-                        persis_info['best_complete_val'] = min(persis_info['best_complete_val'], gen_specs['user']['combine_component_func'](H['f_i'][a1]))
+                        values = gen_specs['user']['combine_component_func'](H['f_i'][a1])
+                        persis_info['best_complete_val'] = min(persis_info['best_complete_val'], values)
                     else:
                         # Ensure combine_component_func calculates partial fevals correctly
                         # with H['f_i'] = 0 for non-returned point

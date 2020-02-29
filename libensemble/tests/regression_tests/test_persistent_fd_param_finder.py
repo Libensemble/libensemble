@@ -36,6 +36,7 @@ sim_specs = {'sim_f': sim_f,
              'in': ['x', 'f_ind'],
              'out': [('f_val', float)]}
 
+# The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
 gen_specs = {'gen_f': gen_f,
              'in': ['n_ind', 'f_ind', 'x_ind'],
              'out': [('x', float, (n,)), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
@@ -44,7 +45,7 @@ gen_specs = {'gen_f': gen_f,
                       'nf': 10,
                       'p': p,
                       'n': n,
-                      'noise_h_mat': np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),  # Chosen so ECNoise grows and shrinks
+                      'noise_h_mat': np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),
                       'maxnoiseits': 3
                       }
              }

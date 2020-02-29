@@ -48,7 +48,10 @@ class History:
 
         """
         L = exit_criteria.get('sim_max', 100)
-        H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], []))))  # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
+
+        # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
+        dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
+        H = np.zeros(L + len(H0), dtype=dtype_list)
 
         if len(H0):
             fields = H0.dtype.names
@@ -94,7 +97,8 @@ class History:
                 else:
                     # len or np.size
                     H0_size = len(returned_H[field][j])
-                    assert H0_size <= len(self.H[field][ind]), "History update Error: Too many values received for " + field
+                    assert H0_size <= len(self.H[field][ind]),\
+                        "History update Error: Too many values received for " + field
                     assert H0_size, "History update Error: No values in this field " + field
                     if H0_size == len(self.H[field][ind]):
                         self.H[field][ind] = returned_H[field][j]  # ref
@@ -155,7 +159,8 @@ class History:
             # gen method is building sim_id or adjusting values in existing sim_id rows.
 
             # Ensure there aren't any gaps in the generated sim_id values:
-            assert np.all(np.in1d(np.arange(self.index, np.max(O['sim_id'])+1), O['sim_id'])), "The generator function has produced sim_id that are not in order."
+            assert np.all(np.in1d(np.arange(self.index, np.max(O['sim_id'])+1), O['sim_id'])),\
+                "The generator function has produced sim_id that are not in order."
 
             num_new = len(np.setdiff1d(O['sim_id'], self.H['sim_id']))
 

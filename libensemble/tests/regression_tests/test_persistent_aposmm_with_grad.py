@@ -46,7 +46,7 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
 gen_specs = {'gen_f': gen_f,
              'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min'],
              'out': gen_out,
-             'user': {'initial_sample_size': 0,  # Don't need to do evaluations because simulating the sampling already being done
+             'user': {'initial_sample_size': 0,  # Don't need to do evaluations because the sampling already done below
                       'localopt_method': 'LD_MMA',
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
                       'xtol_rel': 1e-6,

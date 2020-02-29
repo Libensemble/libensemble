@@ -12,7 +12,8 @@ that can perform calculations. libEnsemble's work is governed by three routines:
 
 * :ref:`gen_f<api_gen_f>`: Generates inputs to ``sim_f``
 * :ref:`sim_f<api_sim_f>`: Evaluates a simulation or other evaluation based on output from ``gen_f``
-* :ref:`alloc_f<api_alloc_f>`: Decides whether ``sim_f`` or ``gen_f`` should be called (and with what input/resources) as workers become available
+* :ref:`alloc_f<api_alloc_f>`: Decides whether ``sim_f`` or ``gen_f`` should be
+  called (and with what input/resources) as workers become available
 
 Example ``gen_f``, ``sim_f``, ``alloc_f``, and calling scripts can be found in
 the ``examples/`` directory. In order to enable portability, an :doc:`executor<executor/overview>`
@@ -96,6 +97,8 @@ it's capabilities.
 
 .. * **Execute / Run**: Start a program on a machine or node.
 
-.. * **Job**: Generally overarching unit of work submitted, scheduled, or queued, then launched, oftentimes on a remote machine. May contain one or more tasks.
+.. * **Job**: Generally overarching unit of work submitted, scheduled, or
+              queued, then launched, oftentimes on a remote machine. May
+              contain one or more tasks.
 
 .. * **Launch**: Initiate or execute some program or process.

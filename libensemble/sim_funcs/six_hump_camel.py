@@ -18,7 +18,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
     using a machinefile (to show one way of evaluating a compiled simulation).
 
     .. seealso::
-        `test_6-hump_camel_with_different_nodes_uniform_sample.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py>`_
+        `test_6-hump_camel_with_different_nodes_uniform_sample.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py>`_ # noqa
     """
 
     from mpi4py import MPI
@@ -35,14 +35,16 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         else:
             ranks_involved = [MPI.COMM_WORLD.Get_rank()]
 
-        machinefilename = 'machinefile_for_sim_id=' + str(libE_info['H_rows'][i]) + '_resource_set='+'_'.join([str(r) for r in ranks_involved])
+        machinefilename = 'machinefile_for_sim_id=' + str(libE_info['H_rows'][i]) + \
+                          '_resource_set='+'_'.join([str(r) for r in ranks_involved])
 
         with open(machinefilename, 'w') as f:
             for rank in ranks_involved:
                 b = sim_specs['user']['nodelist'][rank] + '\n'
                 f.write(b*H['ranks_per_node'][i])
 
-        out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + '_resource_set='+'_'.join([str(r) for r in ranks_involved])
+        out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + \
+                   '_resource_set='+'_'.join([str(r) for r in ranks_involved])
 
         outfile = out_name + ".out"
         errfile = out_name + ".err"
@@ -53,7 +55,8 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
                 pass
 
         # Run directly -------------------------------------------------------
-        # call_str = ["mpiexec", "-machinefile", machinefilename, "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
+        # call_str = ["mpiexec", "-machinefile", machinefilename,
+        #             "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
         # p = subprocess.call(call_str, stdout=open(outfile, 'w'), stderr=open(errfile, 'w'), shell=False)
         # if p == 0:
             # task_states.append('FINISHED')
@@ -61,7 +64,8 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
             # task_states.append('FAILED')
 
         # Run with Executor --------------------------------------------------
-        task = exctr.submit(calc_type='sim', machinefile=machinefilename, stdout=outfile, stderr=errfile, hyperthreads=True)
+        task = exctr.submit(calc_type='sim', machinefile=machinefilename,
+                            stdout=outfile, stderr=errfile, hyperthreads=True)
         while(not task.finished):
             time.sleep(0.2)
             task.poll()
@@ -90,7 +94,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     defined.
 
     .. seealso::
-        `test_6-hump_camel_aposmm_LD_MMA.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py>`_
+        `test_6-hump_camel_aposmm_LD_MMA.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py>`_ # noqa
     """
 
     batch = len(H['x'])
@@ -113,7 +117,7 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     Evaluates the six hump camel function for a single point ``x``.
 
     .. seealso::
-        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
     H_o = np.zeros(1, dtype=sim_specs['out'])

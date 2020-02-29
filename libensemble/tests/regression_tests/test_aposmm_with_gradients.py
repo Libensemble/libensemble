@@ -23,7 +23,9 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.tests.regression_tests.support import persis_info_1 as persis_info, aposmm_gen_out as gen_out, six_hump_camel_minima as minima
+from libensemble.tests.regression_tests.support import (persis_info_1 as persis_info,
+                                                        aposmm_gen_out as gen_out,
+                                                        six_hump_camel_minima as minima)
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -120,5 +122,6 @@ for run in range(3):
             if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) > tol:
                 libE_abort()
 
-        print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " + str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
+        print("\nlibEnsemble with APOSMM using a gradient-based localopt method has identified the " +
+              str(np.shape(minima)[0]) + " minima within a tolerance " + str(tol))
         save_libE_output(H, persis_info, __file__, nworkers)

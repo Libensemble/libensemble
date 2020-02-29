@@ -52,9 +52,9 @@ for sim_id in range(steps):
 
     success = poll_until_state(current_job, 'JOB_FINISHED')  # OR job killed
     if success:
-        print("Completed job: %s rank=%d  time=%f" % (jobname, myrank, time.time()-start))
+        print("Completed job: %s rank=%d time=%f" % (jobname, myrank, time.time()-start))
     else:
-        print("Task not completed: %s rank=%d  time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
+        print("Task not completed: %s rank=%d time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
 
 end = time.time()
 print("Done: rank=%d  time=%f" % (myrank, end-start))

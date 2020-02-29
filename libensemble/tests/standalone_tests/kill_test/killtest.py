@@ -77,7 +77,8 @@ for run_num in range(2):
     if kill_type == 1:
         process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False)  # with kill 1
     elif kill_type == 2:
-        process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False, preexec_fn=os.setsid)  # kill 2
+        process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False,
+                                   preexec_fn=os.setsid)  # kill 2
     else:
         raise Exception("kill_type not recognized")
 

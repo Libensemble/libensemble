@@ -14,19 +14,21 @@
 import sys
 import numpy as np
 from copy import deepcopy
-import pkg_resources
+from pkg_resources import resource_filename
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
-from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out, branin_vals_and_minima as M
+from libensemble.tests.regression_tests.support import (persis_info_2 as persis_info,
+                                                        aposmm_gen_out as gen_out,
+                                                        branin_vals_and_minima as M)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
 libE_specs['clean_ensemble_dirs'] = True
-libE_specs['sim_input_dir'] = pkg_resources.resource_filename('libensemble.sim_funcs.branin', '')  # to be copied by each worker
+libE_specs['sim_input_dir'] = resource_filename('libensemble.sim_funcs.branin', '')  # to be copied by each worker
 libE_specs['use_worker_dirs'] = True
 
 if libE_specs['comms'] == 'tcp':
@@ -90,5 +92,6 @@ for run in range(2):
             print(dist)
             assert dist < tol
 
-        print("\nAPOSMM + " + gen_specs['user']['localopt_method'] + " found " + str(k) + " minima to tolerance " + str(tol))
+        print("\nAPOSMM + " + gen_specs['user']['localopt_method'] +
+              " found " + str(k) + " minima to tolerance " + str(tol))
         save_libE_output(H, persis_info, __file__, nworkers)

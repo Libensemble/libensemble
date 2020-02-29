@@ -44,7 +44,11 @@ sim_specs = {'sim_f': sim_f,
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
            ('local_min', bool), ('local_pt', bool)]
 
+
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
+lb = (-2-np.pi/10)*np.ones(n)
+ub = 2*np.ones(n)
+
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
@@ -56,8 +60,8 @@ gen_specs = {'gen_f': gen_f,
                       'dist_to_bound_multiple': 0.5,
                       'lhs_divisions': 50,
                       'components': m,
-                      'lb': (-2-np.pi/10)*np.ones(n),
-                      'ub': 2*np.ones(n)}
+                      'lb': lb,
+                      'ub': ub}
              }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True, 'num_active_gens': 1}}
@@ -70,7 +74,7 @@ sample_points = np.zeros((0, n))
 for i in range(ceil(exit_criteria['sim_max']/gen_specs['user']['lhs_divisions'])):
     sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions']), axis=0)
 
-gen_specs['user']['sample_points'] = sample_points*(gen_specs['user']['ub']-gen_specs['user']['lb']) + gen_specs['user']['lb']
+gen_specs['user']['sample_points'] = sample_points*(ub-lb) + lb
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
