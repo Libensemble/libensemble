@@ -2,6 +2,7 @@
 
 This document summarizes the efforts of libEnsemble 
 to achieve compatibility with the xSDK community policies.
+
 **Website:** https://github.com/Libensemble/libensemble
 
 ### Mandatory Policies
@@ -27,13 +28,25 @@ to achieve compatibility with the xSDK community policies.
 |**M15.** All xSDK compatibility changes should be sustainable. |Full| All the changes here should be sustainable. |
 |**M16.** The package must support production-quality installation compatible with the xSDK install tool and xSDK metapackage. |Full|libEnsemble configure and install has full support from Spack. |
 
-M4 details <a id="m4-details"></a>: libEnsemble is a Python code and so does not directly use compilers. It does, however, use NumPy, SciPy and mpi4py which use compiled extensions. The current CI tests of libEnsemble use the standard CPython compatible builds of these extensions (which are built using the GNU compilers).
+M4 details <a id="m4-details"></a>: libEnsemble is a Python code and so does
+not directly use compilers. It does, however, use NumPy, SciPy and mpi4py which
+use compiled extensions. The current CI tests of libEnsemble use the standard
+CPython compatible builds of these extensions (which are built using the GNU
+compilers).
 
-libEnsemble is supported on Linux platforms and macOS. Windows platforms are currently not supported.
+libEnsemble is supported on Linux platforms and macOS. Windows platforms are
+currently not supported.
 
-M11 details <a id="m11-details"></a>: Note: The sub-packages in the libensemble directory structure such as `sim_specs` and `gen_specs` may contain print statements. These are considered examples for users, rather than core libEnsemble packages.
+M11 details <a id="m11-details"></a>: Note: The sub-packages in the libensemble
+directory structure such as `sim_specs` and `gen_specs` may contain print
+statements. These are considered examples for users, rather than core
+libEnsemble packages.
 
-A special exception exists in the `node_resources.py` module; part of libEnsemble's resource detection infrastructure. The routine `_print_local_cpu_resources()` can be launched by libEnsemble to probe resources on a target node, and the output of this independent program is captured by libEnsemble.
+A special exception exists in the `node_resources.py` module; part of
+libEnsemble's resource detection infrastructure. The routine
+`_print_local_cpu_resources()` can be launched by libEnsemble to probe
+resources on a target node, and the output of this independent program is
+captured by libEnsemble.
 
 ### Recommended Policies
 
@@ -48,8 +61,25 @@ A special exception exists in the `node_resources.py` module; part of libEnsembl
 |**R7.** Have README, SUPPORT, LICENSE, and CHANGELOG files in top directory.  |Full| These files are present in the top directory.|
 
 
-R3 details <a id="r3-details"></a>: libEnsemble catches all exceptions (explicitly raised and unexpected) from the manager and worker processes at the libEnsemble level, resulting in libEnsemble dumping the key ensemble state to files. In mpi4py mode, the default is to then call MPI_ABORT to prevent a hang. However, this can be turned off (via the libE_specs argument). In the case it is turned off, or if other comms modes are used, the exception is then raised. The user can in turn catch these exceptions from their calling script. In future, alternative options may be provided for the ensemble to recover from some exceptions. E.g. by removing a worker.
+R3 details <a id="r3-details"></a>: libEnsemble catches all exceptions
+(explicitly raised and unexpected) from the manager and worker processes at the
+libEnsemble level, resulting in libEnsemble dumping the key ensemble state to
+files. In mpi4py mode, the default is to then call MPI_ABORT to prevent a hang.
+However, this can be turned off (via the libE_specs argument). In the case it
+is turned off, or if other comms modes are used, the exception is then raised.
+The user can in turn catch these exceptions from their calling script. In
+future, alternative options may be provided for the ensemble to recover from
+some exceptions. E.g. by removing a worker.
 
-libEnsemble Note <a id="liben-note"></a>: The nature of libEnsemble's interoperability with other libraries is different from typical xSDK libraries. libEnsemble is a Python code and interaction with other libraries may take several forms. These include: libEnsemble calling other libraries through Python bindings, libEnsemble launching applications (possibly providing a sub-communicator), libEnsemble being called from a Python level infrastructure, libEnsemble being launched as part of a campaign level workflow, or libEnsemble potentially being activated via a system call or embedded interpreter; a more unconventional approach.
+libEnsemble Note <a id="liben-note"></a>: The nature of libEnsemble's
+interoperability with other libraries is different from typical xSDK libraries.
+libEnsemble is a Python code and interaction with other libraries may take
+several forms. These include: libEnsemble calling other libraries through
+Python bindings, libEnsemble launching applications (possibly providing a
+sub-communicator), libEnsemble being called from a Python level infrastructure,
+libEnsemble being launched as part of a campaign level workflow, or libEnsemble
+potentially being activated via a system call or embedded interpreter; a more
+unconventional approach.
 
-This is, therefore, a good opportunity to consider interoperability from a Python and broader workflow perspective.
+This is, therefore, a good opportunity to consider interoperability from a
+Python and broader workflow perspective.
