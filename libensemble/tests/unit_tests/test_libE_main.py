@@ -243,6 +243,7 @@ def test_logging_disabling():
             assert not os.path.isfile('ensemble.log'), "ensemble.log file dumped"
             assert not os.path.isfile('libE_stats.txt'), "libE_stats.txt file dumped"
 
+
 if __name__ == "__main__":
     test_manager_exception()
     test_exception_raising_manager_with_abort()
