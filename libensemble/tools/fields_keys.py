@@ -35,6 +35,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'copy_back_output',       #
                           'copy_input_files',       #
                           'copy_input_to_parent',   #
+                          'disable_log_files',      #
                           'ensemble_dir',           #
                           'ensemble_dir_suffix',    #
                           'ip',                     #

@@ -22,9 +22,9 @@ Specifications for libEnsemble::
             Save history array to file after every k generated points.
         'sim_input_dir' [str] :
             Name of directory which will be copied for each sim calc
-        'use_worker_dirs' [bool] :
+        'use_worker_dirs' [boolean] :
             Divide calc_dirs into per_worker parent directories.
-        'clean_ensemble_dirs' [bool] :
+        'clean_ensemble_dirs' [boolean] :
             Clean up calc_dirs after libEnsemble completes. Default: False
         'ensemble_dir' [str] :
             A prefix path specifying where to create sim directories
@@ -34,10 +34,12 @@ Specifications for libEnsemble::
             List of filenames to copy from the input dir. Ignore all others.
         'symlink_input_files' [list] :
             List of filenames to symlink instead of copy.
-        'copy_input_to_parent' [bool] :
+        'copy_input_to_parent' [boolean] :
             Copy all input files to the parent dirs containing calc dirs. Default: False
-        'profile_worker' [Boolean] :
+        'profile_worker' [boolean] :
             Profile using cProfile. Default: False
+        'disable_log_files' [boolean] :
+            Disable the creation of 'ensemble.log' and 'libE_stats.txt' log files. Default: False
 
 .. note::
     The ``ensemble_dir`` and ``sim_input_dir`` options can create working
