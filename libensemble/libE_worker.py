@@ -8,8 +8,8 @@ import logging
 import os
 import shutil
 import logging.handlers
-from itertools import count
-from more_itertools import consecutive_groups
+from itertools import count, groupby
+from operator import itemgetter
 from traceback import format_exc
 
 import numpy as np
@@ -251,13 +251,19 @@ class Worker:
         if len(work_H_rows) == 1:
             return str(work_H_rows[0])
         else:
-            cgroups = [list(g) for g in consecutive_groups(work_H_rows.tolist())]
+            # From https://stackoverflow.com/a/30336492
+            # Create groups by difference between row values and sequential enumerations:
+            # e.g., [2, 3, 5, 6] -> [(0, 2), (1, 3), (2, 5), (3, 6)]
+            #  -> diff=-2, group=[(0, 2), (1, 3)], diff=-3, group=[(2, 5), (3, 6)]
             ranges = []
-            for g in cgroups:
-                if len(g) == 1:
-                    ranges.append(str(g[0]))  # Standalone H_row
+            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x:x[0]-x[1]):
+                # Take second values (rows values) from each group element into lists:
+                # group=[(0, 2), (1, 3)], group=[(2, 5), (3, 6)] -> group=[2, 3], group=[5, 6]
+                group = list(map(itemgetter(1), group))
+                if len(group) > 1:
+                    ranges.append(str(group[0]) + '-' + str(group[-1]))
                 else:
-                    ranges.append(str(g[0]) + '-' + str(g[-1]))  # Start-End ranges
+                    ranges.append(str(group[0]))
             return '_'.join(ranges)
 
     @staticmethod
