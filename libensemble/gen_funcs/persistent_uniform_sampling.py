@@ -10,7 +10,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     ``gen_specs['gen_batch_size']`` uniformly sampled points.
 
     .. seealso::
-        `test_6-hump_camel_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py>`_
+        `test_6-hump_camel_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py>`_ # noqa
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']

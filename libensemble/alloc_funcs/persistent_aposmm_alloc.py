@@ -14,7 +14,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     stopped (until some exit_criterion is satisfied).
 
     .. seealso::
-        `test_6-hump_camel_persistent_aposmm.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm.py>`_
+        `test_6-hump_camel_persistent_aposmm.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm.py>`_ # noqa
     """
 
     Work = {}
@@ -36,7 +36,8 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
     # If any persistent worker's calculated values have returned, give them back.
     for i in avail_worker_ids(W, persistent=True):
-        if persis_info.get('sample_done') or sum(H['returned']) >= gen_specs['user']['initial_sample_size'] + persis_info['samples_in_H0']:
+        if (persis_info.get('sample_done') or
+           sum(H['returned']) >= gen_specs['user']['initial_sample_size'] + persis_info['samples_in_H0']):
             # Don't return if the initial sample is not complete
             persis_info['sample_done'] = True
 

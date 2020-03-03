@@ -54,6 +54,8 @@ Two other libEnsemble files produced by default:
   append output. Messages at or above MANAGER_WARNING are also copied to stderr
   to alert the user promptly. For more info, see :doc:`Logging<logging>`.
 
+Producing these two files can be disabled by setting ``libE_specs['disable_log_files] = True``.
+
 Output Working Directory Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 libEnsemble features configurable output and working directory structuring for

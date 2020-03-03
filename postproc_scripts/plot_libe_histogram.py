@@ -98,13 +98,13 @@ if exceptions:
 
 # plt.title('Theta Opal/libEnsemble Times: 127 Workers - sim_max 508')
 if sim_only:
-    calc_type = 'sim'
+    calc = 'sim'
 else:
-    calc_type = 'calc'
+    calc = 'calc'
 
-title = 'libEnsemble histogram of ' + calc_type + ' times' + ' (' + str(active_line_count) + ' user calcs)' + str(num_bins) + ' bins'
+titl = ('Histogram of ' + calc + ' times' + ' (' + str(active_line_count) + ' user calcs)' + str(num_bins) + ' bins')
 
-plt.title(title)
+plt.title(titl)
 plt.xlabel('Calculation run time (sec)', fontsize=14)
 plt.ylabel('Count', fontsize=14)
 plt.grid(True)

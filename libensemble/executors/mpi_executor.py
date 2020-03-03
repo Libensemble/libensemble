@@ -267,7 +267,8 @@ class MPIExecutor(Executor):
                                                    stderr=open(task.stderr, 'w'),
                                                    start_new_session=subgroup_launch)
                 except Exception as e:
-                    logger.warning('task {} submit command failed on try {} with error {}'.format(task.name, retry_count, e))
+                    logger.warning('task {} submit command failed on "\
+                        "try {} with error {}'.format(task.name, retry_count, e))
                     retry = True
                     retry_count += 1
                 else:
@@ -275,7 +276,8 @@ class MPIExecutor(Executor):
                         self._wait_on_run(task, self.fail_time)
 
                     if task.state == 'FAILED':
-                        logger.warning('task {} failed within fail_time on try {} with err code {}'.format(task.name, retry_count, task.errcode))
+                        logger.warning('task {} failed within fail_time on"\
+                            "try {} with err code {}'.format(task.name, retry_count, task.errcode))
                         retry = True
                         retry_count += 1
 
@@ -283,7 +285,7 @@ class MPIExecutor(Executor):
                     # retry_count += 1 # Do not want to reset task if not going to retry.
                     logger.debug('Retry number {} for task {}')
                     time.sleep(retry_count*5)
-                    task.reset()  # Note: Some cases may require user cleanup - currently not supported (could use callback)
+                    task.reset()  # Some cases may require user cleanup - currently not supported (could use callback)
                 else:
                     break
 

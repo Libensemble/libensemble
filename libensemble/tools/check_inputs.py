@@ -24,7 +24,8 @@ def check_libE_specs(libE_specs, serial_check=False):
         assert libE_specs['nworkers'] >= 1, "Must specify at least one worker"
 
     for k in libE_specs.keys():
-        assert k in allowed_libE_spec_keys, "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
+        assert k in allowed_libE_spec_keys,\
+            "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
 
 
 def check_alloc_specs(alloc_specs):
@@ -32,7 +33,8 @@ def check_alloc_specs(alloc_specs):
     assert alloc_specs['alloc_f'], "Allocation function must be specified"
 
     for k in alloc_specs.keys():
-        assert k in allowed_alloc_spec_keys, "Key %s is not allowed in alloc_specs. Supported keys are: %s " % (k, allowed_alloc_spec_keys)
+        assert k in allowed_alloc_spec_keys,\
+            "Key %s is not allowed in alloc_specs. Supported keys are: %s " % (k, allowed_alloc_spec_keys)
 
 
 def check_sim_specs(sim_specs):
@@ -47,7 +49,8 @@ def check_sim_specs(sim_specs):
     assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
 
     for k in sim_specs.keys():
-        assert k in allowed_sim_spec_keys, "Key %s is not allowed in sim_specs. Supported keys are: %s " % (k, allowed_sim_spec_keys)
+        assert k in allowed_sim_spec_keys,\
+            "Key %s is not allowed in sim_specs. Supported keys are: %s " % (k, allowed_sim_spec_keys)
 
 
 def check_gen_specs(gen_specs):
@@ -59,7 +62,8 @@ def check_gen_specs(gen_specs):
             "Entries in gen_specs['in'] must be strings. Also can't be lists or tuples of strings."
 
     for k in gen_specs.keys():
-        assert k in allowed_gen_spec_keys, "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k, allowed_gen_spec_keys)
+        assert k in allowed_gen_spec_keys,\
+            "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k, allowed_gen_spec_keys)
 
 
 def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
@@ -85,7 +89,10 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 def check_H(H0, sim_specs, alloc_specs, gen_specs):
     if len(H0):
         # Set up dummy history to see if it agrees with H0
-        Dummy_H = np.zeros(1 + len(H0), dtype=list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], []))))  # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
+
+        # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
+        dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
+        Dummy_H = np.zeros(1 + len(H0), dtype=dtype_list)
 
         fields = H0.dtype.names
 
@@ -110,7 +117,8 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
             _check_consistent_field(field, H0[field], Dummy_H[field])
 
 
-def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
+def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
+                 gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
     """
     Checks whether the libEnsemble arguments are of the correct data type and
     contain sufficient information to perform a run. There is no return value.

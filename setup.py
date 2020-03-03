@@ -46,6 +46,8 @@ setup(
               'libensemble.comms',
               'libensemble.utils',
               'libensemble.tools',
+              'libensemble.executors',
+              'libensemble.resources',
               'libensemble.tests.unit_tests',
               'libensemble.tests.regression_tests'],
 
