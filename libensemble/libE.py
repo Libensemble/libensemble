@@ -111,16 +111,16 @@ def libE(sim_specs, gen_specs, exit_criteria,
     """
 
     # Set default persis_info, alloc_specs, libE_specs, and H0
-    if not persis_info:
+    if persis_info is None:
         persis_info = {}
 
-    if not alloc_specs:
+    if alloc_specs is None:
         alloc_specs = alloc_defaults.alloc_specs
 
-    if not libE_specs:
+    if libE_specs is None:
         libE_specs = {}
 
-    if not H0:
+    if H0 is None:
         H0 = []
 
     # Set default comms
