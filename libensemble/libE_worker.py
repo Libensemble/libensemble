@@ -256,7 +256,7 @@ class Worker:
             # e.g., [2, 3, 5, 6] -> [(0, 2), (1, 3), (2, 5), (3, 6)]
             #  -> diff=-2, group=[(0, 2), (1, 3)], diff=-3, group=[(2, 5), (3, 6)]
             ranges = []
-            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x:x[0]-x[1]):
+            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0]-x[1]):
                 # Take second values (rows values) from each group element into lists:
                 # group=[(0, 2), (1, 3)], group=[(2, 5), (3, 6)] -> group=[2, 3], group=[5, 6]
                 group = list(map(itemgetter(1), group))
