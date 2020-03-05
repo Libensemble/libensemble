@@ -24,10 +24,6 @@ while getopts ":p:b:s:" opt; do
       echo "Parameter supplied for branch name: $OPTARG" >&2
       LIBE_BRANCH=${OPTARG}
       ;;
-    s)
-      echo "Parameter supplied for OS: $OPTARG" >&2
-      SYSTEM=${OPTARG}
-      ;;
     \?)
       echo "Invalid option supplied: -$OPTARG" >&2
       exit 1
@@ -39,7 +35,7 @@ while getopts ":p:b:s:" opt; do
   esac
 done
 
-echo -e "\nBuilding libE on ${SYSTEM} with python $PYTHON_VERSION and branch ${LIBE_BRANCH}\n"
+echo -e "\nBuilding libE with python $PYTHON_VERSION and branch ${LIBE_BRANCH}\n"
 
 sudo pip install --upgrade pip
 sudo /etc/init.d/postgresql stop 9.2
@@ -52,8 +48,11 @@ export PATH=$PATH:/usr/lib/postgresql/9.6/bin
 # sudo apt install gfortran || return
 # sudo apt install libblas-dev || return
 # sudo apt-get install liblapack-dev || return
+sudo add-apt-repository -y ppa:octave/stable;
+sudo apt-get update -qq;
+sudo apt install -y octave;
 
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-${SYSTEM}-x86_64.sh -O miniconda.sh || return
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh || return
 bash miniconda.sh -b -p $HOME/miniconda || return
 export PATH="$HOME/miniconda/bin:$PATH" || return
 conda update -q -y  conda
@@ -65,15 +64,12 @@ conda create --yes --name condaenv python=$PYTHON_VERSION || return
 source activate condaenv || return
 wait
 
-# Test to see if this works on MacOS Travis testing environment
-if [[ "$SYSTEM" == "MacOSX" ]]; then
-  conda install clang_osx-64 || return
-else
-  conda install gcc_linux-64 || return
-fi
+conda install gcc_linux-64 || return
 conda install nlopt petsc4py petsc mumps-mpi=5.1.2=h5bebb2f_1007 mpi4py scipy $MPI
 
 # pip install these as the conda installs downgrade pytest on python3.4
+pip install DFO-LS
+pip install scikit-build packaging Tasmanian --user
 pip install pytest || return
 pip install pytest-cov || return
 pip install pytest-timeout || return
@@ -86,6 +82,7 @@ cd libensemble/ || return
 pip install -e . || return
 python install/install-balsam.py
 export BALSAM_DB_PATH=~/test-balsam
+ulimit -Sn 10000
 
 ./libensemble/tests/run-tests.sh -z
 
