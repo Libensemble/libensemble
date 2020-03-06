@@ -41,10 +41,10 @@ logger = logging.getLogger(__name__)
 
 
 def libE(sim_specs, gen_specs, exit_criteria,
-         persis_info={},
-         alloc_specs={},
-         libE_specs={},
-         H0=[]):
+         persis_info=None,
+         alloc_specs=None,
+         libE_specs=None,
+         H0=None):
     """
     Parameters
     ----------
@@ -110,9 +110,18 @@ def libE(sim_specs, gen_specs, exit_criteria,
             3 = Current process is not in libEnsemble MPI communicator
     """
 
-    # Set default alloc_specs
-    if not alloc_specs:
+    # Set default persis_info, alloc_specs, libE_specs, and H0
+    if persis_info is None:
+        persis_info = {}
+
+    if alloc_specs is None:
         alloc_specs = alloc_defaults.alloc_specs
+
+    if libE_specs is None:
+        libE_specs = {}
+
+    if H0 is None:
+        H0 = []
 
     # Set default comms
     if 'comms' not in libE_specs:
