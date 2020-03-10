@@ -945,9 +945,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
     # If paused is a field in H, don't start from paused points.
     if 'paused' in H.dtype.names:
         sample_start_inds = sample_start_inds[~H[sample_start_inds]['paused']]
-        start_inds = list(sample_start_inds)+local_start_inds2
-    else:
-        start_inds = list(sample_start_inds)+local_start_inds2
+    start_inds = list(sample_start_inds)+local_start_inds2
 
     # Sort the starting inds by their function value
     inds = np.argsort(H['f'][start_inds])

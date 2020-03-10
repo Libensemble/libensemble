@@ -54,13 +54,14 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 1000}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+for run in range(2):
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                alloc_specs, libE_specs)
 
 if is_master:
     min_ids = np.where(H['local_min'])
