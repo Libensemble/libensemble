@@ -21,7 +21,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     This is the default allocation function if one is not defined.
 
     .. seealso::
-        `test_6-hump_camel_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py>`_
+        `test_6-hump_camel_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py>`_ # noqa
     """
 
     Work = {}

@@ -1,5 +1,7 @@
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.message_numbers import UNSET_TAG, WORKER_KILL_ON_ERR, MAN_SIGNAL_FINISH, WORKER_DONE, TASK_FAILED, WORKER_KILL_ON_TIMEOUT
+from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
+                                         MAN_SIGNAL_FINISH, WORKER_DONE,
+                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
 import numpy as np
 
 __all__ = ['executor_hworld']
@@ -35,7 +37,8 @@ def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
         # print('Checking output file for error at time:', task.runtime)
         if task.stdout_exists():
             if 'Error' in task.read_stdout():
-                print("Found (deliberate) Error in ouput file - cancelling task {} on worker {}".format(task.id, exctr.workerID))
+                print("Found (deliberate) Error in ouput file - cancelling "
+                      "task {} on worker {}".format(task.id, exctr.workerID))
                 exctr.kill(task)
                 calc_status = WORKER_KILL_ON_ERR
                 break

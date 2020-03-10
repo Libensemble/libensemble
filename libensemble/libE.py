@@ -41,10 +41,10 @@ logger = logging.getLogger(__name__)
 
 
 def libE(sim_specs, gen_specs, exit_criteria,
-         persis_info={},
-         alloc_specs={},
-         libE_specs={},
-         H0=[]):
+         persis_info=None,
+         alloc_specs=None,
+         libE_specs=None,
+         H0=None):
     """
     Parameters
     ----------
@@ -110,9 +110,18 @@ def libE(sim_specs, gen_specs, exit_criteria,
             3 = Current process is not in libEnsemble MPI communicator
     """
 
-    # Set default alloc_specs
-    if not alloc_specs:
+    # Set default persis_info, alloc_specs, libE_specs, and H0
+    if persis_info is None:
+        persis_info = {}
+
+    if alloc_specs is None:
         alloc_specs = alloc_defaults.alloc_specs
+
+    if libE_specs is None:
+        libE_specs = {}
+
+    if H0 is None:
+        H0 = []
 
     # Set default comms
     if 'comms' not in libE_specs:
@@ -226,7 +235,9 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     # Lauch worker team
     wcomms = [MainMPIComm(mpi_comm, w) for w in
               range(1, mpi_comm.Get_size())]
-    manager_logging_config()
+
+    if not libE_specs.get('disable_log_files', False):
+        manager_logging_config()
 
     # Set up abort handler
     def on_abort():
@@ -285,7 +296,9 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
-    manager_logging_config()
+
+    if not libE_specs.get('disable_log_files', False):
+        manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
@@ -402,7 +415,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
         if port == 0:
             _, port = manager.address
 
-        manager_logging_config()
+        if not libE_specs.get('disable_log_files', False):
+            manager_logging_config()
+
         logger.info("Launched server at ({}, {})".format(ip, port))
 
         # Launch worker team and set up logger

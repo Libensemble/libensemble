@@ -38,7 +38,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     parameters for a mapping F from R^n to R^m.
 
     .. seealso::
-        `test_persistent_fd_param_finder.py` <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_
+        `test_persistent_fd_param_finder.py` <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
     U = gen_specs['user']
 
@@ -88,7 +88,8 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
         for i, j in x_f_pairs:
             for k in range(nf+1):
                 if k != nf/2:
-                    Fhist0[i, j, k] = calc_in['f_val'][np.logical_and.reduce((calc_in['x_ind'] == i, calc_in['f_ind'] == j, calc_in['n_ind'] == k))]
+                    logical_conds = (calc_in['x_ind'] == i, calc_in['f_ind'] == j, calc_in['n_ind'] == k)
+                    Fhist0[i, j, k] = calc_in['f_val'][np.logical_and.reduce(logical_conds)]
 
             # Compute noise for (i,j):
             # [Fnoise(i,j),~,inform(i,j)] = ECnoise(nf-1,Fhist0(i,j,2:nf));
@@ -96,7 +97,6 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
             # # Optional: check to see what would get with 2 fewer evals (requires nf>=4):
             # [Fnoise2(i,j),~,inform2(i,j)] = ECnoise(nf-1,Fhist0(i,j,2:nf));
 
-            # cmd = ["/home/jlarson/software/MATLAB/R2019a/bin/matlab", "-wait", "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
             # cmd = ["/home/jlarson/software/MATLAB/R2019a/bin/matlab", "-batch",
             cmd = ["octave", "--no-window-system", "--eval",
                    "F=[" + " ".join(["{:18.18f}".format(x) for x in Fhist0[i, j, :nf+1]]) + "];"

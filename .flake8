@@ -1,13 +1,11 @@
 [flake8]
+max-line-length = 120
+
 ignore =
-        # Not worrying about line length for now
-        E501,
         # Not worrying about spaces around arithmetic operations
         E226
-        # Line breaks before unary operators are okay
-        W503
-        # Line breaks after unary operators are okay
-        W504
+        # Linebreaks before/after unary operators are okay
+        W503, W504
 exclude =
         # Don't need to check .git
         .git,
@@ -30,3 +28,5 @@ per-file-ignores =
         libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py:E402
         # Matplotlib needs something set before import
         postproc_scripts/*:E402
+        libensemble/gen_funcs/*aposmm.py:E501
+        examples/gen_funcs/*aposmm.py:E501

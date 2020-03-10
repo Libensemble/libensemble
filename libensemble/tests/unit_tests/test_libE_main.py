@@ -8,6 +8,7 @@ import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from mpi4py import MPI
 from libensemble.tests.regression_tests.common import mpi_comm_excl
+from libensemble.comms.logs import LogConfig
 from numpy import inf
 
 
@@ -123,13 +124,15 @@ def test_exception_raising_check_inputs():
 def test_proc_not_in_communicator():
     """Checking proc not in communicator returns exit status of 3"""
     libE_specs['comm'], mpi_comm_null = mpi_comm_excl()
-    H, _, flag = libE({'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs=libE_specs)
+    H, _, flag = libE({'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]},
+                      {'sim_max': 1}, libE_specs=libE_specs)
     assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
 
 
 # def test_exception_raising_worker():
 #     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
-#     H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'comm': MPI.COMM_WORLD})
+#     H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]},
+#                    {'sim_max': 1}, libE_specs={'comm': MPI.COMM_WORLD})
 #     assert H==[]
 
 
@@ -192,7 +195,7 @@ def test_checking_inputs_H0():
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Should fail because H0 has fields not in H
-    H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + alloc_specs['out'] + [('bad_name', bool), ('bad_name2', bool)])
+    H0 = np.zeros(3, dtype=sim_specs['out'] + gen_specs['out'] + alloc_specs['out'] + [('bad_name2', bool)])
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'not in the History' in errstr, 'Incorrect assertion error: ' + errstr
 
@@ -222,6 +225,25 @@ def test_checking_inputs_single():
     check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
 
 
+def test_logging_disabling():
+    remove_file_if_exists('ensemble.log')
+    remove_file_if_exists('libE_stats.txt')
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    libE_specs = {'comm': fake_mpi, 'comms': 'mpi', 'disable_log_files': True}
+    logconfig = LogConfig.config
+    logconfig.logger_set = False
+
+    with mock.patch('libensemble.libE_manager.manager_main') as managerMock:
+        managerMock.side_effect = Exception
+        with mock.patch('libensemble.comms_abort') as abortMock:
+            abortMock.side_effect = Exception
+            with pytest.raises(Exception):
+                libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
+                pytest.fail('Expected exception')
+            assert not os.path.isfile('ensemble.log'), "ensemble.log file dumped"
+            assert not os.path.isfile('libE_stats.txt'), "libE_stats.txt file dumped"
+
+
 if __name__ == "__main__":
     test_manager_exception()
     test_exception_raising_manager_with_abort()
@@ -232,3 +254,4 @@ if __name__ == "__main__":
     test_checking_inputs_H0()
     test_checking_inputs_exit_crit()
     test_checking_inputs_single()
+    test_logging_disabling()
