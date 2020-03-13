@@ -190,7 +190,7 @@ def libE_mpi_defaults(libE_specs):
     from mpi4py import MPI
 
     if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD
+        libE_specs['comm'] = MPI.COMM_WORLD  # Will be duplicated immediately
 
     return libE_specs, MPI.COMM_NULL
 
