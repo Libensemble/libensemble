@@ -92,15 +92,21 @@ class ErrorFilter(logging.Filter):
 def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger.
     """
+
     logconfig = LogConfig.config
-    if not logconfig.logger_set:
-        ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
-        ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
-        logger = logging.getLogger(logconfig.name)
+    logger = logging.getLogger(logconfig.name)
+    ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
+    ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
+
+    if logconfig.logger_set:
+        for hdl in logger.handlers[:]:
+            logger.removeHandler(hdl)
+    else:
         logger.propagate = False
         logger.setLevel(logconfig.log_level)
-        logger.addHandler(ch)
         logconfig.logger_set = True
+
+    logger.addHandler(ch)
 
 
 def manager_logging_config():

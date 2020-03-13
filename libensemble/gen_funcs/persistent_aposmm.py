@@ -420,7 +420,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     if user_specs.get('periodic'):
         x_opt = x_opt % 1  # Shift x_opt to be in the correct location in the unit cube (not the domain user_specs['lb'] - user_specs['ub'])
 
-    finish_queue(x_opt, comm_queue, parent_can_read)
+    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -457,7 +457,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
 
-    finish_queue(x_opt, comm_queue, parent_can_read)
+    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
 
 
 def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -501,7 +501,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
     for f in [x_file, y_file, opt_file]:
         os.remove(f)
 
-    finish_queue(x_opt, comm_queue, parent_can_read)
+    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -525,7 +525,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # FIXME: Need to do something with the exit codes.
     # print(exit_code)
 
-    finish_queue(x_opt, comm_queue, parent_can_read)
+    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -602,7 +602,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     x.destroy()
     tao.destroy()
 
-    finish_queue(x_opt, comm_queue, parent_can_read)
+    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
 
 
 # Callback functions and routines
@@ -642,9 +642,10 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
     return f_recv
 
 
-def finish_queue(x_opt, comm_queue, parent_can_read):
+def finish_queue(x_opt, comm_queue, parent_can_read, user_specs):
 
-    print('x_opt', x_opt, flush=True)
+    if user_specs.get('print'):
+        print('Local optimum on the [0,1]^n domain', x_opt, flush=True)
     comm_queue.put(ConvergedMsg(x_opt))
     parent_can_read.set()
 
@@ -944,9 +945,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
     # If paused is a field in H, don't start from paused points.
     if 'paused' in H.dtype.names:
         sample_start_inds = sample_start_inds[~H[sample_start_inds]['paused']]
-        start_inds = list(sample_start_inds)+local_start_inds2
-    else:
-        start_inds = list(sample_start_inds)+local_start_inds2
+    start_inds = list(sample_start_inds)+local_start_inds2
 
     # Sort the starting inds by their function value
     inds = np.argsort(H['f'][start_inds])

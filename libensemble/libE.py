@@ -190,7 +190,8 @@ def libE_mpi_defaults(libE_specs):
     from mpi4py import MPI
 
     if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD.Dup()
+        libE_specs['comm'] = MPI.COMM_WORLD  # Will be duplicated immediately
+
     return libE_specs, MPI.COMM_NULL
 
 
@@ -199,11 +200,11 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     "MPI version of the libE main routine"
 
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
-    comm = libE_specs['comm']
 
-    if comm == mpi_comm_null:
+    if libE_specs['comm'] == mpi_comm_null:
         return [], persis_info, 3  # Process not in comm
 
+    comm = libE_specs['comm'].Dup()
     rank = comm.Get_rank()
     is_master = (rank == 0)
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
@@ -216,12 +217,18 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
     # Run manager or worker code, depending
     if is_master:
-        return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
-                                persis_info, alloc_specs, libE_specs, H0)
+        H, persis_info, exit_flag = libE_mpi_manager(comm, sim_specs,
+                                                     gen_specs, exit_criteria,
+                                                     persis_info, alloc_specs,
+                                                     libE_specs, H0)
+    else:
+        # Worker returns a subset of MPI output
+        libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
+        H = []
+        exit_flag = []
 
-    # Worker returns a subset of MPI output
-    libE_mpi_worker(sim_specs, gen_specs, libE_specs)
-    return [], persis_info, []
+    comm.Free()
+    return H, persis_info, exit_flag
 
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
@@ -250,13 +257,13 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                         on_abort=on_abort)
 
 
-def libE_mpi_worker(sim_specs, gen_specs, libE_specs):
+def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
-    comm = MainMPIComm(libE_specs['comm'])
+    comm = MainMPIComm(libE_comm)
     worker_main(comm, sim_specs, gen_specs, libE_specs, log_comm=True)
-    logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+    logger.debug("Worker {} exiting".format(libE_comm.Get_rank()))
 
 
 # ==================== Local version ===============================

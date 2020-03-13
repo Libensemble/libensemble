@@ -58,7 +58,7 @@ gen_specs = {'gen_f': gen_f,
                       'grtol': 1e-6,
                       'gatol': 1e-6,
                       'dist_to_bound_multiple': 0.5,
-                      'lhs_divisions': 50,
+                      'lhs_divisions': 100,
                       'components': m,
                       'lb': lb,
                       'ub': ub}
