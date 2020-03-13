@@ -223,7 +223,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
                                                      libE_specs, H0)
     else:
         # Worker returns a subset of MPI output
-        libE_mpi_worker(sim_specs, gen_specs, libE_specs)
+        libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
         H = []
         exit_flag = []
 
