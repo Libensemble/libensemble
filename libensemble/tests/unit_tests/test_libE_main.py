@@ -32,6 +32,9 @@ class Fake_MPI:
     def Barrier(self):
         return 0
 
+    def Dup(self):
+        return self
+
     def isend(self, msg, dest, tag):
         raise MPISendException()
 
