@@ -58,17 +58,23 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 exit_criteria = {'sim_max': 1000}
 
 for run in range(2):
+    if run == 1:
+        gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
+        gen_specs['user'].pop('xtol_abs')
+        gen_specs['user'].pop('ftol_abs')
+        gen_specs['user']['scipy_kwargs'] = {'tol':1e-8}
+
     persis_info = add_unique_random_streams({}, nworkers + 1)
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
 
-if is_master:
-    min_ids = np.where(H['local_min'])
+    if is_master:
+        min_ids = np.where(H['local_min'])
 
-    # The minima are known on this test problem. If the above [lb,ub] domain is
-    # shifted/scaled to [0,1]^n, they all have value [0.25, 0.75] or [0.75, 0.25]
-    minima = np.array([[0.25, 0.75], [0.75, 0.25]])
-    tol = 1e-4
-    for x in H['x_on_cube'][min_ids]:
-        assert np.linalg.norm(x - minima[0]) < tol or np.linalg.norm(x - minima[1]) < tol
+        # The minima are known on this test problem. If the above [lb,ub] domain is
+        # shifted/scaled to [0,1]^n, they all have value [0.25, 0.75] or [0.75, 0.25]
+        minima = np.array([[0.25, 0.75], [0.75, 0.25]])
+        tol = 1e-4
+        for x in H['x_on_cube'][min_ids]:
+            assert np.linalg.norm(x - minima[0]) < tol or np.linalg.norm(x - minima[1]) < tol
