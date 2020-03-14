@@ -235,7 +235,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
         # Worker returns a subset of MPI output
         libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
-        return [], persis_info, []
+        return [], {}, []
 
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
