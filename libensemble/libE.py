@@ -178,6 +178,18 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
 
 # ==================== MPI version =================================
 
+class DupComm:
+    """Duplicate MPI communicator for use with a with statement"""
+    def __init__(self, comm):
+        self.parent_comm = comm
+
+    def __enter__(self):
+        self.dup_comm = self.parent_comm.Dup()
+        return self.dup_comm
+
+    def __exit__(self, etype, value, traceback):
+        self.dup_comm.Free()
+
 
 def comms_abort(comm):
     "Abort all MPI ranks"
@@ -204,31 +216,26 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     if libE_specs['comm'] == mpi_comm_null:
         return [], persis_info, 3  # Process not in comm
 
-    comm = libE_specs['comm'].Dup()
-    rank = comm.Get_rank()
-    is_master = (rank == 0)
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    exctr = Executor.executor
-    if exctr is not None:
-        local_host = socket.gethostname()
-        libE_nodes = set(comm.allgather(local_host))
-        exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+    with DupComm(libE_specs['comm']) as comm:
+        rank = comm.Get_rank()
+        is_master = (rank == 0)
 
-    # Run manager or worker code, depending
-    if is_master:
-        H, persis_info, exit_flag = libE_mpi_manager(comm, sim_specs,
-                                                     gen_specs, exit_criteria,
-                                                     persis_info, alloc_specs,
-                                                     libE_specs, H0)
-    else:
+        exctr = Executor.executor
+        if exctr is not None:
+            local_host = socket.gethostname()
+            libE_nodes = set(comm.allgather(local_host))
+            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+
+        # Run manager or worker code, depending
+        if is_master:
+            return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
+                                    persis_info, alloc_specs, libE_specs, H0)
+
         # Worker returns a subset of MPI output
         libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
-        H = []
-        exit_flag = []
-
-    comm.Free()
-    return H, persis_info, exit_flag
+        return [], {}, []
 
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,

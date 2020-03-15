@@ -35,6 +35,9 @@ class Fake_MPI:
     def Dup(self):
         return self
 
+    def Free(self):
+        return
+
     def isend(self, msg, dest, tag):
         raise MPISendException()
 
