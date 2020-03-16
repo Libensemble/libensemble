@@ -516,9 +516,13 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # Care must be taken here because a too-large initial step causes DFO-LS to move the starting point!
     dist_to_bound = min(min(ub-x0), min(x0-lb))
     assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small"
+    assert 'bounds' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set the bounds for DFO-LS"
+    assert 'rhobeg' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set rhobeg for DFO-LS"
+    assert 'x0' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set x0 for DFO-LS"
 
     # Call DFO-LS
-    soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs), x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound, do_logging=False)
+    soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
+                       x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound, **user_specs.get('dfols_kwargs', {}))
 
     x_opt = soln.x
 
