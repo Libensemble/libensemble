@@ -8,7 +8,7 @@ libE_specs = {'comm': {}}
 def test_persis_apossm_localopt_test():
     _, _, gen_specs_0, _, _ = setup.hist_setup1()
 
-    H = np.zeros(4, dtype=[('f', float), ('sim_id', bool), ('returned', bool)])
+    H = np.zeros(4, dtype=[('f', float), ('sim_id', bool), ('dist_to_unit_bounds', float), ('returned', bool)])
     H['returned'] = True
     H['sim_id'] = range(len(H))
     gen_specs_0['user']['localopt_method'] = 'BADNAME'

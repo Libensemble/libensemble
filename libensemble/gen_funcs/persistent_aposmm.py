@@ -821,10 +821,8 @@ def update_history_optimal(x_opt, H, run_inds):
 
     tol_x1 = 1e-15
     if dists[ind] > tol_x1:
-        print("Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]))
-        print("Check that the local optimizer is working correctly")
-        print(x_opt)
-        print(run_inds, flush=True)
+        print("Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]) + "\n" +
+              "Check that the local optimizer is working correctly\n", x_opt, run_inds, flush=True)
 
     assert dists[ind] <= tol_x1, "Closest point to x_opt not within {}?".format(tol_x1)
 
@@ -1027,7 +1025,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
 
         over_written_fields = ['dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l', 'ind_of_better_s']
         if any([i in H.dtype.names for i in over_written_fields]):
-            print("persistent_aposmm ignores any given values in these fields: " + over_written_fields)
+            print("\n persistent_aposmm ignores any given values in these fields: " + str(over_written_fields) + "\n")
 
         initialize_dists_and_inds(local_H, len(H))
 
