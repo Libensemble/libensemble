@@ -156,7 +156,7 @@ def check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria
 def test_checking_inputs_noworkers():
     # Don't take more points than there is space in history.
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    H0 = {}
+    H0 = np.empty(0)
 
     # Should fail because only got a manager
     libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
@@ -209,7 +209,7 @@ def test_checking_inputs_H0():
 def test_checking_inputs_exit_crit():
     sim_specs, gen_specs, _ = setup.make_criteria_and_specs_0()
     libE_specs = {'comm': fake_mpi, 'comms': 'mpi'}
-    H0 = {}
+    H0 = np.empty(0)
 
     exit_criteria = {}
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
@@ -226,7 +226,12 @@ def test_checking_inputs_single():
 
     check_inputs(libE_specs=libE_specs)
     check_inputs(alloc_specs=alloc_specs)
-    check_inputs(sim_specs=sim_specs)
+    try:
+        check_inputs(sim_specs=sim_specs)
+    except AssertionError:
+        assert 1, "Fails because sim_specs['in']=['x_on_cube'] and that's not an 'out' of anything"
+    else:
+        assert 0, "Should have failed"
     check_inputs(gen_specs=gen_specs)
     check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
 
