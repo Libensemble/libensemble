@@ -13,6 +13,7 @@ def _check_consistent_field(name, field0, field1):
 
 def check_libE_specs(libE_specs, serial_check=False):
     assert isinstance(libE_specs, dict), "libE_specs must be a dictionary"
+
     comms_type = libE_specs.get('comms', 'mpi')
     if comms_type in ['mpi']:
         if not serial_check:
@@ -30,6 +31,7 @@ def check_libE_specs(libE_specs, serial_check=False):
 
 def check_alloc_specs(alloc_specs):
     assert isinstance(alloc_specs, dict), "alloc_specs must be a dictionary"
+
     assert alloc_specs['alloc_f'], "Allocation function must be specified"
 
     for k in alloc_specs.keys():
@@ -39,6 +41,7 @@ def check_alloc_specs(alloc_specs):
 
 def check_sim_specs(sim_specs):
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
+
     assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'out']]), \
         "sim_specs must contain 'sim_f', 'in', 'out'"
 
@@ -46,6 +49,7 @@ def check_sim_specs(sim_specs):
         "Entries in sim_specs['in'] must be strings. Also can't be lists or tuples of strings."
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
+
     assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
 
     for k in sim_specs.keys():
@@ -55,6 +59,7 @@ def check_sim_specs(sim_specs):
 
 def check_gen_specs(gen_specs):
     assert isinstance(gen_specs, dict), "gen_specs must be a dictionary"
+
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
     if 'in' in gen_specs:
@@ -149,17 +154,42 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         run with libE_specs{'comm': 'mpi'} without running through mpiexec.
 
     """
+    out_names = [e[0] for e in libE_fields]
+    if H0 is not None:
+        out_names += [H0.dtype.names]
+    if sim_specs is not None:
+        out_names += [e[0] for e in sim_specs.get('out', [])]
+    if gen_specs is not None:
+        out_names += [e[0] for e in gen_specs.get('out', [])]
+    if alloc_specs is not None:
+        out_names += [e[0] for e in alloc_specs.get('out', [])]
+
     # Detailed checking based on Required Keys in docs for each specs
     if libE_specs is not None:
         check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:
+        for name in alloc_specs.get('in', []):
+            assert name in out_names, \
+                name + " in alloc_specs['in'] is not in sim_specs['out'], "\
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+
         check_alloc_specs(alloc_specs)
 
     if sim_specs is not None:
+        for name in sim_specs.get('in', []):
+            assert name in out_names, \
+                name + " in alloc_specs['in'] is not in sim_specs['out'], "\
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+
         check_sim_specs(sim_specs)
 
     if gen_specs is not None:
+        for name in gen_specs.get('in', []):
+            assert name in out_names, \
+                name + " in alloc_specs['in'] is not in sim_specs['out'], "\
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+
         check_gen_specs(gen_specs)
 
     if exit_criteria is not None:

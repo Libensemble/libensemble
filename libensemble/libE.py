@@ -121,7 +121,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         libE_specs = {}
 
     if H0 is None:
-        H0 = []
+        H0 = np.empty(0)
 
     # Set default comms
     if 'comms' not in libE_specs:
