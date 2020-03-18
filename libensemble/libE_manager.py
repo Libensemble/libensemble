@@ -127,6 +127,7 @@ class Manager:
         self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
         self.wcomms = wcomms
+        self.WorkerExc = False
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
@@ -350,9 +351,11 @@ class Manager:
 
         if isinstance(D_recv, WorkerErrMsg):
             self.W[w-1]['active'] = 0
-            self._kill_workers()
-            raise ManagerException('Received error message from {}'.format(w),
-                                   D_recv.msg, D_recv.exc)
+            if not self.WorkerExc:
+                self.WorkerExc = True
+                self._kill_workers()
+                raise ManagerException('Received error message from {}'.format(w),
+                                       D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
@@ -376,6 +379,8 @@ class Manager:
                 sys.stdout.flush()
                 sys.stderr.flush()
                 exit_flag = 2
+            if self.WorkerExc:
+                exit_flag = 1
 
         self._kill_workers()
         return persis_info, exit_flag, self.elapsed()
