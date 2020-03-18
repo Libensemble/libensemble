@@ -364,7 +364,9 @@ class LocalOptInterfacer(object):
 
         x_new = self.comm_queue.get()
 
-        if isinstance(x_new, ConvergedMsg):
+        if isinstance(x_new, ErrorMsg):
+            raise APOSMMException(x_new.x)
+        elif isinstance(x_new, ConvergedMsg):
             self.process.join()
             self.comm_queue.close()
             self.comm_queue.join_thread()
