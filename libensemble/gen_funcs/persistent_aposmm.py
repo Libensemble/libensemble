@@ -324,7 +324,7 @@ class LocalOptInterfacer(object):
             run_local_opt = run_external_localopt
 
         self.parent_can_read.clear()
-        self.process = Process(target=run_local_opt, args=(user_specs,
+        self.process = Process(target=opt_runner, args=(run_local_opt, user_specs,
                                self.comm_queue, x0, f0, self.child_can_read,
                                self.parent_can_read))
 
@@ -524,34 +524,30 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
 
-    try:
-        # Define bound constraints (lower <= x <= upper)
-        lb = np.zeros(len(x0))
-        ub = np.ones(len(x0))
+    # Define bound constraints (lower <= x <= upper)
+    lb = np.zeros(len(x0))
+    ub = np.ones(len(x0))
 
-        # Set random seed (for reproducibility)
-        np.random.seed(0)
+    # Set random seed (for reproducibility)
+    np.random.seed(0)
 
-        # Care must be taken here because a too-large initial step causes DFO-LS to move the starting point!
-        dist_to_bound = min(min(ub-x0), min(x0-lb))
-        assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small"
-        assert 'bounds' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set the bounds for DFO-LS"
-        assert 'rhobeg' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set rhobeg for DFO-LS"
-        assert 'x0' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set x0 for DFO-LS"
+    # Care must be taken here because a too-large initial step causes DFO-LS to move the starting point!
+    dist_to_bound = min(min(ub-x0), min(x0-lb))
+    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small"
+    assert 'bounds' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set the bounds for DFO-LS"
+    assert 'rhobeg' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set rhobeg for DFO-LS"
+    assert 'x0' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set x0 for DFO-LS"
 
-        # Call DFO-LS
-        soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
-                        x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound, **user_specs.get('dfols_kwargs', {}))
+    # Call DFO-LS
+    soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
+                    x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound, **user_specs.get('dfols_kwargs', {}))
 
-        x_opt = soln.x
+    x_opt = soln.x
 
-        # FIXME: Need to do something with the exit codes.
-        # print(exit_code)
+    # FIXME: Need to do something with the exit codes.
+    # print(exit_code)
 
-        finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
-    except Exception as e:
-        comm_queue.put(ErrorMsg(e))
-        parent_can_read.set()
+    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -629,6 +625,14 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     tao.destroy()
 
     finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
+
+
+def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    try:
+        run_local_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read)
+    except Exception as e:
+        comm_queue.put(ErrorMsg(e))
+        parent_can_read.set()
 
 
 # Callback functions and routines
