@@ -329,14 +329,9 @@ class LocalOptInterfacer(object):
                                self.parent_can_read))
 
         self.process.start()
-
-
         self.is_running = True
         self.parent_can_read.wait()
-
-
         x_new = self.comm_queue.get()
-
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
 
@@ -363,7 +358,6 @@ class LocalOptInterfacer(object):
         self.parent_can_read.wait()
 
         x_new = self.comm_queue.get()
-
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
         elif isinstance(x_new, ConvergedMsg):
