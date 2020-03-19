@@ -290,7 +290,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         try:
             for p in local_opters.values():
                 p.process.terminate()
-                p.join()
+                p.process.join()
         except NameError:
             pass
         raise
