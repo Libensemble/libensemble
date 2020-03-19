@@ -546,7 +546,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
     # Call DFO-LS
     soln = dfols.solve(lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
-                    x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound, **user_specs.get('dfols_kwargs', {}))
+                       x0, bounds=(lb, ub), rhobeg=0.5*dist_to_bound, **user_specs.get('dfols_kwargs', {}))
 
     x_opt = soln.x
 
