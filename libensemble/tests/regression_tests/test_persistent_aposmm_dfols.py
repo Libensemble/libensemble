@@ -51,7 +51,6 @@ gen_specs = {'gen_f': gen_f,
                       'components': m,
                       'dfols_kwargs': {'do_logging': False,
                                        'rhoend': 1e-5,
-                                       'rhobeg': 1e-4,
                                        'user_params': {'model.abs_tol': 1e-10,
                                                        'model.rel_tol': 1e-4}
                                        },
