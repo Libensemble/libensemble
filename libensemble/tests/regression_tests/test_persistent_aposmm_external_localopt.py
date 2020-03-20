@@ -17,7 +17,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi
+# TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
 
 import sys
@@ -36,9 +36,6 @@ from time import time
 np.set_printoptions(precision=16)
 
 nworkers, is_master, libE_specs, _ = parse_args()
-
-if libE_specs['comms'] != 'mpi':
-    sys.exit("We recommend using 'mpi' communication when using persistent_aposmm with an external localopt.")
 
 if is_master:
     start_time = time()
