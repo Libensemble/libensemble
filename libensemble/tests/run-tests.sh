@@ -429,7 +429,7 @@ if [ "$root_found" = true ]; then
             continue
           fi
 
-          if [ "$OSTYPE" == *"darwin"* ] && [ "$OS_SKIP_LIST" = "OSX" ]; then
+          if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
             echo "Skipping test number for OSX: " $test_num
             continue
           fi
