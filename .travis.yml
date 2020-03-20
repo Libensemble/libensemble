@@ -22,11 +22,11 @@ jobs:
       language: generic
       python: 3.7
 
-addons:
-    homebrew:
-        packages:
-        - octave
-        update: true
+# addons:
+#     homebrew:
+#         packages:
+#         - octave
+#         update: true
 
 services:
     - postgresql
