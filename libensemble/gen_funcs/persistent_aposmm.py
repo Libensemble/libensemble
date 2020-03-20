@@ -41,6 +41,14 @@ class ConvergedMsg(object):
         self.x = x
 
 
+class ErrorMsg(object):
+    """
+    Message communicated when a local optimization has an exception.
+    """
+    def __init__(self, x):
+        self.x = x
+
+
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
@@ -316,14 +324,18 @@ class LocalOptInterfacer(object):
             run_local_opt = run_external_localopt
 
         self.parent_can_read.clear()
-        self.process = Process(target=run_local_opt, args=(user_specs,
+        self.process = Process(target=opt_runner, args=(run_local_opt, user_specs,
                                self.comm_queue, x0, f0, self.child_can_read,
                                self.parent_can_read))
 
         self.process.start()
         self.is_running = True
         self.parent_can_read.wait()
-        assert np.allclose(self.comm_queue.get(), x0, rtol=1e-15, atol=1e-15), "The first point requested by this run does not match the starting point. Exiting"
+        x_new = self.comm_queue.get()
+        if isinstance(x_new, ErrorMsg):
+            raise APOSMMException(x_new.x)
+
+        assert np.allclose(x_new, x0, rtol=1e-15, atol=1e-15), "The first point requested by this run does not match the starting point. Exiting"
 
     def iterate(self, data):
         """
@@ -346,7 +358,9 @@ class LocalOptInterfacer(object):
         self.parent_can_read.wait()
 
         x_new = self.comm_queue.get()
-        if isinstance(x_new, ConvergedMsg):
+        if isinstance(x_new, ErrorMsg):
+            raise APOSMMException(x_new.x)
+        elif isinstance(x_new, ConvergedMsg):
             self.process.join()
             self.comm_queue.close()
             self.comm_queue.join_thread()
@@ -607,6 +621,14 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     tao.destroy()
 
     finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
+
+
+def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    try:
+        run_local_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read)
+    except Exception as e:
+        comm_queue.put(ErrorMsg(e))
+        parent_can_read.set()
 
 
 # Callback functions and routines
