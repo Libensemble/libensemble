@@ -24,6 +24,8 @@ jobs:
 
 addons:
     homebrew:
+        packages:
+        - octave
         update: true
 
 services:
