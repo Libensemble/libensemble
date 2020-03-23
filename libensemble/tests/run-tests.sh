@@ -418,13 +418,19 @@ if [ "$root_found" = true ]; then
       do
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
+        OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
         for NPROCS in $NPROCS_LIST
         do
           test_num=$((test_num+1))
           NWORKERS=$((NPROCS-1))
 
           if [ "$RUN_ONLY_MPI" = true ] && [ "$LAUNCHER" != mpi ]; then
-            echo "Skipping test number: " $test_num
+            echo "Skipping non-mpi test number: " $test_num
+            continue
+          fi
+
+          if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+            echo "Skipping test number for OSX: " $test_num
             continue
           fi
 
