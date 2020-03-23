@@ -22,6 +22,15 @@ jobs:
       language: generic
       python: 3.7
 
+# Below will update the OSX octave used on Travis.  This was so slow that we
+# were hitting the 50 minute limit on Travis. We no longer update octave in
+# homebrew, and can no longer run regression # tests using octave on OSX.
+# addons:
+#   homebrew:
+#     packages:
+#     - octave
+#     update: true
+
 services:
     - postgresql
 
