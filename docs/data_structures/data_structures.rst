@@ -20,6 +20,14 @@ and the
 :ref:`work<datastruct-history-array>` dictionary produced by the allocation
 function.
 
+.. note::
+
+    Since version 0.7.0, libEnsemble performs an initial check that all ``'in'``
+    fields in ``sim_specs``, ``gen_specs``, and ``alloc_specs`` correspond to
+    at least one ``'out'`` field in the aforementioned data structures. This
+    guarantees ahead of time that relevant inputs and outputs are specified to
+    pass correctly between user functions.
+
 .. toctree::
    :maxdepth: 3
    :caption: libEnsemble Data Structures:
