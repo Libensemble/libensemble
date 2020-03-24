@@ -24,9 +24,9 @@ function.
 
     Since version 0.7.0, libEnsemble performs an initial check that all ``'in'``
     fields in ``sim_specs``, ``gen_specs``, and ``alloc_specs`` correspond to
+    a field in the initial history array, ``H0`` or
     at least one ``'out'`` field in the aforementioned data structures. This
-    guarantees ahead of time that relevant inputs and outputs are specified to
-    pass correctly between user functions.
+    guarantees that the required inputs are available. 
 
 .. toctree::
    :maxdepth: 3

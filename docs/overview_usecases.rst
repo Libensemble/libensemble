@@ -95,8 +95,9 @@ it's capabilities.
   *tasks* as directed by the manager; tasks may include submitting external
   programs for execution using the executor.
 
-* **Persistent**: Typically, a worker strictly communicates with the manager
-  before and after initiating a user ``gen_f`` or ``sim_f``. However, user
-  functions may also be constructed to continuously loop over their work and
-  intermediately communicate with the manager without returning. These functions
+* **Persistent**: Typically, a worker communicates with the manager 
+  before and after initiating a user ``gen_f`` or ``sim_f`` calculation. However, user
+  functions may also be constructed to communicate directly with the manager,
+  for example, in order to efficiently maintain and update data structures instead of
+  communicating them between manager and worker. These calculations
   and the workers assigned to them are referred to as *persistent*.
