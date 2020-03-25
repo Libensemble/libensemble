@@ -283,7 +283,6 @@ class QCommProcess(Comm):
             timeout = get_timeout()
         if not self._done:
             raise Timeout()
-        self.process.terminate()
         self.process.join(timeout=timeout)
         if self.running:
             raise Timeout()
