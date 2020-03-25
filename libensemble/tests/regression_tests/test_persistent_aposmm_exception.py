@@ -30,6 +30,7 @@ def assertion(passed):
     if libE_specs['comms'] == 'mpi':
         from mpi4py import MPI
         if passed:
+            print("\n\nMPI will be aborted as planned\n\n", flush=True)
             MPI.COMM_WORLD.Abort(0)  # Abort with success
         else:
             MPI.COMM_WORLD.Abort(1)  # Abort with failure
@@ -62,10 +63,12 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
-exit_criteria = {'sim_max': 1000}
-persis_info = add_unique_random_streams({}, nworkers + 1)
-libE_specs['abort_on_exception'] = False
 
+exit_criteria = {'sim_max': 1000}
+
+persis_info = add_unique_random_streams({}, nworkers + 1)
+
+libE_specs['abort_on_exception'] = False
 try:
     # Perform the run, which will fail because we want to test exception handling
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
