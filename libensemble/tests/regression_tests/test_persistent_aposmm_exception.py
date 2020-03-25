@@ -35,8 +35,9 @@ def assertion(passed):
         else:
             MPI.COMM_WORLD.Abort(1)  # Abort with failure
     else:
-        print("\n\nCorrect NLopt exception caught anyway.")
         assert passed
+        print("\n\nCorrect NLopt exception caught anyway.")
+
 
 
 nworkers, is_master, libE_specs, _ = parse_args()
