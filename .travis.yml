@@ -74,6 +74,7 @@ install:
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
   - pip install flake8
   - pip install DFO-LS
+  - pip install deap
   - pip install scikit-build packaging Tasmanian --user
   - pip install coverage==4.5.4
   - pip install pytest
