@@ -16,6 +16,7 @@ from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
 from libensemble.gen_funcs.persistent_deap_nsga2 import deap_nsga2 as gen_f
 
+# How will this test use the executor?
 USE_BALSAM = False
 # Create job_controller and register sim to it.
 if USE_BALSAM:
