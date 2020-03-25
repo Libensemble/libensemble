@@ -1,10 +1,7 @@
 # One Max example from DEAP documentation:
 # https://deap.readthedocs.io/en/master/examples/ga_onemax.html
 
-import random
-from deap import base
-from deap import creator
-from deap import tools
+from deap import base, creator, tools
 import numpy as np
 import array
 
@@ -14,9 +11,9 @@ from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 def uniform(low, up, size=None):
     try:
-        return [random.uniform(a, b) for a, b in zip(low, up)]
+        return [np.random.uniform(a, b) for a, b in zip(low, up)]
     except TypeError:
-        return [random.uniform(a, b) for a, b in zip([low] * size, [up] * size)]
+        return [np.random.uniform(a, b) for a, b in zip([low] * size, [up] * size)]
 
 
 def nsga2_toolbox(gen_specs):
@@ -110,7 +107,7 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
         offspring = [toolbox.clone(ind) for ind in offspring]
 
         for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
-            if random.random() <= CXPB:
+            if np.random.uniform() <= CXPB:
                 toolbox.mate(ind1, ind2)
 
             toolbox.mutate(ind1)
