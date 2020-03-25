@@ -89,6 +89,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 
 if is_master:
     script_name = os.path.splitext(os.path.basename(__file__))[0]
-    assert flag == 0, script_name + "didn't exit correctly"
-    assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + "didn't evaluate the expected number of points."
-    assert min(H['fitness_values']) <= -1.0316, script_name + "didn't find the global minimum for this problem."
+    assert flag == 0, script_name + " didn't exit correctly"
+    assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
+    assert min(H['fitness_values']) <= -1.0316, script_name + " didn't find the global minimum for this problem."
