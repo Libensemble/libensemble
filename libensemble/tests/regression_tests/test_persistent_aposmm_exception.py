@@ -25,6 +25,18 @@ from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_al
 from libensemble.tools import parse_args, add_unique_random_streams
 
 
+def assertion(passed):
+    """Raise assertion or MPI Abort"""
+    if libE_specs['comms'] == 'mpi':
+        from mpi4py import MPI
+        if passed:
+            MPI.COMM_WORLD.Abort(0)  # Abort with success
+        else:
+            MPI.COMM_WORLD.Abort(1)  # Abort with failure
+    else:
+        assert passed
+
+
 nworkers, is_master, libE_specs, _ = parse_args()
 
 if nworkers < 2:
@@ -50,16 +62,20 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
-
 exit_criteria = {'sim_max': 1000}
-
 persis_info = add_unique_random_streams({}, nworkers + 1)
+libE_specs['abort_on_exception'] = False
 
-# libE_specs['abort_on_exception'] = False
 try:
     # Perform the run, which will fail because we want to test exception handling
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
 except Exception as e:
-    print(e)
-    assert 1
+    if is_master:
+        if e.args[1] == 'NLopt roundoff-limited':
+            assertion(True)
+        else:
+            assertion(False)
+else:
+    if is_master:
+        assertion(False)
