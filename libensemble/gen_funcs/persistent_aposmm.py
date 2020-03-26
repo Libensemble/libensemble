@@ -314,7 +314,7 @@ class LocalOptInterfacer(object):
         # Setting the local optimization method
         if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']:
             run_local_opt = run_local_nlopt
-        elif user_specs['localopt_method'] in ['pounders', 'blmvm']:
+        elif user_specs['localopt_method'] in ['pounders', 'blmvm', 'nm']:
             run_local_opt = run_local_tao
         elif user_specs['localopt_method'] in ['scipy_Nelder-Mead', 'scipy_COBYLA']:
             run_local_opt = run_local_scipy_opt
@@ -575,9 +575,14 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         f.setFromOptions()
 
         if hasattr(tao, 'setResidual'):
-            tao.setResidual(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
+            tao.setResidual(lambda tao, x, f: tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
         else:
-            tao.setSeparableObjective(lambda tao, x, f: tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
+            tao.setSeparableObjective(lambda tao, x, f: tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
+        delta_0 = user_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
+        PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
+
+    elif user_specs['localopt_method'] == 'nm':
+        tao.setObjective(lambda tao, x: tao_callback_fun_nm(tao, x, comm_queue, child_can_read, parent_can_read, user_specs))
 
     elif user_specs['localopt_method'] == 'blmvm':
         g = PETSc.Vec().create(tao_comm)
@@ -585,8 +590,6 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         g.setFromOptions()
         tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs))
 
-    delta_0 = user_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
-    PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
 
     # Set everything for tao before solving
     # FIXME: Hard-coding 100 as the max funcs as couldn't find any other
@@ -594,9 +597,9 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     PETSc.Options().setValue('-tao_max_funcs', str(user_specs.get('run_max_eval', 1000*n)))
     tao.setFromOptions()
     tao.setVariableBounds((lb, ub))
-    # tao.setObjectiveTolerances(fatol=user_specs['fatol'], frtol=user_specs['frtol'])
-    # tao.setGradientTolerances(grtol=user_specs['grtol'], gatol=user_specs['gatol'])
-    tao.setTolerances(grtol=user_specs['grtol'], gatol=user_specs['gatol'])
+
+
+    tao.setTolerances(grtol=user_specs.get('grtol',1e-8), gatol=user_specs.get('gatol',1e-8))
     tao.setInitial(x)
 
     # print('[Child]: Started my optimization', flush=True)
@@ -651,8 +654,13 @@ def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, use
 
     return f_x_recv
 
+def tao_callback_fun_nm(tao, x, comm_queue, child_can_read, parent_can_read, user_specs):
 
-def tao_callback_fun(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs):
+    x_recv, f_recv, = put_set_wait_get(x.array_r, comm_queue, parent_can_read, child_can_read, user_specs)
+
+    return f_recv
+
+def tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs):
 
     x_recv, f_recv, = put_set_wait_get(x.array_r, comm_queue, parent_can_read, child_can_read, user_specs)
     f.array[:] = f_recv
@@ -1070,7 +1078,7 @@ def initialize_children(user_specs):
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA',
                                            'LN_NELDERMEAD', 'scipy_Nelder-Mead', 'scipy_COBYLA',
-                                           'external_localopt']:
+                                           'external_localopt', 'nm']:
         fields_to_pass = ['x_on_cube', 'f']
     elif user_specs['localopt_method'] in ['pounders', 'dfols']:
         fields_to_pass = ['x_on_cube', 'fvec']
