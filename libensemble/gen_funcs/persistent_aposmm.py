@@ -217,7 +217,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
             if tag in [STOP_TAG, PERSIS_STOP]:
                 clean_up_and_stop(local_H, local_opters, run_order)
-                import ipdb; ipdb.set_trace()
                 persis_info['run_order'] = run_order
                 break
 

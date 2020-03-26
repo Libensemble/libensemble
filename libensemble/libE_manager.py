@@ -14,7 +14,7 @@ from libensemble.utils.timer import Timer
 from libensemble.message_numbers import \
     EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
-    STOP_TAG, UNSET_TAG, \
+    STOP_TAG, UNSET_TAG, PERSIS_STOP, \
     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
     TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
@@ -287,7 +287,7 @@ class Manager:
             "Aborting: Unknown calculation status received. " \
             "Received status: {}".format(calc_status)
 
-    def _receive_from_workers(self, persis_info):
+    def _receive_from_workers(self, persis_info, final_flag=False):
         """Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
         communticate. If any output is received, all other workers are
@@ -299,6 +299,9 @@ class Manager:
             for w in self.W['worker_id'][self.W['active'] > 0]:
                 if self.wcomms[w-1].mail_flag():
                     new_stuff = True
+                    self._handle_msg_from_worker(persis_info, w)
+                if final_flag and self.W[w-1]['persis_state'] > 0: 
+                    self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_FINISH)
                     self._handle_msg_from_worker(persis_info, w)
 
         if 'save_every_k_sims' in self.libE_specs:
@@ -373,7 +376,7 @@ class Manager:
         """
         exit_flag = 0
         while any(self.W['active']) and exit_flag == 0:
-            persis_info = self._receive_from_workers(persis_info)
+            persis_info = self._receive_from_workers(persis_info, True)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
                 logger.manager_warning(_WALLCLOCK_MSG)
                 sys.stdout.flush()
@@ -428,6 +431,5 @@ class Manager:
 
         finally:
             # Return persis_info, exit_flag, elapsed time
-            import ipdb; ipdb.set_trace()
             result = self._final_receive_and_kill(persis_info)
         return result
