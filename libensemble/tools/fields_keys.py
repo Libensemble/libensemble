@@ -49,4 +49,5 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'symlink_input_files',    #
                           'use_worker_dirs',        #
                           'workerID',               #
+                          'worker_timeout',         #
                           'worker_cmd']             #

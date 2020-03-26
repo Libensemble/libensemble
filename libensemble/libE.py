@@ -5,8 +5,9 @@ This module sets up the manager and the team of workers, configured according
 to the contents of the ``libE_specs`` dictionary. The manager/worker
 communications scheme used in libEnsemble is parsed from the ``comms`` key
 if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
-``tcp``. MPI is the default; if no communicator is specified, a duplicate of
-COMM_WORLD will be used.
+``tcp``. MPI is the default; if a communicator is specified, each call to this
+module will initiate manager/worker communications on a duplicate of that
+communicator. Otherwise, a duplicate of COMM_WORLD will be used.
 
 If an exception is encountered by the manager or workers, the history array
 is dumped to file, and MPI abort is called.

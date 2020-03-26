@@ -33,14 +33,13 @@ Automatic partitioning of resources can be disabled if you want to oversubscribe
 
     exctr = MPIExecutor(auto_resources=False)
 
-Note that the executor ``.submit()`` method has a parameter ``hyperthreads``
+Note that the executor ``submit()`` method has a parameter ``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``.
 
-**FileExistsError: [Errno 17] File exists: './sim_worker1'**
+**FileExistsError: [Errno 17] File exists: './ensemble'**
 
 This can happen when libEnsemble tries to create ensemble or simulation directories
-that already exist, or when libEnsemble is launched with ``mpiexec`` when the
-``libE_specs['comms']`` option is set to ``local``.
+that already exist.
 
 To create uniquely-named ensemble directories, set the ``ensemble_dir_suffix``
 option in :doc:`libE_specs<history_output>` to some unique value.
@@ -131,6 +130,17 @@ to ``pdb``. How well this works varies by system. ::
 Yes. The executor type determines only how libEnsemble workers
 execute and interact with user applications and is independent of ``comms`` chosen
 for manager/worker communications.
+
+**How can I disable libEnsemble's output files?**
+
+To disable ``libe_stats.txt`` and ``ensemble.log``, which libEnsemble typically
+always creates, set ``libE_specs['disable_log_files']`` to ``True``.
+
+If libEnsemble aborts on an exception, the History array and ``persis_info``
+dictionaries will be dumped. This can be suppressed by
+setting ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
+
+See :doc:`here<history_output>` for more information about these files.
 
 macOS-Specific Errors
 ---------------------
