@@ -590,7 +590,6 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         g.setFromOptions()
         tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs))
 
-
     # Set everything for tao before solving
     # FIXME: Hard-coding 100 as the max funcs as couldn't find any other
     # sensible value.
@@ -598,8 +597,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     tao.setFromOptions()
     tao.setVariableBounds((lb, ub))
 
-
-    tao.setTolerances(grtol=user_specs.get('grtol',1e-8), gatol=user_specs.get('gatol',1e-8))
+    tao.setTolerances(grtol=user_specs.get('grtol', 1e-8), gatol=user_specs.get('gatol', 1e-8))
     tao.setInitial(x)
 
     # print('[Child]: Started my optimization', flush=True)
@@ -654,11 +652,13 @@ def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, use
 
     return f_x_recv
 
+
 def tao_callback_fun_nm(tao, x, comm_queue, child_can_read, parent_can_read, user_specs):
 
     x_recv, f_recv, = put_set_wait_get(x.array_r, comm_queue, parent_can_read, child_can_read, user_specs)
 
     return f_recv
+
 
 def tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs):
 
