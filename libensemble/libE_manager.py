@@ -428,5 +428,6 @@ class Manager:
 
         finally:
             # Return persis_info, exit_flag, elapsed time
+            import ipdb; ipdb.set_trace()
             result = self._final_receive_and_kill(persis_info)
         return result
