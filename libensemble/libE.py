@@ -317,7 +317,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     # Set up cleanup routine to shut down worker team
     def cleanup():
         "Handler to clean up comms team."
-        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout'))
+        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
 
     # Run generic manager
     return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
