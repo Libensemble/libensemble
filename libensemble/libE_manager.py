@@ -300,7 +300,7 @@ class Manager:
                 if self.wcomms[w-1].mail_flag():
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
-                if final_flag and self.W[w-1]['persis_state'] > 0: 
+                if final_flag and self.W[w-1]['persis_state'] > 0:
                     self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_FINISH)
                     self._handle_msg_from_worker(persis_info, w)
 
