@@ -17,7 +17,7 @@ env:
 jobs:
   include:
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode11
       env: MPI=mpich PY=3.7
       language: generic
       python: 3.7
@@ -72,9 +72,14 @@ install:
   - conda install $COMPILERS
   - conda install libblas libopenblas # Prevent 'File exists' error
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
-  - pip install flake8
+
+    # Begin: Dependencies only for regression tests
   - pip install DFO-LS
+  - pip install deap
   - pip install scikit-build packaging Tasmanian --user
+    # End: dependencies only for regression tests
+    #
+  - pip install flake8
   - pip install coverage==4.5.4
   - pip install pytest
   - pip install pytest-cov

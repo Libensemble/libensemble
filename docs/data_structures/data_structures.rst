@@ -26,7 +26,7 @@ function.
     fields in ``sim_specs``, ``gen_specs``, and ``alloc_specs`` correspond to
     a field in the initial history array, ``H0`` or
     at least one ``'out'`` field in the aforementioned data structures. This
-    guarantees that the required inputs are available. 
+    guarantees that the required inputs are available.
 
 .. toctree::
    :maxdepth: 3

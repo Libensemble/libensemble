@@ -1,6 +1,6 @@
 # xSDK Community Policy Compatibility for libEnsemble
 
-This document summarizes the efforts of libEnsemble 
+This document summarizes the efforts of libEnsemble
 to achieve compatibility with the xSDK community policies.
 
 **Website:** https://github.com/Libensemble/libensemble

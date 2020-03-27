@@ -95,7 +95,7 @@ it's capabilities.
   *tasks* as directed by the manager; tasks may include submitting external
   programs for execution using the executor.
 
-* **Persistent**: Typically, a worker communicates with the manager 
+* **Persistent**: Typically, a worker communicates with the manager
   before and after initiating a user ``gen_f`` or ``sim_f`` calculation. However, user
   functions may also be constructed to communicate directly with the manager,
   for example, in order to efficiently maintain and update data structures instead of
