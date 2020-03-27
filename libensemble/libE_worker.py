@@ -16,7 +16,7 @@ import numpy as np
 
 from libensemble.message_numbers import \
     EVAL_SIM_TAG, EVAL_GEN_TAG, \
-    UNSET_TAG, STOP_TAG, CALC_EXCEPTION
+    UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
@@ -441,7 +441,7 @@ class Worker:
                 logger.debug("Iteration {}".format(worker_iter))
 
                 mtag, Work = self.comm.recv()
-                if mtag == STOP_TAG:
+                if mtag in [STOP_TAG, PERSIS_STOP]:
                     break
 
                 response = self._handle(Work)

@@ -368,7 +368,6 @@ class Manager:
         else:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
-
     # --- Handle termination
 
     def _final_receive_and_kill(self, persis_info):
@@ -383,7 +382,7 @@ class Manager:
         # Send a handshake signal to each active persistent worker.
         if any(self.W['persis_state'][self.W['active'] > 0]):
             for w in (self.W[((self.W['persis_state'] > 0) & (self.W['active'] > 0))]['worker_id']):
-                #print("w is {}".format(w)) #testing
+                # print("w is {}".format(w)) #testing
                 self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 self.handshake_pending.append(w)
 

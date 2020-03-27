@@ -284,7 +284,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
         something_sent = True
 
-    return local_H, persis_info, tag
+    return [], persis_info, tag
 
 
 class LocalOptInterfacer(object):
