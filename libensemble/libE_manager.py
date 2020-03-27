@@ -355,6 +355,7 @@ class Manager:
 
         if tag is PERSIS_STOP:
             # Handshake received
+            logger.debug("Manager received handshake from worker {}".format(w))
             self.handshake_pending.remove(w)
         elif isinstance(D_recv, WorkerErrMsg):
             self.W[w-1]['active'] = 0
@@ -383,6 +384,7 @@ class Manager:
         if any(self.W['persis_state'][self.W['active'] > 0]):
             for w in (self.W[((self.W['persis_state'] > 0) & (self.W['active'] > 0))]['worker_id']):
                 # print("w is {}".format(w)) #testing
+                logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
                 self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 self.handshake_pending.append(w)
 
