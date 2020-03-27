@@ -128,6 +128,7 @@ class Manager:
         self.elapsed = lambda: timer.elapsed
         self.wcomms = wcomms
         self.WorkerExc = False
+        self.handshake_pending = []
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
@@ -277,6 +278,7 @@ class Manager:
         assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                                FINISHED_PERSISTENT_GEN_TAG,
                                UNSET_TAG,
+                               PERSIS_STOP,
                                MAN_SIGNAL_FINISH,
                                MAN_SIGNAL_KILL,
                                WORKER_KILL_ON_ERR,
@@ -287,7 +289,7 @@ class Manager:
             "Aborting: Unknown calculation status received. " \
             "Received status: {}".format(calc_status)
 
-    def _receive_from_workers(self, persis_info, final_flag=False):
+    def _receive_from_workers(self, persis_info):
         """Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
         communticate. If any output is received, all other workers are
@@ -299,9 +301,6 @@ class Manager:
             for w in self.W['worker_id'][self.W['active'] > 0]:
                 if self.wcomms[w-1].mail_flag():
                     new_stuff = True
-                    self._handle_msg_from_worker(persis_info, w)
-                if final_flag and self.W[w-1]['persis_state'] > 0:
-                    self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_FINISH)
                     self._handle_msg_from_worker(persis_info, w)
 
         if 'save_every_k_sims' in self.libE_specs:
@@ -317,7 +316,9 @@ class Manager:
         calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
 
-        self.W[w-1]['active'] = 0
+        if w not in self.handshake_pending:
+            self.W[w-1]['active'] = 0
+
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             self.W[w-1]['persis_state'] = 0
@@ -352,7 +353,10 @@ class Manager:
             logger.debug("Finalizing message from Worker {}".format(w))
             return
 
-        if isinstance(D_recv, WorkerErrMsg):
+        if tag is PERSIS_STOP:
+            # Handshake received
+            self.handshake_pending.remove(w)
+        elif isinstance(D_recv, WorkerErrMsg):
             self.W[w-1]['active'] = 0
             if not self.WorkerExc:
                 self.WorkerExc = True
@@ -364,6 +368,7 @@ class Manager:
         else:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
+
     # --- Handle termination
 
     def _final_receive_and_kill(self, persis_info):
@@ -374,9 +379,17 @@ class Manager:
         nonblocking receive is posted (though the manager will not receive this
         data) and a kill signal is sent.
         """
+
+        # Send a handshake signal to each active persistent worker.
+        if any(self.W['persis_state'][self.W['active'] > 0]):
+            for w in (self.W[((self.W['persis_state'] > 0) & (self.W['active'] > 0))]['worker_id']):
+                #print("w is {}".format(w)) #testing
+                self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                self.handshake_pending.append(w)
+
         exit_flag = 0
         while any(self.W['active']) and exit_flag == 0:
-            persis_info = self._receive_from_workers(persis_info, True)
+            persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
                 logger.manager_warning(_WALLCLOCK_MSG)
                 sys.stdout.flush()
