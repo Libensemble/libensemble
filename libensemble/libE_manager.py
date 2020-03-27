@@ -354,7 +354,6 @@ class Manager:
             return
 
         if tag is PERSIS_STOP:
-            # Handshake received
             logger.debug("Manager received handshake from worker {}".format(w))
             self.handshake_pending.remove(w)
         elif isinstance(D_recv, WorkerErrMsg):
@@ -380,16 +379,18 @@ class Manager:
         data) and a kill signal is sent.
         """
 
-        # Send a handshake signal to each active persistent worker.
-        if any(self.W['persis_state'][self.W['active'] > 0]):
-            for w in (self.W[((self.W['persis_state'] > 0) & (self.W['active'] > 0))]['worker_id']):
-                # print("w is {}".format(w)) #testing
+        # Send a handshake signal to each persistent worker.
+        if any(self.W['persis_state']):
+            for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
                 self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if not self.W[w-1]['active']:
+                    # Re-activate if necessary
+                    self.W[w-1]['active'] = self.W[w-1]['persis_state']
                 self.handshake_pending.append(w)
 
         exit_flag = 0
-        while any(self.W['active']) and exit_flag == 0:
+        while any(self.W['active']) or any(self.W['persis_state']) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2 and any(self.W['active']):
                 logger.manager_warning(_WALLCLOCK_MSG)
