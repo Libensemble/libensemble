@@ -392,11 +392,14 @@ class Manager:
         exit_flag = 0
         while any(self.W['active']) or any(self.W['persis_state']) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
-            if self.term_test(logged=False) == 2 and any(self.W['active']):
-                logger.manager_warning(_WALLCLOCK_MSG)
-                sys.stdout.flush()
-                sys.stderr.flush()
-                exit_flag = 2
+            if self.term_test(logged=False) == 2:
+                # Elapsed Wallclock has expired
+                if not any(self.W['persis_state']):
+                    if any(self.W['active']):
+                        logger.manager_warning(_WALLCLOCK_MSG)
+                        sys.stdout.flush()
+                        sys.stderr.flush()
+                        exit_flag = 2
             if self.WorkerExc:
                 exit_flag = 1
 
