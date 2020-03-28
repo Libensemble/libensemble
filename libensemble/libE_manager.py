@@ -390,7 +390,7 @@ class Manager:
                 self.handshake_pending.append(w)
 
         exit_flag = 0
-        while any(self.W['active']) or any(self.W['persis_state']) and exit_flag == 0:
+        while (any(self.W['active']) or any(self.W['persis_state'])) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2:
                 # Elapsed Wallclock has expired
