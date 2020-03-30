@@ -7,6 +7,7 @@ from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 MAX_SEED = 32767
 
+
 class ForcesException(Exception):
     """Custom forces exception"""
 

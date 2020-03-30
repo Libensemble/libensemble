@@ -19,11 +19,13 @@ else:
     from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
 
+
 def test_libe_stats(status):
     with open('libE_stats.txt', 'r') as ls:
         out = ls.readlines()
     assert all([line.endswith(status) for line in out if 'sim' in line]), \
         "Deliberate error status not logged or raised for all sim instances."
+
 
 libE_logger.set_level('INFO')  # INFO is now default
 
@@ -68,7 +70,7 @@ sim_specs = {'sim_f': run_forces,         # Function whose output is being minim
                       'particle_variance': 0.2,
                       'kill_rate': 0.5,
                       'fail_on_sim': False,
-                      'fail_on_submit': False} # Won't occur if 'fail_on_sim' True
+                      'fail_on_submit': False}  # Won't occur if 'fail_on_sim' True
              }
 # end_sim_specs_rst_tag
 
