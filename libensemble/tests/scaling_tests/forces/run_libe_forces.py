@@ -61,8 +61,7 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
              'in': ['x'],                 # Name of input for sim_f
              'out': [('energy', float)],  # Name, type of output from sim_f
-             'user': {'simdir_basename': 'forces',
-                      'keys': ['seed'],
+             'user': {'keys': ['seed'],
                       'cores': 2,
                       'sim_particles': 1e3,
                       'sim_timesteps': 5,
