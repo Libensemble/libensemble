@@ -21,7 +21,7 @@ from math import log, gamma, pi, sqrt
 import nlopt
 import dfols
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 from libensemble.tools.gen_support import send_mgr_worker_msg
 from libensemble.tools.gen_support import get_mgr_worker_msg
 
@@ -219,7 +219,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             if tag in [STOP_TAG, PERSIS_STOP]:
                 clean_up_and_stop(local_H, local_opters, run_order)
                 persis_info['run_order'] = run_order
-                calc_status = FINISHED_PERSISTENT_GEN_TAG
+                calc_status = Work
                 break
 
             n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)

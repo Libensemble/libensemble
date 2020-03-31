@@ -1,4 +1,5 @@
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG, \
+    MAN_SIGNAL_FINISH, FINISHED_PERSISTENT_GEN_TAG
 
 
 def sendrecv_mgr_worker_msg(comm, O, status=None):
@@ -26,6 +27,10 @@ def get_mgr_worker_msg(comm, status=None):
     if tag in [STOP_TAG, PERSIS_STOP]:
         # comm.push_back(tag, Work)
         comm.send(tag, Work)
-        return tag, None, None
+        if Work is not MAN_SIGNAL_FINISH and tag is PERSIS_STOP:
+            calc_status = FINISHED_PERSISTENT_GEN_TAG
+        else:
+            calc_status = Work
+        return tag, calc_status, None
     _, calc_in = comm.recv()
     return tag, Work, calc_in
