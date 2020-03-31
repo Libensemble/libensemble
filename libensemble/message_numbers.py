@@ -39,8 +39,8 @@ WORKER_DONE = 34                  # Calculation was successful
 CALC_EXCEPTION = 35               # Reserved: Automatically used if gen_f or sim_f raised an exception.
 
 calc_status_strings = {
-    FINISHED_PERSISTENT_SIM_TAG: "Persis gen finished",
-    FINISHED_PERSISTENT_GEN_TAG: "Persis sim finished",
+    FINISHED_PERSISTENT_SIM_TAG: "Persis sim finished",
+    FINISHED_PERSISTENT_GEN_TAG: "Persis gen finished",
     MAN_SIGNAL_FINISH: "Manager killed on finish",
     MAN_SIGNAL_KILL: "Manager killed task",
     WORKER_KILL_ON_ERR: " Worker killed task on Error",
