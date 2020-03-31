@@ -482,7 +482,6 @@ def _report_manager_exception(hist, persis_info, mgr_exc=None, save_H=True):
                  format(hist.sim_count))
 
     if save_H:
-        filename = 'libE_history_at_abort_' + str(hist.sim_count)
-        np.save(filename + '.npy', hist.trim_H())
-        with open(filename + '.pickle', "wb") as f:
+        np.save('libE_history_at_abort_' + str(hist.sim_count) + '.npy', hist.trim_H())
+        with open('libE_persis_info_at_abort_' + str(hist.sim_count) + '.pickle', "wb") as f:
             pickle.dump(persis_info, f)
