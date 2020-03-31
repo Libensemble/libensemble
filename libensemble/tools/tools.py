@@ -83,15 +83,18 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess='Run completed
 
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
-    filename = short_name + '_results_History_length=' + str(len(H)) \
+    prob_str = '_length=' + str(len(H)) \
                           + '_evals=' + str(sum(H['returned'])) \
-                          + '_ranks=' + str(nworkers)
+                          + '_workers=' + str(nworkers)
+
+    h_filename = short_name + '_history_' + prob_str
+    p_filename = short_name + '_persis_info_' + prob_str
 
     status_mess = ' '.join(['------------------', mess, '-------------------'])
-    logger.info('{}\nSaving results to file: {}'.format(status_mess, filename))
-    np.save(filename, H)
+    logger.info('{}\nSaving results to file: {}'.format(status_mess, h_filename))
+    np.save(h_filename, H)
 
-    with open(filename + ".pickle", "wb") as f:
+    with open(p_filename + ".pickle", "wb") as f:
         pickle.dump(persis_info, f)
 
 # ===================== per-process numpy random-streams =======================
