@@ -59,7 +59,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
                          gen_specs['user']['ub'], gen_specs['user']['lb'], local=True, active=True)
         tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
         if tag in [STOP_TAG, PERSIS_STOP]:
-            nlopt.forced_stop.message = 'tag=' + str(tag)
+            nlopt.forced_stop.message = 'tag=' + str(Work)
             raise nlopt.forced_stop
 
         # Return function value (and maybe gradient)
