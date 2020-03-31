@@ -55,7 +55,7 @@ class MPIExecutor(Executor):
             detected by auto_resources. Larger node counts are not allowed.
             When auto_resources is off, this argument is ignored.
 
-        central_mode, boolean, optional
+        central_mode: boolean, optional
             If true, then running in central mode, otherwise in distributed
             mode. Central mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
