@@ -175,6 +175,7 @@ multiprocessing.
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
+    from libensemble.utils import add_unique_random_streams
 
     nworkers = 4
     libE_specs = {'nworkers': nworkers, 'comms': 'local'}
@@ -324,6 +325,7 @@ of the calling script as follows:
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
+    from libensemble.utils import add_unique_random_streams
     from mpi4py import MPI
 
     # nworkers = 4                                # nworkers will come from MPI
