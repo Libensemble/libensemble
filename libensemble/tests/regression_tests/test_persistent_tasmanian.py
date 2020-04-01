@@ -38,7 +38,7 @@ gen_specs = {'gen_f': gen_f,
              'user': {'NumInputs': n,  # Don't need to do evaluations because simulating the sampling already being done
                       'NumOutputs': 1,
                       'x0': np.array([0.3, 0.7]),
-                      'precisions': [3, 6, 12]}
+                      'precisions': [6, 12]}
              }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
@@ -52,7 +52,10 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_master:
-    a = six_hump_camel_func(gen_specs['user']['x0'])
+    true_val = six_hump_camel_func(gen_specs['user']['x0'])
+
+    for p in gen_specs['user']['precisions']:
+        assert np.abs(true_val - persis_info[1]['aResult'][p]) <= p
 
     print('[Manager]: Time taken =', time() - start_time, flush=True)
 

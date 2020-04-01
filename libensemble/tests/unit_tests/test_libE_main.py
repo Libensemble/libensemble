@@ -51,7 +51,7 @@ fake_mpi = Fake_MPI()
 libE_specs = {'comm': MPI.COMM_WORLD}
 alloc_specs = {'alloc_f': give_sim_work_first, 'out': [('allocated', bool)]}
 hfile_abort = 'libE_history_at_abort_0.npy'
-pfile_abort = 'libE_history_at_abort_0.pickle'
+pfile_abort = 'libE_persis_info_at_abort_0.pickle'
 
 
 def remove_file_if_exists(filename):

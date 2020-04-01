@@ -5,8 +5,9 @@ This module sets up the manager and the team of workers, configured according
 to the contents of the ``libE_specs`` dictionary. The manager/worker
 communications scheme used in libEnsemble is parsed from the ``comms`` key
 if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
-``tcp``. MPI is the default; if no communicator is specified, a duplicate of
-COMM_WORLD will be used.
+``tcp``. MPI is the default; if a communicator is specified, each call to this
+module will initiate manager/worker communications on a duplicate of that
+communicator. Otherwise, a duplicate of COMM_WORLD will be used.
 
 If an exception is encountered by the manager or workers, the history array
 is dumped to file, and MPI abort is called.
@@ -317,7 +318,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     # Set up cleanup routine to shut down worker team
     def cleanup():
         "Handler to clean up comms team."
-        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout'))
+        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
 
     # Run generic manager
     return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
@@ -481,7 +482,6 @@ def _report_manager_exception(hist, persis_info, mgr_exc=None, save_H=True):
                  format(hist.sim_count))
 
     if save_H:
-        filename = 'libE_history_at_abort_' + str(hist.sim_count)
-        np.save(filename + '.npy', hist.trim_H())
-        with open(filename + '.pickle', "wb") as f:
+        np.save('libE_history_at_abort_' + str(hist.sim_count) + '.npy', hist.trim_H())
+        with open('libE_persis_info_at_abort_' + str(hist.sim_count) + '.pickle', "wb") as f:
             pickle.dump(persis_info, f)

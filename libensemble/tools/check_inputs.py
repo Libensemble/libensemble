@@ -179,7 +179,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
     if sim_specs is not None:
         for name in sim_specs.get('in', []):
             assert name in out_names, \
-                name + " in alloc_specs['in'] is not in sim_specs['out'], "\
+                name + " in sim_specs['in'] is not in sim_specs['out'], "\
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
 
         check_sim_specs(sim_specs)
@@ -187,7 +187,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
     if gen_specs is not None:
         for name in gen_specs.get('in', []):
             assert name in out_names, \
-                name + " in alloc_specs['in'] is not in sim_specs['out'], "\
+                name + " in gen_specs['in'] is not in sim_specs['out'], "\
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
 
         check_gen_specs(gen_specs)

@@ -109,7 +109,7 @@ from Spack with ::
     spack install py-libensemble
 
 libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_
-from version 0.5.0 onward. Install the xSDK and load the environment with ::
+from xSDK version 0.5.0 onward. Install the xSDK and load the environment with ::
 
     spack install xsdk
     spack load -r xsdk

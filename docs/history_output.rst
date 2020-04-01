@@ -40,7 +40,7 @@ dumped automatically to the respective files:
 * ``libE_history_at_abort_<sim_count>.pickle``
 
 where ``sim_count`` is the number of points evaluated. To suppress libEnsemble
-from producing these files, set ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
+from producing these two files, set ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
 
 Two other libEnsemble files produced by default:
 
@@ -54,7 +54,7 @@ Two other libEnsemble files produced by default:
   append output. Messages at or above MANAGER_WARNING are also copied to stderr
   to alert the user promptly. For more info, see :doc:`Logging<logging>`.
 
-Producing these two files can be disabled by setting ``libE_specs['disable_log_files] = True``.
+To suppress libEnsemble from producing these two files, set ``libE_specs['disable_log_files']`` to ``True``.
 
 Output Working Directory Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
