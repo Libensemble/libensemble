@@ -128,7 +128,7 @@ class Manager:
         self.elapsed = lambda: timer.elapsed
         self.wcomms = wcomms
         self.WorkerExc = False
-        self.handshake_pending = []
+        self.persis_pending = []
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
@@ -316,12 +316,15 @@ class Manager:
         calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
 
-        if w not in self.handshake_pending:
+        if w not in self.persis_pending:
             self.W[w-1]['active'] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             self.W[w-1]['persis_state'] = 0
+            if w in self.persis_pending:
+                self.persis_pending.remove(w)
+                self.W[w-1]['active'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv)
@@ -353,10 +356,7 @@ class Manager:
             logger.debug("Finalizing message from Worker {}".format(w))
             return
 
-        if tag is PERSIS_STOP:
-            logger.debug("Manager received handshake from worker {}".format(w))
-            self.handshake_pending.remove(w)
-        elif isinstance(D_recv, WorkerErrMsg):
+        if isinstance(D_recv, WorkerErrMsg):
             self.W[w-1]['active'] = 0
             if not self.WorkerExc:
                 self.WorkerExc = True
@@ -387,7 +387,7 @@ class Manager:
                 if not self.W[w-1]['active']:
                     # Re-activate if necessary
                     self.W[w-1]['active'] = self.W[w-1]['persis_state']
-                self.handshake_pending.append(w)
+                self.persis_pending.append(w)
 
         exit_flag = 0
         while (any(self.W['active']) or any(self.W['persis_state'])) and exit_flag == 0:
