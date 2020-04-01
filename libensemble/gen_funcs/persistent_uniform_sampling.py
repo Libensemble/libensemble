@@ -24,4 +24,4 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
-    return H_o, persis_info, tag
+    return H_o, persis_info, Work
