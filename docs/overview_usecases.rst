@@ -95,10 +95,9 @@ it's capabilities.
   *tasks* as directed by the manager; tasks may include submitting external
   programs for execution using the executor.
 
-.. * **Execute / Run**: Start a program on a machine or node.
-
-.. * **Job**: Generally overarching unit of work submitted, scheduled, or
-              queued, then launched, oftentimes on a remote machine. May
-              contain one or more tasks.
-
-.. * **Launch**: Initiate or execute some program or process.
+* **Persistent**: Typically, a worker communicates with the manager
+  before and after initiating a user ``gen_f`` or ``sim_f`` calculation. However, user
+  functions may also be constructed to communicate directly with the manager,
+  for example, in order to efficiently maintain and update data structures instead of
+  communicating them between manager and worker. These calculations
+  and the workers assigned to them are referred to as *persistent*.
