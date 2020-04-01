@@ -9,7 +9,7 @@
 
 import os
 import numpy as np
-from forces_simf import run_forces  # Sim func from current dir
+from warpX_simf import run_warpX  # Sim func from current dir
 
 # Import libEnsemble modules
 from libensemble.libE import libE
@@ -70,7 +70,7 @@ libE_specs['save_every_k_sims'] = 1     # Save each simulation evaluation
 libE_specs['sim_input_dir'] = './warpX' # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 8
+sim_max = 800
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager
