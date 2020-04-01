@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # """
 # Execute via one of the following commands:
-#    mpiexec -np 4 python3 run_libE_on_warpX.py
+#    mpiexec -np 4 python run_libE_on_warpX.py
+#    python run_libE_on_warpX.py --comms local --nworkers 3
 
 # The number of concurrent evaluations of the objective function will be 4-2=2
 # as one MPI rank for the manager and one MPI rank for the persistent gen_f.
@@ -17,40 +18,32 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import libE_logger
+from libensemble.executors.mpi_executor import MPIExecutor
 
-libE_logger.set_level('INFO')  # INFO is now default
+libE_logger.set_level('INFO')
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-sim_app = os.path.join(os.getcwd(), 'warpX.x')
-
-# Normally would be pre-compiled
-if not os.path.isfile('warpX.x'):
-    if os.path.isfile('build_warpX.sh'):
-        import subprocess
-        subprocess.check_call(['./build_warpX.sh'])
-
-# Normally the sim_input_dir will exist with common input which is copied for each worker. Here it starts empty.
-# Create if no ./warpX dir. See libE_specs['sim_input_dir']
-os.makedirs('./warpX', exist_ok=True)
+# Set to full path of warp executable
+sim_app = '$HOME/warpx/Bin/main2d.gnu.TPROF.MPI.CUDA.ex'
 
 n = 5  # Problem dimension
-from libensemble.executors.mpi_executor import MPIExecutor
-exctr = MPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
+exctr = MPIExecutor(central_mode=True)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_warpX,          # Function whose output is being minimized
              'in': ['x'],                 # Name of input for sim_f
              'out': [('f', float)],       # Name, type of output from sim_f
-             'user': {'simdir_basename': 'warpX',
-                      'cores': 2,
-                      'sim_particles': 1e3}
+             'user': {'nodes': 2,
+                      'ranks_per_node': 6,
+                      'input': 'inputs',
+                      'sim_kill_minutes': 10.0}  # Timeout for sim ....
              }
-# end_sim_specs_rst_tag
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
            ('local_min', bool), ('local_pt', bool)]
+
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,                  # Generator function
              'in': [],                        # Generator input
