@@ -8,7 +8,8 @@ import logging
 import os
 import shutil
 import logging.handlers
-from itertools import count
+from itertools import count, groupby
+from operator import itemgetter
 from traceback import format_exc
 
 import numpy as np
@@ -19,9 +20,9 @@ from libensemble.message_numbers import \
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
-from libensemble.util.loc_stack import LocationStack
-from libensemble.util.timer import Timer
-from libensemble.controller import JobController
+from libensemble.utils.loc_stack import LocationStack
+from libensemble.utils.timer import Timer
+from libensemble.executors.executor import Executor
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 import cProfile
@@ -30,7 +31,7 @@ import pstats
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
-job_timing = False
+task_timing = False
 
 
 def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
@@ -140,13 +141,16 @@ class Worker:
         self.loc_stack = None
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
-        Worker._set_job_controller(self.workerID, self.comm)
+        Worker._set_executor(self.workerID, self.comm)
 
     @staticmethod
     def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
+        """Copy files from input directory to calc prefix directory, create
+        indication file showing that staging has completed without having to
+        compare two directories."""
         locs.copy_or_symlink(sim_input_dir, calc_prefix,
                              os.listdir(sim_input_dir), [])
-        open(os.path.join(calc_prefix, stgfile), 'w')
+        open(os.path.join(calc_prefix, stgfile), 'w')  # Empty file
 
     @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
@@ -160,10 +164,12 @@ class Worker:
         symlink_files = libE_specs.get('symlink_input_files', [])
         do_work_dirs = libE_specs.get('use_worker_dirs', False)
 
+        # Customize ensemble directory with suffix
         if suffix != '':
             suffix = '_' + suffix
             prefix += suffix
 
+        # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
         if do_work_dirs:
             worker_dir = "worker" + str(workerID)
             worker_path = os.path.abspath(os.path.join(prefix, worker_dir))
@@ -171,29 +177,35 @@ class Worker:
             locs.register_loc(workerID, worker_dir, prefix=prefix)
             calc_prefix = worker_path
 
+        # Otherwise, ensemble_dir set as parent dir for sim dirs
         else:
-            calc_dir = "{}{}-worker{}".format(calc_str, H_rows, workerID)
+            calc_dir = "{}{}_worker{}".format(calc_str, H_rows, workerID)
             if not os.path.isdir(prefix):
                 os.makedirs(prefix, exist_ok=True)
             calc_prefix = prefix
 
+        # Copy input contents to parent dir, create stage indication file
         if copy_parent:
             stgfile = '.COPY_PARENT_STAGED'
-            staged = lambda prefix: stgfile in os.listdir(prefix)
 
             if not do_work_dirs:
-                while not staged(calc_prefix):
+                # Workers on same node shouldn't procede until copying complete
+                while stgfile not in os.listdir(calc_prefix):
                     Worker._stage_and_indicate(locs, sim_input_dir,
                                                calc_prefix, stgfile)
+                # Change source dir for symlinking or copying to ensemble dir
                 sim_input_dir = prefix
 
             else:
-                if not staged(calc_prefix):
+                if stgfile not in os.listdir(calc_prefix):
                     Worker._stage_and_indicate(locs, sim_input_dir,
                                                calc_prefix, stgfile)
+                # Change source dir for symlinking or copying to worker dir
                 sim_input_dir = worker_path
 
-        locs.register_loc(calc_dir, calc_dir, prefix=calc_prefix,
+        # Register calc dir with adjusted parent dir and source-file location
+        locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
+                          prefix=calc_prefix,
                           srcdir=sim_input_dir,
                           copy_files=copy_files,
                           symlink_files=symlink_files)
@@ -222,24 +234,37 @@ class Worker:
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
-    def _set_job_controller(workerID, comm):
-        "Optional - sets worker ID in the job controller, return if set"
-        jobctl = JobController.controller
-        if isinstance(jobctl, JobController):
-            jobctl.set_worker_info(comm, workerID)
+    def _set_executor(workerID, comm):
+        "Optional - sets worker ID in the executor, return if set"
+        exctr = Executor.executor
+        if isinstance(exctr, Executor):
+            exctr.set_worker_info(comm, workerID)
             return True
         else:
-            logger.info("No job_controller set on worker {}".format(workerID))
+            logger.info("No executor set on worker {}".format(workerID))
             return False
 
     @staticmethod
     def _extract_H_ranges(Work):
         """ Convert received H_rows into ranges for logging, labeling """
         work_H_rows = Work['libE_info']['H_rows']
-        if isinstance(work_H_rows, list):
+        if len(work_H_rows) == 1:
             return str(work_H_rows[0])
         else:
-            return '-'.join([str(i) for i in work_H_rows.tolist()])
+            # From https://stackoverflow.com/a/30336492
+            # Create groups by difference between row values and sequential enumerations:
+            # e.g., [2, 3, 5, 6] -> [(0, 2), (1, 3), (2, 5), (3, 6)]
+            #  -> diff=-2, group=[(0, 2), (1, 3)], diff=-3, group=[(2, 5), (3, 6)]
+            ranges = []
+            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0]-x[1]):
+                # Take second values (rows values) from each group element into lists:
+                # group=[(0, 2), (1, 3)], group=[(2, 5), (3, 6)] -> group=[2, 3], group=[5, 6]
+                group = list(map(itemgetter(1), group))
+                if len(group) > 1:
+                    ranges.append(str(group[0]) + '-' + str(group[-1]))
+                else:
+                    ranges.append(str(group[0]))
+            return '_'.join(ranges)
 
     @staticmethod
     def _better_copytree(src, dst, symlinks=False):
@@ -267,8 +292,8 @@ class Worker:
                             continue
 
             if self.libE_specs.get('copy_back_output'):
-                copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix)
-                                           + '_back')
+                copybackdir = os.path.join(self.startdir,
+                                           os.path.basename(self.prefix) + '_back')
                 assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
                 Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
 
@@ -345,14 +370,14 @@ class Worker:
             raise
         finally:
             # This was meant to be handled by calc_stats module.
-            if job_timing and JobController.controller.list_of_jobs:
+            if task_timing and Executor.executor.list_of_tasks:
                 # Initially supporting one per calc. One line output.
-                job = JobController.controller.list_of_jobs[-1]
+                task = Executor.executor.list_of_tasks[-1]
                 calc_msg = "Calc {:5d}: {} {} {} Status: {}".\
                     format(calc_id,
                            calc_type_strings[calc_type],
                            timer,
-                           job.timer,
+                           task.timer,
                            calc_status_strings.get(calc_status, "Not set"))
             else:
                 calc_msg = "Calc {:5d}: {} {} Status: {}".\
@@ -388,6 +413,8 @@ class Worker:
 
         # Call user function
         libE_info['comm'] = self.comm
+        libE_info['workerID'] = self.workerID
+        # libE_info['worker_team'] = [self.workerID] + libE_info.get('blocking', [])
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
         del libE_info['comm']
 
@@ -424,7 +451,7 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
-            self._clean_out_copy_back()
+            self._clean_out_copy_back()  # Copy back current results on Exception
         else:
             self.comm.kill_pending()
         finally:

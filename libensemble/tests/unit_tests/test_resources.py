@@ -1,7 +1,7 @@
 import os
 import socket
-from libensemble.env_resources import EnvResources
-from libensemble.resources import Resources, WorkerResources, ResourcesException
+from libensemble.resources.env_resources import EnvResources
+from libensemble.resources.resources import Resources, WorkerResources, ResourcesException
 
 
 def setup_standalone_run():
@@ -153,7 +153,8 @@ def test_get_local_nodelist_central_mode():
 
     # Spoof current process as each worker and check nodelist.
     num_workers = 8
-    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
+               ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
     for wrk in range(num_workers):
         workerID = wrk + 1
         local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
@@ -201,7 +202,8 @@ def test_get_local_nodelist_central_mode_remove_libE_proc():
 
     # Spoof current process as each worker and check nodelist.
     num_workers = 8
-    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
+               ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
     for wrk in range(num_workers):
         workerID = wrk + 1
         local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
@@ -346,7 +348,8 @@ def test_worker_resources():
     resources = Resources(nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST", central_mode=True)
 
     # One worker per node
-    exp_nodelist1 = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'], ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    exp_nodelist1 = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
+                     ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
     num_workers = 8
     comm = Fake_comm(num_workers)
     for wrk in range(num_workers):

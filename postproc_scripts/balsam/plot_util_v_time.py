@@ -6,9 +6,9 @@ from matplotlib import pyplot as plt
 
 fig, ax = plt.subplots()
 
-plt.title('Balsam Utilization: Running Jobs v Date/Time')
+plt.title('Balsam Utilization: Running Tasks v Date/Time')
 plt.xlabel('Time of Day (H:M)')
-plt.ylabel('Num. Jobs Running')
+plt.ylabel('Num. Tasks Running')
 
 times, utilization = models.utilization_report()
 plt.step(times, utilization, where='post')

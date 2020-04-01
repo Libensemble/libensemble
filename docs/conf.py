@@ -46,7 +46,10 @@ sys.path.append(os.path.abspath('../libensemble/alloc_funcs'))
 sys.path.append(os.path.abspath('../libensemble/gen_funcs'))
 sys.path.append(os.path.abspath('../libensemble/sim_funcs'))
 sys.path.append(os.path.abspath('../libensemble/comms'))
-sys.path.append(os.path.abspath('../libensemble/util'))
+sys.path.append(os.path.abspath('../libensemble/utils'))
+sys.path.append(os.path.abspath('../libensemble/tools'))
+sys.path.append(os.path.abspath('../libensemble/executors'))
+sys.path.append(os.path.abspath('../libensemble/resources'))
 # print(sys.path)
 
 # -- General configuration ------------------------------------------------
@@ -140,13 +143,15 @@ todo_include_todos = False
 # html_theme = 'sphinxdoc'
 html_theme = 'sphinx_rtd_theme'
 
+html_logo = './images/libE_logo_white.png'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {'navigation_depth': 3,
-                      'collapse_navigation': False}
+                      'collapse_navigation': False,
+                      'logo_only': True}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

@@ -5,8 +5,9 @@ This module sets up the manager and the team of workers, configured according
 to the contents of the ``libE_specs`` dictionary. The manager/worker
 communications scheme used in libEnsemble is parsed from the ``comms`` key
 if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
-``tcp``. MPI is the default; if no communicator is specified, a duplicate of
-COMM_WORLD will be used.
+``tcp``. MPI is the default; if a communicator is specified, each call to this
+module will initiate manager/worker communications on a duplicate of that
+communicator. Otherwise, a duplicate of COMM_WORLD will be used.
 
 If an exception is encountered by the manager or workers, the history array
 is dumped to file, and MPI abort is called.
@@ -22,8 +23,8 @@ import traceback
 import numpy as np
 import pickle  # Only used when saving output on error
 
-import libensemble.util.launcher as launcher
-from libensemble.util.timer import Timer
+from libensemble.utils import launcher
+from libensemble.utils.timer import Timer
 from libensemble.history import History
 from libensemble.libE_manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
@@ -31,8 +32,9 @@ from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
-from libensemble.controller import JobController
-from libensemble.utils import check_inputs, _USER_SIM_ID_WARNING
+from libensemble.executors.executor import Executor
+from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.tools.check_inputs import check_inputs
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -40,10 +42,10 @@ logger = logging.getLogger(__name__)
 
 
 def libE(sim_specs, gen_specs, exit_criteria,
-         persis_info={},
-         alloc_specs={},
-         libE_specs={},
-         H0=[]):
+         persis_info=None,
+         alloc_specs=None,
+         libE_specs=None,
+         H0=None):
     """
     Parameters
     ----------
@@ -99,7 +101,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     exit_flag: :obj:`int`
 
-        Flag containing final job status
+        Flag containing final task status
 
         .. code-block::
 
@@ -109,9 +111,18 @@ def libE(sim_specs, gen_specs, exit_criteria,
             3 = Current process is not in libEnsemble MPI communicator
     """
 
-    # Set default alloc_specs
-    if not alloc_specs:
+    # Set default persis_info, alloc_specs, libE_specs, and H0
+    if persis_info is None:
+        persis_info = {}
+
+    if alloc_specs is None:
         alloc_specs = alloc_defaults.alloc_specs
+
+    if libE_specs is None:
+        libE_specs = {}
+
+    if H0 is None:
+        H0 = np.empty(0)
 
     # Set default comms
     if 'comms' not in libE_specs:
@@ -136,6 +147,8 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
         logger.manager_warning(_USER_SIM_ID_WARNING)
 
+    save_H = libE_specs.get('save_H_and_persis_on_abort', True)
+
     try:
         persis_info, exit_flag, elapsed_time = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
@@ -143,12 +156,12 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         logger.info("libE_manager total time: {}".format(elapsed_time))
 
     except ManagerException as e:
-        _report_manager_exception(hist, persis_info, e)
+        _report_manager_exception(hist, persis_info, e, save_H=save_H)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
     except Exception:
-        _report_manager_exception(hist, persis_info)
+        _report_manager_exception(hist, persis_info, save_H=save_H)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
         raise
@@ -166,6 +179,18 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
 
 # ==================== MPI version =================================
 
+class DupComm:
+    """Duplicate MPI communicator for use with a with statement"""
+    def __init__(self, comm):
+        self.parent_comm = comm
+
+    def __enter__(self):
+        self.dup_comm = self.parent_comm.Dup()
+        return self.dup_comm
+
+    def __exit__(self, etype, value, traceback):
+        self.dup_comm.Free()
+
 
 def comms_abort(comm):
     "Abort all MPI ranks"
@@ -178,7 +203,8 @@ def libE_mpi_defaults(libE_specs):
     from mpi4py import MPI
 
     if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD.Dup()
+        libE_specs['comm'] = MPI.COMM_WORLD  # Will be duplicated immediately
+
     return libE_specs, MPI.COMM_NULL
 
 
@@ -187,29 +213,30 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     "MPI version of the libE main routine"
 
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
-    comm = libE_specs['comm']
 
-    if comm == mpi_comm_null:
+    if libE_specs['comm'] == mpi_comm_null:
         return [], persis_info, 3  # Process not in comm
 
-    rank = comm.Get_rank()
-    is_master = (rank == 0)
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    jobctl = JobController.controller
-    if jobctl is not None:
-        local_host = socket.gethostname()
-        libE_nodes = set(comm.allgather(local_host))
-        jobctl.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+    with DupComm(libE_specs['comm']) as comm:
+        rank = comm.Get_rank()
+        is_master = (rank == 0)
 
-    # Run manager or worker code, depending
-    if is_master:
-        return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
-                                persis_info, alloc_specs, libE_specs, H0)
+        exctr = Executor.executor
+        if exctr is not None:
+            local_host = socket.gethostname()
+            libE_nodes = set(comm.allgather(local_host))
+            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
 
-    # Worker returns a subset of MPI output
-    libE_mpi_worker(sim_specs, gen_specs, libE_specs)
-    return [], persis_info, []
+        # Run manager or worker code, depending
+        if is_master:
+            return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
+                                    persis_info, alloc_specs, libE_specs, H0)
+
+        # Worker returns a subset of MPI output
+        libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
+        return [], {}, []
 
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
@@ -223,7 +250,9 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     # Lauch worker team
     wcomms = [MainMPIComm(mpi_comm, w) for w in
               range(1, mpi_comm.Get_size())]
-    manager_logging_config()
+
+    if not libE_specs.get('disable_log_files', False):
+        manager_logging_config()
 
     # Set up abort handler
     def on_abort():
@@ -236,13 +265,13 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                         on_abort=on_abort)
 
 
-def libE_mpi_worker(sim_specs, gen_specs, libE_specs):
+def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
-    comm = MainMPIComm(libE_specs['comm'])
+    comm = MainMPIComm(libE_comm)
     worker_main(comm, sim_specs, gen_specs, libE_specs, log_comm=True)
-    logger.debug("Worker {} exiting".format(libE_specs['comm'].Get_rank()))
+    logger.debug("Worker {} exiting".format(libE_comm.Get_rank()))
 
 
 # ==================== Local version ===============================
@@ -273,21 +302,23 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     nworkers = libE_specs['nworkers']
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    jobctl = JobController.controller
-    if jobctl is not None:
+    exctr = Executor.executor
+    if exctr is not None:
         local_host = socket.gethostname()
-        jobctl.add_comm_info(libE_nodes=local_host, serial_setup=True)
+        exctr.add_comm_info(libE_nodes=local_host, serial_setup=True)
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
-    manager_logging_config()
+
+    if not libE_specs.get('disable_log_files', False):
+        manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         "Handler to clean up comms team."
-        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout'))
+        kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
 
     # Run generic manager
     return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
@@ -325,12 +356,12 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
 
     is_worker = True if 'workerID' in libE_specs else False
 
-    jobctl = JobController.controller
-    if jobctl is not None:
+    exctr = Executor.executor
+    if exctr is not None:
         local_host = socket.gethostname()
         # TCP does not currently support auto_resources but when does, assume
         # each TCP worker is in a different resource pool (only knowing local_host)
-        jobctl.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)
+        exctr.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)
 
     if 'workerID' in libE_specs:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)
@@ -399,7 +430,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
         if port == 0:
             _, port = manager.address
 
-        manager_logging_config()
+        if not libE_specs.get('disable_log_files', False):
+            manager_logging_config()
+
         logger.info("Launched server at ({}, {})".format(ip, port))
 
         # Launch worker team and set up logger
@@ -435,7 +468,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 # ==================== Additional Internal Functions ===========================
 
 
-def _report_manager_exception(hist, persis_info, mgr_exc=None):
+def _report_manager_exception(hist, persis_info, mgr_exc=None, save_H=True):
     "Write out exception manager exception to log."
     if mgr_exc is not None:
         from_line, msg, exc = mgr_exc.args
@@ -448,7 +481,7 @@ def _report_manager_exception(hist, persis_info, mgr_exc=None):
     logger.error("Dumping ensemble history with {} sims evaluated:".
                  format(hist.sim_count))
 
-    filename = 'libE_history_at_abort_' + str(hist.sim_count)
-    np.save(filename + '.npy', hist.trim_H())
-    with open(filename + '.pickle', "wb") as f:
-        pickle.dump(persis_info, f)
+    if save_H:
+        np.save('libE_history_at_abort_' + str(hist.sim_count) + '.npy', hist.trim_H())
+        with open('libE_persis_info_at_abort_' + str(hist.sim_count) + '.pickle', "wb") as f:
+            pickle.dump(persis_info, f)

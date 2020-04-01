@@ -35,7 +35,7 @@ libEnsemble aims for the following:
 
 • Extreme scaling
 • Resilience/fault tolerance
-• Monitoring/killing of jobs (and recovering resources)
+• Monitoring/killing of tasks (and recovering resources)
 • Portability and flexibility
 • Exploitation of persistent data/control flow
 
@@ -49,10 +49,10 @@ included in the library.
 libEnsemble employs a manager/worker scheme that can run on various
 communication media (including MPI, multiprocessing, and TCP); interfacing with
 user-provided executables is also supported. Each worker can
-control and monitor any level of work, from small subnode jobs to huge
-many-node simulations. A job controller interface is provided to ensure that scripts
+control and monitor any level of work, from small subnode tasks to huge
+many-node simulations. An executor interface is provided to ensure that scripts
 are portable, resilient, and flexible; it also enables automatic detection of
-the nodes and cores in a system and can split up jobs automatically if resource
+the nodes and cores in a system and can split up tasks automatically if resource
 data isn't supplied.
 
 .. before_dependencies_rst_tag
@@ -76,7 +76,7 @@ Optional dependency:
 
 From v0.2.0, libEnsemble has the option of using the Balsam job manager. Balsam
 is required in order to run libEnsemble on the compute nodes of some supercomputing
-platforms that do not support launching jobs from compute nodes. As of v0.5.0,
+platforms that do not support launching tasks from compute nodes. As of v0.5.0,
 libEnsemble can also be run on launch nodes using multiprocessing.
 
 The example simulation and generation functions and tests require the following:
@@ -84,6 +84,7 @@ The example simulation and generation functions and tests require the following:
 * SciPy_
 * petsc4py_
 * DFO-LS_
+* Tasmanian_
 * NLopt_
 * PETSc_ - Can optionally be installed by pip along with petsc4py
 
@@ -108,7 +109,7 @@ from Spack with ::
     spack install py-libensemble
 
 libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_
-from version 0.5.0 onward. Install the xSDK and load the environment with ::
+from xSDK version 0.5.0 onward. Install the xSDK and load the environment with ::
 
     spack install xsdk
     spack load -r xsdk
@@ -158,15 +159,15 @@ after ``run_tests.sh`` is completed. The Travis CI coverage results are
 available online at Coveralls_.
 
 .. note::
-    The job_controller tests can be run by using the direct-launch or
-    Balsam job controllers. Balsam integration with libEnsemble is now tested
+    The executor tests can be run by using the direct-launch or
+    Balsam executors. Balsam integration with libEnsemble is now tested
     via ``test_balsam_hworld.py``.
 
 Basic Usage
 ~~~~~~~~~~~
 
 The examples directory contains example libEnsemble calling scripts, simulation
-functions, generation functions, allocation functions, and job submission scripts.
+functions, generation functions, allocation functions, and libEnsemble submission scripts.
 
 The default manager/worker communications mode is MPI. The user script is
 launched as ::
@@ -183,7 +184,7 @@ can then be run as a regular Python script::
     python myscript.py
 
 These options may be specified via the command line by using the ``parse_args()``
-convenience function within ``libensemble/utils.py``.
+convenience function within libEnsemble's ``tools`` module.
 
 See the `user guide`_ for more information.
 
@@ -243,6 +244,7 @@ Resources
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
+.. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info

@@ -9,3 +9,4 @@ __author__ = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and J
 __credits__ = 'Argonne National Laboratory'
 
 from libensemble import libE_logger
+from .libE import libE, comms_abort

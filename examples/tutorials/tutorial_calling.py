@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from libensemble.libE import libE
-from libensemble.utils import add_unique_random_streams
+from libensemble.tools import add_unique_random_streams
 from tutorial_gen import gen_random_sample
 from tutorial_sim import sim_find_sine
 
@@ -43,4 +43,4 @@ plt.title('Sine calculations for a uniformly sampled random distribution')
 plt.xlabel('x')
 plt.ylabel('sine(x)')
 plt.legend(loc='lower right')
-plt.show()
+plt.savefig('tutorial_sines.png')

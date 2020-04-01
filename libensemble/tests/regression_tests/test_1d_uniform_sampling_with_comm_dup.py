@@ -23,7 +23,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -33,7 +33,7 @@ if libE_specs['comms'] != 'mpi':
 else:
     from mpi4py import MPI
 
-libE_specs = {}  # Let MPI use defaults
+libE_specs = None  # Let MPI use defaults
 
 # Check independence of default communicator from MPI.COMM_WORLD
 world = MPI.COMM_WORLD
@@ -60,7 +60,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
 if is_master:
-    assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
+    # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
     # Potential to cause a hang
     worker_ids = []
     exp_worker_ids = list(range(1, nworkers + 1))

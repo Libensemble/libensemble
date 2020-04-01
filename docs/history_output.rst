@@ -34,12 +34,13 @@ History and Log Files
 The history array :ref:`H<datastruct-history-array>` and
 :ref:`persis_info<datastruct-persis-info>` dictionary are returned to the user
 by libEnsemble.  If libEnsemble aborts on an exception, these structures are
-dumped to the respective files:
+dumped automatically to the respective files:
 
 * ``libE_history_at_abort_<sim_count>.npy``
 * ``libE_history_at_abort_<sim_count>.pickle``
 
-where ``sim_count`` is the number of points evaluated.
+where ``sim_count`` is the number of points evaluated. To suppress libEnsemble
+from producing these two files, set ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
 
 Two other libEnsemble files produced by default:
 
@@ -52,6 +53,8 @@ Two other libEnsemble files produced by default:
   level can be set to DEBUG. If this file is not removed, multiple runs will
   append output. Messages at or above MANAGER_WARNING are also copied to stderr
   to alert the user promptly. For more info, see :doc:`Logging<logging>`.
+
+To suppress libEnsemble from producing these two files, set ``libE_specs['disable_log_files']`` to ``True``.
 
 Output Working Directory Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -175,7 +178,7 @@ detail here:
   worker and calculation directories and their contents from the output ensemble
   directory. Copied input is currently not removed if using ``'copy_input_to_parent'``
   and not ``'use_worker_dirs'`` If writing to local scratch spaces on compute nodes,
-  this data may be deleted anyway after the scheduled job finishes.
+  this data may be deleted anyway after the scheduled task finishes.
 
 See the regression test ``test_worker_sim_dirs.py`` for examples of many of
 these settings.

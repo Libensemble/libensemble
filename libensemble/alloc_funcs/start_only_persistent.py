@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -11,7 +11,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     then this information is given back to the persistent generator.
 
     .. seealso::
-        `test_6-hump_camel_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py>`_
+        `test_6-hump_camel_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_uniform_sampling.py>`_ # noqa
     """
 
     Work = {}

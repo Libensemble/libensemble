@@ -5,7 +5,7 @@ Unit test of launcher helpers for libensemble.
 """
 
 import sys
-import libensemble.util.launcher as launcher
+import libensemble.utils.launcher as launcher
 
 
 def test_form_command():
@@ -21,7 +21,7 @@ def test_form_command():
     assert args == aref, "Command templating test failed."
 
 
-def xtest_launch():
+def xtest_submit():
     "Test simple launch."
 
     py_exe = sys.executable or "python"
@@ -66,11 +66,11 @@ def test_launch32():
     "If we are in Python > 3.2, still check that 3.2 wait func works"
     saved_wait = launcher.wait
     launcher.wait = launcher.wait_py32
-    xtest_launch()
+    xtest_submit()
     launcher.wait = saved_wait
 
 
 def test_launch33():
     "If we are in Python > 3.2, also check the new-style wait func"
     if launcher.wait == launcher.wait_py33:
-        xtest_launch()
+        xtest_submit()

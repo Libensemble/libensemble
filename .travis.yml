@@ -1,5 +1,4 @@
 language: python
-sudo: required
 dist: xenial
 python:
   - 3.5
@@ -12,20 +11,25 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
-  matrix:
+  jobs:
     - MPI=mpich
 
-matrix:
+jobs:
   include:
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode11
       env: MPI=mpich PY=3.7
       language: generic
       python: 3.7
 
-addons:
-    homebrew:
-        packages: octave
+# Below will update the OSX octave used on Travis.  This was so slow that we
+# were hitting the 50 minute limit on Travis. We no longer update octave in
+# homebrew, and can no longer run regression # tests using octave on OSX.
+# addons:
+#   homebrew:
+#     packages:
+#     - octave
+#     update: true
 
 services:
     - postgresql
@@ -36,9 +40,9 @@ cache:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-MacOSX-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-MacOSX-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -68,20 +72,26 @@ install:
   - conda install $COMPILERS
   - conda install libblas libopenblas # Prevent 'File exists' error
   - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
-  - pip install flake8       # Conda installs downgrade pytest on python3.4
+
+    # Begin: Dependencies only for regression tests
   - pip install DFO-LS
+  - pip install deap
+  - pip install scikit-build packaging Tasmanian --user
+    # End: dependencies only for regression tests
+    #
+  - pip install flake8
   - pip install coverage==4.5.4
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout
   - pip install mock
   - pip install coveralls
-  - python conda/find_mpi.py # Locate compilers. Confirm MPI library
+  - python install/find_mpi.py # Locate compilers. Confirm MPI library
   - mpiexec --version        # Show MPI library details
-  - pip install -e .         # Installing libEnsemble
+  - pip install -e .            # Installing libEnsemble
   - wget https://github.com/balsam-alcf/balsam/archive/0.3.5.1.tar.gz
   - mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
-  - python conda/install-balsam.py
+  - python install/install-balsam.py
 
 before_script:
   - flake8 libensemble

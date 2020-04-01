@@ -14,8 +14,8 @@ We now give greater detail in programming with libEnsemble.
    sim_gen_alloc_funcs
 
 .. toctree::
-   job_controller/jc_index
+   executor/ex_index
    logging
 
 .. toctree::
-    utilities
+   utilities

@@ -27,14 +27,12 @@ def test_term_test_2():
     assert not mgr.term_test()
     #
     # Terminate because we've found a good 'g' value
-    # H, hist.index, term_test, _, _, hist.given_count = man.initialize(sim_specs, gen_specs, al, exit_criteria, [], libE_specs)
     hist.H['g'][0] = -1
     hist.index = 1
     hist.given_count = 1
     assert mgr.term_test()
     #
     # Terminate because everything has been given.
-    # H, hist.index, term_test, _, _, hist.given_count = man.initialize(sim_specs, gen_specs, al, exit_criteria, [], libE_specs)
     hist.H['given'] = np.ones
     hist.given_count = len(hist.H)
     assert mgr.term_test()

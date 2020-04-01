@@ -2,7 +2,8 @@
 Bebop
 =====
 
-Bebop_ is a Cray CS400 cluster with Intel Broadwell and Knights Landing compute nodes available in the Laboratory Computing Resources
+Bebop_ is a Cray CS400 cluster with Intel Broadwell and Knights Landing compute
+nodes available in the Laboratory Computing Resources
 Center (LCRC) at Argonne National
 Laboratory.
 
@@ -57,9 +58,9 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 
 ``mpirun`` should also work. This line launches libEnsemble with a manager and
 **three** workers to one allocated compute node, with three nodes available for
-the workers to launch calculations with the job-controller or a job-launch command.
+the workers to launch calculations with the executor or a launch command.
 This is an example of running in :doc:`centralized<platforms_index>` mode, and,
-if using the :doc:`job_controller<../job_controller/mpi_controller>`, it should
+if using the :doc:`executor<../executor/mpi_executor>`, it should
 be initiated with ``central_mode=True``
 
 .. note::
@@ -96,7 +97,7 @@ mode on Broadwell nodes resembles the following:
     #SBATCH -e myjob.error
     #SBATCH -t 00:15:00
 
-    # These four lines construct a machinefile for the job controller and slurm
+    # These four lines construct a machinefile for the executor and slurm
     srun hostname | sort -u > node_list
     head -n 1 node_list > machinefile.$SLURM_JOBID
     cat node_list >> machinefile.$SLURM_JOBID

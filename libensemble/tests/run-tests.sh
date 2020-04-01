@@ -135,8 +135,8 @@ cleanup() {
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
     filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
-    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
-    filelist=(job_my_simjob.x*.out);   [ -e ${filelist[0]} ] && rm job_my_simjob.x*.out
+    filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
+    filelist=(task_my_simtask.x*.out);  [ -e ${filelist[0]} ] && rm task_my_simtask.x*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
     filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile
@@ -152,12 +152,14 @@ cleanup() {
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
     filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
-    filelist=(job_my_simjob.x.*.out);  [ -e ${filelist[0]} ] && rm job_my_simjob.x.*.out
+    filelist=(task_my_simtask.x.*.out); [ -e ${filelist[0]} ] && rm task_my_simtask.x.*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
-    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
+    filelist=(my_simtask.x);           [ -e ${filelist[0]} ] && rm my_simtask.x
     filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
+    filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
+    filelist=(sim_*);                  [ -e ${filelist[0]} ] && rm -r sim_*
   cd $THISDIR
 }
 
@@ -414,16 +416,23 @@ if [ "$root_found" = true ]; then
       COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
       for LAUNCHER in $COMMS_LIST
       do
-        if [ "$RUN_ONLY_MPI" = true ] && [ "$LAUNCHER" != mpi ]; then
-          echo "Skipping non MPI testnumber 5"
-          continue
-        fi
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
+        OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
         for NPROCS in $NPROCS_LIST
         do
           test_num=$((test_num+1))
           NWORKERS=$((NPROCS-1))
+
+          if [ "$RUN_ONLY_MPI" = true ] && [ "$LAUNCHER" != mpi ]; then
+            echo "Skipping non-mpi test number: " $test_num
+            continue
+          fi
+
+          if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+            echo "Skipping test number for OSX: " $test_num
+            continue
+          fi
 
           RUN_TEST=true
           if [ $REG_STOP_ON_FAILURE = "true" ]; then
