@@ -14,8 +14,8 @@ from warpX_simf import run_warpX  # Sim func from current dir
 
 # Import libEnsemble modules
 from libensemble.libE import libE
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import libE_logger
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -41,15 +41,11 @@ sim_specs = {'sim_f': run_warpX,          # Function whose output is being minim
                       'sim_kill_minutes': 10.0}  # Timeout for sim ....
              }
 
-gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool), ('local_pt', bool)]
-
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,                  # Generator function
              'in': [],                        # Generator input
-             'out': gen_out,
-             'user': {'initial_sample_size': 100,
-                      'localopt_method': 'LN_BOBYQA',
+             'out': [('x', float, 5)],
+             'user': {'gen_batch_size': 10,
                       'xtol_abs': 1e-6,
                       'ftol_abs': 1e-6,
                       'lb': np.zeros(n),           # Lower bound for the n parameters
@@ -57,13 +53,17 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
                       }
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f,
+               'out': [('allocated', bool)],
+               'user': {'batch_mode': True,    # If true wait for all sims to process before generate more
+                        'num_active_gens': 1}  # Only one active generator at a time
+               }
 
 libE_specs['save_every_k_sims'] = 1     # Save each simulation evaluation
 libE_specs['sim_input_dir'] = 'sim' # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 800
+sim_max = 10
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager
