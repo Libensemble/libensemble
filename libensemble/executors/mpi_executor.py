@@ -95,17 +95,18 @@ class MPIExecutor(Executor):
         mpi_commands = {
             'mpich': ['mpirun', '--env {env}', '-machinefile {machinefile}',
                       '-hosts {hostlist}', '-np {num_procs}',
-                      '--ppn {ranks_per_node}'],
+                      '--ppn {ranks_per_node}', '{extra_args}'],
             'openmpi': ['mpirun', '-x {env}', '-machinefile {machinefile}',
                         '-host {hostlist}', '-np {num_procs}',
-                        '-npernode {ranks_per_node}'],
+                        '-npernode {ranks_per_node}', '{extra_args}'],
             'aprun': ['aprun', '-e {env}',
                       '-L {hostlist}', '-n {num_procs}',
-                      '-N {ranks_per_node}'],
-            'jsrun': ['jsrun', '--np {num_procs}'],  # Need to add more
+                      '-N {ranks_per_node}', '{extra_args}'],
+            'jsrun': ['jsrun', '{extra_args}'],  # Relies on extra_args
             'srun': ['srun', '-w {hostlist}', '-n {num_procs}',
                      '--nodes {num_nodes}',
-                     '--ntasks-per-node {ranks_per_node}']
+                     '--ntasks-per-node {ranks_per_node}',
+                     '{extra_args}']
         }
         self.mpi_launch_type = MPIResources.get_MPI_variant()
         self.mpi_command = mpi_commands[self.mpi_launch_type]
@@ -211,7 +212,8 @@ class MPIExecutor(Executor):
     def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False, wait_on_run=False):
+               hyperthreads=False, test=False, wait_on_run=False,
+               extra_args=None):
         """Creates a new task, and either executes or schedules execution.
 
         The created task object is returned.
@@ -284,6 +286,7 @@ class MPIExecutor(Executor):
         mpi_specs = self._get_mpi_specs(task, num_procs, num_nodes,
                                         ranks_per_node, machinefile,
                                         hyperthreads)
+        mpi_specs['extra_args'] = extra_args
         runline = launcher.form_command(self.mpi_command, mpi_specs)
         runline.extend(task.app.full_path.split())
         if task.app_args is not None:
