@@ -125,8 +125,9 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
             print('Finished evaluating population, doing selection now.')
             # Running fitness calc on gens > 0
             invalid_ind, tag = evaluate_pop(g, invalid_ind, Out, comm)
-            # Select the next generation population
-            pop = toolbox.select(pop + offspring, MU)
+            if tag not in [STOP_TAG, PERSIS_STOP]:
+                # Select the next generation population
+                pop = toolbox.select(pop + offspring, MU)
         else:
             print('There were no invalid indiviuals')
             # Don't update population
