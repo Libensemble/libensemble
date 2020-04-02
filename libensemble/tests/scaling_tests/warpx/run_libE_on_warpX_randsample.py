@@ -33,8 +33,8 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
              'in': ['x'],                  # Name of input for sim_f
-             'out': [('f', float),         # Name, type of output from sim_f.  'f' stores emittance 
-                     ('fvec', float, 3)],  #   'fvec' stores the three quantities used to calculate emittance 
+             'out': [('f', float),         # Name, type of output from sim_f.  'f' stores emittance
+                     ('fvec', float, 3)],  # 'fvec' stores the three quantities used to calculate emittance
              'user': {'nodes': 2,
                       'ranks_per_node': 6,
                       'input_filename': 'inputs',
@@ -57,7 +57,7 @@ alloc_specs = {'alloc_f': alloc_f,
                         'num_active_gens': 1}  # Only one active generator at a time
                }
 
-libE_specs['save_every_k_sims'] = 1     # Save each simulation evaluation
+libE_specs['save_every_k_sims'] = 100   # Save H to file every N simulation evaluations
 libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
