@@ -2,7 +2,7 @@
 # """
 # Execute via one of the following commands:
 #    mpiexec -np 4 python run_libE_on_warpX.py
-#    python run_libE_on_warpX.py --comms local --nworkers 4
+#    python run_libE_on_warpX.py --comms local --nworkers 3
 
 # The number of concurrent evaluations of the objective function will be 4-2=2
 # as one MPI rank for the manager and one MPI rank for the persistent gen_f.
