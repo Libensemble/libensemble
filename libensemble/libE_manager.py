@@ -97,10 +97,16 @@ def filter_nans(array):
     return array[~np.isnan(array)]
 
 
-_WALLCLOCK_MSG = """
+_WALLCLOCK_MSG_ALL_RETURNED = """
 Termination due to elapsed_wallclock_time has occurred.
-A last attempt has been made to receive any completed work.
-Posting nonblocking receives and kill messages for all active workers.
+All completed work has been returned.
+Posting kill messages for all workers.
+"""
+
+_WALLCLOCK_MSG_ACTIVE = """
+Termination due to elapsed_wallclock_time has occurred.
+Some issued work has not been returned.
+Posting kill messages for all workers.
 """
 
 
@@ -396,10 +402,10 @@ class Manager:
                 # Elapsed Wallclock has expired
                 if not any(self.W['persis_state']):
                     if any(self.W['active']):
-                        logger.manager_warning(_WALLCLOCK_MSG)
-                        sys.stdout.flush()
-                        sys.stderr.flush()
-                        exit_flag = 2
+                        logger.manager_warning(_WALLCLOCK_MSG_ACTIVE)
+                    else:
+                        logger.manager_warning(_WALLCLOCK_MSG_ALL_RETURNED)
+                    exit_flag = 2
             if self.WorkerExc:
                 exit_flag = 1
 
@@ -450,4 +456,6 @@ class Manager:
         finally:
             # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
+            sys.stdout.flush()
+            sys.stderr.flush()
         return result
