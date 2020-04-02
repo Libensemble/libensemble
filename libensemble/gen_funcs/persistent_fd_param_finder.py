@@ -129,11 +129,10 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
             os.remove('fnoise.out')
 
         if np.all(inform == 1):
-            tag = FINISHED_PERSISTENT_GEN_TAG
             break
 
         H0 = build_H0(x_f_pairs_new, gen_specs, noise_h_mat)
         tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
 
     persis_info['Fnoise'] = Fnoise
-    return H0, persis_info, tag
+    return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG

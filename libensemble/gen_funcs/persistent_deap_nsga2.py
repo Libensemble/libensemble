@@ -5,7 +5,7 @@ from deap import base, creator, tools
 import numpy as np
 import array
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 
@@ -140,4 +140,4 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
             print('Current minimum:', np.min(fits))
             print('Sum of fit values at end of loop', sum(fits))
 
-    return Out, persis_info, tag
+    return Out, persis_info, FINISHED_PERSISTENT_GEN_TAG
