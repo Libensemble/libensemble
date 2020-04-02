@@ -3,7 +3,8 @@ import time
 import numpy as np
 
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
+from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+
 
 def run_warpX(H, persis_info, sim_specs, libE_info):
 
@@ -16,15 +17,15 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     x = H['x']       # Input
 
-    #nodes = sim_specs['user'].get('nodes', 1)
-    #ranks_per_node = sim_specs['user'].get('ranks_per_node', 6)
-    input_file = sim_specs['user']['input']
+    # nodes = sim_specs['user'].get('nodes', 1)
+    # ranks_per_node = sim_specs['user'].get('ranks_per_node', 6)
+    input_file = sim_specs['user']['inputs']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
 
     exctr = Executor.executor  # Get Executor
 
-    #task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
-                        #stdout='out.txt', stderr='err.txt', wait_on_run=True)
+    # task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
+    #                     stdout='out.txt', stderr='err.txt', wait_on_run=True)
 
     os.environ["OMP_NUM_THREADS"] = "1"
 
@@ -67,7 +68,7 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
     outspecs = sim_specs['out']
     output = np.zeros(1, dtype=outspecs)
 
-    #output['f'][0] = np.linalg.norm(outx)
+    # output['f'][0] = np.linalg.norm(outx)
     output['f'][0] = np.linalg.norm(x)
 
     return output, persis_info, calc_status

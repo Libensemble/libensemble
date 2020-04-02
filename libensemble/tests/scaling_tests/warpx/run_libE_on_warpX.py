@@ -2,13 +2,12 @@
 # """
 # Execute via one of the following commands:
 #    mpiexec -np 4 python run_libE_on_warpX.py
-#    python run_libE_on_warpX.py --comms local --nworkers 3
+#    python run_libE_on_warpX.py --comms local --nworkers 4
 
 # The number of concurrent evaluations of the objective function will be 4-2=2
 # as one MPI rank for the manager and one MPI rank for the persistent gen_f.
 # """
 
-import os
 import numpy as np
 from warpX_simf import run_warpX  # Sim func from current dir
 
@@ -60,7 +59,7 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
 libE_specs['save_every_k_sims'] = 1     # Save each simulation evaluation
-libE_specs['sim_input_dir'] = 'sim' # Sim dir to be copied for each worker
+libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
 sim_max = 800
