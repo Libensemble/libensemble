@@ -11,7 +11,7 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
     # Setting up variables needed for input and output
     # keys              = variable names
     # x                 = variable values
-    # output            = what will be returned to libE
+    # libE_output       = what will be returned to libE
 
     calc_status = 0  # Returns to worker
 
@@ -60,15 +60,18 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
     # time.sleep(0.2)
     # try:
         # data = np.loadtxt(filepath)
-        # outx = data[-1]
+        # warpX_out = data[-1]
     # except Exception:
-        # outx = np.nan
+        # warpX_out = np.nan
         # print('Warning - output is Nan')
 
-    outspecs = sim_specs['out']
-    output = np.zeros(1, dtype=outspecs)
+    # Fill the following array with the three values used to calculate the
+    # emittance at the end of the warpX run
+    warpX_out = np.array([1,2,3])*np.linalg.norm(x)
 
-    # output['f'][0] = np.linalg.norm(outx)
-    output['f'][0] = np.linalg.norm(x)
+    libE_output = np.zeros(1, dtype=sim_specs['out'])
 
-    return output, persis_info, calc_status
+    libE_output['fvec'][0] = warpX_out[0:3]
+    libE_output['f'][0] = warpX_out[0]*warpX_out[1] - warpX_out[2]**2
+
+    return libE_output, persis_info, calc_status

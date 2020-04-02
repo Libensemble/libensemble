@@ -31,9 +31,10 @@ exctr = MPIExecutor(central_mode=True)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': run_warpX,          # Function whose output is being minimized
-             'in': ['x'],                 # Name of input for sim_f
-             'out': [('f', float)],       # Name, type of output from sim_f
+sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
+             'in': ['x'],                  # Name of input for sim_f
+             'out': [('f', float),         # Name, type of output from sim_f.  'f' stores emittance 
+                     ('fvec', float, 3)],  #   'fvec' stores the three quantities used to calculate emittance 
              'user': {'nodes': 2,
                       'ranks_per_node': 6,
                       'input_filename': 'inputs',
