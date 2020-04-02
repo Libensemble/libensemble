@@ -364,9 +364,8 @@ class Worker:
 
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
 
-            # Check for _pushed
-            # Does __pushed need to be internal? If so add query function - or a get _pushed only function.
-            if self.comm._pushed:
+            # Check for buffered receive
+            if self.comm.recv_buffer:
                 tag, message = self.comm.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     if message is MAN_SIGNAL_FINISH:
