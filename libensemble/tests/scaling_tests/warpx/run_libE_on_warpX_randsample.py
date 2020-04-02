@@ -36,7 +36,7 @@ sim_specs = {'sim_f': run_warpX,          # Function whose output is being minim
              'out': [('f', float)],       # Name, type of output from sim_f
              'user': {'nodes': 2,
                       'ranks_per_node': 6,
-                      'input': 'inputs',
+                      'input_filename': 'inputs',
                       'sim_kill_minutes': 10.0}  # Timeout for sim ....
              }
 

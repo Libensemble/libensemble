@@ -19,7 +19,7 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     # nodes = sim_specs['user'].get('nodes', 1)
     # ranks_per_node = sim_specs['user'].get('ranks_per_node', 6)
-    input_file = sim_specs['user']['inputs']
+    input_file = sim_specs['user']['input_filename']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
 
     exctr = Executor.executor  # Get Executor
