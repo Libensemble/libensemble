@@ -16,14 +16,22 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     x = H['x']       # Input
 
-    nodes = sim_specs['user'].get('nodes', 1)
-    ranks_per_node = sim_specs['user'].get('ranks_per_node', 6)
+    #nodes = sim_specs['user'].get('nodes', 1)
+    #ranks_per_node = sim_specs['user'].get('ranks_per_node', 6)
     input_file = sim_specs['user']['input']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
 
     exctr = Executor.executor  # Get Executor
 
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
+    #task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
+                        #stdout='out.txt', stderr='err.txt', wait_on_run=True)
+
+    os.environ["OMP_NUM_THREADS"] = "1"
+
+    # testing use of extra_args
+    jsrun_args = '-n 1 -a 2 -g 2 -c 2 --bind=packed:1 --smpiargs="-gpu"'
+
+    task = exctr.submit(calc_type='sim', extra_args=jsrun_args, app_args=input_file,
                         stdout='out.txt', stderr='err.txt', wait_on_run=True)
 
     poll_interval = 1  # secs
