@@ -5,6 +5,8 @@ worker array
 ::
 
     W: numpy structured array
+        'worker_id' [int]:
+            The worker ID
         'active' [int]:
             Is the worker active or not
         'persis_state' [int]:

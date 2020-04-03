@@ -25,7 +25,7 @@ def test_qcomm():
     assert outq.get() == ('a', 1) and outq.get() == ('b',) and outq.empty(), \
         "Check send appropriately goes to output queue."
 
-    comm.push_back('b', 0)
+    comm.push_to_buffer('b', 0)
     inq.put(('c', 3))
     inq.put(('d',))
     assert (comm.recv() == ('b', 0)
