@@ -32,7 +32,7 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
                             stdout='out.txt', stderr='err.txt', wait_on_run=True)
     else:
         # task = exctr.submit(calc_type='sim', num_procs=2, app_args=args,
-        task = exctr.submit(calc_type='sim', num_procs=2,
+        task = exctr.submit(calc_type='sim', num_procs=2, app_args=input_file,
                             stdout='out.txt', stderr='err.txt', wait_on_run=True)
 
     poll_interval = 1  # secs
