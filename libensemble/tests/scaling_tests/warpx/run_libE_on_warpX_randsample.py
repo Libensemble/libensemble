@@ -19,12 +19,16 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble import libE_logger
 from libensemble.executors.mpi_executor import MPIExecutor
 
+from MaxenceLocalIMac import machine_specs
+# from Summit import machine_specs
+
 libE_logger.set_level('INFO')
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
 # Set to full path of warp executable
-sim_app = '$HOME/warpx/Bin/main2d.gnu.TPROF.MPI.CUDA.ex'
+sim_app = machine_specs['sim_app']
+# '$HOME/warpx/Bin/main2d.gnu.TPROF.MPI.CUDA.ex'
 
 n = 5  # Problem dimension
 exctr = MPIExecutor(central_mode=True)
@@ -35,8 +39,8 @@ sim_specs = {'sim_f': run_warpX,           # Function whose output is being mini
              'in': ['x'],                  # Name of input for sim_f
              'out': [('f', float),         # Name, type of output from sim_f.  'f' stores emittance
                      ('fvec', float, 3)],  # 'fvec' stores the three quantities used to calculate emittance
-             'user': {'nodes': 2,
-                      'ranks_per_node': 6,
+             'user': {'nodes': machine_specs['nodes'],
+                      'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
                       'sim_kill_minutes': 10.0}  # Timeout for sim ....
              }
