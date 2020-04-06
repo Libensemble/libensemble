@@ -19,12 +19,14 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble import libE_logger
 from libensemble.executors.mpi_executor import MPIExecutor
 
+from MaxenceLocalIMac import machine_specs
+
 libE_logger.set_level('INFO')
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
 # Set to full path of warp executable
-sim_app = '$HOME/warpx/Bin/main2d.gnu.TPROF.MPI.CUDA.ex'
+sim_app = machine_specs['sim_app']
 
 n = 5  # Problem dimension
 exctr = MPIExecutor(central_mode=True)
@@ -33,15 +35,16 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
              'in': ['x'],                  # Name of input for sim_f
-             'out': [('f', float),         # Name, type of output from sim_f.  'f' stores emittance
-                     ('fvec', float, 3)],  # 'fvec' stores the three quantities used to calculate emittance
-             'user': {'nodes': 2,
-                      'ranks_per_node': 6,
+             'out': [('energy_std', float),  # Name, type of output from sim_f.
+                     ('energy_avg', float),
+                     ('charge', float)],
+             'user': {'nodes': machine_specs['nodes'],
+                      'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
                       'sim_kill_minutes': 10.0}  # Timeout for sim ....
              }
 
-gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
+gen_out = [('x', float, (n,)), ('x_on_cube', float, (n,)), ('sim_id', int),
            ('local_min', bool), ('local_pt', bool)]
 
 # State the generating function, its arguments, output, and necessary parameters.
@@ -52,8 +55,8 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
                       'localopt_method': 'LN_BOBYQA',
                       'xtol_abs': 1e-6,
                       'ftol_abs': 1e-6,
-                      'lb': np.zeros(n),           # Lower bound for the n parameters
-                      'ub': 10*np.ones(n),         # Upper bound for the n parameters
+                      'lb': np.ones(n)*-1.e-13,         # Lower bound for the n parameters
+                      'ub': np.ones(n)*-3.e-12,         # Upper bound for the n parameters
                       }
              }
 
