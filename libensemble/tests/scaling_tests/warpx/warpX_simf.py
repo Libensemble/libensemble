@@ -25,7 +25,7 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
     
     exctr = Executor.executor  # Get Executor
 
-    app_args = input_file + ' beam.q_tot=' + str(x[0][0])
+    app_args = input_file + ' beam.q_tot=' + str(-x[0][0])
     print(app_args)
     os.environ["OMP_NUM_THREADS"] = machine_specs['OMP_NUM_THREADS']
 
@@ -70,9 +70,12 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     libE_output = np.zeros(1, dtype=sim_specs['out'])
 
+    print('x = ' + str(x[0][0]) + ', f = ' + str(warpX_out[0]))
+    print('warpX_out = ', warpX_out)
+    
     libE_output['f'] = warpX_out[0]
-    #libE_output['energy_std'] = warpX_out[0]
-    #libE_output['energy_avg'] = warpX_out[1]
-    #libE_output['charge'] = warpX_out[2]
+    libE_output['energy_std'] = warpX_out[0]
+    libE_output['energy_avg'] = warpX_out[1]
+    libE_output['charge'] = warpX_out[2]
 
     return libE_output, persis_info, calc_status

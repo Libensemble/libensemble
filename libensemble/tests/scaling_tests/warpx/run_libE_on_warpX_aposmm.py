@@ -39,7 +39,10 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
              'in': ['x'],                  # Name of input for sim_f
-             'out': [('f', float)],  # Optimize on this. energy_std.
+             'out': [('f', float),
+                     ('energy_std', float, 1),
+                     ('energy_avg', float, 1),
+                     ('charge', float, 1)],  # Optimize on this. energy_std.
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
