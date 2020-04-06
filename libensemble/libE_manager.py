@@ -14,7 +14,7 @@ from libensemble.utils.timer import Timer
 from libensemble.message_numbers import \
     EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, \
     EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, \
-    STOP_TAG, UNSET_TAG, \
+    STOP_TAG, UNSET_TAG, PERSIS_STOP, \
     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
     TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
@@ -97,10 +97,16 @@ def filter_nans(array):
     return array[~np.isnan(array)]
 
 
-_WALLCLOCK_MSG = """
+_WALLCLOCK_MSG_ALL_RETURNED = """
 Termination due to elapsed_wallclock_time has occurred.
-A last attempt has been made to receive any completed work.
-Posting nonblocking receives and kill messages for all active workers.
+All completed work has been returned.
+Posting kill messages for all workers.
+"""
+
+_WALLCLOCK_MSG_ACTIVE = """
+Termination due to elapsed_wallclock_time has occurred.
+Some issued work has not been returned.
+Posting kill messages for all workers.
 """
 
 
@@ -128,6 +134,7 @@ class Manager:
         self.elapsed = lambda: timer.elapsed
         self.wcomms = wcomms
         self.WorkerExc = False
+        self.persis_pending = []
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
@@ -277,6 +284,7 @@ class Manager:
         assert calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                                FINISHED_PERSISTENT_GEN_TAG,
                                UNSET_TAG,
+                               PERSIS_STOP,
                                MAN_SIGNAL_FINISH,
                                MAN_SIGNAL_KILL,
                                WORKER_KILL_ON_ERR,
@@ -314,10 +322,15 @@ class Manager:
         calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
 
-        self.W[w-1]['active'] = 0
+        if w not in self.persis_pending:
+            self.W[w-1]['active'] = 0
+
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             self.W[w-1]['persis_state'] = 0
+            if w in self.persis_pending:
+                self.persis_pending.remove(w)
+                self.W[w-1]['active'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv)
@@ -371,14 +384,28 @@ class Manager:
         nonblocking receive is posted (though the manager will not receive this
         data) and a kill signal is sent.
         """
+
+        # Send a handshake signal to each persistent worker.
+        if any(self.W['persis_state']):
+            for w in self.W['worker_id'][self.W['persis_state'] > 0]:
+                logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
+                self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if not self.W[w-1]['active']:
+                    # Re-activate if necessary
+                    self.W[w-1]['active'] = self.W[w-1]['persis_state']
+                self.persis_pending.append(w)
+
         exit_flag = 0
-        while any(self.W['active']) and exit_flag == 0:
+        while (any(self.W['active']) or any(self.W['persis_state'])) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
-            if self.term_test(logged=False) == 2 and any(self.W['active']):
-                logger.manager_warning(_WALLCLOCK_MSG)
-                sys.stdout.flush()
-                sys.stderr.flush()
-                exit_flag = 2
+            if self.term_test(logged=False) == 2:
+                # Elapsed Wallclock has expired
+                if not any(self.W['persis_state']):
+                    if any(self.W['active']):
+                        logger.manager_warning(_WALLCLOCK_MSG_ACTIVE)
+                    else:
+                        logger.manager_warning(_WALLCLOCK_MSG_ALL_RETURNED)
+                    exit_flag = 2
             if self.WorkerExc:
                 exit_flag = 1
 
@@ -429,4 +456,6 @@ class Manager:
         finally:
             # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
+            sys.stdout.flush()
+            sys.stderr.flush()
         return result

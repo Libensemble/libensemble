@@ -24,7 +24,7 @@ def get_mgr_worker_msg(comm, status=None):
     """
     tag, Work = comm.recv()
     if tag in [STOP_TAG, PERSIS_STOP]:
-        comm.push_back(tag, Work)
-        return tag, None, None
+        comm.push_to_buffer(tag, Work)
+        return tag, Work, None
     _, calc_in = comm.recv()
     return tag, Work, calc_in

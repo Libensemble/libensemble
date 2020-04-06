@@ -7,14 +7,14 @@
 
 export PYTHON_VERSION=3.7       # override with -p <version>
 export LIBE_BRANCH="develop"    # override with -b <branchname>
-export SYSTEM="Linux"           # override with -s <Linux, MacOSX, Windows>
+export RUN_TESTS=true           # override with -i
 
 export MPI=MPICH
 export HYDRA_LAUNCHER=fork
 
 # Allow user to optionally set python version and branch
 # E.g: ". ./build_mpich_libE.sh -p 3.4 -b feature/myfeature"
-while getopts ":p:b:s:" opt; do
+while getopts ":p:b:i" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -23,6 +23,10 @@ while getopts ":p:b:s:" opt; do
     b)
       echo "Parameter supplied for branch name: $OPTARG" >&2
       LIBE_BRANCH=${OPTARG}
+      ;;
+    i)
+      echo "Installation only - No tests will be run"
+      RUN_TESTS=false
       ;;
     \?)
       echo "Invalid option supplied: -$OPTARG" >&2
@@ -84,7 +88,8 @@ python install/install-balsam.py
 export BALSAM_DB_PATH=~/test-balsam
 ulimit -Sn 10000
 
-./libensemble/tests/run-tests.sh -z
+if [ "$RUN_TESTS" = true ]; then
+    ./libensemble/tests/run-tests.sh -z
 
 echo -e "\n\nScript completed...\n\n"
 set +ex

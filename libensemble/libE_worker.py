@@ -16,7 +16,7 @@ import numpy as np
 
 from libensemble.message_numbers import \
     EVAL_SIM_TAG, EVAL_GEN_TAG, \
-    UNSET_TAG, STOP_TAG, CALC_EXCEPTION
+    UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 
@@ -363,6 +363,14 @@ class Worker:
                 "Calculation output must be at least two elements."
 
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
+
+            # Check for buffered receive
+            if self.comm.recv_buffer:
+                tag, message = self.comm.recv()
+                if tag in [STOP_TAG, PERSIS_STOP]:
+                    if message is MAN_SIGNAL_FINISH:
+                        calc_status = MAN_SIGNAL_FINISH
+
             return out[0], out[1], calc_status
         except Exception:
             logger.debug("Re-raising exception from calc")
@@ -441,6 +449,7 @@ class Worker:
                 logger.debug("Iteration {}".format(worker_iter))
 
                 mtag, Work = self.comm.recv()
+
                 if mtag == STOP_TAG:
                     break
 

@@ -69,6 +69,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_master:
+    assert persis_info[1].get('run_order'), "Run_order should have been given back"
     assert flag == 0
     assert len(H) >= budget
 
