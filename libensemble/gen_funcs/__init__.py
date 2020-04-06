@@ -15,5 +15,5 @@ def rc(**kargs):
         setattr(rc, key, value)
 
 
-rc.aposmm_optimizer = True
+rc.aposmm_optimizer = None
 __import__('sys').modules[__name__ + '.rc'] = rc
