@@ -13,7 +13,11 @@ from warpX_simf import run_warpX  # Sim func from current dir
 
 # Import libEnsemble modules
 from libensemble.libE import libE
+
+import libensemble.gen_funcs
+libensemble.gen_funcs.rc.aposmm_optimizer = 'nlopt'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import libE_logger
