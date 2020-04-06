@@ -22,6 +22,8 @@ elif optimizer == 'nlopt':
     import nlopt
 elif optimizer == 'dfols':
     import dfols
+elif optimizer in ['scipy', 'external']:
+    pass
 else:
     if optimizer is not None:
         print('APOSMM Warning: {} optimizer not recognized. Loading all')
