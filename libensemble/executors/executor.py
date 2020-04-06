@@ -354,7 +354,7 @@ class Executor:
         else:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
-        comm.push_back(mtag)
+        comm.push_to_buffer(mtag, man_signal)
 
     def get_task(self, taskid):
         """ Returns the task object for the supplied task ID """

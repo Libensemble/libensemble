@@ -1,17 +1,16 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Runs libEnsemble testing timeout and wait for persistent worker.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms local
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_6-test_persistent_aposmm_timeout.py.py
+#    python3 test_6-test_persistent_aposmm_timeout.py.py --nworkers 3 --comms local
+#    python3 test_6-test_persistent_aposmm_timeout.py.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local mpi
+# TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
 
 import sys
@@ -22,8 +21,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-
+from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -55,27 +53,16 @@ gen_specs = {'gen_f': gen_f,
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
 
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 5000, 'elapsed_wallclock_time': 1}
 
-for run in range(2):
-    if run == 1:
-        gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
-        gen_specs['user'].pop('xtol_abs')
-        gen_specs['user'].pop('ftol_abs')
-        gen_specs['user']['scipy_kwargs'] = {'tol': 1e-8}
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+# Perform the run
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            alloc_specs, libE_specs)
 
-    if is_master:
-        assert persis_info[1].get('run_order'), "Run_order should have been given back"
-        min_ids = np.where(H['local_min'])
-
-        # The minima are known on this test problem. If the above [lb,ub] domain is
-        # shifted/scaled to [0,1]^n, they all have value [0.25, 0.75] or [0.75, 0.25]
-        minima = np.array([[0.25, 0.75], [0.75, 0.25]])
-        tol = 1e-4
-        for x in H['x_on_cube'][min_ids]:
-            assert np.linalg.norm(x - minima[0]) < tol or np.linalg.norm(x - minima[1]) < tol
+if is_master:
+    assert flag == 2, "Test should have timed out"
+    assert persis_info[1].get('run_order'), "Run_order should have been given back"
+    min_ids = np.where(H['local_min'])
+    save_libE_output(H, persis_info, __file__, nworkers)

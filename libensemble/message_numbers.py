@@ -1,10 +1,17 @@
 # --- Tags
 
 UNSET_TAG = 0
+
+# When received by a worker, tells worker to do a sim eval;
+# When received by the manager, tells manager that worker is done with sim eval.
 EVAL_SIM_TAG = 1
+
+# When received by a worker, tells worker to do a gen eval;
+# When received by the manager, tells manager that worker is done with sim eval.
 EVAL_GEN_TAG = 2
-STOP_TAG = 3
-PERSIS_STOP = 4                     # manager tells persistent worker to desist
+
+STOP_TAG = 3             # Manager tells worker (or persistent calc) to stop
+PERSIS_STOP = 4          # Manager tells persistent calculation to stop
 
 # last_message_number_rst_tag
 
@@ -26,17 +33,17 @@ MAN_SIGNAL_KILL = 21              # Kill running task - but don't stop worker
 WORKER_KILL = 30                  # Worker kills not covered by a more specific case
 WORKER_KILL_ON_ERR = 31           # Worker killed due to an error in results
 WORKER_KILL_ON_TIMEOUT = 32       # Worker killed on timeout
-TASK_FAILED = 33                   # Calc had tasks that failed
+TASK_FAILED = 33                  # Calc had tasks that failed
 WORKER_DONE = 34                  # Calculation was successful
 # last_calc_status_rst_tag
 CALC_EXCEPTION = 35               # Reserved: Automatically used if gen_f or sim_f raised an exception.
 
 calc_status_strings = {
-    FINISHED_PERSISTENT_SIM_TAG: "Persis gen finished",
-    FINISHED_PERSISTENT_GEN_TAG: "Persis sim finished",
+    FINISHED_PERSISTENT_SIM_TAG: "Persis sim finished",
+    FINISHED_PERSISTENT_GEN_TAG: "Persis gen finished",
     MAN_SIGNAL_FINISH: "Manager killed on finish",
     MAN_SIGNAL_KILL: "Manager killed task",
-    WORKER_KILL_ON_ERR: " Worker killed task on Error",
+    WORKER_KILL_ON_ERR: "Worker killed task on Error",
     WORKER_KILL_ON_TIMEOUT: "Worker killed task on Timeout",
     WORKER_KILL: "Worker killed",
     TASK_FAILED: "Task Failed",

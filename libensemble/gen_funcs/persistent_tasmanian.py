@@ -48,5 +48,4 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
 
         persis_info['aResult'][prec] = aResult
 
-    tag = FINISHED_PERSISTENT_GEN_TAG
-    return H0, persis_info, tag
+    return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG
