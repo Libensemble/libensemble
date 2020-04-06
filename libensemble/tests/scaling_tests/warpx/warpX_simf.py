@@ -70,8 +70,9 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     libE_output = np.zeros(1, dtype=sim_specs['out'])
 
-    libE_output['energy_std'] = warpX_out[0]
-    libE_output['energy_avg'] = warpX_out[1]
-    libE_output['charge'] = warpX_out[2]
+    libE_output['f'] = warpX_out[0]
+    #libE_output['energy_std'] = warpX_out[0]
+    #libE_output['energy_avg'] = warpX_out[1]
+    #libE_output['charge'] = warpX_out[2]
 
     return libE_output, persis_info, calc_status
