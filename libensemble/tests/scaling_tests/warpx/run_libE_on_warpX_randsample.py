@@ -37,13 +37,15 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
              'in': ['x'],                  # Name of input for sim_f
-             'out': [('energy_std', float),  # Name, type of output from sim_f.
+             'out': [('f', float),
+                     ('energy_std', float),  # Name, type of output from sim_f.
                      ('energy_avg', float),
                      ('charge', float)],
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
-                      'sim_kill_minutes': 10.0}  # Timeout for sim ....
+                      'sim_kill_minutes': 10.0,
+                      'dummy': False}  # Timeout for sim ....
              }
 
 # State the generating function, its arguments, output, and necessary parameters.
@@ -51,8 +53,8 @@ gen_specs = {'gen_f': gen_f,                 # Generator function
              'in': [],                       # Generator input
              'out': [('x', float, (n,))],       # nb of parameters to input into sim
              'user': {'gen_batch_size': 3,   # Total max number of sims
-                      'lb': np.ones(n)*-1.e-13,         # Lower bound for the n parameters
-                      'ub': np.ones(n)*-3.e-12,         # Upper bound for the n parameters
+                      'lb': np.ones(n)*1.e-13,         # Lower bound for the n parameters
+                      'ub': np.ones(n)*3.e-12,         # Upper bound for the n parameters
                       }
              }
 

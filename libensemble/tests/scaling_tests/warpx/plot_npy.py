@@ -16,10 +16,16 @@ results_dict = {}
 for i in range(len(names)):
     results_dict[names[i]] = np.array([task[i] for task in results])
 
+# import pickle
+# with open(sys.argv[2], 'rb') as f:
+#     data_pickle = pickle.load(f)
+# print(data_pickle)
+    
 plt.figure(figsize=(12,4))
 plt.subplot(131)
 # plt.plot(-results_dict['x'], results_dict['energy_std'], '.')
-plt.scatter(results_dict['x'][:,0], results_dict['energy_std'], c=results_dict['given_time'], cmap='inferno')
+# plt.scatter(results_dict['x'][:,0], results_dict['energy_std'], c=results_dict['given_time'], cmap='inferno')
+plt.scatter(results_dict['x'][:,0], results_dict['energy_std'], c=results_dict['sim_id'], cmap='inferno')
 cbar = plt.colorbar()
 cbar.ax.set_ylabel('start time (arb. units)')
 plt.xlim(1.e-13, 3.e-12)

@@ -46,7 +46,8 @@ sim_specs = {'sim_f': run_warpX,           # Function whose output is being mini
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
-                      'sim_kill_minutes': 10.0}  # Timeout for sim ....
+                      'sim_kill_minutes': 10.0,
+                      'dummy': False}  # Timeout for sim ....
              }
 
 gen_out = [('x', float, (n,)), ('x_on_cube', float, (n,)), ('sim_id', int),
@@ -56,7 +57,7 @@ gen_out = [('x', float, (n,)), ('x_on_cube', float, (n,)), ('sim_id', int),
 gen_specs = {'gen_f': gen_f,                  # Generator function
              'in': [],                        # Generator input
              'out': gen_out,
-             'user': {'initial_sample_size': 3,
+             'user': {'initial_sample_size': 4,
                       'localopt_method': 'LN_BOBYQA',
                       'xtol_abs': 1e-6,
                       'ftol_abs': 1e-6,
@@ -71,7 +72,7 @@ libE_specs['save_every_k_sims'] = 100   # Save H to file every N simulation eval
 libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 9
+sim_max = 8
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager
@@ -79,6 +80,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, alloc_specs, libE_specs)
+print( persis_info[1]['run_order'] )
 
 # Save results to numpy file
 if is_master:
