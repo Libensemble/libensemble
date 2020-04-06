@@ -11,18 +11,20 @@ __all__ = ['initialize_APOSMM', 'decide_where_to_start_localopt', 'update_histor
 
 import numpy as np
 from scipy.spatial.distance import cdist
-from scipy import optimize as sp_opt
 from math import log, gamma, pi, sqrt
 
 import libensemble.gen_funcs
 optimizer = libensemble.gen_funcs.rc.aposmm_optimizer
 if optimizer == 'petsc':
+    from mpi4py import MPI
     from petsc4py import PETSc
 elif optimizer == 'nlopt':
     import nlopt
 elif optimizer == 'dfols':
     import dfols
-elif optimizer in ['scipy', 'external']:
+elif optimizer == 'scipy':
+    from scipy import optimize as sp_opt
+elif optimizer == 'external':
     pass
 else:
     if optimizer is not None:
@@ -31,12 +33,11 @@ else:
     from petsc4py import PETSc
     import nlopt
     import dfols
-
+    from scipy import optimize as sp_opt
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 from libensemble.tools.gen_support import send_mgr_worker_msg
 from libensemble.tools.gen_support import get_mgr_worker_msg
-
 
 from multiprocessing import Event, Process, Queue
 
