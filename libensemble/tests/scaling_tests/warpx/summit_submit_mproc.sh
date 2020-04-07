@@ -1,5 +1,5 @@
 #!/bin/bash -x
-#BSUB -P <project code>
+#BSUB -P APH114
 #BSUB -J libe_mproc
 #BSUB -W 20
 #BSUB -nnodes 4
@@ -13,7 +13,7 @@
 # - Workers submit tasks to the nodes in the job available.
 
 # Name of calling script-
-export EXE=run_libE_on_warpX.py
+export EXE=run_libE_on_warpX_randsample.py
 
 # Communication Method
 export COMMS="--comms local"
@@ -25,7 +25,7 @@ export NWORKERS="--nworkers 4"
 #export LIBE_WALLCLOCK=15 # Optional if pass to script
 
 # Name of Conda environment
-export CONDA_ENV_NAME=<conda_env_name>
+export CONDA_ENV_NAME=libensemble
 
 export LIBE_PLOTS=true # Require plot scripts in $PLOT_DIR (see at end)
 export PLOT_DIR=..
