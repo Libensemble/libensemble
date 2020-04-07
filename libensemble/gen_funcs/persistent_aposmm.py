@@ -1065,6 +1065,8 @@ def initialize_APOSMM(H, user_specs, libE_info):
 
     n_s = np.sum(~local_H['local_pt'])
 
+    assert n_s > 0 or user_specs['initial_sample_size'] > 0, "APOSMM requires a positive initial_sample_size, or some existing points in order to determine where to start local optimization runs."
+
     return n, n_s, rk_c, ld, mu, nu, comm, local_H
 
 
