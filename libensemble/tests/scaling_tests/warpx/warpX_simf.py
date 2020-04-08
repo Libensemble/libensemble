@@ -6,6 +6,7 @@ from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 from MaxenceLocalIMac import machine_specs
 from read_sim_output import read_sim_output
+from write_sim_input import write_sim_input
 
 def run_warpX(H, persis_info, sim_specs, libE_info):
 
@@ -18,8 +19,6 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0  # Returns to worker
 
-    x = H['x'] # Input
-
     nodes = sim_specs['user'].get('nodes', 1)
     ranks_per_node = sim_specs['user'].get('ranks_per_node', 1)
     input_file = sim_specs['user']['input_filename']
@@ -29,8 +28,9 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
         exctr = Executor.executor  # Get Executor
 
-        app_args = input_file + ' beam.q_tot=' + str(-x[0][0])
-        print(app_args)
+        write_sim_input(input_file, H['x'])
+        # app_args = input_file + ' beam.q_tot=' + str(-x[0][0])
+        app_args = input_file
         os.environ["OMP_NUM_THREADS"] = machine_specs['OMP_NUM_THREADS']
 
         # testing use of extra_args
@@ -60,10 +60,6 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
             else:
                 print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
-        # Extract and calculate what you need to send back
-        datafile = 'diags/plotfiles/plt01830/'
-        filepath = os.path.join(task.workdir, datafile)
-        filepath = os.path.join(task.workdir, datafile)
         time.sleep(0.2)
 
         try:
@@ -73,17 +69,18 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
             print('Warning - output is Nan')
 
     else:
+        # Build a custom function to minimize. This one has two local minima
         xmin = 1.e-13
         xmax = 3.e-12
         xopt = 1.e-12
         warpX_out = np.zeros(len(sim_specs['out']))
         warpX_out[0] = (x[0][0]-.5e-12**2) * (x[0][0]-1.e-12)**2 * (x[0][0]-2.5e-12)**2 * 1.e60
-        # warpX_out[0] = ( (x[0][0]-xopt)/(xmax-xmin) ) **2
 
     libE_output = np.zeros(1, dtype=sim_specs['out'])
     libE_output['f'] = warpX_out[0]
-    libE_output['energy_std'] = warpX_out[0]
-    libE_output['energy_avg'] = warpX_out[1]
-    libE_output['charge'] = warpX_out[2]
+    libE_output['energy_std'] = warpX_out[1]
+    libE_output['energy_avg'] = warpX_out[2]
+    libE_output['charge'] = warpX_out[3]
+    libE_output['emittance'] = warpX_out[4]
 
     return libE_output, persis_info, calc_status

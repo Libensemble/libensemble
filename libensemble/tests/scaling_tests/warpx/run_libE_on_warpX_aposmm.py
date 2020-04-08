@@ -2,7 +2,7 @@
 # """
 # Execute via one of the following commands:
 #    mpiexec -np 4 python run_libE_on_warpX.py
-#    python run_libE_on_warpX.py --comms local --nworkers 3
+#    python run_libE_on_warpX_aposmm.py --comms local --nworkers 3
 
 # The number of concurrent evaluations of the objective function will be 4-2=2
 # as one MPI rank for the manager and one MPI rank for the persistent gen_f.
@@ -32,17 +32,18 @@ nworkers, is_master, libE_specs, _ = parse_args()
 # Set to full path of warp executable
 sim_app = machine_specs['sim_app']
 
-n = 2  # Problem dimension
+n = 4  # Problem dimension
 exctr = MPIExecutor(central_mode=True)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
              'in': ['x'],                  # Name of input for sim_f
-             'out': [('f', float),
+             'out': [('f', float),   # Optimize on this.
                      ('energy_std', float, 1),
                      ('energy_avg', float, 1),
-                     ('charge', float, 1)],  # Optimize on this. energy_std.
+                     ('charge', float, 1),
+                     ('emittance', float, 1)],
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
@@ -61,8 +62,8 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
                       'localopt_method': 'LN_BOBYQA',
                       'xtol_abs': 1e-6,
                       'ftol_abs': 1e-6,
-                      'lb': np.ones(n)*1.e-13,         # Lower bound for the n parameters
-                      'ub': np.ones(n)*3.e-12,         # Upper bound for the n parameters
+                      'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),  # Lower bound for the n parameters
+                      'ub': np.array([2.e-2, 2.e-2, 0.028, 10.]), # Upper bound for the n parameters
                       }
              }
 
@@ -72,7 +73,7 @@ libE_specs['save_every_k_sims'] = 100   # Save H to file every N simulation eval
 libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 8
+sim_max = 20
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager
