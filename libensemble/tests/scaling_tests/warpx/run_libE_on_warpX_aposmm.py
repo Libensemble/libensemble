@@ -60,6 +60,7 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
              'out': gen_out,
              'user': {'initial_sample_size': 4,
                       'localopt_method': 'LN_BOBYQA',
+                      'num_pts_first_pass': nworkers,
                       'xtol_abs': 1e-6,
                       'ftol_abs': 1e-6,
                       'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),  # Lower bound for the n parameters
