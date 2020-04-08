@@ -143,14 +143,14 @@ class Worker:
         self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
 
-    @staticmethod
-    def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
-        """Copy files from input directory to calc prefix directory, create
-        indication file showing that staging has completed without having to
-        compare two directories."""
-        locs.copy_or_symlink(sim_input_dir, calc_prefix,
-                             os.listdir(sim_input_dir), [])
-        open(os.path.join(calc_prefix, stgfile), 'w')  # Empty file
+    # @staticmethod
+    # def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
+    #     """Copy files from input directory to calc prefix directory, create
+    #     indication file showing that staging has completed without having to
+    #     compare two directories."""
+    #     locs.copy_or_symlink(sim_input_dir, calc_prefix,
+    #                          os.listdir(sim_input_dir), [])
+    #     open(os.path.join(calc_prefix, stgfile), 'w')  # Empty file
 
     @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
