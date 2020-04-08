@@ -206,7 +206,7 @@ class Worker:
         # Register calc dir with adjusted parent dir and source-file location
         locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
                           prefix=calc_prefix,
-                          srcdir=sim_input_dir,
+                          # srcdir=sim_input_dir,
                           copy_files=copy_files,
                           symlink_files=symlink_files)
 

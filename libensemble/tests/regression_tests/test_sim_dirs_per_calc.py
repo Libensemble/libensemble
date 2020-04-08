@@ -30,7 +30,7 @@ dir_to_symlink = sim_input_dir + '/symlink_this'
 # dir_to_ignore = sim_input_dir + '/not_this'
 c_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
-for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
+for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
     if is_master and not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 

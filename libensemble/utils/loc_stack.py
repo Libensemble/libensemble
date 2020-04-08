@@ -75,13 +75,13 @@ class LocationStack:
             dirname = os.path.join(prefix, os.path.basename(dirname))
 
         self.dirs[key] = dirname
-        if srcdir is not None:
-            assert not os.path.isdir(dirname), \
-                "Directory {} already exists".format(dirname)
-            self.copy_or_symlink(srcdir, dirname, copy_files, symlink_files)
-        else:
-            if dirname and not os.path.isdir(dirname):
-                os.makedirs(dirname)
+        # if srcdir is not None:
+        assert not os.path.isdir(dirname), \
+            "Directory {} already exists".format(dirname)
+        self.copy_or_symlink(dirname, copy_files, symlink_files)
+        # else:
+        #     if dirname and not os.path.isdir(dirname):
+        #         os.makedirs(dirname)
         return dirname
 
     def push_loc(self, key):

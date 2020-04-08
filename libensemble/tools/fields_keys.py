@@ -32,22 +32,20 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'clean_ensemble_dirs',    #
                           'comm',                   #
                           'comms',                  #
-                          'copy_back_output',       #
-                          'copy_input_files',       #
-                          'copy_input_to_parent',   #
                           'disable_log_files',      #
-                          'ensemble_dir',           #
-                          'ensemble_dir_suffix',    #
                           'ip',                     #
+                          'make_sim_dirs',          #
                           'nworkers',               #
                           'port',                   #
                           'profile_worker',         #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #
                           'save_H_and_persis_on_abort',        #
-                          'sim_input_dir',          #
-                          'symlink_input_files',    #
-                          'use_worker_dirs',        #
+                          'sim_dir_copy_back',      #
+                          'sim_dir_copy_files',     #
+                          'sim_dir_path',           #
+                          'sim_dirs_per_worker',    #
+                          'sim_dir_symlink_files',  #
                           'workerID',               #
                           'worker_timeout',         #
                           'worker_cmd']             #
