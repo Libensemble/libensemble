@@ -27,21 +27,27 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
-dir_to_ignore = sim_input_dir + '/not_this'
+# dir_to_ignore = sim_input_dir + '/not_this'
 w_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink, dir_to_ignore]:
     if is_master and not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
-libE_specs['sim_input_dir'] = sim_input_dir
-libE_specs['ensemble_dir'] = w_ensemble
-libE_specs['use_worker_dirs'] = True
-libE_specs['copy_input_files'] = ['copy_this']
-libE_specs['symlink_input_files'] = ['symlink_this']
-libE_specs['copy_input_to_parent'] = True
-libE_specs['copy_back_output'] = True
+# libE_specs['sim_input_dir'] = sim_input_dir
+# libE_specs['ensemble_dir'] = w_ensemble
+# libE_specs['use_worker_dirs'] = True
+# libE_specs['copy_input_files'] = ['copy_this']
+# libE_specs['symlink_input_files'] = ['symlink_this']
+# libE_specs['copy_input_to_parent'] = True
+# libE_specs['copy_back_output'] = True
 # libE_specs['clean_ensemble_dirs'] = True
+libE_specs['make_sim_dirs'] = True
+libE_specs['sim_dir_path'] = w_ensemble
+libE_specs['sim_dirs_per_worker'] = True
+libE_specs['sim_dir_copy_files'] = [dir_to_copy]
+libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
+libE_specs['sim_dir_copy_back'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
