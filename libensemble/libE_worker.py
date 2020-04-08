@@ -156,18 +156,18 @@ class Worker:
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
         "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
 
-        sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
-        prefix = libE_specs.get('ensemble_dir', './ensemble')
-        suffix = libE_specs.get('ensemble_dir_suffix', '')
-        copy_files = libE_specs.get('copy_input_files', os.listdir(sim_input_dir))
-        copy_parent = libE_specs.get('copy_input_to_parent', False)
-        symlink_files = libE_specs.get('symlink_input_files', [])
-        do_work_dirs = libE_specs.get('use_worker_dirs', False)
+        # sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
+        prefix = libE_specs.get('sim_dir_path', './ensemble')
+        # suffix = libE_specs.get('ensemble_dir_suffix', '')
+        copy_files = libE_specs.get('sim_dir_copy_files', [])
+        # copy_parent = libE_specs.get('copy_input_to_parent', False)
+        symlink_files = libE_specs.get('sim_dir_symlink_files', [])
+        do_work_dirs = libE_specs.get('sim_dirs_per_worker', False)
 
         # Customize ensemble directory with suffix
-        if suffix != '':
-            suffix = '_' + suffix
-            prefix += suffix
+        # if suffix != '':
+        #     suffix = '_' + suffix
+        #     prefix += suffix
 
         # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
         if do_work_dirs:
@@ -185,23 +185,23 @@ class Worker:
             calc_prefix = prefix
 
         # Copy input contents to parent dir, create stage indication file
-        if copy_parent:
-            stgfile = '.COPY_PARENT_STAGED'
-
-            if not do_work_dirs:
-                # Workers on same node shouldn't procede until copying complete
-                while stgfile not in os.listdir(calc_prefix):
-                    Worker._stage_and_indicate(locs, sim_input_dir,
-                                               calc_prefix, stgfile)
-                # Change source dir for symlinking or copying to ensemble dir
-                sim_input_dir = prefix
-
-            else:
-                if stgfile not in os.listdir(calc_prefix):
-                    Worker._stage_and_indicate(locs, sim_input_dir,
-                                               calc_prefix, stgfile)
-                # Change source dir for symlinking or copying to worker dir
-                sim_input_dir = worker_path
+        # if copy_parent:
+        #     stgfile = '.COPY_PARENT_STAGED'
+        #
+        #     if not do_work_dirs:
+        #         # Workers on same node shouldn't procede until copying complete
+        #         while stgfile not in os.listdir(calc_prefix):
+        #             Worker._stage_and_indicate(locs, sim_input_dir,
+        #                                        calc_prefix, stgfile)
+        #         # Change source dir for symlinking or copying to ensemble dir
+        #         sim_input_dir = prefix
+        #
+        #     else:
+        #         if stgfile not in os.listdir(calc_prefix):
+        #             Worker._stage_and_indicate(locs, sim_input_dir,
+        #                                        calc_prefix, stgfile)
+        #         # Change source dir for symlinking or copying to worker dir
+        #         sim_input_dir = worker_path
 
         # Register calc dir with adjusted parent dir and source-file location
         locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
@@ -306,7 +306,7 @@ class Worker:
         H_rows = Worker._extract_H_ranges(Work)
         calc_str = calc_type_strings[calc_type]
 
-        if 'sim_input_dir' in self.libE_specs:
+        if 'make_sim_dirs' in self.libE_specs:
             self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
                                                           H_rows, calc_str, self.loc_stack)
             if self.libE_specs.get('use_worker_dirs'):
