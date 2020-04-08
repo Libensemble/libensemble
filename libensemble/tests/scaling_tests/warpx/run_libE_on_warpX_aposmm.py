@@ -23,7 +23,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble import libE_logger
 from libensemble.executors.mpi_executor import MPIExecutor
 
-from MaxenceLocalIMac import machine_specs
+from Summit import machine_specs
 
 libE_logger.set_level('INFO')
 
@@ -73,7 +73,7 @@ libE_specs['save_every_k_sims'] = 100   # Save H to file every N simulation eval
 libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 20
+sim_max = 200
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager

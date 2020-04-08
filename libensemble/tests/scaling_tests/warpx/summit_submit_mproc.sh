@@ -1,7 +1,7 @@
 #!/bin/bash -x
 #BSUB -P APH114
 #BSUB -J libe_mproc
-#BSUB -W 20
+#BSUB -W 01:00
 #BSUB -nnodes 4
 #BSUB -alloc_flags "smt1"
 
@@ -13,13 +13,13 @@
 # - Workers submit tasks to the nodes in the job available.
 
 # Name of calling script-
-export EXE=run_libE_on_warpX_randsample.py
+export EXE=run_libE_on_warpX_aposmm.py
 
 # Communication Method
 export COMMS="--comms local"
 
 # Number of workers.
-export NWORKERS="--nworkers 4"
+export NWORKERS="--nworkers 24"
 
 # Wallclock for libE. Slightly smaller than job wallclock
 #export LIBE_WALLCLOCK=15 # Optional if pass to script
