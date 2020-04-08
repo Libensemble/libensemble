@@ -78,11 +78,9 @@ if is_master:
     for base, files, _ in os.walk(c_ensemble):
         basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            input_copied.append(all([j in files for j in
-                                    libE_specs['copy_input_files'] +
-                                    libE_specs['symlink_input_files']]))
+            input_copied.append(all([os.path.basename(j) in files for j in
+                                    libE_specs['sim_dir_copy_files'] +
+                                    libE_specs['sim_dir_symlink_files']]))
 
     assert all(input_copied), \
         'Exact input files not copied or symlinked to each calculation directory'
-    assert all([file in os.listdir(c_ensemble) for file in os.listdir(sim_input_dir)]), \
-        'All input files not copied to ensemble directory.'

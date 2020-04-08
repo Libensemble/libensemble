@@ -39,6 +39,7 @@ class LocationStack:
 
         for file_path in symlink_files:
             src_base = os.path.basename(file_path)
+            src_path = os.path.abspath(file_path)
             dest_path = os.path.join(destdir, src_base)
 
             try:

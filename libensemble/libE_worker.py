@@ -282,20 +282,20 @@ class Worker:
 
     def _clean_out_copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
-        if self.libE_specs.get('sim_input_dir') and os.path.isdir(self.prefix):
-            if self.libE_specs.get('copy_input_to_parent'):
-                for prefix, _, file in os.walk(self.prefix):
-                    if '.COPY_PARENT_STAGED' in file:
-                        try:
-                            os.remove(os.path.join(prefix, '.COPY_PARENT_STAGED'))
-                        except FileNotFoundError:
-                            continue
-
-            if self.libE_specs.get('copy_back_output'):
-                copybackdir = os.path.join(self.startdir,
-                                           os.path.basename(self.prefix) + '_back')
-                assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
-                Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
+        if self.libE_specs.get('make_sim_dirs') \
+        and self.libE_specs.get('sim_dir_copy_back') \
+        and os.path.isdir(self.prefix):
+            # if self.libE_specs.get('copy_input_to_parent'):
+            #     for prefix, _, file in os.walk(self.prefix):
+            #         if '.COPY_PARENT_STAGED' in file:
+            #             try:
+            #                 os.remove(os.path.join(prefix, '.COPY_PARENT_STAGED'))
+            #             except FileNotFoundError:
+            #                 continue
+            copybackdir = os.path.join(self.startdir,
+                                       os.path.basename(self.prefix) + '_back')
+            assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
+            Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_input_dir structure, then performs calculation."
