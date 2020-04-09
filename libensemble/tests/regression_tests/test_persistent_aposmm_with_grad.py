@@ -52,7 +52,6 @@ gen_specs = {'gen_f': gen_f,
                       'xtol_rel': 1e-6,
                       'ftol_rel': 1e-6,
                       'max_active_runs': 6,
-                      'num_pts_first_pass': nworkers,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
