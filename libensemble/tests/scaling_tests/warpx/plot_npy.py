@@ -4,7 +4,7 @@ import os, sys, glob, pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-color_mode = 'batch_id'
+color_mode = 'sim_id' # 'batch_id'
 
 print("Reading latest npy and pickle files in " + sys.argv[1])
 list_of_files = glob.glob(sys.argv[1] + '*npy') # * means all if need specific format then *.csv
@@ -14,7 +14,8 @@ list_of_files = glob.glob(sys.argv[1] + '*pickle') # * means all if need specifi
 latest_file = max(list_of_files, key=os.path.getctime)
 with open(latest_file, 'rb') as f:
     data = pickle.load(f)
-nbatches = len(data[1]['run_order'])
+if color_mode == 'batch_id':
+    nbatches = len(data[1]['run_order'])
 
 # Remove un-returned (i.e., not submitted) simulations
 results = results[ results['returned'] == 1 ]
@@ -50,7 +51,8 @@ if np.min( results_dict['f'] == 0.0 ):
 
 # Print properties for optimum
 ind_best = np.argmin( results_dict['f'] )
-for key in plot_input + plot_output + ['local_pt']:
+# for key in plot_input + plot_output + ['local_pt']:
+for key in plot_input + plot_output:
     print(key, results_dict[key][ind_best])
 print("charge_f/charge_i ", results[ind_best]['charge']/np.max(results_dict['charge']))
 
@@ -64,10 +66,10 @@ for icount, iname in enumerate(plot_input):
                 my_sims = np.isin(results_dict['sim_id'], data[1]['run_order'][batch])
                 plt.scatter(np.squeeze(results_dict[iname][my_sims]),
                             np.squeeze(results_dict[ name ][my_sims]),
-                            s=1)
+                            s=2)
                 # c=[1.-batch/nbatches,0,batch/nbatches], s=1)
         elif color_mode == 'sim_id':
-            plt.scatter(np.squeeze(results_dict[iname]), np.squeeze(results_dict[ name ]), c=results_dict['sim_id'], s=1, cmap='viridis')
+            plt.scatter(np.squeeze(results_dict[iname]), np.squeeze(results_dict[ name ]), c=results_dict['sim_id'], s=2, cmap='viridis')
             cbar = plt.colorbar()
             cbar.ax.set_ylabel('start time (arb. units)')
         plt.yscale('log')
