@@ -33,10 +33,6 @@ if not os.path.isfile('forces.x'):
         import subprocess
         subprocess.check_call(['./build_forces.sh'])
 
-# Normally the sim_input_dir will exist with common input which is copied for each worker. Here it starts empty.
-# Create if no ./sim dir. See libE_specs['sim_input_dir']
-os.makedirs('./sim', exist_ok=True)
-
 # Create executor and register sim to it.
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
@@ -89,9 +85,8 @@ else:
                    }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-libE_specs['sim_input_dir'] = './sim'   # Sim dir to be copied for each worker
+libE_specs['make_sim_dirs'] = True      # Separate each sim into a separate directory
 libE_specs['profile_worker'] = False    # Whether to have libE profile on (default False)
-libE_specs['use_worker_dirs'] = False   # Whether to create separate worker directories (default False)
 
 # Maximum number of simulations
 sim_max = 8

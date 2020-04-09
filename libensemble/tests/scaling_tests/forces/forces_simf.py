@@ -64,13 +64,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     sim_particles = perturb(sim_particles, seed, particle_variance)
     print('seed: {}   particles: {}'.format(seed, sim_particles))
 
-    # At this point you will be in the sim directory (really worker dir) for this worker (eg. sim_1).
-    # The simdir below is created for each task for this worker.
-    # Any input needs to be copied into this directory. Currently there is none.
-    # simdir = simdir_basename + '_' + keys[0] + '_' + str(seed)
-    # simdir = make_unique_simdir(simdir)
-    # os.mkdir(simdir)
-    # os.chdir(simdir)
     exctr = Executor.executor  # Get Executor
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
@@ -114,8 +107,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
             calc_status = WORKER_KILL
         else:
             print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
-
-    # os.chdir('../')
 
     time.sleep(0.2)
     try:
