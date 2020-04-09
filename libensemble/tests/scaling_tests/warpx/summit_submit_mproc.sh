@@ -1,7 +1,7 @@
 #!/bin/bash -x
 #BSUB -P APH114
 #BSUB -J libe_mproc
-#BSUB -W 01:00
+#BSUB -W 00:30
 #BSUB -nnodes 4
 #BSUB -alloc_flags "smt1"
 
@@ -31,6 +31,7 @@ export LIBE_PLOTS=true # Require plot scripts in $PLOT_DIR (see at end)
 export PLOT_DIR=..
 
 # Need these if not already loaded
+
 # module load python
 # module load gcc
 # module load cuda
