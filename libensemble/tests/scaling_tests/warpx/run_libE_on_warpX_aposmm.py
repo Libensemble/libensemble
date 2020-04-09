@@ -40,10 +40,15 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
              'in': ['x'],                  # Name of input for sim_f
              'out': [('f', float),   # Optimize on this.
-                     ('energy_std', float, 1),
-                     ('energy_avg', float, 1),
-                     ('charge', float, 1),
-                     ('emittance', float, 1)],
+                     ('energy_std', float, (1,)),
+                     ('energy_avg', float, (1,)),
+                     ('charge', float, (1,)),
+                     ('emittance', float, (1,)),
+                     ('ramp_down_1', float, (1,)),
+                     ('ramp_down_2', float, (1,)),
+                     ('zlens_1', float, (1,)),
+                     ('adjust_factor', float, (1,)),
+                 ],
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
@@ -74,7 +79,7 @@ libE_specs['save_every_k_sims'] = 100   # Save H to file every N simulation eval
 libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 200
+sim_max = 1000
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager
