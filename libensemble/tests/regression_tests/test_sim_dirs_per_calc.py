@@ -27,7 +27,6 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
-# dir_to_ignore = sim_input_dir + '/not_this'
 c_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:

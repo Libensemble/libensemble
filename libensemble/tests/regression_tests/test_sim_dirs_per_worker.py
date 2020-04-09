@@ -27,7 +27,6 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
-# dir_to_ignore = sim_input_dir + '/not_this'
 w_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
@@ -69,25 +68,24 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 if is_master:
     assert os.path.isdir(w_ensemble), 'Ensemble directory {} not created.'\
                                       .format(w_ensemble)
-    dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
-    assert dir_sum == nworkers, \
+    worker_dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
+    assert worker_dir_sum == nworkers, \
         'Number of worker dirs ({}) does not match nworkers ({}).'\
         .format(dir_sum, nworkers)
 
     input_copied = []
-    parent_copied = []
+    sim_dir_sum = 0
 
     for base, files, _ in os.walk(w_ensemble):
         basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            input_copied.append(all([j in files for j in
-                                    libE_specs['copy_input_files'] +
-                                    libE_specs['symlink_input_files']]))
-        elif basedir.startswith('worker'):
-            parent_copied.append(all([j in files for j in
-                                 os.listdir(sim_input_dir)]))
+            sim_dir_sum += 1
+            input_copied.append(all([os.path.basename(j) in files for j in
+                                    libE_specs['sim_dir_copy_files'] +
+                                    libE_specs['sim_dir_symlink_files']]))
 
+    assert sim_dir_sum == exit_criteria['sim_max'], \
+        'Number of sim directories ({}) does not match sim_max ({}).'\
+        .format(sim_dir_sum, exit_criteria['sim_max'])
     assert all(input_copied), \
         'Exact input files not copied or symlinked to each calculation directory'
-    assert all(parent_copied), \
-        'All input files not copied to worker directories'
