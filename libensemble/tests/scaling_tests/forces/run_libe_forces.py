@@ -5,6 +5,7 @@ from forces_simf import run_forces  # Sim func from current dir
 
 # Import libEnsemble modules
 from libensemble.libE import libE
+from libensemble.libE_manager import ManagerException
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import libE_logger
 
@@ -17,6 +18,14 @@ if PERSIS_GEN:
 else:
     from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
+
+
+def test_libe_stats(status):
+    with open('libE_stats.txt', 'r') as ls:
+        out = ls.readlines()
+    assert all([line.endswith(status) for line in out if 'sim' in line]), \
+        "Deliberate error status not logged or raised for all sim instances."
+
 
 libE_logger.set_level('INFO')  # INFO is now default
 
@@ -48,32 +57,27 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
              'in': ['x'],                 # Name of input for sim_f
              'out': [('energy', float)],  # Name, type of output from sim_f
-             'user': {'simdir_basename': 'forces',
-                      'keys': ['seed'],
+             'user': {'keys': ['seed'],
                       'cores': 2,
                       'sim_particles': 1e3,
                       'sim_timesteps': 5,
                       'sim_kill_minutes': 10.0,
                       'particle_variance': 0.2,
-                      'kill_rate': 0.5}
+                      'kill_rate': 0.5,
+                      'fail_on_sim': False,
+                      'fail_on_submit': False}  # Won't occur if 'fail_on_sim' True
              }
 # end_sim_specs_rst_tag
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,                  # Generator function
-             'in': ['sim_id'],                # Generator input
+             'in': [],                        # Generator input
              'out': [('x', float, (1,))],     # Name, type and size of data produced (must match sim_specs 'in')
              'user': {'lb': np.array([0]),             # Lower bound for random sample array (1D)
                       'ub': np.array([32767]),         # Upper bound for random sample array (1D)
                       'gen_batch_size': 1000,          # How many random samples to generate in one call
                       }
              }
-
-alloc_specs = {'alloc_f': alloc_f,
-               'out': [('allocated', bool)],
-               'user': {'batch_mode': True,    # If true wait for all sims to process before generate more
-                        'num_active_gens': 1}  # Only one active generator at a time
-               }
 
 if PERSIS_GEN:
     alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
@@ -96,11 +100,21 @@ exit_criteria = {'sim_max': sim_max}
 persis_info = {}
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info=persis_info,
-                            alloc_specs=alloc_specs,
-                            libE_specs=libE_specs)
+try:
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                persis_info=persis_info,
+                                alloc_specs=alloc_specs,
+                                libE_specs=libE_specs)
 
-# Save results to numpy file
-if is_master:
-    save_libE_output(H, persis_info, __file__, nworkers)
+except ManagerException:
+    if is_master and sim_specs['user']['fail_on_sim']:
+        with open('ensemble.log', 'r') as el:
+            out = el.readlines()
+        assert 'forces_simf.ForcesException\n' in out, \
+            "ForcesException not received by manager or logged."
+        test_libe_stats('Exception occurred\n')
+else:
+    if is_master:
+        save_libE_output(H, persis_info, __file__, nworkers)
+        if sim_specs['user']['fail_on_submit']:
+            test_libe_stats('Task Failed\n')

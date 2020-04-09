@@ -311,15 +311,15 @@ queue interactively, use ::
 Additional Information
 ----------------------
 
-See the ALCF guides_ on XC40 systems for more information about Theta.
+See the ALCF `Support Center`_ for more information about Theta.
 
 Read the documentation for Balsam here_.
 
 .. _ALCF: https://www.alcf.anl.gov/
 .. _Theta: https://www.alcf.anl.gov/theta
-.. _Balsam: https://www.alcf.anl.gov/balsam
-.. _Cobalt: https://www.alcf.anl.gov/cobalt-scheduler
-.. _guides: https://www.alcf.anl.gov/user-guides/computational-systems
+.. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
+.. _Cobalt: https://www.alcf.anl.gov/support-center/theta/submit-job-theta
+.. _`Support Center`: https://www.alcf.anl.gov/support-center/theta
 .. _here: https://balsam.readthedocs.io/en/latest/
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _conda: https://conda.io/en/latest/

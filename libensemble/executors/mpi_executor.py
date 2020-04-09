@@ -91,6 +91,7 @@ class MPIExecutor(Executor):
         # MPI launch settings
         self.max_launch_attempts = 5
         self.fail_time = 2
+        self.retry_delay_incr = 5  # Incremented wait after each launch attempt
 
         mpi_commands = {
             'mpich': ['mpirun', '--env {env}', '-machinefile {machinefile}',
@@ -203,7 +204,7 @@ class MPIExecutor(Executor):
 
             if retry and retry_count < self.max_launch_attempts:
                 logger.debug('Retry number {} for task {}')
-                time.sleep(retry_count*5)
+                time.sleep(retry_count*self.retry_delay_incr)
                 task.reset()  # Some cases may require user cleanup - currently not supported (could use callback)
             else:
                 break

@@ -8,6 +8,10 @@ from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 MAX_SEED = 32767
 
 
+class ForcesException(Exception):
+    """Custom forces exception"""
+
+
 def perturb(particles, seed, max_fraction):
     """Modify particle count"""
     seed_fraction = seed/MAX_SEED
@@ -42,11 +46,12 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # keys              = variable names
     # x                 = variable values
     # output            = what will be returned to libE
+    if sim_specs['user']['fail_on_sim']:
+        raise ForcesException
 
     calc_status = 0  # Returns to worker
 
     x = H['x']
-    # simdir_basename = sim_specs['user']['simdir_basename']
     # keys = sim_specs['user']['keys']
     sim_particles = sim_specs['user']['sim_particles']
     sim_timesteps = sim_specs['user']['sim_timesteps']
@@ -68,12 +73,20 @@ def run_forces(H, persis_info, sim_specs, libE_info):
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
     # task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
+
+    machinefile = None
+    if sim_specs['user']['fail_on_submit']:
+        machinefile = 'fail'
+
+    # Machinefile only used here for exception testing
     if cores:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
-                            stdout='out.txt', stderr='err.txt', wait_on_run=True)
+                            stdout='out.txt', stderr='err.txt', wait_on_run=True,
+                            machinefile=machinefile)
     else:
         task = exctr.submit(calc_type='sim', app_args=args, stdout='out.txt',
-                            stderr='err.txt', wait_on_run=True)  # Auto-partition
+                            stderr='err.txt', wait_on_run=True, hyperthreads=True,
+                            machinefile=machinefile)  # Auto-partition
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
