@@ -1,4 +1,4 @@
-import os
+import os, shutil
 import numpy as np
 import yt ; yt.funcs.mylog.setLevel(50)
 import scipy.constants as scc
@@ -33,6 +33,9 @@ def read_sim_output( workdir ):
     datafile = file_list[-1]
     filepath = os.path.join(workdir, datafile)
     charge_f, energy_avg, energy_std, emittance_f = _beam_properties( filepath )
+
+    # delete simulation results, just to have smaller data
+    shutil.rmtree('diags')
 
     # Build a quantity to minimize (f) that encompasses emittance AND charge loss
     # 1% charge loss has the same impact as doubling the initial emittance.

@@ -53,7 +53,7 @@ def write_sim_input(input_file, parameters):
         '0.0 .02 .297 ' + str(ramp_down_1) + ' 40.e-6 1.7e23' )
     # Set position of lens
     output_text = _set_value(
-        output_text, '', ' = ', 'myconstants.zlen', str(end_stage_1 + zlens_1) )
+        output_text, '', ' = ', 'my_constants.zlen', str(end_stage_1 + zlens_1) )
     # Set beginning of stage 2
     output_text = _set_value(
         output_text, '', ' = ', 'electrons2.zmin', str(beg_stage_2) )
@@ -73,7 +73,7 @@ def write_sim_input(input_file, parameters):
         str(beg_stage_2) + ' .02 .297 ' + str(ramp_down_2) + ' 40.e-6 1.7e23' )
     # Set adjustment factor on lens strength
     output_text = _set_value(
-        output_text, '', ' = ', 'myconstants.adjust_factor', str(adjust_factor) )
+        output_text, '', ' = ', 'my_constants.adjust_factor', str(adjust_factor) )
     # Set when to stop the run
     output_text = _set_value(
         output_text, '', ' = ', 'warpx.zmax_plasma_to_compute_max_step', str(zmax_stop_run) )

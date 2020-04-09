@@ -4,13 +4,11 @@ import numpy as np
 
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
-from MaxenceLocalIMac import machine_specs
+from Summit import machine_specs
 from read_sim_output import read_sim_output
 from write_sim_input import write_sim_input
 
 def run_warpX(H, persis_info, sim_specs, libE_info):
-
-    print(sim_specs['user'])
 
     # Setting up variables needed for input and output
     # keys              = variable names
@@ -63,6 +61,7 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
         time.sleep(0.2)
 
         try:
+            # Get output from a run and delete output files
             warpX_out = read_sim_output( task.workdir )
         except Exception:
             warpX_out = np.nan
@@ -82,5 +81,9 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
     libE_output['energy_avg'] = warpX_out[2]
     libE_output['charge'] = warpX_out[3]
     libE_output['emittance'] = warpX_out[4]
+    libE_output['ramp_down_1'] = H['x'][0][0]
+    libE_output['ramp_down_2'] = H['x'][0][1]
+    libE_output['zlens_1'] = H['x'][0][2]
+    libE_output['adjust_factor'] = H['x'][0][3]
 
     return libE_output, persis_info, calc_status
