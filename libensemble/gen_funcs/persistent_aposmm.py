@@ -272,7 +272,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 total_runs += 1
 
         if first_pass:
-            num_samples_needed = user_specs.get('num_pts_first_pass', 1) - len(new_inds_to_send_mgr)
+            num_samples_needed = persis_info['nworkers'] - len(new_inds_to_send_mgr)
             first_pass = False
         else:
             num_samples_needed = n_r-len(new_inds_to_send_mgr)
