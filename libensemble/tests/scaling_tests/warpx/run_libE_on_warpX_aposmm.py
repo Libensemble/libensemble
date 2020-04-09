@@ -23,6 +23,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble import libE_logger
 from libensemble.executors.mpi_executor import MPIExecutor
 
+# from MaxenceLocalIMac import machine_specs
 from Summit import machine_specs
 
 libE_logger.set_level('INFO')
@@ -63,7 +64,7 @@ gen_out = [('x', float, (n,)), ('x_on_cube', float, (n,)), ('sim_id', int),
 gen_specs = {'gen_f': gen_f,                  # Generator function
              'in': [],                        # Generator input
              'out': gen_out,
-             'user': {'initial_sample_size': 4,
+             'user': {'initial_sample_size': 23,
                       'localopt_method': 'LN_BOBYQA',
                       'num_pts_first_pass': nworkers,
                       'xtol_rel': 1e-3,
@@ -84,44 +85,6 @@ exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager
 persis_info = add_unique_random_streams({}, nworkers + 1)
-
-# # Showing how, if you had a past set of points that you wanted to give to
-# # libE/APOSMM, it can be done in the following fashion:
-# num_old_pts = 100
-
-# H0 = np.zeros(num_old_pts, dtype=[('x', float, n),         
-#                                   ('x_on_cube', float, n),   
-#                                   ('sim_id', int),
-#                                   ('local_min', bool),
-#                                   ('local_pt', bool),
-#                                   ('given_back', bool), 
-#                                   ('f', float), 
-#                                   ('returned', bool),
-#                                   ('given', bool)
-#                                   ])
-
-# # Previously evaluated points
-# H0['x'] = np.random.uniform(0,1,(num_old_pts, n))
-# H0['x_on_cube'] = (H0['x']-gen_specs['user']['lb']) / (gen_specs['user']['ub']-gen_specs['user']['lb'])
-
-# # Numbering them 
-# H0['sim_id'] = range(num_old_pts)
-
-# # Are these points all sample points or localopt points? Are any known minima?
-# H0['local_pt'] = False  
-# H0['local_min'] = False  
-
-# # Let libE know these points have been 'given' to be evaluated and 'returned'.
-# # Let allocation function know they've been 'given_back' to APOSMM.
-# H0[['given', 'given_back', 'returned']] = True
-
-# # The values should already exist
-# for i in range(num_old_pts):
-#     H0['f'][i] = six_hump_camel_func(H0['x'][i])
-# # And then call with H0
-# H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-#                             persis_info, alloc_specs, libE_specs, H0)
-
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, alloc_specs, libE_specs)

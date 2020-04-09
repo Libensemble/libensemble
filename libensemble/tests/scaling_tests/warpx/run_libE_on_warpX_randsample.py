@@ -19,8 +19,8 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble import libE_logger
 from libensemble.executors.mpi_executor import MPIExecutor
 
-from MaxenceLocalIMac import machine_specs
-# from Summit import machine_specs
+# from MaxenceLocalIMac import machine_specs
+from Summit import machine_specs
 
 libE_logger.set_level('INFO')
 
@@ -30,17 +30,23 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_app = machine_specs['sim_app']
 # '$HOME/warpx/Bin/main2d.gnu.TPROF.MPI.CUDA.ex'
 
-n = 1  # Problem dimension
+n = 4  # Problem dimension
 exctr = MPIExecutor(central_mode=True)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': run_warpX,           # Function whose output is being minimized
              'in': ['x'],                  # Name of input for sim_f
-             'out': [('f', float),
-                     ('energy_std', float),  # Name, type of output from sim_f.
-                     ('energy_avg', float),
-                     ('charge', float)],
+             'out': [('f', float),   # Optimize on this.
+                     ('energy_std', float, (1,)),
+                     ('energy_avg', float, (1,)),
+                     ('charge', float, (1,)),
+                     ('emittance', float, (1,)),
+                     ('ramp_down_1', float, (1,)),
+                     ('ramp_down_2', float, (1,)),
+                     ('zlens_1', float, (1,)),
+                     ('adjust_factor', float, (1,)),
+                 ],
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
@@ -52,9 +58,9 @@ sim_specs = {'sim_f': run_warpX,           # Function whose output is being mini
 gen_specs = {'gen_f': gen_f,                 # Generator function
              'in': [],                       # Generator input
              'out': [('x', float, (n,))],       # nb of parameters to input into sim
-             'user': {'gen_batch_size': 3,   # Total max number of sims
-                      'lb': np.ones(n)*1.e-13,         # Lower bound for the n parameters
-                      'ub': np.ones(n)*3.e-12,         # Upper bound for the n parameters
+             'user': {'gen_batch_size': nworkers,   # Total max number of sims
+                      'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),  # Lower bound for the n parameters
+                      'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]), # Upper bound for the n parameters
                       }
              }
 
@@ -68,7 +74,7 @@ libE_specs['save_every_k_sims'] = 100   # Save H to file every N simulation eval
 libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 6
+sim_max = 400
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager
