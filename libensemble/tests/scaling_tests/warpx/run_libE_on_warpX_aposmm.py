@@ -66,10 +66,10 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
              'user': {'initial_sample_size': 4,
                       'localopt_method': 'LN_BOBYQA',
                       'num_pts_first_pass': nworkers,
-                      'xtol_abs': 1e-6,
-                      'ftol_abs': 1e-6,
+                      'xtol_rel': 1e-3,
+                      'ftol_abs': 3e-8,
                       'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),  # Lower bound for the n parameters
-                      'ub': np.array([2.e-2, 2.e-2, 0.028, 10.]), # Upper bound for the n parameters
+                      'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]), # Upper bound for the n parameters
                       }
              }
 
@@ -79,7 +79,7 @@ libE_specs['save_every_k_sims'] = 100   # Save H to file every N simulation eval
 libE_specs['sim_input_dir'] = 'sim'     # Sim dir to be copied for each worker
 
 # Maximum number of simulations
-sim_max = 1000
+sim_max = 400
 exit_criteria = {'sim_max': sim_max}
 
 # Create a different random number stream for each worker and the manager

@@ -61,6 +61,7 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
         time.sleep(0.2)
 
         try:
+            # Get output from a run and delete output files
             warpX_out = read_sim_output( task.workdir )
         except Exception:
             warpX_out = np.nan
