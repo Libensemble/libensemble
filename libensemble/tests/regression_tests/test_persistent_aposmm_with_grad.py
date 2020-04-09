@@ -69,6 +69,8 @@ H0 = np.zeros(sample_size, dtype=[('x', float, n), ('grad', float, n), ('sim_id'
                                   ('x_on_cube', float, n), ('returned', bool),
                                   ('f', float), ('given_back', bool), ('given', bool)])
 
+# Two points in the following sample have the same best function value, which
+# tests the corner case for some APOSMM logic
 H0['x'] = np.round(minima, 1)
 H0['x_on_cube'] = (H0['x']-gen_specs['user']['lb']) / (gen_specs['user']['ub']-gen_specs['user']['lb'])
 H0['sim_id'] = range(sample_size)
