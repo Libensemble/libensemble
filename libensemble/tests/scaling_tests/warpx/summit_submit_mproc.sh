@@ -13,7 +13,8 @@
 # - Workers submit tasks to the nodes in the job available.
 
 # Name of calling script-
-export EXE=run_libE_on_warpX_aposmm.py
+export EXE=run_libE_on_warpX_randsample.py
+# export EXE=run_libE_on_warpX_aposmm.py
 
 # Communication Method
 export COMMS="--comms local"
