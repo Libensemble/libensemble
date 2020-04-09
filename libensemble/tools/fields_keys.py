@@ -29,7 +29,6 @@ allowed_alloc_spec_keys = ['alloc_f',  #
 
 allowed_libE_spec_keys = ['abort_on_exception',     #
                           'authkey',                #
-                          'clean_ensemble_dirs',    #
                           'comm',                   #
                           'comms',                  #
                           'disable_log_files',      #

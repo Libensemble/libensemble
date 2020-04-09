@@ -64,13 +64,13 @@ def test_stage_and_indicate():
     assert stgfile in os.listdir(calcdir), 'Stage indication file not created'
 
 
-def test_clean_out_copy_back():
+def test_copy_back():
     """ When workers conclude their work, the stage indication file needs to be
     deleted and workers have the option of copying back their work into a
     directory created by the manager."""
 
     class FakeWorker:
-        """ Enough information to test _clean_out_copy_back() """
+        """ Enough information to test _copy_back() """
         def __init__(self, libE_specs, prefix, startdir):
             self.libE_specs = libE_specs
             self.prefix = prefix
@@ -87,7 +87,7 @@ def test_clean_out_copy_back():
     os.makedirs(copybackdir, exist_ok=True)
 
     fake_worker = FakeWorker(libE_specs, prefix, startdir)
-    Worker._clean_out_copy_back(fake_worker)
+    Worker._copy_back(fake_worker)
 
     assert '.COPY_PARENT_STAGED' not in os.listdir(prefix), \
         'Stage indication file not deleted'
@@ -106,4 +106,4 @@ if __name__ == '__main__':
     test_range_two_ranges()
     test_range_mixes()
     test_stage_and_indicate()
-    test_clean_out_copy_back()
+    test_copy_back()

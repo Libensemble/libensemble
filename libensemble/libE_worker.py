@@ -243,7 +243,7 @@ class Worker:
             except FileExistsError:
                 continue
 
-    def _clean_out_copy_back(self):
+    def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
         sls = self.libE_specs
         if all([sls.get('make_sim_dirs'), sls.get('sim_dir_copy_back'), os.path.isdir(self.prefix)]):
@@ -251,7 +251,8 @@ class Worker:
                                        os.path.basename(self.prefix) + '_back')
             assert os.path.isdir(copybackdir), \
                 "Manager didn't create copyback directory"
-            Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
+            for dir in self.loc_stack.dirs.values():
+                shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_input_dir structure, then performs calculation."
@@ -416,10 +417,8 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
-            self._clean_out_copy_back()  # Copy back current results on Exception
+            self._copy_back()  # Copy back current results on Exception
         else:
             self.comm.kill_pending()
         finally:
-            self._clean_out_copy_back()
-            if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
-                self.loc_stack.clean_locs()
+            self._copy_back()

@@ -27,7 +27,6 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-libE_specs['clean_ensemble_dirs'] = True
 libE_specs['sim_input_dir'] = resource_filename('libensemble.sim_funcs.branin', '')  # to be copied by each worker
 libE_specs['use_worker_dirs'] = True
 
