@@ -85,6 +85,44 @@ exit_criteria = {'sim_max': sim_max}
 # Create a different random number stream for each worker and the manager
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
+# # Showing how, if you had a past set of points that you wanted to give to
+# # libE/APOSMM, it can be done in the following fashion:
+# num_old_pts = 100
+
+# H0 = np.zeros(num_old_pts, dtype=[('x', float, n),         
+#                                   ('x_on_cube', float, n),   
+#                                   ('sim_id', int),
+#                                   ('local_min', bool),
+#                                   ('local_pt', bool),
+#                                   ('given_back', bool), 
+#                                   ('f', float), 
+#                                   ('returned', bool),
+#                                   ('given', bool)
+#                                   ])
+
+# # Previously evaluated points
+# H0['x'] = np.random.uniform(0,1,(num_old_pts, n))
+# H0['x_on_cube'] = (H0['x']-gen_specs['user']['lb']) / (gen_specs['user']['ub']-gen_specs['user']['lb'])
+
+# # Numbering them 
+# H0['sim_id'] = range(num_old_pts)
+
+# # Are these points all sample points or localopt points? Are any known minima?
+# H0['local_pt'] = False  
+# H0['local_min'] = False  
+
+# # Let libE know these points have been 'given' to be evaluated and 'returned'.
+# # Let allocation function know they've been 'given_back' to APOSMM.
+# H0[['given', 'given_back', 'returned']] = True
+
+# # The values should already exist
+# for i in range(num_old_pts):
+#     H0['f'][i] = six_hump_camel_func(H0['x'][i])
+# # And then call with H0
+# H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+#                             persis_info, alloc_specs, libE_specs, H0)
+
+
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, alloc_specs, libE_specs)
 print( persis_info[1]['run_order'] )
