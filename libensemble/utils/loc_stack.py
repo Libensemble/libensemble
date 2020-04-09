@@ -23,7 +23,7 @@ class LocationStack:
             os.makedirs(destdir, exist_ok=True)
 
         assert not any([f in symlink_files for f in copy_files]), \
-            "Identical files specified to both copy and symlink into sim directories."
+            "Identical filepath found to both copy and symlink into sim directories."
 
         for file_path in copy_files:
             src_base = os.path.basename(file_path)
@@ -38,37 +38,13 @@ class LocationStack:
                 continue
 
         for file_path in symlink_files:
-            src_base = os.path.basename(file_path)
             src_path = os.path.abspath(file_path)
-            dest_path = os.path.join(destdir, src_base)
+            dest_path = os.path.join(destdir, os.path.basename(file_path))
 
             try:
                 os.symlink(src_path, dest_path)
             except FileExistsError:
                 continue
-
-
-        # for file_path in glob('{}/*'.format(srcdir)):
-        #
-        #
-        #
-        #     src_base = os.path.basename(file_path)
-        #     src_path = os.path.abspath(file_path)
-        #     dest_path = os.path.join(destdir, src_base)
-        #
-        #     if len(copy_files) > 0 or len(symlink_files) > 0:
-        #         if src_base not in copy_files and src_base not in symlink_files:
-        #             continue
-        #     try:
-        #         if src_base in symlink_files:
-        #             os.symlink(src_path, dest_path)
-        #         else:
-        #             if os.path.isdir(file_path):
-        #                 shutil.copytree(src_path, dest_path)
-        #             else:
-                        # shutil.copy(src_path, dest_path)
-            # except FileExistsError:
-            #     continue
 
     def register_loc(self, key, dirname, prefix=None, copy_files=[], symlink_files=[]):
         """Register a new location in the dictionary.

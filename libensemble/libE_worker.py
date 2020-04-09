@@ -143,31 +143,14 @@ class Worker:
         self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
 
-    # @staticmethod
-    # def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
-    #     """Copy files from input directory to calc prefix directory, create
-    #     indication file showing that staging has completed without having to
-    #     compare two directories."""
-    #     locs.copy_or_symlink(sim_input_dir, calc_prefix,
-    #                          os.listdir(sim_input_dir), [])
-    #     open(os.path.join(calc_prefix, stgfile), 'w')  # Empty file
-
     @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
         "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
 
-        # sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
         prefix = libE_specs.get('sim_dir_path', './ensemble')
-        # suffix = libE_specs.get('ensemble_dir_suffix', '')
         copy_files = libE_specs.get('sim_dir_copy_files', [])
-        # copy_parent = libE_specs.get('copy_input_to_parent', False)
         symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         do_work_dirs = libE_specs.get('sim_dirs_per_worker', False)
-
-        # Customize ensemble directory with suffix
-        # if suffix != '':
-        #     suffix = '_' + suffix
-        #     prefix += suffix
 
         # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
         if do_work_dirs:
@@ -184,29 +167,9 @@ class Worker:
                 os.makedirs(prefix, exist_ok=True)
             calc_prefix = prefix
 
-        # Copy input contents to parent dir, create stage indication file
-        # if copy_parent:
-        #     stgfile = '.COPY_PARENT_STAGED'
-        #
-        #     if not do_work_dirs:
-        #         # Workers on same node shouldn't procede until copying complete
-        #         while stgfile not in os.listdir(calc_prefix):
-        #             Worker._stage_and_indicate(locs, sim_input_dir,
-        #                                        calc_prefix, stgfile)
-        #         # Change source dir for symlinking or copying to ensemble dir
-        #         sim_input_dir = prefix
-        #
-        #     else:
-        #         if stgfile not in os.listdir(calc_prefix):
-        #             Worker._stage_and_indicate(locs, sim_input_dir,
-        #                                        calc_prefix, stgfile)
-        #         # Change source dir for symlinking or copying to worker dir
-        #         sim_input_dir = worker_path
-
         # Register calc dir with adjusted parent dir and source-file location
         locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
                           prefix=calc_prefix,
-                          # srcdir=sim_input_dir,
                           copy_files=copy_files,
                           symlink_files=symlink_files)
 
@@ -282,19 +245,12 @@ class Worker:
 
     def _clean_out_copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
-        if self.libE_specs.get('make_sim_dirs') \
-        and self.libE_specs.get('sim_dir_copy_back') \
-        and os.path.isdir(self.prefix):
-            # if self.libE_specs.get('copy_input_to_parent'):
-            #     for prefix, _, file in os.walk(self.prefix):
-            #         if '.COPY_PARENT_STAGED' in file:
-            #             try:
-            #                 os.remove(os.path.join(prefix, '.COPY_PARENT_STAGED'))
-            #             except FileNotFoundError:
-            #                 continue
+        sls = self.libE_specs
+        if all([sls.get('make_sim_dirs'), sls.get('sim_dir_copy_back'), os.path.isdir(self.prefix)]):
             copybackdir = os.path.join(self.startdir,
                                        os.path.basename(self.prefix) + '_back')
-            assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
+            assert os.path.isdir(copybackdir), \
+                "Manager didn't create copyback directory"
             Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):

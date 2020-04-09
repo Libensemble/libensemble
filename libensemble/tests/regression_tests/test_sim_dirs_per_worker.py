@@ -71,7 +71,7 @@ if is_master:
     worker_dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
     assert worker_dir_sum == nworkers, \
         'Number of worker dirs ({}) does not match nworkers ({}).'\
-        .format(dir_sum, nworkers)
+        .format(worker_dir_sum, nworkers)
 
     input_copied = []
     sim_dir_sum = 0
