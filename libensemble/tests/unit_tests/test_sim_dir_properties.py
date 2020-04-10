@@ -43,31 +43,9 @@ def test_range_mixes():
         'Failed to correctly parse H row single elements and ranges.'
 
 
-def test_stage_and_indicate():
-    """ Ensure that input files are staged into working directories and that an
-    indication file is created. When multiple workers are on the same node, this
-    file indicates to other workers to not copy any files over."""
-
-    locs = LocationStack()
-    calcdir = './calc'
-    inputdir = './input'
-    inputfile = './input/file'
-    stgfile = '.COPY_PARENT_STAGED'
-
-    for dir in [inputdir, calcdir]:
-        os.makedirs(dir, exist_ok=True)
-
-    open(inputfile, 'w')
-
-    Worker._stage_and_indicate(locs, inputdir, calcdir, stgfile)
-    assert 'file' in os.listdir(calcdir), 'File not staged into calculation dir'
-    assert stgfile in os.listdir(calcdir), 'Stage indication file not created'
-
-
 def test_copy_back():
-    """ When workers conclude their work, the stage indication file needs to be
-    deleted and workers have the option of copying back their work into a
-    directory created by the manager."""
+    """ When workers conclude their work, workers have the option of copying
+    back their work into a directory created by the manager."""
 
     class FakeWorker:
         """ Enough information to test _copy_back() """
@@ -77,8 +55,7 @@ def test_copy_back():
             self.startdir = startdir
 
     # Using directories and files from previous test
-    libE_specs = {'sim_input_dir': './input', 'copy_input_to_parent': True,
-                  'copy_back_output': True}
+    libE_specs = {'make_sim_dirs': True, 'sim_dir_path': './input', 'sim_dir_copy_back': True}
     prefix = './calc'
     copybackdir = './calc_back'
     startdir = '.'
@@ -88,11 +65,6 @@ def test_copy_back():
 
     fake_worker = FakeWorker(libE_specs, prefix, startdir)
     Worker._copy_back(fake_worker)
-
-    assert '.COPY_PARENT_STAGED' not in os.listdir(prefix), \
-        'Stage indication file not deleted'
-    assert '.COPY_PARENT_STAGED' not in os.listdir(copybackdir), \
-        'Stage indication file copied back'
     assert 'file' in os.listdir(copybackdir), \
         'File not copied back to starting dir'
 
@@ -105,5 +77,4 @@ if __name__ == '__main__':
     test_range_two_separate_elements()
     test_range_two_ranges()
     test_range_mixes()
-    test_stage_and_indicate()
     test_copy_back()

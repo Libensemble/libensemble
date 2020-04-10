@@ -13,10 +13,6 @@ nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
 # Create executor and register sim to it
 exctr = MPIExecutor(auto_resources=False)  # Use auto_resources=False to oversubscribe
 
-# Create empty simulation input directory
-if not os.path.isdir('./sim'):
-    os.mkdir('./sim')
-
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), 'forces.x')
 exctr.register_calc(full_path=sim_app, calc_type='sim')
@@ -48,7 +44,7 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
              }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-libE_specs['sim_input_dir'] = './sim'         # Sim dir to be copied for each worker
+libE_specs['make_sim_dirs'] = True
 
 exit_criteria = {'sim_max': 8}
 

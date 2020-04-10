@@ -27,8 +27,9 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-libE_specs['sim_input_dir'] = resource_filename('libensemble.sim_funcs.branin', '')  # to be copied by each worker
-libE_specs['use_worker_dirs'] = True
+libE_specs['make_sim_dirs'] = True
+libE_specs['sim_dir_copy_files'] = [i for i in os.listdir(resource_filename('libensemble.sim_funcs.branin', ''))]
+libE_specs['sim_dirs_per_worker'] = True
 
 if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
@@ -41,7 +42,7 @@ if nworkers == 1:
     # Have the workers put their directories in a different (e.g., a faster
     # /sandbox/ or /scratch/ directory)
     # Otherwise, will just copy in same directory as sim_input_dir
-    libE_specs['ensemble_dir'] = '~'
+    libE_specs['sim_dir_path'] = '~'
 elif nworkers == 3:
     sim_specs['user'] = {'uniform_random_pause_ub': 0.05}
 

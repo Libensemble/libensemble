@@ -33,12 +33,8 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-simdir = './sim_diff_nodes'
-libE_specs['sim_input_dir'] = simdir
-libE_specs['ensemble_dir'] = './ensemble_diff_nodes_w' + str(nworkers)
-
-if not os.path.isdir(simdir):
-    os.makedirs(simdir, exist_ok=True)
+libE_specs['make_sim_dirs'] = True
+libE_specs['sim_dir_path'] = './ensemble_diff_nodes_w' + str(nworkers)
 
 if libE_specs['comms'] != 'mpi':
     # Can't do this one with processes either?  Wants a machine file.

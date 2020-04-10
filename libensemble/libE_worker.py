@@ -255,7 +255,7 @@ class Worker:
                 shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
-        "Determines choice for sim_input_dir structure, then performs calculation."
+        "Determines choice for sim_dir structure, then performs calculation."
 
         if not self.loc_stack:
             self.loc_stack = LocationStack()
