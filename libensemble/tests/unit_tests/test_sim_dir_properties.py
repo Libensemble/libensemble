@@ -49,29 +49,30 @@ def test_copy_back():
 
     class FakeWorker:
         """ Enough information to test _copy_back() """
-        def __init__(self, libE_specs, prefix, startdir):
+        def __init__(self, libE_specs, prefix, startdir, loc_stack):
             self.libE_specs = libE_specs
             self.prefix = prefix
             self.startdir = startdir
+            self.loc_stack = loc_stack
 
-    prefix = './calc'
-    inputdir = './input'
-    inputfile = './input/file'
+    inputdir = './calc'
     copybackdir = './calc_back'
+    inputfile = './calc/file'
 
-    for dir in [inputdir, prefix, copybackdir]:
+    for dir in [inputdir, copybackdir]:
         os.makedirs(dir, exist_ok=True)
 
-    open(inputfile, 'w')
+    libE_specs = {'make_sim_dirs': True, 'sim_dir_path': inputdir,
+                  'sim_dir_copy_back': True}
 
-    libE_specs = {'make_sim_dirs': True, 'sim_dir_path': './input', 'sim_dir_copy_back': True}
-
-    fake_worker = FakeWorker(libE_specs, prefix, '.')
+    ls = LocationStack()
+    ls.register_loc('test', inputfile)
+    fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
     Worker._copy_back(fake_worker)
     assert 'file' in os.listdir(copybackdir), \
         'File not copied back to starting dir'
 
-    for dir in [prefix, copybackdir, 'input']:
+    for dir in [inputdir, copybackdir]:
         shutil.rmtree(dir)
 
 
