@@ -272,7 +272,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 total_runs += 1
 
         if first_pass:
-            num_samples_needed = user_specs.get('num_pts_first_pass', 1) - len(new_inds_to_send_mgr)
+            num_samples_needed = persis_info['nworkers'] - 1 - len(new_inds_to_send_mgr)
             first_pass = False
         else:
             num_samples_needed = n_r-len(new_inds_to_send_mgr)
@@ -836,6 +836,24 @@ def update_history_dist(H, n):
 
             #     if not H['local_pt'][new_ind]:
             #         H['worse_within_rk'][H['dist_to_all'] > r_k] = False
+
+    if np.any(~H['local_pt']) and not np.any(np.isinf(H['dist_to_better_s'][~H['local_pt']])):
+        # Our best sample point was not identified because the min was not unique.
+        min_inds = H['f'][~H['local_pt']] == np.min(H['f'][~H['local_pt']])
+        assert len(min_inds) >= 2, "Check this"
+        # Take the first point with this value to be the best sample point
+        best_samp = H['sim_id'][~H['local_pt']][min_inds][0]
+        H['dist_to_better_s'][best_samp] = np.inf
+        H['ind_of_better_s'][best_samp] = -1
+
+    # if np.any(H['local_pt']) and not np.any(np.isinf(H['dist_to_better_l'][H['local_pt']])):
+    #     # Our best sample point was not identified because the min was not unique.
+    #     min_inds = H['f'][H['local_pt']] == np.min(H['f'][H['local_pt']])
+    #     assert len(min_inds) >= 2, "Check this"
+    #     # Take the first point with this value to be the best sample point
+    #     best_local = H['sim_id'][H['local_pt']][min_inds][0]
+    #     H['dist_to_better_l'][best_local] = np.inf
+    #     H['ind_of_better_l'][best_local] = -1
 
 
 def update_history_optimal(x_opt, H, run_inds):
