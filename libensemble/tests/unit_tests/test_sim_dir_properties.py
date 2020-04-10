@@ -54,21 +54,17 @@ def test_copy_back():
             self.prefix = prefix
             self.startdir = startdir
 
-    locs = LocationStack()
     prefix = './calc'
     inputdir = './input'
     inputfile = './input/file'
+    copybackdir = './calc_back'
 
-    for dir in [inputdir, prefix]:
+    for dir in [inputdir, prefix, copybackdir]:
         os.makedirs(dir, exist_ok=True)
 
     open(inputfile, 'w')
 
     libE_specs = {'make_sim_dirs': True, 'sim_dir_path': './input', 'sim_dir_copy_back': True}
-    copybackdir = './calc_back'
-
-    # Normally created by manager
-    os.makedirs(copybackdir, exist_ok=True)
 
     fake_worker = FakeWorker(libE_specs, prefix, '.')
     Worker._copy_back(fake_worker)

@@ -17,7 +17,6 @@ import mpi4py
 mpi4py.rc.recv_mprobe = False
 
 import sys
-import os
 from mpi4py import MPI
 import numpy as np
 import pkg_resources
