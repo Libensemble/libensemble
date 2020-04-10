@@ -19,7 +19,7 @@ Specifications for libEnsemble::
         'save_every_k_sims' [int] :
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int] :
-            Save history array to file after every k generated points. False
+            Save history array to file after every k generated points.
         'make_sim_dirs' [boolean] :
             Whether to make simulation-specific directories for each sim call.
             Default: False
@@ -38,7 +38,8 @@ Specifications for libEnsemble::
         'profile_worker' [boolean] :
             Profile using cProfile. Default: False
         'disable_log_files' [boolean] :
-            Disable the creation of 'ensemble.log' and 'libE_stats.txt' log files. Default: False
+            Disable the creation of 'ensemble.log' and 'libE_stats.txt' log files.
+            Default: False
 
 .. note::
     The ``sim_dir_path`` option can create working directories on local node or
@@ -51,7 +52,7 @@ Specifications for libEnsemble::
                     'comms': 'mpi',
                     'save_every_k_gens': 1000,
                     'make_sim_dirs: True,
-                    'sim_dir_path': './scratch/ensemble'
+                    'sim_dir_path': '/scratch/ensemble'
                     'profile_worker': False}
 
 .. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py

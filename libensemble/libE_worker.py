@@ -229,30 +229,17 @@ class Worker:
                     ranges.append(str(group[0]))
             return '_'.join(ranges)
 
-    @staticmethod
-    def _better_copytree(src, dst, symlinks=False):
-        """ Because shutil.copytree can't copy contents to already-existing dir """
-        for item in os.listdir(src):
-            try:
-                s = os.path.join(src, item)
-                d = os.path.join(dst, item)
-                if os.path.isdir(s):
-                    shutil.copytree(s, d, symlinks)
-                else:
-                    shutil.copy2(s, d)
-            except FileExistsError:
-                continue
-
     def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
         sls = self.libE_specs
         if all([sls.get('make_sim_dirs'), sls.get('sim_dir_copy_back'), os.path.isdir(self.prefix)]):
-            copybackdir = os.path.join(self.startdir,
-                                       os.path.basename(self.prefix) + '_back')
+            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix) + '_back')
             assert os.path.isdir(copybackdir), \
                 "Manager didn't create copyback directory"
             for dir in self.loc_stack.dirs.values():
                 shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
+                if os.path.basename(dir).startswith('worker'):
+                    break  # Worker dir (with all sim_dirs) copied.
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_dir structure, then performs calculation."
