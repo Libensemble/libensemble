@@ -856,7 +856,6 @@ def update_history_dist(H, n):
     #     H['ind_of_better_l'][best_local] = -1
 
 
-
 def update_history_optimal(x_opt, H, run_inds):
     """
     Updated the history after any point has been declared a local minimum
