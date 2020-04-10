@@ -54,16 +54,23 @@ def test_copy_back():
             self.prefix = prefix
             self.startdir = startdir
 
-    # Using directories and files from previous test
-    libE_specs = {'make_sim_dirs': True, 'sim_dir_path': './input', 'sim_dir_copy_back': True}
+    locs = LocationStack()
     prefix = './calc'
+    inputdir = './input'
+    inputfile = './input/file'
+
+    for dir in [inputdir, prefix]:
+        os.makedirs(dir, exist_ok=True)
+
+    open(inputfile, 'w')
+
+    libE_specs = {'make_sim_dirs': True, 'sim_dir_path': './input', 'sim_dir_copy_back': True}
     copybackdir = './calc_back'
-    startdir = '.'
 
     # Normally created by manager
     os.makedirs(copybackdir, exist_ok=True)
 
-    fake_worker = FakeWorker(libE_specs, prefix, startdir)
+    fake_worker = FakeWorker(libE_specs, prefix, '.')
     Worker._copy_back(fake_worker)
     assert 'file' in os.listdir(copybackdir), \
         'File not copied back to starting dir'
