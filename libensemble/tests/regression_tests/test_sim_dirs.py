@@ -28,9 +28,11 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
+branin_dir = resource_filename('libensemble.sim_funcs.branin', '')
+
 libE_specs['make_sim_dirs'] = True
-libE_specs['sim_dir_copy_files'] = [i for i in os.listdir(resource_filename('libensemble.sim_funcs.branin', ''))]
 libE_specs['sim_dirs_per_worker'] = True
+libE_specs['sim_dir_copy_files'] = [os.path.join(branin_dir, i) for i in os.listdir(branin_dir)]
 
 if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
