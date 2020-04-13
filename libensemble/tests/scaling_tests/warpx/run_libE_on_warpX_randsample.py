@@ -46,7 +46,7 @@ sim_specs = {'sim_f': run_warpX,           # Function whose output is being mini
                      ('ramp_down_2', float, (1,)),
                      ('zlens_1', float, (1,)),
                      ('adjust_factor', float, (1,)),
-                 ],
+                     ],
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
@@ -60,7 +60,7 @@ gen_specs = {'gen_f': gen_f,                 # Generator function
              'out': [('x', float, (n,))],       # nb of parameters to input into sim
              'user': {'gen_batch_size': nworkers,   # Total max number of sims
                       'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),  # Lower bound for the n parameters
-                      'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]), # Upper bound for the n parameters
+                      'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]),  # Upper bound for the n parameters
                       }
              }
 

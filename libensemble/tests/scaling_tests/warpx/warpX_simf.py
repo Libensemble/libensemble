@@ -8,6 +8,7 @@ from Summit import machine_specs
 from read_sim_output import read_sim_output
 from write_sim_input import write_sim_input
 
+
 def run_warpX(H, persis_info, sim_specs, libE_info):
 
     # Setting up variables needed for input and output
@@ -17,8 +18,8 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0  # Returns to worker
 
-    nodes = sim_specs['user'].get('nodes', 1)
-    ranks_per_node = sim_specs['user'].get('ranks_per_node', 1)
+    # nodes = sim_specs['user'].get('nodes', 1)
+    # ranks_per_node = sim_specs['user'].get('ranks_per_node', 1)
     input_file = sim_specs['user']['input_filename']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
 
@@ -62,16 +63,17 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
         try:
             # Get output from a run and delete output files
-            warpX_out = read_sim_output( task.workdir )
+            warpX_out = read_sim_output(task.workdir)
         except Exception:
             warpX_out = np.nan
             print('Warning - output is Nan')
 
     else:
         # Build a custom function to minimize. This one has two local minima
-        xmin = 1.e-13
-        xmax = 3.e-12
-        xopt = 1.e-12
+        # xmin = 1.e-13
+        # xmax = 3.e-12
+        # xopt = 1.e-12
+        x = H['x']
         warpX_out = np.zeros(len(sim_specs['out']))
         warpX_out[0] = (x[0][0]-.5e-12**2) * (x[0][0]-1.e-12)**2 * (x[0][0]-2.5e-12)**2 * 1.e60
 

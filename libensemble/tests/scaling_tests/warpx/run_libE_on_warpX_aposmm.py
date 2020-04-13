@@ -49,7 +49,7 @@ sim_specs = {'sim_f': run_warpX,           # Function whose output is being mini
                      ('ramp_down_2', float, (1,)),
                      ('zlens_1', float, (1,)),
                      ('adjust_factor', float, (1,)),
-                 ],
+                     ],
              'user': {'nodes': machine_specs['nodes'],
                       'ranks_per_node': machine_specs['ranks_per_node'],
                       'input_filename': 'inputs',
@@ -70,7 +70,7 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
                       'xtol_rel': 1e-3,
                       'ftol_abs': 3e-8,
                       'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),  # Lower bound for the n parameters
-                      'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]), # Upper bound for the n parameters
+                      'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]),  # Upper bound for the n parameters
                       }
              }
 
@@ -88,7 +88,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, alloc_specs, libE_specs)
-print( persis_info[1]['run_order'] )
+print(persis_info[1]['run_order'])
 
 # Save results to numpy file
 if is_master:
