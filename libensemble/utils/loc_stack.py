@@ -7,8 +7,7 @@ import shutil
 
 
 class LocationStack:
-    """Keep a stack of directory locations.
-    """
+    """Keep a stack of directory locations."""
 
     def __init__(self):
         """Initialize the location dictionary and directory stack."""
@@ -19,8 +18,6 @@ class LocationStack:
         """ Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
-        if not os.path.isdir(destdir):
-            os.makedirs(destdir, exist_ok=True)
 
         assert not any([f in symlink_files for f in copy_files]), \
             "Identical filepath found to both copy and symlink into sim directories."
@@ -28,23 +25,15 @@ class LocationStack:
         for file_path in copy_files:
             src_base = os.path.basename(file_path)
             dest_path = os.path.join(destdir, src_base)
-
-            try:
-                if os.path.isdir(file_path):
-                    shutil.copytree(file_path, dest_path)
-                else:
-                    shutil.copy(file_path, dest_path)
-            except FileExistsError:
-                continue
+            if os.path.isdir(file_path):
+                shutil.copytree(file_path, dest_path)
+            else:
+                shutil.copy(file_path, dest_path)
 
         for file_path in symlink_files:
             src_path = os.path.abspath(file_path)
             dest_path = os.path.join(destdir, os.path.basename(file_path))
-
-            try:
-                os.symlink(src_path, dest_path)
-            except FileExistsError:
-                continue
+            os.symlink(src_path, dest_path)
 
     def register_loc(self, key, dirname, prefix=None, copy_files=[], symlink_files=[]):
         """Register a new location in the dictionary.

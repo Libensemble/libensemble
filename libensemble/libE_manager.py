@@ -20,6 +20,7 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
+from libensemble.tools.tools import _USER_SIM_DIR_WARNING
 import cProfile
 import pstats
 
@@ -367,6 +368,9 @@ class Manager:
             if not self.WorkerExc:
                 self.WorkerExc = True
                 self._kill_workers()
+                if 'FileExistsError' in D_recv.exc:  # worker likely tried overwriting old sim_dir
+                    prefix = self.libE_specs.get('sim_dir_path', './ensemble')
+                    logger.manager_warning(_USER_SIM_DIR_WARNING.format(prefix))
                 raise ManagerException('Received error message from {}'.format(w),
                                        D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):

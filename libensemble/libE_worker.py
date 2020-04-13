@@ -164,7 +164,7 @@ class Worker:
         else:
             calc_dir = "{}{}_worker{}".format(calc_str, H_rows, workerID)
             if not os.path.isdir(prefix):
-                os.makedirs(prefix, exist_ok=True)
+                os.makedirs(prefix)
             calc_prefix = prefix
 
         # Register calc dir with adjusted parent dir and source-file location
@@ -253,13 +253,9 @@ class Worker:
         if 'make_sim_dirs' in self.libE_specs:
             self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
                                                           H_rows, calc_str, self.loc_stack)
-            if self.libE_specs.get('use_worker_dirs'):
-                with self.loc_stack.loc(self.workerID):   # Switch to Worker directory
-                    with self.loc_stack.loc(calc_dir):    # Switch to Calc directory
-                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-            else:
-                with self.loc_stack.loc(calc_dir):        # Switch to Calc directory
-                    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+            with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
+                out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
             return out
 
