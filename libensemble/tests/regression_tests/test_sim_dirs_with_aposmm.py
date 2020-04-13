@@ -13,9 +13,7 @@
 
 import os
 import sys
-import shutil
 import numpy as np
-import time
 from copy import deepcopy
 from pkg_resources import resource_filename
 

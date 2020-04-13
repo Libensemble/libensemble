@@ -43,9 +43,9 @@ _USER_SIM_ID_WARNING = \
 
 _USER_SIM_DIR_WARNING = \
     ('\n' + 79*'*' + '\n' +
-    "libEnsemble attempted to reuse {} as a parent directory for sim_dirs.\n" +
-    "If allowed to continue, previous results may have been overwritten!\n" +
-    "Resolve this by ensuring libE_specs['sim_dir_path'] is unique for each run." +
+     "libEnsemble attempted to reuse {} as a parent directory for sim_dirs.\n" +
+     "If allowed to continue, previous results may have been overwritten!\n" +
+     "Resolve this by ensuring libE_specs['sim_dir_path'] is unique for each run." +
      '\n' + 79*'*' + '\n\n')
 
 # =================== save libE output to pickle and np ========================
