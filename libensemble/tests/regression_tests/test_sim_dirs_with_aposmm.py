@@ -77,25 +77,17 @@ exit_criteria = {'sim_max': 150,
 # end_exit_criteria_rst_tag
 
 # Perform the run
-return_flag = 1
-for run in range(3):
+for run in range(2):
     if run == 1:
+        libE_specs['sim_dir_path'] = './ensemble1'
         gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
         gen_specs['user'].pop('xtol_rel')
         gen_specs['user']['tol'] = 1e-5
         exit_criteria['sim_max'] = 500
-        libE_specs['sim_dir_path'] = './ensemble1'
         persis_info = deepcopy(persis_info_safe)
 
-    if run == 2:
-        libE_specs['sim_dir_path'] = './ensemble'
-
-    try:
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                                    persis_info, libE_specs=libE_specs)
-    except ManagerException as e:
-        print("Caught deliberate exception: {}".format(e))
-        return_flag = 0
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                persis_info, libE_specs=libE_specs)
 
     if is_master:
         M = M[M[:, -1].argsort()]  # Sort by function values (last column)
@@ -109,6 +101,3 @@ for run in range(3):
         print("\nAPOSMM + " + gen_specs['user']['localopt_method'] +
               " found " + str(k) + " minima to tolerance " + str(tol))
         save_libE_output(H, persis_info, __file__, nworkers)
-
-if is_master:
-    assert return_flag == 0
