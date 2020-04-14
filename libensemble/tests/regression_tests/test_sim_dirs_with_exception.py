@@ -40,6 +40,8 @@ libE_specs['sim_dirs_per_worker'] = True
 libE_specs['sim_dir_copy_files'] = [dir_to_copy]
 libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
 
+libE_specs['abort_on_exception'] = False
+
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_specs = {'gen_f': gen_f,
