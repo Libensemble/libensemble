@@ -59,6 +59,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         elif persis_info.get('gen_started') is None:
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info['gen_started'] = True
+            persis_info[i]['nworkers'] = len(W)
 
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
                      persistent=True)
