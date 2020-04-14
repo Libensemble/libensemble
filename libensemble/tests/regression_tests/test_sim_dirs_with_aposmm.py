@@ -76,8 +76,8 @@ exit_criteria = {'sim_max': 150,
 
 # Perform the run
 for run in range(2):
+    libE_specs['sim_dir_path'] = './ensemble_n' + str(nworkers) + '_r' + str(run)
     if run == 1:
-        libE_specs['sim_dir_path'] = './ensemble1'
         gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
         gen_specs['user'].pop('xtol_rel')
         gen_specs['user']['tol'] = 1e-5
