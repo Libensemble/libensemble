@@ -29,7 +29,7 @@ sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
 e_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
-print('attempting to use ensemble dir: ' e_ensemble, flush=True)
+print('attempting to use ensemble dir: ', e_ensemble, flush=True)
 
 assert os.path.isdir(e_ensemble), \
     "Previous ensemble directory doesn't exist. Can't test exception."
