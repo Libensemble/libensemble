@@ -18,10 +18,10 @@ import numpy as np
 import os
 
 from libensemble.libE import libE
-from libensemble.libE_manager import ManagerException
 from libensemble.tests.regression_tests.support import write_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.libE_manager import ManagerException
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -29,6 +29,10 @@ sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
 e_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
+print('attempting to use ensemble dir: ' e_ensemble, flush=True)
+
+assert os.path.isdir(e_ensemble), \
+    "Previous ensemble directory doesn't exist. Can't test exception."
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
     if is_master and not os.path.isdir(dir):
