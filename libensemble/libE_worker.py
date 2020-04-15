@@ -164,7 +164,7 @@ class Worker:
         else:
             calc_dir = "{}{}_worker{}".format(calc_str, H_rows, workerID)
             if not os.path.isdir(prefix):
-                os.makedirs(prefix)
+                os.makedirs(prefix, exist_ok=True)
             calc_prefix = prefix
 
         # Register calc dir with adjusted parent dir and source-file location
