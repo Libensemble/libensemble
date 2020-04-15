@@ -14,26 +14,34 @@ from scipy.spatial.distance import cdist
 from math import log, gamma, pi, sqrt
 
 import libensemble.gen_funcs
+optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizer = libensemble.gen_funcs.rc.aposmm_optimizer
-if optimizer == 'petsc':
+
+if optimizer is None:
     from mpi4py import MPI
     from petsc4py import PETSc
-elif optimizer == 'nlopt':
     import nlopt
-elif optimizer == 'dfols':
     import dfols
-elif optimizer == 'scipy':
     from scipy import optimize as sp_opt
-elif optimizer == 'external':
-    pass
 else:
-    if optimizer is not None:
-        print('APOSMM Warning: {} optimizer not recognized. Loading all')
-    from mpi4py import MPI
-    from petsc4py import PETSc
-    import nlopt
-    import dfols
-    from scipy import optimize as sp_opt
+    if not isinstance(optimizer, list):
+        optimizer = [optimizer]
+    unrec = set(optimizer) - set(optimizer_list)
+    if unrec:
+        print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
+
+    if 'petsc' in optimizer:
+        from mpi4py import MPI
+        from petsc4py import PETSc
+    if 'nlopt' in optimizer:
+        import nlopt
+    if 'dfols' in optimizer:
+        import dfols
+    if 'scipy' in optimizer:
+        from scipy import optimize as sp_opt
+    if 'external' in optimizer:
+        pass
+
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 from libensemble.tools.gen_support import send_mgr_worker_msg
