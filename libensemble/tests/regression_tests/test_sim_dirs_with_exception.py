@@ -40,10 +40,6 @@ assert os.path.isdir(e_ensemble), \
 assert len(os.listdir(e_ensemble)), \
     "Previous ensemble directory doesn't have any contents. Can't catch exception."
 
-for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
-    if is_master and not os.path.isdir(dir):
-        os.makedirs(dir, exist_ok=True)
-
 libE_specs['make_sim_dirs'] = True
 libE_specs['sim_dir_path'] = e_ensemble
 libE_specs['sim_dirs_per_worker'] = False
