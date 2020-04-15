@@ -28,11 +28,14 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
-e_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
+e_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 print('attempting to use ensemble dir: ', e_ensemble, flush=True)
+print('previous dir contains ', len(os.listdir(e_ensemble)), ' items.', flush=True)
 
 assert os.path.isdir(e_ensemble), \
     "Previous ensemble directory doesn't exist. Can't test exception."
+assert len(os.listdir(e_ensemble)), \
+    "Previous ensemble directory doesn't have any contents. Can't catch exception."
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
     if is_master and not os.path.isdir(dir):
@@ -40,7 +43,7 @@ for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
 
 libE_specs['make_sim_dirs'] = True
 libE_specs['sim_dir_path'] = e_ensemble
-libE_specs['sim_dirs_per_worker'] = True
+libE_specs['sim_dirs_per_worker'] = False
 libE_specs['sim_dir_copy_files'] = [dir_to_copy]
 libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
 
