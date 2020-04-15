@@ -1,5 +1,5 @@
 #!/bin/bash -x
-#BSUB -P APH114
+#BSUB -P <yourProjectID>
 #BSUB -J libe_mproc
 #BSUB -W 00:30
 #BSUB -nnodes 4
@@ -13,8 +13,7 @@
 # - Workers submit tasks to the nodes in the job available.
 
 # Name of calling script-
-export EXE=run_libE_on_warpX_randsample.py
-# export EXE=run_libE_on_warpX_aposmm.py
+export EXE=run_libensemble_on_warpx.py
 
 # Communication Method
 export COMMS="--comms local"
