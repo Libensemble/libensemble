@@ -21,7 +21,11 @@ import numpy as np
 from libensemble.libE import libE
 from math import gamma, pi, sqrt
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+
+import libensemble.gen_funcs
+libensemble.gen_funcs.rc.aposmm_optimizer = 'petsc'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
