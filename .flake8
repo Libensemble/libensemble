@@ -30,3 +30,8 @@ per-file-ignores =
         postproc_scripts/*:E402
         libensemble/gen_funcs/*aposmm.py:E501
         examples/gen_funcs/*aposmm.py:E501
+
+        # Need to set something before the APOSMM import
+        libensemble/tests/scaling_tests/warpx/run_libE_on_warpX_aposmm.py:E402
+        libensemble/gen_funcs/persistent_aposmm.py:E402, E501
+        libensemble/tests/regression_tests/test_persistent_aposmm*:E402
