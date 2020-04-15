@@ -20,7 +20,11 @@ from copy import deepcopy
 # Import libEnsemble items for this test
 from libensemble.libE import libE, libE_tcp_worker
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+
+import libensemble.gen_funcs
+libensemble.gen_funcs.rc.aposmm_optimizer = 'nlopt'
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
+
 from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import (persis_info_1 as persis_info,
