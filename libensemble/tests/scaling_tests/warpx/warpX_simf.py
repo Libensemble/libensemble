@@ -7,6 +7,7 @@ from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 from MaxenceLocalIMac import machine_specs
 from read_sim_output import read_sim_output
 
+
 def run_warpX(H, persis_info, sim_specs, libE_info):
 
     # Setting up variables needed for input and output
@@ -16,13 +17,13 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0  # Returns to worker
 
-    x = H['x'] # Input
+    x = H['x']  # Input
 
-    nodes = sim_specs['user'].get('nodes', 1)
-    ranks_per_node = sim_specs['user'].get('ranks_per_node', 1)
+    # nodes = sim_specs['user'].get('nodes', 1)
+    # ranks_per_node = sim_specs['user'].get('ranks_per_node', 1)
     input_file = sim_specs['user']['input_filename']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
-    
+
     exctr = Executor.executor  # Get Executor
 
     app_args = input_file + ' beam.q_tot=' + str(x[0][0])
@@ -57,13 +58,12 @@ def run_warpX(H, persis_info, sim_specs, libE_info):
             print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     # Extract and calculate what you need to send back
-    datafile = 'diags/plotfiles/plt01830/'
-    filepath = os.path.join(task.workdir, datafile)
-    filepath = os.path.join(task.workdir, datafile)
+    # datafile = 'diags/plotfiles/plt01830/'
+    # filepath = os.path.join(task.workdir, datafile)
     time.sleep(0.2)
 
     try:
-        warpX_out = read_sim_output( task.workdir )
+        warpX_out = read_sim_output(task.workdir)
     except Exception:
         warpX_out = np.nan
         print('Warning - output is Nan')

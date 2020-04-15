@@ -9,14 +9,14 @@ if len(sys.argv) > 1:
 else:
     print('You need to supply an .npy file - aborting')
     sys.exit()
-    
+
 names = results.dtype.names
 print(names)
 results_dict = {}
 for i in range(len(names)):
     results_dict[names[i]] = np.array([task[i] for task in results])
 
-plt.figure(figsize=(12,4))
+plt.figure(figsize=(12, 4))
 plt.subplot(131)
 plt.plot(-results_dict['x'], results_dict['energy_std'], '.')
 plt.grid()
