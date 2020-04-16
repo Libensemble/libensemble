@@ -6,7 +6,7 @@ manager; the manager coordinates their evaluation and then returns their
 `fitness_values`.
 """
 
-__all__ = ['deap_nsga2','evaluate_pop','nsga2_toolbox']
+__all__ = ['deap_nsga2', 'evaluate_pop', 'nsga2_toolbox']
 
 from deap import base, creator, tools
 import numpy as np

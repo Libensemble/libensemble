@@ -5,7 +5,11 @@ function.
 """
 import numpy as np
 
-__all__ = ['uniform_random_sample_with_different_nodes_and_ranks', 'uniform_random_sample_obj_components', 'latin_hypercube_sample', 'uniform_random_sample']
+__all__ = ['uniform_random_sample_with_different_nodes_and_ranks',
+           'uniform_random_sample_obj_components',
+           'latin_hypercube_sample',
+           'uniform_random_sample']
+
 
 def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_specs, _):
     """

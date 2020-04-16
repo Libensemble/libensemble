@@ -12,12 +12,12 @@ from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 def sparse_grid(H, persis_info, gen_specs, libE_info):
     """
     This generator,  mirrors the Tasmanian
-    `sparse grid example <https://github.com/ORNL/TASMANIAN/blob/master/InterfacePython/example_sparse_grids_04.py>`_ 
+    `sparse grid example <https://github.com/ORNL/TASMANIAN/blob/master/InterfacePython/example_sparse_grids_04.py>`_
     loops over the given precisions, producing a grid of points
     at which the `sim_f` should be evaluated. The points are communicated to the
     manager, who coordinates their evaluation. After function values are
     returned, they are used to update the model; the model is evaluated at a
-    point of interest. 
+    point of interest.
     """
     U = gen_specs['user']
 
