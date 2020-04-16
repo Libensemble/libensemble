@@ -59,7 +59,6 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
                          gen_specs['user']['ub'], gen_specs['user']['lb'], local=True, active=True)
         tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
         if tag in [STOP_TAG, PERSIS_STOP]:
-            nlopt.forced_stop.message = 'tag=' + str(tag)
             raise nlopt.forced_stop
 
         # Return function value (and maybe gradient)
@@ -97,13 +96,11 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         persis_info_updates = {'done': True}
         if exit_code > 0 and exit_code < 5:
             persis_info_updates['x_opt'] = x_opt
-        tag_out = FINISHED_PERSISTENT_GEN_TAG
-    except Exception as e:  # Raised when manager sent PERSIS_STOP or STOP_TAG
+    except Exception:  # Raised when manager sent PERSIS_STOP or STOP_TAG
         x_opt = []
         persis_info_updates = {}
-        tag_out = int(e.message.split('=')[-1])
 
-    return x_opt, persis_info_updates, tag_out
+    return x_opt, persis_info_updates, FINISHED_PERSISTENT_GEN_TAG
 
 
 def add_to_Out(H_o, x, i, ub, lb, local=False, active=False):

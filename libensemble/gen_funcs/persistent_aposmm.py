@@ -43,7 +43,7 @@ else:
         pass
 
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import send_mgr_worker_msg
 from libensemble.tools.gen_support import get_mgr_worker_msg
 
@@ -238,6 +238,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
             if tag in [STOP_TAG, PERSIS_STOP]:
                 clean_up_and_stop(local_H, local_opters, run_order)
+                persis_info['run_order'] = run_order
                 break
 
             n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
@@ -304,7 +305,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
         something_sent = True
 
-    return local_H, persis_info, tag
+    return [], persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 class LocalOptInterfacer(object):

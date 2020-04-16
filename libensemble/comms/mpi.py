@@ -30,7 +30,7 @@ class MPIComm(Comm):
         self.remote_rank = remote_rank
         self.status = MPI.Status()
         self._outbox = []
-        self._pushed = None
+        self.recv_buffer = None
 
     def __del__(self):
         "Wait on anything pending if comm is killed."
@@ -38,7 +38,7 @@ class MPIComm(Comm):
             req.Wait()
 
     def mail_flag(self):
-        return (self._pushed is not None
+        return (self.recv_buffer is not None
                 or self.mpi_comm.Iprobe(source=self.remote_rank))
 
     def kill_pending(self):
@@ -65,9 +65,9 @@ class MPIComm(Comm):
 
     def recv(self, timeout=None):
         "Receive a message or raise TimeoutError."
-        if self._pushed is not None:
-            result = self._pushed
-            self._pushed = None
+        if self.recv_buffer is not None:
+            result = self.recv_buffer
+            self.recv_buffer = None
             return result
         if timeout is not None:
             tfinal = time.time() + timeout
@@ -85,9 +85,9 @@ class MPIComm(Comm):
         "Convert an MPI message and tag to a local communicator format message."
         return msg[0]
 
-    def push_back(self, *args):
-        assert self._pushed is None, "Cannot push back multiple messages"
-        self._pushed = args
+    def push_to_buffer(self, *args):
+        assert self.recv_buffer is None, "Cannot push back multiple messages"
+        self.recv_buffer = args
 
     def get_num_workers(self):
         return self.mpi_comm.Get_size() - 1
