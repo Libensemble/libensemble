@@ -24,9 +24,9 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.libE_manager import ManagerException
 
-nworkers, is_master, libE_specs, _ = parse_args()
-
 time.sleep(1)  # Previous directories may not be written out in time?
+
+nworkers, is_master, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
