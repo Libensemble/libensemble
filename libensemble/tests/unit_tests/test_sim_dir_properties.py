@@ -62,7 +62,7 @@ def test_copy_back():
     for dir in [inputdir, copybackdir]:
         os.makedirs(dir, exist_ok=True)
 
-    libE_specs = {'make_sim_dirs': True, 'sim_dir_path': inputdir,
+    libE_specs = {'sim_dirs_make': True, 'sim_dir_path': inputdir,
                   'sim_dir_copy_back': True}
 
     ls = LocationStack()

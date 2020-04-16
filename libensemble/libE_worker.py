@@ -147,10 +147,15 @@ class Worker:
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
         "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
 
+        sim_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
+
         prefix = libE_specs.get('sim_dir_path', './ensemble')
         copy_files = libE_specs.get('sim_dir_copy_files', [])
         symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         do_work_dirs = libE_specs.get('sim_dirs_per_worker', False)
+
+        if sim_input_dir and not len(copy_files):
+            copy_files = [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)]
 
         # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
         if do_work_dirs:
@@ -232,7 +237,7 @@ class Worker:
     def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
         sls = self.libE_specs
-        if all([sls.get('make_sim_dirs'), sls.get('sim_dir_copy_back'), os.path.isdir(self.prefix)]):
+        if all([sls.get('sim_dirs_make'), sls.get('sim_dir_copy_back'), os.path.isdir(self.prefix)]):
             copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix) + '_back')
             assert os.path.isdir(copybackdir), \
                 "Manager didn't create copyback directory"
@@ -250,7 +255,7 @@ class Worker:
         H_rows = Worker._extract_H_ranges(Work)
         calc_str = calc_type_strings[calc_type]
 
-        if 'make_sim_dirs' in self.libE_specs:
+        if 'sim_dirs_make' in self.libE_specs or 'sim_input_dir' in self.libE_specs:
             self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
                                                           H_rows, calc_str, self.loc_stack)
 

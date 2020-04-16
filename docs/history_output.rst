@@ -70,7 +70,7 @@ directories are labeled or what files they contain is configurable through
 settings in :ref:`libE_specs<datastruct-libe-specs>`. Each setting will be
 described in detail here:
 
-* ``'make_sim_dirs'``: Boolean. Enables per-simulation directories. By default,
+* ``'sim_dirs_make'``: Boolean. Enables per-simulation directories. By default,
   directories are labeled in the form ``'sim0-worker1'`` and placed in
   ``./ensemble``, relative to the directory where libEnsemble was launched.
 

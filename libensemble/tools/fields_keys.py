@@ -33,7 +33,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'comms',                  #
                           'disable_log_files',      #
                           'ip',                     #
-                          'make_sim_dirs',          #
+                          'sim_dirs_make',          #
                           'nworkers',               #
                           'port',                   #
                           'profile_worker',         #
@@ -45,6 +45,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'sim_dir_path',           #
                           'sim_dirs_per_worker',    #
                           'sim_dir_symlink_files',  #
+                          'sim_input_dir',          #
                           'workerID',               #
                           'worker_timeout',         #
                           'worker_cmd']             #

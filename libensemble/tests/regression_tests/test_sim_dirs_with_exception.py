@@ -16,15 +16,12 @@
 
 import numpy as np
 import os
-import time
 
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.libE_manager import ManagerException
-
-time.sleep(1)  # Previous directories may not be written out in time?
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -40,7 +37,7 @@ assert os.path.isdir(e_ensemble), \
 assert len(os.listdir(e_ensemble)), \
     "Previous ensemble directory doesn't have any contents. Can't catch exception."
 
-libE_specs['make_sim_dirs'] = True
+libE_specs['sim_dirs_make'] = True
 libE_specs['sim_dir_path'] = e_ensemble
 libE_specs['sim_dirs_per_worker'] = False
 libE_specs['sim_dir_copy_files'] = [dir_to_copy]

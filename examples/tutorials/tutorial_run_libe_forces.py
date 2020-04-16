@@ -44,7 +44,7 @@ gen_specs = {'gen_f': uniform_random_sample,  # Generator function
              }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-libE_specs['make_sim_dirs'] = True
+libE_specs['sim_dirs_make'] = True
 
 exit_criteria = {'sim_max': 8}
 

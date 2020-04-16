@@ -124,7 +124,7 @@ After some additions to ``libE_specs`` and defining our ``exit_criteria`` and
     :linenos:
 
     libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-    libE_specs['make_sim_dirs'] = True
+    libE_specs['sim_dirs_make'] = True
 
     exit_criteria = {'sim_max': 8}
 

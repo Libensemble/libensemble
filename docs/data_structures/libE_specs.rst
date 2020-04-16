@@ -20,7 +20,7 @@ Specifications for libEnsemble::
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int] :
             Save history array to file after every k generated points.
-        'make_sim_dirs' [boolean] :
+        'sim_dirs_make' [boolean] :
             Whether to make simulation-specific directories for each sim call.
             Default: False
         'sim_dir_path' [string] :

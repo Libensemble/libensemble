@@ -1,6 +1,6 @@
 # """
 # Runs libEnsemble with uniform random sampling and writes results into sim dirs.
-#   tests per-worker or per-calculation sim_input_dir copying capability
+#   tests  per-calculation sim_dir capabilities
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_worker_exceptions.py
@@ -26,20 +26,14 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
-dir_to_symlink = sim_input_dir + '/symlink_this'
-w_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
-print('creating ensemble dir: ', w_ensemble, flush=True)
+o_ensemble = './ensemble_inputdir_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
-for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
+for dir in [sim_input_dir, dir_to_copy]:
     if is_master and not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
-libE_specs['sim_dirs_make'] = True
-libE_specs['sim_dir_path'] = w_ensemble
-libE_specs['sim_dirs_per_worker'] = True
-libE_specs['sim_dir_copy_files'] = [dir_to_copy]
-libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
-libE_specs['sim_dir_copy_back'] = True
+libE_specs['sim_input_dir'] = sim_input_dir
+libE_specs['sim_dir_path'] = o_ensemble
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
@@ -59,26 +53,19 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    assert os.path.isdir(w_ensemble), 'Ensemble directory {} not created.'\
-                                      .format(w_ensemble)
-    worker_dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])
-    assert worker_dir_sum == nworkers, \
-        'Number of worker dirs ({}) does not match nworkers ({}).'\
-        .format(worker_dir_sum, nworkers)
+    assert os.path.isdir(o_ensemble), 'Ensemble directory {} not created.'.format(o_ensemble)
+    dir_sum = sum(['worker' in i for i in os.listdir(o_ensemble)])
+    assert dir_sum == exit_criteria['sim_max'], \
+        'Number of sim directories ({}) does not match sim_max ({}).'\
+        .format(dir_sum, exit_criteria['sim_max'])
 
     input_copied = []
-    sim_dir_sum = 0
 
-    for base, files, _ in os.walk(w_ensemble):
+    for base, files, _ in os.walk(o_ensemble):
         basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            sim_dir_sum += 1
             input_copied.append(all([os.path.basename(j) in files for j in
-                                    libE_specs['sim_dir_copy_files'] +
-                                    libE_specs['sim_dir_symlink_files']]))
+                                    os.listdir(sim_input_dir)]))
 
-    assert sim_dir_sum == exit_criteria['sim_max'], \
-        'Number of sim directories ({}) does not match sim_max ({}).'\
-        .format(sim_dir_sum, exit_criteria['sim_max'])
     assert all(input_copied), \
-        'Exact input files not copied or symlinked to each calculation directory'
+        'Exact input files not copied to each calculation directory'

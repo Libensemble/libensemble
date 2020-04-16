@@ -30,7 +30,7 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 branin_dir = resource_filename('libensemble.sim_funcs.branin', '')
 
-libE_specs['make_sim_dirs'] = True
+libE_specs['sim_dirs_make'] = True
 libE_specs['sim_dirs_per_worker'] = True
 libE_specs['sim_dir_copy_files'] = [os.path.join(branin_dir, i) for i in os.listdir(branin_dir)]
 
