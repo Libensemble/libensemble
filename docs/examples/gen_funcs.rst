@@ -12,13 +12,13 @@ sampling
   :members:
   :undoc-members:
 
-APOSMM
-------
+Persistent APOSMM
+-----------------
 
 Configuring APOSMM
 ^^^^^^^^^^^^^^^^^^
 
-By default, APOSMM will import several optmizers which require
+By default, persistent APOSMM will import several optmizers which require
 external packages and MPI. To import only the optmizers you are using
 you can add the following lines in your calling script, before importing APOSMM::
 
@@ -31,10 +31,10 @@ The options are:
 
     - ``'petsc'``, ``'nlopt'``, ``'dfols'``, ``'scipy'``, ``'external'``
 
-APOSMM
-^^^^^^
+Persistent APOSMM
+^^^^^^^^^^^^^^^^^
 
-.. automodule:: aposmm
+.. automodule:: persistent_aposmm
   :members:
   :undoc-members:
 
