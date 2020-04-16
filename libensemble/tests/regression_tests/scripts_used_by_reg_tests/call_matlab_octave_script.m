@@ -8,7 +8,7 @@
 %
 % x0, and the 5 filenames involved must be given when invoking the script.
 
-xopt, ~, opt_flag = fminsearch(@(x)wrapper_obj_fun(x,x_file,y_file,x_done_file,y_done_file),x0)
+xopt = fminsearch(@(x)wrapper_obj_fun(x,x_file,y_file,x_done_file,y_done_file),x0)
 dlmwrite(opt_file, xopt, 'delimiter', ' ', 'precision', 16)
-dlmwrite(opt_file + '_flag', opt_flag)
+dlmwrite([opt_file '_flag'], 1)  % This assume xopt is a local min, not just the last point in the run
 exit
