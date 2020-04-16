@@ -1,3 +1,9 @@
+"""
+This module is a persistent generation function that performs a uniform
+random sample when ``libE_info['persistent']`` isn't ``True``, or performs a
+single persistent persistent nlopt local optimization run.
+"""
+
 __all__ = ['uniform_or_localopt']
 
 import numpy as np

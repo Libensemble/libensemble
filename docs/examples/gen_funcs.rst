@@ -12,24 +12,26 @@ sampling
   :members:
   :undoc-members:
 
-Persistent APOSMM
+APOSMM
 -----------------
+
+Asynchronously Parallel Optimization Solver for finding Multiple Minima
+(APOSMM) coordinates concurrent local optimization runs in order to identifying
+many local minima.
 
 Configuring APOSMM
 ^^^^^^^^^^^^^^^^^^
 
-By default, persistent APOSMM will import several optmizers which require
-external packages and MPI. To import only the optmizers you are using
-you can add the following lines in your calling script, before importing APOSMM::
+By default, APOSMM will import several optimizers which require
+external packages and MPI. To import only the optimizers you are using,
+add the following lines in that calling script, before importing APOSMM::
 
     import libensemble.gen_funcs
     libensemble.gen_funcs.rc.aposmm_optimizer = <optimizer>
 
-Where ``optimizer`` can be a string of list of strings.
+Where ``optimizer`` is a string (or list of strings) from the available options:
 
-The options are:
-
-    - ``'petsc'``, ``'nlopt'``, ``'dfols'``, ``'scipy'``, ``'external'``
+``'petsc'``, ``'nlopt'``, ``'dfols'``, ``'scipy'``, ``'external'``
 
 Persistent APOSMM
 ^^^^^^^^^^^^^^^^^
@@ -41,6 +43,18 @@ Persistent APOSMM
 uniform_or_localopt
 -------------------
 .. automodule:: uniform_or_localopt
+  :members:
+  :undoc-members:
+
+persistent_deap_nsga2
+---------------------------
+.. automodule:: persistent_deap_nsga2
+  :members:
+  :undoc-members:
+
+persistent_tasmanian
+---------------------------
+.. automodule:: persistent_tasmanian
   :members:
   :undoc-members:
 

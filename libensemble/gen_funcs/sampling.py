@@ -5,6 +5,7 @@ function.
 """
 import numpy as np
 
+__all__ = ['uniform_random_sample_with_different_nodes_and_ranks', 'uniform_random_sample_obj_components', 'latin_hypercube_sample', 'uniform_random_sample']
 
 def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_specs, _):
     """
@@ -92,8 +93,12 @@ def uniform_random_sample(H, persis_info, gen_specs, _):
 
 def latin_hypercube_sample(H, persis_info, gen_specs, _):
     """
-    Generates ``gen_specs['user']['gen_batch_size']`` in a Latin hypercube sample over
-    the domain defined by ``gen_specs['user']['ub']`` and ``gen_specs['user']['lb']``.
+    Generates ``gen_specs['user']['gen_batch_size']`` points in a Latin
+    hypercube sample over the domain defined by ``gen_specs['user']['ub']`` and
+    ``gen_specs['user']['lb']``.
+
+    .. seealso::
+        `test_1d_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_1d_sampling.py>`_ # noqa
     """
 
     ub = gen_specs['user']['ub']
