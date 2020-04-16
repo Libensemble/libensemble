@@ -171,9 +171,10 @@ class Manager:
             os.rmdir(prefix)
         except FileNotFoundError:  # Ensemble dir doesn't exist.
             pass
-        except OSError:  # Ensemble dir exists and isn't empty.
+        except OSError as e:  # Ensemble dir exists and isn't empty.
             logger.manager_warning(_USER_SIM_DIR_WARNING.format(prefix))
-            raise
+            raise ManagerException('Manager errored on initialization',
+                                   'Ensemble directory already existed and wasn\'t empty.', str(e))
 
     # --- Termination logic routines
 
