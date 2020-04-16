@@ -21,7 +21,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizers = 'nlopt'
+libensemble.gen_funcs.rc.aposmm_optimizers = ['nlopt', 'scipy']
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 
 from libensemble.tests.regression_tests.support import (persis_info_2 as persis_info,
