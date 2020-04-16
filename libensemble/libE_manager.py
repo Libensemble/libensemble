@@ -145,9 +145,9 @@ class Manager:
              (1, 'stop_val', self.term_test_stop_val)]
 
         if libE_specs.get('make_sim_dirs'):
+            Manager.check_ensemble_dir(libE_specs)
             if libE_specs.get('sim_dir_copy_back'):
                 Manager.make_copyback_dir(libE_specs)
-            Manager.check_ensemble_dir(libE_specs)
 
     @staticmethod
     def make_copyback_dir(libE_specs):
