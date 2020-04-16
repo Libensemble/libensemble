@@ -22,7 +22,7 @@ from libensemble.libE import libE, libE_tcp_worker
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizers = 'nlopt'
+libensemble.gen_funcs.rc.aposmm_optimizers = ['nlopt', 'petsc']
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 
 from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
