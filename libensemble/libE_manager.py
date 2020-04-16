@@ -144,8 +144,10 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        if libE_specs.get('sim_dir_copy_back'):
-            self.copybackdir = Manager.make_copyback_dir(libE_specs)
+        if libE_specs.get('make_sim_dirs'):
+            if libE_specs.get('sim_dir_copy_back'):
+                Manager.make_copyback_dir(libE_specs)
+            Manager.check_ensemble_dir(libE_specs)
 
     @staticmethod
     def make_copyback_dir(libE_specs):
@@ -161,7 +163,17 @@ class Manager:
                     break
                 except FileExistsError:
                     count += 1
-        return copybackdir
+
+    @staticmethod
+    def check_ensemble_dir(libE_specs):
+        try:
+            prefix = libE_specs.get('sim_dir_path', './ensemble')
+            os.rmdir(prefix)
+        except FileNotFoundError:  # Ensemble dir doesn't exist.
+            pass
+        except OSError:  # Ensemble dir exists and isn't empty.
+            logger.manager_warning(_USER_SIM_DIR_WARNING.format(prefix))
+            raise
 
     # --- Termination logic routines
 
@@ -368,9 +380,6 @@ class Manager:
             if not self.WorkerExc:
                 self.WorkerExc = True
                 self._kill_workers()
-                if 'FileExistsError' in D_recv.exc:  # worker likely tried overwriting old sim_dir
-                    prefix = self.libE_specs.get('sim_dir_path', './ensemble')
-                    logger.manager_warning(_USER_SIM_DIR_WARNING.format(prefix))
                 raise ManagerException('Received error message from {}'.format(w),
                                        D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
