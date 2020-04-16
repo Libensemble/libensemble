@@ -22,7 +22,7 @@ from math import gamma, pi, sqrt, ceil
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizer = 'petsc'
+libensemble.gen_funcs.rc.aposmm_optimizers = 'petsc'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 from libensemble.gen_funcs.sampling import lhs_sample

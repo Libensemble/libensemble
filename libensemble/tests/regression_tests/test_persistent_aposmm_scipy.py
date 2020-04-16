@@ -22,7 +22,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizer = 'scipy'
+libensemble.gen_funcs.rc.aposmm_optimizers = 'scipy'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f

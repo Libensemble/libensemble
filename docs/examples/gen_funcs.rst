@@ -23,9 +23,9 @@ external packages and MPI. To import only the optmizers you are using
 you can add the following lines in your calling script, before importing APOSMM::
 
     import libensemble.gen_funcs
-    libensemble.gen_funcs.rc.aposmm_optimizer = <optimizer>
+    libensemble.gen_funcs.rc.aposmm_optimizers = <optimizers>
 
-Where ``optimizer`` can be a string or list of strings.
+Where ``optimizers`` can be a string or list of strings.
 
 The options are:
 

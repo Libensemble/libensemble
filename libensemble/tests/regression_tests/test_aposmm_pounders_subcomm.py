@@ -20,7 +20,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizer = 'petsc'
+libensemble.gen_funcs.rc.aposmm_optimizers = 'petsc'
 from libensemble.gen_funcs.aposmm import aposmm_logic as gen_f
 
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out
