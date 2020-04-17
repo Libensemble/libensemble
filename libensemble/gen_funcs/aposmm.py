@@ -16,26 +16,26 @@ from math import log, gamma, pi, sqrt
 
 import libensemble.gen_funcs
 optimizer_list = ['petsc', 'nlopt', 'scipy']
-optimizer = libensemble.gen_funcs.rc.aposmm_optimizer
+optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
-if optimizer is None:
+if optimizers is None:
     from mpi4py import MPI
     from petsc4py import PETSc
     import nlopt
     from scipy import optimize as scipy_optimize
 else:
-    if not isinstance(optimizer, list):
-        optimizer = [optimizer]
-    unrec = set(optimizer) - set(optimizer_list)
+    if not isinstance(optimizers, list):
+        optimizers = [optimizers]
+    unrec = set(optimizers) - set(optimizer_list)
     if unrec:
         print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
 
-    if 'petsc' in optimizer:
+    if 'petsc' in optimizers:
         from mpi4py import MPI
         from petsc4py import PETSc
-    if 'nlopt' in optimizer:
+    if 'nlopt' in optimizers:
         import nlopt
-    if 'scipy' in optimizer:
+    if 'scipy' in optimizers:
         from scipy import optimize as scipy_optimize
 
 

@@ -21,7 +21,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizer = 'dfols'
+libensemble.gen_funcs.rc.aposmm_optimizers = 'dfols'
 
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f

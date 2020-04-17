@@ -18,7 +18,7 @@ import sys
 import numpy as np
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizer = ['nlopt', 'scipy']
+libensemble.gen_funcs.rc.aposmm_optimizers = ['nlopt', 'scipy']
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 # Import libEnsemble items for this test

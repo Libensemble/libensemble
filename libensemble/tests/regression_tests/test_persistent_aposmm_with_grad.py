@@ -23,7 +23,7 @@ from math import gamma, pi, sqrt
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f, six_hump_camel_func, six_hump_camel_grad
 
 import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizer = 'nlopt'
+libensemble.gen_funcs.rc.aposmm_optimizers = 'nlopt'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
