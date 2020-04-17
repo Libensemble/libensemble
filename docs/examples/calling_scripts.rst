@@ -8,6 +8,8 @@ example. Non-highlighted portions may include setup routines, compilation steps
 for user applications, or output processing. The first two scripts correspond to
 random sampling calculations, while the third corresponds to an optimization routine.
 
+Many other examples of calling scripts can be found in libEnsemble's `regression tests`_.
+
 Local Sine Tutorial
 -------------------
 
@@ -44,3 +46,6 @@ persistent run via a custom allocation function.
     :language: python
     :caption: tests/regression_tests/test_persistent_aposmm_with_grad.py
     :linenos:
+
+
+.. _`regression tests`: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests
