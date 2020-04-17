@@ -149,7 +149,6 @@ class Manager:
             if libE_specs.get('sim_dir_copy_back'):
                 Manager.make_copyback_dir(libE_specs)
 
-
     @staticmethod
     def make_copyback_dir(libE_specs):
         copybackdir = os.path.basename(libE_specs.get('sim_dir_path',
@@ -176,7 +175,6 @@ class Manager:
             self._kill_workers()
             raise ManagerException('Manager errored on initialization',
                                    'Ensemble directory already existed and wasn\'t empty.', e)
-
 
     # --- Termination logic routines
 
