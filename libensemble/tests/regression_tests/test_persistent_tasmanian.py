@@ -7,6 +7,7 @@
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 4
+# TESTSUITE_OS_SKIP: OSX
 
 import sys
 import numpy as np
