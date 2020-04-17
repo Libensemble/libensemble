@@ -46,8 +46,9 @@ class ConvergedMsg(object):
     """
     Message communicated when a local optimization is converged.
     """
-    def __init__(self, x):
+    def __init__(self, x, opt_flag):
         self.x = x
+        self.opt_flag = opt_flag
 
 
 class ErrorMsg(object):
