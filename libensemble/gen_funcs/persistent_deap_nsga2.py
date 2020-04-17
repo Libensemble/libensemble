@@ -1,5 +1,12 @@
-# One Max example from DEAP documentation:
-# https://deap.readthedocs.io/en/master/examples/ga_onemax.html
+"""
+This module contains functions for implementing an persistent NSGA2 generator
+function. The evaluation of the fitness of the current population's members
+occurs in `evaluate_pop`, where the points are communicated to the libEnsemble
+manager; the manager coordinates their evaluation and then returns their
+`fitness_values`.
+"""
+
+__all__ = ['deap_nsga2', 'evaluate_pop', 'nsga2_toolbox']
 
 from deap import base, creator, tools
 import numpy as np
@@ -17,11 +24,9 @@ def uniform(low, up, size=None):
 
 
 def nsga2_toolbox(gen_specs):
-    # Unused options:
-    # VARIABLE_LABELS=['variable_1'], OBJECTIVE_LABELS=['objective_1']):
     '''
-    Returns a DEAP toolbox for use in a NSGA2 loop, copied/derived from:
-    https://github.com/ChristopherMayes/xdeap/blob/master/xdeap/nsga2_tools.py
+    Returns a DEAP toolbox for use in a NSGA2 loop, derived from `this example.
+    <https://github.com/ChristopherMayes/xdeap/blob/master/xdeap/nsga2_tools.py>`_
     '''
     w = gen_specs['user']['weights']
     eta = gen_specs['user']['eta']
@@ -46,8 +51,12 @@ def nsga2_toolbox(gen_specs):
 
 
 def evaluate_pop(g, deap_object, Out, comm):
+    '''
+    Evaluates the fitness of a population by communicating the individuals in
+    the population to the libEnsemble manager, and then awaiting their fitness_values.
+    '''
     # Take population or list of individuals
-    # Sending indiviuals from population to sim to calc fitness
+    # Sending individuals from population to sim to calc fitness
     for index, ind in enumerate(deap_object):
         Out['individual'][index] = ind
         Out['generation'][index] = g
@@ -69,17 +78,20 @@ def evaluate_pop(g, deap_object, Out, comm):
 
 
 def deap_nsga2(H, persis_info, gen_specs, libE_info):
+    '''
+    An implementation of the NSGA2 evolutionary algorithm.
+    '''
     # Check to make sure boundaries are list, not array
     if isinstance(gen_specs['user']['lb'], list):
         if isinstance(gen_specs['user']['ub'], list):
             pass
     else:
         print('Lower or Upper bound is not a list')
-        print('This will break deap crossover function')
+        print('This will break DEAP crossover function')
         assert isinstance(gen_specs['user']['lb'], list), "lb is wrong type"
         assert isinstance(gen_specs['user']['ub'], list), "ub is wrong type"
 
-    # Initialize NSGA2 deap toolbox
+    # Initialize NSGA2 DEAP toolbox
     toolbox = nsga2_toolbox(gen_specs)
 
     g = 0  # generation count
@@ -118,9 +130,9 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
         # These are individuals who had their fitness deleted by crossover or mutation
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
 
-        # Need to check that there were invalid individs first.
+        # Need to check that there were invalid in divides first.
         # When using small test number of points (2, 5, etc)
-        # There is a probability that there will be no invalid indiviuals
+        # There is a probability that there will be no invalid individuals
         if invalid_ind:
             print('Finished evaluating population, doing selection now.')
             # Running fitness calc on gens > 0
@@ -129,7 +141,7 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
                 # Select the next generation population
                 pop = toolbox.select(pop + offspring, MU)
         else:
-            print('There were no invalid indiviuals')
+            print('There were no invalid individuals')
             # Don't update population
             pass
 

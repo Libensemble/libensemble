@@ -56,7 +56,6 @@ gen_specs = {'gen_f': gen_f,
                       'xtol_rel': 1e-6,
                       'ftol_rel': 1e-6,
                       'max_active_runs': 6,
-                      'num_pts_first_pass': nworkers-1,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
@@ -74,6 +73,8 @@ H0 = np.zeros(sample_size, dtype=[('x', float, n), ('grad', float, n), ('sim_id'
                                   ('x_on_cube', float, n), ('returned', bool),
                                   ('f', float), ('given_back', bool), ('given', bool)])
 
+# Two points in the following sample have the same best function value, which
+# tests the corner case for some APOSMM logic
 H0['x'] = np.round(minima, 1)
 H0['x_on_cube'] = (H0['x']-gen_specs['user']['lb']) / (gen_specs['user']['ub']-gen_specs['user']['lb'])
 H0['sim_id'] = range(sample_size)
