@@ -145,7 +145,7 @@ class Manager:
              (1, 'stop_val', self.term_test_stop_val)]
 
         if libE_specs.get('sim_dirs_make') or libE_specs.get('sim_input_dir'):
-            Manager.check_ensemble_dir(libE_specs)
+            self.check_ensemble_dir(libE_specs)
             if libE_specs.get('sim_dir_copy_back'):
                 Manager.make_copyback_dir(libE_specs)
 
@@ -165,18 +165,17 @@ class Manager:
                 except FileExistsError:
                     count += 1
 
-    @staticmethod
-    def check_ensemble_dir(libE_specs):
+    def check_ensemble_dir(self, libE_specs):
+        prefix = libE_specs.get('sim_dir_path', './ensemble')
         try:
-            prefix = libE_specs.get('sim_dir_path', './ensemble')
             os.rmdir(prefix)
-        except FileNotFoundError:
-            return
+        except FileNotFoundError:  # Ensemble dir doesn't exist.
+            pass
         except OSError as e:  # Ensemble dir exists and isn't empty.
             logger.manager_warning(_USER_SIM_DIR_WARNING.format(prefix))
+            self._kill_workers()
             raise ManagerException('Manager errored on initialization',
-                                   'Ensemble directory already existed and wasn\'t empty.', str(e))
-
+                                   'Ensemble directory already existed and wasn\'t empty.', e)
 
 
     # --- Termination logic routines
