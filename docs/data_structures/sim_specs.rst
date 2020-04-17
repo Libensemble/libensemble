@@ -26,7 +26,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
 
   .. _sim-specs-exmple1:
 
-  - test_6-hump_camel_uniform_sampling.py_ has a ``sim_specs``  that declares
+  - test_uniform_sampling.py_ has a ``sim_specs``  that declares
     the name of the ``'in'`` field variable, ``'x'`` (as specified by the
     corresponding generator ``'out'`` field ``'x'`` from the :ref:`gen_specs
     example<gen-specs-exmple1>`).  Only the field name is required in
@@ -46,4 +46,4 @@ Used to specify the simulation function, its inputs and outputs, and user data::
 
 .. _forces_simf.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_simf.py
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py
-.. _test_6-hump_camel_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
+.. _test_6-hump_camel_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py

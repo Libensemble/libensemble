@@ -95,7 +95,6 @@ else:
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
 libE_specs['sim_input_dir'] = './sim'   # Sim dir to be copied for each worker
 libE_specs['profile_worker'] = False    # Whether to have libE profile on (default False)
-libE_specs['use_worker_dirs'] = False   # Whether to create separate worker directories (default False)
 
 # Maximum number of simulations
 sim_max = 8
