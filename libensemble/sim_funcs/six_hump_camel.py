@@ -18,7 +18,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
     using a machinefile (to show one way of evaluating a compiled simulation).
 
     .. seealso::
-        `test_6-hump_camel_with_different_nodes_uniform_sample.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py>`_ # noqa
+        `test_uniform_sampling_with_different_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py>`_ # noqa
     """
 
     from mpi4py import MPI
@@ -94,7 +94,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     defined.
 
     .. seealso::
-        `test_6-hump_camel_aposmm_LD_MMA.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py>`_ # noqa
+        `test_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_with_gradients.py >`_ # noqa
     """
 
     batch = len(H['x'])

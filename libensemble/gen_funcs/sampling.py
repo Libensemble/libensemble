@@ -13,7 +13,7 @@ def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_spe
     and ``ranks_per_node`` to be used in the evaluation of the generated point.
 
     .. seealso::
-        `test_6-hump_camel_with_different_nodes_uniform_sample.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_with_different_nodes_uniform_sample.py>`_ # noqa
+        `test_uniform_sampling_with_different_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py>`_ # noqa
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
@@ -47,7 +47,7 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
     separately.
 
     .. seealso::
-        `test_chwirut_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
+        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
@@ -75,7 +75,7 @@ def uniform_random_sample(H, persis_info, gen_specs, _):
     defined by ``gen_specs['user']['ub']`` and ``gen_specs['user']['lb']``.
 
     .. seealso::
-        `test_6-hump_camel_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py>`_ # noqa
+        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
