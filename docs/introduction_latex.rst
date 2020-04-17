@@ -22,7 +22,7 @@ We now present further information on running and testing libEnsemble.
     :start-after: before_dependencies_rst_tag
     :end-before: after_resources_rst_tag
 
-.. _Balsam: https://www.alcf.anl.gov/balsam
+.. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
