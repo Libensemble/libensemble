@@ -40,6 +40,12 @@ Persistent APOSMM
   :members:
   :undoc-members:
 
+LocalOptInterfacer
+^^^^^^^^^^^^^^^^^^
+.. automodule:: aposmm_localopt_support
+  :members:
+  :undoc-members:
+
 uniform_or_localopt
 -------------------
 .. automodule:: uniform_or_localopt

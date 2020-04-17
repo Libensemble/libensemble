@@ -16,6 +16,7 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTE
 from libensemble.tools.gen_support import send_mgr_worker_msg
 from libensemble.tools.gen_support import get_mgr_worker_msg
 
+
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
@@ -47,7 +48,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods)
 
-      and one of 
+      and one of
     - ``'initial_sample_size' [int]``: Number of uniformly sampled points
       must be returned (non-nan value) before a local opt run is started
       or
@@ -69,11 +70,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
 
     If the rules in ``decide_where_to_start_localopt`` produces more than
-    ``'max_active_runs'`` in some iteration, then existing runs are prioritized. 
+    ``'max_active_runs'`` in some iteration, then existing runs are prioritized.
 
     And ``gen_specs['user']`` must also contain fields for the given
     localopt_method's convergence tolerances (e.g., gatol/grtol for PETSC/TAO
-    or ftol_rel for NLopt) 
+    or ftol_rel for NLopt)
 
     .. seealso::
         `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
@@ -106,8 +107,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                       requested by the localopt method)
     x_opt:            the reported minimum from a localopt run (disregarded
                       unless opt_flag is 1)
-    opt_flag:         1 if the run ended with an optimal point (x_opt) or 
-                      0 if it ended because e.g., maxiters/maxevals were reached 
+    opt_flag:         1 if the run ended with an optimal point (x_opt) or
+                      0 if it ended because e.g., maxiters/maxevals were reached
     num_samples_needed:   Number of additional uniformly drawn samples needed
 
 

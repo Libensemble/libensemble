@@ -1,7 +1,9 @@
 """
 This module contains methods for APOSMM to interface with various local
-optimization routines. 
+optimization routines.
 """
+__all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
+           'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
 import numpy as np
 from multiprocessing import Event, Process, Queue
@@ -35,8 +37,10 @@ else:
     if 'external' in optimizers:
         pass
 
+
 class APOSMMException(Exception):
     "Raised for any exception in APOSMM"
+
 
 class ConvergedMsg(object):
     """
@@ -58,13 +62,13 @@ class LocalOptInterfacer(object):
     """
     This class defines the APOSMM interface to various local optimization routines.
 
-    Currently supported routines are 
+    Currently supported routines are
 
     - NLopt routines ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']
     - PETSc/TAO routines ['pounders', 'blmvm', 'nm']
     - SciPy routines ['scipy_Nelder-Mead', 'scipy_COBYLA']
-    - DFOLS 
-    - External local optimizer (using files to pass/receive x/f values)
+    - DFOLS ['dfols']
+    - External local optimizer ['external_localopt'] (which use files to pass/receive x/f values)
     """
 
     def __init__(self, user_specs, x0, f0, grad0=None):
@@ -92,7 +96,8 @@ class LocalOptInterfacer(object):
             self.grad0 = None
 
         # Setting the local optimization method
-        if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']:
+        if user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA',
+                                             'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']:
             run_local_opt = run_local_nlopt
         elif user_specs['localopt_method'] in ['pounders', 'blmvm', 'nm']:
             run_local_opt = run_local_tao
@@ -115,15 +120,18 @@ class LocalOptInterfacer(object):
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
 
-        assert np.allclose(x_new, x0, rtol=1e-15, atol=1e-15), "The first point requested by this run does not match the starting point. Exiting"
+        assert np.allclose(x_new, x0, rtol=1e-15, atol=1e-15), \
+            "The first point requested by this run does not match the starting point. Exiting"
 
     def iterate(self, data):
         """
         Returns an instance of either :class:`numpy.ndarray` corresponding to the next
-        iterative guess or :class:`ConvergedMsg` when the solver is converged.
+        iterative guess or :class:`ConvergedMsg` when the solver has completed its run.
 
+        :param x_on_cube: A numpy array of the point being evaluated (for a handshake)
         :param f: A numpy array of the function evaluation.
         :param grad: A numpy array of the function's gradient.
+        :param fvec: A numpy array of the function's component values.
         """
         self.parent_can_read.clear()
 
@@ -171,6 +179,10 @@ class LocalOptInterfacer(object):
 
 
 def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    """
+    Runs an NLopt local optimization run starting at ``x0``, governed by the
+    parameters in ``user_specs``.
+    """
     # print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(user_specs['ub'])
 
@@ -212,12 +224,18 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     x_opt = opt.optimize(x0)
 
     if user_specs.get('periodic'):
-        x_opt = x_opt % 1  # Shift x_opt to be in the correct location in the unit cube (not the domain user_specs['lb'] - user_specs['ub'])
+        # Shift x_opt to be in the correct location in the unit cube
+        # (not the domain user_specs['lb'] - user_specs['ub'])
+        x_opt = x_opt % 1
 
     finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    """
+    Runs a SciPy local optimization run starting at ``x0``, governed by the
+    parameters in ``user_specs``.
+    """
 
     # Construct the bounds in the form of constraints
     cons = []
@@ -255,6 +273,10 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
 
 
 def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    """
+    Runs an external local optimization run starting at ``x0``, governed by the
+    parameters in ``user_specs``.
+    """
 
     import subprocess
     import os
@@ -299,6 +321,10 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
 
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    """
+    Runs a DFOLS local optimization run starting at ``x0``, governed by the
+    parameters in ``user_specs``.
+    """
 
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(len(x0))
@@ -327,6 +353,10 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    """
+    Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
+    parameters in ``user_specs``.
+    """
 
     assert isinstance(x0, np.ndarray)
 
@@ -355,20 +385,24 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         f.setFromOptions()
 
         if hasattr(tao, 'setResidual'):
-            tao.setResidual(lambda tao, x, f: tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
+            tao.setResidual(lambda tao, x, f: tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read,
+                                                                        parent_can_read, user_specs), f)
         else:
-            tao.setSeparableObjective(lambda tao, x, f: tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs), f)
+            tao.setSeparableObjective(lambda tao, x, f: tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read,
+                                                                                  parent_can_read, user_specs), f)
         delta_0 = user_specs['dist_to_bound_multiple']*np.min([np.min(ub.array-x.array), np.min(x.array-lb.array)])
         PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
 
     elif user_specs['localopt_method'] == 'nm':
-        tao.setObjective(lambda tao, x: tao_callback_fun_nm(tao, x, comm_queue, child_can_read, parent_can_read, user_specs))
+        tao.setObjective(lambda tao, x: tao_callback_fun_nm(tao, x, comm_queue, child_can_read,
+                                                            parent_can_read, user_specs))
 
     elif user_specs['localopt_method'] == 'blmvm':
         g = PETSc.Vec().create(tao_comm)
         g.setSizes(n)
         g.setFromOptions()
-        tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs))
+        tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read,
+                                                                         parent_can_read, user_specs))
 
     # Set everything for tao before solving
     PETSc.Options().setValue('-tao_max_funcs', str(user_specs.get('run_max_eval', 1000*n)))
@@ -483,8 +517,8 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
     child_can_read.clear()
 
     if user_specs.get('periodic'):
-        assert np.allclose(x % 1, values[0] % 1, rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back!"
+        assert np.allclose(x % 1, values[0] % 1, rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
     else:
-        assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back!"
+        assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
 
     return values
