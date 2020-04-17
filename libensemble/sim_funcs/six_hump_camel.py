@@ -94,7 +94,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     defined.
 
     .. seealso::
-        `test_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_with_gradients.py >`_ # noqa
+        `test_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_with_gradients.py>`_ # noqa
     """
 
     batch = len(H['x'])

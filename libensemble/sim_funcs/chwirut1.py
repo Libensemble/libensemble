@@ -265,7 +265,7 @@ def chwirut_eval(H, persis_info, sim_specs, _):
         for an example where the entire fvec is computed each call.
 
     .. seealso::
-        `test_aposmm_one_residual_at_a_time.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_one_residual_at_a_time.py >`_
+        `test_aposmm_one_residual_at_a_time.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_one_residual_at_a_time.py>`_
         for an example where one component of fvec is computed per call
     """
 
