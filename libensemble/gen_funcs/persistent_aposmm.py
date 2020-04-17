@@ -12,6 +12,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from math import log, gamma, pi, sqrt
 from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, ConvergedMsg
+
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import send_mgr_worker_msg
 from libensemble.tools.gen_support import get_mgr_worker_msg
