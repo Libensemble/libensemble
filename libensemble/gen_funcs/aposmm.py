@@ -11,16 +11,32 @@ import pickle
 import traceback
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
-from scipy import optimize as scipy_optimize
-
-from mpi4py import MPI
-from petsc4py import PETSc
-
 from numpy.lib.recfunctions import merge_arrays
-
 from math import log, gamma, pi, sqrt
 
-import nlopt
+import libensemble.gen_funcs
+optimizer_list = ['petsc', 'nlopt', 'scipy']
+optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
+
+if optimizers is None:
+    from mpi4py import MPI
+    from petsc4py import PETSc
+    import nlopt
+    from scipy import optimize as scipy_optimize
+else:
+    if not isinstance(optimizers, list):
+        optimizers = [optimizers]
+    unrec = set(optimizers) - set(optimizer_list)
+    if unrec:
+        print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
+
+    if 'petsc' in optimizers:
+        from mpi4py import MPI
+        from petsc4py import PETSc
+    if 'nlopt' in optimizers:
+        import nlopt
+    if 'scipy' in optimizers:
+        from scipy import optimize as scipy_optimize
 
 
 class APOSMMException(Exception):

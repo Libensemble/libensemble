@@ -12,9 +12,29 @@ sampling
   :members:
   :undoc-members:
 
-APOSMM
-------
-.. automodule:: aposmm
+Persistent APOSMM
+-----------------
+
+Configuring APOSMM
+^^^^^^^^^^^^^^^^^^
+
+By default, persistent APOSMM will import several optmizers which require
+external packages and MPI. To import only the optmizers you are using
+you can add the following lines in your calling script, before importing APOSMM::
+
+    import libensemble.gen_funcs
+    libensemble.gen_funcs.rc.aposmm_optimizers = <optimizers>
+
+Where ``optimizers`` can be a string or list of strings.
+
+The options are:
+
+    - ``'petsc'``, ``'nlopt'``, ``'dfols'``, ``'scipy'``, ``'external'``
+
+Persistent APOSMM
+^^^^^^^^^^^^^^^^^
+
+.. automodule:: persistent_aposmm
   :members:
   :undoc-members:
 

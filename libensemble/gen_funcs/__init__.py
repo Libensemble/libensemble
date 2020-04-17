@@ -3,8 +3,8 @@ def rc(**kargs):
 
     Parameters
     ----------
-    aposmm_optimizer : string
-        Set the aposmm optimizer (to prevent all options being imported).
+    aposmm_optimizers : string or list of strings
+        Select the aposmm optimizer/s (to prevent all options being imported).
 
 
     """
@@ -15,5 +15,5 @@ def rc(**kargs):
         setattr(rc, key, value)
 
 
-rc.aposmm_optimizer = True
+rc.aposmm_optimizers = None
 __import__('sys').modules[__name__ + '.rc'] = rc

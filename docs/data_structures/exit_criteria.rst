@@ -21,7 +21,7 @@ Exit criteria for libEnsemble::
 .. seealso::
   From `test_branin_aposmm_nlopt_and_then_scipy.py`_.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_sim_dirs.py
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_aposmm_sim_dirs.py
       :start-at: exit_criteria
       :end-before: end_exit_criteria_rst_tag
 
