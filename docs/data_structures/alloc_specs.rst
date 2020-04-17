@@ -33,7 +33,7 @@ to main ``libE()`` routine::
       alloc_specs = defaults.alloc_specs
 
 .. seealso::
-  - `test_chwirut_uniform_sampling_one_residual_at_a_time.py`_ specifies fields
+  - `test_uniform_sampling_one_residual_at_a_time.py`_ specifies fields
     to be used by the allocation function ``give_sim_work_first`` from
     fast_alloc_and_pausing.py_.
 
@@ -41,5 +41,5 @@ to main ``libE()`` routine::
       :start-at: alloc_specs
       :end-before: end_alloc_specs_rst_tag
 
-.. _test_chwirut_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py
+.. _test_chwirut_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py
 .. _fast_alloc_and_pausing.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/fast_alloc_and_pausing.py
