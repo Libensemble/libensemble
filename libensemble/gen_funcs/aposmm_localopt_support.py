@@ -204,7 +204,8 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     else:
         opt.set_initial_step(dist_to_bound)
 
-    opt.set_maxeval(user_specs.get('run_max_eval', 1000*n))
+    run_max_eval = user_specs.get('run_max_eval', 1000*n)
+    opt.set_maxeval(run_max_eval)
 
     opt.set_min_objective(lambda x, grad: nlopt_callback_fun(x, grad,
                           comm_queue, child_can_read, parent_can_read,
@@ -222,13 +223,28 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     # FIXME: Do we need to do something of the final 'x_opt'?
     # print('[Child]: Started my optimization', flush=True)
     x_opt = opt.optimize(x0)
+    return_val = opt.last_optimize_result()
+
+    if return_val >= 1 and return_val <= 4:
+        # These return values correspond to an optimium being identified
+        # https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#return-values
+        opt_flag = 1
+    elif return_val >= 5:
+        print("The run started from " + str(x0) + " reached it maximum number "
+              "of function evaluations: " + str(run_max_eval) + ". No point from "
+              "this run will be ruled as a minimum! APOSMM may start a new run "
+              "from some point in this run.")
+        opt_flag = 0
+    else:
+        print("NLopt returned with a negative return value, which indicates an error")
+        opt_flag = 0
 
     if user_specs.get('periodic'):
         # Shift x_opt to be in the correct location in the unit cube
         # (not the domain user_specs['lb'] - user_specs['ub'])
         x_opt = x_opt % 1
 
-    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
+    finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -254,22 +270,21 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
                           # constraints=cons,
                           method=method, **user_specs.get('scipy_kwargs', {}))
 
-    # if res['status'] == 2:  # SciPy code for exhausting budget of evaluations, so not at a minimum
-    #     exit_code = 0
-    # else:
-    #     if method == 'Nelder-Mead':
-    #         assert res['status'] == 0, "Unknown status for Nelder-Mead"
-    #         exit_code = 1
+    if res['status'] == 0:
+        opt_flag = 1
+    else:
+        print("The SciPy localopt run started from " + str(x0) + " stopped "
+              " without finding a local min. The status of the run is " + str(res['status']) +
+              ". No point from this run will be ruled as a minimum! APOSMM may "
+              "start a new run from some point in this run.")
+        opt_flag = 0
 
     if user_specs.get('periodic'):
         x_opt = res['x'] % 1
     else:
         x_opt = res['x']
 
-    # FIXME: Need to do something with the exit codes.
-    # print(exit_code)
-
-    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
+    finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
 
 
 def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -313,11 +328,12 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
             open(y_done_file, 'w').close()
 
     x_opt = np.loadtxt(opt_file)
+    opt_flag = np.loadtxt(opt_file + "_flag")
 
     for f in [x_file, y_file, opt_file]:
         os.remove(f)
 
-    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
+    finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -346,10 +362,16 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
     x_opt = soln.x
 
-    # FIXME: Need to do something with the exit codes.
-    # print(exit_code)
+    if soln.flag == soln.EXIT_SUCCESS:
+        opt_flag = 1
+    else:
+        print("The DFO-LS run started from " + str(x0) + " stopped with an exit "
+              "flag of " + str(soln.flag) + ". No point from this run will be "
+              "ruled as a minimum! APOSMM may start a new run from some point "
+              "in this run.")
+        opt_flag = 0
 
-    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
+    finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -416,12 +438,15 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     tao.solve(x)
 
     x_opt = tao.getSolution().getArray()
-    # exit_code = tao.getConvergedReason()
+    exit_code = tao.getConvergedReason()
 
-    # FIXME: Need to do something with the exit codes.
-    # print(exit_code)
-    # print(tao.view())
-    # print(x_opt)
+    if exit_code > 0:
+        opt_flag = 1
+    else:
+        # https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Tao/TaoGetConvergedReason.html
+        print("The run started from " + str(x0) + " exited with a nonpositive reason. No point from "
+              "this run will be ruled as a minimum! APOSMM may start a new run from some point in this run.")
+        opt_flag = 0
 
     if user_specs['localopt_method'] == 'pounders':
         f.destroy()
@@ -433,7 +458,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     x.destroy()
     tao.destroy()
 
-    finish_queue(x_opt, comm_queue, parent_can_read, user_specs)
+    finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
 
 
 def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
@@ -488,11 +513,11 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
     return f_recv
 
 
-def finish_queue(x_opt, comm_queue, parent_can_read, user_specs):
+def finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs):
 
-    if user_specs.get('print'):
+    if user_specs.get('print') and opt_flag:
         print('Local optimum on the [0,1]^n domain', x_opt, flush=True)
-    comm_queue.put(ConvergedMsg(x_opt))
+    comm_queue.put(ConvergedMsg(x_opt, opt_flag))
     parent_can_read.set()
 
 
