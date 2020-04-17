@@ -76,7 +76,9 @@ install:
     # Begin: Dependencies only for regression tests
   - pip install DFO-LS
   - pip install deap
-  - pip install scikit-build packaging Tasmanian --user
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        pip install scikit-build packaging Tasmanian --user;
+    fi
     # End: dependencies only for regression tests
     #
   - pip install flake8
