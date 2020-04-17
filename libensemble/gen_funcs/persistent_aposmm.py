@@ -896,11 +896,13 @@ def update_history_optimal(x_opt, opt_flag, H, run_inds):
     opt_ind = run_inds[ind]
 
     tol_x1 = 1e-15
+
+    # Instead of failing, we accept x_opt that is slightly different from its value in H
+    # assert dists[ind] <= tol_x1, "Closest point to x_opt not within {}?".format(tol_x1)
+
     if dists[ind] > tol_x1:
         print("Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]) + "\n" +
               "Check that the local optimizer is working correctly\n", x_opt, run_inds, flush=True)
-
-    assert dists[ind] <= tol_x1, "Closest point to x_opt not within {}?".format(tol_x1)
 
     tol_x2 = 1e-8
     failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < tol_x2)
