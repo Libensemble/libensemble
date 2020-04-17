@@ -447,7 +447,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
               "from some point in this run.")
         opt_flag = 0
     else:
-        "NLopt returned with a negative return value, which indicates an error"
+        print("NLopt returned with a negative return value, which indicates an error")
         opt_flag = 0
 
     if user_specs.get('periodic'):
@@ -706,7 +706,7 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
 
 def finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs):
 
-    if user_specs.get('print'):
+    if user_specs.get('print') and opt_flag:
         print('Local optimum on the [0,1]^n domain', x_opt, flush=True)
     comm_queue.put(ConvergedMsg(x_opt, opt_flag))
     parent_can_read.set()
