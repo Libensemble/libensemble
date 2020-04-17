@@ -21,12 +21,22 @@ per-file-ignores =
         # init needs to import the logger.
         libensemble/__init__.py:F401
         libensemble/libensemble/__init__.py:F401
+
         # Need to turn of matching probes (before other imports) on some
         # systems/versions of MPI:
         libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py:E402
+
         # Matplotlib needs something set before import
         postproc_scripts/*:E402
+
+        # Ignoring linelength in APOSMM
         libensemble/gen_funcs/*aposmm.py:E501
         examples/gen_funcs/*aposmm.py:E501
+
+        # Need to set something before the APOSMM import
+        libensemble/tests/scaling_tests/warpx/run_libensemble_on_warpx.py:E402
+        libensemble/gen_funcs/persistent_aposmm.py:E402, E501
+        libensemble/tests/regression_tests/test_persistent_aposmm*:E402
+        libensemble/tests/regression_tests/test_aposmm*:E402
