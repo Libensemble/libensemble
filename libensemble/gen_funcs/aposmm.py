@@ -149,11 +149,11 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         must ensure that it is always given.
 
     .. seealso::
-        `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
+        `test_sim_dirs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_sim_dirs.py>`_
         for basic APOSMM usage.
 
     .. seealso::
-        `test_chwirut_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py>`_
+        `test_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_one_residual_at_a_time.py>`_
         for an example of APOSMM coordinating multiple local optimization runs
         for an objective with more than one component.
     """

@@ -8,6 +8,8 @@ example. Non-highlighted portions may include setup routines, compilation steps
 for user applications, or output processing. The first two scripts correspond to
 random sampling calculations, while the third corresponds to an optimization routine.
 
+Many other examples of calling scripts can be found in libEnsemble's `regression tests`_.
+
 Local Sine Tutorial
 -------------------
 
@@ -33,9 +35,8 @@ for execution in the ``sim_f``. Note the use of the ``parse_args()`` and
     :language: python
     :caption: tests/scaling_tests/forces/run_libe_forces.py
     :linenos:
-    :emphasize-lines: 16, 39-92
 
-Six-Hump-Camel Persistent APOSMM
+Persistent APOSMM with Gradients
 --------------------------------
 
 This example is also from the regression tests and demonstrates configuring a
@@ -43,6 +44,8 @@ persistent run via a custom allocation function.
 
 ..  literalinclude:: ../../libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
     :language: python
-    :caption: tests/regression_tests/test_6-hump_camel_persistent_aposmm_1.py
+    :caption: tests/regression_tests/test_persistent_aposmm_with_grad.py
     :linenos:
-    :emphasize-lines: 29, 42-72, 85
+
+
+.. _`regression tests`: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests

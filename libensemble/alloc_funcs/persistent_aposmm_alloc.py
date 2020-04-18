@@ -14,7 +14,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     stopped (until some exit_criterion is satisfied).
 
     .. seealso::
-        `test_6-hump_camel_persistent_aposmm.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm.py>`_ # noqa
+        `test_persistent_aposmm_with_grad.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_ # noqa
     """
 
     Work = {}
