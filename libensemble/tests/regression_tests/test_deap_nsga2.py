@@ -18,6 +18,7 @@ from libensemble.gen_funcs.persistent_deap_nsga2 import deap_nsga2 as gen_f
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
+
 def deap_six_hump(H, persis_info, sim_specs, _):
     xvals = H['individual'][0]
     Out = np.zeros(1, dtype=sim_specs['out'])
