@@ -40,12 +40,7 @@ sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float)]}
 
-if nworkers == 1:
-    # Have the workers put their directories in a different (e.g., a faster
-    # /sandbox/ or /scratch/ directory)
-    # Otherwise, will just copy in same directory as sim_input_dir
-    libE_specs['sim_dir_path'] = '~/ensemble'
-elif nworkers == 3:
+if nworkers == 3:
     sim_specs['user'] = {'uniform_random_pause_ub': 0.05}
 
 n = 2
@@ -75,6 +70,7 @@ exit_criteria = {'sim_max': 150,
 
 # Perform the run
 for run in range(2):
+    libE_specs['sim_dir_path'] = './ensemble_w' + str(nworkers) + '_r' + str(run)
     if run == 1:
         gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
         gen_specs['user'].pop('xtol_rel')
