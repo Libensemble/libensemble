@@ -23,5 +23,24 @@ def test_persis_apossm_localopt_test():
         assert 0
 
 
+def test_update_history_optimal():
+    hist, _, _, _, _ = setup.hist_setup1(n=2)
+
+    H = hist.H
+
+    H['returned'] = True
+    H['sim_id'] = range(len(H))
+    H['f'][0] = -1e-8
+    H['x_on_cube'][-1] = 1e-10
+
+    # Perturb x_opt point to test the case where the reported minimum isn't
+    # exactly in H. Also, a point in the neighborhood of x_opt has a better
+    # function value.
+    opt_ind = al.update_history_optimal(H['x_on_cube'][-1]+1e-12, 1, H, np.arange(len(H)))
+
+    assert opt_ind == 9, "Wrong point declared minimum"
+
+
 if __name__ == "__main__":
     test_persis_apossm_localopt_test()
+    test_update_history_optimal()

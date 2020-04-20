@@ -12,7 +12,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     persistent generator (where x_ind is in range(n) and f_ind is in range(p))
 
     .. seealso::
-        `test_persist_fd_param_finder.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persist_fd_param_finder.py>`_ # noqa
+        `test_persistent_fd_param_finder.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
 
     Work = {}

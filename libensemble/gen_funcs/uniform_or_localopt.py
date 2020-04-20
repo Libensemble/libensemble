@@ -1,3 +1,9 @@
+"""
+This module is a persistent generation function that performs a uniform
+random sample when ``libE_info['persistent']`` isn't ``True``, or performs a
+single persistent persistent nlopt local optimization run.
+"""
+
 __all__ = ['uniform_or_localopt']
 
 import numpy as np
@@ -16,7 +22,7 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     function starts a persistent nlopt local optimization run.
 
     .. seealso::
-        `test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py>`_ # noqa
+        `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
 
     if libE_info.get('persistent'):

@@ -31,7 +31,7 @@ to main ``libE()`` routine::
 
   .. _gen-specs-exmple1:
 
-  - test_6-hump_camel_uniform_sampling.py_ In this example, the
+  - test_uniform_sampling.py_ In this example, the
     generation function ``uniform_random_sample`` in sampling.py_ will generate 500 random
     points uniformly over the 2D domain defined by ``gen_specs['ub']`` and
     ``gen_specs['lb']``.
@@ -41,4 +41,4 @@ to main ``libE()`` routine::
       :end-before: end_gen_specs_rst_tag
 
 .. _sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/sampling.py
-.. _test_6-hump_camel_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py
+.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py

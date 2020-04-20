@@ -11,16 +11,32 @@ import pickle
 import traceback
 import numpy as np
 from scipy.spatial.distance import cdist, pdist, squareform
-from scipy import optimize as scipy_optimize
-
-from mpi4py import MPI
-from petsc4py import PETSc
-
 from numpy.lib.recfunctions import merge_arrays
-
 from math import log, gamma, pi, sqrt
 
-import nlopt
+import libensemble.gen_funcs
+optimizer_list = ['petsc', 'nlopt', 'scipy']
+optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
+
+if optimizers is None:
+    from mpi4py import MPI
+    from petsc4py import PETSc
+    import nlopt
+    from scipy import optimize as scipy_optimize
+else:
+    if not isinstance(optimizers, list):
+        optimizers = [optimizers]
+    unrec = set(optimizers) - set(optimizer_list)
+    if unrec:
+        print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
+
+    if 'petsc' in optimizers:
+        from mpi4py import MPI
+        from petsc4py import PETSc
+    if 'nlopt' in optimizers:
+        import nlopt
+    if 'scipy' in optimizers:
+        from scipy import optimize as scipy_optimize
 
 
 class APOSMMException(Exception):
@@ -133,11 +149,11 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         must ensure that it is always given.
 
     .. seealso::
-        `test_branin_aposmm_nlopt_and_then_scipy.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_branin_aposmm_nlopt_and_then_scipy.py>`_
+        `test_sim_dirs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_sim_dirs.py>`_
         for basic APOSMM usage.
 
     .. seealso::
-        `test_chwirut_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py>`_
+        `test_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_one_residual_at_a_time.py>`_
         for an example of APOSMM coordinating multiple local optimization runs
         for an objective with more than one component.
     """
