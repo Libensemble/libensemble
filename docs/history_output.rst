@@ -119,6 +119,10 @@ described in detail here:
   ``'sim_dir_path'`` has been set to some scratch space or another temporary
    location.
 
+* ``'sim_input_dir'``: A path to a directory to copy for simulation
+  directories. This directory and it's contents are copied to form the base
+  of new simulation directories.
+
 See the regression tests ``test_sim_dirs_per_calc.py`` and
 ``test_sim_dirs_per_worker.py`` for examples of many of these settings.
 

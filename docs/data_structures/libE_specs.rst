@@ -35,6 +35,8 @@ Specifications for libEnsemble::
         'sim_dir_copy_back' [boolean] :
             Whether to copy back directories within sim_dir_path back to launch location.
             Default: False
+        'sim_input_dir' [string] :
+            Copy this directory and it's contents for each simulation-specific directory.
         'profile_worker' [boolean] :
             Profile using cProfile. Default: False
         'disable_log_files' [boolean] :
