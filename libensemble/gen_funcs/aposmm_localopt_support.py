@@ -13,7 +13,6 @@ optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if optimizers is None:
-    from mpi4py import MPI
     from petsc4py import PETSc
     import nlopt
     import dfols
@@ -26,7 +25,6 @@ else:
         print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
 
     if 'petsc' in optimizers:
-        from mpi4py import MPI
         from petsc4py import PETSc
     if 'nlopt' in optimizers:
         import nlopt
@@ -383,7 +381,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
 
     assert isinstance(x0, np.ndarray)
 
-    tao_comm = MPI.COMM_SELF
+    tao_comm = PETSc.COMM_SELF
     n, = x0.shape
     if f0.shape == ():
         m = 1
