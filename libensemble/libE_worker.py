@@ -260,9 +260,7 @@ class Worker:
                                                           H_rows, calc_str, self.loc_stack)
 
             with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
-                out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-
-            return out
+                return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
         return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
