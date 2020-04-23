@@ -19,6 +19,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
+from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
@@ -236,11 +237,10 @@ class Worker:
 
     def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
-        sls = self.libE_specs
-        if all([sls.get('sim_dirs_make'), sls.get('sim_dir_copy_back'), os.path.isdir(self.prefix)]):
-            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix) + '_back')
-            assert os.path.isdir(copybackdir), \
-                "Manager didn't create copyback directory"
+        if os.path.isdir(self.prefix) and self.libE_specs.get('sim_dir_copy_back', True):
+            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix))
+            if os.path.basename(self.prefix) in os.listdir(self.startdir):
+                copybackdir += '_back'
             for dir in self.loc_stack.dirs.values():
                 shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
                 if os.path.basename(dir).startswith('worker'):
@@ -255,7 +255,7 @@ class Worker:
         H_rows = Worker._extract_H_ranges(Work)
         calc_str = calc_type_strings[calc_type]
 
-        if 'sim_dirs_make' in self.libE_specs or 'sim_input_dir' in self.libE_specs:
+        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
             self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
                                                           H_rows, calc_str, self.loc_stack)
 

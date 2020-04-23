@@ -21,6 +21,7 @@ from libensemble.message_numbers import \
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
 from libensemble.tools.tools import _USER_SIM_DIR_WARNING
+from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
 import cProfile
 import pstats
 
@@ -144,25 +145,18 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        if libE_specs.get('sim_dirs_make') or libE_specs.get('sim_input_dir'):
+        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
             self.check_ensemble_dir(libE_specs)
-            if libE_specs.get('sim_dir_copy_back'):
+            if libE_specs.get('sim_dir_copy_back', True):
                 Manager.make_copyback_dir(libE_specs)
 
     @staticmethod
     def make_copyback_dir(libE_specs):
-        copybackdir = os.path.basename(libE_specs.get('sim_dir_path',
-                                       './ensemble')) + '_back'
-        if not os.path.isdir(copybackdir):
-            os.makedirs(copybackdir)
-        else:
-            count = 1
-            while True:
-                try:
-                    os.makedirs(copybackdir+str(count))
-                    break
-                except FileExistsError:
-                    count += 1
+        sim_dir_path = libE_specs.get('sim_dir_path', './ensemble')
+        copybackdir = os.path.basename(sim_dir_path)
+        if sim_dir_path == './' + copybackdir:
+            copybackdir += '_back'
+        os.makedirs(copybackdir)
 
     def check_ensemble_dir(self, libE_specs):
         prefix = libE_specs.get('sim_dir_path', './ensemble')

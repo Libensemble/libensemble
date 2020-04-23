@@ -34,7 +34,7 @@ Specifications for libEnsemble::
             List of paths to files to symlink into each sim dir.
         'sim_dir_copy_back' [boolean] :
             Whether to copy back directories within sim_dir_path back to launch location.
-            Default: False
+            Default: True
         'sim_input_dir' [string] :
             Copy this directory and it's contents for each simulation-specific directory.
         'profile_worker' [boolean] :

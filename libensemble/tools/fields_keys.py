@@ -27,25 +27,26 @@ allowed_alloc_spec_keys = ['alloc_f',  #
                            'out',      #
                            'user']     #
 
+libE_spec_calc_dir_keys = ['sim_dirs_make',
+                           'sim_dir_copy_back',
+                           'sim_dir_copy_files',
+                           'sim_dir_path',
+                           'sim_dirs_per_worker',
+                           'sim_dir_symlink_files',
+                           'sim_input_dir']
+
 allowed_libE_spec_keys = ['abort_on_exception',     #
                           'authkey',                #
                           'comm',                   #
                           'comms',                  #
                           'disable_log_files',      #
                           'ip',                     #
-                          'sim_dirs_make',          #
                           'nworkers',               #
                           'port',                   #
                           'profile_worker',         #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #
                           'save_H_and_persis_on_abort',        #
-                          'sim_dir_copy_back',      #
-                          'sim_dir_copy_files',     #
-                          'sim_dir_path',           #
-                          'sim_dirs_per_worker',    #
-                          'sim_dir_symlink_files',  #
-                          'sim_input_dir',          #
                           'workerID',               #
                           'worker_timeout',         #
-                          'worker_cmd']             #
+                          'worker_cmd'] + libE_spec_calc_dir_keys
