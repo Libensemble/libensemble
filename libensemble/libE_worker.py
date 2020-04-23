@@ -160,7 +160,7 @@ class Worker:
             copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
 
         # If identical paths to copy and symlink, remove those paths from symlink_files
-        if len(symlink_files)
+        if len(symlink_files):
             symlink_files = [i for i in symlink_files if i not in copy_files]
 
         # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
