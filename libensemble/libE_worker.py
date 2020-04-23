@@ -155,8 +155,13 @@ class Worker:
         symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         do_work_dirs = libE_specs.get('sim_dirs_per_worker', False)
 
+        # If using sim_input_dir, set of files to copy is contents of provided dir
         if sim_input_dir:
             copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
+
+        # If identical paths to copy and symlink, remove those paths from symlink_files
+        if len(symlink_files)
+            symlink_files = [i for i in symlink_files if i not in copy_files]
 
         # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
         if do_work_dirs:

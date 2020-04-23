@@ -18,10 +18,6 @@ class LocationStack:
         """ Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
-
-        assert not any([f in symlink_files for f in copy_files]), \
-            "Identical filepath found to both copy and symlink into sim directories."
-
         for file_path in copy_files:
             src_base = os.path.basename(file_path)
             dest_path = os.path.join(destdir, src_base)
