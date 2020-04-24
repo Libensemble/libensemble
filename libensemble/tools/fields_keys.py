@@ -28,10 +28,10 @@ allowed_alloc_spec_keys = ['alloc_f',  #
                            'user']     #
 
 libE_spec_calc_dir_keys = ['sim_dirs_make',
-                           'sim_dir_copy_back',
+                           'ensemble_copy_back',
                            'sim_dir_copy_files',
-                           'sim_dir_path',
-                           'sim_dirs_per_worker',
+                           'ensemble_dir_path',
+                           'use_worker_dirs',
                            'sim_dir_symlink_files',
                            'sim_input_dir']
 

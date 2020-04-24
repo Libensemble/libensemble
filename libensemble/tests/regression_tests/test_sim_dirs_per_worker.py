@@ -35,11 +35,11 @@ for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True
-libE_specs['sim_dir_path'] = w_ensemble
-libE_specs['sim_dirs_per_worker'] = True
+libE_specs['ensemble_dir_path'] = w_ensemble
+libE_specs['use_worker_dirs'] = True
 libE_specs['sim_dir_copy_files'] = [dir_to_copy]
 libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
-libE_specs['sim_dir_copy_back'] = True
+libE_specs['ensemble_copy_back'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 

@@ -150,10 +150,10 @@ class Worker:
 
         sim_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
 
-        prefix = libE_specs.get('sim_dir_path', './ensemble')
+        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         copy_files = libE_specs.get('sim_dir_copy_files', [])
         symlink_files = libE_specs.get('sim_dir_symlink_files', [])
-        do_work_dirs = libE_specs.get('sim_dirs_per_worker', False)
+        do_work_dirs = libE_specs.get('use_worker_dirs', False)
 
         # If using sim_input_dir, set of files to copy is contents of provided dir
         if sim_input_dir:
@@ -242,7 +242,7 @@ class Worker:
 
     def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
-        if os.path.isdir(self.prefix) and self.libE_specs.get('sim_dir_copy_back', True):
+        if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', True):
             copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix))
             if os.path.basename(self.prefix) in os.listdir(self.startdir):
                 copybackdir += '_back'

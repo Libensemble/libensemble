@@ -60,44 +60,44 @@ Output Working Directory Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 libEnsemble features configurable output and working directory structuring for
 storing results at every step of a calculation, or directing workers to perform
-calculations on separate filesystems or directories. This is helpful for users
-performing I/O-heavy simulations who want to take advantage of high-speed
+calculations on separate filesystems or in other directories. This is helpful
+for users performing simulations who want to take advantage of high-speed
 scratch spaces or disks, or organize their I/O by application run.
 
-With this feature enabled, each time a worker initiates a simulation routine it
-creates a new directory where it runs for the routine's duration. How these
-directories are labeled or what files they contain is configurable through
-settings in :ref:`libE_specs<datastruct-libe-specs>`. Each setting will be
+With these features enabled, each time a worker initiates a simulation routine it
+creates a new directory where it runs for the routine's duration.
+Where these directories are created or what files they contain is configurable
+through settings in :ref:`libE_specs<datastruct-libe-specs>`. Each setting will be
 described in detail here:
 
-* ``'sim_dirs_make'``: Boolean. Enables per-simulation directories. By default,
-  directories are labeled in the form ``'sim0-worker1'`` and placed in
-  ``./ensemble``, relative to the directory where libEnsemble was launched.
+* ``'sim_dirs_make'``: Boolean. Enables per-simulation directories with default
+  settings. Directories are labeled in the form ``'sim0-worker1'`` and without
+  further configuration, placed in the ensemble directory ``./ensemble``,
+  relative to where libEnsemble was launched.
 
-* ``'sim_dir_path'``: Where to write simulation directories. This location is
-  where each worker will place it's simulation directories, so a scratch space
-  is recommended if performing I/O-heavy calculations. If not specified,
-  simulation directories are placed in ``./ensemble``, relative to the directory
-  where libEnsemble was launched. These directories are commonly referred to
-  as ensemble directories.::
+* ``'ensemble_dir_path'``: This location, typically referred to as the ensemble
+  directory, is where each worker places its simulation directories. If not
+  specified, simulation directories are placed in ``./ensemble``, relative to
+  where libEnsemble was launched. On supported systems, writing to local-node
+  storage is possible and recommended for increased performance.::
 
-      libE_specs['sim_dir_path'] = "/scratch/my_ensemble"
+      libE_specs['ensemble_dir_path'] = "/scratch/my_ensemble"
 
-* ``'sim_dirs_per_worker'``: Boolean. Sorts simulation directories into
+* ``'use_worker_dirs'``: Boolean. Sorts simulation directories into
   per-worker directories at runtime. Particularly useful for organization when
-  running with lots of workers on global scratch spaces or the same node, and
+  running with multiple workers on global scratch spaces or the same node, and
   may produce performance benefits.
 
-  Default structure with ``'sim_dirs_per_worker'`` unspecified::
+  Default structure with ``'use_worker_dirs'`` unspecified::
 
-        - /my_ensemble
+        - /ensemble_dir
             - /sim0-worker1
             - /sim1-worker2
             ...
 
-  Structure with ``libE_specs['sim_dirs_per_worker'] = True``::
+  Structure with ``libE_specs['use_worker_dirs'] = True``::
 
-        - /my_ensemble
+        - /ensemble_dir
             - /worker1
                 - /sim0
                 - /sim4
@@ -113,18 +113,18 @@ described in detail here:
 * ``'sim_dir_symlink_files'``: A list of paths for files to symlink into
   simulation directories.
 
-* ``'sim_dir_copy_back'``: Boolean. Instructs the manager to create an empty
-  directory where libEnsemble was launched where workers copy back simulation
+* ``'ensemble_copy_back'``: Boolean. Instructs the manager to create an empty
+  directory where libEnsemble was launched where workers copy back their simulation
   directories on a run's conclusion or an exception. Especially useful when
-  ``'sim_dir_path'`` has been set to some scratch space or another temporary
-   location.
+  ``'ensemble_dir_path'`` has been set to some scratch space or another temporary
+  location.
 
 * ``'sim_input_dir'``: A path to a directory to copy for simulation
   directories. This directory and it's contents are copied to form the base
   of new simulation directories.
 
 See the regression tests ``test_sim_dirs_per_calc.py`` and
-``test_sim_dirs_per_worker.py`` for examples of many of these settings.
+``test_use_worker_dirs.py`` for examples of many of these settings.
 
 .. note::
   The ``postproc_scripts`` directory, in the libEnsemble project root directory,

@@ -38,8 +38,8 @@ assert len(os.listdir(e_ensemble)), \
     "Previous ensemble directory doesn't have any contents. Can't catch exception."
 
 libE_specs['sim_dirs_make'] = True
-libE_specs['sim_dir_path'] = e_ensemble
-libE_specs['sim_dirs_per_worker'] = False
+libE_specs['ensemble_dir_path'] = e_ensemble
+libE_specs['use_worker_dirs'] = False
 libE_specs['sim_dir_copy_files'] = [dir_to_copy]
 libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
 

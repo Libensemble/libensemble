@@ -33,7 +33,7 @@ for dir in [sim_input_dir, dir_to_copy]:
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_input_dir'] = sim_input_dir
-libE_specs['sim_dir_path'] = o_ensemble
+libE_specs['ensemble_dir_path'] = o_ensemble
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 

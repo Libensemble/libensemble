@@ -21,19 +21,23 @@ Specifications for libEnsemble::
         'save_every_k_gens' [int] :
             Save history array to file after every k generated points.
         'sim_dirs_make' [boolean] :
-            Whether to make simulation-specific directories for each sim call.
+            Whether to make simulation-specific calculation directories for each sim call.
+            This will create a directory for each simulation, even if no sim_input_dir is specified.
             Default: False
-        'sim_dir_path' [string] :
-            Path to directory into which to put sim directories. Default: './ensemble'
-        'sim_dirs_per_worker' [boolean] :
-            Whether to organize sim dirs into directories by which worker performed sim.
+        'ensemble_dir_path' [string] :
+            Path to main ensemble directory containing calculation (sim) directories.
+            This is only created if calculation directories are created.
+            Default: './ensemble'
+        'use_worker_dirs' [boolean] :
+            Whether to organize calculation (sim) directories under worker-specific directories.
             Default: False
         'sim_dir_copy_files' [list] :
-            List of paths to files to copy into each sim dir.
+            List of paths to files or directories to copy into each sim dir.
         'sim_dir_symlink_files' [list] :
-            List of paths to files to symlink into each sim dir.
-        'sim_dir_copy_back' [boolean] :
-            Whether to copy back directories within sim_dir_path back to launch location.
+            List of paths to files or directories to symlink into each sim dir.
+        'ensemble_copy_back' [boolean] :
+            Whether to copy back directories within ensemble_dir_path back to launch location.
+            Useful if ensemble_dir placed on node-local storage.
             Default: True
         'sim_input_dir' [string] :
             Copy this directory and it's contents for each simulation-specific directory.
@@ -44,7 +48,7 @@ Specifications for libEnsemble::
             Default: False
 
 .. note::
-    The ``sim_dir_path`` option can create working directories on local node or
+    The ``ensemble_dir_path`` option can create working directories on local node or
     scratch storage. This may produce performance benefits on I/O heavy simulations.
 
 .. seealso::
@@ -54,7 +58,7 @@ Specifications for libEnsemble::
                     'comms': 'mpi',
                     'save_every_k_gens': 1000,
                     'make_sim_dirs: True,
-                    'sim_dir_path': '/scratch/ensemble'
+                    'ensemble_dir_path': '/scratch/ensemble'
                     'profile_worker': False}
 
 .. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py

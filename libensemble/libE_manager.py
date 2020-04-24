@@ -147,19 +147,19 @@ class Manager:
 
         if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
             self.check_ensemble_dir(libE_specs)
-            if libE_specs.get('sim_dir_copy_back', True):
+            if libE_specs.get('ensemble_copy_back', True):
                 Manager.make_copyback_dir(libE_specs)
 
     @staticmethod
     def make_copyback_dir(libE_specs):
-        sim_dir_path = libE_specs.get('sim_dir_path', './ensemble')
-        copybackdir = os.path.basename(sim_dir_path)
-        if sim_dir_path == './' + copybackdir:
+        ensemble_dir_path = libE_specs.get('ensemble_dir_path', './ensemble')
+        copybackdir = os.path.basename(ensemble_dir_path)
+        if ensemble_dir_path == './' + copybackdir:
             copybackdir += '_back'
         os.makedirs(copybackdir)
 
     def check_ensemble_dir(self, libE_specs):
-        prefix = libE_specs.get('sim_dir_path', './ensemble')
+        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         try:
             os.rmdir(prefix)
         except FileNotFoundError:  # Ensemble dir doesn't exist.
