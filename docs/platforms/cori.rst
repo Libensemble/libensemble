@@ -60,6 +60,17 @@ into the environment.
 
     (my_env) user@cori07:~$ pip install libensemble
 
+Or, libEnsemble can be installed via ``conda`` through one of the following options.
+This method allows you to choose which MPI version to use with libEnsemble at
+installation, and may contain platform-specific optimizations for dependencies like NumPy.
+
+.. code-block:: console
+
+    (my_env) user@cori07:~$ conda config --add channels conda-forge
+    (my_env) user@cori07:~$ conda install -c conda-forge libensemble=*=mpi_mpich*    # with MPICH
+             OR             conda install -c conda-forge libensemble=*=mpi_openmpi*  # with Open MPI
+             OR             conda install -c conda-forge libensemble                 # without MPI
+
 Again, it is preferable to create your conda environment under the ``common``
 file system. This can be done by modifying your ``~/.condarc`` file.
 For example, add the lines::

@@ -151,7 +151,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
         for basic APOSMM usage.
 
     .. seealso::
-        `test_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_one_residual_at_a_time.py>`_
+        `test_old_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_one_residual_at_a_time.py>`_
         for an example of APOSMM coordinating multiple local optimization runs
         for an objective with more than one component.
     """
