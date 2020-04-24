@@ -19,7 +19,6 @@ optimizer_list = ['petsc', 'nlopt', 'scipy']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if optimizers is None:
-    from mpi4py import MPI
     from petsc4py import PETSc
     import nlopt
     from scipy import optimize as scipy_optimize
@@ -31,7 +30,6 @@ else:
         print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
 
     if 'petsc' in optimizers:
-        from mpi4py import MPI
         from petsc4py import PETSc
     if 'nlopt' in optimizers:
         import nlopt
@@ -666,7 +664,7 @@ def set_up_and_run_tao(Run_H, user_specs):
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
-    tao_comm = MPI.COMM_SELF
+    tao_comm = PETSc.COMM_SELF
     n = len(user_specs['ub'])
 
     def pounders_obj_func(tao, X, F, Run_H):
