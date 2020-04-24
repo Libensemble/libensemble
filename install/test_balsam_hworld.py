@@ -42,7 +42,7 @@ def wait_for_job_output(jobdir):
     output = os.path.join(jobdir, 'job_script_test_balsam_hworld.out')
     print('Checking for Balsam output file: {}'.format(output))
 
-    while not os.path.isfile(output) and sleeptime < 30:
+    while not os.path.isfile(output) and sleeptime < 40:
         print(sleeptime, end=" ", flush=True)
         time.sleep(1)
         sleeptime += 1
