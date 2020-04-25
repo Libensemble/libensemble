@@ -82,7 +82,7 @@ class Task:
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None):
+                 stdout=None, stderr=None, workerid=None, test=False):
         """Instantiate a new Task instance.
 
         A new task object is created with an id, status and configuration
@@ -108,6 +108,7 @@ class Task:
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
+        self.test = test
 
     def reset(self):
         # Status attributes
@@ -119,6 +120,11 @@ class Task:
         self.submit_time = None
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
+
+    def set_as_complete(self):
+        self.finished = True
+        self.success = True
+        self.state = 'FINISHED'
 
     def workdir_exists(self):
         """Returns true if the task's workdir exists"""
@@ -180,6 +186,9 @@ class Task:
 
     def poll(self):
         """Polls and updates the status attributes of the task"""
+        if self.test:
+            return
+
         if not self.check_poll():
             return
 
@@ -208,6 +217,9 @@ class Task:
         is 0, we go immediately to SIGKILL; if <wait_time> is none, we
         never do a SIGKILL.
         """
+        if self.test:
+            return
+
         if self.finished:
             logger.warning("Trying to kill task that is no longer running. "
                            "Task {}: Status is {}".format(self.name, self.state))

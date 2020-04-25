@@ -283,7 +283,6 @@ class MPIExecutor(Executor):
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this "
                            "executor - runs in-place")
-
         mpi_specs = self._get_mpi_specs(task, num_procs, num_nodes,
                                         ranks_per_node, machinefile,
                                         hyperthreads)
@@ -294,7 +293,9 @@ class MPIExecutor(Executor):
             runline.extend(task.app_args.split())
 
         if test:
+            task.test = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+            task.set_as_complete()
         else:
             # Launch Task
             self._launch_with_retries(task, runline, wait_on_run)
@@ -303,7 +304,7 @@ class MPIExecutor(Executor):
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            self.list_of_tasks.append(task)
+        self.list_of_tasks.append(task)
         return task
 
     def set_worker_info(self, comm, workerid=None):

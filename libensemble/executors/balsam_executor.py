@@ -298,19 +298,24 @@ class BalsamMPIExecutor(MPIExecutor):
             add_task_args['stage_out_url'] = "local:" + stage_inout
             add_task_args['stage_out_files'] = "*.out"
 
-        task.process = dag.add_job(**add_task_args)
+        if test:
+            task.test = True
+            logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
+            task.set_as_complete()
+        else:
+            task.process = dag.add_job(**add_task_args)
 
-        if (wait_on_run):
-            self._wait_on_run(task)
+            if (wait_on_run):
+                self._wait_on_run(task)
 
-        if not task.timer.timing:
-            task.timer.start()
-            task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
+            if not task.timer.timing:
+                task.timer.start()
+                task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-        logger.info("Added task to Balsam database {}: "
-                    "nodes {} ppn {}".
-                    format(task.name, num_nodes, ranks_per_node))
+            logger.info("Added task to Balsam database {}: "
+                        "nodes {} ppn {}".
+                        format(task.name, num_nodes, ranks_per_node))
 
-        # task.workdir = task.process.working_directory  # Might not be set yet!!!!
+            # task.workdir = task.process.working_directory  # Might not be set yet!!!!
         self.list_of_tasks.append(task)
         return task
