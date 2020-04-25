@@ -213,7 +213,7 @@ class MPIExecutor(Executor):
     def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False, wait_on_run=False,
+               hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules execution.
 
@@ -254,8 +254,8 @@ class MPIExecutor(Executor):
         hyperthreads: boolean, optional
             Whether to submit MPI tasks to hyperthreads
 
-        test: boolean, optional
-            Whether this is a test - no task will be launched; instead
+        dry_run: boolean, optional
+            Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
         wait_on_run: boolean, optional
@@ -292,8 +292,8 @@ class MPIExecutor(Executor):
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
-        if test:
-            task.test = True
+        if dry_run:
+            task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
             task.set_as_complete()
         else:

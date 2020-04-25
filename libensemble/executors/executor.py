@@ -82,7 +82,7 @@ class Task:
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None, test=False):
+                 stdout=None, stderr=None, workerid=None, dry_run=False):
         """Instantiate a new Task instance.
 
         A new task object is created with an id, status and configuration
@@ -108,7 +108,7 @@ class Task:
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
-        self.test = test
+        self.dry_run = dry_run
 
     def reset(self):
         # Status attributes
@@ -186,7 +186,7 @@ class Task:
 
     def poll(self):
         """Polls and updates the status attributes of the task"""
-        if self.test:
+        if self.dry_run:
             return
 
         if not self.check_poll():
@@ -217,7 +217,7 @@ class Task:
         is 0, we go immediately to SIGKILL; if <wait_time> is none, we
         never do a SIGKILL.
         """
-        if self.test:
+        if self.dry_run:
             return
 
         if self.finished:

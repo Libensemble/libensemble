@@ -231,7 +231,7 @@ class BalsamMPIExecutor(MPIExecutor):
     def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False, wait_on_run=False):
+               hyperthreads=False, dry_run=False, wait_on_run=False):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 
@@ -298,8 +298,8 @@ class BalsamMPIExecutor(MPIExecutor):
             add_task_args['stage_out_url'] = "local:" + stage_inout
             add_task_args['stage_out_files'] = "*.out"
 
-        if test:
-            task.test = True
+        if dry_run:
+            task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
             task.set_as_complete()
         else:
