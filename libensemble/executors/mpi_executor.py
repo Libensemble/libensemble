@@ -93,6 +93,8 @@ class MPIExecutor(Executor):
         self.fail_time = 2
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
 
+        # Future: Create class for launcher type - covering different processes (eg machinefile/ERF file)...
+        # Will be created with consideration of change to resources (manager-side)...
         mpi_commands = {
             'mpich': ['mpirun', '--env {env}', '-machinefile {machinefile}',
                       '-hosts {hostlist}', '-np {num_procs}',
@@ -143,6 +145,13 @@ class MPIExecutor(Executor):
                        hyperthreads):
         "Form the mpi_specs dictionary."
         hostlist = None
+
+        # List of conflicting attributes to remove after checks
+        rm_list = []
+        if self.mpi_launch_type == 'jsrun':
+            if num_procs and num_nodes is None and ranks_per_node is None:
+                rm_list = ['num_nodes', 'ranks_per_node']
+
         if machinefile is None and self.auto_resources:
             num_procs, num_nodes, ranks_per_node = \
                 self.resources.get_resources(num_procs=num_procs,
@@ -154,20 +163,34 @@ class MPIExecutor(Executor):
             if self.resources.worker_resources.workers_per_node == 1:
                 hostlist = self.resources.get_hostlist()
             else:
-                machinefile = "machinefile_autogen"
-                if self.workerID is not None:
-                    machinefile += "_for_worker_{}".format(self.workerID)
-                machinefile += "_task_{}".format(task.id)
-                mfile_created, num_procs, num_nodes, ranks_per_node = \
-                    self.resources.create_machinefile(
-                        machinefile, num_procs, num_nodes,
-                        ranks_per_node, hyperthreads)
-                jassert(mfile_created, "Auto-creation of machinefile failed")
+                # Do not create for jsrun - will want ERF instead.
+                if self.mpi_launch_type != 'jsrun':
+                    machinefile = "machinefile_autogen"
+                    if self.workerID is not None:
+                        machinefile += "_for_worker_{}".format(self.workerID)
+                    machinefile += "_task_{}".format(task.id)
+                    mfile_created, num_procs, num_nodes, ranks_per_node = \
+                        self.resources.create_machinefile(
+                            machinefile, num_procs, num_nodes,
+                            ranks_per_node, hyperthreads)
+                    jassert(mfile_created, "Auto-creation of machinefile failed")
 
         else:
             num_procs, num_nodes, ranks_per_node = \
                 MPIResources.task_partition(num_procs, num_nodes,
                                             ranks_per_node, machinefile)
+
+        # Future: Use launcher class
+        if self.mpi_launch_type == 'jsrun':
+            if not rm_list:
+                rm_list = ['num_procs']
+
+        if 'num_procs' in rm_list:
+            num_procs = None
+        if 'num_nodes' in rm_list:
+            num_nodes = None
+        if 'ranks_per_node' in rm_list:
+            ranks_per_node = None
 
         return {'num_procs': num_procs,
                 'num_nodes': num_nodes,

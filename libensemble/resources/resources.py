@@ -108,11 +108,11 @@ class Resources:
         # This is global nodelist avail to workers - may change to global_worker_nodelist
         self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir,
                                                              env_resources=self.env_resources)
+
         self.launcher = launcher
         remote_detect = False
         if socket.gethostname() not in self.global_nodelist:
             remote_detect = True
-
         cores_info = node_resources.get_sub_node_resources(launcher=self.launcher,
                                                            remote_mode=remote_detect,
                                                            env_resources=self.env_resources)
