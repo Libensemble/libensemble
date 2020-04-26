@@ -103,7 +103,8 @@ class MPIExecutor(Executor):
             'aprun': ['aprun', '-e {env}',
                       '-L {hostlist}', '-n {num_procs}',
                       '-N {ranks_per_node}', '{extra_args}'],
-            'jsrun': ['jsrun', '{extra_args}'],  # Relies on extra_args
+            'jsrun': ['jsrun', '-n {num_nodes}', '-a {ranks_per_node}',
+                      '-p {num_procs}', '{extra_args}'],
             'srun': ['srun', '-w {hostlist}', '-n {num_procs}',
                      '--nodes {num_nodes}',
                      '--ntasks-per-node {ranks_per_node}',

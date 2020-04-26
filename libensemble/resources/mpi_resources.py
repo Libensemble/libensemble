@@ -80,6 +80,13 @@ class MPIResources(Resources):
 
         rassert(node_list, "Node list is empty - aborting")
 
+        # List of conflicting attributes to remove after checks
+        rm_list = []
+
+        if self.launcher is 'jsrun':
+            if num_procs and num_nodes is None and ranks_per_node is None:
+                rm_list = ['num_nodes', 'ranks_per_node']
+
         # If no decomposition supplied - use all available cores/nodes
         if not num_procs and not num_nodes and not ranks_per_node:
             num_nodes = local_node_count
@@ -125,6 +132,17 @@ class MPIResources(Resources):
             logger.warning("User constraints mean fewer nodes being used "
                            "than available. {} nodes used. {} nodes available".
                            format(num_nodes, local_node_count))
+
+        if self.launcher is 'jsrun':
+            if not rm_list:
+                rm_list = ['num_procs']
+
+        if 'num_procs' in rm_list:
+            num_procs = None
+        if 'num_nodes' in rm_list:
+            num_nodes = None
+        if 'ranks_per_node' in rm_list:
+            ranks_per_node = None
 
         return num_procs, num_nodes, ranks_per_node
 
