@@ -34,6 +34,8 @@ for dir in [sim_input_dir, dir_to_copy]:
 
 libE_specs['sim_input_dir'] = sim_input_dir
 libE_specs['ensemble_dir_path'] = o_ensemble
+libE_specs['sim_dirs_make'] = False
+libE_specs['ensemble_copy_back'] = False
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
@@ -53,19 +55,12 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    assert os.path.isdir(o_ensemble), 'Ensemble directory {} not created.'.format(o_ensemble)
-    dir_sum = sum(['worker' in i for i in os.listdir(o_ensemble)])
-    assert dir_sum == exit_criteria['sim_max'], \
-        'Number of sim directories ({}) does not match sim_max ({}).'\
-        .format(dir_sum, exit_criteria['sim_max'])
+    assert os.path.isdir(o_ensemble), \
+        'Ensemble directory {} not created.'.format(o_ensemble)
+    assert os.path.basename(dir_to_copy) in os.listdir(o_ensemble), \
+        'Input file not copied over.'
+    with open(os.path.join(o_ensemble, 'test_out.txt'), 'r') as f:
+        lines = f.readlines()
 
-    input_copied = []
-
-    for base, files, _ in os.walk(o_ensemble):
-        basedir = base.split('/')[-1]
-        if basedir.startswith('sim'):
-            input_copied.append(all([os.path.basename(j) in files for j in
-                                    os.listdir(sim_input_dir)]))
-
-    assert all(input_copied), \
-        'Exact input files not copied to each calculation directory'
+    assert len(lines) == exit_criteria['sim_max'], \
+        'Sim output not written to ensemble dir for each sim call'

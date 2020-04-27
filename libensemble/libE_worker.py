@@ -150,6 +150,7 @@ class Worker:
 
         sim_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
 
+        do_sim_dirs = libE_specs.get('sim_dirs_make', True)
         prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         copy_files = libE_specs.get('sim_dir_copy_files', [])
         symlink_files = libE_specs.get('sim_dir_symlink_files', [])
@@ -158,6 +159,12 @@ class Worker:
         # If using sim_input_dir, set of files to copy is contents of provided dir
         if sim_input_dir:
             copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
+
+        # Case where sim_dirs not wanted (all workers operate in ensemble_dir)
+        if not do_sim_dirs:
+            locs.register_loc(prefix, prefix, prefix=None, copy_files=copy_files,
+                              symlink_files=symlink_files, ignore_FileExists=True)
+            return prefix, prefix
 
         # If identical paths to copy and symlink, remove those paths from symlink_files
         if len(symlink_files):
@@ -247,9 +254,15 @@ class Worker:
             if os.path.basename(self.prefix) in os.listdir(self.startdir):
                 copybackdir += '_back'
             for dir in self.loc_stack.dirs.values():
-                shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
-                if os.path.basename(dir).startswith('worker'):
-                    break  # Worker dir (with all sim_dirs) copied.
+                try:
+                    shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
+                    if os.path.basename(dir).startswith('worker'):
+                        break  # Worker dir (with all sim_dirs) copied.
+                except FileExistsError:
+                    if not self.libE_specs.get('sim_dirs_make', True):
+                        continue
+                    else:
+                        raise
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for sim_dir structure, then performs calculation."

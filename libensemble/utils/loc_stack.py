@@ -14,24 +14,30 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def copy_or_symlink(self, destdir, copy_files=[], symlink_files=[]):
+    def copy_or_symlink(self, destdir, copy_files=[], symlink_files=[], ignore_FileExists=False):
         """ Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
         for file_path in copy_files:
             src_base = os.path.basename(file_path)
             dest_path = os.path.join(destdir, src_base)
-            if os.path.isdir(file_path):
-                shutil.copytree(file_path, dest_path)
-            else:
-                shutil.copy(file_path, dest_path)
+            try:
+                if os.path.isdir(file_path):
+                    shutil.copytree(file_path, dest_path)
+                else:
+                    shutil.copy(file_path, dest_path)
+            except FileExistsError:
+                if ignore_FileExists:
+                    continue
+                else:
+                    raise
 
         for file_path in symlink_files:
             src_path = os.path.abspath(file_path)
             dest_path = os.path.join(destdir, os.path.basename(file_path))
             os.symlink(src_path, dest_path)
 
-    def register_loc(self, key, dirname, prefix=None, copy_files=[], symlink_files=[]):
+    def register_loc(self, key, dirname, prefix=None, copy_files=[], symlink_files=[], ignore_FileExists=False):
         """Register a new location in the dictionary.
 
         Parameters
@@ -62,7 +68,7 @@ class LocationStack:
 
         self.dirs[key] = dirname
         if len(copy_files) or len(symlink_files):
-            self.copy_or_symlink(dirname, copy_files, symlink_files)
+            self.copy_or_symlink(dirname, copy_files, symlink_files, ignore_FileExists)
 
         return dirname
 
