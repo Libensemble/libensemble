@@ -64,21 +64,26 @@ calculations on separate filesystems or in other directories. This is helpful
 for users performing simulations who want to take advantage of high-speed
 scratch spaces or disks, or organize their I/O by application run.
 
-With these features enabled, each time a worker initiates a simulation routine it
-creates a new directory where it runs for the routine's duration.
+With these features enabled, each time a worker initiates a simulation routine
+it automatically enters a configurable directory, either a new directory specific
+to that worker and simulation instance or a shared directory for all workers.
 Where these directories are created or what files they contain is configurable
-through settings in :ref:`libE_specs<datastruct-libe-specs>`. Each setting will be
-described in detail here:
+through settings in :ref:`libE_specs<datastruct-libe-specs>`. Defining any
+compatible settings initiates this system with default settings for unspecified
+options. Each setting will be described in detail here:
 
 * ``'sim_dirs_make'``: Boolean. Enables per-simulation directories with default
   settings. Directories are labeled in the form ``'sim0-worker1'`` and without
   further configuration, placed in the ensemble directory ``./ensemble``,
-  relative to where libEnsemble was launched.
+  relative to where libEnsemble was launched. Default: ``True``. If ``False``,
+  all workers will operate within the ensemble directory without producing
+  per-simulation directories.
 
 * ``'ensemble_dir_path'``: This location, typically referred to as the ensemble
   directory, is where each worker places its simulation directories. If not
   specified, simulation directories are placed in ``./ensemble``, relative to
-  where libEnsemble was launched. On supported systems, writing to local-node
+  where libEnsemble was launched. If ``'sim_dirs_make'`` is ``False``, all workers
+  will run within this directory. On supported systems, writing to local-node
   storage is possible and recommended for increased performance.::
 
       libE_specs['ensemble_dir_path'] = "/scratch/my_ensemble"
@@ -86,7 +91,7 @@ described in detail here:
 * ``'use_worker_dirs'``: Boolean. Sorts simulation directories into
   per-worker directories at runtime. Particularly useful for organization when
   running with multiple workers on global scratch spaces or the same node, and
-  may produce performance benefits.
+  may produce performance benefits. Default: ``False``.
 
   Default structure with ``'use_worker_dirs'`` unspecified::
 
@@ -106,7 +111,8 @@ described in detail here:
             ...
 
 * ``'sim_dir_copy_files'``: A list of paths for files to copy into simulation
-  directories. If using the :ref:`Executor<executor_index>` to launch an
+  directories. If ``'sim_dirs_make'`` is False, these files are copied to the
+  ensemble directory. If using the :ref:`Executor<executor_index>` to launch an
   application, this may be helpful for copying over configuration files for each
   launch.
 
@@ -117,14 +123,17 @@ described in detail here:
   directory where libEnsemble was launched where workers copy back their simulation
   directories on a run's conclusion or an exception. Especially useful when
   ``'ensemble_dir_path'`` has been set to some scratch space or another temporary
-  location.
+  location. Default: ``True``.
 
 * ``'sim_input_dir'``: A path to a directory to copy for simulation
   directories. This directory and it's contents are copied to form the base
-  of new simulation directories.
+  of new simulation directories. If ``'sim_dirs_make'`` is False, this directory's
+  contents are copied into the ensemble directory.
 
 See the regression tests ``test_sim_dirs_per_calc.py`` and
 ``test_use_worker_dirs.py`` for examples of many of these settings.
+See ``test_sim_input_dir_option.py`` for examples of using these settings
+without simulation-specific directories.
 
 .. note::
   The ``postproc_scripts`` directory, in the libEnsemble project root directory,

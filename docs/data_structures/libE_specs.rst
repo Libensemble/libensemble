@@ -23,16 +23,17 @@ Specifications for libEnsemble::
         'sim_dirs_make' [boolean] :
             Whether to make simulation-specific calculation directories for each sim call.
             This will create a directory for each simulation, even if no sim_input_dir is specified.
-            Default: False
+            If False, all workers operate within the ensemble directory described below.
+            Default: True
         'ensemble_dir_path' [string] :
             Path to main ensemble directory containing calculation (sim) directories.
-            This is only created if calculation directories are created.
+            Can serve as single working directory for all workers, or contain calculation directories.
             Default: './ensemble'
         'use_worker_dirs' [boolean] :
             Whether to organize calculation (sim) directories under worker-specific directories.
             Default: False
         'sim_dir_copy_files' [list] :
-            List of paths to files or directories to copy into each sim dir.
+            List of paths to files or directories to copy into each sim dir, or ensemble dir.
         'sim_dir_symlink_files' [list] :
             List of paths to files or directories to symlink into each sim dir.
         'ensemble_copy_back' [boolean] :
@@ -41,6 +42,7 @@ Specifications for libEnsemble::
             Default: True
         'sim_input_dir' [string] :
             Copy this directory and it's contents for each simulation-specific directory.
+            If not using calculation directories, contents are copied to the ensemble directory.
         'profile_worker' [boolean] :
             Profile using cProfile. Default: False
         'disable_log_files' [boolean] :
