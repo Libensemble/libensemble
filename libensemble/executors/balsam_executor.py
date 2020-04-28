@@ -166,12 +166,14 @@ class BalsamMPIExecutor(MPIExecutor):
             logger.warning("Balsam does not currently support distributed mode - running in central mode")
             central_mode = True
 
-        super().__init__(auto_resources, central_mode,
+        super().__init__(auto_resources,
+                         allow_oversubscribe
+                         central_mode,
                          nodelist_env_slurm,
                          nodelist_env_cobalt,
                          nodelist_env_lsf,
                          nodelist_env_lsf_shortform)
-        self.mpi_launcher = None
+        #self.mpi_launcher = None
 
     def _serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
