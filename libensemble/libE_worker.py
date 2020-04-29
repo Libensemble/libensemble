@@ -249,7 +249,7 @@ class Worker:
 
     def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
-        if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', True):
+        if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', False):
             copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix))
             if os.path.basename(self.prefix) in os.listdir(self.startdir):
                 copybackdir += '_back'

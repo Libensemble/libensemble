@@ -123,7 +123,7 @@ options. Each setting will be described in detail here:
   directory where libEnsemble was launched where workers copy back their simulation
   directories on a run's conclusion or an exception. Especially useful when
   ``'ensemble_dir_path'`` has been set to some scratch space or another temporary
-  location. Default: ``True``.
+  location. Default: ``False``.
 
 * ``'sim_input_dir'``: A path to a directory to copy for simulation
   directories. This directory and it's contents are copied to form the base

@@ -147,7 +147,7 @@ class Manager:
 
         if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
             self.check_ensemble_dir(libE_specs)
-            if libE_specs.get('ensemble_copy_back', True):
+            if libE_specs.get('ensemble_copy_back', False):
                 Manager.make_copyback_dir(libE_specs)
 
     @staticmethod

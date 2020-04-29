@@ -39,7 +39,7 @@ Specifications for libEnsemble::
         'ensemble_copy_back' [boolean] :
             Whether to copy back directories within ensemble_dir_path back to launch location.
             Useful if ensemble_dir placed on node-local storage.
-            Default: True
+            Default: False
         'sim_input_dir' [string] :
             Copy this directory and it's contents for each simulation-specific directory.
             If not using calculation directories, contents are copied to the ensemble directory.
