@@ -126,6 +126,9 @@ with ::
 
 A tarball_ of the most recent release is also available.
 
+See `Advanced Installation`_ for additional options for obtaining and configuring
+libEnsemble during installation.
+
 Testing
 ~~~~~~~
 
@@ -139,10 +142,6 @@ packages to be installed and can be run from the ``libensemble/tests`` directory
 of the source distribution by running ::
 
     ./run-tests.sh
-
-To clean the test repositories, run ::
-
-    ./run-tests.sh -c
 
 Further options are available. To see a complete list of options, run ::
 
