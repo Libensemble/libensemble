@@ -39,7 +39,7 @@ To install libEnsemble with `Open MPI`_::
 
 .. note::
     This syntax may not work without adjustments on macOS or any non-bash
-    shell environment. Try this instead, for example::
+    shell. Try this instead, for example::
 
         conda install -c conda-forge libensemble='*'=mpi_mpich'*'
 
