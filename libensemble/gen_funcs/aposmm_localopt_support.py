@@ -275,7 +275,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     else:
         print("The SciPy localopt run started from " + str(x0) + " stopped "
               " without finding a local min. The status of the run is " + str(res['status']) +
-              " and the message is " + res['message'] + 
+              " and the message is " + res['message'] +
               ". No point from this run will be ruled as a minimum! APOSMM may "
               "start a new run from some point in this run.")
         opt_flag = 0
@@ -489,7 +489,7 @@ def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, use
     if user_specs['localopt_method'] in ['scipy_BFGS']:
 
         x_recv, f_x_recv, grad_recv, = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
-        
+
         return f_x_recv, grad_recv
 
     x_recv, f_x_recv, = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)

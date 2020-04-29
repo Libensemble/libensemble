@@ -70,8 +70,8 @@ for run in range(2):
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     if run == 1:
-      gen_specs['user']['localopt_method'] = 'scipy_BFGS'
-      sim_specs['out'] = [('f', float), ('grad', float, n)]
+        gen_specs['user']['localopt_method'] = 'scipy_BFGS'
+        sim_specs['out'] = [('f', float), ('grad', float, n)]
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
