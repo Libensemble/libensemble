@@ -126,9 +126,6 @@ with ::
 
 A tarball_ of the most recent release is also available.
 
-See `Advanced Installation`_ for additional options for obtaining and configuring
-libEnsemble during installation.
-
 Testing
 ~~~~~~~
 

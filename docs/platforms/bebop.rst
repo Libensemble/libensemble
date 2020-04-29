@@ -39,15 +39,15 @@ libEnsemble can then be installed via ``pip`` or ``conda``. To install via ``pip
 
     (my_env) user@login:~$ pip install libensemble
 
-Installing libEnsemble via ``conda`` may contain platform-specific
-optimizations for dependencies like NumPy. You can also choose which MPI libEnsemble uses:
+To install via ``conda``:
 
 .. code-block:: console
 
     (my_env) user@login:~$ conda config --add channels conda-forge
-    (my_env) user@login:~$ conda install -c conda-forge libensemble=*=mpi_mpich*    # with MPICH
-             OR            conda install -c conda-forge libensemble=*=mpi_openmpi*  # with Open MPI
-             OR            conda install -c conda-forge libensemble                 # without MPI
+    (my_env) user@login:~$ conda install -c conda-forge libensemble
+
+See :doc:`here<../advanced_installation>` for more information on advanced options
+for installing libEnsemble.
 
 Job Submission
 --------------
