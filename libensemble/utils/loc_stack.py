@@ -19,6 +19,7 @@ class LocationStack:
         Determine paths, basenames, and conditions for copying/symlinking
         """
         for file_path in copy_files:
+            file_path = os.path.expanduser(os.path.expandvars(file_path))
             src_base = os.path.basename(file_path)
             dest_path = os.path.join(destdir, src_base)
             try:
@@ -33,7 +34,7 @@ class LocationStack:
                     raise
 
         for file_path in symlink_files:
-            src_path = os.path.abspath(file_path)
+            src_path = os.path.abspath(os.path.expanduser(os.path.expandvars(file_path)))
             dest_path = os.path.join(destdir, os.path.basename(file_path))
             os.symlink(src_path, dest_path)
 
@@ -64,7 +65,7 @@ class LocationStack:
             dirname = os.path.join(prefix, os.path.basename(dirname))
 
         if dirname and not os.path.isdir(dirname):
-            os.makedirs(dirname)
+            os.makedirs(dirname, exist_ok=True)  # Prevent race-condition when no sim_dirs
 
         self.dirs[key] = dirname
         if len(copy_files) or len(symlink_files):

@@ -35,7 +35,6 @@ for dir in [sim_input_dir, dir_to_copy]:
 libE_specs['sim_input_dir'] = sim_input_dir
 libE_specs['ensemble_dir_path'] = o_ensemble
 libE_specs['sim_dirs_make'] = False
-libE_specs['ensemble_copy_back'] = False
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
