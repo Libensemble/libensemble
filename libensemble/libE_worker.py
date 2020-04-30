@@ -158,8 +158,7 @@ class Worker:
 
         # If using sim_input_dir, set of files to copy is contents of provided dir
         if sim_input_dir:
-            copy_files = set(copy_files + \
-                            [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
+            copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
 
         # If identical paths to copy and symlink, remove those paths from symlink_files
         if len(symlink_files):
