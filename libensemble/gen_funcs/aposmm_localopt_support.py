@@ -65,7 +65,7 @@ class LocalOptInterfacer(object):
 
     - NLopt routines ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']
     - PETSc/TAO routines ['pounders', 'blmvm', 'nm']
-    - SciPy routines ['scipy_Nelder-Mead', 'scipy_COBYLA']
+    - SciPy routines ['scipy_Nelder-Mead', 'scipy_COBYLA', 'scipy_BFGS']
     - DFOLS ['dfols']
     - External local optimizer ['external_localopt'] (which use files to pass/receive x/f values)
     """
@@ -100,7 +100,7 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_nlopt
         elif user_specs['localopt_method'] in ['pounders', 'blmvm', 'nm']:
             run_local_opt = run_local_tao
-        elif user_specs['localopt_method'] in ['scipy_Nelder-Mead', 'scipy_COBYLA']:
+        elif user_specs['localopt_method'] in ['scipy_Nelder-Mead', 'scipy_COBYLA', 'scipy_BFGS']:
             run_local_opt = run_local_scipy_opt
         elif user_specs['localopt_method'] in ['dfols']:
             run_local_opt = run_local_dfols
@@ -263,17 +263,19 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
         cons.append(up)
 
     method = user_specs['localopt_method'][6:]
+    jac_flag = method in ['BFGS']
     # print('[Child]: Started my optimization', flush=True)
     res = sp_opt.minimize(lambda x: scipy_dfols_callback_fun(x, comm_queue,
                           child_can_read, parent_can_read, user_specs), x0,
                           # constraints=cons,
-                          method=method, **user_specs.get('scipy_kwargs', {}))
+                          method=method, jac=jac_flag, **user_specs.get('scipy_kwargs', {}))
 
     if res['status'] == 0:
         opt_flag = 1
     else:
         print("The SciPy localopt run started from " + str(x0) + " stopped "
               " without finding a local min. The status of the run is " + str(res['status']) +
+              " and the message is " + res['message'] +
               ". No point from this run will be ruled as a minimum! APOSMM may "
               "start a new run from some point in this run.")
         opt_flag = 0
@@ -483,6 +485,12 @@ def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, use
 
 
 def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs):
+
+    if user_specs['localopt_method'] in ['scipy_BFGS']:
+
+        x_recv, f_x_recv, grad_recv, = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
+
+        return f_x_recv, grad_recv
 
     x_recv, f_x_recv, = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
 

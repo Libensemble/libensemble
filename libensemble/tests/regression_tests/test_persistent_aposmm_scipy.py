@@ -11,7 +11,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local mpi tcp
+# TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 4
 
 import sys
@@ -52,8 +52,6 @@ gen_specs = {'gen_f': gen_f,
              'user': {'initial_sample_size': 100,
                       'sample_points': np.round(minima, 1),
                       'localopt_method': 'scipy_Nelder-Mead',
-                      'fatol': 1e-5,
-                      'xatol': 1e-5,
                       'nu': 1e-8,
                       'mu': 1e-8,
                       'dist_to_bound_multiple': 0.01,
@@ -64,23 +62,33 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 2000}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
 
-if is_master:
-    print('[Manager]:', H[np.where(H['local_min'])]['x'])
-    print('[Manager]: Time taken =', time() - start_time, flush=True)
+for run in range(2):
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    tol = 1e-3
-    for m in minima:
-        # The minima are known on this test problem.
-        # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
-        assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
+    if run == 1:
+        gen_specs['user']['localopt_method'] = 'scipy_BFGS'
+        sim_specs['out'] = [('f', float), ('grad', float, n)]
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                alloc_specs, libE_specs)
+
+    if is_master:
+        print('[Manager]:', H[np.where(H['local_min'])]['x'])
+        print('[Manager]: Time taken =', time() - start_time, flush=True)
+
+        tol = 1e-3
+        min_found = 0
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
+            if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol:
+                min_found += 1
+        assert min_found >= 4, "Found {} minima".format(min_found)
+
+        save_libE_output(H, persis_info, __file__, nworkers)

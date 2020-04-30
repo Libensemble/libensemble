@@ -222,7 +222,7 @@ def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, f
 
     for name in ['f', 'x_on_cube', 'grad', 'fvec']:
         if name in fields_to_pass:
-            assert name in calc_in.dtype.names, name + " must be returned to persistent_aposmm for localopt_method" + user_specs['localopt_method']
+            assert name in calc_in.dtype.names, name + " must be returned to persistent_aposmm for localopt_method: " + user_specs['localopt_method']
 
     for name in calc_in.dtype.names:
         local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
@@ -614,7 +614,7 @@ def initialize_children(user_specs):
     run_order = {}
     run_pts = {}  # This can differ from 'x_on_cube' if, for example, user_specs['periodic'] is True and run points are off the cube.
     total_runs = 0
-    if user_specs['localopt_method'] in ['LD_MMA', 'blmvm']:
+    if user_specs['localopt_method'] in ['LD_MMA', 'blmvm', 'scipy_BFGS']:
         fields_to_pass = ['x_on_cube', 'f', 'grad']
     elif user_specs['localopt_method'] in ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA',
                                            'LN_NELDERMEAD', 'scipy_Nelder-Mead', 'scipy_COBYLA',
