@@ -27,13 +27,16 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     PATH.
 
     This generator alternates between generating large batches of size
-    gen_specs['gen_batch_size'] to explore design regions, and small
-    batches of undetermined size to fill in gaps on the Pareto front.
+    gen_specs['search_batch_size'] to explore design regions, and small
+    batches of size gen_specs['opt_batch_size'] to fill in gaps on the
+    Pareto front. An initial search size can also be specified by using
+    gen_specs['first_batch_size'].
 
     gen_specs['ub'] and gen_specs['lb'] must specify upper and lower
     bound constraints on each design variable. The number of design variables
     is inferred from len(gen_specs['ub']). gen_specs['num_obj']
-    specifies the number of objectives.
+    specifies the number of objectives. The problem dimension is inferred
+    based on the length of the gen_specs['lb'].
 
     Several unformatted binary files (vtmop.io, vtmop.dat, and vtmop.chkpt)
     will be generated in the calling directory to pass information between
