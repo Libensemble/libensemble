@@ -36,7 +36,13 @@ class LocationStack:
         for file_path in symlink_files:
             src_path = os.path.abspath(os.path.expanduser(os.path.expandvars(file_path)))
             dest_path = os.path.join(destdir, os.path.basename(file_path))
-            os.symlink(src_path, dest_path)
+            try:
+                os.symlink(src_path, dest_path)
+            except FileExistsError:
+                if ignore_FileExists:
+                    continue
+                else:
+                    raise
 
     def register_loc(self, key, dirname, prefix=None, copy_files=[], symlink_files=[], ignore_FileExists=False):
         """Register a new location in the dictionary.
