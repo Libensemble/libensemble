@@ -137,7 +137,7 @@ class Worker:
         self.sim_specs = sim_specs
         self.libE_specs = libE_specs
         self.startdir = os.getcwd()
-        self.prefix = ""
+        self.prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self.loc_stack = None
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
@@ -176,7 +176,7 @@ class Worker:
 
             locs.register_loc(key, dir, prefix=prefix, copy_files=copy_files,
                               symlink_files=symlink_files, ignore_FileExists=True)
-            return prefix, key
+            return key
 
         # All cases now should involve sim_dirs
         # ensemble_dir/worker_dir registered here, set as parent dir for sim dirs
@@ -200,7 +200,7 @@ class Worker:
                           copy_files=copy_files,
                           symlink_files=symlink_files)
 
-        return prefix, calc_dir
+        return calc_dir
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
@@ -283,8 +283,8 @@ class Worker:
         calc_str = calc_type_strings[calc_type]
 
         if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
-            self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
-                                                          H_rows, calc_str, self.loc_stack)
+            calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
+                                             H_rows, calc_str, self.loc_stack)
 
             with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
                 return calc(calc_in, Work['persis_info'], Work['libE_info'])
