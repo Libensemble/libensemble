@@ -180,8 +180,7 @@ class Manager:
         """Checks against stop value criterion"""
         key, val = stop_val
         H = self.hist.H
-        idx = self.hist.index
-        return np.any(filter_nans(H[key][:idx]) <= val)
+        return np.any(filter_nans(H[key][H['returned']]) <= val)
 
     def term_test(self, logged=True):
         """Checks termination criteria"""

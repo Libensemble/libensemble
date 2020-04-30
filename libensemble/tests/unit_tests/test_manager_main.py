@@ -28,6 +28,7 @@ def test_term_test_2():
     #
     # Terminate because we've found a good 'g' value
     hist.H['g'][0] = -1
+    hist.H['returned'][0] = True
     hist.index = 1
     hist.given_count = 1
     assert mgr.term_test()
