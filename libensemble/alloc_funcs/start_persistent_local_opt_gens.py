@@ -66,6 +66,8 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
                      np.atleast_1d(ind), persis_info[i], persistent=True)
+            np.save('JH' + str(len(H)), H)
+            np.save('KH' + str(len(H)), H[sim_specs['in'] + [n[0] for n in sim_specs['out']]])
 
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
