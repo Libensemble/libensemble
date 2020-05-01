@@ -43,60 +43,158 @@ def test_range_mixes():
         'Failed to correctly parse H row single elements and ranges.'
 
 
-def test_stage_and_indicate():
-    """ Ensure that input files are staged into working directories and that an
-    indication file is created. When multiple workers are on the same node, this
-    file indicates to other workers to not copy any files over."""
-
-    locs = LocationStack()
-    calcdir = './calc'
-    inputdir = './input'
-    inputfile = './input/file'
-    stgfile = '.COPY_PARENT_STAGED'
-
-    for dir in [inputdir, calcdir]:
-        os.makedirs(dir, exist_ok=True)
-
-    open(inputfile, 'w')
-
-    Worker._stage_and_indicate(locs, inputdir, calcdir, stgfile)
-    assert 'file' in os.listdir(calcdir), 'File not staged into calculation dir'
-    assert stgfile in os.listdir(calcdir), 'Stage indication file not created'
-
-
-def test_clean_out_copy_back():
-    """ When workers conclude their work, the stage indication file needs to be
-    deleted and workers have the option of copying back their work into a
-    directory created by the manager."""
+def test_copy_back():
+    """ When workers conclude their work, workers have the option of copying
+    back their work into a directory created by the manager."""
 
     class FakeWorker:
-        """ Enough information to test _clean_out_copy_back() """
-        def __init__(self, libE_specs, prefix, startdir):
+        """ Enough information to test _copy_back() """
+        def __init__(self, libE_specs, prefix, startdir, loc_stack):
             self.libE_specs = libE_specs
             self.prefix = prefix
             self.startdir = startdir
+            self.loc_stack = loc_stack
 
-    # Using directories and files from previous test
-    libE_specs = {'sim_input_dir': './input', 'copy_input_to_parent': True,
-                  'copy_back_output': True}
-    prefix = './calc'
+    inputdir = './calc'
     copybackdir = './calc_back'
-    startdir = '.'
+    inputfile = './calc/file'
 
-    # Normally created by manager
-    os.makedirs(copybackdir, exist_ok=True)
+    for dir in [inputdir, copybackdir]:
+        os.makedirs(dir, exist_ok=True)
 
-    fake_worker = FakeWorker(libE_specs, prefix, startdir)
-    Worker._clean_out_copy_back(fake_worker)
+    libE_specs = {'sim_dirs_make': True, 'ensemble_dir_path': inputdir,
+                  'ensemble_copy_back': True}
 
-    assert '.COPY_PARENT_STAGED' not in os.listdir(prefix), \
-        'Stage indication file not deleted'
-    assert '.COPY_PARENT_STAGED' not in os.listdir(copybackdir), \
-        'Stage indication file copied back'
+    ls = LocationStack()
+    ls.register_loc('test', inputfile)
+    fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
+    Worker._copy_back(fake_worker)
     assert 'file' in os.listdir(copybackdir), \
         'File not copied back to starting dir'
 
-    for dir in [prefix, copybackdir, 'input']:
+    for dir in [inputdir, copybackdir]:
+        shutil.rmtree(dir)
+
+
+def test_copy_back_exception():
+    """ Test _copy_back handling of FileExistsError with certain
+    settings"""
+    class FakeWorker:
+        """ Enough information to test _copy_back() """
+        def __init__(self, libE_specs, prefix, startdir, loc_stack):
+            self.libE_specs = libE_specs
+            self.prefix = prefix
+            self.startdir = startdir
+            self.loc_stack = loc_stack
+
+    inputdir = './calc'
+    copybackdir = './calc_back'
+    inputfile = './calc/file'
+
+    for dir in [inputdir, copybackdir]:
+        os.makedirs(dir, exist_ok=True)
+
+    libE_specs = {'sim_dirs_make': False, 'ensemble_dir_path': inputdir,
+                  'ensemble_copy_back': True}
+
+    ls = LocationStack()
+    ls.register_loc('test', inputfile)
+    fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
+
+    # Testing catch and continue
+    for i in range(2):
+        Worker._copy_back(fake_worker)
+    assert 'file' in os.listdir(copybackdir), \
+        'File not copied back to starting dir'
+
+    libE_specs = {'sim_dirs_make': True, 'ensemble_dir_path': inputdir,
+                  'ensemble_copy_back': True}
+    fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
+
+    flag = 1
+
+    # Testing catch and raise
+    try:
+        Worker._copy_back(fake_worker)
+    except FileExistsError:
+        flag = 0
+    assert flag == 0
+
+    for dir in [inputdir, copybackdir]:
+        shutil.rmtree(dir)
+
+
+def test_worker_dirs_but_no_sim_dirs():
+    """Test Worker._make_calc_dir() directory structure without sim_dirs"""
+    inputdir = './calc'
+    inputfile = './calc/file'
+    ensemble_dir = './test_ens'
+
+    for dir in [inputdir, inputfile, ensemble_dir]:
+        os.makedirs(dir, exist_ok=True)
+
+    libE_specs = {'sim_dirs_make': False, 'ensemble_dir_path': ensemble_dir,
+                  'use_worker_dirs': True, 'sim_input_dir': inputdir}
+
+    ls = LocationStack()
+    for i in range(4):  # Should work at any range
+        Worker._make_calc_dir(libE_specs, 1, 1, 'sim', ls)
+
+    assert 'worker1' in os.listdir(ensemble_dir)
+    assert 'file' in os.listdir(os.path.join(ensemble_dir, 'worker1'))
+
+    for dir in [inputdir, ensemble_dir]:
+        shutil.rmtree(dir)
+
+
+def test_loc_stack_FileExists_exceptions():
+    inputdir = './calc'
+    copyfile = './calc/copy'
+    symlinkfile = './calc/symlink'
+    ensemble_dir = './test_ens'
+
+    for dir in [inputdir, copyfile, symlinkfile]:
+        os.makedirs(dir, exist_ok=True)
+
+    # Testing loc_stack continuing on FileExistsError when not using sim_dirs
+    libE_specs = {'sim_dirs_make': False, 'ensemble_dir_path': ensemble_dir,
+                  'use_worker_dirs': True, 'sim_dir_copy_files': [copyfile],
+                  'sim_dir_symlink_files': [symlinkfile]}
+
+    ls = LocationStack()
+    for i in range(2):  # Should work at any range
+        Worker._make_calc_dir(libE_specs, 1, '1', 'sim', ls)
+
+    assert len(os.listdir(ensemble_dir)) == 1, 'Should only be a single worker file in ensemble'
+    assert 'worker1' in os.listdir(ensemble_dir), 'Only directory should be worker1'
+    assert all([i in os.listdir(os.path.join(ensemble_dir, 'worker1')) for i in ['copy', 'symlink']]), \
+        'Files to copy and symlink not found in worker directory.'
+
+    # Testing loc_stack exception raising when sim_dir re-used - copy
+    libE_specs = {'sim_dirs_make': True, 'ensemble_dir_path': ensemble_dir,
+                  'use_worker_dirs': True, 'sim_dir_copy_files': [copyfile]}
+
+    flag = 1
+    Worker._make_calc_dir(libE_specs, 1, '1', 'sim', ls)
+    try:
+        Worker._make_calc_dir(libE_specs, 1, '1', 'sim', ls)
+    except FileExistsError:
+        flag = 0
+    assert flag == 0
+
+    # Testing loc_stack exception raising when sim_dir re-used - symlink
+    libE_specs = {'sim_dirs_make': True, 'ensemble_dir_path': ensemble_dir,
+                  'use_worker_dirs': True, 'sim_dir_symlink_files': [symlinkfile]}
+
+    flag = 1
+    Worker._make_calc_dir(libE_specs, 1, '2', 'sim', ls)
+    try:
+        Worker._make_calc_dir(libE_specs, 1, '2', 'sim', ls)
+    except FileExistsError:
+        flag = 0
+    assert flag == 0
+
+    for dir in [inputdir, ensemble_dir]:
         shutil.rmtree(dir)
 
 
@@ -105,5 +203,7 @@ if __name__ == '__main__':
     test_range_two_separate_elements()
     test_range_two_ranges()
     test_range_mixes()
-    test_stage_and_indicate()
-    test_clean_out_copy_back()
+    test_copy_back()
+    test_copy_back_exception()
+    test_worker_dirs_but_no_sim_dirs()
+    test_loc_stack_FileExists_exceptions()

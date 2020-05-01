@@ -20,6 +20,8 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
+from libensemble.tools.tools import _USER_SIM_DIR_WARNING
+from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
 import cProfile
 import pstats
 
@@ -143,24 +145,30 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        if libE_specs.get('copy_back_output'):
-            self.copybackdir = Manager.make_copyback_dir(libE_specs)
+        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
+            self.check_ensemble_dir(libE_specs)
+            if libE_specs.get('ensemble_copy_back', False):
+                Manager.make_copyback_dir(libE_specs)
 
     @staticmethod
     def make_copyback_dir(libE_specs):
-        copybackdir = os.path.basename(libE_specs.get('ensemble_dir',
-                                       './ensemble')) + '_back'
-        if not os.path.isdir(copybackdir):
-            os.makedirs(copybackdir)
-        else:
-            count = 1
-            while True:
-                try:
-                    os.makedirs(copybackdir+str(count))
-                    break
-                except FileExistsError:
-                    count += 1
-        return copybackdir
+        ensemble_dir_path = libE_specs.get('ensemble_dir_path', './ensemble')
+        copybackdir = os.path.basename(ensemble_dir_path)
+        if ensemble_dir_path == './' + copybackdir:
+            copybackdir += '_back'
+        os.makedirs(copybackdir)
+
+    def check_ensemble_dir(self, libE_specs):
+        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
+        try:
+            os.rmdir(prefix)
+        except FileNotFoundError:  # Ensemble dir doesn't exist.
+            pass
+        except OSError as e:  # Ensemble dir exists and isn't empty.
+            logger.manager_warning(_USER_SIM_DIR_WARNING.format(prefix))
+            self._kill_workers()
+            raise ManagerException('Manager errored on initialization',
+                                   'Ensemble directory already existed and wasn\'t empty.', e)
 
     # --- Termination logic routines
 

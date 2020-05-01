@@ -26,20 +26,16 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
-dir_to_symlink = sim_input_dir + '/symlink_this'
-c_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
-print('creating ensemble dir: ', c_ensemble, flush=True)
+o_ensemble = './ensemble_inputdir_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
-for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
+for dir in [sim_input_dir, dir_to_copy]:
     if is_master and not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
-libE_specs['sim_dirs_make'] = True
-libE_specs['ensemble_dir_path'] = c_ensemble
-libE_specs['use_worker_dirs'] = False
-libE_specs['sim_dir_copy_files'] = [dir_to_copy]
-libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
-libE_specs['ensemble_copy_back'] = True
+libE_specs['sim_input_dir'] = sim_input_dir
+libE_specs['ensemble_dir_path'] = o_ensemble
+libE_specs['sim_dirs_make'] = False
+libE_specs['sim_dir_symlink_files'] = ['./test_sim_input_dir_option.py']  # to cover FileExistsError catch
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
@@ -59,20 +55,12 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
-    dir_sum = sum(['worker' in i for i in os.listdir(c_ensemble)])
-    assert dir_sum == exit_criteria['sim_max'], \
-        'Number of sim directories ({}) does not match sim_max ({}).'\
-        .format(dir_sum, exit_criteria['sim_max'])
+    assert os.path.isdir(o_ensemble), \
+        'Ensemble directory {} not created.'.format(o_ensemble)
+    assert os.path.basename(dir_to_copy) in os.listdir(o_ensemble), \
+        'Input file not copied over.'
+    with open(os.path.join(o_ensemble, 'test_out.txt'), 'r') as f:
+        lines = f.readlines()
 
-    input_copied = []
-
-    for base, files, _ in os.walk(c_ensemble):
-        basedir = base.split('/')[-1]
-        if basedir.startswith('sim'):
-            input_copied.append(all([os.path.basename(j) in files for j in
-                                    libE_specs['sim_dir_copy_files'] +
-                                    libE_specs['sim_dir_symlink_files']]))
-
-    assert all(input_copied), \
-        'Exact input files not copied or symlinked to each calculation directory'
+    assert len(lines) == exit_criteria['sim_max'], \
+        'Sim output not written to ensemble dir for each sim call'

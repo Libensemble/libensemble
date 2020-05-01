@@ -69,7 +69,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     sim_particles = perturb(sim_particles, seed, particle_variance)
     print('seed: {}   particles: {}'.format(seed, sim_particles))
 
-    # At this point you will be in the sim directory (really worker dir) for this worker (eg. sim_1).
     exctr = Executor.executor  # Get Executor
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)

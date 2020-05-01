@@ -31,9 +31,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
-libE_specs['clean_ensemble_dirs'] = True
 libE_specs['sim_input_dir'] = resource_filename('libensemble.sim_funcs.branin', '')  # to be copied by each worker
-libE_specs['use_worker_dirs'] = True
 
 if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
@@ -42,12 +40,7 @@ sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float)]}
 
-if nworkers == 1:
-    # Have the workers put their directories in a different (e.g., a faster
-    # /sandbox/ or /scratch/ directory)
-    # Otherwise, will just copy in same directory as sim_input_dir
-    libE_specs['ensemble_dir'] = '~'
-elif nworkers == 3:
+if nworkers == 3:
     sim_specs['user'] = {'uniform_random_pause_ub': 0.05}
 
 n = 2
@@ -77,6 +70,7 @@ exit_criteria = {'sim_max': 150,
 
 # Perform the run
 for run in range(2):
+    libE_specs['ensemble_dir_path'] = './ensemble_w' + str(nworkers) + '_r' + str(run)
     if run == 1:
         gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
         gen_specs['user'].pop('xtol_rel')

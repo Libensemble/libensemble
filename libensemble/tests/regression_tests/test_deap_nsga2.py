@@ -17,7 +17,6 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
 from libensemble.gen_funcs.persistent_deap_nsga2 import deap_nsga2 as gen_f
 
 nworkers, is_master, libE_specs, _ = parse_args()
-libE_specs['ensemble_dir'] = 'ensemble'
 
 
 def deap_six_hump(H, persis_info, sim_specs, _):

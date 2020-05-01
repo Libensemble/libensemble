@@ -19,6 +19,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
+from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
@@ -136,7 +137,7 @@ class Worker:
         self.sim_specs = sim_specs
         self.libE_specs = libE_specs
         self.startdir = os.getcwd()
-        self.prefix = ""
+        self.prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self.loc_stack = None
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
@@ -144,32 +145,41 @@ class Worker:
         Worker._set_executor(self.workerID, self.comm)
 
     @staticmethod
-    def _stage_and_indicate(locs, sim_input_dir, calc_prefix, stgfile):
-        """Copy files from input directory to calc prefix directory, create
-        indication file showing that staging has completed without having to
-        compare two directories."""
-        locs.copy_or_symlink(sim_input_dir, calc_prefix,
-                             os.listdir(sim_input_dir), [])
-        open(os.path.join(calc_prefix, stgfile), 'w')  # Empty file
-
-    @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
         "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
 
-        sim_input_dir = libE_specs['sim_input_dir'].rstrip('/')
-        prefix = libE_specs.get('ensemble_dir', './ensemble')
-        suffix = libE_specs.get('ensemble_dir_suffix', '')
-        copy_files = libE_specs.get('copy_input_files', os.listdir(sim_input_dir))
-        copy_parent = libE_specs.get('copy_input_to_parent', False)
-        symlink_files = libE_specs.get('symlink_input_files', [])
+        sim_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
+
+        do_sim_dirs = libE_specs.get('sim_dirs_make', True)
+        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
+        copy_files = libE_specs.get('sim_dir_copy_files', [])
+        symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         do_work_dirs = libE_specs.get('use_worker_dirs', False)
 
-        # Customize ensemble directory with suffix
-        if suffix != '':
-            suffix = '_' + suffix
-            prefix += suffix
+        # If using sim_input_dir, set of files to copy is contents of provided dir
+        if sim_input_dir:
+            copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
 
-        # ensemble_dir/worker_dir registered, set as parent dir for sim dirs
+        # If identical paths to copy and symlink, remove those paths from symlink_files
+        if len(symlink_files):
+            symlink_files = [i for i in symlink_files if i not in copy_files]
+
+        # Cases where individual sim_dirs not created.
+        if not do_sim_dirs:
+            if do_work_dirs:  # Each worker does work in worker dirs
+                key = workerID
+                dir = "worker" + str(workerID)
+            else:  # Each worker does work in prefix (ensemble_dir)
+                key = prefix
+                dir = prefix
+                prefix = None
+
+            locs.register_loc(key, dir, prefix=prefix, copy_files=copy_files,
+                              symlink_files=symlink_files, ignore_FileExists=True)
+            return key
+
+        # All cases now should involve sim_dirs
+        # ensemble_dir/worker_dir registered here, set as parent dir for sim dirs
         if do_work_dirs:
             worker_dir = "worker" + str(workerID)
             worker_path = os.path.abspath(os.path.join(prefix, worker_dir))
@@ -184,33 +194,13 @@ class Worker:
                 os.makedirs(prefix, exist_ok=True)
             calc_prefix = prefix
 
-        # Copy input contents to parent dir, create stage indication file
-        if copy_parent:
-            stgfile = '.COPY_PARENT_STAGED'
-
-            if not do_work_dirs:
-                # Workers on same node shouldn't procede until copying complete
-                while stgfile not in os.listdir(calc_prefix):
-                    Worker._stage_and_indicate(locs, sim_input_dir,
-                                               calc_prefix, stgfile)
-                # Change source dir for symlinking or copying to ensemble dir
-                sim_input_dir = prefix
-
-            else:
-                if stgfile not in os.listdir(calc_prefix):
-                    Worker._stage_and_indicate(locs, sim_input_dir,
-                                               calc_prefix, stgfile)
-                # Change source dir for symlinking or copying to worker dir
-                sim_input_dir = worker_path
-
         # Register calc dir with adjusted parent dir and source-file location
         locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
                           prefix=calc_prefix,
-                          srcdir=sim_input_dir,
                           copy_files=copy_files,
                           symlink_files=symlink_files)
 
-        return prefix, calc_dir
+        return calc_dir
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
@@ -266,39 +256,25 @@ class Worker:
                     ranges.append(str(group[0]))
             return '_'.join(ranges)
 
-    @staticmethod
-    def _better_copytree(src, dst, symlinks=False):
-        """ Because shutil.copytree can't copy contents to already-existing dir """
-        for item in os.listdir(src):
-            try:
-                s = os.path.join(src, item)
-                d = os.path.join(dst, item)
-                if os.path.isdir(s):
-                    shutil.copytree(s, d, symlinks)
-                else:
-                    shutil.copy2(s, d)
-            except FileExistsError:
-                continue
-
-    def _clean_out_copy_back(self):
+    def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
-        if self.libE_specs.get('sim_input_dir') and os.path.isdir(self.prefix):
-            if self.libE_specs.get('copy_input_to_parent'):
-                for prefix, _, file in os.walk(self.prefix):
-                    if '.COPY_PARENT_STAGED' in file:
-                        try:
-                            os.remove(os.path.join(prefix, '.COPY_PARENT_STAGED'))
-                        except FileNotFoundError:
-                            continue
-
-            if self.libE_specs.get('copy_back_output'):
-                copybackdir = os.path.join(self.startdir,
-                                           os.path.basename(self.prefix) + '_back')
-                assert os.path.isdir(copybackdir), "Manager didn't create copyback directory"
-                Worker._better_copytree(self.prefix, copybackdir, symlinks=True)
+        if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', False):
+            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix))
+            if os.path.basename(self.prefix) in os.listdir(self.startdir):
+                copybackdir += '_back'
+            for dir in self.loc_stack.dirs.values():
+                try:
+                    shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
+                    if os.path.basename(dir).startswith('worker'):
+                        break  # Worker dir (with all sim_dirs) copied.
+                except FileExistsError:
+                    if not self.libE_specs.get('sim_dirs_make', True):
+                        continue
+                    else:
+                        raise
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
-        "Determines choice for sim_input_dir structure, then performs calculation."
+        "Determines choice for sim_dir structure, then performs calculation."
 
         if not self.loc_stack:
             self.loc_stack = LocationStack()
@@ -306,18 +282,12 @@ class Worker:
         H_rows = Worker._extract_H_ranges(Work)
         calc_str = calc_type_strings[calc_type]
 
-        if 'sim_input_dir' in self.libE_specs:
-            self.prefix, calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
-                                                          H_rows, calc_str, self.loc_stack)
-            if self.libE_specs.get('use_worker_dirs'):
-                with self.loc_stack.loc(self.workerID):   # Switch to Worker directory
-                    with self.loc_stack.loc(calc_dir):    # Switch to Calc directory
-                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-            else:
-                with self.loc_stack.loc(calc_dir):        # Switch to Calc directory
-                    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
+            calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
+                                             H_rows, calc_str, self.loc_stack)
 
-            return out
+            with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
+                return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
         return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
@@ -460,10 +430,8 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
-            self._clean_out_copy_back()  # Copy back current results on Exception
+            self._copy_back()  # Copy back current results on Exception
         else:
             self.comm.kill_pending()
         finally:
-            self._clean_out_copy_back()
-            if self.libE_specs.get('clean_ensemble_dirs') and self.loc_stack is not None:
-                self.loc_stack.clean_locs()
+            self._copy_back()

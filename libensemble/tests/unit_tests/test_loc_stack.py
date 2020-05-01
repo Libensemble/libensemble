@@ -34,7 +34,7 @@ def test_location_stack():
         # Register a valid location
         tname = s.register_loc(0, "testdir",
                                prefix=tmp_dirname,
-                               srcdir=clone_dirname)
+                               copy_files=[test_fname])
         assert os.path.isdir(tname), \
             "New directory {} was not created.".format(tname)
         assert os.path.isfile(os.path.join(tname, "test.txt")), \
