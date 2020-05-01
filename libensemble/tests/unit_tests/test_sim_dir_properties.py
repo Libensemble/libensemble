@@ -76,9 +76,55 @@ def test_copy_back():
         shutil.rmtree(dir)
 
 
+def test_worker_dirs_but_no_sim_dirs():
+    """Test Worker._make_calc_dir() directory structure without sim_dirs"""
+    inputdir = './calc'
+    inputfile = './calc/file'
+    ensemble_dir = './test_ens'
+
+    for dir in [inputdir, inputfile, ensemble_dir]:
+        os.makedirs(dir, exist_ok=True)
+
+    libE_specs = {'sim_dirs_make': False, 'ensemble_dir_path': ensemble_dir,
+                  'use_worker_dirs': True, 'sim_input_dir': inputdir}
+
+    ls = LocationStack()
+    for i in range(4):  # Should work at any range
+        Worker._make_calc_dir(libE_specs, 1, 1, 'sim', ls)
+
+    assert 'worker1' in os.listdir(ensemble_dir)
+    assert 'file' in os.listdir(os.path.join(ensemble_dir, 'worker1'))
+
+    for dir in [inputdir, ensemble_dir]:
+        shutil.rmtree(dir)
+
+
+def test_FileExists_exceptions():
+    inputdir = './calc'
+    inputfile = './calc/file'
+    ensemble_dir = './test_ens'
+
+    for dir in [inputdir, inputfile, ensemble_dir]:
+        os.makedirs(dir, exist_ok=True)
+
+    libE_specs = {'sim_dirs_make': False, 'ensemble_dir_path': ensemble_dir,
+                  'use_worker_dirs': True, 'sim_input_dir': inputdir}
+
+    ls = LocationStack()
+    for i in range(4):  # Should work at any range
+        Worker._make_calc_dir(libE_specs, 1, 1, 'sim', ls)
+
+    assert 'worker1' in os.listdir(ensemble_dir)
+    assert 'file' in os.listdir(os.path.join(ensemble_dir, 'worker1'))
+
+    for dir in [inputdir, ensemble_dir]:
+        shutil.rmtree(dir)
+
 if __name__ == '__main__':
     test_range_single_element()
     test_range_two_separate_elements()
     test_range_two_ranges()
     test_range_mixes()
     test_copy_back()
+    test_worker_dirs_but_no_sim_dirs()
+    test_FileExists_exceptions()
