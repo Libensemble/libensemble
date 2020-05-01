@@ -123,6 +123,7 @@ def test_copy_back_exception():
     for dir in [inputdir, copybackdir]:
         shutil.rmtree(dir)
 
+
 def test_worker_dirs_but_no_sim_dirs():
     """Test Worker._make_calc_dir() directory structure without sim_dirs"""
     inputdir = './calc'
@@ -195,6 +196,7 @@ def test_loc_stack_FileExists_exceptions():
 
     for dir in [inputdir, ensemble_dir]:
         shutil.rmtree(dir)
+
 
 if __name__ == '__main__':
     test_range_single_element()
