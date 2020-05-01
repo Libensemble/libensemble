@@ -30,7 +30,7 @@ class LocationStack:
             except FileExistsError:
                 if ignore_FileExists:
                     continue
-                else:
+                else:  # Indicates problem with unique sim_dirs
                     raise
 
         for file_path in symlink_files:
@@ -41,7 +41,7 @@ class LocationStack:
             except FileExistsError:
                 if ignore_FileExists:
                     continue
-                else:
+                else:  # Indicates problem with unique sim_dirs
                     raise
 
     def register_loc(self, key, dirname, prefix=None, copy_files=[], symlink_files=[], ignore_FileExists=False):
