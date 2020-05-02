@@ -157,13 +157,13 @@ class EnvResources:
         return sorted(nidlst, key=int)
 
     @staticmethod
-    def slurm_abbrev_nodenames(node_list, prefix='nid'):
+    def slurm_abbrev_nodenames(node_list, prefix=None):
         """Returns nodelist with only string upto first dot"""
         newlist = [s.split(".", 1)[0] for s in node_list]
         return newlist
 
     @staticmethod
-    def cobalt_abbrev_nodenames(node_list, prefix=None):
+    def cobalt_abbrev_nodenames(node_list, prefix='nid'):
         """Returns nodelist with prefix and leading zeros stripped"""
         newlist = [s.lstrip(prefix) for s in node_list]
         newlist = [s.lstrip('0') for s in newlist]
