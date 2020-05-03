@@ -89,6 +89,8 @@ class EnvResources:
 
     def abbrev_nodenames(self, node_list):
         """Returns nodelist with entries in abbreviated form"""
+        if self.schedular == 'Slurm':
+            return EnvResources.slurm_abbrev_nodenames(node_list)
         if self.schedular == 'Cobalt':
             return EnvResources.cobalt_abbrev_nodenames(node_list)
         return node_list
@@ -153,6 +155,12 @@ class EnvResources:
             for nid in range(a, b):
                 nidlst.append(str(nid))
         return sorted(nidlst, key=int)
+
+    @staticmethod
+    def slurm_abbrev_nodenames(node_list, prefix=None):
+        """Returns nodelist with only string upto first dot"""
+        newlist = [s.split(".", 1)[0] for s in node_list]
+        return newlist
 
     @staticmethod
     def cobalt_abbrev_nodenames(node_list, prefix='nid'):
