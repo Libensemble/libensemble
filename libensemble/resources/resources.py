@@ -43,6 +43,7 @@ class Resources:
                  central_mode=False,
                  allow_oversubscribe=False,
                  launcher=None,
+                 cores_on_node=None,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
@@ -75,6 +76,10 @@ class Resources:
             The name of the job launcher, such as mpirun or aprun. This may be used to obtain
             intranode information by launching a probing job onto the compute nodes.
             If not present, the local node will be used to obtain this information.
+
+        cores_on_node: tuple (int,int), optional
+            If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
+            this will be auto-detected.
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
@@ -113,12 +118,14 @@ class Resources:
         remote_detect = False
         if socket.gethostname() not in self.global_nodelist:
             remote_detect = True
-        cores_info = node_resources.get_sub_node_resources(launcher=self.launcher,
-                                                           remote_mode=remote_detect,
-                                                           env_resources=self.env_resources)
-        self.logical_cores_avail_per_node = cores_info[0]
-        self.physical_cores_avail_per_node = cores_info[1]
 
+        if not cores_on_node:
+            cores_on_node = \
+                node_resources.get_sub_node_resources(launcher=self.launcher,
+                                                      remote_mode=remote_detect,
+                                                      env_resources=self.env_resources)
+        self.physical_cores_avail_per_node = cores_on_node[0]
+        self.logical_cores_avail_per_node = cores_on_node[1]
         self.libE_nodes = None
         self.worker_resources = None
 
@@ -311,7 +318,7 @@ class WorkerResources:
 
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers))
-        # logger.debug("split_list is {}".format(split_list))
+        logger.debug("split_list is {}".format(split_list))
 
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")

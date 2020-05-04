@@ -9,7 +9,7 @@ import collections
 
 logger = logging.getLogger(__name__)
 
-REMOTE_LAUNCH_LIST = ['aprun', 'jsrun']
+REMOTE_LAUNCH_LIST = ['aprun', 'jsrun', 'srun']  # Move to feature of mpi_runner
 
 
 def _open_binary(fname, **kwargs):
@@ -74,7 +74,7 @@ def _get_local_cpu_resources():
     """Returns logical and physical cores on the local node"""
     logical_cores_avail_per_node = get_cpu_cores(hyperthreads=True)
     physical_cores_avail_per_node = get_cpu_cores(hyperthreads=False)
-    return (logical_cores_avail_per_node, physical_cores_avail_per_node)
+    return (physical_cores_avail_per_node, logical_cores_avail_per_node)
 
 
 def _print_local_cpu_resources():
@@ -118,7 +118,7 @@ def _get_cpu_resources_from_env(env_resources=None):
         physical_cores_avail_per_node = counter[0]
         logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely
         logger.warning("SMT currently not detected, returning physical cores only. Specify ranks_per_node to override")
-        return (logical_cores_avail_per_node, physical_cores_avail_per_node)
+        return (physical_cores_avail_per_node, logical_cores_avail_per_node)
     else:
         return None
 

@@ -155,7 +155,8 @@ class BalsamMPIExecutor(MPIExecutor):
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None):
+                 nodelist_env_lsf_shortform=None,
+                 custom_info={}):
         """Instantiate a new BalsamMPIExecutor instance.
 
         A new BalsamMPIExecutor object is created with an application
@@ -166,14 +167,18 @@ class BalsamMPIExecutor(MPIExecutor):
             logger.warning("Balsam does not currently support distributed mode - running in central mode")
             central_mode = True
 
+        if custom_info:
+            logger.warning("The Balsam executor does not support custom_info - ignoring")
+
         super().__init__(auto_resources,
-                         allow_oversubscribe
+                         allow_oversubscribe,
                          central_mode,
                          nodelist_env_slurm,
                          nodelist_env_cobalt,
                          nodelist_env_lsf,
                          nodelist_env_lsf_shortform)
-        #self.mpi_launcher = None
+
+        self.workflow_name = "libe_workflow"
 
     def _serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
@@ -233,7 +238,8 @@ class BalsamMPIExecutor(MPIExecutor):
     def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_run=False):
+               hyperthreads=False, dry_run=False, wait_on_run=False,
+               extra_args=None):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 
@@ -241,23 +247,14 @@ class BalsamMPIExecutor(MPIExecutor):
         """
         app = self.default_app(calc_type)
 
-        # Need test somewhere for if no breakdown supplied....
-        # or only machinefile
-
         # Specific to this class
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
             jassert(num_procs or num_nodes or ranks_per_node,
                     "No procs/nodes provided - aborting")
 
-        # Set num_procs, num_nodes and ranks_per_node for this task
-
-        # Without resource detection  # Note: not included machinefile option
-        # num_procs, num_nodes, ranks_per_node = Executor.task_partition(num_procs, num_nodes, ranks_per_node)
-
-        # With resource detection (may do only if under-specified?? though that will not tell if larger than possible
-        # for static allocation - but Balsam does allow dynamic allocation if too large!!
-        # For now allow user to specify - but default is True....
+        # Extra_args analysis not done here - could pick up self.mpi_runner but possible
+        # that Balsam finds a different runner.
         if self.auto_resources:
             num_procs, num_nodes, ranks_per_node = \
                 self.resources.get_resources(
@@ -265,11 +262,9 @@ class BalsamMPIExecutor(MPIExecutor):
                     num_nodes=num_nodes, ranks_per_node=ranks_per_node,
                     hyperthreads=hyperthreads)
         else:
-            # Without resource detection (note: not included machinefile option)
             num_procs, num_nodes, ranks_per_node = \
                 MPIResources.task_partition(num_procs, num_nodes, ranks_per_node)
 
-        # temp - while balsam does not accept a standard out name
         if stdout is not None or stderr is not None:
             logger.warning("Balsam does not currently accept a stdout "
                            "or stderr name - ignoring")
@@ -282,17 +277,14 @@ class BalsamMPIExecutor(MPIExecutor):
         task = BalsamTask(app, app_args, default_workdir,
                           stdout, stderr, self.workerID)
 
-        # This is not used with Balsam for run-time as this would include wait time
-        # Again considering changing launch to submit - or whatever I chose before..... (1/28/20 - Wish granted!)
-        # task.submit_time = time.time()  # Don't know when it finishes, not good for timing task, only poll/kill est.
-
         add_task_args = {'name': task.name,
-                         'workflow': "libe_workflow",  # add arg for this
-                         'user_workdir': default_workdir,  # add arg for this
+                         'workflow': self.workflow_name,
+                         'user_workdir': default_workdir,
                          'application': app.name,
                          'args': task.app_args,
                          'num_nodes': num_nodes,
-                         'ranks_per_node': ranks_per_node}
+                         'ranks_per_node': ranks_per_node,
+                         'mpi_flags': extra_args}
 
         if stage_inout is not None:
             # For now hardcode staging - for testing
@@ -318,6 +310,6 @@ class BalsamMPIExecutor(MPIExecutor):
                         "nodes {} ppn {}".
                         format(task.name, num_nodes, ranks_per_node))
 
-            # task.workdir = task.process.working_directory  # Might not be set yet!!!!
+            # task.workdir = task.process.working_directory  # Might not be set yet!
         self.list_of_tasks.append(task)
         return task
