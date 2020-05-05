@@ -1,10 +1,14 @@
 import os
 
+outfiles = ['err.txt', 'forces.stat', 'out.txt']
+
+
 def check_log_exception():
     with open('ensemble.log', 'r') as el:
         out = el.readlines()
     assert 'forces_simf.ForcesException\n' in out, \
         "ForcesException not received by manager or logged."
+
 
 def test_libe_stats(status):
     with open('libE_stats.txt', 'r') as ls:
@@ -18,7 +22,7 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
         print('Specified ensemble directory {} not found.'.format(dir))
         return
 
-    if libE_specs.get('sim_dirs_make') == False:
+    if not libE_specs.get('sim_dirs_make'):
         print('Typical tests of ensemble directories dont apply without sim_dirs.')
         return
 
@@ -35,7 +39,8 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
             num_sim_dirs += len(sim_dirs)
 
             for sim_dir in sim_dirs:
-                files_found.append(all([i in os.listdir(os.path.join(dir, worker_dir, sim_dir)) for i in ['err.txt', 'forces.stat', 'out.txt']]))
+                files_found.append(all([i in os.listdir(os.path.join(dir, worker_dir, sim_dir))
+                                        for i in outfiles]))
 
         assert num_sim_dirs == sim_max, \
             "Number of simulation specific-directories ({}) doesn't match sim_max ({})".format(num_sim_dirs, sim_max)
@@ -53,7 +58,8 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
 
         files_found = []
         for sim_dir in sim_dirs:
-            files_found.append(all([i in os.listdir(os.path.join(dir, sim_dir)) for i in ['err.txt', 'forces.stat', 'out.txt']]))
+            files_found.append(all([i in os.listdir(os.path.join(dir, sim_dir))
+                                    for i in outfiles]))
 
         assert all(files_found), \
             "Set of expected files ['err.txt', 'forces.stat', 'out.txt'] not found in each sim_dir."
