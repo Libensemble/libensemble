@@ -8,6 +8,7 @@ from libensemble.libE import libE
 from libensemble.libE_manager import ManagerException
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import libE_logger
+from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception
 
 USE_BALSAM = False
 PERSIS_GEN = False
@@ -18,13 +19,6 @@ if PERSIS_GEN:
 else:
     from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
-
-
-def test_libe_stats(status):
-    with open('libE_stats.txt', 'r') as ls:
-        out = ls.readlines()
-    assert all([line.endswith(status) for line in out if 'sim' in line]), \
-        "Deliberate error status not logged or raised for all sim instances."
 
 
 libE_logger.set_level('INFO')  # INFO is now default
@@ -108,13 +102,11 @@ try:
 
 except ManagerException:
     if is_master and sim_specs['user']['fail_on_sim']:
-        with open('ensemble.log', 'r') as el:
-            out = el.readlines()
-        assert 'forces_simf.ForcesException\n' in out, \
-            "ForcesException not received by manager or logged."
+        check_log_exception()
         test_libe_stats('Exception occurred\n')
 else:
     if is_master:
         save_libE_output(H, persis_info, __file__, nworkers)
         if sim_specs['user']['fail_on_submit']:
             test_libe_stats('Task Failed\n')
+        test_ensemble_dir(libE_specs, './ensemble', nworkers, sim_max)
