@@ -110,6 +110,7 @@ class Task:
         self.workdir = workdir
         self.dry_run = dry_run
         self.runline = None
+        self.run_attempts = 0
 
     def reset(self):
         # Status attributes

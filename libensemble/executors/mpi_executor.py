@@ -146,7 +146,7 @@ class MPIExecutor(Executor):
                 retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
                 logger.info("Launching task {}{}: {}".
                             format(task.name, retry_string, " ".join(runline)))
-
+                task.run_attempts += 1
                 task.process = launcher.launch(runline, cwd='./',
                                                stdout=open(task.stdout, 'w'),
                                                stderr=open(task.stderr, 'w'),
