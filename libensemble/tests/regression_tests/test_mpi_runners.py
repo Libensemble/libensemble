@@ -68,7 +68,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
                             hyperthreads=test.get('ht', None),
                             dry_run=True)
 
-        outline = ' '.join(task.runline)
+        outline = task.runline
         exp_list[i] = exp_nodelist_for_worker(exp_list[i], libE_info['workerID'])
 
         if outline != exp_list[i]:

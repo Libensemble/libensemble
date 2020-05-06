@@ -270,7 +270,7 @@ class MPIExecutor(Executor):
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
-        task.runline = runline  # Allow to be queried
+        task.runline = ' '.join(runline)  # Allow to be queried
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
