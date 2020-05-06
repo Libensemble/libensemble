@@ -101,6 +101,7 @@ except IOError:
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': nworkers*rounds}
 
+# TODO: May move specs, inputs and expected outputs to a data_set module.
 sim_specs = {'sim_f': runline_check,
              'in': ['x'],
              'out': [('f', float)],
@@ -238,10 +239,10 @@ exp_custom = ['myrunner --xarg 1 /path/to/fakeapp.x --testid base1',
 def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
     # Mock up system
-    customizer = {'mpi_runner': mpi_runner,     # Select runner: mpich, openmpi, aprun, srun, jsrun
-                  'runner_name': runner_name,  # Runner name: Replaces run command
-                  'cores_on_node': (16, 64),     # Tuple (physical cores, logical cores)
-                  'node_file': node_file}       # Name of file containing a node-list
+    customizer = {'mpi_runner': mpi_runner,    # Select runner: mpich, openmpi, aprun, srun, jsrun
+                  'runner_name': runner_name,  # Runner name: Replaces run command if not None
+                  'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
+                  'node_file': node_file}      # Name of file containing a node-list
 
     exctr = MPIExecutor(central_mode=True, auto_resources=True, custom_info=customizer)
     exctr.register_calc(full_path=sim_app, calc_type='sim')
@@ -255,7 +256,7 @@ def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
 for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
 
-    # Could use classes, pref in sep data_set module
+    # Could use classes, pref in separate data_set module
     runner_name = None  # Use default
 
     if run_set == 'mpich':
