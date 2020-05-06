@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.spatial.distance import cdist
-from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 
 
 def test_cdist_issue():
@@ -15,8 +14,10 @@ def test_cdist_issue():
     assert len(dist_1), "We didn't segfault"
 
 
-def test_save(gen_out):
-    """There is an issue (at least in scipy 1.1.0) with cdist segfaulting."""
+def test_save():
+    """Seeing if I can save parts of the H array."""
+
+    from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 
     n = 2
     gen_out += [('x', float, n), ('x_on_cube', float, n)]
@@ -30,4 +31,4 @@ def test_save(gen_out):
 
 if __name__ == "__main__":
     test_cdist_issue()
-    test_save(gen_out)
+    test_save()
