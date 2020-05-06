@@ -212,7 +212,7 @@ class Resources:
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
     @staticmethod
-    def get_global_nodelist(node_file,
+    def get_global_nodelist(node_file=DEFAULT_NODEFILE,
                             rundir=None,
                             env_resources=None):
         """
