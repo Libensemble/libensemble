@@ -70,7 +70,7 @@ alloc_specs = {'alloc_f': alloc_f,
 
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
-exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': budget}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
