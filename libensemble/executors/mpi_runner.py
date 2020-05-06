@@ -22,9 +22,6 @@ class MPIRunner:
             'custom': MPIRunner
         }
         mpi_runner = mpi_runners[mpi_runner_type]
-        if mpi_runner_type == 'custom':
-            logger.warning('Unknown runner. Specify all options through extra_args')
-
         if runner_name is not None:
             runner = mpi_runner(runner_name)
         else:
@@ -99,7 +96,7 @@ class MPIRunner:
             # Use hostlist if full nodes, otherwise machinefile
             full_node = resources.worker_resources.workers_per_node == 1
             if full_node or not self.mfile_support:
-                hostlist = resources.get_hostlist()
+                hostlist = resources.get_hostlist(num_nodes)
             else:
                 machinefile = "machinefile_autogen"
                 if workerID is not None:
@@ -184,7 +181,7 @@ class SRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ('-N', '--nodes')
         self.arg_ppn = ('--ntasks-per-node',)
         self.mpi_command = [self.run_command, '-w {hostlist}',
-                            '-n {num_procs}',
+                            '--ntasks {num_procs}',
                             '--nodes {num_nodes}',
                             '--ntasks-per-node {ranks_per_node}',
                             '{extra_args}']
@@ -219,7 +216,6 @@ class JSRUN_MPIRunner(MPIRunner):
         if machinefile and not self.mfile_support:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
-
         if machinefile is None and auto_resources:
             num_procs, num_nodes, ranks_per_node = \
                 resources.get_resources(num_procs, num_nodes,

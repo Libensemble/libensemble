@@ -103,6 +103,7 @@ class MPIExecutor(Executor):
         runner_name = custom_info.get('runner_name', None)
         subgroup_launch = custom_info.get('subgroup_launch', None)
         cores_on_node = custom_info.get('cores_on_node', None)
+        node_file = custom_info.get('node_file', None)
 
         if not mpi_runner_type:
             mpi_runner_type = MPIResources.get_MPI_variant()
@@ -120,6 +121,7 @@ class MPIExecutor(Executor):
                              allow_oversubscribe=allow_oversubscribe,
                              launcher=self.mpi_runner.run_command,
                              cores_on_node=cores_on_node,
+                             node_file=node_file,
                              nodelist_env_slurm=nodelist_env_slurm,
                              nodelist_env_cobalt=nodelist_env_cobalt,
                              nodelist_env_lsf=nodelist_env_lsf,
@@ -268,6 +270,7 @@ class MPIExecutor(Executor):
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
+        task.runline = runline  # Allow to be queried
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))

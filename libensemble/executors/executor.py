@@ -109,6 +109,7 @@ class Task:
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
         self.dry_run = dry_run
+        self.runline = None
 
     def reset(self):
         # Status attributes

@@ -39,11 +39,14 @@ class Resources:
     :ivar WorkerResources worker_resources: An object that can contain worker specific resources
     """
 
+    DEFAULT_NODEFILE = 'worker_list'
+
     def __init__(self, top_level_dir=None,
                  central_mode=False,
                  allow_oversubscribe=False,
                  launcher=None,
                  cores_on_node=None,
+                 node_file=None,
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
@@ -81,6 +84,11 @@ class Resources:
             If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
             this will be auto-detected.
 
+        node_file: String, optional
+            If supplied, give the name of a file in the run directory to use as a node-list
+            for use by libEnsemble. Defaults to a file named 'worker_list'. If the file does
+            not exist, then the node-list will be auto-detected.
+
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
             Note: This is queried only if a worker_list file is not provided and auto_resources=True.
@@ -111,7 +119,10 @@ class Resources:
                                           nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
         # This is global nodelist avail to workers - may change to global_worker_nodelist
-        self.global_nodelist = Resources.get_global_nodelist(rundir=self.top_level_dir,
+        if node_file is None:
+            node_file = Resources.DEFAULT_NODEFILE
+        self.global_nodelist = Resources.get_global_nodelist(node_file=node_file,
+                                                             rundir=self.top_level_dir,
                                                              env_resources=self.env_resources)
 
         self.launcher = launcher
@@ -201,27 +212,28 @@ class Resources:
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
     @staticmethod
-    def get_global_nodelist(rundir=None,
+    def get_global_nodelist(node_file,
+                            rundir=None,
                             env_resources=None):
         """
         Returns the list of nodes available to all libEnsemble workers.
 
-        If a worker_list file exists this is used, otherwise the environment
+        If a node_file exists this is used, otherwise the environment
         is interrogated for a node list. If a dedicated manager node is used,
-        then a worker_list file is recommended.
+        then a node_file is recommended.
 
         In central mode, any node with a libE worker is removed from the list.
         """
         top_level_dir = rundir or os.getcwd()
-        worker_list_file = os.path.join(top_level_dir, 'worker_list')
+        node_filepath = os.path.join(top_level_dir, node_file)
         global_nodelist = []
-        if os.path.isfile(worker_list_file):
-            logger.debug("worker_list found - getting nodelist from worker_list")
-            with open(worker_list_file, 'r') as f:
+        if os.path.isfile(node_filepath):
+            logger.debug("node_file found - getting nodelist from node_file")
+            with open(node_filepath, 'r') as f:
                 for line in f:
                     global_nodelist.append(line.rstrip())
         else:
-            logger.debug("No worker_list found - searching for nodelist in environment")
+            logger.debug("No node_file found - searching for nodelist in environment")
             if env_resources:
                 global_nodelist = env_resources.get_nodelist()
 
