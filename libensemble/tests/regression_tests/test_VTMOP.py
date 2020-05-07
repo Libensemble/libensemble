@@ -29,8 +29,8 @@ from libensemble.libE import libE
 # from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 from libensemble.sim_funcs.mop_funcs import convex_mop as func
 from libensemble.gen_funcs.vtmop import vtmop_gen as gen_f
-from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.alloc_funcs.vtmop_alloc import give_sim_work_first as alloc_f
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # Set the problem dimensions here
 num_dims = 5
@@ -64,23 +64,25 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float, num_objs)]}
 
 # Set up the generator
-gen_specs = {'num_obj': num_objs,
-             'gen_f': gen_f,
+gen_specs = {'gen_f': gen_f,
              'in': ['x', 'f'],
-             'search_batch_size': 72,
-             'opt_batch_size': 36,
-             'first_batch_size': 500,
-             'num_active_gens': 1,
-             'batch_mode': True,
              'out': [('x', float, num_dims)],
-             'lb': lower_bounds,
-             'ub': upper_bounds}
+             'user': {
+                 'num_obj': num_objs,
+                 'search_batch_size': 72,
+                 'opt_batch_size': 36,
+                 'first_batch_size': 500,
+                 'num_active_gens': 1,
+                 'batch_mode': True,
+                 'lb': lower_bounds,
+                 'ub': upper_bounds}
+             }
 
 # Set up the allocator
 alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)]}
 
 # Persistent info between iterations
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 persis_info['next_to_give'] = 0
 persis_info['total_gen_calls'] = 0
 
