@@ -103,7 +103,7 @@ for run in range(3):
         gen_specs['user']['ftol_rel'] = 1e-2
         gen_specs['user']['xtol_abs'] = 1e-3
         gen_specs['user']['ftol_abs'] = 1e-8
-        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
+        exit_criteria = {'sim_max': 200}
         minima = np.array([[-2.9, -1.9]])
 
         persis_info = deepcopy(persis_info_safe)

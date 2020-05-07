@@ -64,7 +64,6 @@ persis_info_safe = deepcopy(persis_info)
 
 # Tell libEnsemble when to stop (stop_val key must be in H)
 exit_criteria = {'sim_max': 150,
-                 'elapsed_wallclock_time': 100,
                  'stop_val': ('f', -1)}
 # end_exit_criteria_rst_tag
 
