@@ -1,5 +1,6 @@
 from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
 
+
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
@@ -13,7 +14,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
 
     Work = {}
-    gen_flag = True
+    gen_count = count_gens(W)
 
     for i in avail_worker_ids(W):
         if persis_info['next_to_give'] < len(H):
@@ -22,14 +23,11 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
             persis_info['next_to_give'] += 1
 
-        elif not test_any_gen(W) and gen_flag:
-
-            if not all(H['returned']):
-                break
+        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
 
             # Give gen work
             persis_info['total_gen_calls'] += 1
-            gen_flag = False
+            gen_flag += 1
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
 
     return Work, persis_info
