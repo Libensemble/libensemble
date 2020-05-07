@@ -36,7 +36,8 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     bound constraints on each design variable. The number of design variables
     is inferred from len(gen_specs['ub']). gen_specs['num_obj']
     specifies the number of objectives. The problem dimension is inferred
-    based on the length of the gen_specs['lb'].
+    based on the length of the gen_specs['lb']. gen_specs['restart']
+    specifies whether to reinitialize VTMOP.
 
     Several unformatted binary files (vtmop.io, vtmop.dat, and vtmop.chkpt)
     will be generated in the calling directory to pass information between
@@ -50,9 +51,10 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     snb = gen_specs['user']['search_batch_size']  # preferred batch size for searching
     onb = gen_specs['user']['opt_batch_size']  # preferred batch size for optimization
     inb = gen_specs['user']['first_batch_size']  # batch size for first iteration
+    start = gen_specs['user']['restart'] # is this the start of a new run?
     n = np.size(H['f'][:, 0])  # size of database in the history array
 
-    if len(H) == 0:
+    if start:
         # Write initialization data to the vtmop.io file for VTMOP_INIT
         fp1 = FortranFile('vtmop.io', 'w')
         fp1.write_record(np.array([np.int32(d), np.int32(p), np.int32(inb)]))
@@ -60,6 +62,26 @@ def vtmop_gen(H, persis_info, gen_specs, _):
                          np.array(ub, dtype=np.float64)]))
         fp1.close()
         system("vtmop_initializer")
+        gen_specs['restart'] = False
+        # If the initial batch size is zero, run another half iteration
+        if inb == 0:
+            # Write unformatted problem dimensions to the vtmop.io file
+            fp1 = FortranFile('vtmop.io', 'w')
+            fp1.write_record(np.array([np.int32(d), np.int32(p), np.int32(n),
+                             np.int32(snb), np.int32(onb)]))
+            fp1.write_record(np.array([np.array(lb, dtype=np.float64),
+                             np.array(ub, dtype=np.float64)]))
+            fp1.close()
+            # Write unformatted history to the vtmop.dat file
+            fp2 = FortranFile('vtmop.dat', 'w')
+            fp2.write_record(np.array([np.int32(d), np.int32(p)]))
+            for i in range(n):
+                toadd = np.zeros(d+p)
+                toadd[:d] = np.float64(H['x'][i, :])
+                toadd[d:] = np.float64(H['f'][i, :])
+                fp2.write_record(toadd)
+            fp2.close()
+            system("vtmop_generator")
     else:
         # Write unformatted problem dimensions to the vtmop.io file
         fp1 = FortranFile('vtmop.io', 'w')
@@ -76,9 +98,6 @@ def vtmop_gen(H, persis_info, gen_specs, _):
             toadd[:d] = np.float64(H['x'][i, :])
             toadd[d:] = np.float64(H['f'][i, :])
             fp2.write_record(toadd)
-            # Debug statements below
-            # if (np.float64((H['f'][i,:]) == np.zeros(p)).all()):
-            #    print('here')
         fp2.close()
         # Call VTMOP from command line
         system("vtmop_generator")

@@ -4,7 +4,7 @@ import math
 
 
 # Concave multiobjective function with the shape of the unit sphere in the
-# first orthant. Credit to Deb et al.
+# first orthant. Credit to Deb et al. [2002].
 def dtlz2(x, f):
     d = len(x)
     p = len(f)
