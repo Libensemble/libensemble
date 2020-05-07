@@ -18,12 +18,6 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-# Set the problem dimensions here
-num_dims = 5
-num_objs = 3
-lower = 0.0
-upper = 1.0
-
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
@@ -32,22 +26,30 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-#from libensemble.sim_funcs.mop_funcs import dtlz2 as func
+# from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 from libensemble.sim_funcs.mop_funcs import convex_mop as func
 from libensemble.gen_funcs.vtmop import vtmop_gen as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
 
+# Set the problem dimensions here
+num_dims = 5
+num_objs = 3
+lower = 0.0
+upper = 1.0
+
+
 # Definition of the sum function
 def sim_f(H, *unused):
     # Initialize the output array
-    O = np.zeros(1, dtype=sim_specs['out'])
+    Out = np.zeros(1, dtype=sim_specs['out'])
     # Evaluate the objective functions
-    f = np.ones(np.size(O['f']))
-    func(H['x'][0],f)
+    f = np.ones(np.size(Out['f']))
+    func(H['x'][0], f)
     # Return the output array
-    O['f'] = f
-    return O, {}
+    Out['f'] = f
+    return Out, {}
+
 
 # Set up the problem
 nworkers, is_master, libE_specs, _ = parse_args()

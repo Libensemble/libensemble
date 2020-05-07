@@ -40,7 +40,7 @@ def vtmop_gen(H, persis_info, gen_specs, _):
 
     Several unformatted binary files (vtmop.io, vtmop.dat, and vtmop.chkpt)
     will be generated in the calling directory to pass information between
-    libEnsemble and VTMOP. 
+    libEnsemble and VTMOP.
     """
     # First get the problem dimensions and data
     ub = gen_specs['ub']  # upper bounds
@@ -48,8 +48,8 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     d = len(lb)  # design dimension
     p = gen_specs['num_obj']  # objective dimension
     snb = gen_specs['search_batch_size']  # preferred batch size for searching
-    onb = gen_specs['opt_batch_size'] # preferred batch size for optimization
-    inb = gen_specs['first_batch_size'] # batch size for first iteration
+    onb = gen_specs['opt_batch_size']  # preferred batch size for optimization
+    inb = gen_specs['first_batch_size']  # batch size for first iteration
     n = np.size(H['f'][:, 0])  # size of database in the history array
 
     if len(H) == 0:
@@ -76,8 +76,8 @@ def vtmop_gen(H, persis_info, gen_specs, _):
             toadd[:d] = np.float64(H['x'][i, :])
             toadd[d:] = np.float64(H['f'][i, :])
             fp2.write_record(toadd)
-            ## Debug statements below
-            #if (np.float64((H['f'][i,:]) == np.zeros(p)).all()):
+            # Debug statements below
+            # if (np.float64((H['f'][i,:]) == np.zeros(p)).all()):
             #    print('here')
         fp2.close()
         # Call VTMOP from command line
@@ -92,8 +92,8 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     b = cand_pts.size // d
 
     # Read record
-    O = np.zeros(b, dtype=gen_specs['out'])
+    Out = np.zeros(b, dtype=gen_specs['out'])
     for i in range(0, b):
-        O['x'][i] = cand_pts[d*i:d*(i+1)]
+        Out['x'][i] = cand_pts[d*i:d*(i+1)]
 
-    return O, persis_info
+    return Out, persis_info
