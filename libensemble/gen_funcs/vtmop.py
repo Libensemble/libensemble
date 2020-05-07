@@ -44,15 +44,16 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     libEnsemble and VTMOP.
     """
     # First get the problem dimensions and data
-    ub = gen_specs['user']['ub']  # upper bounds
-    lb = gen_specs['user']['lb']  # lower bounds
-    d = len(lb)  # design dimension
-    p = gen_specs['user']['num_obj']  # objective dimension
+    ub = gen_specs['user']['ub']                  # upper bounds
+    lb = gen_specs['user']['lb']                  # lower bounds
+    p = gen_specs['user']['num_obj']              # objective dimension
     snb = gen_specs['user']['search_batch_size']  # preferred batch size for searching
-    onb = gen_specs['user']['opt_batch_size']  # preferred batch size for optimization
-    inb = gen_specs['user']['first_batch_size']  # batch size for first iteration
-    start = gen_specs['user']['restart'] # is this the start of a new run?
-    n = np.size(H['f'][:, 0])  # size of database in the history array
+    onb = gen_specs['user']['opt_batch_size']     # preferred batch size for optimization
+    inb = gen_specs['user']['first_batch_size']   # batch size for first iteration
+    start = gen_specs['user']['restart']          # is this the start of a new run?
+
+    d = len(lb)                                   # design dimension
+    n = np.size(H['f'][:, 0])                     # size of database in the history array
 
     if start:
         # Write initialization data to the vtmop.io file for VTMOP_INIT

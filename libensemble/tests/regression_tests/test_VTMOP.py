@@ -64,8 +64,7 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float, num_objs)]}
 
 # Set up the generator
-gen_specs = {# Set the generator to VTMOP (aliased to gen_f above).
-             'gen_f': gen_f,
+gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f above).
              'in': ['x', 'f'],
              'out': [('x', float, num_dims)],
              'user': {
@@ -96,8 +95,7 @@ gen_specs = {# Set the generator to VTMOP (aliased to gen_f above).
                  # cannot be fit without sufficient data.
                  'first_batch_size': 1000,
                  # set restart to True, unless you are reloading from a checkpoint
-                 'restart': True,
-                 },
+                 'restart': True},
              }
 
 # Set up the allocator
