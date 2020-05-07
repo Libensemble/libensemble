@@ -95,6 +95,24 @@ def setup_executor_noapp():
             sys.exit("Something went wrong in creating Executor")
 
 
+def setup_executor_fakerunner():
+    # sim_app = './my_simtask.x'
+    if not os.path.isfile(sim_app):
+        build_simfunc()
+
+    if USE_BALSAM:
+        print('Balsom does not support this feature - running MPIExecutor')
+
+    # Create non-existent MPI runner.
+    customizer = {'mpi_runner': 'custom',
+                  'runner_name': 'non-existent-runner',
+                  'subgroup_launch': True}
+
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor(auto_resources=False, custom_info=customizer)
+    exctr.register_calc(full_path=sim_app, calc_type='sim')
+
+
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
 def polling_loop(exctr, task, timeout_sec=0.5, delay=0.05):
@@ -174,6 +192,7 @@ def test_launch_and_poll():
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.run_attempts == 1, "task.run_attempts should be 1. Returned " + str(task.run_attempts)
 
 
 def test_launch_wait_on_run():
@@ -512,6 +531,31 @@ def test_task_failure():
     assert task.state == 'FAILED', "task.state should be FAILED. Returned " + str(task.state)
 
 
+def test_retries_launch_fail():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor_fakerunner()
+    exctr = Executor.executor
+    exctr.retry_delay_incr = 0.05
+    cores = NCORES
+    args_for_sim = 'sleep 0'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    assert task.state == 'CREATED', "task.state should be CREATED. Returned " + str(task.state)
+    assert exctr.mpi_runner.subgroup_launch, "subgroup_launch should be True"
+    assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
+
+
+def test_retries_run_fail():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    exctr.retry_delay_incr = 0.05
+    cores = NCORES
+    args_for_sim = 'sleep 0 Fail'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_run=True)
+    assert task.state == 'FAILED', "task.state should be FAILED. Returned " + str(task.state)
+    assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
+
+
 if __name__ == "__main__":
     # setup_module(__file__)
     test_launch_and_poll()
@@ -530,4 +574,6 @@ if __name__ == "__main__":
     test_kill_task_with_no_submit()
     test_poll_task_with_no_submit()
     test_task_failure()
+    test_retries_launch_fail()
+    test_retries_run_fail()
     # teardown_module(__file__)

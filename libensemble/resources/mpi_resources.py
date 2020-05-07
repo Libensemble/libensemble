@@ -66,7 +66,6 @@ class MPIResources(Resources):
         User-supplied config options are honored, and an exception is
         raised if these are infeasible.
         """
-
         node_list = self.worker_resources.local_nodelist
         num_workers = self.worker_resources.num_workers
         local_node_count = self.worker_resources.local_node_count
@@ -89,7 +88,10 @@ class MPIResources(Resources):
                          "Nodes: {}  ranks_per_node {}".
                          format(num_nodes, ranks_per_node))
         elif not num_nodes and not ranks_per_node:
-            num_nodes = local_node_count
+            if num_procs <= cores_avail_per_node_per_worker:
+                num_nodes = 1
+            else:
+                num_nodes = local_node_count
         elif not num_procs and not ranks_per_node:
             ranks_per_node = cores_avail_per_node_per_worker
         elif not num_procs and not num_nodes:
@@ -153,9 +155,9 @@ class MPIResources(Resources):
                        and os.path.getsize(machinefile) > 0)
         return built_mfile, num_procs, num_nodes, ranks_per_node
 
-    def get_hostlist(self):
+    def get_hostlist(self, num_nodes=None):
         """Creates a hostlist based on user-supplied config options,
         completed by detected machine resources"""
         node_list = self.worker_resources.local_nodelist
-        hostlist_str = ",".join([str(x) for x in node_list])
+        hostlist_str = ",".join([str(x) for x in node_list[:num_nodes]])
         return hostlist_str
