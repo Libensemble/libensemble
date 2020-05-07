@@ -2,77 +2,48 @@
 
 sim_specs
 =========
-
-Simulation function specifications to be set in user calling script and passed to ``libE.libE()``::
-
+Used to specify the simulation function, its inputs and outputs, and user data::
 
     sim_specs: [dict]:
 
-        Required keys :    
-        
-        'sim_f' [func] : 
+        'sim_f' [func]:
             the simulation function being evaluated
-        'in' [list] :
-            field names (as strings) that will be given to sim_f
-        'out' [list of tuples (field name, data type, [size])] :
-            sim_f outputs that will be stored in the libEnsemble history
-            
+        'in' [list]:
+            field names (as strings) to be given to sim_f by alloc_f
+        'out' [list of tuples (field name, data type, [size])]:
+            sim_f outputs to be stored in the libEnsemble history
+        'user' [dict, optional]:
+            Data structure to contain problem specific constants and/or input data
 
-        Optional keys :
-        
-        'save_every_k' [int] :
-            Save history array to file after every k simulated points.
-        'sim_dir' [str] :
-            Name of simulation directory which will be copied for each worker
-        'sim_dir_prefix' [str] :
-            A prefix path specifying where to create sim directories
-        'sim_dir_suffix' [str] :
-            A suffix to add to worker copies of sim_dir to distinguish runs.
-         'profile' [Boolean] :
-            Profile using cProfile. Default: False
+.. note::
+  * The entirety of ``sim_specs`` is passed from the worker each time a
+    simulation is requested by the allocation function.
 
-        Additional entires in sim_specs will be given to sim_f
-        
-:Notes:
+  * The tuples in ``sim_specs['out']`` are entered into the master
+    :ref:`history array<datastruct-history-array>`.
 
-* The user may define other fields to be passed to the simulator function.
-* The tuples defined in the ``'out'`` list are entered into the master :ref:`history array<datastruct-history-array>`
-* The ``sim_dir_prefix`` option may be used to create simulation working directories in node local/scratch storage when workers are distributed. This may have a performance benefit with I/O heavy sim funcs.
+.. seealso::
 
+  .. _sim-specs-exmple1:
 
-:Examples:
+  - test_uniform_sampling.py_ has a ``sim_specs``  that declares
+    the name of the ``'in'`` field variable, ``'x'`` (as specified by the
+    corresponding generator ``'out'`` field ``'x'`` from the :ref:`gen_specs
+    example<gen-specs-exmple1>`).  Only the field name is required in
+    ``sim_specs['in']``.
 
-.. _sim-specs-exmple1:
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling.py
+      :start-at: sim_specs
+      :end-before: end_sim_specs_rst_tag
 
-From: ``libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling.py``::
+  - run_libe_forces.py_ has a longer ``sim_specs`` declaration with a number of
+    user-specific fields. These are given to the corresponding sim_f, which
+    can be found at forces_simf.py_.
 
-    sim_specs = {'sim_f': six_hump_camel, # This is the function whose output is being minimized
-                 'in': ['x'],             # These keys will be given to the above function
-                 'out': [('f',float)],    # This is the output from the function being minimized
-                 'save_every_k': 400  
-                 }
+  ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces.py
+      :start-at: sim_f
+      :end-before: end_sim_specs_rst_tag
 
-Note that the dimensions and type of the ``'in'`` field variable ``'x'`` is specified by the corresponding
-generator ``'out'`` field ``'x'`` (see :ref:`gen_specs example<gen-specs-exmple1>`).
-Only the variable name is then required in sim_specs.
-
-From: ``libensemble/tests/scaling_tests/forces/run_libe_forces.py``::
-
-    sim_specs = {'sim_f': run_forces,             # This is the function whose output is being minimized (sim func)
-                 'in': ['x'],                     # Name of input data structure for sim func
-                 'out': [('energy', float)],      # Output from sim func
-                 'keys': ['seed'],                # Key/keys for input data
-                 'sim_dir': './sim',              # Simulation input dir to be copied for each worker (*currently empty)
-                 'sim_dir_suffix': 'test',        # Suffix for copied sim dirs to indentify run (in case multiple)
-                 'simdir_basename': 'forces',     # User attribute to name sim directories (forces_***)
-                 'cores': 2,                      # User attribute to set number of cores for sim func runs (optional)
-                 'sim_particles': 1e3,            # User attribute for number of particles in simulations
-                 'sim_timesteps': 5,              # User attribute for number of timesteps in simulations
-                 'sim_kill_minutes': 10.0,        # User attribute for max time for simulations
-                 'kill_rate': 0.5,                # Between 0 and 1 for proportion of jobs that go bad (for testing kills)
-                 'particle_variance': 0.2,        # Range over which particle count varies (for testing load imbalance)
-                 'profile': False
-                 }
-
-This example uses a number of user specific fields, that will be dealt with in the corresponding sim f, which
-can be found at ``libensemble/tests/scaling_tests/forces/forces_simf.py``
+.. _forces_simf.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_simf.py
+.. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py
+.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py

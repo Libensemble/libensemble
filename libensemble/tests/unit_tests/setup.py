@@ -8,7 +8,10 @@ from libensemble.history import History
 
 def make_criteria_and_specs_0(simx=10, n=1):
     sim_specs = {'sim_f': np.linalg.norm, 'in': ['x_on_cube'], 'out': [('f', float), ('fvec', float, 3)], }
-    gen_specs = {'gen_f': np.random.uniform, 'in': [], 'out': [('priority', float), ('local_pt', bool), ('local_min', bool), ('num_active_runs', int)], 'ub': np.ones(n), 'lb': np.zeros(n), 'nu': 0}
+    gen_specs = {'gen_f': np.random.uniform,
+                 'in': [],
+                 'out': [('priority', float), ('local_pt', bool), ('local_min', bool), ('num_active_runs', int)],
+                 'user': {'ub': np.ones(n), 'lb': np.zeros(n), 'nu': 0}}
     if n == 1:
         gen_specs['out'] += [('x_on_cube', float)]
     else:
@@ -20,7 +23,7 @@ def make_criteria_and_specs_0(simx=10, n=1):
 
 def make_criteria_and_specs_1(simx=10):
     sim_specs = {'sim_f': np.linalg.norm, 'in': ['x'], 'out': [('g', float)], }
-    gen_specs = {'gen_f': np.random.uniform, 'in': [], 'out': [('x', float), ('priority', float)], }
+    gen_specs = {'gen_f': np.random.uniform, 'in': [], 'out': [('x', float), ('priority', float)], 'user': {}}
     exit_criteria = {'sim_max': simx, 'stop_val': ('g', -1), 'elapsed_wallclock_time': 0.5}
 
     return sim_specs, gen_specs, exit_criteria
@@ -28,7 +31,10 @@ def make_criteria_and_specs_1(simx=10):
 
 def make_criteria_and_specs_1A(simx=10):
     sim_specs = {'sim_f': np.linalg.norm, 'in': ['x'], 'out': [('g', float)], }
-    gen_specs = {'gen_f': np.random.uniform, 'in': [], 'out': [('x', float), ('priority', float), ('sim_id', int)], }
+    gen_specs = {'gen_f': np.random.uniform,
+                 'in': [],
+                 'out': [('x', float), ('priority', float), ('sim_id', int)],
+                 'user': {}}
     exit_criteria = {'sim_max': simx, 'stop_val': ('g', -1), 'elapsed_wallclock_time': 0.5}
 
     return sim_specs, gen_specs, exit_criteria

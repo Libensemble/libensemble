@@ -6,5 +6,5 @@ History Module
 .. autoclass:: History
   :member-order: bysource
   :members:
-  
+
   .. automethod:: __init__

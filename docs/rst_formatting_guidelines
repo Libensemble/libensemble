@@ -1,0 +1,15 @@
+Put variables (e.g., gen_f or H) in between double ticks ``stuff here`` (no quotes)
+
+Put short code in between double ticks ``stuff here`` (no quotes)
+
+Put referenced file names in between double ticks ``stuff here`` (no quotes)
+
+Put environment variables in between double ticks ``stuff here`` (no quotes)
+
+Use .. note:: and .. warning:: directives
+
+Put breakout code snippets into a box using two colons ::
+
+No italics on text of links
+
+Use italics for emphasis

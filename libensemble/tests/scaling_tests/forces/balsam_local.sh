@@ -12,7 +12,7 @@ export EXE=run_libe_forces.py
 export NUM_WORKERS=2
 
 # Name of working directory where Balsam places running jobs/output (inside the database directory)
-export WORKFLOW_NAME=libe_workflow 
+export WORKFLOW_NAME=libe_workflow
 
 export SCRIPT_ARGS=$NUM_WORKERS
 

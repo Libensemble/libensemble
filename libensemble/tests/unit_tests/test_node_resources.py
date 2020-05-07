@@ -1,6 +1,6 @@
 import os
-from libensemble.env_resources import EnvResources
-from libensemble import node_resources
+from libensemble.resources.env_resources import EnvResources
+from libensemble.resources import node_resources
 
 
 def setup_standalone_run():

@@ -1,27 +1,26 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
-from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
+from libensemble.gen_funcs.old_aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
-    This allocation function will:
+    This allocation function will do the following:
 
     - Start up a persistent generator that is a local opt run at the first point
-      identified by APOSMM's decide_where_to_start_localopt.
-    - It will only do this if at least one worker will be left to perform
-      simulation evaluations.
+      identified by APOSMM's decide_where_to_start_localopt. Note, it will do
+      this only if at least one worker will be left to perform simulation evaluations.
     - If multiple starting points are available, the one with smallest function
       value is chosen.
     - If no candidate starting points exist, points from existing runs will be
       evaluated (oldest first).
     - If no points are left, call the generation function.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py``
+    .. seealso::
+        `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
 
     Work = {}
@@ -55,7 +54,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         # Find candidates to start local opt runs if a sample has been evaluated
         if np.any(np.logical_and(~H['local_pt'], H['returned'])):
             n, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
-            update_history_dist(H, n, gen_specs, c_flag=False)
+            update_history_dist(H, n, gen_specs['user'], c_flag=False)
             starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
         else:
             starting_inds = []

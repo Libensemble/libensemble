@@ -4,7 +4,7 @@ Simulation Functions
 Below are example simulation functions available in libEnsemble.
 
 .. IMPORTANT::
-  See the API for simulation functions :ref:`here<api_sim_f>`
+  See the API for simulation functions :ref:`here<api_sim_f>`.
 
 six_hump_camel
 --------------
@@ -17,8 +17,8 @@ chwirut
 .. automodule:: chwirut1
   :members:
   :undoc-members:
-  
-job_control_hworld
-------------------
-.. automodule:: job_control_hworld
+
+executor_hworld
+---------------
+.. automodule:: executor_hworld
   :members:

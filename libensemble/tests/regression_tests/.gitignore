@@ -3,3 +3,7 @@ MOP_MOD_results_History*
 mop.io
 mop.dat
 mop.chkpt
+*.npy
+*.pickle
+ensemble.log
+libE_stats.txt

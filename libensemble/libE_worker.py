@@ -5,21 +5,25 @@ libEnsemble worker class
 
 import socket
 import logging
+import os
+import shutil
 import logging.handlers
-from itertools import count
+from itertools import count, groupby
+from operator import itemgetter
 from traceback import format_exc
 
 import numpy as np
 
 from libensemble.message_numbers import \
     EVAL_SIM_TAG, EVAL_GEN_TAG, \
-    UNSET_TAG, STOP_TAG, CALC_EXCEPTION
+    UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
+from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
 
-from libensemble.util.loc_stack import LocationStack
-from libensemble.util.timer import Timer
-from libensemble.controller import JobController
+from libensemble.utils.loc_stack import LocationStack
+from libensemble.utils.timer import Timer
+from libensemble.executors.executor import Executor
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 import cProfile
@@ -28,11 +32,11 @@ import pstats
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
-job_timing = False
+task_timing = False
 
 
-def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
-    """Evaluate calculations given to it by the manager.
+def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
+    """Evaluates calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
     and communicates results. This routine also creates and writes to
@@ -49,6 +53,9 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
     gen_specs: dict
         Parameters/information for generation calculations
 
+    libE_specs: dict
+        Parameters/information for libE operations
+
     workerID: int
         Manager assigned worker ID (if None, default is comm.rank)
 
@@ -56,7 +63,7 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
         Whether to send logging over comm
     """
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile_worker'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -69,10 +76,10 @@ def worker_main(comm, sim_specs, gen_specs, workerID=None, log_comm=True):
         worker_logging_config(comm, workerID)
 
     # Set up and run worker
-    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs)
+    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     worker.run()
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile_worker'):
         pr.disable()
         profile_state_fname = 'worker_%d.prof' % (workerID)
 
@@ -95,7 +102,7 @@ class WorkerErrMsg:
 
 class Worker:
 
-    """The Worker Class provides methods for controlling sim and gen funcs
+    """The worker class provides methods for controlling sim and gen funcs
 
     **Object Attributes:**
 
@@ -120,50 +127,96 @@ class Worker:
         Stack holding directory structure of this Worker
     """
 
-    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs):
-        """Initialise new worker object.
+    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
+        """Initializes new worker object
 
         """
         self.comm = comm
         self.dtypes = dtypes
         self.workerID = workerID
         self.sim_specs = sim_specs
+        self.libE_specs = libE_specs
+        self.startdir = os.getcwd()
+        self.prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self.loc_stack = None  # Worker._make_sim_worker_dir(sim_specs, workerID)
+        self.loc_stack = None
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
-        Worker._set_job_controller(self.workerID, self.comm)
+        Worker._set_executor(self.workerID, self.comm)
 
     @staticmethod
-    def _make_sim_worker_dir(sim_specs, workerID, locs=None):
-        "Create a dir for sim workers if 'sim_dir' is in sim_specs"
-        locs = locs or LocationStack()
-        if 'sim_dir' in sim_specs:
-            sim_dir = sim_specs['sim_dir'].rstrip('/')
-            prefix = sim_specs.get('sim_dir_prefix')
-            suffix = sim_specs.get('sim_dir_suffix', '')
-            if suffix != '':
-                suffix = '_' + suffix
-            worker_dir = "{}{}_worker{}".format(sim_dir, suffix, workerID)
-            locs.register_loc(EVAL_SIM_TAG, worker_dir,
-                              prefix=prefix, srcdir=sim_dir)
-        return locs
+    def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
+        "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
+
+        sim_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
+
+        do_sim_dirs = libE_specs.get('sim_dirs_make', True)
+        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
+        copy_files = libE_specs.get('sim_dir_copy_files', [])
+        symlink_files = libE_specs.get('sim_dir_symlink_files', [])
+        do_work_dirs = libE_specs.get('use_worker_dirs', False)
+
+        # If using sim_input_dir, set of files to copy is contents of provided dir
+        if sim_input_dir:
+            copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
+
+        # If identical paths to copy and symlink, remove those paths from symlink_files
+        if len(symlink_files):
+            symlink_files = [i for i in symlink_files if i not in copy_files]
+
+        # Cases where individual sim_dirs not created.
+        if not do_sim_dirs:
+            if do_work_dirs:  # Each worker does work in worker dirs
+                key = workerID
+                dir = "worker" + str(workerID)
+            else:  # Each worker does work in prefix (ensemble_dir)
+                key = prefix
+                dir = prefix
+                prefix = None
+
+            locs.register_loc(key, dir, prefix=prefix, copy_files=copy_files,
+                              symlink_files=symlink_files, ignore_FileExists=True)
+            return key
+
+        # All cases now should involve sim_dirs
+        # ensemble_dir/worker_dir registered here, set as parent dir for sim dirs
+        if do_work_dirs:
+            worker_dir = "worker" + str(workerID)
+            worker_path = os.path.abspath(os.path.join(prefix, worker_dir))
+            calc_dir = calc_str + str(H_rows)
+            locs.register_loc(workerID, worker_dir, prefix=prefix)
+            calc_prefix = worker_path
+
+        # Otherwise, ensemble_dir set as parent dir for sim dirs
+        else:
+            calc_dir = "{}{}_worker{}".format(calc_str, H_rows, workerID)
+            if not os.path.isdir(prefix):
+                os.makedirs(prefix, exist_ok=True)
+            calc_prefix = prefix
+
+        # Register calc dir with adjusted parent dir and source-file location
+        locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
+                          prefix=calc_prefix,
+                          copy_files=copy_files,
+                          symlink_files=symlink_files)
+
+        return calc_dir
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
-        "Create functions to run a sim or gen"
+        "Creates functions to run a sim or gen"
 
         sim_f = sim_specs['sim_f']
 
         def run_sim(calc_in, persis_info, libE_info):
-            "Call the sim func."
+            "Calls the sim func."
             return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
-                "Call the gen func."
+                "Calls the gen func."
                 return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
             run_gen = []
@@ -171,18 +224,75 @@ class Worker:
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
-    def _set_job_controller(workerID, comm):
-        "Optional -- set worker ID in the job controller, return if set"
-        jobctl = JobController.controller
-        if isinstance(jobctl, JobController):
-            jobctl.set_worker_info(comm, workerID)
+    def _set_executor(workerID, comm):
+        "Optional - sets worker ID in the executor, return if set"
+        exctr = Executor.executor
+        if isinstance(exctr, Executor):
+            exctr.set_worker_info(comm, workerID)
             return True
         else:
-            logger.info("No job_controller set on worker {}".format(workerID))
+            logger.info("No executor set on worker {}".format(workerID))
             return False
 
+    @staticmethod
+    def _extract_H_ranges(Work):
+        """ Convert received H_rows into ranges for logging, labeling """
+        work_H_rows = Work['libE_info']['H_rows']
+        if len(work_H_rows) == 1:
+            return str(work_H_rows[0])
+        else:
+            # From https://stackoverflow.com/a/30336492
+            # Create groups by difference between row values and sequential enumerations:
+            # e.g., [2, 3, 5, 6] -> [(0, 2), (1, 3), (2, 5), (3, 6)]
+            #  -> diff=-2, group=[(0, 2), (1, 3)], diff=-3, group=[(2, 5), (3, 6)]
+            ranges = []
+            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0]-x[1]):
+                # Take second values (rows values) from each group element into lists:
+                # group=[(0, 2), (1, 3)], group=[(2, 5), (3, 6)] -> group=[2, 3], group=[5, 6]
+                group = list(map(itemgetter(1), group))
+                if len(group) > 1:
+                    ranges.append(str(group[0]) + '-' + str(group[-1]))
+                else:
+                    ranges.append(str(group[0]))
+            return '_'.join(ranges)
+
+    def _copy_back(self):
+        """ Cleanup indication file & copy output to init dir, if specified"""
+        if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', False):
+            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix))
+            if os.path.basename(self.prefix) in os.listdir(self.startdir):
+                copybackdir += '_back'
+            for dir in self.loc_stack.dirs.values():
+                try:
+                    shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
+                    if os.path.basename(dir).startswith('worker'):
+                        break  # Worker dir (with all sim_dirs) copied.
+                except FileExistsError:
+                    if not self.libE_specs.get('sim_dirs_make', True):
+                        continue
+                    else:
+                        raise
+
+    def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
+        "Determines choice for sim_dir structure, then performs calculation."
+
+        if not self.loc_stack:
+            self.loc_stack = LocationStack()
+
+        H_rows = Worker._extract_H_ranges(Work)
+        calc_str = calc_type_strings[calc_type]
+
+        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
+            calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
+                                             H_rows, calc_str, self.loc_stack)
+
+            with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
+                return calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+        return calc(calc_in, Work['persis_info'], Work['libE_info'])
+
     def _handle_calc(self, Work, calc_in):
-        """Run a calculation on this worker object.
+        """Runs a calculation on this worker object.
 
         This routine calls the user calculations. Exceptions are caught,
         dumped to the summary file, and raised.
@@ -210,16 +320,8 @@ class Worker:
             with timer:
                 logger.debug("Calling calc {}".format(calc_type))
 
-                # Worker creates own sim_dir only if sim work performed.
-                if calc_type == EVAL_SIM_TAG and self.loc_stack:
-                    with self.loc_stack.loc(calc_type):
-                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-
-                elif calc_type == EVAL_SIM_TAG and not self.loc_stack:
-                    self.loc_stack = Worker._make_sim_worker_dir(self.sim_specs, self.workerID)
-                    with self.loc_stack.loc(calc_type):
-                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
-
+                if calc_type == EVAL_SIM_TAG:
+                    out = self._determine_dir_then_calc(Work, calc_type, calc_in, calc)
                 else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
@@ -231,6 +333,14 @@ class Worker:
                 "Calculation output must be at least two elements."
 
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
+
+            # Check for buffered receive
+            if self.comm.recv_buffer:
+                tag, message = self.comm.recv()
+                if tag in [STOP_TAG, PERSIS_STOP]:
+                    if message is MAN_SIGNAL_FINISH:
+                        calc_status = MAN_SIGNAL_FINISH
+
             return out[0], out[1], calc_status
         except Exception:
             logger.debug("Re-raising exception from calc")
@@ -238,26 +348,26 @@ class Worker:
             raise
         finally:
             # This was meant to be handled by calc_stats module.
-            if job_timing and JobController.controller.list_of_jobs:
+            if task_timing and Executor.executor.list_of_tasks:
                 # Initially supporting one per calc. One line output.
-                job = JobController.controller.list_of_jobs[-1]
+                task = Executor.executor.list_of_tasks[-1]
                 calc_msg = "Calc {:5d}: {} {} {} Status: {}".\
                     format(calc_id,
                            calc_type_strings[calc_type],
                            timer,
-                           job.timer,
-                           calc_status_strings.get(calc_status, "Completed"))
+                           task.timer,
+                           calc_status_strings.get(calc_status, "Not set"))
             else:
                 calc_msg = "Calc {:5d}: {} {} Status: {}".\
                     format(calc_id,
                            calc_type_strings[calc_type],
                            timer,
-                           calc_status_strings.get(calc_status, "Completed"))
+                           calc_status_strings.get(calc_status, "Not set"))
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
     def _recv_H_rows(self, Work):
-        "Unpack Work request and receiv any history rows we need."
+        "Unpacks Work request and receives any history rows"
 
         libE_info = Work['libE_info']
         calc_type = Work['tag']
@@ -274,13 +384,15 @@ class Worker:
         return libE_info, calc_type, calc_in
 
     def _handle(self, Work):
-        "Handle a work request from the manager."
+        "Handles a work request from the manager"
 
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
 
         # Call user function
         libE_info['comm'] = self.comm
+        libE_info['workerID'] = self.workerID
+        # libE_info['worker_team'] = [self.workerID] + libE_info.get('blocking', [])
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
         del libE_info['comm']
 
@@ -297,7 +409,7 @@ class Worker:
                 'calc_type': calc_type}
 
     def run(self):
-        "Run the main worker loop."
+        "Runs the main worker loop."
 
         try:
             logger.info("Worker {} initiated on node {}".
@@ -307,6 +419,7 @@ class Worker:
                 logger.debug("Iteration {}".format(worker_iter))
 
                 mtag, Work = self.comm.recv()
+
                 if mtag == STOP_TAG:
                     break
 
@@ -317,8 +430,8 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
+            self._copy_back()  # Copy back current results on Exception
         else:
             self.comm.kill_pending()
         finally:
-            if self.sim_specs.get('clean_jobs') and self.loc_stack is not None:
-                self.loc_stack.clean_locs()
+            self._copy_back()

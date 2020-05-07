@@ -1,4 +1,4 @@
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, test_any_gen
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
@@ -6,10 +6,10 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
     are given. If all entries in `H` have been given a be evaluated, a worker
     is told to call the generator function, provided this wouldn't result in
-    more than ``gen_specs['num_active_gen']`` active generators.
+    more than ``alloc_specs['user']['num_active_gen']`` active generators.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_fast_alloc.py``
+    .. seealso::
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
     Work = {}

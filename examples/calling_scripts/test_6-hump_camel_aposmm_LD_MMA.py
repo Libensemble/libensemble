@@ -1,1 +1,0 @@
-../../libensemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MMA.py

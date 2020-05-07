@@ -9,19 +9,18 @@ Supply persistent information to libEnsemble::
         Dictionary containing persistent info
 
 Holds data that is passed to and from workers updating some state information. A typical example
-is a randon number generator to be used in consecutive calls to a generator.
+is a random number generator to be used in consecutive calls to a generator.
 
 If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``. This functionality
 can be used to, for example, pass a random stream back to the manager to be included in future work
-from the allocation function. 
+from the allocation function.
 
-:Examples:
+.. seealso::
 
-From: libEnsemble/tests/regression_tests/test_6-hump_camel_aposmm_LD_MAA.py::
+  From: support.py_
 
-    persis_info = {'next_to_give':0} # used in alloc_funcs/fast_alloc_to_aposmm.py to store the next entry in H to give
-    persis_info['total_gen_calls'] = 0 # used in alloc_funcs/fast_alloc_to_aposmm.py to count total gen calls
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/support.py
+      :start-at: persis_info_1
+      :end-before: end_persis_info_rst_tag
 
-    for i in range(MPI.COMM_WORLD.Get_size()):
-        persis_info[i] = {'rand_stream': np.random.RandomState(i)} # used as a random number stream for each worker
-
+.. _support.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/support.py

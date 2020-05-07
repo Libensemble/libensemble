@@ -15,7 +15,7 @@ def poll_until_state(job, state, timeout_sec=120.0, delay=2.0):
             return True
         elif job.state == 'USER_KILLED':
             return False
-    raise RuntimeError("Job %s failed to reach state %s in %.1f seconds" % (job.cute_id, state, timeout_sec))
+    raise RuntimeError("Task %s failed to reach state %s in %.1f seconds" % (job.cute_id, state, timeout_sec))
 
 
 myrank = MPI.COMM_WORLD.Get_rank()
@@ -24,21 +24,20 @@ sleep_time = 3  # + myrank
 
 # Create output dir
 script_name = os.path.splitext(os.path.basename(__file__))[0]
-sim_dir = 'simdir_' + script_name.split("test_", 1).pop()
+sim_input_dir = 'simdir_' + script_name.split("test_", 1).pop()
 dir_path = os.path.dirname(os.path.realpath(__file__))
-sim_path = os.path.join(dir_path, sim_dir)
+sim_path = os.path.join(dir_path, sim_input_dir)
 
 if myrank == 0:
     if not os.path.isdir(sim_path):
         try:
             os.mkdir(sim_path)
-        except:
+        except Exception as e:
+            print(e)
             raise("Cannot make simulation directory %s" % sim_path)
 MPI.COMM_WORLD.Barrier()  # Ensure output dir created
 
-
-print("Host job rank is %d Output dir is %s" % (myrank, sim_dir))
-
+print("Host job rank is %d Output dir is %s" % (myrank, sim_input_dir))
 
 start = time.time()
 for sim_id in range(steps):
@@ -52,15 +51,14 @@ for sim_id in range(steps):
                               ranks_per_node=8,
                               stage_out_url="local:" + sim_path,
                               stage_out_files=jobname + ".out")
-
     if sim_id == 1:
         dag.kill(current_job)
 
     success = poll_until_state(current_job, 'JOB_FINISHED')  # OR job killed
     if success:
-        print("Completed job: %s rank=%d  time=%f" % (jobname, myrank, time.time()-start))
+        print("Completed job: %s rank=%d time=%f" % (jobname, myrank, time.time()-start))
     else:
-        print("Job not completed: %s rank=%d  time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
+        print("Task not completed: %s rank=%d time=%f Status" % (jobname, myrank, time.time()-start), current_job.state)
 
 end = time.time()
 print("Done: rank=%d  time=%f" % (myrank, end-start))

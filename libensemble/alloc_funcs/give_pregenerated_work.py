@@ -1,4 +1,4 @@
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work
 
 
 def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -6,8 +6,8 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
     This allocation function gives (in order) entries in alloc_spec['x'] to
     idle workers. It is an example use case where no gen_func is used.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_fast_alloc.py``
+    .. seealso::
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
     Work = {}

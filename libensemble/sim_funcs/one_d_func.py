@@ -10,12 +10,12 @@ def one_d_example(x, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a single point ``x``.
 
-    :See:
-        ``/libensemble/libensemble/tests/regression_tests/test_fast_alloc.py``
+    .. seealso::
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    O = np.zeros(1, dtype=sim_specs['out'])
+    H_o = np.zeros(1, dtype=sim_specs['out'])
 
-    O['f'] = np.linalg.norm(x)
+    H_o['f'] = np.linalg.norm(x)
 
-    return O, persis_info
+    return H_o, persis_info

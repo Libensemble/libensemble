@@ -1,5 +1,5 @@
 import os
-from libensemble.env_resources import EnvResources
+from libensemble.resources.env_resources import EnvResources
 
 
 def setup_standalone_run():
@@ -38,6 +38,13 @@ def test_slurm_nodelist_single():
     assert nodelist == exp_out, "Nodelist returned does not match expected"
 
 
+def test_slurm_nodelist_single_nodash():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "nid00056"
+    exp_out = ["nid00056"]
+    nodelist = EnvResources.get_slurm_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
 def test_slurm_nodelist_knl_seq():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0009-0012]"
     exp_out = ['knl-0009', 'knl-0010', 'knl-0011', 'knl-0012']
@@ -55,6 +62,20 @@ def test_slurm_nodelist_bdw_seq():
 def test_slurm_nodelist_groups():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0137-0139,1234]"
     exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
+    nodelist = EnvResources.get_slurm_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
+def test_slurm_nodelist_groups_partitions():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "bdw-[0254,0384,0565-0568],bdwd-[0004,0009]"
+    exp_out = ['bdw-0254', 'bdw-0384', 'bdw-0565', 'bdw-0566', 'bdw-0567', 'bdw-0568', 'bdwd-0004', 'bdwd-0009']
+    nodelist = EnvResources.get_slurm_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+
+
+def test_slurm_nodelist_groups_nodash():
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "nid0[0020-0022,0137-0139,1234]"
+    exp_out = ['nid00020', 'nid00021', 'nid00022', 'nid00137', 'nid00138', 'nid00139', 'nid01234']
     nodelist = EnvResources.get_slurm_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
 
@@ -157,10 +178,21 @@ def test_lsf_nodelist_shortform_seq():
 
 def test_abbrev_nodenames_nochange_slurm():
     env_resources = EnvResources()
-    # Test Cobalt abbrev
+    # Test Slurm abbrev
     exp_names = ['knl-0019', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-2345']
-    env_resources.schedular = 'Cobalt'
+    env_resources.schedular = 'Slurm'
     abbrev_names = env_resources.abbrev_nodenames(exp_names)
+    assert abbrev_names == exp_names, "Abbreviated names returned do not match expected"
+    del env_resources
+
+
+def test_abbrev_nodenames_slurm():
+    env_resources = EnvResources()
+    # Test Slurm abbrev
+    exp_names = ['knl-0019', 'knl-0021', 'knl-0022']
+    full_names = ['knl-0019.some.suffix', 'knl-0021.some.suffix', 'knl-0022.diff_suffix']
+    env_resources.schedular = 'Slurm'
+    abbrev_names = env_resources.abbrev_nodenames(full_names)
     assert abbrev_names == exp_names, "Abbreviated names returned do not match expected"
     del env_resources
 
@@ -191,9 +223,12 @@ if __name__ == "__main__":
 
     test_slurm_nodelist_empty()
     test_slurm_nodelist_single()
+    test_slurm_nodelist_single_nodash()
     test_slurm_nodelist_knl_seq()
     test_slurm_nodelist_bdw_seq()
     test_slurm_nodelist_groups()
+    test_slurm_nodelist_groups_partitions()
+    test_slurm_nodelist_groups_nodash()
     test_slurm_nodelist_groups_longprefix()
     test_slurm_nodelist_reverse_grp()
 
@@ -212,6 +247,7 @@ if __name__ == "__main__":
     test_lsf_nodelist_shortform_seq()
 
     test_abbrev_nodenames_nochange_slurm()
+    test_abbrev_nodenames_slurm()
     test_abbrev_nodenames_nochange_cobalt()
     test_abbrev_nodenames_cobalt()
 

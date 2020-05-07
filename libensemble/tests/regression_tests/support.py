@@ -17,6 +17,14 @@ def nan_func(calc_in, persis_info, sim_specs, libE_info):
     return (H, persis_info)
 
 
+def write_func(calc_in, persis_info, sim_specs, libE_info):
+    out = np.zeros(1, dtype=sim_specs['out'])
+    out['f'] = calc_in['x']
+    with open('test_out.txt', 'a') as f:
+        f.write('sim_f received: {}\n'.format(out['f']))
+    return out, persis_info
+
+
 uniform_or_localopt_gen_out = [('priority', float),
                                ('local_pt', bool),
                                ('known_to_aposmm', bool),
@@ -35,15 +43,15 @@ aposmm_gen_out += [('sim_id', int),
                    ('pt_id', int)]  # Identify the same point evaluated by different sim_f's or components
 
 # give_sim_work_first persis_info
-persis_info_1 = {}
-# Below persis_info fields store APOSMM information, but can be passed to various workers.
-persis_info_1['total_gen_calls'] = 0
-persis_info_1['last_worker'] = 0
-persis_info_1['next_to_give'] = 0
-persis_info_1[0] = {'run_order': {},
-                    'old_runs': {},
-                    'total_runs': 0,
+persis_info_1 = {'total_gen_calls': 0,  # Counts gen calls in alloc_f
+                 'last_worker': 0,      # Remembers last gen worker in alloc_f
+                 'next_to_give': 0}     # Remembers next H row to give in alloc_f
+
+persis_info_1[0] = {'run_order': {},    # Used by manager to remember run order
+                    'old_runs': {},     # Used by manager to store old runs order
+                    'total_runs': 0,    # Used by manager to count total runs
                     'rand_stream': np.random.RandomState(1)}
+# end_persis_info_rst_tag
 
 persis_info_2 = copy.deepcopy(persis_info_1)
 persis_info_2[1] = persis_info_2[0]

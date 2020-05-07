@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
 def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -32,7 +32,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             inds_to_send_back = np.where(np.logical_and(inds_generated_by_i,
                                                         last_batch_inds))[0]
             if H['batch'][-1] > 0:
-                n = gen_specs['subbatch_size']*gen_specs['num_subbatches']
+                n = gen_specs['user']['subbatch_size']*gen_specs['user']['num_subbatches']
                 k = H['batch'][-1]
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
 

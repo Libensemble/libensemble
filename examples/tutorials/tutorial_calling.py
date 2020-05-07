@@ -1,36 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams
 from tutorial_gen import gen_random_sample
 from tutorial_sim import sim_find_sine
 
 nworkers = 4
-libE_specs = {'nprocesses': nworkers, 'comms': 'local'}
+libE_specs = {'nworkers': nworkers, 'comms': 'local'}
 
 gen_specs = {'gen_f': gen_random_sample,        # Our generator function
-             'in': ['sim_id'],                  # Input field names. 'sim_id' necessary default
              'out': [('x', float, (1,))],       # gen_f output (name, type, size).
-             'lower': np.array([-3]),           # lower boundary for random sampling.
-             'upper': np.array([3]),            # upper boundary for random sampling.
-             'gen_batch_size': 5}               # number of values gen_f will generate per call
+             'user': {'lower': np.array([-3]),  # random sampling lower bound
+                      'upper': np.array([3]),   # random sampling upper bound
+                      'gen_batch_size': 5       # number of values gen_f will generate per call
+                      }
+             }
 
 sim_specs = {'sim_f': sim_find_sine,            # Our simulator function
              'in': ['x'],                       # Input field names. 'x' from gen_f output
              'out': [('y', float)]}             # sim_f output. 'y' = sine('x')
 
-persis_info = {}
-
-for i in range(1, nworkers+1):                  # Worker numbers start at 1.
-    persis_info[i] = {
-        'rand_stream': np.random.RandomState(i),
-        'worker_num': i}
+persis_info = add_unique_random_streams({}, nworkers+1)  # Intitialize manager/workers random streams
 
 exit_criteria = {'sim_max': 80}                 # Stop libEnsemble after 80 simulations
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
-print([i for i in H.dtype.fields])              # Some (optional) statements to visualize our History array
+# Some (optional) statements to visualize our History array
+print([i for i in H.dtype.fields])
 print(H)
 
 colors = ['b', 'g', 'r', 'y', 'm', 'c', 'k', 'w']
@@ -45,4 +43,4 @@ plt.title('Sine calculations for a uniformly sampled random distribution')
 plt.xlabel('x')
 plt.ylabel('sine(x)')
 plt.legend(loc='lower right')
-plt.show()
+plt.savefig('tutorial_sines.png')

@@ -260,11 +260,13 @@ def chwirut_eval(H, persis_info, sim_specs, _):
     component of the objective will be evaluated. Otherwise, all 214 components
     are evaluated and returned in the ``'fvec'`` field.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_chwirut_pounders.py`` for an example where the entire fvec is computed.
+    .. seealso::
+        `test_old_aposmm_pounders.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_pounders.py>`_
+        for an example where the entire fvec is computed each call.
 
-    :See:
-        ``/libensemble/tests/regression_tests/test_chwirut_aposmm_one_residual_at_a_time.py``
+    .. seealso::
+        `test_old_aposmm_one_residual_at_a_time.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_one_residual_at_a_time.py>`_
+        for an example where one component of fvec is computed per call
     """
 
     batch = len(H['x'])
@@ -272,14 +274,14 @@ def chwirut_eval(H, persis_info, sim_specs, _):
 
     for i, x in enumerate(H['x']):
         if 'obj_component' in H.dtype.names:
-            if 'component_nan_frequency' in sim_specs and np.random.uniform(0, 1) < sim_specs['component_nan_frequency']:
+            if 'user' in sim_specs and 'component_nan_frequency' in sim_specs['user'] and np.random.uniform(0, 1) < sim_specs['user']['component_nan_frequency']:
                 O['f_i'][i] = np.nan
             else:
                 O['f_i'][i] = EvaluateFunction(x, H['obj_component'][i])
 
         else:
             O['fvec'][i] = EvaluateFunction(x)
-            O['f'][i] = sim_specs['combine_component_func'](O['fvec'][i])
+            O['f'][i] = sim_specs['user']['combine_component_func'](O['fvec'][i])
 
     return O, persis_info
 

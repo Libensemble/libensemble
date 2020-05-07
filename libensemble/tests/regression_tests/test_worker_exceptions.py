@@ -17,9 +17,9 @@ import numpy as np
 
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import nan_func as sim_f
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE_manager import ManagerException
-from libensemble.tests.regression_tests.common import parse_args, per_worker_stream
+from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 n = 2
@@ -29,13 +29,12 @@ sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, 2)],
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2]),
-             'initial_sample': 100,
-             'batch_mode': True,
-             'num_active_gens': 1}
+             'user': {'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2]),
+                      'initial_sample': 100}
+             }
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 libE_specs['abort_on_exception'] = False
 

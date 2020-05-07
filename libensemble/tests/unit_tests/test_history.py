@@ -13,14 +13,18 @@ from numpy import inf
 wrs_H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
                    (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
                    (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3)],
-                  dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+                  dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
+                         ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'),
+                         ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
 
 exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
                      (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
                      (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3),
                      (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
                      (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
-                    dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+                    dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
+                           ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'),
+                           ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
 
 wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
                 (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
@@ -32,7 +36,10 @@ wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False,
                 (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
                 (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0),
                 (False, 0., 0, 0., 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, False, 0)],
-               dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_time', '<f8'), ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8'), ('local_min', '?'), ('num_active_runs', '<i8')])
+               dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_time', '<f8'),
+                      ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'), ('sim_worker', '<i8'),
+                      ('returned', '?'), ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'),
+                      ('given_time', '<f8'), ('local_min', '?'), ('num_active_runs', '<i8')])
 
 wrs2 = np.array([(0, False, 0., 0., 0, False, 0., False, -1, inf, 0.),
                  (0, False, 0., 0., 0, False, 0., False, -1, inf, 0.),
@@ -44,7 +51,9 @@ wrs2 = np.array([(0, False, 0., 0., 0, False, 0., False, -1, inf, 0.),
                  (0, False, 0., 0., 0, False, 0., False, -1, inf, 0.),
                  (0, False, 0., 0., 0, False, 0., False, -1, inf, 0.),
                  (0, False, 0., 0., 0, False, 0., False, -1, inf, 0.)],
-                dtype=[('gen_worker', '<i8'), ('returned', '?'), ('gen_time', '<f8'), ('x', '<f8'), ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('given', '?'), ('sim_id', '<i8'), ('given_time', '<f8'), ('priority', '<f8')])
+                dtype=[('gen_worker', '<i8'), ('returned', '?'), ('gen_time', '<f8'), ('x', '<f8'),
+                       ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('given', '?'), ('sim_id', '<i8'),
+                       ('given_time', '<f8'), ('priority', '<f8')])
 
 exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, False, inf, 0.),
                             (0, 1, 3, 0., 7.20324493e-01, False, False, False, inf, 0.),
@@ -56,7 +65,9 @@ exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, False, i
                             (0, 7, 3, 0., 3.45560727e-01, False, False, False, inf, 0.),
                             (0, 8, 3, 0., 3.96767474e-01, False, False, False, inf, 0.),
                             (0, 9, 3, 0., 5.38816734e-01, False, False, False, inf, 0.)],
-                           dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('priority', '<f8'), ('x', '<f8'), ('allocated', '?'), ('returned', '?'), ('given', '?'), ('given_time', '<f8'), ('g', '<f8')])
+                           dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('priority', '<f8'),
+                                  ('x', '<f8'), ('allocated', '?'), ('returned', '?'), ('given', '?'),
+                                  ('given_time', '<f8'), ('g', '<f8')])
 
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
@@ -117,9 +128,9 @@ def test_trim_H():
 
 def test_update_history_x_in_Oempty():
     hist, sim_specs, gen_specs, _, _ = setup.hist_setup2()
-    O = np.zeros(0, dtype=gen_specs['out'])
+    H_o = np.zeros(0, dtype=gen_specs['out'])
     gen_worker = 1
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     assert np.array_equal(hist.H, wrs2), "H Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
@@ -137,10 +148,10 @@ def test_update_history_x_in():
 
     size = 1
     gen_worker = 2
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = single_rand
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = single_rand
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     assert isclose(single_rand, hist.H['x'][0])
     assert hist.given_count == 0
     assert hist.index == 1
@@ -148,10 +159,10 @@ def test_update_history_x_in():
 
     size = 6
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
     for field in exp_x.dtype.names:
@@ -164,10 +175,10 @@ def test_update_history_x_in():
     # Force H to grow when add points
     size = 3
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     # Compare by column
     exp_x = exp_x_in_setup2
     for field in exp_x.dtype.names:
@@ -189,11 +200,11 @@ def test_update_history_x_in_sim_ids():
 
     size = 1
     gen_worker = 2
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = single_rand
-    O['sim_id'] = 0
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = single_rand
+    H_o['sim_id'] = 0
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     assert isclose(single_rand, hist.H['x'][0])
     assert hist.given_count == 0
     assert hist.index == 1
@@ -201,10 +212,10 @@ def test_update_history_x_in_sim_ids():
 
     size = 6
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
-    O['sim_id'] = range(1, 7)
-    hist.update_history_x_in(gen_worker, O)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
+    H_o['sim_id'] = range(1, 7)
+    hist.update_history_x_in(gen_worker, H_o)
 
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
@@ -218,11 +229,11 @@ def test_update_history_x_in_sim_ids():
     # Force H to grow when add points
     size = 3
     gen_worker = 3
-    O = np.zeros(size, dtype=gen_specs['out'])
-    O['x'] = gen_specs['gen_f'](size=size)
-    O['sim_id'] = range(7, 10)
+    H_o = np.zeros(size, dtype=gen_specs['out'])
+    H_o['x'] = gen_specs['gen_f'](size=size)
+    H_o['sim_id'] = range(7, 10)
 
-    hist.update_history_x_in(gen_worker, O)
+    hist.update_history_x_in(gen_worker, H_o)
     # Compare by column
     exp_x = exp_x_in_setup2
     for field in exp_x.dtype.names:

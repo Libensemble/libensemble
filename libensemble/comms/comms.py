@@ -114,7 +114,7 @@ class QComm(Comm):
         self._inbox = inbox
         self._outbox = outbox
         self._copy = copy_msg
-        self._pushback = None
+        self.recv_buffer = None
         with QComm.lock:
             QComm._ncomms.value += 1
 
@@ -136,8 +136,8 @@ class QComm(Comm):
 
     def recv(self, timeout=None):
         "Return a message from the inbox queue or raise TimeoutError."
-        pb_result = self._pushback
-        self._pushback = None
+        pb_result = self.recv_buffer
+        self.recv_buffer = None
         if pb_result is not None:
             return pb_result
         try:
@@ -148,8 +148,8 @@ class QComm(Comm):
             raise Timeout()
 
     # TODO: This should go away once I have internal comms working
-    def push_back(self, *args):
-        self._pushback = args
+    def push_to_buffer(self, *args):
+        self.recv_buffer = args
 
     def mail_flag(self):
         "Check whether we know a message is ready for receipt."

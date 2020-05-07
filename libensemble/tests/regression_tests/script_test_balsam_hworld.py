@@ -3,16 +3,15 @@
 
 import os
 import numpy as np
-import multiprocessing
 import mpi4py
 from mpi4py import MPI
 
-from libensemble.balsam_controller import BalsamJobController
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, JOB_FAILED
+from libensemble.executors.balsam_executor import BalsamMPIExecutor
+from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
-from libensemble.sim_funcs.job_control_hworld import job_control_hworld as sim_f
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import per_worker_stream
+from libensemble.sim_funcs.executor_hworld import executor_hworld
+from libensemble.gen_funcs.sampling import uniform_random_sample
+from libensemble.tools import add_unique_random_streams
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
@@ -21,59 +20,54 @@ mpi4py.rc.recv_mprobe = False  # Disable matching probes
 def build_simfunc():
     import subprocess
     print('Balsam job launched in: {}'.format(os.getcwd()))
-    buildstring = 'mpicc -o my_simjob.x libensemble/tests/unit_tests/simdir/my_simjob.c'
+    buildstring = 'mpicc -o my_simtask.x libensemble/tests/unit_tests/simdir/my_simtask.c'
     subprocess.check_call(buildstring.split())
 
 
-libE_specs = {'comm': MPI.COMM_WORLD, 'color': 0, 'comms': 'mpi'}
+libE_specs = {'comm': MPI.COMM_WORLD,
+              'comms': 'mpi',
+              'save_every_k_sims': 400,
+              'save_every_k_gens': 20,
+              }
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_master = MPI.COMM_WORLD.Get_rank() == 0
 
-cores_per_job = 1
-logical_cores = multiprocessing.cpu_count()
-cores_all_jobs = nworkers*cores_per_job
+cores_per_task = 1
 
-if is_master:
-    print('\nCores req: {} Cores avail: {}\n'.format(cores_all_jobs,
-                                                     logical_cores))
-
-sim_app = './my_simjob.x'
+sim_app = './my_simtask.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-jobctrl = BalsamJobController(auto_resources=False)
-jobctrl.register_calc(full_path=sim_app, calc_type='sim')
+exctr = BalsamMPIExecutor(auto_resources=False)
+exctr.register_calc(full_path=sim_app, calc_type='sim')
 
-sim_specs = {'sim_f': sim_f,
+sim_specs = {'sim_f': executor_hworld,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'save_every_k': 400,
-             'cores': cores_per_job}
+             'user': {'cores': cores_per_task}}
 
-gen_specs = {'gen_f': gen_f,
+gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
              'out': [('x', float, (2,))],
-             'lb': np.array([-3, -2]),
-             'ub': np.array([3, 2]),
-             'gen_batch_size': nworkers,
-             'batch_mode': True,
-             'num_active_gens': 1,
-             'save_every_k': 20}
+             'user': {'lb': np.array([-3, -2]),
+                      'ub': np.array([3, 2]),
+                      'gen_batch_size': nworkers}
+             }
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 30}
+exit_criteria = {'elapsed_wallclock_time': 35}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
 if is_master:
-    print('\nChecking expected job status against Workers ...\n')
+    print('\nChecking expected task status against Workers ...\n')
     calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR,
                                       WORKER_KILL_ON_TIMEOUT,
-                                      JOB_FAILED, 0])
+                                      TASK_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     print("Expecting: {}".format(calc_status_list))
@@ -82,10 +76,10 @@ if is_master:
     assert np.array_equal(H['cstat'], calc_status_list), "Error - unexpected calc status. Received: " + str(H['cstat'])
 
     # Check summary file:
-    print('Checking expected job status against job summary file ...\n')
+    print('Checking expected task status against task summary file ...\n')
 
-    calc_desc_list_in = ['Completed', 'Worker killed job on Error',
-                         'Worker killed job on Timeout', 'Job Failed',
+    calc_desc_list_in = ['Completed', 'Worker killed task on Error',
+                         'Worker killed task on Timeout', 'Task Failed',
                          'Manager killed on finish']
 
     # Repeat N times for N workers and insert Completed at start for generator

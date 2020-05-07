@@ -22,8 +22,8 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
-from libensemble.gen_funcs.uniform_sampling import uniform_random_sample as gen_f
-from libensemble.tests.regression_tests.common import parse_args, save_libE_output, per_worker_stream
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -33,7 +33,7 @@ if libE_specs['comms'] != 'mpi':
 else:
     from mpi4py import MPI
 
-libE_specs = {}  # Let MPI use defaults
+libE_specs = None  # Let MPI use defaults
 
 # Check independence of default communicator from MPI.COMM_WORLD
 world = MPI.COMM_WORLD
@@ -45,12 +45,13 @@ sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('x', float, (1,))],
-             'lb': np.array([-3]),
-             'ub': np.array([3]),
-             'gen_batch_size': 500,
-             'save_every_k': 300}
+             'user': {'lb': np.array([-3]),
+                      'ub': np.array([3]),
+                      'gen_batch_size': 500
+                      }
+             }
 
-persis_info = per_worker_stream({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 501}
 
@@ -59,7 +60,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
 if is_master:
-    assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
+    # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
     # Potential to cause a hang
     worker_ids = []
     exp_worker_ids = list(range(1, nworkers + 1))

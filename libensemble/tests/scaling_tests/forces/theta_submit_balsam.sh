@@ -10,7 +10,7 @@
 
 # To be run with central job management
 # - Manager and workers run on one node (or a dedicated set of nodes).
-# - Workers submit jobs to the rest of the nodes in the pool.
+# - Workers submit tasks to the rest of the nodes in the pool.
 
 # Name of calling script
 export EXE=run_libe_forces.py
@@ -18,23 +18,25 @@ export EXE=run_libe_forces.py
 # Number of workers.
 export NUM_WORKERS=127
 
-# Wallclock for libE job (supplied to Balsam - make at least several mins smaller than wallclock for this submission to ensure job is launched)
+# Wallclock for libE job in minutes (supplied to Balsam - make at least several mins smaller than wallclock for this submission to ensure job is launched)
 export LIBE_WALLCLOCK=25
 
 # Name of working directory where Balsam places running jobs/output (inside the database directory)
-export WORKFLOW_NAME=libe_workflow #sh - todo - may currently be hardcoded to this in libE - allow user to specify
+export WORKFLOW_NAME=libe_workflow
 
-#Tell libE manager to stop workers, dump timing.dat and exit after this time. Script must be set up to receive as argument.
-export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-5)) 
 # export SCRIPT_ARGS='' #Default No args
+# export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-5))
+export SCRIPT_ARGS="--comms mpi --nworkers $NUM_WORKERS"
 
-# Name of Conda environment (Need to have set up: https://balsam.alcf.anl.gov/quick/quickstart.html)
+# Name of Conda environment
 export CONDA_ENV_NAME=<conda_env_name>
+
+# Name of database
 export DBASE_NAME=<dbase_name>
 
 # Conda location - theta specific
-export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
-export LD_LIBRARY_PATH=~/.conda/envs/balsam/lib:$LD_LIBRARY_PATH
+# export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
+# export LD_LIBRARY_PATH=~/.conda/envs/$CONDA_ENV_NAME/lib:$LD_LIBRARY_PATH
 
 export PYTHONNOUSERSITE=1 #Ensure environment isolated
 
@@ -47,11 +49,10 @@ export PLOT_DIR=..
 # Activate conda environment
 . activate $CONDA_ENV_NAME
 
-# Unload Theta modules that may interfere with Balsam
+# Unload Theta modules that may interfere with job monitoring/kills
 module unload trackdeps
 module unload darshan
 module unload xalt
-
 
 . balsamactivate $DBASE_NAME
 
@@ -73,9 +74,8 @@ SCRIPT_BASENAME=${EXE%.*}
 NUM_NODES=2
 RANKS_PER_NODE=64
 
-# All jobs
+# All tasks
 OUT_FILES_TO_RETURN="*.out *.txt *.log"
-
 
 balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
 
@@ -91,11 +91,11 @@ balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
 if [[ $LIBE_PLOTS = "true" ]]; then
   python $PLOT_DIR/plot_libe_calcs_util_v_time.py
   python $PLOT_DIR/plot_libe_runs_util_v_time.py
-  python $PLOT_DIR/plot_libE_histogram.pyfi
+  python $PLOT_DIR/plot_libe_histogram.py
 
 if [[ $BALSAM_PLOTS = "true" ]]; then
 #   export MPLBACKEND=TkAgg
-  python $PLOT_DIR/plot_util_v_time.py  
+  python $PLOT_DIR/plot_util_v_time.py
   python $PLOT_DIR/plot_jobs_v_time.py
   python $PLOT_DIR/plot_waiting_v_time.py
 fi
