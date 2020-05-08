@@ -27,7 +27,7 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
-w_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
+w_ensemble = '../ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 print('creating ensemble dir: ', w_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:

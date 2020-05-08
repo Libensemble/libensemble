@@ -153,8 +153,8 @@ class Manager:
     @staticmethod
     def make_copyback_dir(libE_specs):
         ensemble_dir_path = libE_specs.get('ensemble_dir_path', './ensemble')
-        copybackdir = os.path.basename(ensemble_dir_path)
-        if ensemble_dir_path == './' + copybackdir:
+        copybackdir = os.path.basename(ensemble_dir_path)  # Current directory, same basename
+        if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
             copybackdir += '_back'
         os.makedirs(copybackdir)
 

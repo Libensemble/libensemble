@@ -259,8 +259,10 @@ class Worker:
     def _copy_back(self):
         """ Cleanup indication file & copy output to init dir, if specified"""
         if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', False):
-            copybackdir = os.path.join(self.startdir, os.path.basename(self.prefix))
-            if os.path.basename(self.prefix) in os.listdir(self.startdir):
+
+            ensemble_dir_path = self.libE_specs.get('ensemble_dir_path', './ensemble')
+            copybackdir = os.path.basename(ensemble_dir_path)
+            if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
                 copybackdir += '_back'
             for dir in self.loc_stack.dirs.values():
                 try:
