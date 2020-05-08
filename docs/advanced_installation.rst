@@ -41,7 +41,7 @@ Installing with mpi4py
 ^^^^^^^^^^^^^^^^^^^^^^
 
 If you wish to use ``mpi4py`` with libEnsemble (out of the three
-:doc:`commuications options<platforms/platforms_index>`), then this should
+:doc:`commuications options<running_libE>`), then this should
 be installed to work with the existing MPI on your system. For example,
 the following line::
 
@@ -74,7 +74,7 @@ Installing with mpi4py with Conda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you wish to use ``mpi4py`` with libEnsemble (out of the three
-:doc:`commuications options<platforms/platforms_index>`) you can use the
+:doc:`commuications options<running_libE>`) you can use the
 following.
 
 .. note::

@@ -13,6 +13,7 @@
    advanced_installation
    overview_usecases
    programming_libE
+   running_libE
    platforms/platforms_index
 
 .. toctree::
