@@ -7,3 +7,4 @@ mop.chkpt
 *.pickle
 ensemble.log
 libE_stats.txt
+vtmop.*

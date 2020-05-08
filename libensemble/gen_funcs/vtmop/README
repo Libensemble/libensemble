@@ -56,7 +56,7 @@ One way to do this is:
 export PATH=$PATH:`pwd`
 
 Another method is to copy vtmop_initializer and vtmop_generator into your
-bin directory (e.g., either /user/local/bing or $HOME/.local/bin).
+bin directory (e.g., /usr/local/bin or $HOME/.local/bin).
 
 The Makefile will build the vtmop_initializer and vtmop_generator.
 To test the installation, run test_VTMOP.py (found in
@@ -65,7 +65,7 @@ libensemble/sim_funcs/mop_funcs.py using a budget of 2000 evaluations
 (1000 used in the initial search phase).
 
 In the two- and three-objective cases, the results can be visualized using
-post_proc_scripts/plot_pareto_2d.py or post_proc_scripts/plot_pareto_3d.py,
+postproc_scripts/plot_pareto_2d.py or postproc_scripts/plot_pareto_3d.py,
 respectively.
 
 --------------------------------------------------------------------------------
@@ -76,3 +76,4 @@ Tyler Chang, thchang@vt.edu
 Please do not publicly share vtmop.f90 or delsparse.f90 at this time.
 They will be made publicly available, pending each of their publication.
 
+Also ask about the ACM TOMS license on linear_shepard.f90.
