@@ -65,11 +65,11 @@ def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
     return task, calc_status
 
 
-def executor_hworld(H, persis_info, sim_specs, libE_specs):
+def executor_hworld(H, persis_info, sim_specs, libE_info):
     """ Tests launching and polling task and exiting on task finish"""
     exctr = MPIExecutor.executor
     cores = sim_specs['user']['cores']
-    comm = libE_specs['comm']
+    comm = libE_info['comm']
 
     args_for_sim = 'sleep 1'
     # pref send this in X as a sim_in from calling script

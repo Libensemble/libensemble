@@ -20,7 +20,7 @@ def form_command(cmd_template, specs):
     def fill(fmt):
         "Fill a template string and split with shlex; drop if missing specs"
         try:
-            return shlex.split(fmt.format(**specs))
+            return shlex.split(fmt.format(**specs), posix=False)
         except KeyError:
             return None
     return list(chain.from_iterable(filter(None, map(fill, cmd_template))))

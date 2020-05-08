@@ -31,6 +31,7 @@
     _a < _b ? _a : _b; })
 
 // Flags 0 or 1
+#define PRINT_HOSTNAME_ALL_PROCS 1
 #define PRINT_PARTICLE_DECOMP 0
 #define PRINT_ALL_PARTICLES 0
 #define CHECK_THREADS 0
@@ -362,6 +363,15 @@ int main(int argc, char **argv) {
         printf("Timesteps: %d\n",num_steps);
         printf("MPI Ranks: %d\n",num_procs);
         printf("Random seed: %d\n",rand_seed);
+    }
+
+    if (PRINT_HOSTNAME_ALL_PROCS) {
+        MPI_Barrier(MPI_COMM_WORLD);
+        check_threads(rank);
+        char processor_name[MPI_MAX_PROCESSOR_NAME];
+        int name_len;
+        MPI_Get_processor_name(processor_name, &name_len);
+        printf("Proc: %d is on node %s\n", rank, processor_name);
     }
 
     if (CHECK_THREADS) {

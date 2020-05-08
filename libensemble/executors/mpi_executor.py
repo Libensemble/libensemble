@@ -14,7 +14,8 @@ import time
 
 import libensemble.utils.launcher as launcher
 from libensemble.resources.mpi_resources import MPIResources
-from libensemble.executors.executor import Executor, Task, jassert
+from libensemble.executors.executor import Executor, Task
+from libensemble.executors.mpi_runner import MPIRunner
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -31,7 +32,8 @@ class MPIExecutor(Executor):
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None):
+                 nodelist_env_lsf_shortform=None,
+                 custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
         A new Executor MPIExecutor is created with an application
@@ -83,8 +85,11 @@ class MPIExecutor(Executor):
             format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
             if a worker_list file is not provided and auto_resources=True.
 
-        """
+        custom_info: dict, optional
+            Provide custom overrides to selected variables that are usually
+            auto-detected.
 
+        """
         Executor.__init__(self)
         self.auto_resources = auto_resources
 
@@ -93,35 +98,30 @@ class MPIExecutor(Executor):
         self.fail_time = 2
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
 
-        mpi_commands = {
-            'mpich': ['mpirun', '--env {env}', '-machinefile {machinefile}',
-                      '-hosts {hostlist}', '-np {num_procs}',
-                      '--ppn {ranks_per_node}', '{extra_args}'],
-            'openmpi': ['mpirun', '-x {env}', '-machinefile {machinefile}',
-                        '-host {hostlist}', '-np {num_procs}',
-                        '-npernode {ranks_per_node}', '{extra_args}'],
-            'aprun': ['aprun', '-e {env}',
-                      '-L {hostlist}', '-n {num_procs}',
-                      '-N {ranks_per_node}', '{extra_args}'],
-            'jsrun': ['jsrun', '{extra_args}'],  # Relies on extra_args
-            'srun': ['srun', '-w {hostlist}', '-n {num_procs}',
-                     '--nodes {num_nodes}',
-                     '--ntasks-per-node {ranks_per_node}',
-                     '{extra_args}']
-        }
-        self.mpi_launch_type = MPIResources.get_MPI_variant()
-        self.mpi_command = mpi_commands[self.mpi_launch_type]
+        # Apply custom options
+        mpi_runner_type = custom_info.get('mpi_runner', None)
+        runner_name = custom_info.get('runner_name', None)
+        subgroup_launch = custom_info.get('subgroup_launch', None)
+        cores_on_node = custom_info.get('cores_on_node', None)
+        node_file = custom_info.get('node_file', None)
 
-        self.subgroup_launch = True
-        if self.mpi_launch_type in ['aprun', 'srun']:
-            self.subgroup_launch = False
+        if not mpi_runner_type:
+            mpi_runner_type = MPIResources.get_MPI_variant()
 
+        self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
+
+        if subgroup_launch is not None:
+            self.mpi_runner.subgroup_launch = subgroup_launch
+
+        self.resources = None
         if self.auto_resources:
             self.resources = \
                 MPIResources(top_level_dir=self.top_level_dir,
                              central_mode=central_mode,
                              allow_oversubscribe=allow_oversubscribe,
-                             launcher=self.mpi_command[0],
+                             launcher=self.mpi_runner.run_command,
+                             cores_on_node=cores_on_node,
+                             node_file=node_file,
                              nodelist_env_slurm=nodelist_env_slurm,
                              nodelist_env_cobalt=nodelist_env_cobalt,
                              nodelist_env_lsf=nodelist_env_lsf,
@@ -137,44 +137,7 @@ class MPIExecutor(Executor):
         if serial_setup:
             self._serial_setup()
 
-    def _get_mpi_specs(self, task, num_procs, num_nodes,
-                       ranks_per_node, machinefile,
-                       hyperthreads):
-        "Form the mpi_specs dictionary."
-        hostlist = None
-        if machinefile is None and self.auto_resources:
-            num_procs, num_nodes, ranks_per_node = \
-                self.resources.get_resources(num_procs=num_procs,
-                                             num_nodes=num_nodes,
-                                             ranks_per_node=ranks_per_node,
-                                             hyperthreads=hyperthreads)
-
-            # Use hostlist if full nodes, otherwise machinefile
-            if self.resources.worker_resources.workers_per_node == 1:
-                hostlist = self.resources.get_hostlist()
-            else:
-                machinefile = "machinefile_autogen"
-                if self.workerID is not None:
-                    machinefile += "_for_worker_{}".format(self.workerID)
-                machinefile += "_task_{}".format(task.id)
-                mfile_created, num_procs, num_nodes, ranks_per_node = \
-                    self.resources.create_machinefile(
-                        machinefile, num_procs, num_nodes,
-                        ranks_per_node, hyperthreads)
-                jassert(mfile_created, "Auto-creation of machinefile failed")
-
-        else:
-            num_procs, num_nodes, ranks_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes,
-                                            ranks_per_node, machinefile)
-
-        return {'num_procs': num_procs,
-                'num_nodes': num_nodes,
-                'ranks_per_node': ranks_per_node,
-                'machinefile': machinefile,
-                'hostlist': hostlist}
-
-    def _launch_with_retries(self, task, runline, wait_on_run):
+    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_run):
         """ Launch task with retry mechanism"""
         retry_count = 0
         while retry_count < self.max_launch_attempts:
@@ -183,14 +146,15 @@ class MPIExecutor(Executor):
                 retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
                 logger.info("Launching task {}{}: {}".
                             format(task.name, retry_string, " ".join(runline)))
-
+                task.run_attempts += 1
                 task.process = launcher.launch(runline, cwd='./',
                                                stdout=open(task.stdout, 'w'),
                                                stderr=open(task.stderr, 'w'),
-                                               start_new_session=self.subgroup_launch)
+                                               start_new_session=subgroup_launch)
             except Exception as e:
-                logger.warning('task {} submit command failed on "\
-                    "try {} with error {}'.format(task.name, retry_count, e))
+                logger.warning('task {} submit command failed on '
+                               'try {} with error {}'
+                               .format(task.name, retry_count, e))
                 retry = True
                 retry_count += 1
             else:
@@ -198,22 +162,23 @@ class MPIExecutor(Executor):
                     self._wait_on_run(task, self.fail_time)
 
                 if task.state == 'FAILED':
-                    logger.warning('task {} failed within fail_time on"\
-                        "try {} with err code {}'.format(task.name, retry_count, task.errcode))
+                    logger.warning('task {} failed within fail_time on '
+                                   'try {} with err code {}'
+                                   .format(task.name, retry_count, task.errcode))
                     retry = True
                     retry_count += 1
 
             if retry and retry_count < self.max_launch_attempts:
                 logger.debug('Retry number {} for task {}')
                 time.sleep(retry_count*self.retry_delay_incr)
-                task.reset()  # Some cases may require user cleanup - currently not supported (could use callback)
+                task.reset()  # Some cases may require user cleanup
             else:
                 break
 
     def submit(self, calc_type, num_procs=None, num_nodes=None,
                ranks_per_node=None, machinefile=None, app_args=None,
                stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, test=False, wait_on_run=False,
+               hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules execution.
 
@@ -254,14 +219,20 @@ class MPIExecutor(Executor):
         hyperthreads: boolean, optional
             Whether to submit MPI tasks to hyperthreads
 
-        test: boolean, optional
-            Whether this is a test - no task will be launched; instead
+        dry_run: boolean, optional
+            Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
         wait_on_run: boolean, optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
+        extra_args: String, optional
+            Additional command line arguments to supply to MPI runner. If
+            arguments are recognised as those used in auto_resources
+            (num_procs, num_nodes, ranks_per_node) they will be used in
+            resources determination unless also supplied in the direct
+            options.
 
         Returns
         -------
@@ -284,26 +255,35 @@ class MPIExecutor(Executor):
             logger.warning("stage_inout option ignored in this "
                            "executor - runs in-place")
 
-        mpi_specs = self._get_mpi_specs(task, num_procs, num_nodes,
-                                        ranks_per_node, machinefile,
-                                        hyperthreads)
-        mpi_specs['extra_args'] = extra_args
-        runline = launcher.form_command(self.mpi_command, mpi_specs)
+        mpi_specs = self.mpi_runner.get_mpi_specs(task, num_procs, num_nodes,
+                                                  ranks_per_node, machinefile,
+                                                  hyperthreads, extra_args,
+                                                  self.auto_resources,
+                                                  self.resources,
+                                                  self.workerID)
+
+        mpi_command = self.mpi_runner.mpi_command
+        sglaunch = self.mpi_runner.subgroup_launch
+        runline = launcher.form_command(mpi_command, mpi_specs)
+
         runline.extend(task.app.full_path.split())
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
-        if test:
+        task.runline = ' '.join(runline)  # Allow to be queried
+        if dry_run:
+            task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+            task.set_as_complete()
         else:
             # Launch Task
-            self._launch_with_retries(task, runline, wait_on_run)
+            self._launch_with_retries(task, runline, sglaunch, wait_on_run)
 
             if not task.timer.timing:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            self.list_of_tasks.append(task)
+        self.list_of_tasks.append(task)
         return task
 
     def set_worker_info(self, comm, workerid=None):

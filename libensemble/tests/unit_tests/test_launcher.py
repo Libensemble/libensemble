@@ -16,7 +16,7 @@ def test_form_command():
     cmd = ['{mpirun}', '-n {nproc}', '-nper {nrank}', '-machinefile {mf}',
            'more arguments "ho hum"']
     args = launcher.form_command(cmd, run_specs)
-    aref = ['mpirun', '-n', '10', '-nper', '5', 'more', 'arguments', 'ho hum']
+    aref = ['mpirun', '-n', '10', '-nper', '5', 'more', 'arguments', '"ho hum"']
 
     assert args == aref, "Command templating test failed."
 
