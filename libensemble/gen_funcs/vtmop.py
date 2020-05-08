@@ -50,12 +50,12 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     snb = gen_specs['user']['search_batch_size']  # preferred batch size for searching
     onb = gen_specs['user']['opt_batch_size']     # preferred batch size for optimization
     inb = gen_specs['user']['first_batch_size']   # batch size for first iteration
-    start = gen_specs['user']['restart']          # is this the start of a new run?
+    chkpt_flag = gen_specs['user']['use_chkpt']   # Are we using a checkpoint?
 
     d = len(lb)                                   # design dimension
     n = np.size(H['f'][:, 0])                     # size of database in the history array
 
-    if start:
+    if not chkpt_flag:
         # Write initialization data to the vtmop.io file for VTMOP_INIT
         fp1 = FortranFile('vtmop.io', 'w')
         fp1.write_record(np.array([np.int32(d), np.int32(p), np.int32(inb)]))
@@ -63,7 +63,7 @@ def vtmop_gen(H, persis_info, gen_specs, _):
                          np.array(ub, dtype=np.float64)]))
         fp1.close()
         system("vtmop_initializer")
-        gen_specs['restart'] = False
+        gen_specs['use_chkpt'] = True
         # If the initial batch size is zero, run another half iteration
         if inb == 0:
             # Write unformatted problem dimensions to the vtmop.io file

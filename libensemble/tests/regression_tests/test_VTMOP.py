@@ -19,8 +19,8 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_COMMS:
+# TESTSUITE_NPROCS:
 
 import numpy as np
 
@@ -53,10 +53,8 @@ def sim_f(H, *unused):
 
 # Set up the problem
 nworkers, is_master, libE_specs, _ = parse_args()
-lower_bounds = np.zeros(num_dims)
-lower_bounds[:] = lower
-upper_bounds = np.ones(num_dims)
-upper_bounds[:] = upper
+lower_bounds = lower*np.ones(num_dims)
+upper_bounds = upper*np.ones(num_dims)
 
 # Set up the simulator
 sim_specs = {'sim_f': sim_f,
@@ -94,26 +92,41 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
                  # initial database will cause an error since the surrogates
                  # cannot be fit without sufficient data.
                  'first_batch_size': 1000,
-                 # set restart to True, unless you are reloading from a checkpoint
-                 'restart': True},
+                 # Are you reloading from a checkpoint
+                 'use_chkpt': False},
              }
 
 # Set up the allocator
 alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)], 'user': {'num_active_gens': 1}}
 
-# Persistent info between iterations
-persis_info = add_unique_random_streams({}, nworkers + 1)
-persis_info['next_to_give'] = 0
-persis_info['total_gen_calls'] = 0
+for run in range(2):
+    if run == 1:
+        # In the second run, we initialize VTMOP with an initial sample:
+        samp = 10
+        X = np.random.uniform(lower_bounds, upper_bounds, (samp, num_dims))
+        f = np.zeros((samp, num_objs))
 
-# Run for 2000 evaluations or 300 seconds
-exit_criteria = {'sim_max': 2000, 'elapsed_wallclock_time': 300}
+        Hi = np.zeros(1, dtype=gen_specs['out'])
+        for i in range(samp):
+            Hi['x'] = X[i]
+            Out, _ = sim_f(Hi)
+            f[i] = Out['f']
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs=alloc_specs, libE_specs=libE_specs)
+        gen_specs['user']['use_chkpt'] = True  # Not sure if this is right or not
 
-# The master takes care of checkpointint/output
-if is_master:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Persistent info between iterations
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info['next_to_give'] = 0
+    persis_info['total_gen_calls'] = 0
+
+    # Run for 2000 evaluations or 300 seconds
+    exit_criteria = {'sim_max': 2000, 'elapsed_wallclock_time': 300}
+
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                alloc_specs=alloc_specs, libE_specs=libE_specs)
+
+    # The master takes care of checkpointint/output
+    if is_master:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)

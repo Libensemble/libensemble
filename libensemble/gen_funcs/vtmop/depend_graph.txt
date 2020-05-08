@@ -1,12 +1,11 @@
-
 This file shows the dependency graph for the VTMOP_MOD package and drivers.
 
 X --> Y indicates that the file Y requires a module or procedure defined in X.
 
-    _____________________      _______________________ 
-   |                     |    |                       |  
-   | vtmop_generator.f90 |    | vtmop_initializer.f90 |  
-   |_____________________|    |_______________________|  
+    _____________________      _______________________
+   |                     |    |                       |
+   | vtmop_generator.f90 |    | vtmop_initializer.f90 |
+   |_____________________|    |_______________________|
 
              ^                          ^
              |                          |
@@ -55,5 +54,3 @@ X --> Y indicates that the file Y requires a module or procedure defined in X.
 |                    |
 | shared_modules.f90 |
 |____________________|
-
-

@@ -1,4 +1,3 @@
-
 *  =========== DOCUMENTATION ===========
 *
 * Online html documentation available at
@@ -2282,4 +2281,3 @@
 *     End of XERBLA
 *
       END
-
