@@ -8,6 +8,7 @@ INTEGER :: D, P ! Problem dimensions.
 INTEGER :: LBATCH ! Length of the batch.
 INTEGER :: NB ! Preferred batch size.
 INTEGER :: IERR ! Error flag.
+REAL(KIND=R8) :: TRUST_RAD ! Trust region radius.
 REAL(KIND=R8), ALLOCATABLE :: BATCHX(:,:) ! Candidate design points to evaluate.
 REAL(KIND=R8), ALLOCATABLE :: LB(:), UB(:) ! Bound constraints.
 REAL(KIND=R8), ALLOCATABLE :: DES(:,:), OBJ(:,:)
@@ -32,10 +33,14 @@ READ(12, IOSTAT=IERR) LB(:), UB(:)
 IF (IERR .NE. 0) THEN
    WRITE(ERROR_UNIT,"(A)") "An error occurred while reading the constrainst"
    GO TO 100; END IF
+READ(12, IOSTAT=IERR) TRUST_RAD
+IF (IERR .NE. 0) THEN
+   WRITE(ERROR_UNIT,"(A)") "An error occurred while reading the LTR radius"
+   GO TO 100; END IF
 CLOSE(12)
 
 ! Initialize the VTMOP status object.
-CALL VTMOP_INIT( VTMOP, D, P, LB, UB, IERR, ICHKPT=1 )
+CALL VTMOP_INIT( VTMOP, D, P, LB, UB, IERR, TRUST_RAD=TRUST_RAD, ICHKPT=1 )
 IF (IERR .NE. 0) THEN
    WRITE(ERROR_UNIT, "(A,I4)") &
         "An error occurred while initializing. Error code: ", IERR

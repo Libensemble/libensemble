@@ -92,6 +92,12 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
                  # initial database will cause an error since the surrogates
                  # cannot be fit without sufficient data.
                  'first_batch_size': 1000,
+                 # Set the trust region radius. This setting is problem
+                 # dependent. A good starting place would be between 10% and
+                 # 25% of the median edge length of the bounding box (err on
+                 # the smaller side when the number of design variables is
+                 # greater than 5 or 6).
+                 'trust_rad': 0.1,
                  # Are you reloading from a checkpoint
                  'use_chkpt': False},
              }
