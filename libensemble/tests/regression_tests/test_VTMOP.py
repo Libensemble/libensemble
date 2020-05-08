@@ -108,17 +108,25 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)], 'user': {'num_a
 for run in range(2):
     if run == 1:
         # In the second run, we initialize VTMOP with an initial sample:
-        samp = 10
-        X = np.random.uniform(lower_bounds, upper_bounds, (samp, num_dims))
-        f = np.zeros((samp, num_objs))
+        np.random.seed(0)
+        sample_size = 1000
+        X = np.random.uniform(gen_specs['user']['lb'], gen_specs['user']['ub'], (sample_size, num_dims))
+        f = np.zeros((sample_size, num_objs))
 
-        Hi = np.zeros(1, dtype=gen_specs['out'])
-        for i in range(samp):
-            Hi['x'] = X[i]
-            Out, _ = sim_f(Hi)
-            f[i] = Out['f']
+        H0 = np.zeros(sample_size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), 
+                                          ('returned', bool), ('allocated', bool), ('given', bool)])
+        H0['x'] = X
+        H0['sim_id'] = range(sample_size)
+        H0[['given', 'allocated', 'returned']] = True
 
-        gen_specs['user']['use_chkpt'] = True  # Not sure if this is right or not
+        for i in range(sample_size):
+            Out, _ = sim_f(H0[[i]])
+            H0['f'][i] = Out['f']
+
+        gen_specs['user']['use_chkpt'] = True
+        gen_specs['user']['first_batch_size'] = 0
+    else:
+        H0 = None
 
     # Persistent info between iterations
     persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -126,11 +134,11 @@ for run in range(2):
     persis_info['total_gen_calls'] = 0
 
     # Run for 2000 evaluations or 300 seconds
-    exit_criteria = {'sim_max': 2000, 'elapsed_wallclock_time': 300}
+    exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs=alloc_specs, libE_specs=libE_specs)
+                                alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
 
     # The master takes care of checkpointint/output
     if is_master:
