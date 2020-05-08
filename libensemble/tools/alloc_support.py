@@ -23,11 +23,6 @@ def test_any_gen(W):
     return any(W['active'] == EVAL_GEN_TAG)
 
 
-def all_workers_inactive(W):
-    "Return True if all workers are idle."
-    return all(W['active'] == 0)
-
-
 def count_persis_gens(W):
     "Return the number of persistent generators in a set of workers."
     return sum(W['persis_state'] == EVAL_GEN_TAG)
