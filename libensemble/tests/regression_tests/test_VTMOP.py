@@ -77,7 +77,7 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
                  # This should be a multiple of the number of concurrent function
                  # evaluations and on the order of 2*d (where d is the number of
                  # design variables)
-                 'search_batch_size': 12,
+                 'search_batch_size': int(round(2*num_dims/nworkers)*nworkers),
                  # opt_batch_size is the preferred number of candidate designs.
                  # When the actual number of candidates is not a multiple of
                  # opt_batch_size, additional candidates are randomly generated
@@ -103,7 +103,7 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
              }
 
 # Set up the allocator
-alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)], 'user': {'num_active_gens': 1}}
+alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
 for run in range(2):
     if run == 1:
@@ -113,7 +113,7 @@ for run in range(2):
         X = np.random.uniform(gen_specs['user']['lb'], gen_specs['user']['ub'], (sample_size, num_dims))
         f = np.zeros((sample_size, num_objs))
 
-        H0 = np.zeros(sample_size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), 
+        H0 = np.zeros(sample_size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
                                           ('returned', bool), ('given', bool)])
         H0['x'] = X
         H0['sim_id'] = range(sample_size)
