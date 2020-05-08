@@ -1,2 +1,3 @@
 vtmop.f90
 delsparse.f90
+linear_shepard.f90
