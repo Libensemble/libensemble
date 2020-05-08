@@ -83,7 +83,7 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
                  # opt_batch_size, additional candidates are randomly generated
                  # to pad out the batch (if possible). This should be the exact
                  # number of concurrent simulations used.
-                 'opt_batch_size': 3,
+                 'opt_batch_size': nworkers,
                  # first_batch_size specifies the size of the initial search
                  # and should generally be a large number. However, if a
                  # precomputed database is available, then the initial search
@@ -114,10 +114,10 @@ for run in range(2):
         f = np.zeros((sample_size, num_objs))
 
         H0 = np.zeros(sample_size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), 
-                                          ('returned', bool), ('allocated', bool), ('given', bool)])
+                                          ('returned', bool), ('given', bool)])
         H0['x'] = X
         H0['sim_id'] = range(sample_size)
-        H0[['given', 'allocated', 'returned']] = True
+        H0[['given', 'returned']] = True
 
         for i in range(sample_size):
             Out, _ = sim_f(H0[[i]])
