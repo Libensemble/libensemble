@@ -2,7 +2,7 @@ Advanced Installation
 =====================
 
 .. note::
-    At the current time we recommend new users start with the develop branch
+    At this time we recommend new users start with the develop branch
     as this has many additions, including API breaking changes since v0.6.0.
     This applies until the release of v0.7.0
 
@@ -10,27 +10,28 @@ libEnsemble can be installed from ``pip``, ``Conda``, or ``Spack``.
 
 In view of libEnsemble's compiled dependencies, these approaches
 offer a trade-off between convenience and the ability
-to customize builds, including platform specific optimizations.
+to customize builds, including platform-specific optimizations.
 
-Further recommendations for selected HPC systems is given in the
-:doc:`HPC platform guide<platforms/platforms_index>`.
+Further recommendations for selected HPC systems are given in the
+:doc:`HPC platform guides<platforms/platforms_index>`.
 
 pip
 ---
 
-We always recommend installing in a virtual environment such as Conda.
-If not, then use ``pip3``, ``python3`` below.
+We always recommend installing in Python ``venv`` or Conda virtual environments.
+If not using one, then use ``pip3``, ``python3`` below to
+ensure that libEnsemble and its dependencies are installed for Python 3.
 
 To install the latest pip release::
 
     pip install libensemble
 
 The above comes with required dependencies only. To install with some
-common user dependencies (as used in the examples/tests)::
+common user function dependencies (as used in the examples and tests)::
 
     pip install libensemble[extras]
 
-Note that ``PETSc`` will build from source so may take a while.
+Note that since ``PETSc`` will build from source, this may take a while.
 
 To pip install libEnsemble from the latest develop branch::
 
@@ -40,14 +41,14 @@ To pip install libEnsemble from the latest develop branch::
 Installing with mpi4py
 ^^^^^^^^^^^^^^^^^^^^^^
 
-If you wish to use ``mpi4py`` with libEnsemble (out of the three
-:doc:`commuications options<running_libE>`), then this should
+If you wish to use ``mpi4py`` with libEnsemble (choosing MPI out of the three
+:doc:`communications options<running_libE>`), then this should
 be installed to work with the existing MPI on your system. For example,
 the following line::
 
     pip install mpi4py
 
-will use the ``mpicc`` compiler wrapper on your PATH to identify the MPI.
+will use the ``mpicc`` compiler wrapper on your PATH to identify MPI.
 To specify a different compiler wrapper, add the ``MPICC`` option.
 You also may wish to avoid existing binary builds e.g.::
 
@@ -73,8 +74,8 @@ optimizers and will install quickly as ready binary packages.
 Installing with mpi4py with Conda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you wish to use ``mpi4py`` with libEnsemble (out of the three
-:doc:`commuications options<running_libE>`) you can use the
+If you wish to use ``mpi4py`` with libEnsemble (choosing MPI out of the three
+:doc:`communications options<running_libE>`), you can use the
 following.
 
 .. note::
@@ -96,7 +97,7 @@ The asterisks will pick up the latest version and build.
 
 .. note::
     This syntax may not work without adjustments on macOS or any non-bash
-    shell. Try this instead, for example::
+    shell. In these cases, try::
 
         conda install -c conda-forge libensemble='*'=mpi_mpich'*'
 
@@ -114,14 +115,14 @@ Install libEnsemble using the Spack_ distribution::
 
 The above command will install the required dependencies only. There
 are several other optional dependencies that can be specified
-through variants. The following line installs libEnesmble
+through variants. The following line installs libEnsemble
 version 0.7.0 with all the variants::
 
     spack install py-libensemble @0.7.0 +mpi +scipy +petsc4py +nlopt
 
 On some platforms you may wish to run libEnsemble without mpi4py,
 using a serial PETSc build (this is often preferable if running on
-the launch nodes of a three-tier system (e.g. Theta/Summit)::
+the launch nodes of a three-tier system (e.g. Theta/Summit))::
 
     spack install py-libensemble @0.7.0 +scipy +petsc4py~mpi
 
@@ -135,7 +136,7 @@ for specific systems, see the spack_libe_ repostory. In particular, this
 includes some example ``packages.yaml`` files (which go in ``~/.spack/``).
 These files are used to specify dependencies that Spack must obtain from
 the given system (rather than building from scratch). This may include
-``Python`` and the packages disributed with it (e.g. ``numpy``), and will
+``Python`` and the packages distributed with it (e.g. ``numpy``), and will
 often include the system MPI library.
 
 
@@ -146,4 +147,3 @@ often include the system MPI library.
 .. _`Open MPI`: https://www.open-mpi.org/
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
-
