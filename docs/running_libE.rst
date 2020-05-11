@@ -3,8 +3,7 @@ Running libEnsemble
 
 libEnsemble runs using a Manager/Worker paradigm. In most cases, one manager and multiples workers.
 Each worker may run either a generator or simulator function (both are Python scripts). Generators
-determine the parameters/inputs for simulations. The simulator functions run the simulations, which often
-involves running a user application from the Worker (see :doc:`Executor<executor/ex_index>`).
+determine the parameters/inputs for simulations. The simulator functions run the simulations, which often involves running a user application from the Worker (see :doc:`Executor<executor/ex_index>`).
 
 To use libEnsemble, you will need a calling script, which in turn will specify generator and
 simulator functions. Many :doc:`examples<examples/examples_index>` are available.
@@ -116,14 +115,13 @@ In a regular (non-persistent) worker, the user's gen or sim function is called w
 receives work. A persistent worker is one that continues to run the sim or gen function between work units,
 maintaining the local data environment.
 
-A common example is to use a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
+A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
 that maintains optimization data, while generating new simulation inputs. The persistent generator runs
 on a dedicated worker while in persistent mode. This requires an appropriate
-:doc:`allocation function<examples/alloc_funcs>`) that will run the generator as persistent.
+:doc:`allocation function<examples/alloc_funcs>` that will run the generator as persistent.
 
 When running with a persistent generator, it is important to remember that a worker will be dedicated
-to the generator and cannot run simulations. For example, the following run (if using a persistent
-generator)::
+to the generator and cannot run simulations. For example, the following run::
 
     mpirun -np 3 python my_script.py
 
@@ -134,6 +132,18 @@ If this example was run as::
     mpirun -np 2 python my_script.py
 
 No simulations will be able to run.
+
+
+Environment Variables
+---------------------
+
+Environment variables required in your run environment can be set in your Python sim or gen function.
+For example::
+
+    os.environ["OMP_NUM_THREADS"] = 4
+
+set in your simulation script before the Executor submit command will export the setting to your run.
+
 
 
 Further run information
