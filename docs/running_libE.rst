@@ -3,7 +3,8 @@ Running libEnsemble
 
 libEnsemble runs using a Manager/Worker paradigm. In most cases, one manager and multiples workers.
 Each worker may run either a generator or simulator function (both are Python scripts). Generators
-determine the parameters/inputs for simulations. The simulator functions run the simulations, which often involves running a user application from the Worker (see :doc:`Executor<executor/ex_index>`).
+determine the parameters/inputs for simulations. Simulator functions run simulations, which often
+involve running a user application from the Worker (see :doc:`Executor<executor/ex_index>`).
 
 To use libEnsemble, you will need a calling script, which in turn will specify generator and
 simulator functions. Many :doc:`examples<examples/examples_index>` are available.
@@ -40,7 +41,7 @@ Limitations of MPI mode
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 If you are launching MPI applications from workers, then MPI is being nested. This is not
-supported with OpenMPI. This can be overcome by using a proxy launcher
+supported with Open MPI. This can be overcome by using a proxy launcher
 (see :doc:`Balsam<executor/balsam_executor>`). This nesting does work, however,
 with MPICH and it's derivative MPI implementations.
 
@@ -51,7 +52,7 @@ systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
 Local Comms
 -----------
 
-This option uses Python's built-in multiprocessing module for the manager/worker communication.
+This option uses Python's built-in multiprocessing module for the manager/worker communications.
 The ``comms`` type ``local`` and number of workers ``nworkers`` may be provided in the
 :ref:`libE_specs<datastruct-libe-specs>` dictionary. Your calling script can then be run::
 
@@ -80,7 +81,7 @@ no imports of ``mpi4py`` in your Python scripts.
 Limitations of local mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- You cannot run in :doc:`distributed mode<platforms/platforms_index>` on multi-nodes systems.
+- You cannot run in :doc:`distributed mode<platforms/platforms_index>` on multi-node systems.
 - In some scenarios, any import of ``mpi4py`` will cause this to break.
 - It does not have the potential scaling of MPI mode, but is sufficient for most users.
 
@@ -89,10 +90,10 @@ TCP Comms
 ---------
 
 The TCP option can be used to run the Manager on one system and launch workers to remote
-systems or nodes over TCP. The necessary configuation options can be provided through
-libE_specs, or on the command line if you are using the :doc:`parse_args()<utilities>` function.
+systems or nodes over TCP. The necessary configuration options can be provided through
+``libE_specs``, or on the command line if you are using the :doc:`parse_args()<utilities>` function.
 
-The libE_specs options for TCP are::
+The ``libE_specs`` options for TCP are::
 
     'comms' [string] :
         'tcp'
@@ -111,8 +112,8 @@ The libE_specs options for TCP are::
 Persistent Workers
 ------------------
 
-In a regular (non-persistent) worker, the user's gen or sim function is called whenever the worker
-receives work. A persistent worker is one that continues to run the sim or gen function between work units,
+In a regular (non-persistent) worker, the user's generator or simulation function is called whenever the worker
+receives work. A persistent worker is one that continues to run the generator or simulation function between work units,
 maintaining the local data environment.
 
 A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
@@ -125,7 +126,7 @@ to the generator and cannot run simulations. For example, the following run::
 
     mpirun -np 3 python my_script.py
 
-would run one manager process, one worker with persistent gen, and one worker running simulations.
+would run one manager process, one worker with a persistent generator, and one worker running simulations.
 
 If this example was run as::
 
@@ -150,5 +151,5 @@ Further run information
 -----------------------
 
 For running on multi-node platforms and supercomputers, there are alternative ways to configure
-libensemble to resources. See the :doc:`Running on HPC Systems`<platforms/platforms_index.rst>
+libEnsemble to resources. See the :doc:`Running on HPC Systems`<platforms/platforms_index.rst>
 guide for more information, including some examples for specific systems.
