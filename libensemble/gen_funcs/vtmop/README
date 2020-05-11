@@ -1,0 +1,79 @@
+   VTMOP for libEnsemble: Solving blackbox MOPs with libEnsemble
+
+VTMOP is a Fortran 2008 package containing a robust, portable solver and
+a flexible framework for solving MOPs. Designed for efficiency and
+scalability to an arbitrary number of objectives, VTMOP attempts to generate
+uniformly spaced points on a (possibly nonconvex) Pareto front with minimal
+cost function evaluations.
+
+This is a minimal copy of VTMOP, containing only the subroutines and
+dependencies that are needed for integration with libEnsemble.
+
+The following command line programs implement a libEnsemble interface for
+VTMOP. The file vtmop_initializer.f90 produces the executable vtmop_initializer,
+which can be called to initialize a new instance of VTMOP. The file
+vtmop_generator.f90 produces the executable vtmop_generator, which can
+be called to generate a batch of designs for libEnsemble to evaluate.
+These executables are designed to be called by the libEnsemble generator
+function vtmop.py.
+
+The following VTMOP files are provided:
+
+ - The file depend_graph.txt contains a diagram of the dependency tree for the
+   minimal copy of VTMOP.
+ - The file vtmop.f90 is the main Fortran 2008 file containing a minimal copy
+   of VTMOP.
+ - The file vtmop_initializer.f90 implements the vtmop_initializer executable.
+ - The file vtmop_generator.f90 implements the vtmop_generator executable.
+ - The file delsparse.f90 contains the module and driver subroutines
+   for DELAUNAYSPARSE, currently under review with ACM TOMS.
+ - The file linear_shepard.f90 is a Fortran 95 module for computing the LSHEP
+   surrogate model, as described by Thacker et al. in ACM TOMS Algorithm 905.
+ - The file qnstop.f90 contains the LATINDESIGN function from QNSTOP
+   (under review with ACM TOMS).
+ - The file shared_modules.f90 contains the REAL_PRECISION module, which is
+   used for approximately 64 bit arithmetic.
+ - The file slatec.f contains the subroutine DWNNLS and its dependencies
+   from the SLATEC library. This library has been slightly modified to
+   comply with the modern Fortran standards. Additionally, legacy
+   implementations of the BLAS subroutines DROTM and DTROMG have been
+   included under different names to avoid dependency issues.
+ - The files lapack.f and blas.f contain all LAPACK and BLAS
+   subroutines that are referenced (both directly and indirectly) in
+   VTMOP or its dependencies.
+ - Makefile is a GNU (or Intel, by uncommenting lines 3 and 4) Makefile.
+
+To build the vtmop_initializer and vtmop_generator executables, use the
+supplied Makefile. By default, the Makefile uses GNU compilers. VTMOP has
+also been tested with the most recent Intel compiler, which can be used
+by uncommenting lines 3 and 4 of the Makefile.
+
+In order to properly integrate with libEnsemble, add vtmop_initializer and
+vtmop_generator into your system PATH.
+
+One way to do this is:
+
+export PATH=$PATH:`pwd`
+
+Another method is to copy vtmop_initializer and vtmop_generator into your
+bin directory (e.g., /usr/local/bin or $HOME/.local/bin).
+
+The Makefile will build the vtmop_initializer and vtmop_generator.
+To test the installation, run test_VTMOP.py (found in
+libensemble/tests/regression_tests), which solves a problem in
+libensemble/sim_funcs/mop_funcs.py using a budget of 2000 evaluations
+(1000 used in the initial search phase).
+
+In the two- and three-objective cases, the results can be visualized using
+postproc_scripts/plot_pareto_2d.py or postproc_scripts/plot_pareto_3d.py,
+respectively.
+
+--------------------------------------------------------------------------------
+
+For further inquiries, contact
+Tyler Chang, thchang@vt.edu
+
+Please do not publicly share vtmop.f90 or delsparse.f90 at this time.
+They will be made publicly available, pending each of their publication.
+
+Also ask about the ACM TOMS license on linear_shepard.f90.

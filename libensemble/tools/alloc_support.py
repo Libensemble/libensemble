@@ -18,6 +18,11 @@ def count_gens(W):
     return sum(W['active'] == EVAL_GEN_TAG)
 
 
+def test_any_gen(W):
+    "Return True if a generator worker is active."
+    return any(W['active'] == EVAL_GEN_TAG)
+
+
 def count_persis_gens(W):
     "Return the number of persistent generators in a set of workers."
     return sum(W['persis_state'] == EVAL_GEN_TAG)
