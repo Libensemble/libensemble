@@ -15,6 +15,7 @@ import sys
 import numpy as np
 from copy import deepcopy
 from pkg_resources import resource_filename
+import shutil
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -92,3 +93,5 @@ for run in range(2):
         print("\nAPOSMM + " + gen_specs['user']['localopt_method'] +
               " found " + str(k) + " minima to tolerance " + str(tol))
         save_libE_output(H, persis_info, __file__, nworkers)
+
+        shutil.rmtree(libE_specs['ensemble_dir_path'])
