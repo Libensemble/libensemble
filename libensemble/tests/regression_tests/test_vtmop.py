@@ -29,7 +29,7 @@ from libensemble.libE import libE
 # from libensemble.sim_funcs.mop_funcs import convex_mop as func
 from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 from libensemble.gen_funcs.vtmop import vtmop_gen as gen_f
-from libensemble.alloc_funcs.vtmop_alloc import give_sim_work_first as alloc_f
+from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # Set the problem dimensions here
