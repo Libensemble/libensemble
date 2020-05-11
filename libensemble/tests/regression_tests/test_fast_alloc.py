@@ -50,8 +50,8 @@ if libE_specs['comms'] == 'tcp':
 
 for time in np.append([0], np.logspace(-5, -1, 5)):
     if time == 0:
-        alloc_specs = {'alloc_f': alloc_f, 'out': []}
-    else: 
+        alloc_specs = {'alloc_f': alloc_f2, 'out': []}
+    else:
         alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {'num_active_gens': 1}}
 
     for rep in range(1):
