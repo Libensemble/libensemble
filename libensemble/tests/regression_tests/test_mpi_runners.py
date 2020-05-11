@@ -9,6 +9,7 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
+import os
 import numpy as np
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.libE import libE
@@ -17,7 +18,6 @@ from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble import libE_logger
 
-libE_logger.set_filename('ensemble_test_mpi_runners.log')
 # libE_logger.set_level('DEBUG')  # For testing the test
 libE_logger.set_level('INFO')
 
@@ -88,18 +88,28 @@ def runline_check(H, persis_info, sim_specs, libE_info):
 nworkers, is_master, libE_specs, _ = parse_args()
 rounds = 1
 sim_app = '/path/to/fakeapp.x'
+comms = libE_specs['comms']
 
-# For varinging size test - relate node count to nworkers
-node_file = 'node_list_mpi_runners'
-try:
+# To allow visual checking - log file not used in test
+log_file = 'ensemble_mpi_runners_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
+libE_logger.set_filename(log_file)
+
+# For varying size test - relate node count to nworkers
+node_file = 'nodelist_mpi_runnerscomms_' + str(comms) + '_wrks_' + str(nworkers)
+if is_master:
+    if os.path.exists(node_file):
+        os.remove(node_file)
     with open(node_file, 'w') as f:
         for i in range(1, nworkers*nodes_per_worker+1):
             f.write('node-' + str(i) + '\n')
-except IOError:
-    pass
+        f.flush()
+        os.fsync(f)
+if comms == 'mpi':
+    libE_specs['comm'].Barrier()
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': nworkers*rounds}
+
 
 # TODO: May move specs, inputs and expected outputs to a data_set module.
 sim_specs = {'sim_f': runline_check,
