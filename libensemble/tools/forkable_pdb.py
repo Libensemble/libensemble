@@ -14,6 +14,13 @@ class ForkablePdb(pdb.Pdb):
     """A Pdb subclass that may be used
     from a forked multiprocessing child
 
+    Usage:
+
+    .. code-block:: python
+
+        from libensemble.tools import ForkablePdb
+        ForkablePdb().set_trace()
+
     """
     def interaction(self, *args, **kwargs):
         _stdin = sys.stdin
