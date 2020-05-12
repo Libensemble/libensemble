@@ -13,6 +13,10 @@ env:
     - OMPI_MCA_rmaps_base_oversubscribe=yes
   jobs:
     - MPI=mpich
+  matrix:
+    - COMMS_TYPE=m  # mpi
+    - COMMS_TYPE=l  # local
+    - COMMS_TYPE=t  # tcp
 
 jobs:
   include:
@@ -103,7 +107,7 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -z
+  - ./libensemble/tests/run-tests.sh -z -$COMMS_TYPE
 
 # Track code coverage
 after_success:
