@@ -6,10 +6,9 @@ Central v Distributed
 ---------------------
 
 libEnsemble has been developed, supported, and tested on systems of highly varying
-scales, from laptops to thousands of compute nodes.
-
-On multi-node systems, there are two basic modes of configuring libEnsemble to run and
-launch tasks (user applications) on the available nodes.
+scales, from laptops to thousands of compute nodes. On multi-node systems, there are
+two basic modes of configuring libEnsemble to run and launch tasks (user applications)
+on the available nodes.
 
 The first mode we refer to as **central** mode, where the libEnsemble manager and worker processes
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
@@ -33,7 +32,7 @@ The distributed approach allows the libEnsemble worker to read files produced by
 application on local node storage.
 
 
-Configuring the run
+Configuring the Run
 -------------------
 
 On systems with a job scheduler, libEnsemble is typically run within a single
@@ -109,11 +108,12 @@ Submission scripts for running on launch/MOM nodes and for using Balsam, can be 
 the :doc:`examples<example_scripts>`.
 
 
-Mapping Runs to Resources
--------------------------
+Mapping Tasks to Resources
+--------------------------
 
-The libEnsemble Executor can detect system resources, and partition these to workers.
-Node-lists are detected by an environment variable on the following systems:
+The :doc:`MPI Executor<../executor/mpi_executor>` can detect system resources,
+and partition these to workers. Node-lists are detected by an environment variable on the
+following systems:
 
 ===========  ===========================
 Scheduler       Nodelist Env. variable
@@ -130,7 +130,7 @@ as follows::
 
             cat $COBALT_NODEFILE > node_file
 
-Resource detection can be disabled in the *Executor* and users' can simply supply run
+Resource detection can be disabled in the Executor with ``auto_resources=False`` and users' can simply supply run
 configuration on the executor submit line. This will usually work sufficiently on systems that
 have application level scheduling (e.g: ``aprun``, ``jsrun``) as these will slot each run into
 available nodes where possible. ``jsrun`` can also queue runs. However, on
@@ -138,12 +138,12 @@ other cluster and multi-node systems, if auto-resources is disabled, then runs w
 a hostlist or machinefile supplied may be undesirably scheduled to the same nodes.
 
 
-Overriding auto-detection
+Overriding Auto-detection
 -------------------------
 
 libEnsemble detects node-lists, MPI runners, and the number of cores on the node through various
 means. When using the MPI Executor it is possible to override the detected information using the
-``custom_info`` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+:ref:`custom_info<customizer>` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
 
 Instructions for Specific Platforms

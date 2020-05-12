@@ -87,7 +87,7 @@ class MPIExecutor(Executor):
 
         custom_info: dict, optional
             Provide custom overrides to selected variables that are usually
-            auto-detected.
+            auto-detected. See :ref:`custom_info<customizer>`
 
         """
         Executor.__init__(self)

@@ -35,6 +35,8 @@ Example. To increase resilience against submission failures::
     taskctrl.retry_delay_incr = 10
 
 
+.. _customizer:
+
 Overriding auto-detection
 -------------------------
 

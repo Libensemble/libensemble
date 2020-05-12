@@ -151,5 +151,5 @@ Further run information
 -----------------------
 
 For running on multi-node platforms and supercomputers, there are alternative ways to configure
-libEnsemble to resources. See the :doc:`Running on HPC Systems`<platforms/platforms_index.rst>
+libEnsemble to resources. See the :doc:`Running on HPC Systems<platforms/platforms_index>`
 guide for more information, including some examples for specific systems.
