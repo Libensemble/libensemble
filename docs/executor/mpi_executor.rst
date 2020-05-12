@@ -13,7 +13,7 @@ MPI Executor
 ..  :member-order: bysource
 ..  :members: __init__, register_calc, submit, manager_poll
 
-Class-specific attributes
+Class-specific Attributes
 -------------------------
 
 Class-specific attributes can be set directly to alter the behavior of the MPI
@@ -37,7 +37,7 @@ Example. To increase resilience against submission failures::
 
 .. _customizer:
 
-Overriding auto-detection
+Overriding Auto-detection
 -------------------------
 
 libEnsemble detects node-lists, MPI runners, and the number of cores on the node through various

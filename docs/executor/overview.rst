@@ -1,37 +1,33 @@
 Executor Overview
-=======================
+=================
 
-Users who wish to launch tasks to a system from a :ref:`sim_f<api_sim_f>` (or :ref:`gen_f<api_gen_f>`)
-running on a worker have several options.
+A typical libEnsemble workflow will include launching tasks from a
+:ref:`sim_f<api_sim_f>` (or :ref:`gen_f<api_gen_f>`) running on a worker. We use
+"task" to represent an application submission by libEnsemble to the system,
+may be a supercomputer, cluster, or other compute resource.
 
-Typically, an MPI task could be initialized with a subprocess call to
-``mpirun`` or an alternative launcher such as ``aprun`` or ``jsrun``. The ``sim_f``
-may then monitor this task, check output, and possibly kill the task. We use "task"
-to represent an application submission by libEnsemble to the system, which may
-be a supercomputer, cluster, or other compute resource.
+The task could be launched via a subprocess call to ``mpirun`` or an alternative
+launcher such as ``aprun`` or ``jsrun``. The ``sim_f`` may then monitor this task,
+check output, and possibly kill the task.
 
-An **executor** interface is provided by libEnsemble to remove the burden of
-system interaction from the user and ease writing portable user scripts that
-launch applications. The executor provides the key functions: ``submit()``,
-``poll()``, and ``kill()``. Task attributes can be queried to determine status after
-each poll. To implement these functions, libEnsemble autodetects system criteria
-such as the MPI launcher and mechanisms to poll and kill tasks on supported systems.
-libEnsemble's executor is resilient and can relaunch tasks that fail
-because of system factors.
+An **Executor** interface is provided by libEnsemble to remove the burden of
+system interaction from the user and ease the writing of portable user scripts that
+launch applications. The Executor provides the key functions: ``submit()``,
+``poll()``, and ``kill()``. Task attributes can be queried to determine the status
+following each of these commands. Functions are also provided to access and
+interrogate files in the task's working directory.
 
-Functions are also provided to access and interrogate files in the task's working directory.
+The main Executor class is an abstract class and is inherited by the MPIExecutor,
+for direct running of MPI applications. Another Executor is the BalsamMPIExecutor,
+which submits an MPI run request from a worker running on a compute node to a
+Balsam process running on a launch node (suitable for systems that do not allow
+running MPI applications directly from compute nodes).
 
-Various back-end mechanisms may be used by the executor to best interact
-with each system, including proxy launchers or task management systems such as
-Balsam_. Currently, these executors launch at the application level within
-an existing resource pool. However, submissions to a batch scheduler may be
-supported in the future.
-
-In a calling script, an executor object is created, and the executable
+In a calling script, an Executor object is created, and the executable
 generator or simulation applications are registered to it for submission. If an
-alternative executor like Balsam is used, then the applications can be
+alternative Executor like Balsam is used, then the applications can be
 registered as in the example below. Once in the user-side worker code (sim/gen func),
-an MPI-based executor can be retrieved without any need to specify the type.
+an MPI-based Executor can be retrieved without any need to specify the type.
 
 **Example usage (code runnable with or without a Balsam backend):**
 
@@ -41,8 +37,8 @@ In calling function::
     USE_BALSAM = False
 
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import BalsamExecutor
-        exctr = BalsamExecutor()
+        from libensemble.executors.balsam_executor import BalsamMPIExecutor
+        exctr = BalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor()
@@ -91,8 +87,20 @@ the :doc:`Electrostatic Forces example <../examples/calling_scripts>`,
 which launches the ``forces.x`` application as an MPI task.
 
 .. note::
-    Applications or tasks submitted via the Balsam executor are referred to as
+    Applications or tasks submitted via the Balsam Executor are referred to as
     **"jobs"** within Balsam, including within Balsam's database and when
     describing the state of a completed submission.
+
+The MPIExecutor autodetects system criteria such as the appropriate MPI launcher
+and mechanisms to poll and kill tasks. It will also partition resources amongst
+workers, ensuring that runs utilise different resources (e.g. nodes).
+Furthermore, the MPIExecutor offers resilience via the feature of re-launching
+tasks that fail because of system factors.
+
+Various back-end mechanisms may be used by the Executor to best interact
+with each system, including proxy launchers or task management systems such as
+Balsam_. Currently, these Executors launch at the application level within
+an existing resource pool. However, submissions to a batch scheduler may be
+supported in future Executors.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
