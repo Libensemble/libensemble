@@ -21,6 +21,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
+from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
 from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -37,8 +38,6 @@ gen_specs = {'gen_f': gen_f,
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)], 'user': {'num_active_gens': 1}}
-
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': num_pts, 'elapsed_wallclock_time': 300}
@@ -50,6 +49,11 @@ if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 for time in np.append([0], np.logspace(-5, -1, 5)):
+    if time == 0:
+        alloc_specs = {'alloc_f': alloc_f2, 'out': []}
+    else:
+        alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {'num_active_gens': 1}}
+
     for rep in range(1):
         sim_specs['user']['pause_time'] = time
 
