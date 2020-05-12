@@ -25,7 +25,7 @@ def wait_for_job_dir(basedb):
         time.sleep(1)
         sleeptime += 1
 
-    print('Waiting for Job Directory'.format(sleeptime))
+    print('Waiting for Job Directory {}'.format(sleeptime))
     while len(os.listdir(basedb)) == 0 and sleeptime < 15:
         print(sleeptime, end=" ", flush=True)
         time.sleep(1)

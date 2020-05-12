@@ -129,7 +129,7 @@ class History:
         else:
             self.given_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, Out):
+    def update_history_x_in(self, gen_worker, D):
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -137,18 +137,18 @@ class History:
         ----------
         gen_worker: integer
             The worker who generated these points
-        Out: numpy array
+        D: numpy array
             Output from gen_func
         """
 
-        if len(Out) == 0:
+        if len(D) == 0:
             return
 
         rows_remaining = len(self.H)-self.index
 
-        if 'sim_id' not in Out.dtype.names:
+        if 'sim_id' not in D.dtype.names:
             # gen method must not be adjusting sim_id, just append to self.H
-            num_new = len(Out)
+            num_new = len(D)
 
             if num_new > rows_remaining:
                 self.grow_H(num_new-rows_remaining)
@@ -159,18 +159,18 @@ class History:
             # gen method is building sim_id or adjusting values in existing sim_id rows.
 
             # Ensure there aren't any gaps in the generated sim_id values:
-            assert np.all(np.in1d(np.arange(self.index, np.max(Out['sim_id'])+1), Out['sim_id'])),\
+            assert np.all(np.in1d(np.arange(self.index, np.max(D['sim_id'])+1), D['sim_id'])),\
                 "The generator function has produced sim_id that are not in order."
 
-            num_new = len(np.setdiff1d(Out['sim_id'], self.H['sim_id']))
+            num_new = len(np.setdiff1d(D['sim_id'], self.H['sim_id']))
 
             if num_new > rows_remaining:
                 self.grow_H(num_new-rows_remaining)
 
-            update_inds = Out['sim_id']
+            update_inds = D['sim_id']
 
-        for field in Out.dtype.names:
-            self.H[field][update_inds] = Out[field]
+        for field in D.dtype.names:
+            self.H[field][update_inds] = D[field]
 
         self.H['gen_time'][update_inds] = time.time()
         self.H['gen_worker'][update_inds] = gen_worker
