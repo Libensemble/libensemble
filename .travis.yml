@@ -22,13 +22,19 @@ jobs:
   include:
     - os: osx
       osx_image: xcode11.3
-      env: MPI=mpich PY=3.7
+      env: MPI=mpich PY=3.7 COMMS_TYPE=m  # mpi
       language: generic
       python: 3.7
-      env:
-        - COMMS_TYPE=m  # mpi
-        - COMMS_TYPE=l  # local
-        - COMMS_TYPE=t  # tcp
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
+      language: generic
+      python: 3.7
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
+      language: generic
+      python: 3.7
 
 # Below will update the OSX octave used on Travis.  This was so slow that we
 # were hitting the 50 minute limit on Travis. We no longer update octave in
