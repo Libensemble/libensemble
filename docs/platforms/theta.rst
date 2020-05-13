@@ -53,6 +53,16 @@ Your prompt should be similar to the following line:
 .. note::
     If you encounter pip errors, run ``python -m pip install --upgrade pip`` first.
 
+Or, you can install via ``conda``:
+
+.. code-block:: console
+
+    (my_env) user@thetalogin6:~$ conda config --add channels conda-forge
+    (my_env) user@thetalogin6:~$ conda install -c conda-forge libensemble
+
+See :doc:`here<../advanced_installation>` for more information on advanced options
+for installing libEnsemble.
+
 Balsam (Optional)
 ^^^^^^^^^^^^^^^^^
 

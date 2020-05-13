@@ -97,14 +97,18 @@ libraries. NLopt may also require SWIG_ to be installed on certain systems.
 Installation
 ~~~~~~~~~~~~
 
-libEnsemble may be installed or accessed from a variety of sources.
+libEnsemble can be installed or accessed from a variety of sources.
 
-Use pip to install libEnsemble and its dependencies via ::
+Install libEnsemble and its dependencies from PyPI_ using pip::
 
     pip install libensemble
 
-libEnsemble is also available in the Spack_ distribution. It can be installed
-from Spack with ::
+Install libEnsemble with Conda_ from the conda-forge channel::
+
+    conda config --add channels conda-forge
+    conda install -c conda-forge libensemble
+
+Install libEnsemble using the Spack_ distribution::
 
     spack install py-libensemble
 
@@ -135,10 +139,6 @@ packages to be installed and can be run from the ``libensemble/tests`` directory
 of the source distribution by running ::
 
     ./run-tests.sh
-
-To clean the test repositories, run ::
-
-    ./run-tests.sh -c
 
 Further options are available. To see a complete list of options, run ::
 
@@ -222,6 +222,7 @@ Resources
 
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _Conda: https://docs.conda.io/en/latest/
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
@@ -235,6 +236,7 @@ Resources
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+.. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 .. _pytest: https://pypi.org/project/pytest/

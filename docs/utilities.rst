@@ -1,6 +1,9 @@
 Convenience Tools and Functions
 ===============================
 
+Calling Script Function Support
+-------------------------------
+
 .. automodule:: tools
    :members:
    :no-undoc-members:

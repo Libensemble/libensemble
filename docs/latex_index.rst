@@ -33,6 +33,7 @@ other libEnsemble information.
 .. toctree::
    :maxdepth: 3
 
+   advanced_installation
    tutorials/tutorials
    FAQ
    known_issues
