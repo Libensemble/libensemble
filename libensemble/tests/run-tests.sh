@@ -271,6 +271,12 @@ done
 # if [ -z "${s}" ] || [ -z "${p}" ]; then
 #     usage
 # fi
+
+# If none selected default to running all tests
+if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ];then
+    RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=true
+fi
+
 #-----------------------------------------------------------------------------------------
 
 # Get project root dir
@@ -330,7 +336,9 @@ tput sgr 0
 echo -e "Selected:"
 [ $RUN_UNIT_TESTS = "true" ] && echo -e "Unit Tests"
 [ $RUN_REG_TESTS = "true" ]  && echo -e "Regression Tests"
-[ $RUN_MPI = "true" ]  && echo -e "Only MPI Regression Tests"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_MPI = "true" ]   && echo -e " - Run tests with MPI Comms"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_LOCAL = "true" ] && echo -e " - Run tests with Local Comms"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_TCP = "true" ]   && echo -e " - Run tests with TCP Comms"
 [ $RUN_COV_TESTS = "true" ]  && echo -e "Including coverage analysis"
 [ $RUN_PEP_TESTS = "true" ]  && echo -e "PEP Code Standard Tests (static code test)"
 
@@ -426,11 +434,6 @@ if [ "$root_found" = true ]; then
     reg_pass=0
     reg_fail=0
     test_num=0
-
-    # If none selected default to running all tests
-    if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ];then
-        RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=true
-    fi
 
     for TEST_SCRIPT in $REG_TEST_LIST
     do
