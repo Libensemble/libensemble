@@ -9,7 +9,6 @@ export RUN_UNIT_TESTS=true    #Recommended for pre-push / CI tests
 export RUN_COV_TESTS=true     #Provide coverage report
 export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
 export RUN_PEP_TESTS=false     #Code syle conventions
-export RUN_ONLY_MPI=false
 
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
@@ -180,9 +179,13 @@ unset MPIEXEC_FLAGS
 PYTEST_SHOW_OUT_ERR=false
 RTEST_SHOW_OUT_ERR=false
 
+export RUN_MPI=false
+export RUN_LOCAL=false
+export RUN_TCP=false
+
 usage() {
   echo -e "\nUsage:"
-  echo "  $0 [-hcsurmz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
+  echo "  $0 [-hcsurmltz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
@@ -191,16 +194,20 @@ usage() {
   echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"
   echo "  -u              Run only the unit tests"
   echo "  -r              Run only the regression tests"
-  echo "  -m              Run the regression tests only using MPI"
+  echo "  -m              Run the regression tests using MPI comms"
+  echo "  -l              Run the regression tests using Local comms"
+  echo "  -t              Run the regression tests using TCP comms"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -n {name}       Supply a name to this test run"
   echo "  -a {args}       Supply a string of args to add to mpiexec line"
   echo ""
+  echo "Note: If none of [-mlt] are given, the default is to run tests for all comms"
+  echo ""
   exit 1
 }
 
-while getopts ":p:n:a:hcszurm" opt; do
+while getopts ":p:n:a:hcszurmlt" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -234,9 +241,17 @@ while getopts ":p:n:a:hcszurm" opt; do
       echo "Running only the regression tests"
       export RUN_UNIT_TESTS=false
       ;;
+    l)
+      echo "Running only the local regression tests"
+      export RUN_LOCAL=true
+      ;;
+    t)
+      echo "Running only the TCP regression tests"
+      export RUN_TCP=true
+      ;;
     m)
       echo "Running only the MPI regression tests"
-      export RUN_ONLY_MPI=true
+      export RUN_MPI=true
       ;;
     h)
       usage
@@ -256,6 +271,12 @@ done
 # if [ -z "${s}" ] || [ -z "${p}" ]; then
 #     usage
 # fi
+
+# If none selected default to running all tests
+if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ];then
+    RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=true
+fi
+
 #-----------------------------------------------------------------------------------------
 
 # Get project root dir
@@ -315,7 +336,9 @@ tput sgr 0
 echo -e "Selected:"
 [ $RUN_UNIT_TESTS = "true" ] && echo -e "Unit Tests"
 [ $RUN_REG_TESTS = "true" ]  && echo -e "Regression Tests"
-[ $RUN_ONLY_MPI = "true" ]  && echo -e "Only MPI Regression Tests"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_MPI = "true" ]   && echo -e " - Run tests with MPI Comms"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_LOCAL = "true" ] && echo -e " - Run tests with Local Comms"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_TCP = "true" ]   && echo -e " - Run tests with TCP Comms"
 [ $RUN_COV_TESTS = "true" ]  && echo -e "Including coverage analysis"
 [ $RUN_PEP_TESTS = "true" ]  && echo -e "PEP Code Standard Tests (static code test)"
 
@@ -422,20 +445,18 @@ if [ "$root_found" = true ]; then
         OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
         for NPROCS in $NPROCS_LIST
         do
-          test_num=$((test_num+1))
           NWORKERS=$((NPROCS-1))
 
-          if [ "$RUN_ONLY_MPI" = true ] && [ "$LAUNCHER" != mpi ]; then
-            echo "Skipping non-mpi test number: " $test_num
-            continue
-          fi
+          RUN_TEST=false
+          if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
+          if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
+          if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
           if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
             echo "Skipping test number for OSX: " $test_num
             continue
           fi
 
-          RUN_TEST=true
           if [ $REG_STOP_ON_FAILURE = "true" ]; then
             #Before Each Test check code is 0 (passed so far) - or skip to test summary
             if [ "$code" -ne "0" ]; then
@@ -445,6 +466,7 @@ if [ "$root_found" = true ]; then
           fi
 
           if [ "$RUN_TEST" = "true" ]; then
+             test_num=$((test_num+1))
 
              if [ "$REG_USE_PYTEST" = true ]; then
                if [ "$LAUNCHER" = mpi ]; then
