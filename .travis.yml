@@ -13,12 +13,26 @@ env:
     - OMPI_MCA_rmaps_base_oversubscribe=yes
   jobs:
     - MPI=mpich
+  matrix:
+    - COMMS_TYPE=m  # mpi
+    - COMMS_TYPE=l  # local
+    - COMMS_TYPE=t  # tcp
 
 jobs:
   include:
     - os: osx
       osx_image: xcode11.3
-      env: MPI=mpich PY=3.7
+      env: MPI=mpich PY=3.7 COMMS_TYPE=m  # mpi
+      language: generic
+      python: 3.7
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
+      language: generic
+      python: 3.7
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
       language: generic
       python: 3.7
 
@@ -103,7 +117,7 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -z
+  - ./libensemble/tests/run-tests.sh -z -$COMMS_TYPE
 
 # Track code coverage
 after_success:
