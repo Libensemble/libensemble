@@ -11,7 +11,7 @@ __all__ = ['aposmm', 'initialize_APOSMM', 'decide_where_to_start_localopt', 'upd
 import numpy as np
 from scipy.spatial.distance import cdist
 from math import log, gamma, pi, sqrt
-from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, ConvergedMsg
+from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, ConvergedMsg, simulate_recv_from_manager
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import send_mgr_worker_msg
@@ -78,13 +78,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     or ftol_rel for NLopt)
 
     .. seealso::
-        `test_sim_dirs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_sim_dirs.py>`_
+
+        `test_persistent_aposmm_scipy <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_scipy.py>`_
         for basic APOSMM usage.
 
-    .. seealso::
-        `test_old_aposmm_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_one_residual_at_a_time.py>`_
-        for an example of APOSMM coordinating multiple local optimization runs
-        for an objective with more than one component.
     """
     """
     Description of intermediate variables in aposmm:
@@ -131,7 +128,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         persis_info = add_k_sample_points_to_local_H(user_specs['initial_sample_size'], user_specs,
                                                      persis_info, n, comm, local_H,
                                                      sim_id_to_child_inds)
-        send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
+        if not user_specs.get('standalone'):
+            send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
         something_sent = True
     else:
         something_sent = False
@@ -143,7 +141,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         new_inds_to_send_mgr = []
 
         if something_sent:
-            tag, Work, calc_in = get_mgr_worker_msg(comm)
+            if user_specs.get('standalone'):
+                tag, Work, calc_in = simulate_recv_from_manager(local_H, gen_specs)
+            else:
+                tag, Work, calc_in = get_mgr_worker_msg(comm)
 
             if tag in [STOP_TAG, PERSIS_STOP]:
                 clean_up_and_stop(local_H, local_opters, run_order)
@@ -212,10 +213,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             persis_info = add_k_sample_points_to_local_H(num_samples_needed, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds)
             new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_samples_needed, len(local_H)))
 
-        send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
+        if not user_specs.get('standalone'):
+            send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
         something_sent = True
 
-    return [], persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass):
@@ -553,7 +555,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     mu = user_specs.get('mu', 1e-4)
     nu = user_specs.get('nu', 0)
 
-    comm = libE_info['comm']
+    comm = libE_info['comm'] if not user_specs.get('standalone') else []
 
     local_H_fields = [('f', float),
                       ('grad', float, n),

@@ -1,7 +1,6 @@
 Running on HPC Systems
 ======================
 
-
 Central v Distributed
 ---------------------
 
@@ -30,7 +29,6 @@ they launch. There may be multiple nodes per worker, or multiple workers per nod
 
 The distributed approach allows the libEnsemble worker to read files produced by the
 application on local node storage.
-
 
 Configuring the Run
 -------------------
@@ -77,7 +75,6 @@ per worker, and adding the manager onto the first node.
 HPC systems that only allow one application to be launched to a node at any one time,
 will not allow a distributed configuration.
 
-
 Systems with Launch/MOM nodes
 -----------------------------
 
@@ -106,7 +103,6 @@ computational work or I/O.
 
 Submission scripts for running on launch/MOM nodes and for using Balsam, can be be found in
 the :doc:`examples<example_scripts>`.
-
 
 Mapping Tasks to Resources
 --------------------------
@@ -138,14 +134,12 @@ available nodes where possible. ``jsrun`` can also queue runs. However, on
 other cluster and multi-node systems, if auto-resources is disabled, then runs without
 a hostlist or machinefile supplied may be undesirably scheduled to the same nodes.
 
-
 Overriding Auto-detection
 -------------------------
 
 libEnsemble detects node-lists, MPI runners, and the number of cores on the node through various
 means. When using the MPI Executor it is possible to override the detected information using the
 :ref:`custom_info<customizer>` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
-
 
 Instructions for Specific Platforms
 -----------------------------------

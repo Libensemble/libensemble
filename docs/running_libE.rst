@@ -18,7 +18,6 @@ and Workers communicate). These are ``mpi``, ``local``, ``tcp``. The default is 
     The communications modes described here only refer to how the libEnsemble manager and
     workers communicate.
 
-
 MPI Comms
 ---------
 
@@ -48,7 +47,6 @@ with MPICH and it's derivative MPI implementations.
 It is also unsuitable to use this mode when running on the **launch** nodes of three-tier
 systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
 
-
 Local Comms
 -----------
 
@@ -76,15 +74,12 @@ systems (e.g. Theta/Summit), allowing the whole node allocation for
 worker-launched application runs. In this scenario, make sure there are
 no imports of ``mpi4py`` in your Python scripts.
 
-
-
 Limitations of local mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - You cannot run in :doc:`distributed mode<platforms/platforms_index>` on multi-node systems.
 - In some scenarios, any import of ``mpi4py`` will cause this to break.
 - It does not have the potential scaling of MPI mode, but is sufficient for most users.
-
 
 TCP Comms
 ---------
@@ -107,7 +102,6 @@ The ``libE_specs`` options for TCP are::
         port
     'authkey' [String]:
         authkey
-
 
 Persistent Workers
 ------------------
@@ -134,7 +128,6 @@ If this example was run as::
 
 No simulations will be able to run.
 
-
 Environment Variables
 ---------------------
 
@@ -144,8 +137,6 @@ For example::
     os.environ["OMP_NUM_THREADS"] = 4
 
 set in your simulation script before the Executor submit command will export the setting to your run.
-
-
 
 Further run information
 -----------------------

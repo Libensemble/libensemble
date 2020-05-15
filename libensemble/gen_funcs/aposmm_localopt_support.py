@@ -6,6 +6,7 @@ __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
 import numpy as np
+from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
 
 import libensemble.gen_funcs
@@ -554,3 +555,31 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
         assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
 
     return values
+
+
+def simulate_recv_from_manager(local_H, gen_specs):
+    # This function goes through any entries of local_H and if they have not
+    # "returned", then it performs all function/gradient evaluations and makes
+    # output as if the calculations were performed externally by libEnsemble.
+
+    if np.sum(local_H['returned']) >= gen_specs['user']['standalone']['eval_max']:
+        return STOP_TAG, {}, {}
+
+    H_rows = np.where(~local_H['returned'])[0]
+    H_fields = [i[0] for i in gen_specs['out']]
+
+    Work = {'libE_info': {'H_rows': H_rows}, 'H_fields': H_fields}
+
+    calc_in = np.zeros(len(H_rows), dtype=gen_specs['out'] + [('f', float), ('grad', float, len(local_H['x'][0]))])
+
+    for name in H_fields:
+        calc_in[name] = local_H[name][H_rows]
+
+    for i, row in enumerate(H_rows):
+        calc_in['f'][i] = gen_specs['user']['standalone']['obj_func'](local_H['x'][row])
+
+    if 'grad' in local_H.dtype.names:
+        for i, row in enumerate(H_rows):
+            calc_in['grad'][i] = gen_specs['user']['standalone']['grad_func'](local_H['x'][row])
+
+    return EVAL_GEN_TAG, Work, calc_in
