@@ -66,24 +66,24 @@ class MPIExecutor(Executor):
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format
             (Default: Uses SLURM_NODELIST).  Note: This is queried only if
-            a worker_list file is not provided and auto_resources=True.
+            a node_list file is not provided and auto_resources=True.
 
         nodelist_env_cobalt: String, optional
             The environment variable giving a node list in Cobalt format
             (Default: Uses COBALT_PARTNAME) Note: This is queried only
-            if a worker_list file is not provided and
+            if a node_list file is not provided and
             auto_resources=True.
 
         nodelist_env_lsf: String, optional
             The environment variable giving a node list in LSF format
             (Default: Uses LSB_HOSTS) Note: This is queried only
-            if a worker_list file is not provided and
+            if a node_list file is not provided and
             auto_resources=True.
 
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form
             format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
-            if a worker_list file is not provided and auto_resources=True.
+            if a node_list file is not provided and auto_resources=True.
 
         custom_info: dict, optional
             Provide custom overrides to selected variables that are usually

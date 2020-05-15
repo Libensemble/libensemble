@@ -48,19 +48,19 @@ class EnvResources:
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
-            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided and auto_resources=True.
 
         nodelist_env_cobalt: String, optional
             The environment variable giving a node list in Cobalt format (Default: uses COBALT_PARTNAME).
-            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf: String, optional
             The environment variable giving a node list in LSF format (Default: uses LSB_HOSTS).
-            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS).
-            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided and auto_resources=True.
         """
 
         self.schedular = None

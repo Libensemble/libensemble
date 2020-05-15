@@ -124,13 +124,14 @@ LSF             LSB_HOSTS/LSB_MCPU_HOSTS
 ===========  ===========================
 
 These environment variable names can be modified when intitializing the Executor.
-On other systems you may have to supply a node list in a file called **node_file**
+On other systems you may have to supply a node list in a file called **node_list**
 in your run directory. For example, on Cooley_ the session node list can be obtained
 as follows::
 
-            cat $COBALT_NODEFILE > node_file
+            cat $COBALT_NODEFILE > node_list
 
-Resource detection can be disabled in the Executor with ``auto_resources=False`` and users' can simply supply run
+Resource detection can be disabled by initializing the Executor with the argument
+``auto_resources=False``, and users' can simply supply run
 configuration on the executor submit line. This will usually work sufficiently on systems that
 have application level scheduling (e.g: ``aprun``, ``jsrun``) as these will slot each run into
 available nodes where possible. ``jsrun`` can also queue runs. However, on

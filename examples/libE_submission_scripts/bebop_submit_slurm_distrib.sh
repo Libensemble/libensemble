@@ -11,12 +11,14 @@
 #   Workers are evenly spread over nodes and manager added to the first node.
 #   Requires even distribution - either multiple workers per node or nodes per worker
 #   Option for manager to have a dedicated node.
-#   Use of executor will ensure workers co-locate tasks with workers
+#   Use of MPI Executor will ensure workers co-locate tasks with workers
+#   If node_list file is kept, this informs libe of resources. Else, libe auto-detects.
 
 # User to edit these variables
 export EXE=libE_calling_script.py
 export NUM_WORKERS=4
 export MANAGER_NODE=false # true = Manager has a dedicated node (assign one extra)
+export USE_NODE_LIST=true # If false, allow libE to determine node_list from environment.
 
 # As libE shares nodes with user applications allow fallback if contexts overrun.
 unset I_MPI_FABRICS
@@ -50,23 +52,21 @@ echo -e "Directory is:  $PWD"
 # Generate a node list with 1 node per line:
 srun hostname | sort -u > node_list
 
-# Generate list of nodes for workers
-if [[ $MANAGER_NODE = "true" ]]; then
-  tail -n +2 node_list > worker_list
-else
-  cp node_list worker_list
-fi
-
 # Add manager node to machinefile
 head -n 1 node_list > machinefile.$SLURM_JOBID
 
 # Add worker nodes to machinefile
 if [[ $SUB_NODE_WORKERS = "true" ]]; then
-  awk -v repeat=$WORKERS_PER_NODE '{for(i=0;i<repeat;i++)print}' worker_list \
+  awk -v repeat=$WORKERS_PER_NODE '{for(i=0;i<repeat;i++)print}' node_list \
   >>machinefile.$SLURM_JOBID
 else
-  awk -v patt="$NODES_PER_WORKER" 'NR % patt == 1' worker_list \
+  awk -v patt="$NODES_PER_WORKER" 'NR % patt == 1' node_list \
   >> machinefile.$SLURM_JOBID
+fi;
+
+if [[ $USE_NODE_LIST = "false" ]]; then
+  rm node_list
+  wait
 fi;
 
 # Put in a timestamp
