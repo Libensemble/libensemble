@@ -34,7 +34,6 @@ Example. To increase resilience against submission failures::
     taskctrl.fail_time = 5
     taskctrl.retry_delay_incr = 10
 
-
 .. _customizer:
 
 Overriding Auto-detection
@@ -73,4 +72,3 @@ For example::
 
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(custom_info=customizer)
-

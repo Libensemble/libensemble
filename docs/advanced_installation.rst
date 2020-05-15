@@ -36,7 +36,6 @@ To pip install libEnsemble from the latest develop branch::
 
     python -m pip install --upgrade git+https://github.com/Libensemble/libensemble.git@develop
 
-
 Installing with mpi4py
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -57,7 +56,6 @@ On Summit, the following line is recommended (with gcc compilers)::
 
     CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
 
-
 Conda
 -----
 
@@ -68,7 +66,6 @@ Install libEnsemble with Conda_ from the conda-forge channel::
 
 This package comes with some useful optional dependencies, including
 optimizers and will install quickly as ready binary packages.
-
 
 Installing with mpi4py with Conda
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -104,7 +101,6 @@ For a complete list of builds for libEnsemble on Conda::
 
     conda search libensemble --channel conda-forge
 
-
 Spack
 -----
 
@@ -137,7 +133,6 @@ These files are used to specify dependencies that Spack must obtain from
 the given system (rather than building from scratch). This may include
 ``Python`` and the packages distributed with it (e.g. ``numpy``), and will
 often include the system MPI library.
-
 
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _Conda: https://docs.conda.io/en/latest/
