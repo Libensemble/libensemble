@@ -30,7 +30,7 @@ class Resources:
 
     These are set on initialization.
 
-    :ivar string top_level_dir: Directory where searches for worker_list file
+    :ivar string top_level_dir: Directory where searches for node_list file
     :ivar boolean central_mode: If true, then running in central mode; otherwise distributed
     :ivar EnvResources env_resources: An object storing environment variables used by resources
     :ivar list global_nodelist: A list of all nodes available for running user applications
@@ -39,7 +39,7 @@ class Resources:
     :ivar WorkerResources worker_resources: An object that can contain worker specific resources
     """
 
-    DEFAULT_NODEFILE = 'worker_list'
+    DEFAULT_NODEFILE = 'node_list'
 
     def __init__(self, top_level_dir=None,
                  central_mode=False,
@@ -86,24 +86,24 @@ class Resources:
 
         node_file: String, optional
             If supplied, give the name of a file in the run directory to use as a node-list
-            for use by libEnsemble. Defaults to a file named 'worker_list'. If the file does
+            for use by libEnsemble. Defaults to a file named 'node_list'. If the file does
             not exist, then the node-list will be auto-detected.
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
-            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided and auto_resources=True.
 
         nodelist_env_cobalt: String, optional
             The environment variable giving a node list in Cobalt format (Default: uses COBALT_PARTNAME).
-            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf: String, optional
             The environment variable giving a node list in LSF format (Default: uses LSB_HOSTS).
-            Note: This is queried only if a worker_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided and auto_resources=True.
 
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS)
-            Note: This is only queried if a worker_list file is not provided and auto_resources=True.
+            Note: This is only queried if a node_list file is not provided and auto_resources=True.
 
         """
 
