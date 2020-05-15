@@ -66,6 +66,8 @@ fi;
 
 if [[ $USE_NODE_LIST = "false" ]]; then
   rm node_list
+  wait
+fi;
 
 # Put in a timestamp
 echo Starting executation at: `date`
