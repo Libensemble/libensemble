@@ -212,6 +212,8 @@ class JSRUN_MPIRunner(MPIRunner):
                 self._parse_extra_args(num_procs, num_nodes, ranks_per_node,
                                        hyperthreads, extra_args=extra_args)
 
+        rm_rpn = True if ranks_per_node is None and num_nodes is None else False
+
         hostlist = None
         if machinefile and not self.mfile_support:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
@@ -232,6 +234,9 @@ class JSRUN_MPIRunner(MPIRunner):
             num_procs, num_nodes, ranks_per_node = \
                 self._rm_replicated_args(num_procs, num_nodes,
                                          ranks_per_node, p_args)
+
+        if rm_rpn:
+            ranks_per_node = None
 
         return {'num_procs': num_procs,
                 'num_nodes': num_nodes,
