@@ -52,6 +52,7 @@ gen_specs = {'gen_f': gen_f,
              'user': {'initial_sample_size': 100,
                       'sample_points': np.round(minima, 1),
                       'localopt_method': 'scipy_Nelder-Mead',
+                      'opt_return_codes': [0],
                       'nu': 1e-8,
                       'mu': 1e-8,
                       'dist_to_bound_multiple': 0.01,
@@ -71,6 +72,7 @@ for run in range(2):
 
     if run == 1:
         gen_specs['user']['localopt_method'] = 'scipy_BFGS'
+        gen_specs['user']['opt_return_codes'] = [1, 2]
         sim_specs['out'] = [('f', float), ('grad', float, n)]
 
     # Perform the run

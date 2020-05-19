@@ -650,8 +650,8 @@ def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H,
 def clean_up_and_stop(local_H, local_opters, run_order):
     # FIXME: This has to be a clean exit.
 
-    print('[Parent]: The optimal points and values are:\n',
-          local_H[np.where(local_H['local_min'])][['x', 'f']], flush=True)
+    # print('[Parent]: The optimal points and values are:\n',
+    #       local_H[np.where(local_H['local_min'])][['x', 'f']], flush=True)
 
     for i, p in local_opters.items():
         p.destroy(local_H['x_on_cube'][run_order[i][-1]])
