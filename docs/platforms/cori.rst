@@ -148,6 +148,7 @@ mode on KNL nodes resembles the following (add ``PYTHONPATH`` lines if necessary
     #SBATCH -C knl
 
     module load python/3.7-anaconda-2019.07
+    export I_MPI_FABRICS=shm:ofi  # Recommend OFI
 
     # Run libEnsemble (manager and 4 workers) on one node
     # leaving 4 nodes for worker launched applications.
@@ -183,6 +184,7 @@ user application. libEnsemble could be run on more than one node, but here the
     #SBATCH -C knl
 
     module load python/3.7-anaconda-2019.07
+    export I_MPI_FABRICS=shm:ofi  # Recommend OFI
 
     # Run libEnsemble (manager and 128 workers) on one node
     # leaving 256 nodes for worker launched applications.
