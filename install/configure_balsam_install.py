@@ -12,15 +12,16 @@ import subprocess
 
 def install_balsam():
     here = os.getcwd()
-    os.chdir('../balsam/balsam-0.3.5.1/balsam/scripts')
-
-    # Replace old version of balsamactivate
-    os.remove('balsamactivate')
-    url = 'https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'
-    subprocess.check_call(['wget', url])
+    # os.chdir('../balsam/balsam-0.3.5.1/balsam/scripts')
+    #
+    # # Replace old version of balsamactivate
+    # os.remove('balsamactivate')
+    # url = 'https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'
+    # subprocess.check_call(['wget', url])
+    os.chdir('../balsam/balsam-0.3.8')
 
     # Pip install Balsam
-    os.chdir('../..')
+    # os.chdir('../..')
     subprocess.check_call('pip install -e .'.split())
 
     os.chdir(here)
@@ -47,7 +48,7 @@ def configure_coverage():
 
 
 if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
-    # install_balsam()
+    install_balsam()
     move_test_balsam('test_balsam_hworld.py')
     configure_coverage()
     subprocess.run('./install/configure-balsam-test.sh'.split())
