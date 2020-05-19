@@ -12,18 +12,8 @@ import subprocess
 
 def install_balsam():
     here = os.getcwd()
-    # os.chdir('../balsam/balsam-0.3.5.1/balsam/scripts')
-    #
-    # # Replace old version of balsamactivate
-    # os.remove('balsamactivate')
-    # url = 'https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'
-    # subprocess.check_call(['wget', url])
     os.chdir('../balsam/balsam-0.3.8')
-
-    # Pip install Balsam
-    # os.chdir('../..')
     subprocess.check_call('pip install -e .'.split())
-
     os.chdir(here)
 
 

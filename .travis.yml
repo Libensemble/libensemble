@@ -105,7 +105,6 @@ install:
   - python install/find_mpi.py # Locate compilers. Confirm MPI library
   - mpiexec --version        # Show MPI library details
   - pip install -e .            # Installing libEnsemble
-  # - pip install balsam-flow
   - wget https://github.com/balsam-alcf/balsam/archive/0.3.8.tar.gz
   - mkdir ../balsam; tar xf 0.3.8.tar.gz -C ../balsam;
   - python install/configure_balsam_install.py
