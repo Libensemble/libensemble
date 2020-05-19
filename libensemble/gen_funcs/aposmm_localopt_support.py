@@ -271,7 +271,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
                           # constraints=cons,
                           method=method, jac=jac_flag, **user_specs.get('scipy_kwargs', {}))
 
-    if res['status'] == user_specs['opt_return_code']:
+    if res['status'] in user_specs['opt_return_codes']:
         opt_flag = 1
     else:
         print("The SciPy localopt run started from " + str(x0) + " stopped "

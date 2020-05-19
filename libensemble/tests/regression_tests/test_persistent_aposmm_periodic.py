@@ -63,9 +63,9 @@ exit_criteria = {'sim_max': 1000}
 for run in range(2):
     if run == 1:
         gen_specs['user']['localopt_method'] = 'scipy_COBYLA'
+        gen_specs['user']['opt_return_codes'] = [1]
         gen_specs['user'].pop('xtol_abs')
         gen_specs['user'].pop('ftol_abs')
-        gen_specs['opt_return_codes'] = [1]
         gen_specs['user']['scipy_kwargs'] = {'tol': 1e-8}
 
     persis_info = add_unique_random_streams({}, nworkers + 1)

@@ -72,7 +72,7 @@ for run in range(2):
 
     if run == 1:
         gen_specs['user']['localopt_method'] = 'scipy_BFGS'
-        gen_specs['user']['opt_return_codes'] = [1, 2]
+        gen_specs['user']['opt_return_codes'] = [0]
         sim_specs['out'] = [('f', float), ('grad', float, n)]
 
     # Perform the run
