@@ -592,21 +592,3 @@ def simulate_recv_from_manager(local_H, gen_specs):
             calc_in['grad'][i] = out[1]
 
     return EVAL_GEN_TAG, Work, calc_in
-
-
-def perform_evals(local_H, user):
-
-    H_rows = np.where(~local_H['returned'])[0]
-
-    if 'obj_func' in user:
-        for i, row in enumerate(H_rows):
-            local_H['f'][i] = user['obj_func'](local_H['x'][row])
-
-        if 'grad' in local_H.dtype.names:
-            for i, row in enumerate(H_rows):
-                local_H['grad'][i] = user['grad_func'](local_H['x'][row])
-    else:
-        for i, row in enumerate(H_rows):
-            out = user['obj_and_grad_func'](local_H['x'][row])
-            local_H['f'][i] = out[0]
-            local_H['grad'][i] = out[1]
