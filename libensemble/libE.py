@@ -226,7 +226,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
         exctr = Executor.executor
         if exctr is not None:
             local_host = socket.gethostname()
-            libE_nodes = [set(comm.allgather(local_host))]
+            libE_nodes = list(set(comm.allgather(local_host)))
             exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
 
         # Run manager or worker code, depending
