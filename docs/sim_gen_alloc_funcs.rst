@@ -4,7 +4,10 @@ User Function API
 libEnsemble requires functions for generation, simulation and allocation.
 
 While libEnsemble provides a default allocation function, the sim and gen functions
-must be provided. The required API and examples are given here.
+must be specified. The required API and example arguments are given here.
+:doc:`Example sim and gen functions<examples/examples_index>` are provided in the
+libEnsemble package.
+
 
 **The libEnsemble History Array**
 
