@@ -9,6 +9,7 @@ Dummy
 
    Introduction<introduction_latex>
    programming_libE
+   running_libE
    platforms/platforms_index
 
 Developer's Guide
