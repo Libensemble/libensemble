@@ -115,16 +115,46 @@ version 0.7.0 with all the variants::
 
     spack install py-libensemble @0.7.0 +mpi +scipy +petsc4py +nlopt
 
-On some platforms you may wish to run libEnsemble without mpi4py,
-using a serial PETSc build This is often preferable if running on
+On some platforms you may wish to run libEnsemble without ``mpi4py``,
+using a serial PETSc build. This is often preferable if running on
 the launch nodes of a three-tier system (e.g. Theta/Summit)::
 
-    spack install py-libensemble @0.7.0 +scipy +petsc4py~mpi
+    spack install py-libensemble @0.7.0 +scipy +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 
 The install will create modules for libEnsemble and the dependent
 packages. These can be loaded by::
 
     spack load -r py-libensemble
+
+Any Python packages will be added to the PYTHONPATH, when the modules are loaded. If you do not have
+modules on your system you may need to install ``lmod`` (also available in Spack)::
+
+    spack install lmod
+    . $(spack location -i lmod)/lmod/lmod/init/bash
+    spack load lmod
+
+Alternatively, Spack could be used to build the serial ``petsc4py``, and Conda could use this by loading
+the ``py-petsc4py`` module thus created.
+
+**Hint**: When combining Spack and Conda, you can access your Conda Python and packages in your
+``~/.spack/packages.yaml`` while your Conda environment is activated, using ``CONDA_PREFIX``
+For example, if you have an activated Conda environment with Python 3.7 and SciPy installed:
+
+.. code-block:: yaml
+
+    packages:
+      python:
+        paths:
+          python: $CONDA_PREFIX
+        buildable: False
+      py-numpy:
+        paths:
+          py-numpy: $CONDA_PREFIX/lib/python3.7/site-packages/numpy
+        buildable: False
+      py-scipy:
+        paths:
+          py-scipy: $CONDA_PREFIX/lib/python3.7/site-packages/scipy
+        buildable: False
 
 For more information on Spack builds and any particular considerations
 for specific systems, see the spack_libe_ repostory. In particular, this
