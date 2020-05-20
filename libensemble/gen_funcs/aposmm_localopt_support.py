@@ -271,7 +271,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
                           # constraints=cons,
                           method=method, jac=jac_flag, **user_specs.get('scipy_kwargs', {}))
 
-    if res['status'] == 0:
+    if res['status'] in user_specs['opt_return_codes']:
         opt_flag = 1
     else:
         print("The SciPy localopt run started from " + str(x0) + " stopped "
@@ -561,8 +561,9 @@ def simulate_recv_from_manager(local_H, gen_specs):
     # This function goes through any entries of local_H and if they have not
     # "returned", then it performs all function/gradient evaluations and makes
     # output as if the calculations were performed externally by libEnsemble.
+    user = gen_specs['user']['standalone']
 
-    if np.sum(local_H['returned']) >= gen_specs['user']['standalone']['eval_max']:
+    if np.sum(local_H['returned']) >= user['eval_max']:
         return STOP_TAG, {}, {}
 
     H_rows = np.where(~local_H['returned'])[0]
@@ -575,11 +576,19 @@ def simulate_recv_from_manager(local_H, gen_specs):
     for name in H_fields:
         calc_in[name] = local_H[name][H_rows]
 
-    for i, row in enumerate(H_rows):
-        calc_in['f'][i] = gen_specs['user']['standalone']['obj_func'](local_H['x'][row])
+    assert 'obj_func' in user or 'obj_and_grad_func' in user, "Must have some way to calculate objective values"
 
-    if 'grad' in local_H.dtype.names:
+    if 'obj_func' in user:
         for i, row in enumerate(H_rows):
-            calc_in['grad'][i] = gen_specs['user']['standalone']['grad_func'](local_H['x'][row])
+            calc_in['f'][i] = user['obj_func'](local_H['x'][row])
+
+        if 'grad' in local_H.dtype.names:
+            for i, row in enumerate(H_rows):
+                calc_in['grad'][i] = user['grad_func'](local_H['x'][row])
+    else:
+        for i, row in enumerate(H_rows):
+            out = user['obj_and_grad_func'](local_H['x'][row])
+            calc_in['f'][i] = out[0]
+            calc_in['grad'][i] = out[1]
 
     return EVAL_GEN_TAG, Work, calc_in

@@ -55,6 +55,7 @@ def test_standalone_persistent_aposmm():
 
     gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
                ('local_min', bool), ('local_pt', bool)]
+
     gen_specs = {'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min'],
                  'out': gen_out,
                  'user': {'initial_sample_size': 100,
@@ -88,6 +89,21 @@ def test_standalone_persistent_aposmm():
         if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol:
             min_found += 1
     assert min_found >= 6, "Found {} minima".format(min_found)
+
+    def combined_func(x):
+        return six_hump_camel_func(x), six_hump_camel_grad(x)
+
+    gen_specs['user']['standalone'].pop('obj_func')
+    gen_specs['user']['standalone'].pop('grad_func')
+    gen_specs['user']['standalone']['obj_and_grad_func'] = combined_func
+
+    H = []
+    persis_info = {'rand_stream': np.random.RandomState(1), 'nworkers': 3}
+    H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, {})
+
+    assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
+    assert np.sum(H['returned']) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
+    assert persis_info.get('run_order'), "Standalone persistent_aposmm didn't do any localopt runs"
 
 
 if __name__ == "__main__":
