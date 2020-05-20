@@ -48,15 +48,16 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'ub' [n floats]``: Upper bound on search domain
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods)
-
-      and one of
     - ``'initial_sample_size' [int]``: Number of uniformly sampled points
-      must be returned (non-nan value) before a local opt run is started
-      or
-    - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
+      must be returned (non-nan value) before a local opt run is started. Can be
+      zero if no additional sampling is desired, but if zero there must be past
+      sim_f values given to libEnsemble in H0.
 
     Optional ``gen_specs['user']`` entries are:
 
+    - ``'sample_points' [numpy array]``: Points to be sampled (original domain).
+      If more sample points are needed by APOSMM during the course of the
+      optimization, points will be drawn uniformly over the domain
     - ``'components' [int]``: Number of objective components
     - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
       distance to the nearest boundary should the initial step size be in
@@ -81,6 +82,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         `test_persistent_aposmm_scipy <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_scipy.py>`_
         for basic APOSMM usage.
+
+    .. seealso::
+
+        `test_persistent_aposmm_with_grad <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_
+        for an example where past function values are given to libEnsemble/APOSMM.
 
     """
     """
@@ -605,6 +611,9 @@ def initialize_APOSMM(H, user_specs, libE_info):
     n_s = np.sum(~local_H['local_pt'])
 
     assert n_s > 0 or user_specs['initial_sample_size'] > 0, "APOSMM requires a positive initial_sample_size, or some existing points in order to determine where to start local optimization runs."
+
+    if 'sample_points' in user_specs:
+        assert isinstance(user_specs['sample_points'], np.ndarray)
 
     return n, n_s, rk_c, ld, mu, nu, comm, local_H
 
