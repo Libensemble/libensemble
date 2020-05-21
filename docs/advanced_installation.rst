@@ -1,11 +1,6 @@
 Advanced Installation
 =====================
 
-.. note::
-    At the current time we recommend new users start with the develop branch
-    as this has many additions, including API breaking changes since v0.6.0.
-    This applies until the release of v0.7.0
-
 libEnsemble can be installed from ``pip``, ``Conda``, or ``Spack``.
 
 In view of libEnsemble's compiled dependencies, these approaches
