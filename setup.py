@@ -64,7 +64,7 @@ setup(
                    ],
 
     extras_require={
-        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py'],
+        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap'],
         'docs': ['sphinxcontrib.bibtex']},
 
     classifiers=[
