@@ -467,6 +467,7 @@ if [ "$root_found" = true ]; then
 
           if [ "$RUN_TEST" = "true" ]; then
              test_num=$((test_num+1))
+             test_start=$(current_time)
 
              if [ "$REG_USE_PYTEST" = true ]; then
                if [ "$LAUNCHER" = mpi ]; then
@@ -495,13 +496,15 @@ if [ "$root_found" = true ]; then
                fi
              fi
              reg_count_runs=$((reg_count_runs+1))
+             test_end=$(current_time)
+             test_time=$(total_time $test_start $test_end)
 
              if [ "$test_code" -eq "0" ]; then
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed ${textreset}"
+               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed after ${test_time} seconds ${textreset}"
                reg_pass=$((reg_pass+1))
                #continue testing
              else
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed ${textreset}"
+               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed after ${test_time} seconds ${textreset}"
                code=$test_code #sh - currently stop on failure
                if [ $REG_STOP_ON_FAILURE != "true" ]; then
                  #Dump error to log file
