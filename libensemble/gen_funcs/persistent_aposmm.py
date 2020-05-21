@@ -42,11 +42,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     and optionally
 
     - ``'fvec' [m floats]``: All objective components (if performing a least-squares calculation)
-    - ``'grad' [n floats]``: The gradient (if available) of the objective with respect to `x`. 
+    - ``'grad' [n floats]``: The gradient (if available) of the objective with respect to `x`.
 
-    Note: 
+    Note:
     - If any of the above fields are desired after a libEnsemble run, name
-      them in ``gen_specs['out']``. 
+      them in ``gen_specs['out']``.
     - If intitializing APOSMM with past function values, make sure to include
       ``'x'``, ``'x_on_cube'``, ``'f'``, ``'local_pt'``, etc. in
       ``gen_specs['in']`` (and, of course, include them in the H0 array given

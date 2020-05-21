@@ -83,6 +83,5 @@ def gen_borehole_input(n):
     Kw = np.random.uniform(9855, 12045, n)
     L = np.random.uniform(1120, 1680, n)
 
-
     x = np.column_stack((Tu, Tl, Hu, Hl, r, rw, Kw, L))
     return x
