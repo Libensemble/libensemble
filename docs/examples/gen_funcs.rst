@@ -15,3 +15,5 @@ Below are example generation functions available in libEnsemble.
    uniform_or_localopt
    deap_nsga2
    tasmanian
+   fd_param_finder
+   vtmop

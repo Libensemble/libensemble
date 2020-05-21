@@ -9,15 +9,17 @@ Configuring APOSMM
 ^^^^^^^^^^^^^^^^^^
 
 By default, APOSMM will import several optimizers which require
-external packages and MPI. To import only the optimizers you are using,
+external packages and MPI. To import only the optimization packages you are using,
 add the following lines in that calling script, before importing APOSMM::
 
     import libensemble.gen_funcs
     libensemble.gen_funcs.rc.aposmm_optimizers = <optimizers>
 
-Where ``optimizer`` is a string (or list of strings) from the available options:
+Where ``optimizers`` is a string (or list of strings) from the available options:
 
 ``'petsc'``, ``'nlopt'``, ``'dfols'``, ``'scipy'``, ``'external'``
+
+To see the optimization algorithms supported, see `LocalOptInterfacer`_.
 
 Persistent APOSMM
 ^^^^^^^^^^^^^^^^^

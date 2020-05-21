@@ -48,6 +48,14 @@ Specifications for libEnsemble::
         'disable_log_files' [boolean] :
             Disable the creation of 'ensemble.log' and 'libE_stats.txt' log files.
             Default: False
+        'workers' list:
+            TCP Only: A list of worker hostnames.
+        'ip' [String]:
+            TCP Only: IP address
+        'port' [int]:
+            TCP Only: Port number
+        'authkey' [String]:
+            TCP Only: Authkey
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or

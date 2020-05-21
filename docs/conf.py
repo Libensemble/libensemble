@@ -30,7 +30,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
-MOCK_MODULES = ['argparse', 'numpy', 'mpi4py' , 'dfols', 'scipy', 'numpy.lib', 'numpy.lib.recfunctions', 'math', 'petsc4py', 'PETSc', 'nlopt', 'scipy.spatial', 'scipy.spatial.distance', 'deap', 'Tasmanian']
+MOCK_MODULES = ['argparse', 'numpy', 'mpi4py' , 'dfols', 'scipy', 'numpy.lib', 'numpy.lib.recfunctions', 'math', 'petsc4py', 'PETSc', 'nlopt', 'scipy.spatial', 'scipy.spatial.distance', 'scipy.io', 'deap', 'Tasmanian', 'numpy.linalg']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 #from libensemble import *
