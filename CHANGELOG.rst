@@ -4,6 +4,55 @@ Release Notes
 
 Below are the notes from all libEnsemble releases.
 
+Release 0.7.0
+-------------
+
+:Date: May 21, 2020
+
+Breaking API changes:
+
+* Major restructuring/renaming:
+ * Job_controller/Job renamed to Executor/Task and launch function to submit. (#285)
+ * Executors/Resources/Utils moved into sub-packages. (#285)
+ * sim/gen/alloc support functions moved into utils/tools sub-package.
+ * Restructuring of sim/gen directory creation with libE_specs configuration options. (#267)
+  * E.g. When sim_input_dir given, directories for each sim are created.
+* User can supply a node-list file called `node_list` (replaces `worker_list`). (#455)
+
+API additions:
+
+* Added gen_funcs.rc configuration framework with option to select APOSMM Optimizers for import (#444)
+* Provide alloc specs defaults via alloc_funcs.defaults module (#325)
+* Added extra_args option to executor submit to allow addition of arbitrary MPI runner options (#445)
+* Added custom_info argument to MPI Executor to allow overriding of detected settings (#448)
+* Added libE_specs option to disable log files (#368)
+
+Other changes:
+
+* Added libEnsemble Conda package, hosted on conda-forge.
+* Bugfix: Intermittent failures with repeated libE calls under mpi4py comms (#373/#387)
+    (Every libE call uses its own duplicate of provided communicator and closes out.)
+* More accurate timing in libE_stats. (#318)
+
+Updates to example functions:
+
+* Persistent APOSMM is now the recommended APOSMM (aposmm.py renamed to old_aposmm.py) (#435)
+* Add alloc/gen func: Finite difference parameters with noise estimation.  (#350)
+* Add example gen func: Tasmanian UQ generator.  (#351)
+* Add example gen func: Deap/NSGA2 generator.  (#407)
+* Add example sim func: Borehole (#367)
+* Add example use-case: WarpX/APOSMM (#425)
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), and Cori (Cray XC40/Slurm).
+* Tested Python versions: (Cpython) 3.5, 3.6, 3.7, 3.8
+
+:Known issues:
+
+* See known issues section in the documentation.
+* No new issues.
+
 Release 0.6.0
 -------------
 
