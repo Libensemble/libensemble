@@ -17,7 +17,6 @@ Breaking API changes:
 * Restructuring of sim directory creation with libE_specs configuration options.
   E.g. When sim_input_dir given, directories for each sim are created. (#267)
 * User can supply a node-list file called `node_list` (replaces `worker_list`). (#455)
-* Require sim_f-/gen_f-/alloc_f-specific arguments to use `'user'` field in sim/gen/alloc specs.
 
 API additions:
 
