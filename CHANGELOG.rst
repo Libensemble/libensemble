@@ -14,7 +14,7 @@ Breaking API changes:
 * Job_controller/Job renamed to Executor/Task and launch function to submit. (#285)
 * Executors/Resources/Utils moved into sub-packages. (#285)
 * sim/gen/alloc support functions moved into utils/tools sub-package. (#285)
-* Restructuring of sim/gen directory creation with libE_specs configuration options.
+* Restructuring of sim directory creation with libE_specs configuration options.
   E.g. When sim_input_dir given, directories for each sim are created. (#267)
 * User can supply a node-list file called `node_list` (replaces `worker_list`). (#455)
 
@@ -39,6 +39,7 @@ Updates to example functions:
 * Add alloc/gen func: Finite difference parameters with noise estimation.  (#350)
 * Add example gen func: Tasmanian UQ generator.  (#351)
 * Add example gen func: Deap/NSGA2 generator.  (#407)
+* Add example gen func to interface with VTMOP.
 * Add example sim func: Borehole (#367)
 * Add example use-case: WarpX/APOSMM (#425)
 
