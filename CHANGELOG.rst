@@ -17,11 +17,12 @@ Breaking API changes:
 * Restructuring of sim directory creation with libE_specs configuration options.
   E.g. When sim_input_dir given, directories for each sim are created. (#267)
 * User can supply a node-list file called `node_list` (replaces `worker_list`). (#455)
+* Require sim_f-/gen_f-/alloc_f-specific arguments to use `'user'` field in sim/gen/alloc specs.
 
 API additions:
 
 * Added gen_funcs.rc configuration framework with option to select APOSMM Optimizers for import (#444)
-* Provide alloc specs defaults via alloc_funcs.defaults module (#325)
+* Provide alloc_specs defaults via alloc_funcs.defaults module (#325)
 * Added `extra_args` option to the Executor submit function to allow addition of arbitrary MPI runner options (#445)
 * Added `custom_info` argument to MPI Executor to allow overriding of detected settings (#448)
 * Added `libE_specs` option to disable log files (#368)
