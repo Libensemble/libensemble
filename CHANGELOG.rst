@@ -7,7 +7,7 @@ Below are the notes from all libEnsemble releases.
 Release 0.7.0
 -------------
 
-:Date: May 21, 2020
+:Date: May 22, 2020
 
 Breaking API changes:
 
@@ -32,6 +32,7 @@ Other changes:
 * Bugfix: Intermittent failures with repeated libE calls under mpi4py comms
   Every libE call now uses its own duplicate of provided communicator and closes out. (#373/#387)
 * More accurate timing in libE_stats. (#318)
+* Addition of new post-processing scripts.
 
 Updates to example functions:
 
