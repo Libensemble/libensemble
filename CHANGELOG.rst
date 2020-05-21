@@ -11,27 +11,26 @@ Release 0.7.0
 
 Breaking API changes:
 
-* Major restructuring/renaming:
- * Job_controller/Job renamed to Executor/Task and launch function to submit. (#285)
- * Executors/Resources/Utils moved into sub-packages. (#285)
- * sim/gen/alloc support functions moved into utils/tools sub-package.
- * Restructuring of sim/gen directory creation with libE_specs configuration options. (#267)
-  * E.g. When sim_input_dir given, directories for each sim are created.
+* Job_controller/Job renamed to Executor/Task and launch function to submit. (#285)
+* Executors/Resources/Utils moved into sub-packages. (#285)
+* sim/gen/alloc support functions moved into utils/tools sub-package. (#285)
+* Restructuring of sim/gen directory creation with libE_specs configuration options.
+  E.g. When sim_input_dir given, directories for each sim are created. (#267)
 * User can supply a node-list file called `node_list` (replaces `worker_list`). (#455)
 
 API additions:
 
 * Added gen_funcs.rc configuration framework with option to select APOSMM Optimizers for import (#444)
 * Provide alloc specs defaults via alloc_funcs.defaults module (#325)
-* Added extra_args option to executor submit to allow addition of arbitrary MPI runner options (#445)
-* Added custom_info argument to MPI Executor to allow overriding of detected settings (#448)
-* Added libE_specs option to disable log files (#368)
+* Added `extra_args` option to the Executor submit function to allow addition of arbitrary MPI runner options (#445)
+* Added `custom_info` argument to MPI Executor to allow overriding of detected settings (#448)
+* Added `libE_specs` option to disable log files (#368)
 
 Other changes:
 
 * Added libEnsemble Conda package, hosted on conda-forge.
-* Bugfix: Intermittent failures with repeated libE calls under mpi4py comms (#373/#387)
-    (Every libE call uses its own duplicate of provided communicator and closes out.)
+* Bugfix: Intermittent failures with repeated libE calls under mpi4py comms
+  Every libE call now uses its own duplicate of provided communicator and closes out. (#373/#387)
 * More accurate timing in libE_stats. (#318)
 
 Updates to example functions:
