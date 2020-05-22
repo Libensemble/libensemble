@@ -4,28 +4,16 @@ Generation Functions
 Below are example generation functions available in libEnsemble.
 
 .. IMPORTANT::
-  See the API for generation functions :ref:`here<api_gen_f>`
+  See the API for generation functions :ref:`here<api_gen_f>`.
 
-sampling
---------
-.. automodule:: sampling
-  :members:
-  :undoc-members:
+.. toctree::
+   :maxdepth: 2
+   :caption: Example Generator Functions:
 
-APOSMM
-------
-.. automodule:: aposmm
-  :members:
-  :undoc-members:
-
-uniform_or_localopt
--------------------
-.. automodule:: uniform_or_localopt
-  :members:
-  :undoc-members:
-
-persistent_uniform_sampling
----------------------------
-.. automodule:: persistent_uniform_sampling
-  :members:
-  :undoc-members:
+   sampling
+   aposmm
+   uniform_or_localopt
+   deap_nsga2
+   tasmanian
+   fd_param_finder
+   vtmop

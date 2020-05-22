@@ -20,8 +20,11 @@ omit =
     */unit_tests_logger/*
     */regression_tests/*
     */sim_funcs/helloworld.py
-    */balsam_controller.py
-#    */sim_funcs/*
-#    */gen_funcs/*
+    */balsam_executor.py
+    */forkable_pdb.py
+    */parse_args.py
+    */sim_funcs/mop_funcs.py
+    */gen_funcs/vtmop.py
+    */regression_tests/test_vtmop.py
 exclude_lines =
     if __name__ == .__main__.:

@@ -1,19 +1,18 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
-from libensemble.gen_funcs.aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
+from libensemble.gen_funcs.old_aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
-    This allocation function will:
+    This allocation function will do the following:
 
     - Start up a persistent generator that is a local opt run at the first point
-      identified by APOSMM's decide_where_to_start_localopt.
-    - It will only do this if at least one worker will be left to perform
-      simulation evaluations.
+      identified by APOSMM's decide_where_to_start_localopt. Note, it will do
+      this only if at least one worker will be left to perform simulation evaluations.
     - If multiple starting points are available, the one with smallest function
       value is chosen.
     - If no candidate starting points exist, points from existing runs will be
@@ -21,7 +20,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     - If no points are left, call the generation function.
 
     .. seealso::
-        `test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py>`_
+        `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
 
     Work = {}

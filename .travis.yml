@@ -1,10 +1,10 @@
 language: python
-sudo: required
 dist: xenial
 python:
   - 3.5
   - 3.6
   - 3.7
+  - 3.8
 
 os: linux
 
@@ -12,16 +12,39 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
-  matrix:
+  jobs:
     - MPI=mpich
+  matrix:
+    - COMMS_TYPE=m  # mpi
+    - COMMS_TYPE=l  # local
+    - COMMS_TYPE=t  # tcp
 
-matrix:
+jobs:
   include:
     - os: osx
-      osx_image: xcode10.1
-      env: MPI=mpich PY=3.7
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.7 COMMS_TYPE=m  # mpi
       language: generic
       python: 3.7
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
+      language: generic
+      python: 3.7
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
+      language: generic
+      python: 3.7
+
+# Below will update the OSX octave used on Travis.  This was so slow that we
+# were hitting the 50 minute limit on Travis. We no longer update octave in
+# homebrew, and can no longer run regression # tests using octave on OSX.
+# addons:
+#   homebrew:
+#     packages:
+#     - octave
+#     update: true
 
 services:
     - postgresql
@@ -32,9 +55,9 @@ cache:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-MacOSX-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-MacOSX-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.10-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -51,28 +74,48 @@ before_install:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        COMPILERS=clang_osx-64;
+        COMPILERS=clang_osx-64=9.0.1;
         MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
     else
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
+        sudo add-apt-repository -y ppa:octave/stable;
+        sudo apt-get update -qq;
+        sudo apt install -y octave;
     fi
 
   - conda install $COMPILERS
   - conda install libblas libopenblas # Prevent 'File exists' error
-  - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
-  - pip install flake8       # Conda installs downgrade pytest on python3.4
+
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
+      conda install nlopt mpi4py scipy mpich;
+      export PETSC_CONFIGURE_OPTIONS='--with-batch';
+      pip install petsc petsc4py;
+    else
+      conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI;
+    fi
+
+    # Begin: Dependencies only for regression tests
+  - pip install DFO-LS
+  - pip install deap
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        pip install scikit-build packaging Tasmanian --user;
+    fi
+    # End: dependencies only for regression tests
+    #
+  - pip install flake8
+  - pip install coverage==4.5.4
   - pip install pytest
   - pip install pytest-cov
   - pip install pytest-timeout
   - pip install mock
   - pip install coveralls
-  - python conda/find_mpi.py # Locate compilers. Confirm MPI library
+  - python install/find_mpi.py # Locate compilers. Confirm MPI library
   - mpiexec --version        # Show MPI library details
-  - pip install -e .         # Installing libEnsemble
-  - wget https://github.com/balsam-alcf/balsam/archive/0.3.5.1.tar.gz
-  - mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
-  - python conda/install-balsam.py
+  - pip install -e .            # Installing libEnsemble
+  - wget https://github.com/balsam-alcf/balsam/archive/0.3.8.tar.gz
+  - mkdir ../balsam; tar xf 0.3.8.tar.gz -C ../balsam;
+  - python install/configure_balsam_install.py
 
 before_script:
   - flake8 libensemble
@@ -82,7 +125,7 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -z
+  - ./libensemble/tests/run-tests.sh -z -$COMMS_TYPE
 
 # Track code coverage
 after_success:

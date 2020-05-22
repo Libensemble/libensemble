@@ -5,45 +5,45 @@ calc_status
 
 The ``calc_status`` is an integer attribute with named (enumerated) values and
 a corresponding description that can be used in :ref:`sim_f<api_sim_f>` or
-:ref:`gen_f<api_gen_f>` functions to capture the status of a calcuation. This
+:ref:`gen_f<api_gen_f>` functions to capture the status of a calculation. This
 is returned to the manager and printed to the ``libE_stats.txt`` file. Only the
 status values ``FINISHED_PERSISTENT_SIM_TAG`` and
 ``FINISHED_PERSISTENT_GEN_TAG`` are currently used by the manager,  but others
 can still provide a useful summary in libE_stats.txt. The user determines the
-status of the calculation, as it could include multiple application runs. It
+status of the calculation, since it could include multiple application runs. It
 can be added as a third return variable in sim_f or gen_f functions.
 The calc_status codes are in the ``libensemble.message_numbers`` module.
 
-Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_index>` in sim_f:
+Example of ``calc_status`` used along with :ref:`executor<executor_index>` in sim_f:
 
 .. code-block:: python
   :linenos:
   :emphasize-lines: 4,16,19,22,30
 
-    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, JOB_FAILED
+    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
-    job = jobctl.launch(calc_type='sim', num_procs=cores, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', num_procs=cores, wait_on_run=True)
     calc_status = UNSET_TAG
     poll_interval = 1  # secs
-    while(not job.finished):
-        if job.runtime > time_limit:
-            job.kill()  # Timeout
+    while(not task.finished):
+        if task.runtime > time_limit:
+            task.kill()  # Timeout
         else:
             time.sleep(poll_interval)
-            job.poll()
+            task.poll()
 
-    if job.finished:
-        if job.state == 'FINISHED':
-            print("Job {} completed".format(job.name))
+    if task.finished:
+        if task.state == 'FINISHED':
+            print("Task {} completed".format(task.name))
             calc_status = WORKER_DONE
-        elif job.state == 'FAILED':
-            print("Warning: Job {} failed: Error code {}".format(job.name, job.errcode))
-            calc_status = JOB_FAILED
-        elif job.state == 'USER_KILLED':
-            print("Warning: Job {} has been killed".format(job.name))
+        elif task.state == 'FAILED':
+            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+            calc_status = TASK_FAILED
+        elif task.state == 'USER_KILLED':
+            print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
-            print("Warning: Job {} in unknown state {}. Error code {}".format(job.name, job.state, job.errcode))
+            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     outspecs = sim_specs['out']
     output = np.zeros(1, dtype=outspecs)
@@ -52,7 +52,7 @@ Example of ``calc_status`` used along with :ref:`job controller<jobcontroller_in
     return output, persis_info, calc_status
 
 See forces_simf.py_ for a complete example.
-See uniform_or_localopt.py_ for an example of using *FINISHED_PERSISTENT_GEN_TAG*
+See uniform_or_localopt.py_ for an example of using ``FINISHED_PERSISTENT_GEN_TAG``.
 
 Available values:
 
@@ -60,7 +60,7 @@ Available values:
     :start-after: first_calc_status_rst_tag
     :end-before: last_calc_status_rst_tag
 
-The corresponding messages printed to the ``libE_stats.txt`` file are:
+The corresponding messages printed to the ``libE_stats.txt`` file:
 
 ..  literalinclude:: ../../libensemble/message_numbers.py
     :start-at: calc_status_strings

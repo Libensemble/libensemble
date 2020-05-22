@@ -5,7 +5,7 @@ Unit test of timers for libensemble.
 """
 
 import time
-from libensemble.util.timer import Timer
+from libensemble.utils.timer import Timer
 
 
 def test_timer():
@@ -37,7 +37,7 @@ def test_timer():
     assert s2[0:2] == "20", "End year is 20xx"
 
     s3 = "{}".format(timer)
-    assert s3 == "Time: {0:.2f} Start: {1} End: {2}".format(e3, s1, s2), \
+    assert s3 == "Time: {0:.3f} Start: {1} End: {2}".format(e3, s1, s2), \
         "Check string formatting."
 
     time.sleep(0.2)

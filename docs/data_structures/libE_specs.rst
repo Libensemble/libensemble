@@ -20,16 +20,46 @@ Specifications for libEnsemble::
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int] :
             Save history array to file after every k generated points.
-        'sim_dir' [str] :
-            Name of simulation directory which will be copied for each worker
-        'clean_jobs' [bool] :
-            Clean up sim_dirs after libEnsemble completes. Default: False
-        'sim_dir_prefix' [str] :
-            A prefix path specifying where to create sim directories
-        'sim_dir_suffix' [str] :
-            A suffix to add to worker copies of sim_dir to distinguish runs.
-        'profile_worker' [Boolean] :
+        'sim_dirs_make' [boolean] :
+            Whether to make simulation-specific calculation directories for each sim call.
+            This will create a directory for each simulation, even if no sim_input_dir is specified.
+            If False, all workers operate within the ensemble directory described below.
+            Default: True
+        'ensemble_dir_path' [string] :
+            Path to main ensemble directory containing calculation (sim) directories.
+            Can serve as single working directory for all workers, or contain calculation directories.
+            Default: './ensemble'
+        'use_worker_dirs' [boolean] :
+            Whether to organize calculation (sim) directories under worker-specific directories.
+            Default: False
+        'sim_dir_copy_files' [list] :
+            List of paths to files or directories to copy into each sim dir, or ensemble dir.
+        'sim_dir_symlink_files' [list] :
+            List of paths to files or directories to symlink into each sim dir.
+        'ensemble_copy_back' [boolean] :
+            Whether to copy back directories within ensemble_dir_path back to launch location.
+            Useful if ensemble_dir placed on node-local storage.
+            Default: False
+        'sim_input_dir' [string] :
+            Copy this directory and it's contents for each simulation-specific directory.
+            If not using calculation directories, contents are copied to the ensemble directory.
+        'profile_worker' [boolean] :
             Profile using cProfile. Default: False
+        'disable_log_files' [boolean] :
+            Disable the creation of 'ensemble.log' and 'libE_stats.txt' log files.
+            Default: False
+        'workers' list:
+            TCP Only: A list of worker hostnames.
+        'ip' [String]:
+            TCP Only: IP address
+        'port' [int]:
+            TCP Only: Port number
+        'authkey' [String]:
+            TCP Only: Authkey
+
+.. note::
+    The ``ensemble_dir_path`` option can create working directories on local node or
+    scratch storage. This may produce performance benefits on I/O heavy simulations.
 
 .. seealso::
   Example ``libE_specs`` from the forces_ scaling test, completely populated::
@@ -37,7 +67,8 @@ Specifications for libEnsemble::
       libE_specs = {'comm': MPI.COMM_WORLD,
                     'comms': 'mpi',
                     'save_every_k_gens': 1000,
-                    'sim_dir': './sim',
+                    'make_sim_dirs: True,
+                    'ensemble_dir_path': '/scratch/ensemble'
                     'profile_worker': False}
 
 .. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py

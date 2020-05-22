@@ -105,24 +105,16 @@ class QComm(Comm):
     These can be used with threads or multiprocessing.
     """
 
-    # Integer count - shared amongst Processes in multiprocessing
+    # Integer count - shared amongst processes
     lock = Lock()
-    _ncomms = Value('i', 0)  # todo - check: Maybe this should be in QCommProcess
+    _ncomms = Value('i', 0)
 
     def __init__(self, inbox, outbox, copy_msg=False):
         "Set the inbox and outbox queues."
         self._inbox = inbox
         self._outbox = outbox
         self._copy = copy_msg
-        self._pushback = None
-        with QComm.lock:
-            QComm._ncomms.value += 1
-
-    # Does this fit with terminate?
-    # def __del__(self):
-        # #global _ncomms
-        # with QComm.lock:
-            # QComm._ncomms.value -= 1
+        self.recv_buffer = None
 
     def get_num_workers(self):
         """Return global _ncomms"""
@@ -136,8 +128,8 @@ class QComm(Comm):
 
     def recv(self, timeout=None):
         "Return a message from the inbox queue or raise TimeoutError."
-        pb_result = self._pushback
-        self._pushback = None
+        pb_result = self.recv_buffer
+        self.recv_buffer = None
         if pb_result is not None:
             return pb_result
         try:
@@ -148,8 +140,8 @@ class QComm(Comm):
             raise Timeout()
 
     # TODO: This should go away once I have internal comms working
-    def push_back(self, *args):
-        self._pushback = args
+    def push_to_buffer(self, *args):
+        self.recv_buffer = args
 
     def mail_flag(self):
         "Check whether we know a message is ready for receipt."
@@ -229,6 +221,8 @@ class QCommProcess(Comm):
         self._exception = None
         self._done = False
         comm = QComm(self.inbox, self.outbox)
+        with QComm.lock:
+            QComm._ncomms.value += 1
         self.process = Process(target=QCommProcess._qcomm_main,
                                args=(comm, main) + args, kwargs=kwargs)
 
@@ -288,6 +282,8 @@ class QCommProcess(Comm):
             raise Timeout()
         if self._exception is not None:
             raise RemoteException(self._exception.msg, self._exception.exc)
+        with QComm.lock:
+            QComm._ncomms.value -= 1
         return self._result
 
     def terminate(self, timeout=None):
@@ -297,6 +293,8 @@ class QCommProcess(Comm):
         self.process.join(timeout=timeout)
         if self.running:
             raise Timeout()
+        with QComm.lock:
+            QComm._ncomms.value -= 1
 
     @property
     def running(self):

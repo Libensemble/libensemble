@@ -2,9 +2,13 @@ Simulation Functions
 ====================
 
 Below are example simulation functions available in libEnsemble.
+Most of these demonstrate an inexpensive algorithm and do not
+launch tasks (user applications). To see an example of a simulation
+function launching tasks, see the
+:doc:`Electrostatic Forces tutorial <../tutorials/executor_forces_tutorial>`.
 
 .. IMPORTANT::
-  See the API for simulation functions :ref:`here<api_sim_f>`
+  See the API for simulation functions :ref:`here<api_sim_f>`.
 
 six_hump_camel
 --------------
@@ -18,7 +22,31 @@ chwirut
   :members:
   :undoc-members:
 
-job_control_hworld
-------------------
-.. automodule:: job_control_hworld
+.. mop_funcs
+.. ---------
+.. .. automodule:: mop_funcs
+..   :members:
+..   :undoc-members:
+
+noisy_vector_mapping
+--------------------
+.. automodule:: noisy_vector_mapping
+  :members:
+  :undoc-members:
+
+periodic_func
+-------------
+.. automodule:: periodic_func
+  :members:
+  :undoc-members:
+
+borehole
+--------
+.. automodule:: borehole
+  :members:
+  :undoc-members:
+
+executor_hworld
+---------------
+.. automodule:: executor_hworld
   :members:

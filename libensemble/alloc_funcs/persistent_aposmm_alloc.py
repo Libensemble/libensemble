@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work
 
 
 def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -14,16 +14,30 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     stopped (until some exit_criterion is satisfied).
 
     .. seealso::
-        `test_6-hump_camel_persistent_aposmm.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_6-hump_camel_persistent_aposmm.py>`_
+        `test_persistent_aposmm_with_grad.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_ # noqa
     """
 
     Work = {}
-    if 'next_to_give' not in persis_info:
-        persis_info['next_to_give'] = 0
+    if persis_info.get('first_call', True):
+        assert np.all(H['given']), "Initial points in H have never been given."
+        assert np.all(H['given_back']), "Initial points in H have never been given_back."
+        assert np.all(H['returned']), "Initial points in H have never been returned."
+        persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
+
+        if 'grad' in [n[0] for n in sim_specs['out']]:
+            persis_info['fields_to_give_back'] += ['grad']
+
+        if 'fvec' in [n[0] for n in sim_specs['out']]:
+            persis_info['fields_to_give_back'] += ['fvec']
+
+        persis_info['samples_in_H0'] = sum(H['local_pt'] == 0)
+        persis_info['next_to_give'] = len(H)  #
+        persis_info['first_call'] = False
 
     # If any persistent worker's calculated values have returned, give them back.
     for i in avail_worker_ids(W, persistent=True):
-        if persis_info.get('sample_done') or sum(H['returned']) >= gen_specs['user']['initial_sample_size']:
+        if (persis_info.get('sample_done') or
+           sum(H['returned']) >= gen_specs['user']['initial_sample_size'] + persis_info['samples_in_H0']):
             # Don't return if the initial sample is not complete
             persis_info['sample_done'] = True
 
@@ -31,7 +45,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             if np.any(returned_but_not_given):
                 inds_to_give = np.where(returned_but_not_given)[0]
 
-                gen_work(Work, i, [n[0] for n in sim_specs['out']] + [n[0] for n in gen_specs['out']],
+                gen_work(Work, i, persis_info['fields_to_give_back'],
                          np.atleast_1d(inds_to_give), persis_info[i], persistent=True)
 
                 H['given_back'][inds_to_give] = True
@@ -45,8 +59,9 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         elif persis_info.get('gen_started') is None:
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info['gen_started'] = True
+            persis_info[i]['nworkers'] = len(W)
 
-            gen_work(Work, i, gen_specs['in'], [], persis_info[i],
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
                      persistent=True)
 
     return Work, persis_info

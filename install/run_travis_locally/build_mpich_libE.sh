@@ -1,0 +1,95 @@
+# Conda build of dependencies using mpich.
+# Source script to maintain environment after running. Script stops if installs fail.
+# Note for other MPIs may need to install some packages from source (eg. petsc)
+
+# -x echo commands
+# set -x # problem with this - loads of conda internal commands shown - overwhelming.
+
+export PYTHON_VERSION=3.7       # override with -p <version>
+export LIBE_BRANCH="develop"    # override with -b <branchname>
+export RUN_TESTS=true           # override with -i
+
+export MPI=MPICH
+export HYDRA_LAUNCHER=fork
+
+# Allow user to optionally set python version and branch
+# E.g: ". ./build_mpich_libE.sh -p 3.4 -b feature/myfeature"
+while getopts ":p:b:i" opt; do
+  case $opt in
+    p)
+      echo "Parameter supplied for Python version: $OPTARG" >&2
+      PYTHON_VERSION=$OPTARG
+      ;;
+    b)
+      echo "Parameter supplied for branch name: $OPTARG" >&2
+      LIBE_BRANCH=${OPTARG}
+      ;;
+    i)
+      echo "Installation only - No tests will be run"
+      RUN_TESTS=false
+      ;;
+    \?)
+      echo "Invalid option supplied: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+echo -e "\nBuilding libE with python $PYTHON_VERSION and branch ${LIBE_BRANCH}\n"
+
+sudo pip install --upgrade pip
+sudo /etc/init.d/postgresql stop 9.2
+sudo /etc/init.d/postgresql start 9.6
+export PATH=$PATH:/usr/lib/postgresql/9.6/bin
+
+# This works if not sourced but if sourced its no good.
+# set -e
+
+# sudo apt install gfortran || return
+# sudo apt install libblas-dev || return
+# sudo apt-get install liblapack-dev || return
+sudo add-apt-repository -y ppa:octave/stable;
+sudo apt-get update -qq;
+sudo apt install -y octave;
+
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh || return
+bash miniconda.sh -b -p $HOME/miniconda || return
+export PATH="$HOME/miniconda/bin:$PATH" || return
+conda update -q -y  conda
+
+conda config --add channels conda-forge || return
+conda config --set always_yes yes --set changeps1 no || return
+conda create --yes --name condaenv python=$PYTHON_VERSION || return
+
+source activate condaenv || return
+wait
+
+conda install gcc_linux-64 || return
+conda install nlopt petsc4py petsc mumps-mpi=5.1.2=h5bebb2f_1007 mpi4py scipy $MPI
+
+# pip install these as the conda installs downgrade pytest on python3.4
+pip install DFO-LS
+pip install scikit-build packaging Tasmanian --user
+pip install pytest || return
+pip install pytest-cov || return
+pip install pytest-timeout || return
+pip install mock || return
+pip install coveralls || return
+
+# Not required on travis
+git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || return
+cd libensemble/ || return
+pip install -e . || return
+python install/configure_balsam_install.py
+export BALSAM_DB_PATH=~/test-balsam
+ulimit -Sn 10000
+
+if [ "$RUN_TESTS" = true ]; then
+    ./libensemble/tests/run-tests.sh -z
+
+echo -e "\n\nScript completed...\n\n"
+set +ex

@@ -1,9 +1,9 @@
-infile='libE_stats.txt'
+infile = 'libE_stats.txt'
 import pandas as pd
 
 run_stats = []
 with open(infile) as f:
-    #content = f.readlines()
+    # content = f.readlines()
     for line in f:
         lst = line.split()
         foundstart = False
@@ -32,7 +32,7 @@ dend = df.sort_values(by='end')
 time_end = dend['end'].iloc[-1]
 date_series = pd.date_range(time_start, time_end, freq='1S')
 
-counts=[]
+counts = []
 for i in range(len(date_series)):
     # Inclusive/exclusive to avoid multiple accounting - need high resolution
     count = sum((df['start'] <= date_series[i]) & (date_series[i] < df['end']))
@@ -40,17 +40,19 @@ for i in range(len(date_series)):
 
 df_list = pd.DataFrame(date_series, columns=['datetime'])
 
-#df_count = pd.DataFrame([counts], columns=['count']) # List goes to single row by default
-df_count = pd.DataFrame({'count': counts}) # Transpose to columns like this
+# df_count = pd.DataFrame([counts], columns=['count']) # List goes to single row by default
+df_count = pd.DataFrame({'count': counts})  # Transpose to columns like this
 
 
 final = df_list.join(df_count)
-#print(final)
+# print(final)
 
 import matplotlib
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-final.plot(x='datetime',y='count')
-#plt._show()
-plt.savefig('calcs_util_v_time.png')
+final.plot(x='datetime', y='count', legend=None, linewidth=2, fontsize=12)
+plt.xlabel('Time', fontsize=14)
+plt.ylabel('Active calculations', fontsize=14)
+# plt._show()
+plt.savefig('calcs_util_v_time.png', bbox='tight', transparent=True)

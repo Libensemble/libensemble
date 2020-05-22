@@ -1,2 +1,3 @@
 *.o
 GKLS/gkls_single
+.ipynb_checkpoints

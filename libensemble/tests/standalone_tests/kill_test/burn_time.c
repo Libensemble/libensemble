@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         sum += (double)(count/1000000.0);
     }
 
-    /* If sum is printed - job finished */
+    /* If sum is printed - task finished */
     printf("Proc %d: Sum = %f\n", rank, sum);
 
     ierr = MPI_Finalize();

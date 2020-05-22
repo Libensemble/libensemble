@@ -7,18 +7,17 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-import sys
 from mpi4py import MPI
 from libensemble.comms.mpi import MPIComm, Timeout
-from libensemble.utils import parse_args
+from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 
 nworkers, is_master, libE_specs, _ = parse_args()
-if libE_specs['comms'] != 'mpi':
-    sys.exit("This test can only be run with mpi comms -- aborting...")
+
+assert libE_specs['comms'] == 'mpi', "This test can only be run with mpi comms -- aborting..."
 
 
 def check_recv(comm, expected_msg):
@@ -70,8 +69,7 @@ def check_ranks(mpi_comm, test_exp, test_num):
     except Exception:
         rank = -1
     comm_ranks_in_world = MPI.COMM_WORLD.allgather(rank)
-    print('got {},  exp {} '.format(comm_ranks_in_world, test_exp[test_num]))
-    sys.stdout.flush()
+    print('got {},  exp {} '.format(comm_ranks_in_world, test_exp[test_num]), flush=True)
     # This is really testing the test is testing what is it supposed to test
     assert comm_ranks_in_world == test_exp[test_num], "comm_ranks_in_world are: " \
         + str(comm_ranks_in_world) + " Expected: " + str(test_exp[test_num])

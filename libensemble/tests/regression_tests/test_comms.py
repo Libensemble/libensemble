@@ -20,9 +20,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000 as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.utils import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.mpi_controller import MPIJobController  # Only used to get workerID in float_x1000
-jobctrl = MPIJobController(auto_resources=False)
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.executors.mpi_executor import MPIExecutor  # Only used to get workerID in float_x1000
+exctr = MPIExecutor(auto_resources=False)
 
 nworkers, is_master, libE_specs, _ = parse_args()
 
@@ -39,8 +39,7 @@ gen_specs = {'gen_f': gen_f,
              'out': [('x', float, (2,))],
              'user': {'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
-                      'gen_batch_size': sim_max,
-                      'num_active_gens': 1}
+                      'gen_batch_size': sim_max}
              }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)

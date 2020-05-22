@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.alloc_funcs.support import avail_worker_ids, sim_work, gen_work, count_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -9,7 +9,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
     are given. If all entries in `H` have been given a be evaluated, a worker
     is told to call the generator function, provided this wouldn't result in
-    more than ``gen_specs['user']['num_active_gen']`` active generators. Also allows
+    more than ``alloc_specs['user']['num_active_gen']`` active generators. Also allows
     for a 'batch_mode'.
 
     When there are multiple objective components, this allocation function
@@ -22,7 +22,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         combine_component_func is larger than a known upper bound on the objective.
 
     .. seealso::
-        `test_chwirut_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_chwirut_uniform_sampling_one_residual_at_a_time.py>`_
+        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
 
     Work = {}
@@ -74,7 +74,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
                     if np.all(H['returned'][a1]):
                         persis_info['complete'].add(pt_id)
-                        persis_info['best_complete_val'] = min(persis_info['best_complete_val'], gen_specs['user']['combine_component_func'](H['f_i'][a1]))
+                        values = gen_specs['user']['combine_component_func'](H['f_i'][a1])
+                        persis_info['best_complete_val'] = min(persis_info['best_complete_val'], values)
                     else:
                         # Ensure combine_component_func calculates partial fevals correctly
                         # with H['f_i'] = 0 for non-returned point
@@ -105,7 +106,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 i, idle_workers = idle_workers[0], idle_workers[1:]
                 sim_work(Work, i, sim_specs['in'], [next_row], [])
 
-        elif gen_count < gen_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')
@@ -134,7 +135,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             persis_info['last_worker'] = i
 
-        elif gen_count >= gen_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
             idle_workers = []
 
     return Work, persis_info

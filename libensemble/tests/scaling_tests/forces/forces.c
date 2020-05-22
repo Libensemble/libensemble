@@ -31,6 +31,7 @@
     _a < _b ? _a : _b; })
 
 // Flags 0 or 1
+#define PRINT_HOSTNAME_ALL_PROCS 1
 #define PRINT_PARTICLE_DECOMP 0
 #define PRINT_ALL_PARTICLES 0
 #define CHECK_THREADS 0
@@ -318,7 +319,7 @@ int main(int argc, char **argv) {
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
-    double kill_rate = 0; // default proportion of jobs to kill
+    double kill_rate = 0; // default proportion of tasks to kill
 
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
@@ -345,7 +346,7 @@ int main(int argc, char **argv) {
     }
 
     if (argc >=5) {
-        kill_rate = atof(argv[4]); // Proportion of jobs to kill
+        kill_rate = atof(argv[4]); // Proportion of tasks to kill
         step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     }
 
@@ -362,6 +363,15 @@ int main(int argc, char **argv) {
         printf("Timesteps: %d\n",num_steps);
         printf("MPI Ranks: %d\n",num_procs);
         printf("Random seed: %d\n",rand_seed);
+    }
+
+    if (PRINT_HOSTNAME_ALL_PROCS) {
+        MPI_Barrier(MPI_COMM_WORLD);
+        check_threads(rank);
+        char processor_name[MPI_MAX_PROCESSOR_NAME];
+        int name_len;
+        MPI_Get_processor_name(processor_name, &name_len);
+        printf("Proc: %d is on node %s\n", rank, processor_name);
     }
 
     if (CHECK_THREADS) {

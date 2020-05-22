@@ -9,7 +9,6 @@ export RUN_UNIT_TESTS=true    #Recommended for pre-push / CI tests
 export RUN_COV_TESTS=true     #Provide coverage report
 export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
 export RUN_PEP_TESTS=false     #Code syle conventions
-export RUN_ONLY_MPI=false
 
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
@@ -135,8 +134,8 @@ cleanup() {
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
     filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
-    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
-    filelist=(job_my_simjob.x*.out);   [ -e ${filelist[0]} ] && rm job_my_simjob.x*.out
+    filelist=(my_simtask.x);           [ -e ${filelist[0]} ] && rm my_simtask.x
+    filelist=(task_my_simtask.x*.out); [ -e ${filelist[0]} ] && rm task_my_simtask.x*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
     filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile
@@ -152,12 +151,15 @@ cleanup() {
     filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
     filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
-    filelist=(job_my_simjob.x.*.out);  [ -e ${filelist[0]} ] && rm job_my_simjob.x.*.out
+    filelist=(task_my_simtask.x.*.out); [ -e ${filelist[0]} ] && rm task_my_simtask.x.*.out
     filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
     filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
-    filelist=(my_simjob.x);            [ -e ${filelist[0]} ] && rm my_simjob.x
+    filelist=(my_simtask.x);           [ -e ${filelist[0]} ] && rm my_simtask.x
     filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
+    filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
+    filelist=(sim_*);                  [ -e ${filelist[0]} ] && rm -r sim_*
+    filelist=(nodelist_*);             [ -e ${filelist[0]} ] && rm nodelist_*
   cd $THISDIR
 }
 
@@ -177,9 +179,13 @@ unset MPIEXEC_FLAGS
 PYTEST_SHOW_OUT_ERR=false
 RTEST_SHOW_OUT_ERR=false
 
+export RUN_MPI=false
+export RUN_LOCAL=false
+export RUN_TCP=false
+
 usage() {
   echo -e "\nUsage:"
-  echo "  $0 [-hcsurmz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
+  echo "  $0 [-hcsurmltz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
@@ -188,16 +194,20 @@ usage() {
   echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"
   echo "  -u              Run only the unit tests"
   echo "  -r              Run only the regression tests"
-  echo "  -m              Run the regression tests only using MPI"
+  echo "  -m              Run the regression tests using MPI comms"
+  echo "  -l              Run the regression tests using Local comms"
+  echo "  -t              Run the regression tests using TCP comms"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -n {name}       Supply a name to this test run"
   echo "  -a {args}       Supply a string of args to add to mpiexec line"
   echo ""
+  echo "Note: If none of [-mlt] are given, the default is to run tests for all comms"
+  echo ""
   exit 1
 }
 
-while getopts ":p:n:a:hcszurm" opt; do
+while getopts ":p:n:a:hcszurmlt" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -231,9 +241,17 @@ while getopts ":p:n:a:hcszurm" opt; do
       echo "Running only the regression tests"
       export RUN_UNIT_TESTS=false
       ;;
+    l)
+      echo "Running only the local regression tests"
+      export RUN_LOCAL=true
+      ;;
+    t)
+      echo "Running only the TCP regression tests"
+      export RUN_TCP=true
+      ;;
     m)
       echo "Running only the MPI regression tests"
-      export RUN_ONLY_MPI=true
+      export RUN_MPI=true
       ;;
     h)
       usage
@@ -253,6 +271,12 @@ done
 # if [ -z "${s}" ] || [ -z "${p}" ]; then
 #     usage
 # fi
+
+# If none selected default to running all tests
+if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ];then
+    RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=true
+fi
+
 #-----------------------------------------------------------------------------------------
 
 # Get project root dir
@@ -312,7 +336,9 @@ tput sgr 0
 echo -e "Selected:"
 [ $RUN_UNIT_TESTS = "true" ] && echo -e "Unit Tests"
 [ $RUN_REG_TESTS = "true" ]  && echo -e "Regression Tests"
-[ $RUN_ONLY_MPI = "true" ]  && echo -e "Only MPI Regression Tests"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_MPI = "true" ]   && echo -e " - Run tests with MPI Comms"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_LOCAL = "true" ] && echo -e " - Run tests with Local Comms"
+[ $RUN_REG_TESTS = "true" ]  && [ $RUN_TCP = "true" ]   && echo -e " - Run tests with TCP Comms"
 [ $RUN_COV_TESTS = "true" ]  && echo -e "Including coverage analysis"
 [ $RUN_PEP_TESTS = "true" ]  && echo -e "PEP Code Standard Tests (static code test)"
 
@@ -414,18 +440,23 @@ if [ "$root_found" = true ]; then
       COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
       for LAUNCHER in $COMMS_LIST
       do
-        if [ "$RUN_ONLY_MPI" = true ] && [ "$LAUNCHER" != mpi ]; then
-          echo "Skipping non MPI testnumber 5"
-          continue
-        fi
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
+        OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
         for NPROCS in $NPROCS_LIST
         do
-          test_num=$((test_num+1))
           NWORKERS=$((NPROCS-1))
 
-          RUN_TEST=true
+          RUN_TEST=false
+          if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
+          if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
+          if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
+
+          if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+            echo "Skipping test number for OSX: " $test_num
+            continue
+          fi
+
           if [ $REG_STOP_ON_FAILURE = "true" ]; then
             #Before Each Test check code is 0 (passed so far) - or skip to test summary
             if [ "$code" -ne "0" ]; then
@@ -435,6 +466,8 @@ if [ "$root_found" = true ]; then
           fi
 
           if [ "$RUN_TEST" = "true" ]; then
+             test_num=$((test_num+1))
+             test_start=$(current_time)
 
              if [ "$REG_USE_PYTEST" = true ]; then
                if [ "$LAUNCHER" = mpi ]; then
@@ -463,13 +496,15 @@ if [ "$root_found" = true ]; then
                fi
              fi
              reg_count_runs=$((reg_count_runs+1))
+             test_end=$(current_time)
+             test_time=$(total_time $test_start $test_end)
 
              if [ "$test_code" -eq "0" ]; then
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed ${textreset}"
+               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed after ${test_time} seconds ${textreset}"
                reg_pass=$((reg_pass+1))
                #continue testing
              else
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed ${textreset}"
+               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed after ${test_time} seconds ${textreset}"
                code=$test_code #sh - currently stop on failure
                if [ $REG_STOP_ON_FAILURE != "true" ]; then
                  #Dump error to log file

@@ -4,7 +4,9 @@ User Function API
 libEnsemble requires functions for generation, simulation and allocation.
 
 While libEnsemble provides a default allocation function, the sim and gen functions
-must be provided. The required API and examples are given here.
+must be specified. The required API and example arguments are given here.
+:doc:`Example sim and gen functions<examples/examples_index>` are provided in the
+libEnsemble package.
 
 **The libEnsemble History Array**
 
@@ -65,14 +67,14 @@ Returns:
 ********
 
   **H**: :obj:`numpy structured array`
-  with keys/value-sizes matching those in sim_specs['out'].
+  with keys/value-sizes matching those in sim_specs['out']
   :doc:`(example)<data_structures/history_array>`
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
 
-  **calc_status**: :obj:`int`, optional.
-  Provides a job status to the Manager and the libE_stats.txt file.
+  **calc_status**: :obj:`int`, optional
+  Provides a task status to the manager and the libE_stats.txt file
   :doc:`(example)<data_structures/calc_status>`
 
 gen_f API
@@ -102,14 +104,14 @@ Returns:
 ********
 
   **H**: :obj:`numpy structured array`
-  with keys/value-sizes matching those in gen_specs['out'].
+  with keys/value-sizes matching those in gen_specs['out']
   :doc:`(example)<data_structures/history_array>`
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
 
-  **calc_status**: :obj:`int`, optional.
-  Provides a job status to the Manager and the libE_stats.txt file.
+  **calc_status**: :obj:`int`, optional
+  Provides a task status to the manager and the libE_stats.txt file
   :doc:`(example)<data_structures/calc_status>`
 
 alloc_f API
@@ -150,3 +152,6 @@ Returns:
 
   **persis_info**: :obj:`dict`
   :doc:`(example)<data_structures/persis_info>`
+
+  **stop_flag**: :obj:`int`, optional
+  Set to 1 if task should stop

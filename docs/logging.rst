@@ -4,12 +4,12 @@ Logging
 The libEnsemble logger uses the standard Python logging levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 plus one additional custom level (MANAGER_WARNING) between WARNING and ERROR.
 
-The default level is INFO, which includes information about how jobs are launched
-and when jobs are killed. To gain additional diagnostics, the logging level can be set
+The default level is INFO, which includes information about how tasks are submitted
+and when tasks are killed. To gain additional diagnostics, set the logging level
 to DEBUG. libEnsemble produces logging to the file ``ensemble.log`` by default. A log
 file name can also be supplied.
 
-To change the logging level to DEBUG, provide the following in your the calling scripts::
+To change the logging level to DEBUG, provide the following in the calling scripts::
 
     from libensemble import libE_logger
     libE_logger.set_level('DEBUG')

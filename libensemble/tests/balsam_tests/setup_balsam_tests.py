@@ -43,7 +43,7 @@ def run_cmd(cmd, echo=False):
 # Use relative paths to balsam_tests dir
 work_dir = os.path.dirname(os.path.abspath(__file__))
 
-sim_dir = os.path.abspath('../../examples/sim_funcs')
+sim_input_dir = os.path.abspath('../../examples/sim_funcs')
 sim_app = "helloworld.py"
 
 # For host code
@@ -62,7 +62,7 @@ run_cmd("balsam rm jobs --all", True)
 
 # Add user apps - eg helloworld.py
 sim_app_name = os.path.splitext(sim_app)[0]  # rm .py extension
-sim_app_path = os.path.join(sim_dir, sim_app)  # Full path
+sim_app_path = os.path.join(sim_input_dir, sim_app)  # Full path
 sim_app_desc = 'Run ' + sim_app_name
 run_line = sys.executable + ' ' + sim_app_path
 add_app(sim_app_name, run_line, sim_app_desc)

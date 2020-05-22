@@ -19,7 +19,7 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import nan_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE_manager import ManagerException
-from libensemble.utils import parse_args, add_unique_random_streams
+from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
 n = 2
@@ -31,8 +31,7 @@ gen_specs = {'gen_f': gen_f,
              'out': [('x', float, 2)],
              'user': {'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2]),
-                      'initial_sample': 100,
-                      'num_active_gens': 1}
+                      'initial_sample': 100}
              }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)

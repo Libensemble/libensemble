@@ -53,7 +53,7 @@ Then to test locally, run the `balsam_local.sh` script. The default runs with 2 
 
     ./balsam_local.sh
 
-The running jobs can be seen inside the balsam database dir `<DIR>/data/libe_workflow/`.
+The running tasks can be seen inside the balsam database dir `<DIR>/data/libe_workflow/`.
 While the key output files will be copied back to the run dir at completion. Also see
 the log in `<DIR>/log` if there are any issues. To run on batch systems, see the example
 scripts such as `theta_submit_balsam.sh`.
@@ -83,7 +83,7 @@ The included scripts are.
 
 * theta_submit_balsam.sh:
 
-  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and sumit jobs via Balsam.
+  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and submit jobs via Balsam.
 
 #### Plotting Options
 

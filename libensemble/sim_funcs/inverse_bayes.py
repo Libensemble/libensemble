@@ -8,11 +8,11 @@ def likelihood_calculator(H, persis_info, sim_specs, _):
     """
     Evaluates likelihood
     """
-    O = np.zeros(len(H['x']), dtype=sim_specs['out'])
+    H_o = np.zeros(len(H['x']), dtype=sim_specs['out'])
     for i, x in enumerate(H['x']):
-        O['like'][i] = six_hump_camel_func(x)
+        H_o['like'][i] = six_hump_camel_func(x)
 
-    return O, persis_info
+    return H_o, persis_info
 
 
 def six_hump_camel_func(x):

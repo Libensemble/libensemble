@@ -1,7 +1,7 @@
 version: 2
 
-conda:
-    environment: conda/environment.yml
+# conda:
+#     environment: install/environment.yml
 
 sphinx:
     configuration: docs/conf.py
@@ -13,8 +13,11 @@ formats:
   - pdf
 
 python:
+    version: 3.7
     install:
+      - requirements: docs/requirements.txt
       - method: pip
         path: .
         extra_requirements:
          - docs
+    system_packages: false

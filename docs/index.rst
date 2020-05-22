@@ -10,8 +10,10 @@
    :caption: User Guide:
 
    Quickstart<introduction>
+   advanced_installation
    overview_usecases
    programming_libE
+   running_libE
    platforms/platforms_index
 
 .. toctree::
@@ -19,6 +21,7 @@
    :caption: Tutorials:
 
    tutorials/local_sine_tutorial
+   tutorials/executor_forces_tutorial
    examples/examples_index
 
 .. toctree::
