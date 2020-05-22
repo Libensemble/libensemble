@@ -35,3 +35,13 @@ Results analysis scripts
   compared as equal. Variable fields (such as those containing a time) are
   ignored. These fields may need to be modified depending on the user's history
   array.
+
+* ``plot_pareto_2d.py``: Loop through objective points in f and extract the Pareto
+  front. Arguments are an ``*.npy`` file and a budget.
+
+* ``plot_pareto_3d.py``: Loop through objective points in f and extract the Pareto
+  front. Arguments are an ``*.npy`` file and a budget.
+
+* ``print_pickle.py``: Prints to screen from a given ``*.pickle`` file. Example::
+
+    ./print_pickle.py persis_info_length=1000_evals=1000_workers=2.pickle

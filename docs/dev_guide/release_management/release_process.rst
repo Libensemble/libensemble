@@ -51,6 +51,8 @@ An administrator will take the following steps.
 
   - A tarball (source distribution) will be uploaded to PyPI (:ref:`PyPI release<rel-pypi>`).
 
+  - The Conda package will be updated (:ref:`Conda release<rel-conda>`).
+
   - Spack package will be updated (:ref:`Spack release<rel-spack>`).
 
 - If the merge was made from a release branch (instead of develop), merge this branch into develop.
@@ -61,4 +63,4 @@ After release
 - Ensure all relevant GitHub issues are closed and moved to the *Done* column
   on the kanban project board (inc. the release checklist).
 
-- Email libEnsemble mailing list, and notify main Slack channel.
+- Email libEnsemble mailing list, and notify the `everyone` channel in the libEnsemble Slack workspace.

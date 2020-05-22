@@ -22,7 +22,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
     which do not have a better point nearby (within a distance ``r_k``). This
-    generation function produces/requires the following fields in ``H``:
+    generation function uses a ``local_H`` (serving a similar purpose as ``H``
+    in libEnsemble) containing the fields:
 
     - ``'x' [n floats]``: Parameters being optimized over
     - ``'x_on_cube' [n floats]``: Parameters scaled to the unit cube
@@ -41,6 +42,15 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     and optionally
 
     - ``'fvec' [m floats]``: All objective components (if performing a least-squares calculation)
+    - ``'grad' [n floats]``: The gradient (if available) of the objective with respect to `x`.
+
+    Note:
+    - If any of the above fields are desired after a libEnsemble run, name
+      them in ``gen_specs['out']``.
+    - If intitializing APOSMM with past function values, make sure to include
+      ``'x'``, ``'x_on_cube'``, ``'f'``, ``'local_pt'``, etc. in
+      ``gen_specs['in']`` (and, of course, include them in the H0 array given
+      to libensemble).
 
     Necessary quantities in ``gen_specs['user']`` are:
 

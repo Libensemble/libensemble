@@ -4,6 +4,7 @@ python:
   - 3.5
   - 3.6
   - 3.7
+  - 3.8
 
 os: linux
 
@@ -85,7 +86,14 @@ install:
 
   - conda install $COMPILERS
   - conda install libblas libopenblas # Prevent 'File exists' error
-  - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
+
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
+      conda install nlopt mpi4py scipy mpich;
+      export PETSC_CONFIGURE_OPTIONS='--with-batch';
+      pip install petsc petsc4py;
+    else
+      conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI;
+    fi
 
     # Begin: Dependencies only for regression tests
   - pip install DFO-LS
