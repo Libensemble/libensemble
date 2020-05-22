@@ -46,13 +46,13 @@ Updates to example functions:
 
 :Note:
 
-* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), and Cori (Cray XC40/Slurm).
+* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Cori (Cray XC40/Slurm), and Bridges (PSC).
 * Tested Python versions: (Cpython) 3.5, 3.6, 3.7, 3.8
 
 :Known issues:
 
-* See known issues section in the documentation.
-* No new issues.
+* We currently recommended running in Central mode on Bridges as distributed runs are experiencing hangs.
+* See known issues section in the documentation for more issues.
 
 Release 0.6.0
 -------------
