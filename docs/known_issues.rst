@@ -19,4 +19,4 @@ may occur when using libEnsemble.
   native fabric, like on Intel's Truescale (TMI) fabric for instance. See the
   :doc:`FAQ<FAQ>` for more information.
 * We currently recommended running in Central mode on Bridges as distributed
-runs are experiencing hangs.
+  runs are experiencing hangs.

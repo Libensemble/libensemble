@@ -12,37 +12,37 @@ Release 0.7.0
 Breaking API changes:
 
 * Job_controller/Job renamed to Executor/Task and launch function to submit. (#285)
-* Executors/Resources/Utils moved into sub-packages. (#285)
-* sim/gen/alloc support functions moved into utils/tools sub-package. (#285)
+* Executors/Resources/Utils moved into sub-packages. ``utils`` now in package ``tools``. (#285)
+* sim/gen/alloc support functions moved into ``tools`` sub-package. (#285)
 * Restructuring of sim directory creation with libE_specs configuration options.
-  E.g. When sim_input_dir given, directories for each sim are created. (#267)
-* User can supply a node-list file called `node_list` (replaces `worker_list`). (#455)
+  E.g. When ``sim_input_dir`` is given, directories for each sim are created. (#267)
+* User can supply a node-list file called ``node_list`` (replaces ``worker_list``). (#455)
 
 API additions:
 
 * Added gen_funcs.rc configuration framework with option to select APOSMM Optimizers for import (#444)
-* Provide alloc_specs defaults via alloc_funcs.defaults module (#325)
-* Added `extra_args` option to the Executor submit function to allow addition of arbitrary MPI runner options (#445)
-* Added `custom_info` argument to MPI Executor to allow overriding of detected settings (#448)
-* Added `libE_specs` option to disable log files (#368)
+* Provide ``alloc_specs`` defaults via `alloc_funcs.defaults` module (#325)
+* Added ``extra_args`` option to the Executor submit function to allow addition of arbitrary MPI runner options (#445)
+* Added ``custom_info`` argument to MPI Executor to allow overriding of detected settings (#448)
+* Added ``libE_specs`` option to disable log files (#368)
 
 Other changes:
 
 * Added libEnsemble Conda package, hosted on conda-forge.
-* Bugfix: Intermittent failures with repeated libE calls under mpi4py comms
+* Bugfix: Intermittent failures with repeated libE calls under `mpi4py` comms
   Every libE call now uses its own duplicate of provided communicator and closes out. (#373/#387)
-* More accurate timing in libE_stats. (#318)
+* More accurate timing in `libE_stats.txt`. (#318)
 * Addition of new post-processing scripts.
 
 Updates to example functions:
 
-* Persistent APOSMM is now the recommended APOSMM (aposmm.py renamed to old_aposmm.py) (#435)
-* Add alloc/gen func: Finite difference parameters with noise estimation.  (#350)
-* Add example gen func: Tasmanian UQ generator.  (#351)
-* Add example gen func: Deap/NSGA2 generator.  (#407)
-* Add example gen func to interface with VTMOP.
-* Add example sim func: Borehole (#367)
-* Add example use-case: WarpX/APOSMM (#425)
+* Persistent APOSMM is now the recommended APOSMM (`aposmm.py` renamed to `old_aposmm.py`) (#435)
+* New alloc/gen func: Finite difference parameters with noise estimation.  (#350)
+* New example gen func: Tasmanian UQ generator.  (#351)
+* New example gen func: Deap/NSGA2 generator.  (#407)
+* New example gen func to interface with VTMOP.
+* New example sim func: Borehole (#367)
+* New example use-case: WarpX/APOSMM (#425)
 
 :Note:
 
