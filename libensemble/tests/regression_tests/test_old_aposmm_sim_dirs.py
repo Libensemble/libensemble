@@ -42,7 +42,7 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float)]}
 
 if nworkers == 3:
-    sim_specs['user'] = {'uniform_random_pause_ub': 0.05}
+    sim_specs['user'] = {'uniform_random_pause_ub': 0.001}
 
 n = 2
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
