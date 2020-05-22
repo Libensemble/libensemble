@@ -11,12 +11,12 @@ Release 0.7.0
 
 Breaking API changes:
 
-* Job_controller/Job renamed to Executor/Task and launch function to submit. (#285)
+* `Job_controller`/`Job` renamed to `Executor`/`Task` and ``launch`` function to ``submit``. (#285)
 * Executors/Resources/Utils moved into sub-packages. ``utils`` now in package ``tools``. (#285)
 * sim/gen/alloc support functions moved into ``tools`` sub-package. (#285)
-* Restructuring of sim directory creation with libE_specs configuration options.
-  E.g. When ``sim_input_dir`` is given, directories for each sim are created. (#267)
-* User can supply a node-list file called ``node_list`` (replaces ``worker_list``). (#455)
+* Restructuring of `sim` directory creation with ``libE_specs`` configuration options.
+  E.g: When ``sim_input_dir`` is given, directories for each `sim` are created. (#267)
+* User can supply a file called ``node_list`` (replaces ``worker_list``). (#455)
 
 API additions:
 
@@ -46,7 +46,7 @@ Updates to example functions:
 
 :Note:
 
-* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Cori (Cray XC40/Slurm), and Bridges (PSC).
+* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Cori (Cray XC40/Slurm), and Bridges (HPE system at PSC).
 * Tested Python versions: (Cpython) 3.5, 3.6, 3.7, 3.8
 
 :Known issues:
