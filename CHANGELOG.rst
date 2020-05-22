@@ -21,7 +21,7 @@ Breaking API changes:
 API additions:
 
 * Added gen_funcs.rc configuration framework with option to select APOSMM Optimizers for import (#444)
-* Provide alloc specs defaults via alloc_funcs.defaults module (#325)
+* Provide alloc_specs defaults via alloc_funcs.defaults module (#325)
 * Added `extra_args` option to the Executor submit function to allow addition of arbitrary MPI runner options (#445)
 * Added `custom_info` argument to MPI Executor to allow overriding of detected settings (#448)
 * Added `libE_specs` option to disable log files (#368)

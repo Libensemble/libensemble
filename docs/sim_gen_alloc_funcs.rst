@@ -8,7 +8,6 @@ must be specified. The required API and example arguments are given here.
 :doc:`Example sim and gen functions<examples/examples_index>` are provided in the
 libEnsemble package.
 
-
 **The libEnsemble History Array**
 
 libEnsemble uses a NumPy structured array :ref:`H<datastruct-history-array>` to
