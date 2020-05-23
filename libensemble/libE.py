@@ -226,7 +226,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
         exctr = Executor.executor
         if exctr is not None:
             local_host = socket.gethostname()
-            libE_nodes = set(comm.allgather(local_host))
+            libE_nodes = list(set(comm.allgather(local_host)))
             exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
 
         # Run manager or worker code, depending
@@ -304,7 +304,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     exctr = Executor.executor
     if exctr is not None:
-        local_host = socket.gethostname()
+        local_host = [socket.gethostname()]
         exctr.add_comm_info(libE_nodes=local_host, serial_setup=True)
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
@@ -358,7 +358,7 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
 
     exctr = Executor.executor
     if exctr is not None:
-        local_host = socket.gethostname()
+        local_host = [socket.gethostname()]
         # TCP does not currently support auto_resources but when does, assume
         # each TCP worker is in a different resource pool (only knowing local_host)
         exctr.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)

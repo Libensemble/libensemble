@@ -84,7 +84,7 @@ pip install coveralls || return
 git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || return
 cd libensemble/ || return
 pip install -e . || return
-python install/install-balsam.py
+python install/configure_balsam_install.py
 export BALSAM_DB_PATH=~/test-balsam
 ulimit -Sn 10000
 

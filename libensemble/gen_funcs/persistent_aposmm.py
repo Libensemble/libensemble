@@ -22,7 +22,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
     which do not have a better point nearby (within a distance ``r_k``). This
-    generation function produces/requires the following fields in ``H``:
+    generation function uses a ``local_H`` (serving a similar purpose as ``H``
+    in libEnsemble) containing the fields:
 
     - ``'x' [n floats]``: Parameters being optimized over
     - ``'x_on_cube' [n floats]``: Parameters scaled to the unit cube
@@ -41,6 +42,15 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     and optionally
 
     - ``'fvec' [m floats]``: All objective components (if performing a least-squares calculation)
+    - ``'grad' [n floats]``: The gradient (if available) of the objective with respect to `x`.
+
+    Note:
+    - If any of the above fields are desired after a libEnsemble run, name
+      them in ``gen_specs['out']``.
+    - If intitializing APOSMM with past function values, make sure to include
+      ``'x'``, ``'x_on_cube'``, ``'f'``, ``'local_pt'``, etc. in
+      ``gen_specs['in']`` (and, of course, include them in the H0 array given
+      to libensemble).
 
     Necessary quantities in ``gen_specs['user']`` are:
 
@@ -48,15 +58,16 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'ub' [n floats]``: Upper bound on search domain
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods)
-
-      and one of
     - ``'initial_sample_size' [int]``: Number of uniformly sampled points
-      must be returned (non-nan value) before a local opt run is started
-      or
-    - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
+      must be returned (non-nan value) before a local opt run is started. Can be
+      zero if no additional sampling is desired, but if zero there must be past
+      sim_f values given to libEnsemble in H0.
 
     Optional ``gen_specs['user']`` entries are:
 
+    - ``'sample_points' [numpy array]``: Points to be sampled (original domain).
+      If more sample points are needed by APOSMM during the course of the
+      optimization, points will be drawn uniformly over the domain
     - ``'components' [int]``: Number of objective components
     - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
       distance to the nearest boundary should the initial step size be in
@@ -81,6 +92,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         `test_persistent_aposmm_scipy <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_scipy.py>`_
         for basic APOSMM usage.
+
+    .. seealso::
+
+        `test_persistent_aposmm_with_grad <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_
+        for an example where past function values are given to libEnsemble/APOSMM.
 
     """
     """
@@ -605,6 +621,9 @@ def initialize_APOSMM(H, user_specs, libE_info):
     n_s = np.sum(~local_H['local_pt'])
 
     assert n_s > 0 or user_specs['initial_sample_size'] > 0, "APOSMM requires a positive initial_sample_size, or some existing points in order to determine where to start local optimization runs."
+
+    if 'sample_points' in user_specs:
+        assert isinstance(user_specs['sample_points'], np.ndarray)
 
     return n, n_s, rk_c, ld, mu, nu, comm, local_H
 

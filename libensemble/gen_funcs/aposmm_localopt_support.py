@@ -274,11 +274,11 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     if res['status'] in user_specs['opt_return_codes']:
         opt_flag = 1
     else:
-        print("The SciPy localopt run started from " + str(x0) + " stopped "
-              " without finding a local min. The status of the run is " + str(res['status']) +
-              " and the message is " + res['message'] +
-              ". No point from this run will be ruled as a minimum! APOSMM may "
-              "start a new run from some point in this run.")
+        print("The SciPy localopt run started from " + str(x0) + " stopped"
+              " without finding a local min.\nThe 'status' of the run is " + str(res['status']) +
+              " and the message is: \"" + res['message'] +
+              "\".\nNo point from this run will be ruled as a minimum! APOSMM may "
+              "start a new run from some point in this run.\n")
         opt_flag = 0
 
     if user_specs.get('periodic'):

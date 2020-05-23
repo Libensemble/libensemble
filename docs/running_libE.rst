@@ -97,11 +97,11 @@ The ``libE_specs`` options for TCP are::
     'workers' list:
         A list of worker hostnames.
     'ip' [String]:
-        ip address
+        IP address
     'port' [int]:
-        port
+        Port number.
     'authkey' [String]:
-        authkey
+        Authkey.
 
 Persistent Workers
 ------------------

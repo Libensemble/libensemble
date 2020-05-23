@@ -12,17 +12,8 @@ import subprocess
 
 def install_balsam():
     here = os.getcwd()
-    os.chdir('../balsam/balsam-0.3.5.1/balsam/scripts')
-
-    # Replace old version of balsamactivate
-    os.remove('balsamactivate')
-    url = 'https://raw.githubusercontent.com/balsam-alcf/balsam/master/balsam/scripts/balsamactivate'
-    subprocess.check_call(['wget', url])
-
-    # Pip install Balsam
-    os.chdir('../..')
+    os.chdir('../balsam/balsam-0.3.8')
     subprocess.check_call('pip install -e .'.split())
-
     os.chdir(here)
 
 
@@ -39,7 +30,7 @@ def configure_coverage():
     with open(coveragerc, 'r') as f:
         lines = f.readlines()
 
-    newlines = [i for i in lines if i != '    */balsam_controller.py\n']
+    newlines = [i for i in lines if i != '    */balsam_executor.py\n']
 
     with open(coveragerc, 'w') as f:
         for line in newlines:

@@ -4,6 +4,7 @@ python:
   - 3.5
   - 3.6
   - 3.7
+  - 3.8
 
 os: linux
 
@@ -85,7 +86,14 @@ install:
 
   - conda install $COMPILERS
   - conda install libblas libopenblas # Prevent 'File exists' error
-  - conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI
+
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
+      conda install nlopt mpi4py scipy mpich;
+      export PETSC_CONFIGURE_OPTIONS='--with-batch';
+      pip install petsc petsc4py;
+    else
+      conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI;
+    fi
 
     # Begin: Dependencies only for regression tests
   - pip install DFO-LS
@@ -105,9 +113,9 @@ install:
   - python install/find_mpi.py # Locate compilers. Confirm MPI library
   - mpiexec --version        # Show MPI library details
   - pip install -e .            # Installing libEnsemble
-  - wget https://github.com/balsam-alcf/balsam/archive/0.3.5.1.tar.gz
-  - mkdir ../balsam; tar xf 0.3.5.1.tar.gz -C ../balsam;
-  - python install/install-balsam.py
+  - wget https://github.com/balsam-alcf/balsam/archive/0.3.8.tar.gz
+  - mkdir ../balsam; tar xf 0.3.8.tar.gz -C ../balsam;
+  - python install/configure_balsam_install.py
 
 before_script:
   - flake8 libensemble

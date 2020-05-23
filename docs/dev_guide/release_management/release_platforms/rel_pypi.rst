@@ -4,7 +4,7 @@ PyPI release
 ============
 
 libEnsemble is released on the Python Package Index (commonly known as PyPI).
-This enables users to "``pip install``" the package.
+This enables users to ``pip install`` the package.
 
 The package is stored on PyPI in the form of a source distribution (commonly
 known as a tarball). The tarball could be obtained from GitHub, although

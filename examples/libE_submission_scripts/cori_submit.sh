@@ -16,6 +16,7 @@
 # User to edit these variables
 export EXE=libE_calling_script.py
 export NUM_WORKERS=4
+export I_MPI_FABRICS=shm:ofi  # Recommend OFI
 
 # Ensure anaconda Python module is loaded
 module load python/3.7-anaconda-2019.07

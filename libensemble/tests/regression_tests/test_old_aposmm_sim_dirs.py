@@ -9,7 +9,7 @@
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 3 4
 
 import sys
 import numpy as np
@@ -42,7 +42,7 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float)]}
 
 if nworkers == 3:
-    sim_specs['user'] = {'uniform_random_pause_ub': 0.05}
+    sim_specs['user'] = {'uniform_random_pause_ub': 0.001}
 
 n = 2
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
