@@ -2,7 +2,7 @@
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-
+from mpl_toolkits import mplot3d
 
 # Loop through objective points in f and extract the Pareto front.
 # input: f is a list (dimensions n X p) of n p-dimensional objective points.
