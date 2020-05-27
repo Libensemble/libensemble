@@ -40,7 +40,7 @@ IF (IERR .NE. 0) THEN
 CLOSE(12)
 
 ! Initialize the VTMOP status object.
-CALL VTMOP_INIT( VTMOP, D, P, LB, UB, IERR, TRUST_RAD=TRUST_RAD, ICHKPT=1 )
+CALL VTMOP_INIT( VTMOP, D, P, LB, UB, IERR, TRUST_RADF=TRUST_RAD, ICHKPT=1 )
 IF (IERR .NE. 0) THEN
    WRITE(ERROR_UNIT, "(A,I4)") &
         "An error occurred while initializing. Error code: ", IERR
