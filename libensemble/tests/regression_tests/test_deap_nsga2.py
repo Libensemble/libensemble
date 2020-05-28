@@ -93,4 +93,4 @@ for run in range(2):
         assert flag == 0, script_name + " didn't exit correctly"
         assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
         if run == 0:
-            assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global minimum for this problem."
+            assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global min for this problem."
