@@ -22,6 +22,9 @@ nworkers, is_master, libE_specs, _ = parse_args()
 def deap_six_hump(H, persis_info, sim_specs, _):
     xvals = H['individual'][0]
     Out = np.zeros(1, dtype=sim_specs['out'])
+    if len(xvals) == 1:
+        xvals = xvals*np.ones(2)
+
     y1 = six_hump_camel_func(xvals)
     Out['fitness_values'] = (y1,)  # Requires tuple
 
@@ -66,7 +69,6 @@ gen_specs = {'gen_f': gen_f,
 
 # libE Allocation function
 alloc_specs = {'out': [('given_back', bool)], 'alloc_f': alloc_f}
-persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls
@@ -74,11 +76,21 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': pop_size*(ngen+1)}
 
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+for run in range(2):
+    if run == 1:
+        # In the second run, let's test a 1d function
+        gen_specs['out'] = [('individual', float, (1,)), ('generation', int)]
+        gen_specs['user']['lb'] = [-3.0]
+        gen_specs['user']['ub'] = [3.0]
+        gen_specs['user']['indiv_size'] = 1
 
-if is_master:
-    script_name = os.path.splitext(os.path.basename(__file__))[0]
-    assert flag == 0, script_name + " didn't exit correctly"
-    assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
-    assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global minimum for this problem."
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    if is_master:
+        script_name = os.path.splitext(os.path.basename(__file__))[0]
+        assert flag == 0, script_name + " didn't exit correctly"
+        assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
+        if run == 0:
+            assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global minimum for this problem."
