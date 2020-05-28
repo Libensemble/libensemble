@@ -103,6 +103,11 @@ The ``libE_specs`` options for TCP are::
     'authkey' [String]:
         Authkey.
 
+Limitations of TCP mode
+^^^^^^^^^^^^^^^^^^^^^^^
+
+- There cannot be two calls to ``libE`` in the same script.
+
 Persistent Workers
 ------------------
 
