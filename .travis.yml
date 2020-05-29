@@ -36,6 +36,10 @@ jobs:
       env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
       language: generic
       python: 3.7
+  allow_failures:
+      - python: 3.8
+  fast_finish: true  # So a build can be marked as complete if required jobs
+                     #  succeed before nonrequired jobs (py 3.8) timeout.
 
 # Below will update the OSX octave used on Travis.  This was so slow that we
 # were hitting the 50 minute limit on Travis. We no longer update octave in
