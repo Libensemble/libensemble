@@ -172,7 +172,7 @@ class LocalOptInterfacer(object):
 
         #     previous_x = self.comm_queue.get()
         # assert isinstance(previous_x, ConvergedMsg)
-        self.process.kill()
+        self.process.terminate()
         self.process.join()
         self.comm_queue.close()
         self.comm_queue.join_thread()
