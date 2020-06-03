@@ -139,6 +139,7 @@ set optimizer settings to ``'scipy'`` to help prevent unnecessary imports or
 package installations:
 
 .. code-block:: python
+    :linenos:
 
     import libensemble.gen_funcs
     libensemble.gen_funcs.rc.aposmm_optimizers = 'scipy'
@@ -191,13 +192,14 @@ Finally, add statements to :doc:`initiate libEnsemble<../libe_module>`, and quic
 check calculated minima:
 
 .. code-block:: python
+    :linenos:
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
     if is_master:
         print('Minima:', H[np.where(H['local_min'])]['x'])
 
-Run this libEnsemble / APOSMM optimization routine through the following::
+Run this libEnsemble / APOSMM optimization routine with the following::
 
     python my_first_aposmm.py --comms local --nworkers 4
 
