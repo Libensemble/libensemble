@@ -17,7 +17,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     Work = {}
     gen_count = count_persis_gens(W)
 
-    if len(H) and gen_count == 0:
+    if persis_info.get('gen_started') and gen_count == 0:
         # The one persistent worker is done. Exiting
         return Work, persis_info, 1
 
@@ -45,7 +45,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], [], persis_info[i],
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
                      persistent=True)
+            persis_info['gen_started'] = True
 
     return Work, persis_info, 0

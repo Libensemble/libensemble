@@ -52,7 +52,7 @@ sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is bei
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
+             'in': ['sim_id', 'individual', 'fitness_values'],
              'out': [('individual', float, ind_size), ('generation', int)],
              'user': {'lb': lb,
                       'ub': ub,
@@ -74,8 +74,27 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': pop_size*(ngen+1)}
 
 
+# Number of points in the sample
+beginning_sample = 100
+
+H0 = np.zeros(beginning_sample, dtype=[('individual', float, ind_size), ('fitness_values', float), ('sim_id', int),
+                                       ('returned', bool), ('given_back', bool), ('given', bool)])
+
+# Mark these points as already have been given to be evaluated, and returned, but not given_back.
+H0[['given', 'given_back', 'returned']] = True
+
+# Give these points sim_ids
+H0['sim_id'] = range(beginning_sample)
+
+# "Load in" the points and their function values. (In this script, we are
+# actually evaluating them, but in many cases, they are available from past
+# evaluations
+H0['individual'] = np.random.uniform(lb, ub, (beginning_sample, len(lb)))
+for i, x in enumerate(H0['individual']):
+    H0['fitness_values'][i] = six_hump_camel_func(x)
+
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
 if is_master:
     script_name = os.path.splitext(os.path.basename(__file__))[0]

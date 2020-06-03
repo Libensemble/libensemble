@@ -81,6 +81,9 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
     '''
     An implementation of the NSGA2 evolutionary algorithm.
     '''
+    if len(H):
+        print("Initial collection of points is being ignored")
+
     # Check to make sure boundaries are list, not array
     if isinstance(gen_specs['user']['lb'], list):
         if isinstance(gen_specs['user']['ub'], list):
