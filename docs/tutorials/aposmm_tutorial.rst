@@ -5,8 +5,8 @@ Parallel Optimization with APOSMM
 This tutorial demonstrates libEnsemble's capability to identify multiple minima
 of simulation output using the built-in :doc:`APOSMM<../examples/aposmm>`
 (Asynchronously Parallel Optimization Solver for finding Multiple Minima)
-:ref:`gen_f<../sim_gen_alloc_funcs>`. In this tutorial, we'll create a simple
-simulation :ref:`sim_f<../sim_gen_alloc_funcs>` that defines a function with
+:ref:`gen_f<api_gen_f>`. In this tutorial, we'll create a simple
+simulation :ref:`sim_f<api_sim_f>` that defines a function with
 multiple minima, then write a libEnsemble calling script that imports APOSMM and
 parameterizes it to check for minima over a domain of outputs from our ``sim_f``.
 
@@ -87,9 +87,9 @@ converge to a minima:
     :align: center
 
 Throughout, generated and evaluated points are appended to the
-:doc:`History<../data_structures/history_array>` array, with the field
- ``'local_pt'`` being ``True`` if the point is part of a local optimization run,
- and ``'local_min'`` being ``True`` if the point has been ruled a local minima.
+:ref:`History<datastruct-history-array>` array, with the field
+``'local_pt'`` being ``True`` if the point is part of a local optimization run,
+and ``'local_min'`` being ``True`` if the point has been ruled a local minima.
 
 APOSMM Persistence
 ------------------
@@ -120,6 +120,7 @@ function:
 
 .. code-block:: python
     :linenos:
+
     import numpy as np
 
     from six_hump_camel import six_hump_camel
@@ -127,19 +128,29 @@ function:
     from libensemble.libE import libE
     from libensemble.gen_funcs.persistent_aposmm import aposmm
     from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
-    from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+    from libensemble.tools import parse_args, add_unique_random_streams
 
 This allocation function starts a single Persistent APOSMM routine and provides
 ``sim_f`` output for points requested by APOSMM. Points can be sampled points
 or points from local optimization runs.
 
-Set up :ref:`parse_args()<../utilities>`,
-our :ref:`sim_specs<../data_structures/sim_specs>`,
-:ref:`gen_specs<../data_structures/gen_specs>`,
-and :ref:`alloc_specs<../data_structures/alloc_specs>`:
+APOSMM supports a wide variety of external optimizers. The following statements
+set optimizer settings to ``'scipy'`` to help prevent unnecessary imports or
+package installations:
+
+.. code-block:: python
+
+    import libensemble.gen_funcs
+    libensemble.gen_funcs.rc.aposmm_optimizers = 'scipy'
+
+Set up :doc:`parse_args()<../utilities>`,
+our :doc:`sim_specs<../data_structures/sim_specs>`,
+:doc:`gen_specs<../data_structures/gen_specs>`,
+and :doc:`alloc_specs<../data_structures/alloc_specs>`:
 
 .. code-block:: python
     :linenos:
+
     nworkers, is_master, libE_specs, _ = parse_args()
 
     sim_specs = {'sim_f': six_hump_camel, # Simulation function
@@ -157,16 +168,17 @@ and :ref:`alloc_specs<../data_structures/alloc_specs>`:
                  'out': gen_out,          # Output defined like above dict
                  'user': {'initial_sample_size': 100,  # Random sample 100 points to start
                           'localopt_method': 'scipy_Nelder-Mead',
-                          'opt_return_codes': [0],  # Return code specific to localopt_method
-                          'max_active_runs': 6,  # Occur in parallel
+                          'opt_return_codes': [0],   # Return code specific to localopt_method
+                          'max_active_runs': 6,      # Occur in parallel
                           'lb': np.array([-2, -1]),  # Lower bound of search domain
                           'ub': np.array([2, 1])}    # Upper bound of search domain
                  }
 
-    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
+    alloc_specs = {'alloc_f': persistent_aposmm_alloc,
+                   'out': [('given_back', bool)], 'user': {}}
 
-Set :ref:`exit_criteria<../data_structures/exit_criteria>` so libEnsemble knows
-when to complete, and :ref:`persis_info<../data_structures/persis_info>` for
+Set :ref:`exit_criteria<datastruct-exit-criteria>` so libEnsemble knows
+when to complete, and :ref:`persis_info<datastruct-persis-info>` for
 random sampling seeding:
 
 .. code-block:: python
@@ -175,16 +187,49 @@ random sampling seeding:
     exit_criteria = {'sim_max': 2000}
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-Finally, add statements to :ref:`initiate libEnsemble<../libe_module>`, quickly
-check calculated minima, and use a built-in function to save the History array
-and ``persis_info`` for analysis:
+Finally, add statements to :doc:`initiate libEnsemble<../libe_module>`, and quickly
+check calculated minima:
 
 .. code-block:: python
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
     if is_master:
-        print('[Manager]:', H[np.where(H['local_min'])]['x'])
+        print('Minima:', H[np.where(H['local_min'])]['x'])
+
+Run this libEnsemble / APOSMM optimization routine through the following::
+
+    python my_first_aposmm.py --comms local --nworkers 4
+
+Please note that one worker will be "persistent" for APOSMM for the duration of
+the routine.
+
+After a couple seconds, the output should resemble the following::
+
+    [0] libensemble.libE (MANAGER_WARNING):
+    *******************************************************************************
+    User generator script will be creating sim_id.
+    Take care to do this sequentially.
+    Also, any information given back for existing sim_id values will be overwritten!
+    So everything in gen_specs['out'] should be in gen_specs['in']!
+    *******************************************************************************
+
+
+    Minima: [[ 0.08993295 -0.71265804]
+     [ 1.70360676 -0.79614982]
+     [-1.70368421  0.79606073]
+     [-0.08988064  0.71270945]
+     [-1.60699361 -0.56859108]
+     [ 1.60713962  0.56869567]]
+
+The first section labeled ``MANAGER_WARNING`` is a default libEnsemble warning
+for generator functions that create ``sim_id``'s. It does not indicate a failure.
+
+The local minima for the Six-Hump Camel simulation function as evaluated by
+APOSMM with libEnsemble should be listed directly below the warning.
+
+Please see the APOSMM API reference :doc:`here<../examples/aposmm>` for
+more information.
 
 .. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
