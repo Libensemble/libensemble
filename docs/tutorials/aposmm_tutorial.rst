@@ -5,10 +5,10 @@ Parallel Optimization with APOSMM
 This tutorial demonstrates libEnsemble's capability to identify multiple minima
 of simulation output using the built-in :doc:`APOSMM<../examples/aposmm>`
 (Asynchronously Parallel Optimization Solver for finding Multiple Minima)
-``gen_f``. In this tutorial, we'll create a simple simulation ``sim_f`` that
-defines a function with multiple minima, then write a libEnsemble calling script
-that imports APOSMM and parameterizes it to check for minima over a domain of
-outputs from our ``sim_f``.
+:ref:`gen_f<../sim_gen_alloc_funcs>`. In this tutorial, we'll create a simple
+simulation :ref:`sim_f<../sim_gen_alloc_funcs>` that defines a function with
+multiple minima, then write a libEnsemble calling script that imports APOSMM and
+parameterizes it to check for minima over a domain of outputs from our ``sim_f``.
 
 Six-Hump Camel Simulation Function
 ----------------------------------
@@ -23,8 +23,8 @@ below:
     :scale: 60
     :align: center
 
-Create a new Python file named ``six_hump_camel.py``. This will be our ``sim_f``,
-incorporating the above function. Write the following:
+Create a new Python file named ``six_hump_camel.py``. This will be our
+``sim_f``, incorporating the above function. Write the following:
 
 .. code-block:: python
     :linenos:
@@ -34,11 +34,11 @@ incorporating the above function. Write the following:
     def six_hump_camel(H, persis_info, sim_specs, _):
         """Six-Hump Camel sim_f."""
 
-        batch = len(H['x'])  # Number of evaluations each sim_f call.
-        H_o = np.zeros(batch, dtype=sim_specs['out'])  # Define output array
+        batch = len(H['x'])                            # Num evaluations each sim_f call.
+        H_o = np.zeros(batch, dtype=sim_specs['out'])  # Define output array H
 
         for i, x in enumerate(H['x']):
-            H_o['f'][i] = three_hump_camel_func(x)  # Function evaluations placed into array
+            H_o['f'][i] = three_hump_camel_func(x)     # Function evaluations placed into H
 
         return H_o, persis_info
 
@@ -76,16 +76,31 @@ example, after APOSMM has returned the uniformly sampled points, for simulation
 evaluations it will likely begin local optimization runs from the user-requested
 approximate minima. Providing these isn't required.
 
+Each local optimization run chooses new points and determines if they're better
+by passing them back to be evaluated by the simulation routine. If so, new local
+optimization runs are started from those points. This continues until the runs
+converge to a minima:
+
+.. image:: ../images/localopt_6hc.png
+    :alt: Six-Hump Camel Local Optimization Points
+    :scale: 60
+    :align: center
+
+Throughout, generated and evaluated points are appended to the
+:doc:`History<../data_structures/history_array>` array, with the field
+ ``'local_pt'`` being ``True`` if the point is part of a local optimization run,
+ and ``'local_min'`` being ``True`` if the point has been ruled a local minima.
+
 APOSMM Persistence
 ------------------
 
-The most supported version of APOSMM included with libEnsemble is
-referred to as Persistent APOSMM. Unlike other user functions that are
-initiated and completed by workers multiple times based on allocation,
-a single worker process initiates APOSMM so that it "persists"
-and keeps running over the course of the entire libEnsemble routine. APOSMM
-begins it's own parallel evaluations and communicates points back and forth with
-the manager, then to workers and evaluated by simulation routines.
+The most recent version of APOSMM included with libEnsemble is referred to as
+Persistent APOSMM. Unlike most other user functions that are initiated and
+completed by workers multiple times based on allocation, a single worker process
+initiates APOSMM so that it "persists" and keeps running over the course of the
+entire libEnsemble routine. APOSMM begins it's own parallel evaluations and
+communicates points back and forth with the manager, which are then given to
+workers and evaluated by simulation routines.
 
 In practice, since a single worker becomes "persistent" for APOSMM, users must
 ensure that enough workers or MPI ranks are initiated to
@@ -94,8 +109,82 @@ simulation routines. The following::
 
     mpiexec -n 3 python my_aposmm_routine.py
 
-will result in only one worker process available to perform simulation
-routines.
+results in only one worker process available to perform simulation routines.
+
+Calling Script
+--------------
+
+Create a new Python file named ``my_first_aposmm.py``. Start by importing NumPy,
+libEnsemble routines, APOSMM, our ``sim_f``, and a specialized allocation
+function:
+
+.. code-block:: python
+    :linenos:
+    import numpy as np
+
+    from six_hump_camel import six_hump_camel
+
+    from libensemble.libE import libE
+    from libensemble.gen_funcs.persistent_aposmm import aposmm
+    from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
+    from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+
+This allocation function starts a single Persistent APOSMM routine and provides
+``sim_f`` output for points requested by APOSMM. Points can be sampled points
+or points from local optimization runs.
+
+Set up :ref:`parse_args()<../utilities>`,
+our :ref:`sim_specs<../data_structures/sim_specs>`,
+:ref:`gen_specs<../data_structures/gen_specs>`,
+and :ref:`alloc_specs<../data_structures/alloc_specs>`:
+
+.. code-block:: python
+    :linenos:
+    nworkers, is_master, libE_specs, _ = parse_args()
+
+    sim_specs = {'sim_f': six_hump_camel, # Simulation function
+                 'in': ['x'],             # Accepts 'x' values
+                 'out': [('f', float)]}   # Returns f(x) values
+
+    gen_out = [('x', float, 2),           # Produces 'x' values
+               ('x_on_cube', float, 2),   # 'x' values scaled to unit cube
+               ('sim_id', int),           # Produces IDs for sim order
+               ('local_min', bool),       # Is a point a local minimum?
+               ('local_pt', bool)]        # Is a point from a local opt run?
+
+    gen_specs = {'gen_f': aposmm,         # APOSMM generator function
+                 'in': [],
+                 'out': gen_out,          # Output defined like above dict
+                 'user': {'initial_sample_size': 100,  # Random sample 100 points to start
+                          'localopt_method': 'scipy_Nelder-Mead',
+                          'opt_return_codes': [0],  # Return code specific to localopt_method
+                          'max_active_runs': 6,  # Occur in parallel
+                          'lb': np.array([-2, -1]),  # Lower bound of search domain
+                          'ub': np.array([2, 1])}    # Upper bound of search domain
+                 }
+
+    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
+
+Set :ref:`exit_criteria<../data_structures/exit_criteria>` so libEnsemble knows
+when to complete, and :ref:`persis_info<../data_structures/persis_info>` for
+random sampling seeding:
+
+.. code-block:: python
+    :linenos:
+
+    exit_criteria = {'sim_max': 2000}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+
+Finally, add statements to :ref:`initiate libEnsemble<../libe_module>`, quickly
+check calculated minima, and use a built-in function to save the History array
+and ``persis_info`` for analysis:
+
+.. code-block:: python
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                alloc_specs, libE_specs)
+    if is_master:
+        print('[Manager]:', H[np.where(H['local_min'])]['x'])
 
 .. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
