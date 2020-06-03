@@ -161,7 +161,7 @@ class LocalOptInterfacer(object):
     def destroy(self, previous_x):
 
         count = 0
-        while not isinstance(previous_x, ConvergedMsg) and count <= 100:
+        while not isinstance(previous_x, ConvergedMsg) and count <= 1000:
             self.parent_can_read.clear()
             if self.grad0 is None:
                 self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
