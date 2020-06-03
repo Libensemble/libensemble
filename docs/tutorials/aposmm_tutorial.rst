@@ -15,11 +15,12 @@ Six-Hump Camel Simulation Function
 
 Describing APOSMM's operations is simpler with a given function on which to
 depict evaluations. We'll use the `Six-Hump Camel function`_, known to have six
-global minima. A sample space of this function, containing all minima, appears as follows:
+global minima. A sample space of this function, containing all minima, appears
+below:
 
 .. image:: ../images/basic_6hc.png
     :alt: Six-Hump Camel
-    :scale: 80
+    :scale: 60
     :align: center
 
 Create a new Python file named ``six_hump_camel.py``. This will be our ``sim_f``,
@@ -60,25 +61,41 @@ APOSMM coordinates multiple local optimization runs starting from a collection
 of sample points. These local optimization runs occur in parallel,
 and can incorporate a variety of optimization methods, including from NLopt_,
 `PETSc/TAO`_, and SciPy_. Some number of uniformly sampled points is returned
-by APOSMM for simulation evaluations before local optimization runs can occur, if
-no prior simulation evaluations are provided. User-requested sample points can
-also be provided to APOSMM:
+by APOSMM for simulation evaluations before local optimization runs can occur,
+if no prior simulation evaluations are provided. User-requested sample points
+can also be provided to APOSMM:
 
 .. image:: ../images/sampling_6hc.png
     :alt: Six-Hump Camel Sampling
-    :scale: 80
+    :scale: 60
     :align: center
+
+Specifically, APOSMM will begin local optimization runs from those points that
+don't have better (more minimal) points nearby within a threshold. For the above
+example, after APOSMM has returned the uniformly sampled points, for simulation
+evaluations it will likely begin local optimization runs from the user-requested
+approximate minima. Providing these isn't required.
 
 APOSMM Persistence
 ------------------
 
-The most used and supported version of APOSMM included with libEnsemble is referred
-to as Persistent APOSMM. Unlike other user functions that are initiated and
-completed by the worker processes multiple times based on requests by the manager,
-a single worker process initiates APOSMM so that it "persists" and keeps running
-over the course of the entire libEnsemble routine. APOSMM begins it's own
-parallel evaluations and communicates points to the manager to be passed
-to and from workers and evaluated by simulation routines.
+The most supported version of APOSMM included with libEnsemble is
+referred to as Persistent APOSMM. Unlike other user functions that are
+initiated and completed by workers multiple times based on allocation,
+a single worker process initiates APOSMM so that it "persists"
+and keeps running over the course of the entire libEnsemble routine. APOSMM
+begins it's own parallel evaluations and communicates points back and forth with
+the manager, then to workers and evaluated by simulation routines.
+
+In practice, since a single worker becomes "persistent" for APOSMM, users must
+ensure that enough workers or MPI ranks are initiated to
+support libEnsemble's manager, a persistent worker to run APOSMM, and
+simulation routines. The following::
+
+    mpiexec -n 3 python my_aposmm_routine.py
+
+will result in only one worker process available to perform simulation
+routines.
 
 .. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
