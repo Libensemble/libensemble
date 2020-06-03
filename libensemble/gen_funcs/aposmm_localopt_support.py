@@ -160,18 +160,19 @@ class LocalOptInterfacer(object):
 
     def destroy(self, previous_x):
 
-        while not isinstance(previous_x, ConvergedMsg):
-            self.parent_can_read.clear()
-            if self.grad0 is None:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
-            else:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
+        # while not isinstance(previous_x, ConvergedMsg):
+        #     self.parent_can_read.clear()
+        #     if self.grad0 is None:
+        #         self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
+        #     else:
+        #         self.comm_queue.put((previous_x, 0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
 
-            self.child_can_read.set()
-            self.parent_can_read.wait()
+        #     self.child_can_read.set()
+        #     self.parent_can_read.wait()
 
-            previous_x = self.comm_queue.get()
-        assert isinstance(previous_x, ConvergedMsg)
+        #     previous_x = self.comm_queue.get()
+        # assert isinstance(previous_x, ConvergedMsg)
+        self.process.kill()
         self.process.join()
         self.comm_queue.close()
         self.comm_queue.join_thread()
