@@ -52,7 +52,7 @@ sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is bei
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id', 'individual', 'fitness_values'],
+             'in': ['sim_id'],#, 'individual', 'fitness_values'],
              'out': [('individual', float, ind_size), ('generation', int)],
              'user': {'lb': lb,
                       'ub': ub,
@@ -77,12 +77,12 @@ exit_criteria = {'sim_max': pop_size*(ngen+1)}
 # Number of points in the sample
 beginning_sample = 100
 
-H0 = np.zeros(beginning_sample, dtype=[('individual', float, ind_size), ('fitness_values', float), ('sim_id', int),
+H0 = np.zeros(beginning_sample, dtype=[('individual', float, ind_size), ('generation', int), ('fitness_values', float), ('sim_id', int),
                                        ('returned', bool), ('given_back', bool), ('given', bool)])
-
+#print(H0.dtype)
 # Mark these points as already have been given to be evaluated, and returned, but not given_back.
 H0[['given', 'given_back', 'returned']] = True
-
+H0['generation'][:] = 1
 # Give these points sim_ids
 H0['sim_id'] = range(beginning_sample)
 
