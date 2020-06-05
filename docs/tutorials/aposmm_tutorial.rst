@@ -71,15 +71,16 @@ can also be provided to APOSMM:
     :align: center
 
 Specifically, APOSMM will begin local optimization runs from those points that
-don't have better (more minimal) points nearby within a threshold. For the above
+don't have better (more minimal) points nearby within a threshold ``r_k``. For the above
 example, after APOSMM has returned the uniformly sampled points, for simulation
 evaluations it will likely begin local optimization runs from the user-requested
-approximate minima. Providing these isn't required.
+approximate minima. Providing these isn't required, but can offer performance
+benefits.
 
 Each local optimization run chooses new points and determines if they're better
 by passing them back to be evaluated by the simulation routine. If so, new local
-optimization runs are started from those points. This continues until the runs
-converge to a minima:
+optimization runs are started from those points. This continues until each run
+converges to a minimum:
 
 .. image:: ../images/localopt_6hc.png
     :alt: Six-Hump Camel Local Optimization Points
@@ -89,7 +90,7 @@ converge to a minima:
 Throughout, generated and evaluated points are appended to the
 :ref:`History<datastruct-history-array>` array, with the field
 ``'local_pt'`` being ``True`` if the point is part of a local optimization run,
-and ``'local_min'`` being ``True`` if the point has been ruled a local minima.
+and ``'local_min'`` being ``True`` if the point has been ruled a local minimum.
 
 APOSMM Persistence
 ------------------
@@ -178,6 +179,11 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
     alloc_specs = {'alloc_f': persistent_aposmm_alloc,
                    'out': [('given_back', bool)], 'user': {}}
 
+``gen_specs['user']`` fields above that are required for APOSMM are ``'lb'`` (lower bound),
+``'ub'`` (upper bound), ``'localopt_method'`` (local optimization method), and
+``'initial_sample_size'``. Other options and configurations can be found in the
+APOSMM :doc:`API reference<../examples/aposmm>`.
+
 Set :ref:`exit_criteria<datastruct-exit-criteria>` so libEnsemble knows
 when to complete, and :ref:`persis_info<datastruct-persis-info>` for
 random sampling seeding:
@@ -225,13 +231,14 @@ After a couple seconds, the output should resemble the following::
      [ 1.60713962  0.56869567]]
 
 The first section labeled ``MANAGER_WARNING`` is a default libEnsemble warning
-for generator functions that create ``sim_id``'s. It does not indicate a failure.
+for generator functions that create ``sim_id``'s, like APOSMM.
+It does not indicate a failure.
 
 The local minima for the Six-Hump Camel simulation function as evaluated by
 APOSMM with libEnsemble should be listed directly below the warning.
 
-Please see the APOSMM API reference :doc:`here<../examples/aposmm>` for
-more information.
+Please see the API reference :doc:`here<../examples/aposmm>` for
+more APOSMM configuration options and other information.
 
 .. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
