@@ -136,8 +136,8 @@ This allocation function starts a single Persistent APOSMM routine and provides
 or points from local optimization runs.
 
 APOSMM supports a wide variety of external optimizers. The following statements
-set optimizer settings to ``'scipy'`` to help prevent unnecessary imports or
-package installations:
+set optimizer settings to ``'scipy'`` to indicate to APOSMM which optimization
+method to use, and help prevent unnecessary imports or package installations:
 
 .. code-block:: python
     :linenos:
@@ -205,7 +205,15 @@ check calculated minima:
     if is_master:
         print('Minima:', H[np.where(H['local_min'])]['x'])
 
-Run this libEnsemble / APOSMM optimization routine with the following::
+Final Setup, Run, and Output
+----------------------------
+
+If you haven't already, install SciPy so APOSMM can access the required
+optimization method::
+
+    pip install scipy
+
+Finally, run this libEnsemble / APOSMM optimization routine with the following::
 
     python my_first_aposmm.py --comms local --nworkers 4
 
