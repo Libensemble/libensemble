@@ -21,6 +21,10 @@ Where ``optimizers`` is a string (or list of strings) from the available options
 
 To see the optimization algorithms supported, see `LocalOptInterfacer`_.
 
+.. seealso::
+
+    :doc:`Persistent APOSMM Tutorial<../tutorials/aposmm_tutorial>`
+
 Persistent APOSMM
 ^^^^^^^^^^^^^^^^^
 
