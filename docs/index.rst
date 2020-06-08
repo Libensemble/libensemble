@@ -6,6 +6,11 @@
 .. include:: welcome.rst
 
 .. toctree::
+    :hidden:
+
+    SciPy 2020 <scipy2020>
+
+.. toctree::
    :maxdepth: 2
    :caption: User Guide:
 
