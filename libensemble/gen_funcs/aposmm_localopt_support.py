@@ -175,9 +175,9 @@ class LocalOptInterfacer(object):
             count += 1
 
         if not isinstance(previous_x, ConvergedMsg):
-            if hasattr(self.process, 'kill'):
-                self.process.kill()
-            else:
+            # if hasattr(self.process, 'kill'):
+            #     self.process.kill()
+            # else:
                 self.process.terminate()
 
         self.process.join()
