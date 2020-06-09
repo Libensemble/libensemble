@@ -566,7 +566,19 @@ def initialize_APOSMM(H, user_specs, libE_info):
     """
     n = len(user_specs['ub'])
 
-    rk_c = user_specs.get('rk_const', ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi))
+    if 'rk_const' in user_specs:
+        rk_c = user_specs['rk_const']
+        assert rk_c > 0, "'rk_const' must be positive"
+    else:
+        try:
+            rk_c = user_specs.get('rk_const', (gamma(1+(n/2.0))*5.0**(1.0/n))/sqrt(pi))
+        except OverflowError:
+            print("There was an overflow error when trying to compute the rk_const value in persistent_aposmm, likely because n is too large.")
+            print("Try going to WolframAlpha and computing ((gamma(1+({}/2.0))*5.0)**(1.0/{}))/sqrt(pi)".format(n, n))
+            print("If that works, then give it as gen_specs['user']['rk_const']")
+            print("In June 2020, WolframAlpha worked for n=1e6.")
+            raise
+
     ld = user_specs.get('lhs_divisions', 0)
     mu = user_specs.get('mu', 1e-4)
     nu = user_specs.get('nu', 0)
