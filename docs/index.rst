@@ -7,8 +7,10 @@
 
 .. toctree::
     :hidden:
-
+    :maxdepth: 1
+    
     SciPy 2020 <scipy2020>
+
 
 .. toctree::
    :maxdepth: 2
