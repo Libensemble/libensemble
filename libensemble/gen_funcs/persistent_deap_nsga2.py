@@ -93,10 +93,12 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
     Out  = np.zeros(pop_size, dtype=gen_specs['out'])
 
     if len(H):
-        g = max(H['generation'])
+        tag = None
+        g   = max(H['generation'])
         individuals = H['individual'][-pop_size:]
         fvals       = H['fitness_values'][-pop_size:] 
         print("Loading initial collection of points as generation ", g, '.')
+ 
         for i, ind in enumerate(pop):
             # Fill in first pop and output with provided points
             ind[:] = array.array('d', individuals[i])
@@ -106,7 +108,6 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
                 ind.fitness.values = [fvals[i]]
             Out['individual'][i] = individuals[i] 
             Out['generation'][i] = g
-            tag = i #WHAT SHOULD THIS BE???? 
     else:
         print('No initial sample provided, starting from scratch.') 
         g = 0  # generation count
