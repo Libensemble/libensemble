@@ -82,30 +82,37 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
     # Check to make sure boundaries are list, not array
     assert isinstance(gen_specs['user']['lb'], list), "lb is wrong type, must be a list!"
     assert isinstance(gen_specs['user']['ub'], list), "ub is wrong type, must be a list!"
-
+    
     # Initialize NSGA2 DEAP toolbox
-    toolbox = nsga2_toolbox(gen_specs)
+    toolbox  = nsga2_toolbox(gen_specs)
+    pop_size = gen_specs['user']['pop_size']
     # CXPB  is the probability with which two individuals are crossed
-    MU, CXPB = gen_specs['user']['pop_size'], gen_specs['user']['cxpb']
+    MU, CXPB = pop_size, gen_specs['user']['cxpb']
     comm = libE_info['comm']
+    pop  = toolbox.population(n=MU)  # MU is Population size ( # of individuals)
+    Out  = np.zeros(pop_size, dtype=gen_specs['out'])
 
     if len(H):
-        print('IN FUNCTION', H.dtype)
-        g = max(H[:]['generation']) 
-        print("Loaded initial collection of points as generation ", g, '.')
-         
+        g = max(H['generation'])
+        individuals = H['individual'][-pop_size:]
+        fvals       = H['fitness_values'][-pop_size:] 
+        print("Loading initial collection of points as generation ", g, '.')
+        for i, ind in enumerate(pop):
+            # Fill in first pop and output with provided points
+            ind[:] = array.array('d', individuals[i])
+            ind.fitness.values = [fvals[i]]
+            Out['individual'][i] = individuals[i] 
+            Out['generation'][i] = g
+            tag = i #WHAT SHOULD THIS BE???? 
     else:
         print('No initial sample provided, starting from scratch.') 
         g = 0  # generation count
-        pop = toolbox.population(n=MU)  # MU is Population size ( # of individuals)
-    
         # Running fitness calc for first generation
-        Out = np.zeros(gen_specs['user']['pop_size'], dtype=gen_specs['out'])
         pop, tag = evaluate_pop(g, pop, Out, comm)
     
-        # This is just to assign the crowding distance to the individuals
-        # no actual selection is done
-        pop = toolbox.select(pop, len(pop))
+    # This is just to assign the crowding distance to the individuals
+    # no actual selection is done
+    pop = toolbox.select(pop, len(pop))
 
     # Begin the evolution
     while tag not in [STOP_TAG, PERSIS_STOP]:
