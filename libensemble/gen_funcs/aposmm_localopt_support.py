@@ -178,13 +178,14 @@ class LocalOptInterfacer(object):
             previous_x = self.comm_queue.get()
             count += 1
 
-        if self.hard_kill:
-            self.kill_process()
-        else:
-            self.process.terminate()
-            self.process.join(timeout=0.2)
-            if self.process.is_alive():
+        if not isinstance(previous_x, ConvergedMsg):
+            if self.hard_kill:
                 self.kill_process()
+            else:
+                self.process.terminate()
+                self.process.join(timeout=0.2)
+                if self.process.is_alive():
+                    self.kill_process()
 
         self.process.join()
         self.comm_queue.close()
@@ -199,7 +200,7 @@ class LocalOptInterfacer(object):
         if hasattr(self.process, 'kill'):
             self.process.kill()
         else:
-            if self.process.returncode is None:
+            if self.process.is_alive():
                 try:
                     os.kill(self.process.pid, signal.SIGKILL)
                 except ProcessLookupError:
