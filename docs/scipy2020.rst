@@ -76,14 +76,14 @@ Manager and Workers
 libEnsemble employs a manager/worker scheme that can communicate through various
 methods like MPI, Python's multiprocessing, and TCP. Each *worker*
 can control and monitor any level of work, from small sub-node tasks to huge
-many-node simulations. The *manager* directs workers asynchronously to execute
+many-node simulations. The *manager* allocates workers to asynchronously execute
 ``gen_f`` generation functions and ``sim_f`` simulation functions based on
-available parameters, resources, or a provided ``alloc_f`` allocation function.
+produced output, directed by a provided ``alloc_f`` allocation function.
 
 .. image:: images/logo_manager_worker.png
  :alt: Managers and Workers
  :align: center
- :scale: 50 %
+ :scale: 40 %
 
 Flexible Run Mechanisms
 -----------------------
@@ -93,25 +93,25 @@ varying scales, from laptops to machines with thousands of compute nodes.
 On multi-node systems, there are two basic modes of configuring libEnsemble to
 run and launch tasks (user applications) on available nodes.
 
-* **Distributed**: Workers are distributed across allocated nodes and launch tasks in-place. Worker processes share nodes with the applications they launch.
+* **Distributed**: Workers are distributed across allocated nodes and launch tasks in-place. Workers share nodes with their applications.
 
 .. image:: images/distributed_new.png
  :alt: Distributed
  :align: center
- :scale: 33 %
+ :scale: 30 %
 
 * **Centralized**: Workers run on one or more dedicated nodes and launch tasks to the remaining allocated nodes.
 
 .. image:: images/centralized_new.png
  :alt: Centralized
  :align: center
- :scale: 33 %
+ :scale: 30 %
 
 Executor Module
 ---------------
 
-An *executor* interface is provided to ensure libEnsemble routines that coordinate
-user applications are portable, resilient, and flexible. The executor
+An *executor* interface is provided to ensure libEnsemble routines that
+coordinate user applications are portable, resilient, and flexible. The executor
 automatically detects allocated nodes and available cores and can split up tasks
 if resource data isn't supplied.
 
@@ -127,4 +127,34 @@ nodes.
 .. image:: images/central_balsam.png
  :alt: Central Balsam
  :align: center
- :scale: 50 %
+ :scale: 40 %
+
+Example Run at Scale
+--------------------
+
+* ALCF/Theta (Cray XC40) with Balsam, at Argonne National Laboratory
+* 1030 node allocation, 511 workers, MPI communications.
+* 2044 2-node simulations
+* OPAL (Object Oriented Parallel Accelerator Library) simulation functions.
+
+
+.. list-table::
+
+    * - .. figure:: images/libe_opal_complete_v_killed_511w_2044sims_1030nodes.png
+
+           Histogram of completed and killed simulations, binned by run time.
+
+    * - .. figure:: images/libe_opal_util_v_time_511w_2044sims_1030nodes.png
+
+           Total number of Balsam-launched applications running over time.
+
+Try libEnsemble online
+----------------------
+
+Try libEnsemble in a Jupyter notebook. This simple example depicts the process
+of writing simulation and generator functions, parameterizing inputs and outputs
+in a calling script, then initiating libEnsemble:
+
+.. image:: https://mybinder.org/badge_logo.svg
+ :align: center
+ :target: https://mybinder.org/v2/gh/Libensemble/libensemble/master?filepath=examples%2Ftutorials%2Fsine_tutorial_notebook.ipynb
