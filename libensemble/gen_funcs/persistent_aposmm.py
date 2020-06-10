@@ -578,7 +578,8 @@ def initialize_APOSMM(H, user_specs, libE_info):
             print("If that works, then give it as gen_specs['user']['rk_const']")
             print("In June 2020, WolframAlpha worked for n=1e6.")
             raise
-        except: 
+        except Exception as e:
+            print(e)
             raise
 
     ld = user_specs.get('lhs_divisions', 0)
