@@ -58,6 +58,18 @@ For example, the ``gen_f`` may contain an optimization routine to generate new
 simulation parameters on-the-fly based on results from previous ``sim_f``
 simulations.
 
+Other potential use-cases include:
+
+====================             =====================
+Generator Functions:             Simulation Functions:
+====================             =====================
+Parameter estimation             Particle-in-cell
+Surrogate models                 Subsurface flow
+Sensitivity analysis             PETSc simulation
+Design optimization              DFT simulations
+Supervised learning              Quantum chemistry
+====================             =====================
+
 Manager and Workers
 -------------------
 
@@ -107,9 +119,10 @@ The executor is agnostic of both the job launch/management system and selected
 manager/worker communication method on each machine. The main functions are
 ``submit()``, ``poll()``, and ``kill()``.
 
-libEnsemble's executor can interface with the **Balsam** library, which functions
-as a proxy job launcher that maintains and submits jobs from a database on
-front-end nodes.
+On machines that do not support launches from compute nodes, libEnsemble's
+executor can interface with the **Balsam** library, which functions as a proxy
+job launcher that maintains and submits jobs from a database on front end launch
+nodes.
 
 .. image:: images/central_balsam.png
  :alt: Central Balsam
