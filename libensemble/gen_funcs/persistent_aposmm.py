@@ -10,7 +10,8 @@ __all__ = ['aposmm', 'initialize_APOSMM', 'decide_where_to_start_localopt', 'upd
 
 import numpy as np
 from scipy.spatial.distance import cdist
-from math import log, gamma, pi, sqrt
+from math import log, pi, sqrt
+from mpmath import gamma
 from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, ConvergedMsg, simulate_recv_from_manager
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
@@ -566,22 +567,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     """
     n = len(user_specs['ub'])
 
-    if 'rk_const' in user_specs:
-        rk_c = user_specs['rk_const']
-        assert rk_c > 0, "'rk_const' must be positive"
-    else:
-        try:
-            rk_c = user_specs.get('rk_const', (gamma(1+(n/2.0))*5.0**(1.0/n))/sqrt(pi))
-        except OverflowError:
-            print("There was an overflow error when trying to compute the rk_const value in persistent_aposmm, likely because n is too large.")
-            print("Try going to WolframAlpha and computing ((gamma(1+({}/2.0))*5.0)**(1.0/{}))/sqrt(pi)".format(n, n))
-            print("If that works, then give it as gen_specs['user']['rk_const']")
-            print("In June 2020, WolframAlpha worked for n=1e6.")
-            raise
-        except Exception as e:
-            print(e)
-            raise
-
+    rk_c = user_specs.get('rk_const', ((gamma(1+(n/2.0))*5.0)**(1.0/n))/sqrt(pi))
     ld = user_specs.get('lhs_divisions', 0)
     mu = user_specs.get('mu', 1e-4)
     nu = user_specs.get('nu', 0)

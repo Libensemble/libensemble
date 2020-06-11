@@ -23,25 +23,6 @@ def test_persis_aposmm_localopt_test():
         assert 0
 
 
-def test_initialize():
-    _, _, gen_specs_0, _, _ = setup.hist_setup1()
-
-    n = 400
-
-    H = np.zeros(4, dtype=[('f', float), ('sim_id', bool), ('dist_to_unit_bounds', float), ('returned', bool)])
-    H['returned'] = True
-    H['sim_id'] = range(len(H))
-    gen_specs_0['user']['ub'] = np.ones(n)
-    gen_specs_0['user']['lb'] = np.zeros(n)
-
-    try:
-        al.aposmm(H, {}, gen_specs_0, libE_specs)
-    except OverflowError:
-        assert 1, "Failed as expected, because n is too large for the rk_const calculation in persistent_aposmm."
-    else:
-        assert 0
-
-
 def test_update_history_optimal():
     hist, _, _, _, _ = setup.hist_setup1(n=2)
 
@@ -127,6 +108,5 @@ def test_standalone_persistent_aposmm():
 
 if __name__ == "__main__":
     test_persis_aposmm_localopt_test()
-    test_initialize()
     test_update_history_optimal()
     test_standalone_persistent_aposmm()
