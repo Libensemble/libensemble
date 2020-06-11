@@ -66,38 +66,45 @@ gen_specs = {'gen_f': gen_f,
 
 # libE Allocation function
 alloc_specs = {'out': [('given_back', bool)], 'alloc_f': alloc_f}
-persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls
 # For deap, this should be pop_size*number of generations+1
 exit_criteria = {'sim_max': pop_size*(ngen+1)}
 
+for run in range(2): 
 
-# Number of points in the sample
-num_sample = 100
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-H0 = np.zeros(num_sample, dtype=[('individual', float, ind_size), ('generation', int), ('fitness_values', float),
-                                 ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)])
+    if run == 1:
+        # Test loading in a previous set of (x,f)-pairs, or (individual, fitness_values)-pairs
 
-# Mark these points as already have been given to be evaluated, and returned, but not given_back.
-H0[['given', 'given_back', 'returned']] = True
-H0['generation'][:] = 1
-# Give these points sim_ids
-H0['sim_id'] = range(num_sample)
+        # Number of points in the sample
+        num_sample = 100
 
-# "Load in" the points and their function values. (In this script, we are
-# actually evaluating them, but in many cases, they are available from past
-# evaluations
-H0['individual'] = np.random.uniform(lb, ub, (num_sample, len(lb)))
-for i, x in enumerate(H0['individual']):
-    H0['fitness_values'][i] = six_hump_camel_func(x)
+        H0 = np.zeros(num_sample, dtype=[('individual', float, ind_size), ('generation', int), ('fitness_values', float),
+                                         ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)])
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
+        # Mark these points as already have been given to be evaluated, and returned, but not given_back.
+        H0[['given', 'given_back', 'returned']] = True
+        H0['generation'][:] = 1
+        # Give these points sim_ids
+        H0['sim_id'] = range(num_sample)
 
-if is_master:
-    script_name = os.path.splitext(os.path.basename(__file__))[0]
-    assert flag == 0, script_name + " didn't exit correctly"
-    assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
-    assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global minimum for this problem."
+        # "Load in" the points and their function values. (In this script, we are
+        # actually evaluating them, but in many cases, they are available from past
+        # evaluations
+        H0['individual'] = np.random.uniform(lb, ub, (num_sample, len(lb)))
+        for i, x in enumerate(H0['individual']):
+            H0['fitness_values'][i] = six_hump_camel_func(x)
+    else:
+        H0 = None
+
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
+
+    if is_master:
+        script_name = os.path.splitext(os.path.basename(__file__))[0]
+        assert flag == 0, script_name + " didn't exit correctly"
+        assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
+        assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global minimum for this problem."
