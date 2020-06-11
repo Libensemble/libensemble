@@ -72,7 +72,7 @@ alloc_specs = {'out': [('given_back', bool)], 'alloc_f': alloc_f}
 # For deap, this should be pop_size*number of generations+1
 exit_criteria = {'sim_max': pop_size*(ngen+1)}
 
-for run in range(2): 
+for run in range(2):
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -80,21 +80,21 @@ for run in range(2):
         # Test loading in a previous set of (x,f)-pairs, or (individual, fitness_values)-pairs
 
         # Number of points in the sample
-        num_sample = 100
+        num_samp = 100
 
-        H0 = np.zeros(num_sample, dtype=[('individual', float, ind_size), ('generation', int), ('fitness_values', float),
-                                         ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)])
+        H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int), ('fitness_values', float),
+                                       ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)])
 
         # Mark these points as already have been given to be evaluated, and returned, but not given_back.
         H0[['given', 'given_back', 'returned']] = True
         H0['generation'][:] = 1
         # Give these points sim_ids
-        H0['sim_id'] = range(num_sample)
+        H0['sim_id'] = range(num_samp)
 
         # "Load in" the points and their function values. (In this script, we are
         # actually evaluating them, but in many cases, they are available from past
         # evaluations
-        H0['individual'] = np.random.uniform(lb, ub, (num_sample, len(lb)))
+        H0['individual'] = np.random.uniform(lb, ub, (num_samp, len(lb)))
         for i, x in enumerate(H0['individual']):
             H0['fitness_values'][i] = six_hump_camel_func(x)
     else:
