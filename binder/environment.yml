@@ -6,5 +6,6 @@ channels:
 dependencies:
     - numpy
     - openmpi
+    - openmpi-mpicc
     - mpi4py
     - libensemble
