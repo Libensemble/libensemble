@@ -318,8 +318,8 @@ echo -e "Python run: $PYTHON_RUN"
 textreset=$(tput sgr0)
 fail_color=$(tput bold;tput setaf 1) #red
 pass_color=$(tput bold;tput setaf 2) #green
-titl_colour=$(tput bold;tput setaf 6) #cyan
-hint_colour=$(tput bold;tput setaf 4) #blue
+titl_color=$(tput bold;tput setaf 6) #cyan
+hint_color=$(tput bold;tput setaf 4) #blue
 
 # Note - pytest exit codes
 # Exit code 0:  All tests were collected and passed successfully
@@ -468,6 +468,8 @@ if [ "$root_found" = true ]; then
           if [ "$RUN_TEST" = "true" ]; then
              test_num=$((test_num+1))
              test_start=$(current_time)
+
+             echo -e "\n ${titl_color}---Test $test_num: $TEST_SCRIPT starting with $LAUNCHER on $NPROCS processes ${textreset}"
 
              if [ "$REG_USE_PYTEST" = true ]; then
                if [ "$LAUNCHER" = mpi ]; then
