@@ -14,7 +14,7 @@ status of the calculation, since it could include multiple application runs. It
 can be added as a third return variable in sim_f or gen_f functions.
 The calc_status codes are in the ``libensemble.message_numbers`` module.
 
-Example of ``calc_status`` used along with :ref:`executor<executor_index>` in sim_f:
+Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in sim_f:
 
 .. code-block:: python
   :linenos:

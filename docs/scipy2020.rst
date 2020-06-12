@@ -116,17 +116,17 @@ run and launch tasks (user applications) on available nodes.
 Executor Module
 ---------------
 
-An *executor* interface is provided to ensure libEnsemble routines that
-coordinate user applications are portable, resilient, and flexible. The executor
+An *Executor* interface is provided to ensure libEnsemble routines that
+coordinate user applications are portable, resilient, and flexible. The Executor
 automatically detects allocated nodes and available cores and can split up tasks
 if resource data isn't supplied.
 
-The executor is agnostic of both the job launch/management system and selected
+The Executor is agnostic of both the job launch/management system and selected
 manager/worker communication method on each machine. The main functions are
 ``submit()``, ``poll()``, and ``kill()``.
 
 On machines that do not support launches from compute nodes, libEnsemble's
-executor can interface with the **Balsam** library, which functions as a proxy
+Executor can interface with the **Balsam** library, which functions as a proxy
 job launcher that maintains and submits jobs from a database on front end launch
 nodes.
 
