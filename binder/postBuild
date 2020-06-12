@@ -1,5 +1,7 @@
 #!/bin/bash
 
+which mpiexec
+
 set -e
 pip install mpi4py
 pip install numpy
