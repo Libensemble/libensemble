@@ -5,7 +5,7 @@ import libensemble.tests.unit_tests.setup as setup
 libE_specs = {'comm': {}}
 
 
-def test_persis_apossm_localopt_test():
+def test_persis_aposmm_localopt_test():
     _, _, gen_specs_0, _, _ = setup.hist_setup1()
 
     H = np.zeros(4, dtype=[('f', float), ('sim_id', bool), ('dist_to_unit_bounds', float), ('returned', bool)])
@@ -107,6 +107,6 @@ def test_standalone_persistent_aposmm():
 
 
 if __name__ == "__main__":
-    test_persis_apossm_localopt_test()
+    test_persis_aposmm_localopt_test()
     test_update_history_optimal()
     test_standalone_persistent_aposmm()

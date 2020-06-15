@@ -10,7 +10,8 @@ __all__ = ['aposmm', 'initialize_APOSMM', 'decide_where_to_start_localopt', 'upd
 
 import numpy as np
 from scipy.spatial.distance import cdist
-from math import log, gamma, pi, sqrt
+from math import log, pi, sqrt
+from mpmath import gamma
 from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, ConvergedMsg, simulate_recv_from_manager
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG

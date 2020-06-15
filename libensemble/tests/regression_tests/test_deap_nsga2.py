@@ -4,7 +4,7 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 3 4
 
 import numpy as np
@@ -52,7 +52,7 @@ sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is bei
 
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
+             'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
              'out': [('individual', float, ind_size), ('generation', int)],
              'user': {'lb': lb,
                       'ub': ub,
@@ -66,19 +66,45 @@ gen_specs = {'gen_f': gen_f,
 
 # libE Allocation function
 alloc_specs = {'out': [('given_back', bool)], 'alloc_f': alloc_f}
-persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls
 # For deap, this should be pop_size*number of generations+1
 exit_criteria = {'sim_max': pop_size*(ngen+1)}
 
+for run in range(2):
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-if is_master:
-    script_name = os.path.splitext(os.path.basename(__file__))[0]
-    assert flag == 0, script_name + " didn't exit correctly"
-    assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
-    assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global minimum for this problem."
+    if run == 1:
+        # Test loading in a previous set of (x,f)-pairs, or (individual, fitness_values)-pairs
+
+        # Number of points in the sample
+        num_samp = 100
+
+        H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int), ('fitness_values', float),
+                                       ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)])
+
+        # Mark these points as already have been given to be evaluated, and returned, but not given_back.
+        H0[['given', 'given_back', 'returned']] = True
+        H0['generation'][:] = 1
+        # Give these points sim_ids
+        H0['sim_id'] = range(num_samp)
+
+        # "Load in" the points and their function values. (In this script, we are
+        # actually evaluating them, but in many cases, they are available from past
+        # evaluations
+        H0['individual'] = np.random.uniform(lb, ub, (num_samp, len(lb)))
+        for i, x in enumerate(H0['individual']):
+            H0['fitness_values'][i] = six_hump_camel_func(x)
+    else:
+        H0 = None
+
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
+
+    if is_master:
+        script_name = os.path.splitext(os.path.basename(__file__))[0]
+        assert flag == 0, script_name + " didn't exit correctly"
+        assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
+        assert min(H['fitness_values']) <= -1.0315, script_name + " didn't find the global minimum for this problem."
