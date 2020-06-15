@@ -159,7 +159,6 @@ class LocalOptInterfacer(object):
 
     def destroy(self):
         """Recursively kill any optimizer processes still running"""
-
         if self.process.is_alive():
             process = psutil.Process(self.process.pid)
             for child in process.children(recursive=True):
@@ -168,6 +167,7 @@ class LocalOptInterfacer(object):
         self.close()
 
     def close(self):
+        """Join process and close queue"""
         self.process.join()
         self.comm_queue.close()
         self.comm_queue.join_thread()
