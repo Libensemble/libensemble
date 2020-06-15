@@ -20,46 +20,67 @@ def run_Balsam_job():
 
 def wait_for_job_dir(basedb):
     sleeptime = 0
+    limit = 15
 
-    while not os.path.isdir(basedb) and sleeptime < 15:
+    # Stop sleeping once database directory detected
+    print('Waiting for Balsam Database directory.')
+    while sleeptime < limit:
+        if os.path.isdir(basedb):
+            break
         time.sleep(1)
         sleeptime += 1
 
+    assert sleeptime < limit, \
+        "Balsam Database directory not created within {} seconds.".format(limit)
+
+    # Stop sleeping once job directory detected within database directory
     print('Waiting for Job Directory {}'.format(sleeptime))
-    while len(os.listdir(basedb)) == 0 and sleeptime < 15:
+    while sleeptime < limit:
+        if len(os.listdir(basedb)) > 0:
+            break
         print(sleeptime, end=" ", flush=True)
         time.sleep(1)
         sleeptime += 1
 
-    jobdirname = os.listdir(basedb)[0]
-    jobdir = os.path.join(basedb, jobdirname)
+    assert sleeptime < limit, \
+        "Balsam Job directory not created within {} seconds.".format(limit)
+
+    # Assumes database dir was empty, now contains single job dir
+    jobdir = os.path.join(basedb, os.listdir(basedb)[0])
     return jobdir
 
 
 def wait_for_job_output(jobdir):
     sleeptime = 0
+    limit = 40
 
     output = os.path.join(jobdir, 'job_script_test_balsam_hworld.out')
     print('Checking for Balsam output file: {}'.format(output))
 
-    while not os.path.isfile(output) and sleeptime < 40:
+    while sleeptime < limit:
+        if os.path.isfile(output):
+            break
         print(sleeptime, end=" ", flush=True)
         time.sleep(1)
         sleeptime += 1
+
+    assert sleeptime < limit, \
+        "Balsam output file not created within {} seconds.".format(limit)
 
     return output
 
 
 def print_job_output(outscript):
     sleeptime = 0
+    limit = 60
 
-    print('Output file found. Waiting for complete Balsam Job Output.')
+    print('Blank output file found. Waiting for expected complete Balsam Job Output.')
     lastlines = ['Task 4 done on worker 1\n', 'Task 4 done on worker 2\n',
                  'Run completed.\n']
 
     lastposition = 0
 
-    while sleeptime < 60:
+    while sleeptime < limit:
         with open(outscript, 'r') as f:
             f.seek(lastposition)
             new = f.read()
@@ -75,6 +96,9 @@ def print_job_output(outscript):
 
         time.sleep(1)
         sleeptime += 1
+
+    assert sleeptime < limit, \
+        "Expected Balsam Job output-file contents not detected after {} seconds.".format(limit)
 
 
 def move_job_coverage(jobdir):
