@@ -54,7 +54,7 @@ def print_job_output(outscript):
     sleeptime = 0
 
     print('Output file found. Waiting for complete Balsam Job Output.')
-    lastlines = ['Job 4 done on worker 1\n', 'Job 4 done on worker 2\n',
+    lastlines = ['Task 4 done on worker 1\n', 'Task 4 done on worker 2\n',
                  'Run completed.\n']
 
     lastposition = 0
