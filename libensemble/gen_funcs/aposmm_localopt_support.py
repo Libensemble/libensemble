@@ -5,16 +5,12 @@ optimization routines.
 __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
-import os
-import sys
-import signal
-from signal import SIGINT, SIG_DFL
+import psutil
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
 import libensemble.gen_funcs
 
-signal.signal(SIGINT, SIG_DFL)
 optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
@@ -40,32 +36,6 @@ else:
         from scipy import optimize as sp_opt
     if 'external' in optimizers:
         pass
-
-
-def send_signal(process, sig):
-    """Send a signal to a multiprocessing process with error handling based on
-    https://github.com/python/cpython/blob/3.5/Lib/multiprocessing/popen_fork.py
-    """
-
-    if process.is_alive():
-        try:
-            os.kill(process.pid, sig)
-        except ProcessLookupError:
-            pass
-        except OSError:
-            if process.wait(timeout=0.1) is None:
-                raise
-
-
-def send_sigkill(process):
-    """Kill with process SIGKILL, based on terminate in
-    https://github.com/python/cpython/blob/3.5/Lib/multiprocessing/popen_fork.py
-    """
-
-    if hasattr(process, 'kill'):
-        process.kill()
-    else:
-        send_signal(process, signal.SIGKILL)
 
 
 class APOSMMException(Exception):
@@ -191,17 +161,15 @@ class LocalOptInterfacer(object):
         return x_new
 
     def destroy(self, previous_x):
-        """Destroy any optimizer processes still running"""
+        """Recursively kill any optimizer processes still running"""
 
         if not isinstance(previous_x, ConvergedMsg):
-            if 'petsc4py.PETSc' in sys.modules:
-                send_signal(self.process, signal.SIGINT)
-            else:
-                self.process.terminate()
-            self.process.join(timeout=0.2)
-
-            if self.process.is_alive():
-                send_sigkill(self.process)
+            process = psutil.Process(self.process.pid)
+            print('process type', type(process))
+            for child in process.children(recursive=True):
+                print('child type', type(child))
+                child.kill()
+            process.kill()
 
         self.process.join()
         self.comm_queue.close()
