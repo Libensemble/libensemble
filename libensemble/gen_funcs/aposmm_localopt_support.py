@@ -165,9 +165,7 @@ class LocalOptInterfacer(object):
 
         if not isinstance(previous_x, ConvergedMsg):
             process = psutil.Process(self.process.pid)
-            print('process type', type(process))
             for child in process.children(recursive=True):
-                print('child type', type(child))
                 child.kill()
             process.kill()
 
