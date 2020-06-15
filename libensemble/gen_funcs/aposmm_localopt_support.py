@@ -151,24 +151,23 @@ class LocalOptInterfacer(object):
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
         elif isinstance(x_new, ConvergedMsg):
-            self.process.join()
-            self.comm_queue.close()
-            self.comm_queue.join_thread()
-            self.is_running = False
+            self.close()
         else:
             x_new = np.atleast_2d(x_new)
 
         return x_new
 
-    def destroy(self, previous_x):
+    def destroy(self):
         """Recursively kill any optimizer processes still running"""
 
-        if not isinstance(previous_x, ConvergedMsg):
+        if self.process.is_alive():
             process = psutil.Process(self.process.pid)
             for child in process.children(recursive=True):
                 child.kill()
             process.kill()
+        self.close()
 
+    def close(self):
         self.process.join()
         self.comm_queue.close()
         self.comm_queue.join_thread()
