@@ -102,7 +102,7 @@ install:
     # Begin: Dependencies only for regression tests
   - pip install DFO-LS
   - pip install deap
-  - pip install psutil
+  - conda install psutil
   - pip install mpmath
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         pip install scikit-build packaging Tasmanian --user;
