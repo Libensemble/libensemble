@@ -121,7 +121,6 @@ for run in range(2):
             Out, _ = sim_f(H0[[i]])
             H0['f'][i] = Out['f']
 
-        gen_specs['user']['use_chkpt'] = True
         gen_specs['user']['first_batch_size'] = 0
     else:
         H0 = None
