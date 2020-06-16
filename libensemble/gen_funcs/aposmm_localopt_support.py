@@ -5,13 +5,12 @@ optimization routines.
 __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
-import os
-import signal
+import psutil
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
-
 import libensemble.gen_funcs
+
 optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
@@ -85,11 +84,10 @@ class LocalOptInterfacer(object):
             immediately after creating the class.
 
         """
-        self.parent_can_read = Event()
 
+        self.parent_can_read = Event()
         self.comm_queue = Queue()
         self.child_can_read = Event()
-        self.hard_kill = False
 
         self.x0 = x0.copy()
         self.f0 = f0.copy()
@@ -104,7 +102,6 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_nlopt
         elif user_specs['localopt_method'] in ['pounders', 'blmvm', 'nm']:
             run_local_opt = run_local_tao
-            self.hard_kill = True
         elif user_specs['localopt_method'] in ['scipy_Nelder-Mead', 'scipy_COBYLA', 'scipy_BFGS']:
             run_local_opt = run_local_scipy_opt
         elif user_specs['localopt_method'] in ['dfols']:
@@ -137,6 +134,7 @@ class LocalOptInterfacer(object):
         :param grad: A numpy array of the function's gradient.
         :param fvec: A numpy array of the function's component values.
         """
+
         self.parent_can_read.clear()
 
         if 'grad' in data.dtype.names:
@@ -153,61 +151,27 @@ class LocalOptInterfacer(object):
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
         elif isinstance(x_new, ConvergedMsg):
-            self.process.join()
-            self.comm_queue.close()
-            self.comm_queue.join_thread()
-            self.is_running = False
+            self.close()
         else:
             x_new = np.atleast_2d(x_new)
 
         return x_new
 
-    def destroy(self, previous_x):
+    def destroy(self):
+        """Recursively kill any optimizer processes still running"""
+        if self.process.is_alive():
+            process = psutil.Process(self.process.pid)
+            for child in process.children(recursive=True):
+                child.kill()
+            process.kill()
+        self.close()
 
-        count = 0
-        while not isinstance(previous_x, ConvergedMsg) and count <= 1000:
-            self.parent_can_read.clear()
-            if self.grad0 is None:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
-            else:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
-
-            self.child_can_read.set()
-            self.parent_can_read.wait()
-
-            previous_x = self.comm_queue.get()
-            count += 1
-
-        if not isinstance(previous_x, ConvergedMsg):
-            if self.hard_kill:
-                self.kill_process()
-            else:
-                self.process.terminate()
-                self.process.join(timeout=0.2)
-                if self.process.is_alive():
-                    self.kill_process()
-
+    def close(self):
+        """Join process and close queue"""
         self.process.join()
         self.comm_queue.close()
         self.comm_queue.join_thread()
         self.is_running = False
-
-    def kill_process(self):
-        """Kill with process.kill() or based on terminate in
-        https://github.com/python/cpython/blob/3.5/Lib/multiprocessing/popen_fork.py
-        """
-
-        if hasattr(self.process, 'kill'):
-            self.process.kill()
-        else:
-            if self.process.is_alive():
-                try:
-                    os.kill(self.process.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-                except OSError:
-                    if self.process.wait(timeout=0.1) is None:
-                        raise
 
 
 def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
