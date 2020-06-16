@@ -146,15 +146,18 @@ Machine                         Location                                 Facilit
 Summit_    `Oak Ridge National Laboratory`_                              OLCF_        IBM AC922, IBM POWER9 nodes w/ NVIDIA Volta GPUs
 Theta_     `Argonne National Laboratory`_                                ALCF_        Cray XC40, Intel KNL nodes
 Cori_      `National Energy Research Scientific Computing Center`_                    Cray XC40, Intel Haswell & KNL nodes
+Bridges_   `Pittsburgh Supercomputing Center`_                                        HPE, Intel Haswell nodes, NVIDIA GPU nodes
 ========   =======================================================       ========     ================================================
 
 .. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
 .. _Cori: https://docs.nersc.gov/systems/cori/
+.. _Bridges: https://www.psc.edu/resources/computing/bridges
 
 .. _`Oak Ridge National Laboratory`: https://www.ornl.gov/
 .. _`Argonne National Laboratory`: https://www.anl.gov/
 .. _`National Energy Research Scientific Computing Center`: https://www.nersc.gov/
+.. _`Pittsburgh Supercomputing Center`: https://www.psc.edu/
 
 .. _OLCF: https://www.olcf.ornl.gov/
 .. _ALCF: https://www.alcf.anl.gov/
