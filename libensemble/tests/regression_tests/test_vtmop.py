@@ -23,6 +23,8 @@
 # TESTSUITE_NPROCS:
 
 import numpy as np
+import os
+from libensemble.utils.timer import Timer
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -31,6 +33,8 @@ from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 from libensemble.gen_funcs.vtmop import vtmop_gen as gen_f
 from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+
+timer = Timer()
 
 # Set the problem dimensions here
 num_dims = 5
@@ -137,7 +141,12 @@ for run in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
 
-    # The master takes care of checkpointint/output
+    # The master takes care of checkpointing/output
     if is_master:
+        # Renaming vtmop checkpointing file, if needed for later use.
+        timer.start()
+        s1 = timer.date_start.replace(' ', '_')
+        os.rename('vtmop.chkpt', 'vtmop.chkpt_finishing_' + s1)
+
         assert flag == 0
         save_libE_output(H, persis_info, __file__, nworkers)
