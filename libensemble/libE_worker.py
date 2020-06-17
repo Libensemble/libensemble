@@ -281,17 +281,25 @@ class Worker:
         if not self.loc_stack:
             self.loc_stack = LocationStack()
 
-        H_rows = Worker._extract_H_ranges(Work)
+        if calc_type == EVAL_SIM_TAG:
+            H_rows = Worker._extract_H_ranges(Work)
+        else:
+            H_rows = str(self.calc_iter[calc_type])
+
         calc_str = calc_type_strings[calc_type]
 
-        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
-            calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
-                                             H_rows, calc_str, self.loc_stack)
+        calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
+                                         H_rows, calc_str, self.loc_stack)
 
-            with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
-                return calc(calc_in, Work['persis_info'], Work['libE_info'])
+        with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
+            return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
-        return calc(calc_in, Work['persis_info'], Work['libE_info'])
+
+    def _do_calc_dirs(self):
+        "Determines if calc_dir use should be enabled"
+
+        return any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys])
+
 
     def _handle_calc(self, Work, calc_in):
         """Runs a calculation on this worker object.
@@ -322,7 +330,7 @@ class Worker:
             with timer:
                 logger.debug("Calling calc {}".format(calc_type))
 
-                if calc_type == EVAL_SIM_TAG:
+                if self._do_calc_dirs():
                     out = self._determine_dir_then_calc(Work, calc_type, calc_in, calc)
                 else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])

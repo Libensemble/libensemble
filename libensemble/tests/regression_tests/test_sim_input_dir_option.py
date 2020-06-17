@@ -19,7 +19,7 @@ import os
 
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_func as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.tests.regression_tests.support import uniform_random_sample_write as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_master, libE_specs, _ = parse_args()
@@ -59,7 +59,7 @@ if is_master:
         'Ensemble directory {} not created.'.format(o_ensemble)
     assert os.path.basename(dir_to_copy) in os.listdir(o_ensemble), \
         'Input file not copied over.'
-    with open(os.path.join(o_ensemble, 'test_out.txt'), 'r') as f:
+    with open(os.path.join(o_ensemble, 'test_sim_out.txt'), 'r') as f:
         lines = f.readlines()
 
     assert len(lines) == exit_criteria['sim_max'], \
