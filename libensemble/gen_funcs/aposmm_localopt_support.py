@@ -5,11 +5,12 @@ optimization routines.
 __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
+import psutil
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
-
 import libensemble.gen_funcs
+
 optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
@@ -83,8 +84,8 @@ class LocalOptInterfacer(object):
             immediately after creating the class.
 
         """
-        self.parent_can_read = Event()
 
+        self.parent_can_read = Event()
         self.comm_queue = Queue()
         self.child_can_read = Event()
 
@@ -133,6 +134,7 @@ class LocalOptInterfacer(object):
         :param grad: A numpy array of the function's gradient.
         :param fvec: A numpy array of the function's component values.
         """
+
         self.parent_can_read.clear()
 
         if 'grad' in data.dtype.names:
@@ -149,29 +151,23 @@ class LocalOptInterfacer(object):
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
         elif isinstance(x_new, ConvergedMsg):
-            self.process.join()
-            self.comm_queue.close()
-            self.comm_queue.join_thread()
-            self.is_running = False
+            self.close()
         else:
             x_new = np.atleast_2d(x_new)
 
         return x_new
 
-    def destroy(self, previous_x):
+    def destroy(self):
+        """Recursively kill any optimizer processes still running"""
+        if self.process.is_alive():
+            process = psutil.Process(self.process.pid)
+            for child in process.children(recursive=True):
+                child.kill()
+            process.kill()
+        self.close()
 
-        while not isinstance(previous_x, ConvergedMsg):
-            self.parent_can_read.clear()
-            if self.grad0 is None:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
-            else:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
-
-            self.child_can_read.set()
-            self.parent_can_read.wait()
-
-            previous_x = self.comm_queue.get()
-        assert isinstance(previous_x, ConvergedMsg)
+    def close(self):
+        """Join process and close queue"""
         self.process.join()
         self.comm_queue.close()
         self.comm_queue.join_thread()

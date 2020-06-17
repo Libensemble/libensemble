@@ -12,7 +12,7 @@ export RUN_PEP_TESTS=false     #Code syle conventions
 
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
-export REG_TEST_LIST=test_*.py #unordered
+export REG_TEST_LIST=test_*.py #unordered # override with -y
 # export REG_TEST_PROCESS_COUNT_LIST='2 4'
 export REG_USE_PYTEST=false
 export REG_TEST_OUTPUT_EXT=std.out #/dev/null
@@ -129,37 +129,39 @@ cleanup() {
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
   for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
   cd $ROOT_DIR/$DIR
-    filelist=(libE_history_at_abort_*.npy);                  [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
-    filelist=(*.out);                  [ -e ${filelist[0]} ] && rm *.out
-    filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
-    filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
-    filelist=(.cov_unit_out*);         [ -e ${filelist[0]} ] && rm .cov_unit_out*
-    filelist=(my_simtask.x);           [ -e ${filelist[0]} ] && rm my_simtask.x
-    filelist=(task_my_simtask.x*.out); [ -e ${filelist[0]} ] && rm task_my_simtask.x*.out
-    filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
-    filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
-    filelist=(my_machinefile);         [ -e ${filelist[0]} ] && rm my_machinefile
-    filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
-    filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
+    filelist=(libE_history_at_abort_*.npy); [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
+    filelist=(*.out);                   [ -e ${filelist[0]} ] && rm *.out
+    filelist=(*.err);                   [ -e ${filelist[0]} ] && rm *.err
+    filelist=(*.pickle);                [ -e ${filelist[0]} ] && rm *.pickle
+    filelist=(.cov_unit_out*);          [ -e ${filelist[0]} ] && rm .cov_unit_out*
+    filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
+    filelist=(task_my_simtask.x*.out);  [ -e ${filelist[0]} ] && rm task_my_simtask.x*.out
+    filelist=(*libe_summary.txt*);      [ -e ${filelist[0]} ] && rm *libe_summary.txt*
+    filelist=(*libE_stats.txt*);        [ -e ${filelist[0]} ] && rm *libE_stats.txt*
+    filelist=(my_machinefile);          [ -e ${filelist[0]} ] && rm my_machinefile
+    filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
+    filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
   done
   cd $ROOT_DIR/$REG_TEST_SUBDIR
-    filelist=(*.$REG_TEST_OUTPUT_EXT); [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
-    filelist=(*.npy);                  [ -e ${filelist[0]} ] && rm *.npy
-    filelist=(*.pickle);               [ -e ${filelist[0]} ] && rm *.pickle
-    filelist=(.cov_reg_out*);          [ -e ${filelist[0]} ] && rm .cov_reg_out*
-    filelist=(*active_runs.txt);       [ -e ${filelist[0]} ] && rm *active_runs.txt
-    filelist=(*.err);                  [ -e ${filelist[0]} ] && rm *.err
-    filelist=(outfile*.txt);           [ -e ${filelist[0]} ] && rm outfile*.txt
-    filelist=(machinefile*);           [ -e ${filelist[0]} ] && rm machinefile*
+    filelist=(*.$REG_TEST_OUTPUT_EXT);  [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
+    filelist=(*.npy);                   [ -e ${filelist[0]} ] && rm *.npy
+    filelist=(*.pickle);                [ -e ${filelist[0]} ] && rm *.pickle
+    filelist=(.cov_reg_out*);           [ -e ${filelist[0]} ] && rm .cov_reg_out*
+    filelist=(*active_runs.txt);        [ -e ${filelist[0]} ] && rm *active_runs.txt
+    filelist=(*.err);                   [ -e ${filelist[0]} ] && rm *.err
+    filelist=(outfile*.txt);            [ -e ${filelist[0]} ] && rm outfile*.txt
+    filelist=(machinefile*);            [ -e ${filelist[0]} ] && rm machinefile*
     filelist=(task_my_simtask.x.*.out); [ -e ${filelist[0]} ] && rm task_my_simtask.x.*.out
-    filelist=(*libe_summary.txt*);     [ -e ${filelist[0]} ] && rm *libe_summary.txt*
-    filelist=(*libE_stats.txt*);       [ -e ${filelist[0]} ] && rm *libE_stats.txt*
-    filelist=(my_simtask.x);           [ -e ${filelist[0]} ] && rm my_simtask.x
-    filelist=(libe_stat_files);        [ -e ${filelist[0]} ] && rm -r libe_stat_files
-    filelist=(ensemble.log);           [ -e ${filelist[0]} ] && rm ensemble.log
-    filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
-    filelist=(sim_*);                  [ -e ${filelist[0]} ] && rm -r sim_*
-    filelist=(nodelist_*);             [ -e ${filelist[0]} ] && rm nodelist_*
+    filelist=(*libe_summary.txt*);      [ -e ${filelist[0]} ] && rm *libe_summary.txt*
+    filelist=(*libE_stats.txt*);        [ -e ${filelist[0]} ] && rm *libE_stats.txt*
+    filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
+    filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
+    filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
+    filelist=(ensemble_*);              [ -e ${filelist[0]} ] && rm -r ensemble_*
+    filelist=(sim_*);                   [ -e ${filelist[0]} ] && rm -r sim_*
+    filelist=(nodelist_*);              [ -e ${filelist[0]} ] && rm nodelist_*
+    filelist=(x_*.txt y_*.txt);         [ -e ${filelist[0]} ] && rm x_*.txt y_*.txt
+    filelist=(opt_*.txt_flag);          [ -e ${filelist[0]} ] && rm opt_*.txt_flag
   cd $THISDIR
 }
 
@@ -201,13 +203,14 @@ usage() {
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -n {name}       Supply a name to this test run"
   echo "  -a {args}       Supply a string of args to add to mpiexec line"
+  echo "  -y {args}       Supply a list of regression tests as a reg. expression  e.g. '-y test_persistent_aposmm*'"
   echo ""
   echo "Note: If none of [-mlt] are given, the default is to run tests for all comms"
   echo ""
   exit 1
 }
 
-while getopts ":p:n:a:hcszurmlt" opt; do
+while getopts ":p:n:a:y:hcszurmlt" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -252,6 +255,10 @@ while getopts ":p:n:a:hcszurmlt" opt; do
     m)
       echo "Running only the MPI regression tests"
       export RUN_MPI=true
+      ;;
+    y)
+      echo "Running with user supplied test list"
+      export REG_TEST_LIST="$OPTARG"
       ;;
     h)
       usage
@@ -318,8 +325,8 @@ echo -e "Python run: $PYTHON_RUN"
 textreset=$(tput sgr0)
 fail_color=$(tput bold;tput setaf 1) #red
 pass_color=$(tput bold;tput setaf 2) #green
-titl_colour=$(tput bold;tput setaf 6) #cyan
-hint_colour=$(tput bold;tput setaf 4) #blue
+titl_color=$(tput bold;tput setaf 6) #cyan
+hint_color=$(tput bold;tput setaf 4) #blue
 
 # Note - pytest exit codes
 # Exit code 0:  All tests were collected and passed successfully
@@ -468,6 +475,8 @@ if [ "$root_found" = true ]; then
           if [ "$RUN_TEST" = "true" ]; then
              test_num=$((test_num+1))
              test_start=$(current_time)
+
+             echo -e "\n ${titl_color}---Test $test_num: $TEST_SCRIPT starting with $LAUNCHER on $NPROCS processes ${textreset}"
 
              if [ "$REG_USE_PYTEST" = true ]; then
                if [ "$LAUNCHER" = mpi ]; then

@@ -94,3 +94,22 @@ for run in range(2):
         assert min_found >= 4, "Found {} minima".format(min_found)
 
         save_libE_output(H, persis_info, __file__, nworkers)
+
+# Now let's run on the same problem with a really large n (but we won't test
+# convergence to all local min). Note that sim_f uses only entries x[0:2]
+n = 400
+persis_info = add_unique_random_streams({}, nworkers + 1)
+gen_specs['out'][0:2] = [('x', float, n), ('x_on_cube', float, n)]
+gen_specs['user']['lb'] = np.zeros(n)
+gen_specs['user']['ub'] = np.ones(n)
+gen_specs['user']['lb'][:2] = [-3, -2]
+gen_specs['user']['ub'][:2] = [3, 2]
+gen_specs['user']['rk_const'] = 4.90247
+gen_specs['user'].pop('sample_points')
+gen_specs['user']['localopt_method'] = 'scipy_Nelder-Mead'
+sim_specs['out'] = [('f', float)]
+
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+if is_master:
+    assert np.sum(H['returned']) >= exit_criteria['sim_max'], "Run didn't finish"
