@@ -162,13 +162,16 @@ Bridges_   `Pittsburgh Supercomputing Center`_                                  
 .. _OLCF: https://www.olcf.ornl.gov/
 .. _ALCF: https://www.alcf.anl.gov/
 
-Example Run at Scale
---------------------
+Example Results
+---------------
+
+OPAL Simulations
+~~~~~~~~~~~~~~~~
 
 * ALCF/Theta (Cray XC40) with Balsam, at Argonne National Laboratory
 * 1030 node allocation, 511 workers, MPI communications.
 * 2044 2-node simulations
-* OPAL (Object Oriented Parallel Accelerator Library) simulation functions.
+* Object Oriented Parallel Accelerator Library (OPAL) simulation functions.
 
 
 .. list-table::
@@ -181,14 +184,6 @@ Example Run at Scale
 
            Total number of Balsam-launched applications running over time.
 
-Future Work
------------
-
-libEnsemble is in active development on `GitHub <https://github.com/Libensemble/libensemble>`_.
-Aspirational Features include:
-
-* Executor implementing containerized launches
-* Partitioning of on-node GPUs or high-speed disks for workers
 
 Try libEnsemble Online
 ----------------------
