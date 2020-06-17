@@ -107,7 +107,7 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
 # Set up the allocator
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
-for run in range(2):
+for run in range(3):
     if run == 1:
         # In the second run, we initialize VTMOP with an initial sample:
         np.random.seed(0)
@@ -126,16 +126,25 @@ for run in range(2):
             H0['f'][i] = Out['f']
 
         gen_specs['user']['first_batch_size'] = 0
+        # Run for 1100 evaluations or 300 seconds
+        exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
+    if run == 2:
+        if is_master:
+            os.rename('vtmop.chkpt_finishing_' + s1, 'vtmop.chkpt')
+        gen_specs['user']['use_chkpt'] = True
+        # load history array
+        
+        # Run for 100 more evaluations or 300 seconds
+        exit_criteria = {'sim_max': 1200, 'elapsed_wallclock_time': 300}
     else:
         H0 = None
+        # Run for 1100 evaluations or 300 seconds
+        exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
 
     # Persistent info between iterations
     persis_info = add_unique_random_streams({}, nworkers + 1)
     persis_info['next_to_give'] = 0
     persis_info['total_gen_calls'] = 0
-
-    # Run for 2000 evaluations or 300 seconds
-    exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
