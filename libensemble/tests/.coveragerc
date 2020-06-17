@@ -14,7 +14,6 @@ omit =
     */__init__.py
     */.tox/*
     */setup.py
-    */forkpdb.py
     */unit_tests/*
     */unit_tests_nompi/*
     */unit_tests_logger/*
