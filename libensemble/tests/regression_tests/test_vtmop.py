@@ -24,6 +24,7 @@
 
 import numpy as np
 import os
+import time
 from libensemble.utils.timer import Timer
 
 # Import libEnsemble items for this test
@@ -107,43 +108,52 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
 # Set up the allocator
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
+s1 = []
+H = []
+
 for run in range(3):
-    if run == 1:
+    if run == 0:
+        H0 = None
+        # Run for 1100 evaluations or 300 seconds
+        exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
+
+    elif run == 1:
         # In the second run, we initialize VTMOP with an initial sample:
         np.random.seed(0)
-        sample_size = 1000
-        X = np.random.uniform(gen_specs['user']['lb'], gen_specs['user']['ub'], (sample_size, num_dims))
-        f = np.zeros((sample_size, num_objs))
+        size = 1000
+        X = np.random.uniform(gen_specs['user']['lb'], gen_specs['user']['ub'], (size, num_dims))
+        f = np.zeros((size, num_objs))
 
-        H0 = np.zeros(sample_size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
-                                          ('returned', bool), ('given', bool)])
+        H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
+                                   ('returned', bool), ('given', bool)])
         H0['x'] = X
-        H0['sim_id'] = range(sample_size)
+        H0['sim_id'] = range(size)
         H0[['given', 'returned']] = True
 
-        for i in range(sample_size):
+        for i in range(size):
             Out, _ = sim_f(H0[[i]])
             H0['f'][i] = Out['f']
 
         gen_specs['user']['first_batch_size'] = 0
         # Run for 1100 evaluations or 300 seconds
         exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
-    if run == 2:
+
+    elif run == 2:
+        # In the third run, we restart VTMOP by loading in the history array saved in run==1
+        gen_specs['user']['use_chkpt'] = True
+
         if is_master:
             os.rename('vtmop.chkpt_finishing_' + s1, 'vtmop.chkpt')
-        gen_specs['user']['use_chkpt'] = True
-        # load history array
-        if is_master: 
-            np.save('H_for_vtmop_restart.npy',H)
+            np.save('H_for_vtmop_restart.npy', H)
             open('manager_done_file', 'w').close()
-        else: 
+        else:
             while not os.path.isfile('manager_done_file'):
                 time.sleep(0.1)
             H = np.load('H_for_vtmop_restart.npy')
 
         size = sum(H['returned'])
         H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
-                                     ('returned', bool), ('given', bool)])
+                                   ('returned', bool), ('given', bool)])
         H0['x'] = H['x'][:size]
         H0['sim_id'] = range(size)
         H0[['given', 'returned']] = True
@@ -151,10 +161,6 @@ for run in range(3):
 
         # Run for 100 more evaluations or 300 seconds
         exit_criteria = {'sim_max': size+100, 'elapsed_wallclock_time': 300}
-    else:
-        H0 = None
-        # Run for 1100 evaluations or 300 seconds
-        exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
 
     # Persistent info between iterations
     persis_info = add_unique_random_streams({}, nworkers + 1)
