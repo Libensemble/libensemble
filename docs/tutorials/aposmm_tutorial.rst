@@ -42,7 +42,6 @@ Create a new Python file named ``six_hump_camel.py``. This will be our
 
         return H_o, persis_info
 
-
     def six_hump_camel_func(x):
         """ Six-Hump Camel function definition """
         x1 = x[0]
@@ -52,7 +51,6 @@ Create a new Python file named ``six_hump_camel.py``. This will be our
         term3 = (-4+4*x2**2) * x2**2
 
         return term1 + term2 + term3
-
 
 APOSMM Operations
 -----------------
@@ -229,7 +227,6 @@ After a couple seconds, the output should resemble the following::
     Also, any information given back for existing sim_id values will be overwritten!
     So everything in gen_specs['out'] should be in gen_specs['in']!
     *******************************************************************************
-
 
     Minima: [[ 0.08993295 -0.71265804]
      [ 1.70360676 -0.79614982]
