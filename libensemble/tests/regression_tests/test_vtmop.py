@@ -133,9 +133,24 @@ for run in range(3):
             os.rename('vtmop.chkpt_finishing_' + s1, 'vtmop.chkpt')
         gen_specs['user']['use_chkpt'] = True
         # load history array
-        
+        if is_master: 
+            np.save('H_for_vtmop_restart.npy',H)
+            open('manager_done_file', 'w').close()
+        else: 
+            while not os.path.isfile('manager_done_file'):
+                time.sleep(0.1)
+            H = np.load('H_for_vtmop_restart.npy')
+
+        size = sum(H['returned'])
+        H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
+                                     ('returned', bool), ('given', bool)])
+        H0['x'] = H['x'][:size]
+        H0['sim_id'] = range(size)
+        H0[['given', 'returned']] = True
+        H0['f'] = H['f'][:size]
+
         # Run for 100 more evaluations or 300 seconds
-        exit_criteria = {'sim_max': 1200, 'elapsed_wallclock_time': 300}
+        exit_criteria = {'sim_max': size+100, 'elapsed_wallclock_time': 300}
     else:
         H0 = None
         # Run for 1100 evaluations or 300 seconds
