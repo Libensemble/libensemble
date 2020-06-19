@@ -161,7 +161,7 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
 
     gen_out = [('x', float, 2),           # Produces 'x' values
                ('x_on_cube', float, 2),   # 'x' values scaled to unit cube
-               ('sim_id', int),           # Produces IDs for sim order
+               ('sim_id', int),           # Produces sim_id's for History array indexing
                ('local_min', bool),       # Is a point a local minimum?
                ('local_pt', bool)]        # Is a point from a local opt run?
 
@@ -179,9 +179,17 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
     alloc_specs = {'alloc_f': persistent_aposmm_alloc,
                    'out': [('given_back', bool)], 'user': {}}
 
-``gen_specs['user']`` fields above that are required for APOSMM are ``'lb'`` (lower bound),
-``'ub'`` (upper bound), ``'localopt_method'`` (local optimization method), and
-``'initial_sample_size'``. Other options and configurations can be found in the
+``gen_specs['user']`` fields above that are required for APOSMM are ``'lb'``
+(lower bound), ``'ub'`` (upper bound), ``'localopt_method'`` (local optimization
+method), and ``'initial_sample_size'``.
+
+Note the following:
+
+    * ``gen_specs['in']`` is empty. For other ``gen_f``'s this defines what fields to give to the ``gen_f`` when called, but here APOSMM's ``alloc_f`` defines those fields.
+    * ``'x_on_cube'`` in ``gen_specs['out']``. APOSMM works internally on ``'x'`` values scaled to the unit cube. To avoid back-and-forth scaling issues, both types of ``'x'``'s are communicated back, even though the simulation will likely use ``'x'`` values.
+    * ``'sim_id'`` in ``gen_specs['out']``. APOSMM produces points in it's local History array that it will need to update later, and can best reference those points (and avoid a search) if APOSMM produces the IDs itself, instead of libEnsemble.
+
+Other options and configurations for APOSMM can be found in the
 APOSMM :doc:`API reference<../examples/aposmm>`.
 
 Set :ref:`exit_criteria<datastruct-exit-criteria>` so libEnsemble knows
@@ -239,8 +247,8 @@ After a couple seconds, the output should resemble the following::
      [ 1.60713962  0.56869567]]
 
 The first section labeled ``MANAGER_WARNING`` is a default libEnsemble warning
-for generator functions that create ``sim_id``'s, like APOSMM.
-It does not indicate a failure.
+for generator functions that create ``sim_id``'s, like APOSMM. It does not
+indicate a failure.
 
 The local minima for the Six-Hump Camel simulation function as evaluated by
 APOSMM with libEnsemble should be listed directly below the warning.
