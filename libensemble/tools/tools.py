@@ -35,8 +35,7 @@ _USER_SIM_ID_WARNING = \
     ('\n' + 79*'*' + '\n' +
      "User generator script will be creating sim_id.\n" +
      "Take care to do this sequentially.\n" +
-     "Also, any information given back for existing sim_id values will be overwritten!\n" +
-     "So everything in gen_specs['out'] should be in gen_specs['in']!" +
+     "Information given back to the gen_f for existing sim_id values may be overwritten!\n" +
      '\n' + 79*'*' + '\n\n')
 
 # ==================== Ensemble directory re-use error =========================
