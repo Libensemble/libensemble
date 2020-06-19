@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def six_hump_camel(H, persis_info, sim_specs, _):
     """Six-Hump Camel sim_f."""
 
