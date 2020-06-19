@@ -43,7 +43,8 @@ sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float)]}
 
-gen_out = [('x', float, n), ('sim_id', int), ('local_min', bool), ('local_pt', bool)]
+gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
+           ('local_min', bool), ('local_pt', bool)]
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
@@ -98,7 +99,7 @@ for run in range(2):
 # convergence to all local min). Note that sim_f uses only entries x[0:2]
 n = 400
 persis_info = add_unique_random_streams({}, nworkers + 1)
-gen_specs['out'][0] = [('x', float, n)]
+gen_specs['out'][0:2] = [('x', float, n), ('x_on_cube', float, n)]
 gen_specs['user']['lb'] = np.zeros(n)
 gen_specs['user']['ub'] = np.ones(n)
 gen_specs['user']['lb'][:2] = [-3, -2]
