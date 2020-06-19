@@ -168,7 +168,7 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
                  'out': gen_out,          # Output defined like above dict
                  'user': {'initial_sample_size': 100,  # Random sample 100 points to start
                           'localopt_method': 'scipy_Nelder-Mead',
-                          'opt_return_codes': [0],   # Return code specific to localopt_method
+                          'opt_return_codes': [0],   # Status integers specific to localopt_method
                           'max_active_runs': 6,      # Occur in parallel
                           'lb': np.array([-2, -1]),  # Lower bound of search domain
                           'ub': np.array([2, 1])}    # Upper bound of search domain
@@ -177,11 +177,18 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
     alloc_specs = {'alloc_f': persistent_aposmm_alloc,
                    'out': [('given_back', bool)], 'user': {}}
 
-``gen_specs['user']`` fields above that are required for APOSMM are ``'lb'``
-(lower bound), ``'ub'`` (upper bound), ``'localopt_method'`` (local optimization
-method), and ``'initial_sample_size'``.
+``gen_specs['user']`` fields above that are required for APOSMM are:
 
-Note the following:
+    * ``'lb'`` - Search domain lower bound
+    * ``'ub'`` - Search domain upper bound
+    * ``'localopt_method'`` - Chosen local optimization method
+    * ``'initial_sample_size'`` - Number of uniformly sampled points generated
+      before local optimization runs.
+    * ``'opt_return_codes'`` - A list of integers that local optimization
+      methods return when a minimum is detected. SciPy's Nelder-Mead returns 0,
+      but other methods (not used in this tutorial) return 1.
+
+Also note the following:
 
     * ``gen_specs['in']`` is empty. For other ``gen_f``'s this defines what
       fields to give to the ``gen_f`` when called, but here APOSMM's
@@ -263,7 +270,18 @@ APOSMM with libEnsemble should be listed directly below the warning.
 Please see the API reference :doc:`here<../examples/aposmm>` for
 more APOSMM configuration options and other information.
 
+Applications
+------------
+
+APOSMM is not limited to evaluating minima from pure Python simulation functions.
+Many common libEnsemble use-cases involve using
+libEnsemble's :doc:`MPI Executor<../executor/overview>` to launch user
+applications with parameters requested by APOSMM, then evaluate their output using
+APOSMM, and repeat until minima are identified. A currently supported example
+can be found in libEnsemble's `WarpX Scaling Test`_.
+
 .. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
 .. _`PETSc/TAO`: https://www.mcs.anl.gov/petsc/
 .. _SciPy: https://www.scipy.org/scipylib/index.html
+.. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/master/libensemble/tests/scaling_tests/warpx
