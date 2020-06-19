@@ -183,9 +183,19 @@ method), and ``'initial_sample_size'``.
 
 Note the following:
 
-    * ``gen_specs['in']`` is empty. For other ``gen_f``'s this defines what fields to give to the ``gen_f`` when called, but here APOSMM's ``alloc_f`` defines those fields.
-    * ``'x_on_cube'`` in ``gen_specs['out']``. APOSMM works internally on ``'x'`` values scaled to the unit cube. To avoid back-and-forth scaling issues, both types of ``'x'``'s are communicated back, even though the simulation will likely use ``'x'`` values.
-    * ``'sim_id'`` in ``gen_specs['out']``. APOSMM produces points in it's local History array that it will need to update later, and can best reference those points (and avoid a search) if APOSMM produces the IDs itself, instead of libEnsemble.
+    * ``gen_specs['in']`` is empty. For other ``gen_f``'s this defines what
+      fields to give to the ``gen_f`` when called, but here APOSMM's
+      ``alloc_f`` defines those fields.
+    * ``'x_on_cube'`` in ``gen_specs['out']``. APOSMM works internally on
+      ``'x'`` values scaled to the unit cube. To avoid back-and-forth scaling
+      issues, both types of ``'x'``'s are communicated back, even though the
+      simulation will likely use ``'x'`` values. (APOSMM performs handshake to
+      ensure that the ``x_on_cube`` that was given to be evaluated is the same
+      the one that is given back.)
+    * ``'sim_id'`` in ``gen_specs['out']``. APOSMM produces points in it's
+      local History array that it will need to update later, and can best
+      reference those points (and avoid a search) if APOSMM produces the IDs
+      itself, instead of libEnsemble.
 
 Other options and configurations for APOSMM can be found in the
 APOSMM :doc:`API reference<../examples/aposmm>`.
