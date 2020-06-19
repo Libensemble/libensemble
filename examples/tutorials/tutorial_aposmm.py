@@ -15,15 +15,15 @@ nworkers, is_master, libE_specs, _ = parse_args()
 sim_specs = {'sim_f': six_hump_camel,  # Simulation function
              'in': ['x'],              # Accepts 'x' values
              'out': [('f', float)]}    # Returns f(x) values
-                                       
+
 gen_out = [('x', float, 2),            # Produces 'x' values
            ('x_on_cube', float, 2),    # 'x' values scaled to unit cube
            ('sim_id', int),            # Produces IDs for sim order
            ('local_min', bool),        # Is a point a local minimum?
            ('local_pt', bool)]         # Is a point from a local opt run?
-                                       
+
 gen_specs = {'gen_f': aposmm,          # APOSMM generator function
-             'in': [],                 
+             'in': [],
              'out': gen_out,           # Output defined like above dict
              'user': {'initial_sample_size': 100,  # Random sample 100 points to start
                       'localopt_method': 'scipy_Nelder-Mead',
