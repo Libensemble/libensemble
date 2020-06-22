@@ -58,7 +58,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
-      (see 'advance_local_run' below for supported methods)
+      (see 'advance_local_run' below for supported methods). When using a SciPy
+      method, must supply ``'opt_return_codes'``, a list of integers that will
+      be used to determine if the x produced by the localopt method should be
+      ruled a local minimum. (For example, SciPy's COBYLA has a 'status' of 1 if
+      at an optimum, but SciPy's Nelder-Mead and BFGS have a 'status' of 0 if at
+      an optimum.)
     - ``'initial_sample_size' [int]``: Number of uniformly sampled points
       must be returned (non-nan value) before a local opt run is started. Can be
       zero if no additional sampling is desired, but if zero there must be past

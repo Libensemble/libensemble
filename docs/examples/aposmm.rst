@@ -2,7 +2,7 @@ APOSMM
 -----------------
 
 Asynchronously Parallel Optimization Solver for finding Multiple Minima
-(APOSMM) coordinates concurrent local optimization runs in order to identifying
+(APOSMM) coordinates concurrent local optimization runs in order to identify
 many local minima.
 
 Configuring APOSMM
@@ -20,6 +20,10 @@ Where ``optimizers`` is a string (or list of strings) from the available options
 ``'petsc'``, ``'nlopt'``, ``'dfols'``, ``'scipy'``, ``'external'``
 
 To see the optimization algorithms supported, see `LocalOptInterfacer`_.
+
+.. seealso::
+
+    :doc:`Persistent APOSMM Tutorial<../tutorials/aposmm_tutorial>`
 
 Persistent APOSMM
 ^^^^^^^^^^^^^^^^^
