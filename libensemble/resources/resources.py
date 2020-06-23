@@ -306,7 +306,7 @@ class WorkerResources:
         num_nodes = len(global_nodelist)
 
         # Check if current host in nodelist - if it is then in distributed mode.
-        local_host = socket.gethostname()
+        local_host = resources.env_resources.abbrev_nodenames([socket.gethostname()])[0]
         distrib_mode = local_host in global_nodelist
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
