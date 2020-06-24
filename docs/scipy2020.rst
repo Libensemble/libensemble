@@ -49,7 +49,7 @@ input and a ``sim_f`` function that performs and monitors simulations. The user
 parameterizes these functions and initiates libEnsemble in a *calling script*.
 Examples and templates of such scripts and functions are included in the library.
 
-.. image:: images/using_libensemble.png
+.. image:: images/using_new.png
  :alt: Using libEnsemble
  :scale: 33 %
  :align: center
@@ -73,8 +73,8 @@ Supervised learning              Quantum chemistry
 Manager and Workers
 -------------------
 
-libEnsemble employs a manager/worker scheme that can communicate through various
-methods like MPI, Python's multiprocessing, and TCP. Each *worker*
+libEnsemble employs a manager/worker scheme that can communicate through **MPI**,
+Python's **multiprocessing**, or **TCP**. Each *worker*
 can control and monitor any level of work, from small sub-node tasks to huge
 many-node simulations. The *manager* allocates workers to asynchronously execute
 ``gen_f`` generation functions and ``sim_f`` simulation functions based on
