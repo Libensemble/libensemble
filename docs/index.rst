@@ -22,6 +22,7 @@
 
    tutorials/local_sine_tutorial
    tutorials/executor_forces_tutorial
+   tutorials/aposmm_tutorial
    examples/examples_index
 
 .. toctree::
