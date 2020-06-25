@@ -28,7 +28,7 @@ The simulations can be run with the same input file, with the following changes:
   amr.n_cell=128 8192" for resolution res3
 
 Note that this test shows a nice converge for a case with relatively high emittance.
-In the optimization process, some runs will have a luwer emittance (potentially
+In the optimization process, some runs will have a lower emittance (potentially
 10x), and they may require a higher resolution to reach the same level of
 convergence. Let us keep this in mind, and maybe add a res5 to the list above.
 This high-resolution one should also fit on 1 GPU, but it will be worth

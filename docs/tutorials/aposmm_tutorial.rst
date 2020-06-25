@@ -75,9 +75,12 @@ don't have points with smaller function values nearby (within a threshold
 uniformly sampled points, it will begin at most ``max_active_runs``  local
 optimization runs.
 
-Each local optimization run provides a new point to APOSMM, which gives them to
-the manager to be evaluated by the simulation routine. As runs complete,
-additional local optimization runs may be started, or additional uniformly
+As function values are returned to APOSMM, APOSMM gives them to each local
+optimization run in order to generate the next point(s); these are returned to
+the manager to be evaluated by the simulation routine. As runs complete (a
+minimum is found, or some termination criteria for the local optimization run
+is satisfied),
+additional local optimization runs may be started or additional uniformly
 sampled points may be evaluated. This continues until a ``STOP_TAG`` is sent by
 the manager, for example when the budget of simulation evaluations has been
 exhausted, or when a sufficiently "good" simulation output has been observed.

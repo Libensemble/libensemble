@@ -3,18 +3,14 @@
  :width: 33 %
  :align: left
 
-
 .. image:: images/ECP_logo.png
  :alt: ECP
  :width: 20 %
  :align: right
 
-
 .. image:: images/libE_logo.png
  :alt: libEnsemble
  :align: center
-
-
 
 A Python Library for Dynamic Ensemble-Based Computations
 ========================================================
@@ -173,7 +169,6 @@ OPAL Simulations
 * 2044 2-node simulations
 * Object Oriented Parallel Accelerator Library (OPAL) simulation functions.
 
-
 .. list-table::
 
     * - .. figure:: images/libe_opal_complete_v_killed_511w_2044sims_1030nodes.png
@@ -183,7 +178,6 @@ OPAL Simulations
     * - .. figure:: images/libe_opal_util_v_time_511w_2044sims_1030nodes.png
 
            Total number of Balsam-launched applications running over time.
-
 
 Try libEnsemble Online
 ----------------------
