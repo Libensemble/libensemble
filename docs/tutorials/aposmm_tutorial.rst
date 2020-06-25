@@ -58,7 +58,7 @@ APOSMM Operations
 APOSMM coordinates multiple local optimization runs starting from a collection
 of sample points. These local optimization runs occur concurrently,
 and can incorporate a variety of optimization methods, including from NLopt_,
-`PETSc/TAO`_, SciPy_, or other external scripts. 
+`PETSc/TAO`_, SciPy_, or other external scripts.
 
 Before APOSMM can start local optimization runs, some number of uniformly
 sampled points must be evaluated (if no prior simulation evaluations are
@@ -77,10 +77,10 @@ optimization runs.
 
 Each local optimization run provides a new point to APOSMM, which gives them to
 the manager to be evaluated by the simulation routine. As runs complete,
-additional local optimization runs may be started, or additional uniformly sampled points may be evaluated. 
-This continues until a ``STOP_TAG`` is sent by the manager, for example when the
-budget of simulation evaluations has been exhausted, or when a sufficiently
-"good" simulation output has been observed.
+additional local optimization runs may be started, or additional uniformly
+sampled points may be evaluated. This continues until a ``STOP_TAG`` is sent by
+the manager, for example when the budget of simulation evaluations has been
+exhausted, or when a sufficiently "good" simulation output has been observed.
 
 .. image:: ../images/localopt_6hc.png
     :alt: Six-Hump Camel Local Optimization Points
