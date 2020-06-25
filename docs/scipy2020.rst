@@ -19,7 +19,7 @@
 
 *David Bindel, Stephen Hudson, Jeffrey Larson, John-Luke Navarro and Stefan Wild*
 
-A PDF poster version of this content is available on FigShare_.
+A PDF poster version of this content is available on figshare_.
 
 .. _FigShare: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
 
