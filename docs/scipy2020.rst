@@ -1,30 +1,32 @@
+.. image:: images/ECP_logo.png
+ :alt: ECP
+ :width: 23 %
+ :align: left
+
 .. image:: images/ANL_CMYK.png
  :alt: ANL
  :width: 33 %
- :align: left
-
-
-.. image:: images/ECP_logo.png
- :alt: ECP
- :width: 20 %
  :align: right
 
+.. image:: images/white.png
+  :align: center
+  :width: 33 %
+  :height: 1.2 in
 
-.. image:: images/libE_logo.png
- :alt: libEnsemble
- :align: center
-
-
-
-A Python Library for Dynamic Ensemble-Based Computations
-========================================================
+=========================================================================
+**libEnsemble**: A Python Library for Dynamic Ensemble-Based Computations
+=========================================================================
 
 *David Bindel, Stephen Hudson, Jeffrey Larson, John-Luke Navarro and Stefan Wild*
+
+A PDF poster version of this content is available on FigShare_.
+
+.. _FigShare: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
 
 Overview
 --------
 
-libEnsemble is a Python library for coordinating the concurrent evaluation of
+**libEnsemble** is a Python library for coordinating the concurrent evaluation of
 dynamic ensembles of calculations. The library is developed to use massively
 parallel resources to accelerate the solution of design, decision, and
 inference problems and to expand the class of problems that can benefit from
@@ -51,7 +53,7 @@ Examples and templates of such scripts and functions are included in the library
 
 .. image:: images/using_new.png
  :alt: Using libEnsemble
- :scale: 33 %
+ :scale: 30 %
  :align: center
 
 For example, the ``gen_f`` may contain an optimization routine to generate new
@@ -162,11 +164,10 @@ Bridges_   `Pittsburgh Supercomputing Center`_                                  
 .. _OLCF: https://www.olcf.ornl.gov/
 .. _ALCF: https://www.alcf.anl.gov/
 
-Example Results
----------------
+Running at Scale
+----------------
 
-OPAL Simulations
-~~~~~~~~~~~~~~~~
+**OPAL Simulations**
 
 * ALCF/Theta (Cray XC40) with Balsam, at Argonne National Laboratory
 * 1030 node allocation, 511 workers, MPI communications.
