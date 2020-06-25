@@ -1,0 +1,11 @@
+name: libensemble-python
+
+channels:
+    - conda-forge
+
+dependencies:
+    - numpy
+    - openmpi
+    - openmpi-mpicc
+    - mpi4py
+    - libensemble

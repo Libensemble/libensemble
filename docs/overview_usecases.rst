@@ -88,12 +88,12 @@ it's capabilities.
   and return results to the manager.
 
 * **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be
-  launched. When using the libEnsemble executor, a *submitted* task is executed
+  launched. When using the libEnsemble Executor, a *submitted* task is executed
   immediately or queued for execution.
 
 * **Tasks**: Sub-processes or independent units of work. Workers perform
   *tasks* as directed by the manager; tasks may include submitting external
-  programs for execution using the executor.
+  programs for execution using the Executor.
 
 * **Persistent**: Typically, a worker communicates with the manager
   before and after initiating a user ``gen_f`` or ``sim_f`` calculation. However, user

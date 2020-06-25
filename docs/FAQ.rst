@@ -25,15 +25,15 @@ This may also occur with two processes if you are using a persistent generator.
 The generator will occupy the one worker, leaving none to run simulation functions.
 
 **I keep getting: "Not enough processors per worker to honor arguments." when
-using the executor. Can I submit tasks to allocated processors anyway?**
+using the Executor. Can I submit tasks to allocated processors anyway?**
 
 Automatic partitioning of resources can be disabled if you want to oversubscribe
-(often if testing on a local machine) by configuring the executor with
+(often if testing on a local machine) by configuring the Executor with
 ``auto_resources=False``. For example::
 
     exctr = MPIExecutor(auto_resources=False)
 
-Note that the executor ``submit()`` method has a parameter ``hyperthreads``
+Note that the Executor ``submit()`` method has a parameter ``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``.
 
 **FileExistsError: [Errno 17] File exists: './ensemble'**
@@ -127,7 +127,7 @@ to ``pdb``. How well this works varies by system. ::
 
 **Can I use the MPI Executor when running libEnsemble with multiprocessing?**
 
-Yes. The executor type determines only how libEnsemble workers
+Yes. The Executor type determines only how libEnsemble workers
 execute and interact with user applications and is independent of ``comms`` chosen
 for manager/worker communications.
 

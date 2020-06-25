@@ -17,7 +17,7 @@ Class-specific Attributes
 -------------------------
 
 Class-specific attributes can be set directly to alter the behavior of the MPI
-executor. However, they should be used with caution, because they may not
+Executor. However, they should be used with caution, because they may not
 be implemented in other executors.
 
 :max_submit_attempts: (int) Maximum number of launch attempts for a given
