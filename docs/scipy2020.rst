@@ -1,26 +1,32 @@
+.. image:: images/ECP_logo.png
+ :alt: ECP
+ :width: 23 %
+ :align: left
+
 .. image:: images/ANL_CMYK.png
  :alt: ANL
  :width: 33 %
- :align: left
-
-.. image:: images/ECP_logo.png
- :alt: ECP
- :width: 20 %
  :align: right
 
-.. image:: images/libE_logo.png
- :alt: libEnsemble
- :align: center
+.. image:: images/white.png
+  :align: center
+  :width: 33 %
+  :height: 1.2 in
 
-A Python Library for Dynamic Ensemble-Based Computations
-========================================================
+=========================================================================
+**libEnsemble**: A Python Library for Dynamic Ensemble-Based Computations
+=========================================================================
 
 *David Bindel, Stephen Hudson, Jeffrey Larson, John-Luke Navarro and Stefan Wild*
+
+A PDF poster version of this content is available on figshare_.
+
+.. _FigShare: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
 
 Overview
 --------
 
-libEnsemble is a Python library for coordinating the concurrent evaluation of
+**libEnsemble** is a Python library for coordinating the concurrent evaluation of
 dynamic ensembles of calculations. The library is developed to use massively
 parallel resources to accelerate the solution of design, decision, and
 inference problems and to expand the class of problems that can benefit from
@@ -45,9 +51,9 @@ input and a ``sim_f`` function that performs and monitors simulations. The user
 parameterizes these functions and initiates libEnsemble in a *calling script*.
 Examples and templates of such scripts and functions are included in the library.
 
-.. image:: images/using_libensemble.png
+.. image:: images/using_new.png
  :alt: Using libEnsemble
- :scale: 33 %
+ :scale: 30 %
  :align: center
 
 For example, the ``gen_f`` may contain an optimization routine to generate new
@@ -69,8 +75,8 @@ Supervised learning              Quantum chemistry
 Manager and Workers
 -------------------
 
-libEnsemble employs a manager/worker scheme that can communicate through various
-methods like MPI, Python's multiprocessing, and TCP. Each *worker*
+libEnsemble employs a manager/worker scheme that can communicate through **MPI**,
+Python's **multiprocessing**, or **TCP**. Each *worker*
 can control and monitor any level of work, from small sub-node tasks to huge
 many-node simulations. The *manager* allocates workers to asynchronously execute
 ``gen_f`` generation functions and ``sim_f`` simulation functions based on
@@ -158,11 +164,10 @@ Bridges_   `Pittsburgh Supercomputing Center`_                                  
 .. _OLCF: https://www.olcf.ornl.gov/
 .. _ALCF: https://www.alcf.anl.gov/
 
-Example Results
----------------
+Running at Scale
+----------------
 
-OPAL Simulations
-~~~~~~~~~~~~~~~~
+**OPAL Simulations**
 
 * ALCF/Theta (Cray XC40) with Balsam, at Argonne National Laboratory
 * 1030 node allocation, 511 workers, MPI communications.
