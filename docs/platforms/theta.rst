@@ -71,7 +71,7 @@ computations on systems such as Theta. Balsam can stage in tasks to a database h
 on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
 can also be submitted to Balsam for centralized execution on a compute-node.
 libEnsemble can then submit tasks to Balsam through libEnsemble's Balsam
-executor for execution on additional allocated nodes.
+Executor for execution on additional allocated nodes.
 
 Load the Balsam module with ::
 
@@ -105,14 +105,14 @@ to execute on the MOM nodes.
 On Theta, libEnsemble can be launched to two locations:
 
     1. **A MOM Node**: All of libEnsemble's manager and worker processes
-    run on a front-end MOM node. libEnsemble's MPI executor takes
+    run on a front-end MOM node. libEnsemble's MPI Executor takes
     responsibility for direct user-application submission to allocated compute nodes.
     libEnsemble must be configured to run with *multiprocessing* communications,
     since mpi4py isn't configured for use on the MOM nodes.
 
     2. **The Compute Nodes**: libEnsemble is submitted to Balsam, and all manager
     and worker processes are tasked to a back-end compute node. libEnsemble's
-    Balsam executor interfaces with Balsam running on a MOM node for dynamic
+    Balsam Executor interfaces with Balsam running on a MOM node for dynamic
     user-application submission to the compute nodes.
 
     .. image:: ../images/combined_ThS.png
@@ -127,7 +127,7 @@ architectures. Recall also that only the MOM nodes can launch MPI applications.
 Although libEnsemble workers on the MOM nodes can technically submit
 user applications to the compute nodes directly via ``aprun`` within user functions, it
 is highly recommended that the aforementioned :doc:`executor<../executor/overview>`
-interface be used instead. The libEnsemble executor features advantages such as
+interface be used instead. The libEnsemble Executor features advantages such as
 automatic resource detection, portability, launch failure resilience, and ease of use.
 
 Theta features one default production queue, ``default``, and two debug queues,

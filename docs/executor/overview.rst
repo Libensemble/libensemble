@@ -49,7 +49,7 @@ In user sim func::
 
     import time
 
-    # Will return executor (whether MPI or inherited such as Balsam).
+    # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
 
     task = exctr.submit(calc_type='sim', num_procs=8, app_args='input.txt',

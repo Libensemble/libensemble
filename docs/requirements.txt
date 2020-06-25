@@ -1,2 +1,4 @@
 sphinx==2.4.1
 sphinxcontrib-bibtex
+ipykernel
+nbsphinx

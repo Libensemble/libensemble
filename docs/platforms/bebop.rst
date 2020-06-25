@@ -73,9 +73,9 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 
 ``mpirun`` should also work. This line launches libEnsemble with a manager and
 **three** workers to one allocated compute node, with three nodes available for
-the workers to launch calculations with the executor or a launch command.
+the workers to launch calculations with the Executor or a launch command.
 This is an example of running in :doc:`centralized<platforms_index>` mode, and,
-if using the :doc:`executor<../executor/mpi_executor>`, it should
+if using the :doc:`Executor<../executor/mpi_executor>`, it should
 be initiated with ``central_mode=True``
 
 .. note::

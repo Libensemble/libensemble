@@ -66,7 +66,9 @@ extensions = ['sphinxcontrib.bibtex',
               'sphinx.ext.napoleon',
               # 'sphinx.ext.autosectionlabel',
               # 'sphinx.ext.intersphinx',
-              'sphinx.ext.imgconverter']
+              'sphinx.ext.imgconverter',
+              'nbsphinx',
+              'sphinx.ext.mathjax']
 # autosectionlabel_prefix_document = True
 # extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
 #breathe_projects = { "libEnsemble": "../code/src/xml/" }
@@ -123,7 +125,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
