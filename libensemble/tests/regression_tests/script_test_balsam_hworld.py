@@ -39,7 +39,7 @@ sim_app = './my_simtask.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-exctr = BalsamMPIExecutor(auto_resources=False)
+exctr = BalsamMPIExecutor(auto_resources=False, central_mode=False, custom_info={'not': 'used'})
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 sim_specs = {'sim_f': executor_hworld,
