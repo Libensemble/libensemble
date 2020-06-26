@@ -89,7 +89,10 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     # Cover functions
     task.read_file_in_workdir('ensemble.log')
-    task.read_stderr()
+    try:
+        task.read_stderr()
+    except ValueError:
+        pass
 
     # This is temp - return something - so doing six_hump_camel_func again...
     batch = len(H['x'])
