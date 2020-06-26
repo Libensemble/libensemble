@@ -94,6 +94,7 @@ def print_job_output(outscript):
 
         # if any(new.endswith(line) for line in lastlines):
         if succeed_line in new:
+            print('Success. Received task statuses match expected.')
             break
 
         time.sleep(1)
