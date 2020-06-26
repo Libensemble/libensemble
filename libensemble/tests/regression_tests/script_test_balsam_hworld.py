@@ -9,7 +9,7 @@ from mpi4py import MPI
 from libensemble.executors.balsam_executor import BalsamMPIExecutor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
-from libensemble.sim_funcs.executor_hworld import executor_hworld
+from libensemble.sim_funcs.balsam_executor_hworld import executor_hworld
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.tools import add_unique_random_streams
 
@@ -84,5 +84,9 @@ if is_master:
 
     # Repeat N times for N workers and insert Completed at start for generator
     calc_desc_list = ['Completed'] + calc_desc_list_in*nworkers
+
+    # Cleanup (maybe cover del_apps() and del_tasks())
+    exctr.del_apps()
+    exctr.del_tasks()
 
     print("\n\n\nRun completed.")
