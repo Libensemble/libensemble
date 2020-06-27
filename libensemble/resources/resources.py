@@ -119,15 +119,16 @@ class Resources:
                                           nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
         # This is global nodelist avail to workers - may change to global_worker_nodelist
+        self.local_host = self.env_resources.abbrev_nodenames([socket.gethostname()])[0]
         if node_file is None:
             node_file = Resources.DEFAULT_NODEFILE
-        self.global_nodelist = Resources.get_global_nodelist(node_file=node_file,
+        self.global_nodelist = Resources.get_global_nodelist(local_host=self.local_host,
+                                                             node_file=node_file,
                                                              rundir=self.top_level_dir,
                                                              env_resources=self.env_resources)
-
         self.launcher = launcher
         remote_detect = False
-        if socket.gethostname() not in self.global_nodelist:
+        if self.local_host not in self.global_nodelist:
             remote_detect = True
 
         if not cores_on_node:
@@ -212,7 +213,8 @@ class Resources:
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
     @staticmethod
-    def get_global_nodelist(node_file=DEFAULT_NODEFILE,
+    def get_global_nodelist(local_host,
+                            node_file=DEFAULT_NODEFILE,
                             rundir=None,
                             env_resources=None):
         """
@@ -240,7 +242,7 @@ class Resources:
             if not global_nodelist:
                 # Assume a standalone machine
                 logger.info("Can not find nodelist from environment. Assuming standalone")
-                global_nodelist.append(socket.gethostname())
+                global_nodelist.append(local_host)
 
         if global_nodelist:
             return global_nodelist
@@ -306,8 +308,7 @@ class WorkerResources:
         num_nodes = len(global_nodelist)
 
         # Check if current host in nodelist - if it is then in distributed mode.
-        local_host = resources.env_resources.abbrev_nodenames([socket.gethostname()])[0]
-        distrib_mode = local_host in global_nodelist
+        distrib_mode = resources.local_host in global_nodelist
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = (num_workers >= num_nodes)
@@ -335,6 +336,5 @@ class WorkerResources:
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")
         local_nodelist = split_list[workerID - 1]
-
         logger.debug("local_nodelist is {}".format(local_nodelist))
         return local_nodelist
