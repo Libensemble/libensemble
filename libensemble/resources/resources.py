@@ -43,6 +43,7 @@ class Resources:
 
     def __init__(self, top_level_dir=None,
                  central_mode=False,
+                 in_place_workers=None,
                  allow_oversubscribe=False,
                  launcher=None,
                  cores_on_node=None,
@@ -140,6 +141,7 @@ class Resources:
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.libE_nodes = None
         self.worker_resources = None
+        self.in_place_workers = in_place_workers
 
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
@@ -306,14 +308,20 @@ class WorkerResources:
 
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
+        in_place_list = resources.in_place_workers
+
+        excluded_worker_count = 0
+        if in_place_list:
+            excluded_worker_count = len(in_place_list)
+        num_workers_assign = num_workers - excluded_worker_count
 
         # Check if current host in nodelist - if it is then in distributed mode.
         distrib_mode = resources.local_host in global_nodelist
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
-        sub_node_workers = (num_workers >= num_nodes)
+        sub_node_workers = (num_workers_assign >= num_nodes)
         if sub_node_workers:
-            workers_per_node = num_workers//num_nodes
+            workers_per_node = num_workers_assign//num_nodes
             dup_list = itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist)
             global_nodelist = list(dup_list)
 
@@ -321,20 +329,21 @@ class WorkerResources:
         if distrib_mode and not sub_node_workers:
             # Could just read in the libe machinefile and use that - but this should match
             # Alt. create machinefile/host-list with same algorithm as best_split - future soln.
-            nodes_per_worker, remainder = divmod(num_nodes, num_workers)
+            nodes_per_worker, remainder = divmod(num_nodes, num_workers_assign)
             if remainder != 0:
                 # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
                 logger.warning("Nodes to workers not evenly distributed. Wasted nodes. "
-                               "{} workers and {} nodes".format(num_workers, num_nodes))
+                               "{} workers and {} nodes".format(num_workers_assign, num_nodes))
                 num_nodes = num_nodes - remainder
                 global_nodelist = global_nodelist[0:num_nodes]
 
         # Divide global list between workers
-        split_list = list(Resources.best_split(global_nodelist, num_workers))
+        split_list = list(Resources.best_split(global_nodelist, num_workers_assign))
         logger.debug("split_list is {}".format(split_list))
 
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")
-        local_nodelist = split_list[workerID - 1]
+        local_nodelist = split_list[workerID - 1 - excluded_worker_count]
+
         logger.debug("local_nodelist is {}".format(local_nodelist))
         return local_nodelist
