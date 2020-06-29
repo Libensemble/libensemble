@@ -3,7 +3,6 @@ from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
                                          MAN_SIGNAL_FINISH, WORKER_DONE,
                                          TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
 import numpy as np
-import os
 
 __all__ = ['executor_hworld']
 
