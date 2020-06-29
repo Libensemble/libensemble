@@ -3,6 +3,7 @@ from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
                                          MAN_SIGNAL_FINISH, WORKER_DONE,
                                          TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
 import numpy as np
+import os
 
 __all__ = ['executor_hworld']
 
@@ -84,7 +85,8 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         timeout = 20.0
 
     task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,
-                        hyperthreads=True, machinefile='notused', stdout='notused')
+                        hyperthreads=True, machinefile='notused', stdout='notused',
+                        wait_on_run=True, stage_inout=os.path.abspath('./scripts_used_by_reg_tests'))
     task, calc_status = polling_loop(comm, exctr, task, timeout)
 
     # Cover functions
