@@ -86,7 +86,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,
                         hyperthreads=True, machinefile='notused', stdout='notused',
-                        wait_on_run=True, stage_inout=os.path.abspath('./scripts_used_by_reg_tests'))
+                        stage_inout=os.path.abspath('./scripts_used_by_reg_tests'))
     task, calc_status = polling_loop(comm, exctr, task, timeout)
 
     # Cover functions
