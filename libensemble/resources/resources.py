@@ -43,7 +43,7 @@ class Resources:
 
     def __init__(self, top_level_dir=None,
                  central_mode=False,
-                 in_place_workers=None,
+                 in_place_workers=[],
                  allow_oversubscribe=False,
                  launcher=None,
                  cores_on_node=None,
@@ -69,6 +69,9 @@ class Resources:
             Central mode means libE processes (manager and workers) are grouped together and
             do not share nodes with applications. Distributed mode means Workers share nodes
             with applications.
+
+        in_place_workers: list of ints, optional
+            List of workers that require no resources.
 
         allow_oversubscribe: boolean, optional
             If false, then resources will raise an error if task process
@@ -299,6 +302,19 @@ class WorkerResources:
         return workers_per_node
 
     @staticmethod
+    def map_workerid_to_index(num_workers, workerID, in_place_list):
+        """Map WorkerID to index into a nodelist"""
+        index = workerID - 1
+        if in_place_list:
+            for i in range(1, num_workers+1):
+                if i in in_place_list:
+                    index -= 1
+                if index < i:
+                    return index
+            raise ResourcesException("Error mapping workerID {} to nodelist index {}".format(workerID, index))
+        return index
+
+    @staticmethod
     def get_local_nodelist(num_workers, workerID, resources):
         """Returns the list of nodes available to the current worker
 
@@ -309,11 +325,7 @@ class WorkerResources:
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
         in_place_list = resources.in_place_workers
-
-        excluded_worker_count = 0
-        if in_place_list:
-            excluded_worker_count = len(in_place_list)
-        num_workers_assign = num_workers - excluded_worker_count
+        num_workers_assign = num_workers - len(in_place_list)
 
         # Check if current host in nodelist - if it is then in distributed mode.
         distrib_mode = resources.local_host in global_nodelist
@@ -327,8 +339,6 @@ class WorkerResources:
 
         # Currently require even split for distrib mode - to match machinefile - throw away remainder
         if distrib_mode and not sub_node_workers:
-            # Could just read in the libe machinefile and use that - but this should match
-            # Alt. create machinefile/host-list with same algorithm as best_split - future soln.
             nodes_per_worker, remainder = divmod(num_nodes, num_workers_assign)
             if remainder != 0:
                 # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
@@ -343,7 +353,12 @@ class WorkerResources:
 
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")
-        local_nodelist = split_list[workerID - 1 - excluded_worker_count]
+
+        if workerID in in_place_list:
+            local_nodelist = []
+        else:
+            index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+            local_nodelist = split_list[index]
 
         logger.debug("local_nodelist is {}".format(local_nodelist))
         return local_nodelist

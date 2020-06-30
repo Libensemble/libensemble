@@ -387,6 +387,34 @@ def test_worker_resources():
         assert worker.workers_per_node == 2, 'worker.workers_per_node does not match'
 
 
+def test_map_workerid_to_index():
+    num_workers = 4
+    in_place_list = []
+
+    for workerID in range(1, num_workers+1):
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+        assert index == workerID - 1, "index incorrect. Received: " + str(index)
+
+    in_place_list = [1]
+    for workerID in range(2, num_workers+1):
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+        assert index == workerID - 2, "index incorrect. Received: " + str(index)
+
+    in_place_list = [1, 2]
+    for workerID in range(3, num_workers+1):
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+        assert index == workerID - 3, "index incorrect. Received: " + str(index)
+
+    in_place_list = [1, 3]
+    workerID = 2
+    index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+    assert index == 0, "index incorrect. Received: " + str(index)
+
+    workerID = 4
+    index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+    assert index == 1, "index incorrect. Received: " + str(index)
+
+
 if __name__ == "__main__":
     setup_standalone_run()
 
@@ -405,5 +433,6 @@ if __name__ == "__main__":
     test_get_local_nodelist_distrib_mode_uneven_split()
 
     test_worker_resources()
+    test_map_workerid_to_index()
 
     teardown_standalone_run()
