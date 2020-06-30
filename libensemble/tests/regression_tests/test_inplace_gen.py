@@ -108,7 +108,6 @@ if is_master:
     if os.path.exists(node_file):
         os.remove(node_file)
     with open(node_file, 'w') as f:
-        f.write('shuds \n')
         for i in range(1, (nsim_workers)*nodes_per_worker + 1):
             f.write('node-' + str(i) + '\n')
         f.flush()
