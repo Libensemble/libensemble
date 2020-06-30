@@ -10,14 +10,14 @@
 # """
 
 import os
+import sys
 import numpy as np
 
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.libE import libE
-#from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble import libE_logger
 
@@ -41,7 +41,6 @@ def exp_nodelist_for_worker(exp_list, workerID):
             node_list = comp.split(',')
             for node in node_list:
                 node_name, node_num = node.split('-')
-                #new_num = int(node_num) + nodes_per_worker*(workerID - 1)
                 new_num = int(node_num) + nodes_per_worker*(workerID - 2)  # For 1 persistent gen
                 new_node = '-'.join([node_name, str(new_num)])
                 new_node_list.append(new_node)
@@ -76,7 +75,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
         new_exp_list = exp_nodelist_for_worker(exp_list[i], libE_info['workerID'])
 
         if outline != new_exp_list:
-            print('outline is: {}\nexp     is: {}'.format(outline,new_exp_list), flush=True)
+            print('outline is: {}\nexp     is: {}'.format(outline, new_exp_list), flush=True)
 
         assert(outline == new_exp_list)
 
@@ -124,9 +123,7 @@ customizer = {'mpi_runner': 'mpich',    # Select runner: mpich, openmpi, aprun, 
               'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
               'node_file': node_file}      # Name of file containing a node-list
 
-
 # Create executor and register sim to it.
-from libensemble.executors.mpi_executor import MPIExecutor
 exctr = MPIExecutor(in_place_workers=in_place, central_mode=True, auto_resources=True, custom_info=customizer)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
@@ -150,9 +147,7 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 persis_info = add_unique_random_streams({}, nworkers + 1)
-#exit_criteria = {'gen_max': 40, 'elapsed_wallclock_time': 300}
 exit_criteria = {'sim_max': (nsim_workers)*rounds}
-
 
 # Each worker has 2 nodes. Basic test list for portable options
 test_list_base = [{'testid': 'base1', 'nprocs': 2, 'nnodes': 1, 'ppn': 2, 'e_args': '--xarg 1'},  # Under use
@@ -164,7 +159,6 @@ exp_mpich = \
      'mpirun -hosts node-1,node-2 -np 32 --ppn 16 /path/to/fakeapp.x --testid base2',
      ]
 
-
 test_list = test_list_base
 exp_list = exp_mpich
 sim_specs['user'] = {'tests': test_list, 'expect': exp_list}
@@ -175,4 +169,3 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 # All asserts are in sim func
-
