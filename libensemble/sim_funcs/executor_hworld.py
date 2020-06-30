@@ -71,6 +71,8 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     cores = sim_specs['user']['cores']
     comm = libE_info['comm']
 
+    use_balsam = 'balsam_test' in sim_specs['user']
+
     args_for_sim = 'sleep 1'
     # pref send this in X as a sim_in from calling script
     global sim_count
@@ -89,8 +91,20 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         args_for_sim = 'sleep 18'  # Manager kill - if signal received else completes
         timeout = 20.0
 
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
+    if use_balsam:
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,
+                            hyperthreads=True, machinefile='notused', stdout='notused',
+                            wait_on_run=True)
+    else:
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
     task, calc_status = polling_loop(comm, exctr, task, timeout)
+
+    if use_balsam:
+        task.read_file_in_workdir('ensemble.log')
+        try:
+            task.read_stderr()
+        except ValueError:
+            pass
 
     # assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     # assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)

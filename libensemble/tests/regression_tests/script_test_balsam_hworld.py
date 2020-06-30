@@ -9,7 +9,7 @@ from mpi4py import MPI
 from libensemble.executors.balsam_executor import BalsamMPIExecutor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
-from libensemble.sim_funcs.balsam_executor_hworld import executor_hworld
+from libensemble.sim_funcs.executor_hworld import executor_hworld
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.tools import add_unique_random_streams
 
@@ -45,7 +45,9 @@ exctr.register_calc(full_path=sim_app, calc_type='sim')
 sim_specs = {'sim_f': executor_hworld,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'user': {'cores': cores_per_task}}
+             'user': {'cores': cores_per_task,
+                      'balsam_test': True}
+            }
 
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
