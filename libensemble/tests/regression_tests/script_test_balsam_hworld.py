@@ -47,7 +47,7 @@ sim_specs = {'sim_f': executor_hworld,
              'out': [('f', float), ('cstat', int)],
              'user': {'cores': cores_per_task,
                       'balsam_test': True}
-            }
+             }
 
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
