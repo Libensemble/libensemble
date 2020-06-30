@@ -92,12 +92,25 @@ class EnvResources:
             return global_nodelist
         return []
 
-    def abbrev_nodenames(self, node_list):
+    @staticmethod
+    def abbrev_nodenames(node_list, prefix=None):
+        """Returns nodelist with only string upto first dot"""
+        newlist = [s.split(".", 1)[0] for s in node_list]
+        return newlist
+
+    @staticmethod
+    def cobalt_abbrev_nodenames(node_list, prefix='nid'):
+        """Returns nodelist with prefix and leading zeros stripped"""
+        newlist = [s.lstrip(prefix) for s in node_list]
+        newlist = [s.lstrip('0') for s in newlist]
+        return newlist
+
+    def shortnames(self, node_list):
         """Returns nodelist with entries in abbreviated form"""
-        if self.scheduler == 'Slurm':
-            return EnvResources.slurm_abbrev_nodenames(node_list)
         if self.scheduler == 'Cobalt':
             return EnvResources.cobalt_abbrev_nodenames(node_list)
+        else:
+            return EnvResources.abbrev_nodenames(node_list)
         return node_list
 
     @staticmethod
@@ -160,19 +173,6 @@ class EnvResources:
             for nid in range(a, b):
                 nidlst.append(str(nid))
         return sorted(nidlst, key=int)
-
-    @staticmethod
-    def slurm_abbrev_nodenames(node_list, prefix=None):
-        """Returns nodelist with only string upto first dot"""
-        newlist = [s.split(".", 1)[0] for s in node_list]
-        return newlist
-
-    @staticmethod
-    def cobalt_abbrev_nodenames(node_list, prefix='nid'):
-        """Returns nodelist with prefix and leading zeros stripped"""
-        newlist = [s.lstrip(prefix) for s in node_list]
-        newlist = [s.lstrip('0') for s in newlist]
-        return newlist
 
     @staticmethod
     def get_lsf_nodelist(node_list_env):

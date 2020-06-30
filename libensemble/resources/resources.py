@@ -120,11 +120,10 @@ class Resources:
                                           nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
         # This is global nodelist avail to workers - may change to global_worker_nodelist
-        self.local_host = self.env_resources.abbrev_nodenames([socket.gethostname()])[0]
+        self.local_host = self.env_resources.shortnames([socket.gethostname()])[0]
         if node_file is None:
             node_file = Resources.DEFAULT_NODEFILE
-        self.global_nodelist = Resources.get_global_nodelist(local_host=self.local_host,
-                                                             node_file=node_file,
+        self.global_nodelist = Resources.get_global_nodelist(node_file=node_file,
                                                              rundir=self.top_level_dir,
                                                              env_resources=self.env_resources)
         self.launcher = launcher
@@ -148,7 +147,7 @@ class Resources:
 
         Removes libEnsemble nodes from nodelist if in central_mode.
         """
-        self.libE_nodes = self.env_resources.abbrev_nodenames(libE_nodes)
+        self.libE_nodes = self.env_resources.shortnames(libE_nodes)
         libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
         if libE_nodes_in_list:
             if self.central_mode and len(self.global_nodelist) > 1:
@@ -215,8 +214,7 @@ class Resources:
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
     @staticmethod
-    def get_global_nodelist(local_host,
-                            node_file=DEFAULT_NODEFILE,
+    def get_global_nodelist(node_file=DEFAULT_NODEFILE,
                             rundir=None,
                             env_resources=None):
         """
@@ -236,6 +234,8 @@ class Resources:
             with open(node_filepath, 'r') as f:
                 for line in f:
                     global_nodelist.append(line.rstrip())
+            if env_resources:
+                global_nodelist = env_resources.shortnames(global_nodelist)
         else:
             logger.debug("No node_file found - searching for nodelist in environment")
             if env_resources:
@@ -244,7 +244,7 @@ class Resources:
             if not global_nodelist:
                 # Assume a standalone machine
                 logger.info("Can not find nodelist from environment. Assuming standalone")
-                global_nodelist.append(local_host)
+                global_nodelist.append(env_resources.shortnames([socket.gethostname()])[0])
 
         if global_nodelist:
             return global_nodelist
