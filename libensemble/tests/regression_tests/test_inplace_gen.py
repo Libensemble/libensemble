@@ -91,7 +91,7 @@ nworkers, is_master, libE_specs, _ = parse_args()
 rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
-libE_specs['in_place_workers'] = [1]
+libE_specs['zero_resource_workers'] = [1]
 
 
 # To allow visual checking - log file not used in test
@@ -99,11 +99,11 @@ log_file = 'ensemble_inplace_workers_comms_' + str(comms) + '_wrks_' + str(nwork
 libE_logger.set_filename(log_file)
 
 # For varying size test - relate node count to nworkers
-in_place = libE_specs['in_place_workers']
+in_place = libE_specs['zero_resource_workers']
 nsim_workers = nworkers-len(in_place)
 comms = libE_specs['comms']
 nodes_per_worker = 2
-node_file = 'nodelist_in_place_workers_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_zero_resource_workers_' + str(comms) + '_wrks_' + str(nworkers)
 if is_master:
     if os.path.exists(node_file):
         os.remove(node_file)
@@ -123,7 +123,7 @@ customizer = {'mpi_runner': 'mpich',    # Select runner: mpich, openmpi, aprun, 
               'node_file': node_file}      # Name of file containing a node-list
 
 # Create executor and register sim to it.
-exctr = MPIExecutor(in_place_workers=in_place, central_mode=True, auto_resources=True, custom_info=customizer)
+exctr = MPIExecutor(zero_resource_workers=in_place, central_mode=True, auto_resources=True, custom_info=customizer)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 

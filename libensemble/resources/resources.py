@@ -43,7 +43,7 @@ class Resources:
 
     def __init__(self, top_level_dir=None,
                  central_mode=False,
-                 in_place_workers=[],
+                 zero_resource_workers=[],
                  allow_oversubscribe=False,
                  launcher=None,
                  cores_on_node=None,
@@ -70,7 +70,7 @@ class Resources:
             do not share nodes with applications. Distributed mode means Workers share nodes
             with applications.
 
-        in_place_workers: list of ints, optional
+        zero_resource_workers: list of ints, optional
             List of workers that require no resources.
 
         allow_oversubscribe: boolean, optional
@@ -143,7 +143,7 @@ class Resources:
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.libE_nodes = None
         self.worker_resources = None
-        self.in_place_workers = in_place_workers
+        self.zero_resource_workers = zero_resource_workers
 
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
@@ -324,31 +324,31 @@ class WorkerResources:
 
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
-        in_place_list = resources.in_place_workers
-        num_workers_assign = num_workers - len(in_place_list)
+        in_place_list = resources.zero_resource_workers
+        num_workers_2assign2 = num_workers - len(in_place_list)
 
         # Check if current host in nodelist - if it is then in distributed mode.
         distrib_mode = resources.local_host in global_nodelist
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
-        sub_node_workers = (num_workers_assign >= num_nodes)
+        sub_node_workers = (num_workers_2assign2 >= num_nodes)
         if sub_node_workers:
-            workers_per_node = num_workers_assign//num_nodes
+            workers_per_node = num_workers_2assign2//num_nodes
             dup_list = itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist)
             global_nodelist = list(dup_list)
 
         # Currently require even split for distrib mode - to match machinefile - throw away remainder
         if distrib_mode and not sub_node_workers:
-            nodes_per_worker, remainder = divmod(num_nodes, num_workers_assign)
+            nodes_per_worker, remainder = divmod(num_nodes, num_workers_2assign2)
             if remainder != 0:
                 # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
                 logger.warning("Nodes to workers not evenly distributed. Wasted nodes. "
-                               "{} workers and {} nodes".format(num_workers_assign, num_nodes))
+                               "{} workers and {} nodes".format(num_workers_2assign2, num_nodes))
                 num_nodes = num_nodes - remainder
                 global_nodelist = global_nodelist[0:num_nodes]
 
         # Divide global list between workers
-        split_list = list(Resources.best_split(global_nodelist, num_workers_assign))
+        split_list = list(Resources.best_split(global_nodelist, num_workers_2assign2))
         logger.debug("split_list is {}".format(split_list))
 
         if workerID is None:

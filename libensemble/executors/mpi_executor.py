@@ -29,7 +29,7 @@ class MPIExecutor(Executor):
     def __init__(self, auto_resources=True,
                  allow_oversubscribe=True,
                  central_mode=False,
-                 in_place_workers=[],
+                 zero_resource_workers=[],
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
@@ -64,7 +64,7 @@ class MPIExecutor(Executor):
             grouped together and do not share nodes with applications.
             Distributed mode means workers share nodes with applications.
 
-        in_place_workers: list of ints, optional
+        zero_resource_workers: list of ints, optional
             List of workers that require no resources.
 
         nodelist_env_slurm: String, optional
@@ -122,7 +122,7 @@ class MPIExecutor(Executor):
             self.resources = \
                 MPIResources(top_level_dir=self.top_level_dir,
                              central_mode=central_mode,
-                             in_place_workers=in_place_workers,
+                             zero_resource_workers=zero_resource_workers,
                              allow_oversubscribe=allow_oversubscribe,
                              launcher=self.mpi_runner.run_command,
                              cores_on_node=cores_on_node,
