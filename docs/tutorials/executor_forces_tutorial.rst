@@ -296,6 +296,30 @@ Load output data from our task and return to the libEnsemble manager:
 
         return output, persis_info, calc_status
 
+This completes our ``sim_f`` and calling script. Run libEnsemble with:
+
+.. code-block:: bash
+
+    $ python my_calling_script.py --comms local --nworkers 4
+
+This may take about a minute to complete. Output should appear in a new
+directory ``./ensemble``, with sub-directories labeled by ``sim_id`` and worker.
+
+The following optional lines parse and display some output:
+
+.. code-block:: python
+    :linenos:
+
+    import os
+
+    for dir in os.listdir('./ensemble'):
+        with open(os.path.join('./ensemble', dir, 'out.txt')) as f:
+            out = f.readlines()
+        print(dir + ':')
+        for line in out:
+            print(line)
+        print('-'*60)
+
 Executor Variants
 -----------------
 
