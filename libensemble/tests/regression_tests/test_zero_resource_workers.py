@@ -1,10 +1,10 @@
 # """
-# Runs libEnsemble testing the in_place gen argument.
+# Runs libEnsemble testing the zero_resource_workers argument.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_inplace_gen.py
-#    python3 test_inplace_gen.py --nworkers 3 --comms local
-#    python3 test_inplace_gen.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_zero_resource_workers.py
+#    python3 test_zero_resource_workers.py --nworkers 3 --comms local
+#    python3 test_zero_resource_workers.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
@@ -95,7 +95,7 @@ libE_specs['zero_resource_workers'] = [1]
 
 
 # To allow visual checking - log file not used in test
-log_file = 'ensemble_inplace_workers_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
+log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 libE_logger.set_filename(log_file)
 
 # For varying size test - relate node count to nworkers

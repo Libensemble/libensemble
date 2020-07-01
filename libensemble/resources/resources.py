@@ -302,12 +302,12 @@ class WorkerResources:
         return workers_per_node
 
     @staticmethod
-    def map_workerid_to_index(num_workers, workerID, in_place_list):
+    def map_workerid_to_index(num_workers, workerID, zero_resource_list):
         """Map WorkerID to index into a nodelist"""
         index = workerID - 1
-        if in_place_list:
+        if zero_resource_list:
             for i in range(1, num_workers+1):
-                if i in in_place_list:
+                if i in zero_resource_list:
                     index -= 1
                 if index < i:
                     return index
@@ -324,8 +324,8 @@ class WorkerResources:
 
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
-        in_place_list = resources.zero_resource_workers
-        num_workers_2assign2 = num_workers - len(in_place_list)
+        zero_resource_list = resources.zero_resource_workers
+        num_workers_2assign2 = num_workers - len(zero_resource_list)
 
         # Check if current host in nodelist - if it is then in distributed mode.
         distrib_mode = resources.local_host in global_nodelist
@@ -354,10 +354,10 @@ class WorkerResources:
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")
 
-        if workerID in in_place_list:
+        if workerID in zero_resource_list:
             local_nodelist = []
         else:
-            index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+            index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
             local_nodelist = split_list[index]
 
         logger.debug("local_nodelist is {}".format(local_nodelist))

@@ -389,29 +389,29 @@ def test_worker_resources():
 
 def test_map_workerid_to_index():
     num_workers = 4
-    in_place_list = []
+    zero_resource_list = []
 
     for workerID in range(1, num_workers+1):
-        index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
         assert index == workerID - 1, "index incorrect. Received: " + str(index)
 
-    in_place_list = [1]
+    zero_resource_list = [1]
     for workerID in range(2, num_workers+1):
-        index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
         assert index == workerID - 2, "index incorrect. Received: " + str(index)
 
-    in_place_list = [1, 2]
+    zero_resource_list = [1, 2]
     for workerID in range(3, num_workers+1):
-        index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
         assert index == workerID - 3, "index incorrect. Received: " + str(index)
 
-    in_place_list = [1, 3]
+    zero_resource_list = [1, 3]
     workerID = 2
-    index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+    index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
     assert index == 0, "index incorrect. Received: " + str(index)
 
     workerID = 4
-    index = WorkerResources.map_workerid_to_index(num_workers, workerID, in_place_list)
+    index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
     assert index == 1, "index incorrect. Received: " + str(index)
 
 
