@@ -25,23 +25,35 @@ Specifications for libEnsemble::
             This will create a directory for each simulation, even if no sim_input_dir is specified.
             If False, all workers operate within the ensemble directory described below.
             Default: True
+        'gen_dirs_make' [boolean] :
+            Whether to make generato-instance specific calculation directories for each gen call.
+            This will create a directory for each generator call, even if no gen_input_dir is specified.
+            If False, all workers operate within the ensemble directory.
+            Default: True
         'ensemble_dir_path' [string] :
-            Path to main ensemble directory containing calculation (sim) directories.
+            Path to main ensemble directory containing calculation directories.
             Can serve as single working directory for all workers, or contain calculation directories.
             Default: './ensemble'
         'use_worker_dirs' [boolean] :
-            Whether to organize calculation (sim) directories under worker-specific directories.
+            Whether to organize calculation directories under worker-specific directories.
             Default: False
         'sim_dir_copy_files' [list] :
             List of paths to files or directories to copy into each sim dir, or ensemble dir.
         'sim_dir_symlink_files' [list] :
             List of paths to files or directories to symlink into each sim dir.
+        'gen_dir_copy_files' [list] :
+            List of paths to files or directories to copy into each gen dir, or ensemble dir.
+        'gen_dir_symlink_files' [list] :
+            List of paths to files or directories to symlink into each gen dir.
         'ensemble_copy_back' [boolean] :
             Whether to copy back directories within ensemble_dir_path back to launch location.
             Useful if ensemble_dir placed on node-local storage.
             Default: False
         'sim_input_dir' [string] :
             Copy this directory and it's contents for each simulation-specific directory.
+            If not using calculation directories, contents are copied to the ensemble directory.
+        'gen_input_dir' [string] :
+            Copy this directory and it's contents for each generator-instance specific directory.
             If not using calculation directories, contents are copied to the ensemble directory.
         'profile_worker' [boolean] :
             Profile using cProfile. Default: False
