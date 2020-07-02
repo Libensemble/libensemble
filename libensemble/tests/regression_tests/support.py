@@ -36,6 +36,7 @@ def write_uniform_gen_func(H, persis_info, gen_specs, _):
         f.write('gen_f produced: {}\n'.format(H_o['x']))
     return H_o, persis_info
 
+
 uniform_or_localopt_gen_out = [('priority', float),
                                ('local_pt', bool),
                                ('known_to_aposmm', bool),

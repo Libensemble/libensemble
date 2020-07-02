@@ -19,7 +19,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.tools.fields_keys import libE_spec_calc_dir_keys, libE_spec_sim_dir_keys, libE_spec_gen_dir_keys
+from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
@@ -300,7 +300,6 @@ class Worker:
         with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
             return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
-
     def _use_calc_dirs(self, type):
         "Determines calc_dirs enabling for each calc type"
 
@@ -310,7 +309,6 @@ class Worker:
             dir_type_keys = libE_spec_gen_dir_keys
 
         return any([setting in self.libE_specs for setting in dir_type_keys])
-
 
     def _handle_calc(self, Work, calc_in):
         """Runs a calculation on this worker object.

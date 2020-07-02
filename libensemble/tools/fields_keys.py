@@ -34,7 +34,7 @@ libE_spec_calc_dir_keys = ['ensemble_copy_back',
 libE_spec_sim_dir_keys = ['sim_dirs_make',
                           'sim_dir_copy_files',
                           'sim_dir_symlink_files',
-                          'sim_input_dir',]
+                          'sim_input_dir']
 
 libE_spec_gen_dir_keys = ['gen_dirs_make',
                           'gen_dir_copy_files',
