@@ -17,7 +17,7 @@ def nan_func(calc_in, persis_info, sim_specs, libE_info):
     return (H, persis_info)
 
 
-def write_func(calc_in, persis_info, sim_specs, libE_info):
+def write_sim_func(calc_in, persis_info, sim_specs, libE_info):
     out = np.zeros(1, dtype=sim_specs['out'])
     out['f'] = calc_in['x']
     with open('test_sim_out.txt', 'a') as f:
@@ -25,7 +25,7 @@ def write_func(calc_in, persis_info, sim_specs, libE_info):
     return out, persis_info
 
 
-def uniform_random_sample_write(H, persis_info, gen_specs, _):
+def write_uniform_gen_func(H, persis_info, gen_specs, _):
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
     n = len(lb)

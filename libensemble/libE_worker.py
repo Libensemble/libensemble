@@ -19,7 +19,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
+from libensemble.tools.fields_keys import libE_spec_calc_dir_keys, libE_spec_sim_dir_keys, libE_spec_gen_dir_keys
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
@@ -148,24 +148,30 @@ class Worker:
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
         "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
 
-        sim_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
+        if calc_str == 'sim':
+            calc_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
+            do_calc_dirs = libE_specs.get('sim_dirs_make', True)
+            copy_files = libE_specs.get('sim_dir_copy_files', [])
+            symlink_files = libE_specs.get('sim_dir_symlink_files', [])
+        elif calc_str == 'gen':
+            calc_input_dir = libE_specs.get('gen_input_dir', '').rstrip('/')
+            do_calc_dirs = libE_specs.get('gen_dirs_make', True)
+            copy_files = libE_specs.get('gen_dir_copy_files', [])
+            symlink_files = libE_specs.get('gen_dir_symlink_files', [])
 
-        do_sim_dirs = libE_specs.get('sim_dirs_make', True)
         prefix = libE_specs.get('ensemble_dir_path', './ensemble')
-        copy_files = libE_specs.get('sim_dir_copy_files', [])
-        symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         do_work_dirs = libE_specs.get('use_worker_dirs', False)
 
-        # If using sim_input_dir, set of files to copy is contents of provided dir
-        if sim_input_dir:
-            copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
+        # If using calc_input_dir, set of files to copy is contents of provided dir
+        if calc_input_dir:
+            copy_files = set(copy_files + [os.path.join(calc_input_dir, i) for i in os.listdir(calc_input_dir)])
 
         # If identical paths to copy and symlink, remove those paths from symlink_files
         if len(symlink_files):
             symlink_files = [i for i in symlink_files if i not in copy_files]
 
         # Cases where individual sim_dirs not created.
-        if not do_sim_dirs:
+        if not do_calc_dirs:
             if do_work_dirs:  # Each worker does work in worker dirs
                 key = workerID
                 dir = "worker" + str(workerID)
@@ -276,7 +282,7 @@ class Worker:
                         raise
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
-        "Determines choice for sim_dir structure, then performs calculation."
+        "Determines choice for calc_dir structure, then performs calculation."
 
         if not self.loc_stack:
             self.loc_stack = LocationStack()
@@ -295,10 +301,15 @@ class Worker:
             return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
 
-    def _do_calc_dirs(self):
-        "Determines if calc_dir use should be enabled"
+    def _use_calc_dirs(self, type):
+        "Determines calc_dirs enabling for each calc type"
 
-        return any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys])
+        if type == EVAL_SIM_TAG:
+            dir_type_keys = libE_spec_sim_dir_keys
+        else:
+            dir_type_keys = libE_spec_gen_dir_keys
+
+        return any([setting in self.libE_specs for setting in dir_type_keys])
 
 
     def _handle_calc(self, Work, calc_in):
@@ -330,7 +341,7 @@ class Worker:
             with timer:
                 logger.debug("Calling calc {}".format(calc_type))
 
-                if self._do_calc_dirs():
+                if self._use_calc_dirs(calc_type):
                     out = self._determine_dir_then_calc(Work, calc_type, calc_in, calc)
                 else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
