@@ -9,7 +9,7 @@ Theta features three tiers of nodes: login, MOM,
 and compute nodes. Users on login nodes submit batch jobs to the MOM nodes.
 MOM nodes execute user batch scripts to run on the compute nodes via ``aprun``.
 
-Theta does not allow more than one MPI application per compute node.
+Theta will not schedule more than one MPI application per compute node.
 
 Configuring Python
 ------------------
@@ -21,7 +21,7 @@ Begin by loading the Python 3 Miniconda_ module::
 Create a conda_ virtual environment, cloning the base environment. This
 environment will contain mpi4py_ and many other packages you may find useful::
 
-    $ conda create --name my_env --clone $MINICONDA_INSTALL_PATH
+    $ conda create --name my_env --clone $CONDA_PREFIX
 
 .. note::
     The "executing transaction" step of creating your new environment may take a while!
@@ -32,6 +32,7 @@ instructions to configure your shell with conda.
 
 Activate your virtual environment with ::
 
+    $ export PYTHONNOUSERSITE=1
     $ conda activate my_env
 
 More information_ on using conda on Theta is also available.
@@ -53,7 +54,7 @@ Your prompt should be similar to the following line:
 .. note::
     If you encounter pip errors, run ``python -m pip install --upgrade pip`` first.
 
-Or, you can install via ``conda``:
+Or, you can install via ``conda`` (which comes with some common dependencies):
 
 .. code-block:: console
 
@@ -66,27 +67,37 @@ for installing libEnsemble.
 Balsam (Optional)
 ^^^^^^^^^^^^^^^^^
 
-Balsam_ is an ALCF Python utility for coordinating and executing workflows of
-computations on systems such as Theta. Balsam can stage in tasks to a database hosted
-on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
-can also be submitted to Balsam for centralized execution on a compute-node.
-libEnsemble can then submit tasks to Balsam through libEnsemble's Balsam
-Executor for execution on additional allocated nodes.
+Balsam_ allows libEnsemble to be run on compute nodes and still submit tasks
+from workers (see Job Submission below). The Balsam Executor will stage in tasks to a
+database hosted on a MOM node, which will submit these tasks dynamically to the
+compute nodes.
 
-Load the Balsam module with ::
 
-    $ module load balsam/0.3.5.1
+Balsam can be installed with::
 
-Initialize a new database similarly to the following (from the Balsam docs):
+    pip install balsam-flow
 
-.. code-block:: bash
+Balsam will use the postgresql_ database service on Theta::
 
-    $ balsam init ~/libe-workflow
-    $ source balsamactivate libe-workflow
-    $ balsam app --name libe-app --executable "calling.py"
-    $ balsam job --name libe-job --workflow test --application libe-app --args "hello!"
-    $ balsam submit-launch -A [project] -q default -t 5 -n 1 --job-mode=mpi
-    $ watch balsam ls   #  follow status in realtime from command-line
+    module load postgresql
+
+Alternatively to the above two steps, a Balsam module is available on Theta, but
+note that this comes with it's own Python. Make sure you are picking up the
+correct Python executable if used.
+
+Further instructions on initializing and activating the database can be found in
+the `Balsam install`_ guide.
+
+Further notes on using Balsam:
+
+* | Call ``balsamactivate`` in the batch script (see below). Make sure no active
+  | postgres databases are running on either login or MOM nodes before call ``qsub``.
+
+* | By default there are a maximum of 128 connections to the database. Each worker
+  | will use a connection and a few extra are needed. To increase the number of
+  | connections append a new ``max_connections`` line to the ``balsamdb/postgresql.conf``
+  | file under the database directory. E.g.~ ``max_connections=1024``
+
 
 Read Balsam's documentation here_.
 
@@ -229,7 +240,8 @@ libEnsemble on Theta is achieved by running ::
 Balsam Runs
 ^^^^^^^^^^^
 
-Here is an example Balsam submission script:
+Here is an example Balsam submission script It requires a pre-initialized (but not activated)
+postgresql database:
 
 .. code-block:: bash
 
@@ -331,6 +343,8 @@ Read the documentation for Balsam here_.
 .. _Cobalt: https://www.alcf.anl.gov/support-center/theta/submit-job-theta
 .. _`Support Center`: https://www.alcf.anl.gov/support-center/theta
 .. _here: https://balsam.readthedocs.io/en/latest/
+.. _Balsam install: https://balsam.readthedocs.io/en/latest/#quick-setup
+.. _postgresql: https://www.alcf.anl.gov/support-center/theta/postgresql-and-sqlite
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _conda: https://conda.io/en/latest/
 .. _information: https://www.alcf.anl.gov/user-guides/conda
