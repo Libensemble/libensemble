@@ -75,8 +75,6 @@ def print_job_output(outscript):
     limit = 60
 
     print('Blank output file found. Waiting for expected complete Balsam Job Output.')
-    # lastlines = ['Task 4 done on worker 1\n', 'Task 4 done on worker 2\n',
-    #              'Run completed.\n']
     succeed_line = 'Received:  [34 34 31 31 32 32 33 33  0  0]\n'
 
     lastposition = 0
@@ -92,7 +90,6 @@ def print_job_output(outscript):
         else:
             print(sleeptime, end=" ", flush=True)
 
-        # if any(new.endswith(line) for line in lastlines):
         if succeed_line in new:
             print('Success. Received task statuses match expected.')
             break
