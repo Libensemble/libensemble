@@ -153,7 +153,7 @@ class Worker:
             do_calc_dirs = libE_specs.get('sim_dirs_make', True)
             copy_files = libE_specs.get('sim_dir_copy_files', [])
             symlink_files = libE_specs.get('sim_dir_symlink_files', [])
-        elif calc_str == 'gen':
+        else:  # calc_str is 'gen'
             calc_input_dir = libE_specs.get('gen_input_dir', '').rstrip('/')
             do_calc_dirs = libE_specs.get('gen_dirs_make', True)
             copy_files = libE_specs.get('gen_dir_copy_files', [])
