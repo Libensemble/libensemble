@@ -39,13 +39,15 @@ sim_app = './my_simtask.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
 
-exctr = BalsamMPIExecutor(auto_resources=False)
+exctr = BalsamMPIExecutor(auto_resources=False, central_mode=False, custom_info={'not': 'used'})
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 sim_specs = {'sim_f': executor_hworld,
              'in': ['x'],
              'out': [('f', float), ('cstat', int)],
-             'user': {'cores': cores_per_task}}
+             'user': {'cores': cores_per_task,
+                      'balsam_test': True}
+             }
 
 gen_specs = {'gen_f': uniform_random_sample,
              'in': ['sim_id'],
@@ -84,5 +86,9 @@ if is_master:
 
     # Repeat N times for N workers and insert Completed at start for generator
     calc_desc_list = ['Completed'] + calc_desc_list_in*nworkers
+
+    # Cleanup (maybe cover del_apps() and del_tasks())
+    exctr.del_apps()
+    exctr.del_tasks()
 
     print("\n\n\nRun completed.")

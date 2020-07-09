@@ -141,6 +141,7 @@ cleanup() {
     filelist=(my_machinefile);          [ -e ${filelist[0]} ] && rm my_machinefile
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
+    filelist=(H_test.npy);              [ -e ${filelist[0]} ] && rm H_test.npy
   done
   cd $ROOT_DIR/$REG_TEST_SUBDIR
     filelist=(*.$REG_TEST_OUTPUT_EXT);  [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
