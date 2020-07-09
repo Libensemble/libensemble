@@ -55,6 +55,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'save_H_and_persis_on_abort',        #
                           'workerID',               #
                           'worker_timeout',         #
+                          'zero_resource_workers',  #
                           'worker_cmd'] + libE_spec_calc_dir_keys \
                                         + libE_spec_sim_dir_keys \
                                         + libE_spec_gen_dir_keys

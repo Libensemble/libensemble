@@ -46,6 +46,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'grad' [n floats]``: The gradient (if available) of the objective with respect to `x`.
 
     Note:
+
     - If any of the above fields are desired after a libEnsemble run, name
       them in ``gen_specs['out']``.
     - If intitializing APOSMM with past function values, make sure to include
