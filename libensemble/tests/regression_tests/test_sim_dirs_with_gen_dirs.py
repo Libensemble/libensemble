@@ -84,12 +84,13 @@ def check_copied(type):
     assert all(input_copied), \
         'All input files not copied or symlinked to each {} calc dir'.format(type)
 
+
 if is_master:
     assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
     sim_dir_sum = sum(['sim' in i for i in os.listdir(c_ensemble)])
     assert sim_dir_sum == exit_criteria['sim_max'], \
         'Number of sim directories ({}) does not match sim_max ({}).' \
-        .format(dir_sum, exit_criteria['sim_max'])
+        .format(sim_dir_sum, exit_criteria['sim_max'])
 
     assert any(['gen' in i for i in os.listdir(c_ensemble)]), \
         'No gen directories created.'
