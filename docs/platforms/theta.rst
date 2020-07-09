@@ -18,8 +18,9 @@ Begin by loading the Python 3 Miniconda_ module::
 
     $ module load miniconda-3/latest
 
-Create a conda_ virtual environment, cloning the base environment. This
-environment will contain mpi4py_ and many other packages you may find useful::
+Create a conda_ virtual environment. We recommended cloning the base
+environment. This environment will contain mpi4py_ and many other packages you
+may find useful::
 
     $ conda create --name my_env --clone $CONDA_PREFIX
 
@@ -85,18 +86,15 @@ Alternatively to the above two steps, a Balsam module is available on Theta, but
 note that this comes with it's own Python. Make sure you are picking up the
 correct Python executable if used.
 
-Further instructions on initializing and activating the database can be found in
-the `Balsam install`_ guide.
+Initialize a Balsam database at a location of your choice. E.g::
+
+    balsam init ~/myWorkflow
 
 Further notes on using Balsam:
 
-* | Call ``balsamactivate`` in the batch script (see below). Make sure no active
-  | postgres databases are running on either login or MOM nodes before call ``qsub``.
+* Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before you calling ``qsub``. You can check with script ps_nodes_.
 
-* | By default there are a maximum of 128 connections to the database. Each worker
-  | will use a connection and a few extra are needed. To increase the number of
-  | connections append a new ``max_connections`` line to the ``balsamdb/postgresql.conf``
-  | file under the database directory. E.g.~ ``max_connections=1024``
+* By default there are a maximum of 128 connections to the database. Each worker will use a connection and a few extra are needed. To increase the number of connections append a new ``max_connections`` line to the ``balsamdb/postgresql.conf`` file under the database directory. E.g.~ ``max_connections=1024``
 
 
 Read Balsam's documentation here_.
@@ -131,9 +129,10 @@ On Theta, libEnsemble can be launched to two locations:
         :scale: 40
         :align: center
 
-When considering on which nodes to run libEnsemble, consider whether your user
-functions execute computationally expensive code or code built for specific
-architectures. Recall also that only the MOM nodes can launch MPI applications.
+When considering on which nodes to run libEnsemble, consider whether your ``sim_f``
+or ``gen_f`` user functions (not applications) execute computationally expensive
+code, or code built specifically for the compute node architecture. Recall also
+that only the MOM nodes can launch MPI applications.
 
 Although libEnsemble workers on the MOM nodes can technically submit
 user applications to the compute nodes directly via ``aprun`` within user functions, it
@@ -241,7 +240,7 @@ Balsam Runs
 ^^^^^^^^^^^
 
 Here is an example Balsam submission script It requires a pre-initialized (but not activated)
-postgresql database:
+postgresql_ database:
 
 .. code-block:: bash
 
@@ -343,7 +342,8 @@ Read the documentation for Balsam here_.
 .. _Cobalt: https://www.alcf.anl.gov/support-center/theta/submit-job-theta
 .. _`Support Center`: https://www.alcf.anl.gov/support-center/theta
 .. _here: https://balsam.readthedocs.io/en/latest/
-.. _Balsam install: https://balsam.readthedocs.io/en/latest/#quick-setup
+.. .. _Balsam install: https://balsam.readthedocs.io/en/latest/#quick-setup
+.. _ps_nodes: https://github.com/Libensemble/libensemble/blob/develop/examples/misc/ps_nodes.sh
 .. _postgresql: https://www.alcf.anl.gov/support-center/theta/postgresql-and-sqlite
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _conda: https://conda.io/en/latest/
