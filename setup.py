@@ -53,7 +53,7 @@ setup(
 
     package_data={'libensemble.sim_funcs.branin': ['known_minima_and_func_values']},
 
-    install_requires=['numpy'],
+    install_requires=['numpy','psutil'],
 
     # If run tests through setup.py - downloads these but does not install
     tests_require=['pytest>=3.1',
@@ -64,7 +64,7 @@ setup(
                    ],
 
     extras_require={
-        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap', 'psutil', 'mpmath'],
+        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap', 'mpmath'],
         'docs': ['sphinxcontrib.bibtex']},
 
     classifiers=[
