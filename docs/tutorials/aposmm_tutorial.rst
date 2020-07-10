@@ -56,29 +56,34 @@ APOSMM Operations
 -----------------
 
 APOSMM coordinates multiple local optimization runs starting from a collection
-of sample points. These local optimization runs occur in parallel,
+of sample points. These local optimization runs occur concurrently,
 and can incorporate a variety of optimization methods, including from NLopt_,
-`PETSc/TAO`_, and SciPy_. Some number of uniformly sampled points is returned
-by APOSMM for simulation evaluations before local optimization runs can occur,
-if no prior simulation evaluations are provided. User-requested sample points
-can also be provided to APOSMM:
+`PETSc/TAO`_, SciPy_, or other external scripts.
+
+Before APOSMM can start local optimization runs, some number of uniformly
+sampled points must be evaluated (if no prior simulation evaluations are
+provided). User-requested sample points can also be provided to APOSMM:
 
 .. image:: ../images/sampling_6hc.png
     :alt: Six-Hump Camel Sampling
     :scale: 60
     :align: center
 
-Specifically, APOSMM will begin local optimization runs from those points that
-don't have better (more minimal) points nearby within a threshold ``r_k``. For the above
-example, after APOSMM has returned the uniformly sampled points, for simulation
-evaluations it will likely begin local optimization runs from the user-requested
-approximate minima. Providing these isn't required, but can offer performance
-benefits.
+Specifically, APOSMM will begin local optimization runs from evaluated points that
+don't have points with smaller function values nearby (within a threshold
+``r_k``). For the above example, after APOSMM receives the evaluations of the
+uniformly sampled points, it will begin at most ``max_active_runs``  local
+optimization runs.
 
-Each local optimization run chooses new points and determines if they're better
-by passing them back to be evaluated by the simulation routine. If so, new local
-optimization runs are started from those points. This continues until each run
-converges to a minimum:
+As function values are returned to APOSMM, APOSMM gives them to each local
+optimization run in order to generate the next point(s); these are returned to
+the manager to be evaluated by the simulation routine. As runs complete (a
+minimum is found, or some termination criteria for the local optimization run
+is satisfied),
+additional local optimization runs may be started or additional uniformly
+sampled points may be evaluated. This continues until a ``STOP_TAG`` is sent by
+the manager, for example when the budget of simulation evaluations has been
+exhausted, or when a sufficiently "good" simulation output has been observed.
 
 .. image:: ../images/localopt_6hc.png
     :alt: Six-Hump Camel Local Optimization Points
