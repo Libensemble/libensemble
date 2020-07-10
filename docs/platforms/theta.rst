@@ -19,8 +19,8 @@ Begin by loading the Python 3 Miniconda_ module::
     $ module load miniconda-3/latest
 
 Create a conda_ virtual environment. We recommended cloning the base
-environment. This environment will contain mpi4py_ and many other packages you
-may find useful::
+environment. This environment will contain mpi4py_ and many other packages that
+are configured correctly for Theta::
 
     $ conda create --name my_env --clone $CONDA_PREFIX
 
@@ -35,6 +35,18 @@ Activate your virtual environment with ::
 
     $ export PYTHONNOUSERSITE=1
     $ conda activate my_env
+
+Alternative
+^^^^^^^^^^^
+
+If you do not wish to clone the miniconda environment and instead create your own, and
+you are using ``mpi4py`` make sure the install picks up Cray's compiler drivers. E.g::
+
+    $ conda create --name my_env python=3.7
+    $ export PYTHONNOUSERSITE=1
+    $ conda activate my_env
+    $ CC=cc MPICC=cc pip install mpi4py --no-binary mpi4py
+
 
 More information_ on using conda on Theta is also available.
 
@@ -68,23 +80,15 @@ for installing libEnsemble.
 Balsam (Optional)
 ^^^^^^^^^^^^^^^^^
 
-Balsam_ allows libEnsemble to be run on compute nodes and still submit tasks
-from workers (see Job Submission below). The Balsam Executor will stage in tasks to a
-database hosted on a MOM node, which will submit these tasks dynamically to the
-compute nodes.
+Balsam_ allows libEnsemble to be run on compute nodes, and still submit tasks
+from workers (see Job Submission below). The Balsam Executor will stage in tasks
+to a database hosted on a MOM node, which will submit these tasks dynamically to
+the compute nodes.
 
 
 Balsam can be installed with::
 
     pip install balsam-flow
-
-Balsam will use the postgresql_ database service on Theta::
-
-    module load postgresql
-
-Alternatively to the above two steps, a Balsam module is available on Theta, but
-note that this comes with it's own Python. Make sure you are picking up the
-correct Python executable if used.
 
 Initialize a Balsam database at a location of your choice. E.g::
 
