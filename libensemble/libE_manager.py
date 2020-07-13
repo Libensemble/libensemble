@@ -20,8 +20,8 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
-from libensemble.tools.tools import _USER_SIM_DIR_WARNING
-from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
+from libensemble.tools.tools import _USER_CALC_DIR_WARNING
+from libensemble.tools.fields_keys import libE_spec_calc_dir_combined
 import cProfile
 import pstats
 
@@ -145,7 +145,7 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
+        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_combined]):
             self.check_ensemble_dir(libE_specs)
             if libE_specs.get('ensemble_copy_back', False):
                 Manager.make_copyback_dir(libE_specs)
@@ -165,7 +165,7 @@ class Manager:
         except FileNotFoundError:  # Ensemble dir doesn't exist.
             pass
         except OSError as e:  # Ensemble dir exists and isn't empty.
-            logger.manager_warning(_USER_SIM_DIR_WARNING.format(prefix))
+            logger.manager_warning(_USER_CALC_DIR_WARNING.format(prefix))
             self._kill_workers()
             raise ManagerException('Manager errored on initialization',
                                    'Ensemble directory already existed and wasn\'t empty.', e)
