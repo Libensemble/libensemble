@@ -26,7 +26,7 @@ Specifications for libEnsemble::
             If False, all workers operate within the ensemble directory described below.
             Default: True
         'gen_dirs_make' [boolean] :
-            Whether to make generato-instance specific calculation directories for each gen call.
+            Whether to make generator-instance specific calculation directories for each gen call.
             This will create a directory for each generator call, even if no gen_input_dir is specified.
             If False, all workers operate within the ensemble directory.
             Default: True
