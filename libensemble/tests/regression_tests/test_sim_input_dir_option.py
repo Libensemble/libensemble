@@ -36,6 +36,7 @@ libE_specs['sim_input_dir'] = sim_input_dir
 libE_specs['ensemble_dir_path'] = o_ensemble
 libE_specs['sim_dirs_make'] = False
 libE_specs['sim_dir_symlink_files'] = ['./test_sim_input_dir_option.py']  # to cover FileExistsError catch
+libE_specs['ensemble_copy_back'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 

@@ -7,6 +7,7 @@ import socket
 import logging
 import os
 import shutil
+import re
 import logging.handlers
 from itertools import count, groupby
 from operator import itemgetter
@@ -263,23 +264,42 @@ class Worker:
             return '_'.join(ranges)
 
     def _copy_back(self):
-        """ Cleanup indication file & copy output to init dir, if specified"""
+        """Copy back all ensemble dir contents to launch location"""
         if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', False):
+
+            no_calc_dirs = not self.libE_specs.get('sim_dirs_make', True) or \
+                           not self.libE_specs.get('gen_dirs_make', True)
 
             ensemble_dir_path = self.libE_specs.get('ensemble_dir_path', './ensemble')
             copybackdir = os.path.basename(ensemble_dir_path)
             if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
                 copybackdir += '_back'
+
             for dir in self.loc_stack.dirs.values():
-                try:
-                    shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
-                    if os.path.basename(dir).startswith('worker'):
-                        break  # Worker dir (with all sim_dirs) copied.
-                except FileExistsError:
-                    if not self.libE_specs.get('sim_dirs_make', True):
+                dest_path = os.path.join(copybackdir, os.path.basename(dir))
+                if dir == self.prefix:  # occurs when no_calc_dirs is True
+                    continue  # otherwise, entire ensemble dir copied into copyback dir
+
+                shutil.copytree(dir, dest_path, symlinks=True)
+                if os.path.basename(dir).startswith('worker'):
+                    return  # Worker dir (with all contents) has been copied.
+
+            # If not using calc dirs, likely miscellaneous files to copy back
+            if no_calc_dirs:
+                p = re.compile("((^sim)|(^gen))\d+_worker\d+")
+                for file in [i for i in os.listdir(self.prefix) if not p.match(i)]:
+                    source_path = os.path.join(self.prefix, file)
+                    dest_path = os.path.join(copybackdir, file)
+                    try:
+                        if os.path.isdir(source_path):
+                            shutil.copytree(source_path, dest_path, symlinks=True)
+                        else:
+                            shutil.copy(source_path, dest_path, follow_symlinks=False)
+                    except FileExistsError:
                         continue
-                    else:
-                        raise
+                    except shutil.SameFileError:  # creating an identical symlink
+                        continue
+
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for calc_dir structure, then performs calculation."
