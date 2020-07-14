@@ -18,7 +18,7 @@ Begin by loading the Python 3 Miniconda_ module::
 
     $ module load miniconda-3/latest
 
-Create a conda_ virtual environment. We recommended cloning the base
+Create a conda_ virtual environment. We recommend cloning the base
 environment. This environment will contain mpi4py_ and many other packages that
 are configured correctly for Theta::
 
