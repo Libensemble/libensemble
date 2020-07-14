@@ -199,15 +199,15 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
 
     # --- Prepare Python ---
 
-    # Load conda module
-    module load miniconda-3/latest
+    # Obtain Conda PATH from miniconda-3/latest module
+    CONDA_DIR=/soft/datascience/conda/miniconda3/latest/bin
 
     # Name of conda environment
     export CONDA_ENV_NAME=my_env
 
     # Activate conda environment
     export PYTHONNOUSERSITE=1
-    source activate $CONDA_ENV_NAME
+    source $CONDA_DIR/activate $CONDA_ENV_NAME
 
     # --- Prepare libEnsemble ---
 
@@ -219,11 +219,6 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
 
     # Number of workers.
     export NWORKERS='--nworkers 128'
-
-    # Conda location - theta specific
-    export PATH=/home/user/path/to/packages/:$PATH
-    export LD_LIBRARY_PATH=/home/user/path/to/packages/:$LD_LIBRARY_PATH
-    export PYTHONPATH=/home/user/path/to/env/packages:$PYTHONPATH
 
     # Required for python kills on Theta
     export PMI_NO_FORK=1
@@ -243,15 +238,17 @@ libEnsemble on Theta is achieved by running ::
 Balsam Runs
 ^^^^^^^^^^^
 
-Here is an example Balsam submission script It requires a pre-initialized (but not activated)
-postgresql_ database:
+Here is an example Balsam submission script. It requires a pre-initialized (but not activated)
+postgresql_ database. Note, the example runs libEnsemble over two dedicated nodes, reserving the
+other 127 nodes for launched applications. libEnsemble is run with MPI on 128 processors
+(one manager and 127 workers).:
 
 .. code-block:: bash
 
     #!/bin/bash -x
     #COBALT -t 60
     #COBALT -O libE_test
-    #COBALT -n 128
+    #COBALT -n 129
     #COBALT -q default
     #COBALT -A [project]
 
@@ -259,7 +256,10 @@ postgresql_ database:
     export EXE=calling_script.py
 
     # Number of workers.
-    export NUM_WORKERS=128
+    export NUM_WORKERS=127
+
+    # Number of nodes to run libE
+    export LIBE_NODES=2
 
     # Wall-clock for entire libE run (supplied to Balsam)
     export LIBE_WALLCLOCK=45
@@ -272,13 +272,7 @@ postgresql_ database:
 
     # Name of conda environment
     export CONDA_ENV_NAME=my_env
-
-    # Conda location - theta specific
-    export PATH=/path/to/python/bin:$PATH
-    export LD_LIBRARY_PATH=~/path/to/conda/env/lib:$LD_LIBRARY_PATH
-
-    #Ensure environment isolated
-    export PYTHONNOUSERSITE=1
+    export BALSAM_DB_NAME=myWorkflow
 
     # Required for python kills on Theta
     export PMI_NO_FORK=1
@@ -288,17 +282,25 @@ postgresql_ database:
     module unload darshan
     module unload xalt
 
+    # Obtain Conda PATH from miniconda-3/latest module
+    CONDA_DIR=/soft/datascience/conda/miniconda3/latest/bin
+
+    # Ensure environment is isolated
+    export PYTHONNOUSERSITE=1
+
     # Activate conda environment
-    . activate $CONDA_ENV_NAME
+    source $CONDA_DIR/activate $CONDA_ENV_NAME
 
     # Activate Balsam database
-    . balsamactivate default
+    source balsamactivate $BALSAM_DB_NAME
 
     # Currently need at least one DB connection per worker (for postgres).
-    if [[ $NUM_WORKERS -gt 128 ]]
+    if [[ $NUM_WORKERS -gt 100 ]]
     then
-       #Add a margin
-       echo -e "max_connections=$(($NUM_WORKERS+10)) #Appended by submission script" >> $BALSAM_DB_PATH/balsamdb/postgresql.conf
+       # Add a margin
+       export BALSAM_DB_PATH=~/$BALSAM_DB_NAME  # Pre-pend with PATH
+       echo -e "max_connections=$(($NUM_WORKERS+10)) # Appended by submission script" \
+       >> $BALSAM_DB_PATH/balsamdb/postgresql.conf
     fi
     wait
 
@@ -309,18 +311,29 @@ postgresql_ database:
     sleep 3
 
     # Add calling script to Balsam database as app and job.
-    THIS_DIR=$PWD
-    SCRIPT_BASENAME=${EXE%.*}
+    export THIS_DIR=$PWD
+    export SCRIPT_BASENAME=${EXE%.*}
+
+    export LIBE_PROCS=$((NUM_WORKERS+1))  # Manager and workers
+    export PROCS_PER_NODE=$((LIBE_PROCS/LIBE_NODES))  # Must divide evenly
 
     balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
 
     # Running libE on one node - one manager and upto 63 workers
-    balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
+    balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME \
+    --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS \
+    --wall-time-minutes $LIBE_WALLCLOCK \
+    --num-nodes $LIBE_NODES --ranks-per-node $PROCS_PER_NODE \
+    --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" \
+    --url-in="local:/$THIS_DIR/*" --yes
 
-    #Run job
+    # Run job
     balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
 
+    wait
     . balsamdeactivate
+
+Further examples of Balsam submission scripts can be be found in the :doc:`examples<example_scripts>`.
 
 Debugging Strategies
 --------------------
