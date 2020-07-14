@@ -268,10 +268,11 @@ class Worker:
         if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', False):
 
             no_calc_dirs = not self.libE_specs.get('sim_dirs_make', True) or \
-                           not self.libE_specs.get('gen_dirs_make', True)
+                not self.libE_specs.get('gen_dirs_make', True)
 
             ensemble_dir_path = self.libE_specs.get('ensemble_dir_path', './ensemble')
             copybackdir = os.path.basename(ensemble_dir_path)
+
             if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
                 copybackdir += '_back'
 
@@ -287,7 +288,7 @@ class Worker:
             # If not using calc dirs, likely miscellaneous files to copy back
             if no_calc_dirs:
                 p = re.compile("((^sim)|(^gen))\d+_worker\d+")
-                for file in [i for i in os.listdir(self.prefix) if not p.match(i)]:
+                for file in [i for i in os.listdir(self.prefix) if not p.match(i)]:  # each non-calc_dir file
                     source_path = os.path.join(self.prefix, file)
                     dest_path = os.path.join(copybackdir, file)
                     try:
@@ -299,7 +300,6 @@ class Worker:
                         continue
                     except shutil.SameFileError:  # creating an identical symlink
                         continue
-
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
         "Determines choice for calc_dir structure, then performs calculation."

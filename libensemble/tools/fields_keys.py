@@ -42,8 +42,8 @@ libE_spec_gen_dir_keys = ['gen_dirs_make',
                           'gen_input_dir']
 
 libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + \
-                              libE_spec_sim_dir_keys + \
-                              libE_spec_gen_dir_keys
+    libE_spec_sim_dir_keys + \
+    libE_spec_gen_dir_keys
 
 allowed_libE_spec_keys = ['abort_on_exception',     #
                           'authkey',                #
