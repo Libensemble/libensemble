@@ -220,7 +220,7 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
     # Number of workers.
     export NWORKERS='--nworkers 128'
 
-    # Required for python kills on Theta
+    # Required for killing tasks from workers on Theta
     export PMI_NO_FORK=1
 
     # Unload Theta modules that may interfere with task monitoring/kills
@@ -267,14 +267,15 @@ other 127 nodes for launched applications. libEnsemble is run with MPI on 128 pr
     # Name of working directory where Balsam places running jobs/output
     export WORKFLOW_NAME=libe_workflow
 
-    #Tell libE manager to stop workers, dump timing.dat and exit after time.
-    export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
+    # If user script takes ``elapsed_wallclock_time`` argument.
+    # export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
+    export SCRIPT_ARGS=""
 
     # Name of conda environment
     export CONDA_ENV_NAME=my_env
     export BALSAM_DB_NAME=myWorkflow
 
-    # Required for python kills on Theta
+    # Required for killing tasks from workers on Theta
     export PMI_NO_FORK=1
 
     # Unload Theta modules that may interfere with task monitoring/kills
@@ -299,7 +300,7 @@ other 127 nodes for launched applications. libEnsemble is run with MPI on 128 pr
     then
        # Add a margin
        export BALSAM_DB_PATH=~/$BALSAM_DB_NAME  # Pre-pend with PATH
-       echo -e "max_connections=$(($NUM_WORKERS+10)) # Appended by submission script" \
+       echo -e "max_connections=$(($NUM_WORKERS+20)) # Appended by submission script" \
        >> $BALSAM_DB_PATH/balsamdb/postgresql.conf
     fi
     wait
@@ -319,7 +320,6 @@ other 127 nodes for launched applications. libEnsemble is run with MPI on 128 pr
 
     balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
 
-    # Running libE on one node - one manager and upto 63 workers
     balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME \
     --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS \
     --wall-time-minutes $LIBE_WALLCLOCK \
@@ -331,7 +331,7 @@ other 127 nodes for launched applications. libEnsemble is run with MPI on 128 pr
     balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
 
     wait
-    . balsamdeactivate
+    source balsamdeactivate
 
 Further examples of Balsam submission scripts can be be found in the :doc:`examples<example_scripts>`.
 

@@ -1,12 +1,13 @@
 #!/bin/bash -x
 #COBALT -t 00:30:00
+#COBALT -O libE_forces_MPI_balsam
 #COBALT -n 129
 #COBALT -q default
 #COBALT -A <projectID>
 
-# Script to launch libEnsemble using Balsam within Conda. Conda environment must be set up.
-
-# Requires Balsam is installed and a database initialized (this can be the default database).
+# Script to launch libEnsemble using Balsam.
+#   Assumes Conda environment is set up.
+#   Requires Balsam is installed and a database initialized.
 
 # To be run with central job management
 # - Manager and workers run on one node (or a dedicated set of nodes).
@@ -18,43 +19,48 @@ export EXE=run_libe_forces.py
 # Number of workers.
 export NUM_WORKERS=127
 
+# Number of nodes to run libE
+export LIBE_NODES=2
+
 # Wallclock for libE job in minutes (supplied to Balsam - make at least several mins smaller than wallclock for this submission to ensure job is launched)
 export LIBE_WALLCLOCK=25
 
 # Name of working directory where Balsam places running jobs/output (inside the database directory)
 export WORKFLOW_NAME=libe_workflow
 
-# export SCRIPT_ARGS='' #Default No args
-# export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-5))
-export SCRIPT_ARGS="--comms mpi --nworkers $NUM_WORKERS"
+# If user script takes ``elapsed_wallclock_time`` argument.
+# export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
+export SCRIPT_ARGS=""
 
 # Name of Conda environment
 export CONDA_ENV_NAME=<conda_env_name>
 
 # Name of database
-export DBASE_NAME=<dbase_name>
-
-# Conda location - theta specific
-# export PATH=/opt/intel/python/2017.0.035/intelpython35/bin:$PATH
-# export LD_LIBRARY_PATH=~/.conda/envs/$CONDA_ENV_NAME/lib:$LD_LIBRARY_PATH
-
-export PYTHONNOUSERSITE=1 #Ensure environment isolated
-
-export PMI_NO_FORK=1 # Required for python kills on Theta
+export BALSAM_DB_NAME=<dbase_name>
 
 export LIBE_PLOTS=true   # Require plot scripts (see at end)
 export BALSAM_PLOTS=true # Require plot scripts (see at end)
 export PLOT_DIR=..
 
-# Activate conda environment
-. activate $CONDA_ENV_NAME
+# Required for killing tasks from workers on Theta
+export PMI_NO_FORK=1
 
-# Unload Theta modules that may interfere with job monitoring/kills
+# Unload Theta modules that may interfere with task monitoring/kills
 module unload trackdeps
 module unload darshan
 module unload xalt
 
-. balsamactivate $DBASE_NAME
+# Obtain Conda PATH from miniconda-3/latest module
+CONDA_DIR=/soft/datascience/conda/miniconda3/latest/bin
+
+# Ensure environment isolated
+export PYTHONNOUSERSITE=1
+
+# Activate conda environment
+source $CONDA_DIR/activate $CONDA_ENV_NAME
+
+# Activate Balsam database
+source balsamactivate $BALSAM_DB_NAME
 
 # Make sure no existing apps/jobs
 balsam rm apps --all --force
@@ -63,27 +69,30 @@ wait
 sleep 3
 
 # Add calling script to Balsam database as app and job.
-THIS_DIR=$PWD
-SCRIPT_BASENAME=${EXE%.*}
-
-# Running libE on one node - one manager and upto 63 workers
-# NUM_NODES=1
-# RANKS_PER_NODE=$((NUM_WORKERS+1)) # One node auto
+export THIS_DIR=$PWD
+export SCRIPT_BASENAME=${EXE%.*}
 
 # Multiple nodes
-NUM_NODES=2
-RANKS_PER_NODE=64
-
-# All tasks
-OUT_FILES_TO_RETURN="*.out *.txt *.log"
+export LIBE_PROCS=$((NUM_WORKERS+1))  # Manager and workers
+export PROCS_PER_NODE=$((LIBE_PROCS/LIBE_NODES))  # Must divide evenly
 
 balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
 
-balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes $NUM_NODES --ranks-per-node $RANKS_PER_NODE --url-out="local:/$THIS_DIR" --stage-out-files="${OUT_FILES_TO_RETURN}" --url-in="local:/$THIS_DIR/*" --yes
+balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME \
+           --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS \
+           --wall-time-minutes $LIBE_WALLCLOCK \
+           --num-nodes $LIBE_NODES --ranks-per-node $PROCS_PER_NODE \
+           --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" \
+           --url-in="local:/$THIS_DIR/*" --yes
 
 # Hyper-thread libE (note this will not affect HT status of user calcs - only libE itself)
 # E.g. Running 255 workers and one manager on one libE node.
-# balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes $NUM_NODES --ranks-per-node $RANKS_PER_NODE --threads-per-core 4 --url-out="local:/$THIS_DIR" --stage-out-files="${OUT_FILES_TO_RETURN}" --url-in="local:/$THIS_DIR/*" --yes
+# balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME \
+#            --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS \
+#            --wall-time-minutes $LIBE_WALLCLOCK \
+#            --num-nodes 1 --ranks-per-node 256 --threads-per-core 4 \
+#            --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" \
+#            --url-in="local:/$THIS_DIR/*" --yes
 
 #Run job
 balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
@@ -94,10 +103,10 @@ if [[ $LIBE_PLOTS = "true" ]]; then
   python $PLOT_DIR/plot_libe_histogram.py
 
 if [[ $BALSAM_PLOTS = "true" ]]; then
-#   export MPLBACKEND=TkAgg
   python $PLOT_DIR/plot_util_v_time.py
   python $PLOT_DIR/plot_jobs_v_time.py
   python $PLOT_DIR/plot_waiting_v_time.py
 fi
 
-. balsamdeactivate
+wait
+source balsamdeactivate
