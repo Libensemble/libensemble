@@ -67,7 +67,6 @@ extensions = ['sphinxcontrib.bibtex',
               # 'sphinx.ext.autosectionlabel',
               # 'sphinx.ext.intersphinx',
               'sphinx.ext.imgconverter',
-              'nbsphinx',
               'sphinx.ext.mathjax']
 # autosectionlabel_prefix_document = True
 # extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']

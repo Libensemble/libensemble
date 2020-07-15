@@ -90,11 +90,11 @@ gen scripts are not doing too much work (other than launching applications). Thi
 is inherently centralized. The entire node allocation is available for the worker-launched
 tasks.
 
-To run libEnsemble on the compute nodes of these systems requires an altervative Executor,
+To run libEnsemble on the compute nodes of these systems requires an alternative Executor,
 such as :doc:`Balsam<../executor/balsam_executor>`, which runs on the
-launch nodes and launches tasks submitted by workers. Running on compute nodes is potentially
-more scalable and will better manage sim and gen functions that contain considerable
-computational work or I/O.
+launch nodes and launches tasks submitted by workers. Running libEnsemble on the compute
+nodes is potentially more scalable and will better manage ``sim_f`` and ``gen_f`` functions
+that contain considerable computational work or I/O.
 
     .. image:: ../images/combined_ThS.png
         :alt: central_MOM
