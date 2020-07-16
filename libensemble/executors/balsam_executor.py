@@ -20,7 +20,7 @@ import datetime
 
 from libensemble.resources.mpi_resources import MPIResources
 from libensemble.executors.executor import \
-    Task, ExecutorException, jassert, STATES
+    Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
 import balsam.launcher.dag as dag
@@ -138,6 +138,36 @@ class BalsamTask(Task):
             raise ExecutorException(
                 "Task state returned from Balsam is not in known list of "
                 "Balsam states. Task state is {}".format(balsam_state))
+
+    def wait(self, timeout=None):
+        """Waits on completion of the task or raises TimeoutExpired exception
+
+        Status attributes of task are updated on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+
+        if self.dry_run:
+            return
+
+        if not self._check_poll():
+            return
+
+        # Wait on the task
+        start = time.time()
+        self.process.refresh_from_db()
+        while self.process.state not in models.END_STATES:
+            time.sleep(0.2)
+            self.process.refresh_from_db()
+            if time.time() - start > timeout:
+                self.runtime = self._get_time_since_balsam_submit()
+                raise TimeoutExpired(self.name, timeout)
+
+        self.runtime = self._get_time_since_balsam_submit()
+        self._set_complete()
 
     def kill(self, wait_time=None):
         """ Kills or cancels the supplied task """
