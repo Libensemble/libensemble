@@ -133,11 +133,6 @@ class Task:
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
 
-    def set_as_complete(self):
-        self.finished = True
-        self.success = True
-        self.state = 'FINISHED'
-
     def workdir_exists(self):
         """Returns true if the task's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
@@ -196,15 +191,19 @@ class Task:
             return False
         return True
 
-    def _set_complete(self):
+    def _set_complete(self, dry_run=False):
         """Set task as complete"""
         self.finished = True
-        self.calc_task_timing()
-        self.errcode = self.process.returncode
-        self.success = (self.errcode == 0)
-        self.state = 'FINISHED' if self.success else 'FAILED'
-        logger.info("Task {} finished with errcode {} ({})".
-                    format(self.name, self.errcode, self.state))
+        if dry_run:
+            self.success = True
+            self.state = 'FINISHED'
+        else:
+            self.calc_task_timing()
+            self.errcode = self.process.returncode
+            self.success = (self.errcode == 0)
+            self.state = 'FINISHED' if self.success else 'FAILED'
+            logger.info("Task {} finished with errcode {} ({})".
+                        format(self.name, self.errcode, self.state))
 
     def poll(self):
         """Polls and updates the status attributes of the task"""

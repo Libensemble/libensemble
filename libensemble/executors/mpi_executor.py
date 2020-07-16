@@ -279,7 +279,7 @@ class MPIExecutor(Executor):
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
-            task.set_as_complete()
+            task._set_complete(dry_run=True)
         else:
             # Launch Task
             self._launch_with_retries(task, runline, sglaunch, wait_on_run)

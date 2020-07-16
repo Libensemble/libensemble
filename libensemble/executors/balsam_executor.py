@@ -85,23 +85,17 @@ class BalsamTask(Task):
         if self.total_time is None:
             self.total_time = time.time() - self.submit_time
 
-    def poll(self):
-        """Polls and updates the status attributes of the supplied task"""
-        if not self.check_poll():
-            return
-
-        # Get current state of tasks from Balsam database
-        self.process.refresh_from_db()
-        balsam_state = self.process.state
-        self.runtime = self._get_time_since_balsam_submit()
-
-        if balsam_state in models.END_STATES:
-            self.finished = True
-            self.calc_task_timing()
+    def _set_complete(self, dry_run=False):
+        """Set task as complete"""
+        self.finished = True
+        if dry_run:
+            self.success = True
+            self.state = 'FINISHED'
+        else:
+            balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
+            self.calc_task_timing()
             self.success = (balsam_state == 'JOB_FINISHED')
-            # self.errcode - requested feature from Balsam devs
-
             if balsam_state == 'JOB_FINISHED':
                 self.state = 'FINISHED'
             elif balsam_state == 'PARENT_KILLED':  # Not currently used
@@ -115,6 +109,22 @@ class BalsamTask(Task):
 
             logger.info("Task {} ended with state {}".
                         format(self.name, self.state))
+
+    def poll(self):
+        """Polls and updates the status attributes of the supplied task"""
+        if self.dry_run:
+            return
+
+        if not self._check_poll():
+            return
+
+        # Get current state of tasks from Balsam database
+        self.process.refresh_from_db()
+        balsam_state = self.process.state
+        self.runtime = self._get_time_since_balsam_submit()
+
+        if balsam_state in models.END_STATES:
+            self._set_complete()
 
         elif balsam_state in models.ACTIVE_STATES:
             self.state = 'RUNNING'
@@ -297,7 +307,7 @@ class BalsamMPIExecutor(MPIExecutor):
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
-            task.set_as_complete()
+            task._set_complete(dry_run=True)
         else:
             task.process = dag.add_job(**add_task_args)
 
