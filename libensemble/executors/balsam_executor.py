@@ -162,7 +162,7 @@ class BalsamTask(Task):
         while self.process.state not in models.END_STATES:
             time.sleep(0.2)
             self.process.refresh_from_db()
-            if time.time() - start > timeout:
+            if timeout and time.time() - start > timeout:
                 self.runtime = self._get_time_since_balsam_submit()
                 raise TimeoutExpired(self.name, timeout)
 
