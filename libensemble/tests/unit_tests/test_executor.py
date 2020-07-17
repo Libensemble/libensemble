@@ -7,7 +7,7 @@ import time
 import pytest
 import socket
 from libensemble.resources.resources import ResourcesException
-from libensemble.executors.executor import Executor, ExecutorException
+from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
 from libensemble.executors.executor import NOT_STARTED_STATES
 
 
@@ -193,6 +193,39 @@ def test_launch_and_poll():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
     assert task.run_attempts == 1, "task.run_attempts should be 1. Returned " + str(task.run_attempts)
+
+
+def test_launch_and_wait():
+    """ Test of launching and waiting on task"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 1'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    task.wait()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    task.wait()  # Already complete
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+
+
+def test_launch_and_wait_timeout():
+    """ Test of launching and waiting on task timeout (and kill)"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 5'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    try:
+        task.wait(timeout=0.5)
+    except TimeoutExpired:
+        assert not task.finished, "task.finished should be False. Returned " + str(task.finished)
+        task.kill()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_launch_wait_on_run():
@@ -559,6 +592,8 @@ def test_retries_run_fail():
 if __name__ == "__main__":
     # setup_module(__file__)
     test_launch_and_poll()
+    test_launch_and_wait()
+    test_launch_and_wait_timeout()
     test_launch_wait_on_run()
     test_kill_on_file()
     test_kill_on_timeout()
