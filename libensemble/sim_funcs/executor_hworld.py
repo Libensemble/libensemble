@@ -92,8 +92,8 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     elif sim_count == 5:
         args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
     elif sim_count == 6:
-        args_for_sim = 'sleep 18'  # Manager kill - if signal received else completes
-        timeout = 20.0
+        args_for_sim = 'sleep 60'  # Manager kill - if signal received else completes
+        timeout = 65.0
 
     if use_balsam:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,

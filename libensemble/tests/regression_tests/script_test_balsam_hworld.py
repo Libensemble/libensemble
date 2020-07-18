@@ -59,7 +59,7 @@ gen_specs = {'gen_f': uniform_random_sample,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 35}
+exit_criteria = {'elapsed_wallclock_time': 60}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
