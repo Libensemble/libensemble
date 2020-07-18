@@ -78,16 +78,20 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     global sim_count
     sim_count += 1
     timeout = 6.0
+    wait = False
     if sim_count == 1:
         args_for_sim = 'sleep 1'  # Should finish
     elif sim_count == 2:
         args_for_sim = 'sleep 1 Error'  # Worker kill on error
-    elif sim_count == 3:
+    if sim_count == 3:
+        wait = True
+        args_for_sim = 'sleep 1'  # Should finish
+    elif sim_count == 4:
         args_for_sim = 'sleep 3'  # Worker kill on timeout
         timeout = 1.0
-    elif sim_count == 4:
-        args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
     elif sim_count == 5:
+        args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
+    elif sim_count == 6:
         args_for_sim = 'sleep 18'  # Manager kill - if signal received else completes
         timeout = 20.0
 
@@ -97,7 +101,18 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
                             wait_on_run=True)
     else:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
-    task, calc_status = polling_loop(comm, exctr, task, timeout)
+
+    if wait:
+        task.wait()
+        if not task.finished:
+            calc_status = NOT_SET
+        if task.state == 'FINISHED':
+            calc_status = WORKER_DONE
+        elif task.state == 'FAILED':
+            calc_status = TASK_FAILED
+
+    else:
+        task, calc_status = polling_loop(comm, exctr, task, timeout)
 
     if use_balsam:
         task.read_file_in_workdir('ensemble.log')

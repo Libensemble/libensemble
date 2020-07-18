@@ -96,7 +96,8 @@ if is_master:
     # manager kill - but should show in the summary file.
     # Repeat expected lists nworkers times and compare with list of status's
     # received from workers
-    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
+    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE,
+                                      WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     # For debug
@@ -108,7 +109,7 @@ if is_master:
     # Check summary file:
     print('Checking expected task status against task summary file ...\n')
 
-    calc_desc_list_in = ['Completed', 'Worker killed task on Error',
+    calc_desc_list_in = ['Completed', 'Worker killed task on Error', 'Completed',
                          'Worker killed task on Timeout', 'Task Failed',
                          'Manager killed on finish']
 
