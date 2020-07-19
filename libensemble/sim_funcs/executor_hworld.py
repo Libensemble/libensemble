@@ -105,7 +105,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     if wait:
         task.wait()
         if not task.finished:
-            calc_status = NOT_SET
+            calc_status = UNSET_TAG
         if task.state == 'FINISHED':
             calc_status = WORKER_DONE
         elif task.state == 'FAILED':
