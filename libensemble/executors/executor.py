@@ -69,7 +69,7 @@ class Application:
     """An application is an executable user-program
     (e.g., implementing a sim/gen function)."""
 
-    def __init__(self, full_path, calc_type='sim', desc=None):
+    def __init__(self, full_path, name=None, calc_type='sim', desc=None):
         """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
@@ -77,10 +77,8 @@ class Application:
 
         if self.exe.endswith('.py'):
             self.full_path = ' '.join((sys.executable, full_path))
-
-        # Use this name to delete tasks in database - see del_apps(), del_tasks()
-        self.name = self.exe + '.' + self.calc_type + 'func'
-        self.desc = desc or (self.exe + ' ' + self.calc_type + ' function')
+        self.name = name or self.exe
+        self.desc = desc or (self.exe + ' app')
 
 
 class Task:
@@ -330,6 +328,7 @@ class Executor:
         self.top_level_dir = os.getcwd()
         self.manager_signal = 'none'
         self.default_apps = {'sim': None, 'gen': None}
+        self.apps = {}
 
         self.wait_time = 60
         self.list_of_tasks = []
@@ -349,19 +348,32 @@ class Executor:
         """Returns the default generator app"""
         return self.default_apps['gen']
 
+    def get_app(self, app_name):
+        """Gets the app for a given app_name or raise exception"""
+        try:
+            app = self.apps[app_name]
+        except KeyError:
+            app_keys = list(self.apps.keys())
+            raise ExecutorException("Application {} not found in registry".format(app_name),
+                                    "Registered applications: {}".format(app_keys))
+        return app
+
     def default_app(self, calc_type):
-        "Gets the default app for a given calc type."
+        """Gets the default app for a given calc type"""
         app = self.default_apps.get(calc_type)
         jassert(calc_type in ['sim', 'gen'],
                 "Unrecognized calculation type", calc_type)
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
 
-    def register_calc(self, full_path, calc_type='sim', desc=None):
+    def register_calc(self, full_path, name=None, calc_type='sim', desc=None, set_default=False):
         """Registers a user application to libEnsemble
 
         Parameters
         ----------
+
+        name: String
+            Name to identify this task
 
         full_path: String
             The full path of the user application to be registered
@@ -373,12 +385,25 @@ class Executor:
         desc: String, optional
             Description of this application
 
+        set_default, boolean, optional
+            Sets this as defaut app for a given calc_type
+
         """
         jassert(calc_type in self.default_apps,
                 "Unrecognized calculation type", calc_type)
-        jassert(self.default_apps[calc_type] is None,
-                "Default {} app already set".format(calc_type))
-        self.default_apps[calc_type] = Application(full_path, calc_type, desc)
+
+        if name:
+            self.apps[name] = Application(full_path, name, calc_type, desc)
+        else:
+            set_default = True
+
+        # Default sim/gen apps will be deprecated. Just use names.
+        if set_default:
+            try:
+                self.default_apps[calc_type] = self.apps[name]
+            except KeyError:
+                self.default_apps[calc_type] = \
+                    Application(full_path=full_path, calc_type=calc_type, desc=desc)
 
     def manager_poll(self, comm):
         """ Polls for a manager signal

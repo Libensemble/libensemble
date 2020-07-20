@@ -277,9 +277,9 @@ class BalsamMPIExecutor(MPIExecutor):
         app.save()
         logger.debug("Added App {}".format(app.name))
 
-    def submit(self, calc_type, num_procs=None, num_nodes=None,
-               ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stderr=None, stage_inout=None,
+    def submit(self, calc_type=None, app_name=None, num_procs=None,
+               num_nodes=None, ranks_per_node=None, machinefile=None,
+               app_args=None, stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules to execute
@@ -287,7 +287,13 @@ class BalsamMPIExecutor(MPIExecutor):
 
         The created task object is returned.
         """
-        app = self.default_app(calc_type)
+
+        if app_name is not None:
+            app = self.get_app(app_name)
+        elif calc_type is not None:
+            app = self.default_app(calc_type)
+        else:
+            raise ExecutorException("Either app_name or calc_type must be set")
 
         # Specific to this class
         if machinefile is not None:
