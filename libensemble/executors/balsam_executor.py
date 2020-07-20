@@ -20,7 +20,7 @@ import datetime
 
 from libensemble.resources.mpi_resources import MPIResources
 from libensemble.executors.executor import \
-    Task, ExecutorException, jassert, STATES
+    Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
 import balsam.launcher.dag as dag
@@ -85,23 +85,17 @@ class BalsamTask(Task):
         if self.total_time is None:
             self.total_time = time.time() - self.submit_time
 
-    def poll(self):
-        """Polls and updates the status attributes of the supplied task"""
-        if not self.check_poll():
-            return
-
-        # Get current state of tasks from Balsam database
-        self.process.refresh_from_db()
-        balsam_state = self.process.state
-        self.runtime = self._get_time_since_balsam_submit()
-
-        if balsam_state in models.END_STATES:
-            self.finished = True
-            self.calc_task_timing()
+    def _set_complete(self, dry_run=False):
+        """Set task as complete"""
+        self.finished = True
+        if dry_run:
+            self.success = True
+            self.state = 'FINISHED'
+        else:
+            balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
+            self.calc_task_timing()
             self.success = (balsam_state == 'JOB_FINISHED')
-            # self.errcode - requested feature from Balsam devs
-
             if balsam_state == 'JOB_FINISHED':
                 self.state = 'FINISHED'
             elif balsam_state == 'PARENT_KILLED':  # Not currently used
@@ -116,6 +110,22 @@ class BalsamTask(Task):
             logger.info("Task {} ended with state {}".
                         format(self.name, self.state))
 
+    def poll(self):
+        """Polls and updates the status attributes of the supplied task"""
+        if self.dry_run:
+            return
+
+        if not self._check_poll():
+            return
+
+        # Get current state of tasks from Balsam database
+        self.process.refresh_from_db()
+        balsam_state = self.process.state
+        self.runtime = self._get_time_since_balsam_submit()
+
+        if balsam_state in models.END_STATES:
+            self._set_complete()
+
         elif balsam_state in models.ACTIVE_STATES:
             self.state = 'RUNNING'
             self.workdir = self.workdir or self.process.working_directory
@@ -128,6 +138,36 @@ class BalsamTask(Task):
             raise ExecutorException(
                 "Task state returned from Balsam is not in known list of "
                 "Balsam states. Task state is {}".format(balsam_state))
+
+    def wait(self, timeout=None):
+        """Waits on completion of the task or raises TimeoutExpired exception
+
+        Status attributes of task are updated on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+
+        if self.dry_run:
+            return
+
+        if not self._check_poll():
+            return
+
+        # Wait on the task
+        start = time.time()
+        self.process.refresh_from_db()
+        while self.process.state not in models.END_STATES:
+            time.sleep(0.2)
+            self.process.refresh_from_db()
+            if timeout and time.time() - start > timeout:
+                self.runtime = self._get_time_since_balsam_submit()
+                raise TimeoutExpired(self.name, timeout)
+
+        self.runtime = self._get_time_since_balsam_submit()
+        self._set_complete()
 
     def kill(self, wait_time=None):
         """ Kills or cancels the supplied task """
@@ -297,7 +337,7 @@ class BalsamMPIExecutor(MPIExecutor):
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
-            task.set_as_complete()
+            task._set_complete(dry_run=True)
         else:
             task.process = dag.add_job(**add_task_args)
 
