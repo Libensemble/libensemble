@@ -2,6 +2,7 @@
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
 import os
+import re
 import sys
 import time
 import pytest
@@ -523,13 +524,17 @@ def test_kill_task_with_no_submit():
         assert 0
 
     # Create a task directly with no submit (Not supported for users)
+    # Debatably make taskID 0 as executor should be deleted if use setup function.
+    # But this allows any task ID.
+    exp_msg = ('Attempting to kill task task_my_simtask.x_.+that has '
+               'no process ID - check tasks been launched')
+    exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout='stdout.txt')
     try:
         exctr.kill(task1)
     except ExecutorException as e:
-        assert e.args[0][:50] == 'Attempting to kill task task_my_simtask.x.simfunc_'
-        assert e.args[0][52:] == ' that has no process ID - check tasks been launched'
+        assert bool(re.match(exp_re, e.args[0]))
     else:
         assert 0
 
@@ -541,13 +546,15 @@ def test_poll_task_with_no_submit():
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
+    exp_msg = ('Polled task task_my_simtask.x__.+ '
+               ' has no process ID - check tasks been launched')
+    exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout='stdout.txt')
     try:
         task1.poll()
     except ExecutorException as e:
-        assert e.args[0][:38] == 'Polled task task_my_simtask.x.simfunc_'
-        assert e.args[0][40:] == ' has no process ID - check tasks been launched'
+        assert bool(re.match(exp_re, e.args[0]))
     else:
         assert 0
 
