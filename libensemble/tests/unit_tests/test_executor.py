@@ -546,7 +546,7 @@ def test_poll_task_with_no_submit():
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
-    exp_msg = ('Polled task task_my_simtask.x__.+ '
+    exp_msg = ('Polled task task_my_simtask.x_.+ '
                ' has no process ID - check tasks been launched')
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
