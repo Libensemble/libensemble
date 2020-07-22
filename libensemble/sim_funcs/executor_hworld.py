@@ -79,6 +79,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     sim_count += 1
     timeout = 6.0
     wait = False
+    launch_shc = False
     if sim_count == 1:
         args_for_sim = 'sleep 1'  # Should finish
     elif sim_count == 2:
@@ -86,6 +87,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     if sim_count == 3:
         wait = True
         args_for_sim = 'sleep 1'  # Should finish
+        launch_shc = True
     elif sim_count == 4:
         args_for_sim = 'sleep 3'  # Worker kill on timeout
         timeout = 1.0
@@ -129,6 +131,13 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     H_o = np.zeros(batch, dtype=sim_specs['out'])
     for i, x in enumerate(H['x']):
         H_o['f'][i] = six_hump_camel_func(x)
+        if launch_shc:
+            # Test launching a named app.
+            app_args = ' '.join(str(val) for val in list(x[:]))
+            task = exctr.submit(app_name='six_hump_camel', num_procs=1, app_args=app_args)
+            task.wait()
+            output = np.float64(task.read_stdout())
+            assert np.isclose(H_o['f'][i], output)
 
     # This is just for testing at calling script level - status of each task
     H_o['cstat'] = calc_status
