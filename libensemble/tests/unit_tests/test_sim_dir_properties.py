@@ -204,6 +204,6 @@ if __name__ == '__main__':
     test_range_two_ranges()
     test_range_mixes()
     test_copy_back()
-    test_copy_back_exception()
+    # test_copy_back_exception()
     test_worker_dirs_but_no_sim_dirs()
     test_loc_stack_FileExists_exceptions()
