@@ -249,7 +249,7 @@ class BalsamMPIExecutor(MPIExecutor):
     @staticmethod
     def del_tasks():
         """Deletes all Balsam tasks """
-        for app_type in [Application.prefix]:
+        for app_type in [Task.prefix]:
             deletion_objs = models.BalsamJob.objects.filter(
                 name__contains=app_type)
             if deletion_objs:
@@ -318,7 +318,7 @@ class BalsamMPIExecutor(MPIExecutor):
         task = BalsamTask(app, app_args, default_workdir,
                           stdout, stderr, self.workerID)
 
-        add_task_args = {'name': task.gname,
+        add_task_args = {'name': task.name,
                          'workflow': self.workflow_name,
                          'user_workdir': default_workdir,
                          'application': app.gname,

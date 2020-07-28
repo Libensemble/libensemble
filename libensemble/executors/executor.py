@@ -90,6 +90,7 @@ class Task:
 
     """
 
+    prefix = 'libe_task'
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, workdir=None,
@@ -115,8 +116,7 @@ class Task:
                 format(self.id))
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
-        self.name = "task_{}{}_{}".format(app.name, worker_name, self.id)
-        self.gname = "task_{}{}_{}".format(app.gname, worker_name, self.id)
+        self.name = Task.prefix + "libe_task_{}{}_{}".format(app.name, worker_name, self.id)
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
