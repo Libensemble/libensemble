@@ -93,6 +93,7 @@ ulimit -Sn 10000
 
 if [ "$RUN_TESTS" = true ]; then
     ./libensemble/tests/run-tests.sh -z
+fi
 
 echo -e "\n\nScript completed...\n\n"
 set +ex

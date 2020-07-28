@@ -7,7 +7,7 @@ Note: In this examnple the tests are not automatically run (-i in option to buil
 For details see the ``readme``.
 
 Two windows:
-Window 1: In run_travis_locally direcory.
+Window 1: In install/run_travis_locally direcory.
 Window 2: Will create and run container.
 
 Windows 1 and 2 - name container. E.g:
