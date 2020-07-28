@@ -20,7 +20,7 @@ import datetime
 
 from libensemble.resources.mpi_resources import MPIResources
 from libensemble.executors.executor import \
-    Task, ExecutorException, TimeoutExpired, jassert, STATES
+    Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
 import balsam.launcher.dag as dag
@@ -228,18 +228,18 @@ class BalsamMPIExecutor(MPIExecutor):
         BalsamMPIExecutor.del_tasks()
 
         for app in self.apps.values():
-            calc_name = app.name
+            calc_name = app.gname
             desc = app.desc
             full_path = app.full_path
             self.add_app(calc_name, full_path, desc)
 
     @staticmethod
     def del_apps():
-        """Deletes all Balsam apps whose names contains .simfunc or .genfunc"""
+        """Deletes all Balsam apps in the libe_app namespace"""
         AppDef = models.ApplicationDefinition
 
         # Some error handling on deletes.... is it internal
-        for app_type in ['.simfunc', '.genfunc']:
+        for app_type in [Application.prefix]:
             deletion_objs = AppDef.objects.filter(name__contains=app_type)
             if deletion_objs:
                 for del_app in deletion_objs.iterator():
@@ -248,20 +248,14 @@ class BalsamMPIExecutor(MPIExecutor):
 
     @staticmethod
     def del_tasks():
-        """Deletes all Balsam tasks whose names contains .simfunc or .genfunc"""
-        for app_type in ['.simfunc', '.genfunc']:
+        """Deletes all Balsam tasks """
+        for app_type in [Application.prefix]:
             deletion_objs = models.BalsamJob.objects.filter(
                 name__contains=app_type)
             if deletion_objs:
                 for del_task in deletion_objs.iterator():
                     logger.debug("Deleting task {}".format(del_task.name))
                 deletion_objs.delete()
-
-        # May be able to use union function - to combine - see queryset help.
-        # Eg (not tested)
-        # del_simfuncs = Task.objects.filter(name__contains='.simfunc')
-        # del_genfuncs = Task.objects.filter(name__contains='.genfunc')
-        # deletion_objs = deletion_objs.union()
 
     @staticmethod
     def add_app(name, exepath, desc):
@@ -324,10 +318,10 @@ class BalsamMPIExecutor(MPIExecutor):
         task = BalsamTask(app, app_args, default_workdir,
                           stdout, stderr, self.workerID)
 
-        add_task_args = {'name': task.name,
+        add_task_args = {'name': task.gname,
                          'workflow': self.workflow_name,
                          'user_workdir': default_workdir,
-                         'application': app.name,
+                         'application': app.gname,
                          'args': task.app_args,
                          'num_nodes': num_nodes,
                          'ranks_per_node': ranks_per_node,

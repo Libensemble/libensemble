@@ -69,6 +69,8 @@ class Application:
     """An application is an executable user-program
     (e.g., implementing a sim/gen function)."""
 
+    prefix = 'libe_app'
+
     def __init__(self, full_path, name=None, calc_type='sim', desc=None):
         """Instantiates a new Application instance."""
         self.full_path = full_path
@@ -79,6 +81,7 @@ class Application:
             self.full_path = ' '.join((sys.executable, full_path))
         self.name = name or self.exe
         self.desc = desc or (self.exe + ' app')
+        self.gname = '_'.join([Application.prefix, self.name])
 
 
 class Task:
@@ -113,6 +116,7 @@ class Task:
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
         self.name = "task_{}{}_{}".format(app.name, worker_name, self.id)
+        self.gname = "task_{}{}_{}".format(app.gname, worker_name, self.id)
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
