@@ -392,18 +392,13 @@ class Executor:
         jassert(calc_type in self.default_apps,
                 "Unrecognized calculation type", calc_type)
 
-        if name:
-            self.apps[name] = Application(full_path, name, calc_type, desc)
-        else:
-            set_default = True
+        if not name:
+            name = os.path.split(full_path)[1]
+        self.apps[name] = Application(full_path, name, calc_type, desc)
 
         # Default sim/gen apps will be deprecated. Just use names.
         if set_default:
-            try:
-                self.default_apps[calc_type] = self.apps[name]
-            except KeyError:
-                self.default_apps[calc_type] = \
-                    Application(full_path=full_path, calc_type=calc_type, desc=desc)
+            self.default_apps[calc_type] = self.apps[name]
 
     def manager_poll(self, comm):
         """ Polls for a manager signal

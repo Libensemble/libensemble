@@ -227,10 +227,10 @@ class BalsamMPIExecutor(MPIExecutor):
         BalsamMPIExecutor.del_apps()
         BalsamMPIExecutor.del_tasks()
 
-        for app in self.apps:
-            calc_name = self.apps.name
-            desc = self.apps.desc
-            full_path = self.apps.full_path
+        for app in self.apps.values():
+            calc_name = app.name
+            desc = app.desc
+            full_path = app.full_path
             self.add_app(calc_name, full_path, desc)
 
     @staticmethod
