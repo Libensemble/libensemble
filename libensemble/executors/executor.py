@@ -366,7 +366,7 @@ class Executor:
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
 
-    def register_calc(self, full_path, name=None, calc_type='sim', desc=None, set_default=False):
+    def register_calc(self, full_path, name=None, calc_type=None, desc=None):
         """Registers a user application to libEnsemble
 
         Parameters
@@ -379,25 +379,21 @@ class Executor:
             The full path of the user application to be registered
 
         calc_type: String
-            Calculation type: Is this application part of a 'sim'
-            or 'gen' function
+            Calculation type: Set this application as the default 'sim'
+            or 'gen' function.
 
         desc: String, optional
             Description of this application
 
-        set_default, boolean, optional
-            Sets this as defaut app for a given calc_type
-
         """
-        jassert(calc_type in self.default_apps,
-                "Unrecognized calculation type", calc_type)
-
         if not name:
             name = os.path.split(full_path)[1]
         self.apps[name] = Application(full_path, name, calc_type, desc)
 
         # Default sim/gen apps will be deprecated. Just use names.
-        if set_default:
+        if calc_type is not None:
+            jassert(calc_type in self.default_apps,
+                    "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[name]
 
     def manager_poll(self, comm):
