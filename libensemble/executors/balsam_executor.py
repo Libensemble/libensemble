@@ -227,12 +227,11 @@ class BalsamMPIExecutor(MPIExecutor):
         BalsamMPIExecutor.del_apps()
         BalsamMPIExecutor.del_tasks()
 
-        for calc_type in self.default_apps:
-            if self.default_apps[calc_type] is not None:
-                calc_name = self.default_apps[calc_type].name
-                desc = self.default_apps[calc_type].desc
-                full_path = self.default_apps[calc_type].full_path
-                self.add_app(calc_name, full_path, desc)
+        for app in self.apps:
+            calc_name = self.apps.name
+            desc = self.apps.desc
+            full_path = self.apps.full_path
+            self.add_app(calc_name, full_path, desc)
 
     @staticmethod
     def del_apps():
