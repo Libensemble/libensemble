@@ -72,10 +72,10 @@ def wait_for_job_output(jobdir):
 
 def print_job_output(outscript):
     sleeptime = 0
-    limit = 60
+    limit = 80
 
     print('Blank output file found. Waiting for expected complete Balsam Job Output.')
-    succeed_line = 'Received:  [34 34 31 31 32 32 33 33  0  0]\n'
+    succeed_line = 'Received:  [34 34 31 31 34 34 32 32 33 33  0  0]\n'
 
     lastposition = 0
 

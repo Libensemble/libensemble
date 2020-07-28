@@ -49,6 +49,16 @@ class ExecutorException(Exception):
     "Raised for any exception in the Executor"
 
 
+class TimeoutExpired(Exception):
+    """Timeout exception raised when Timeout expires"""
+    def __init__(self, task, timeout):
+        self.task = task
+        self.timeout = timeout
+
+    def __str__(self):
+        return ("Task {} timed out after {} seconds".format(self.task, self.timeout))
+
+
 def jassert(test, *args):
     "Version of assert that raises a ExecutorException"
     if not test:
@@ -123,11 +133,6 @@ class Task:
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
 
-    def set_as_complete(self):
-        self.finished = True
-        self.success = True
-        self.state = 'FINISHED'
-
     def workdir_exists(self):
         """Returns true if the task's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
@@ -174,24 +179,38 @@ class Task:
             self.runtime = self.timer.elapsed
             self.total_time = self.runtime  # For direct launched tasks
 
-    def check_poll(self):
+    def _check_poll(self):
         """Check whether polling this task makes sense."""
         jassert(self.process is not None,
                 "Polled task {} has no process ID - check tasks been launched".
                 format(self.name))
         if self.finished:
-            logger.warning("Polled task {} has already finished. "
-                           "Not re-polling. Status is {}".
-                           format(self.name, self.state))
+            logger.debug("Polled task {} has already finished. "
+                         "Not re-polling. Status is {}".
+                         format(self.name, self.state))
             return False
         return True
+
+    def _set_complete(self, dry_run=False):
+        """Set task as complete"""
+        self.finished = True
+        if dry_run:
+            self.success = True
+            self.state = 'FINISHED'
+        else:
+            self.calc_task_timing()
+            self.errcode = self.process.returncode
+            self.success = (self.errcode == 0)
+            self.state = 'FINISHED' if self.success else 'FAILED'
+            logger.info("Task {} finished with errcode {} ({})".
+                        format(self.name, self.errcode, self.state))
 
     def poll(self):
         """Polls and updates the status attributes of the task"""
         if self.dry_run:
             return
 
-        if not self.check_poll():
+        if not self._check_poll():
             return
 
         # Poll the task
@@ -201,15 +220,31 @@ class Task:
             self.runtime = self.timer.elapsed
             return
 
-        self.finished = True
-        self.calc_task_timing()
+        self._set_complete()
 
-        # Want to be more fine-grained about non-success (fail vs user kill?)
-        self.errcode = self.process.returncode
-        self.success = (self.errcode == 0)
-        self.state = 'FINISHED' if self.success else 'FAILED'
-        logger.info("Task {} finished with errcode {} ({})".
-                    format(self.name, self.errcode, self.state))
+    def wait(self, timeout=None):
+        """Waits on completion of the task or raises TimeoutExpired exception
+
+        Status attributes of task are updated on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+
+        if self.dry_run:
+            return
+
+        if not self._check_poll():
+            return
+
+        # Wait on the task
+        rc = launcher.wait(self.process, timeout)
+        if rc is None:
+            raise TimeoutExpired(self.name, timeout)
+
+        self._set_complete()
 
     def kill(self, wait_time=60):
         """Kills or cancels the supplied task
