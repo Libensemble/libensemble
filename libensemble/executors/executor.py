@@ -116,7 +116,7 @@ class Task:
                 format(self.id))
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
-        self.name = Task.prefix + "libe_task_{}{}_{}".format(app.name, worker_name, self.id)
+        self.name = Task.prefix + "_{}{}_{}".format(app.name, worker_name, self.id)
         self.stdout = stdout or self.name + '.out'
         self.stderr = stderr or self.name + '.err'
         self.workdir = workdir
