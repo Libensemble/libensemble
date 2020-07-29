@@ -514,6 +514,7 @@ def test_launch_no_app():
     else:
         assert 0
 
+
 def test_kill_task_with_no_submit():
     from libensemble.executors.executor import Task
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
