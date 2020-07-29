@@ -507,7 +507,12 @@ def test_launch_no_app():
         assert e.args[0] == 'Default sim app is not set'
     else:
         assert 0
-
+    try:
+        _ = exctr.submit(num_procs=cores, app_args=args_for_sim)
+    except ExecutorException as e:
+        assert e.args[0] == 'Either app_name or calc_type must be set'
+    else:
+        assert 0
 
 def test_kill_task_with_no_submit():
     from libensemble.executors.executor import Task
