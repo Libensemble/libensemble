@@ -64,6 +64,7 @@ Required dependencies:
 
 * Python_ 3.5 or above
 * NumPy_
+* psutil_
 
 For libEnsemble running with the mpi4py parallelism:
 
@@ -221,8 +222,8 @@ Resources
 .. after_resources_rst_tag
 
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
-.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _Conda: https://docs.conda.io/en/latest/
+.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
@@ -236,6 +237,7 @@ Resources
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+.. _psutil: https://pypi.org/project/psutil/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
