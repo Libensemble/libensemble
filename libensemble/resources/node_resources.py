@@ -4,42 +4,13 @@ This module for detects and returns intranode resources
 """
 
 import os
+import psutil
 import logging
 import collections
 
 logger = logging.getLogger(__name__)
 
 REMOTE_LAUNCH_LIST = ['aprun', 'jsrun', 'srun']  # Move to feature of mpi_runner
-
-
-def _open_binary(fname, **kwargs):
-    return open(fname, "rb", **kwargs)
-
-
-def _cpu_count_physical():
-    """Returns the number of physical cores on the node"""
-    mapping = {}
-    current_info = {}
-    # macOS method for physical cpus
-    if os.uname().sysname == 'Darwin':
-        return int(os.popen('sysctl -n hw.physicalcpu').read().strip())
-    else:
-        with _open_binary('/proc/cpuinfo') as f:
-            for line in f:
-                line = line.strip().lower()
-                if not line:
-                    # new section
-                    if (b'physical id' in current_info and
-                            b'cpu cores' in current_info):
-                        mapping[current_info[b'physical id']] = current_info[b'cpu cores']
-                    current_info = {}
-                else:
-                    if (line.startswith(b'physical id') or
-                            line.startswith(b'cpu cores')):
-                        key, value = line.split(b'\t:', 1)
-                        current_info[key] = int(value)
-
-        return sum(mapping.values()) or None
 
 
 def get_cpu_cores(hyperthreads=False):
@@ -51,23 +22,7 @@ def get_cpu_cores(hyperthreads=False):
     Note: This returns cores available on the current node. It will
     not work for systems of multiple node types
     """
-    try:
-        import psutil
-        ranks_per_node = psutil.cpu_count(logical=hyperthreads)
-    except ImportError:
-        # logger
-        if hyperthreads:
-            import multiprocessing
-            ranks_per_node = multiprocessing.cpu_count()
-        else:
-            try:
-                ranks_per_node = _cpu_count_physical()
-            except Exception as e:
-                logger.warning("Could not detect physical cores - Logical cores (with hyperthreads) "
-                               "returned - " "specify ranks_per_node to override. Exception {}".format(e))
-                import multiprocessing
-                ranks_per_node = multiprocessing.cpu_count()
-    return ranks_per_node  # This is ranks available per node
+    return psutil.cpu_count(logical=hyperthreads)  # This is ranks available per node
 
 
 def _get_local_cpu_resources():
