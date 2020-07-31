@@ -377,7 +377,7 @@ class Executor:
         ----------
 
         name: String
-            Name to identify this task
+            Name to identify this application.
 
         full_path: String
             The full path of the user application to be registered
