@@ -174,7 +174,6 @@ Running at Scale
 * 2044 2-node simulations
 * Object Oriented Parallel Accelerator Library (OPAL) simulation functions.
 
-
 .. list-table::
 
     * - .. figure:: images/libe_opal_complete_v_killed_511w_2044sims_1030nodes.png
@@ -184,7 +183,6 @@ Running at Scale
     * - .. figure:: images/libe_opal_util_v_time_511w_2044sims_1030nodes.png
 
            Total number of Balsam-launched applications running over time.
-
 
 Try libEnsemble Online
 ----------------------
