@@ -62,7 +62,7 @@ else:
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(auto_resources=use_auto_resources)
 exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
-exctr.register_calc(full_path=sim_app2, name='six_hump_camel')  # Named app
+exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 
 # if nworkers == 3:
 #    CalcInfo.keep_worker_stat_files = True # Testing this functionality

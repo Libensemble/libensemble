@@ -606,8 +606,8 @@ def test_register_apps():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()  # This registers an app my_simtask.x (default sim)
     exctr = Executor.executor
-    exctr.register_calc(full_path='/path/to/fake_app1.x', name='fake_app1')
-    exctr.register_calc(full_path='/path/to/fake_app2.py', name='fake_app2')
+    exctr.register_calc(full_path='/path/to/fake_app1.x', app_name='fake_app1')
+    exctr.register_calc(full_path='/path/to/fake_app2.py', app_name='fake_app2')
 
     # Check selected attributes
     app = exctr.get_app('my_simtask.x')
