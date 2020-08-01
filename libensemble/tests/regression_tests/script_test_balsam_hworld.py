@@ -12,6 +12,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.tools import add_unique_random_streams
+import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
@@ -38,9 +39,11 @@ cores_per_task = 1
 sim_app = './my_simtask.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
+sim_app2 = six_hump_camel.__file__
 
 exctr = BalsamMPIExecutor(auto_resources=False, central_mode=False, custom_info={'not': 'used'})
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
+exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 
 sim_specs = {'sim_f': executor_hworld,
              'in': ['x'],

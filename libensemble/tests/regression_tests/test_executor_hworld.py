@@ -20,6 +20,7 @@ import multiprocessing
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
+import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tests.regression_tests.common import build_simfunc
@@ -52,6 +53,7 @@ if is_master:
 sim_app = './my_simtask.x'
 if not os.path.isfile(sim_app):
     build_simfunc()
+sim_app2 = six_hump_camel.__file__
 
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
@@ -59,7 +61,8 @@ if USE_BALSAM:
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(auto_resources=use_auto_resources)
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
+exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 
 # if nworkers == 3:
 #    CalcInfo.keep_worker_stat_files = True # Testing this functionality
@@ -83,7 +86,7 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 10}
+exit_criteria = {'elapsed_wallclock_time': 20}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

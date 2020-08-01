@@ -20,7 +20,7 @@ import datetime
 
 from libensemble.resources.mpi_resources import MPIResources
 from libensemble.executors.executor import \
-    Task, ExecutorException, TimeoutExpired, jassert, STATES
+    Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
 import balsam.launcher.dag as dag
@@ -227,20 +227,19 @@ class BalsamMPIExecutor(MPIExecutor):
         BalsamMPIExecutor.del_apps()
         BalsamMPIExecutor.del_tasks()
 
-        for calc_type in self.default_apps:
-            if self.default_apps[calc_type] is not None:
-                calc_name = self.default_apps[calc_type].name
-                desc = self.default_apps[calc_type].desc
-                full_path = self.default_apps[calc_type].full_path
-                self.add_app(calc_name, full_path, desc)
+        for app in self.apps.values():
+            calc_name = app.gname
+            desc = app.desc
+            full_path = app.full_path
+            self.add_app(calc_name, full_path, desc)
 
     @staticmethod
     def del_apps():
-        """Deletes all Balsam apps whose names contains .simfunc or .genfunc"""
+        """Deletes all Balsam apps in the libe_app namespace"""
         AppDef = models.ApplicationDefinition
 
         # Some error handling on deletes.... is it internal
-        for app_type in ['.simfunc', '.genfunc']:
+        for app_type in [Application.prefix]:
             deletion_objs = AppDef.objects.filter(name__contains=app_type)
             if deletion_objs:
                 for del_app in deletion_objs.iterator():
@@ -249,20 +248,14 @@ class BalsamMPIExecutor(MPIExecutor):
 
     @staticmethod
     def del_tasks():
-        """Deletes all Balsam tasks whose names contains .simfunc or .genfunc"""
-        for app_type in ['.simfunc', '.genfunc']:
+        """Deletes all Balsam tasks """
+        for app_type in [Task.prefix]:
             deletion_objs = models.BalsamJob.objects.filter(
                 name__contains=app_type)
             if deletion_objs:
                 for del_task in deletion_objs.iterator():
                     logger.debug("Deleting task {}".format(del_task.name))
                 deletion_objs.delete()
-
-        # May be able to use union function - to combine - see queryset help.
-        # Eg (not tested)
-        # del_simfuncs = Task.objects.filter(name__contains='.simfunc')
-        # del_genfuncs = Task.objects.filter(name__contains='.genfunc')
-        # deletion_objs = deletion_objs.union()
 
     @staticmethod
     def add_app(name, exepath, desc):
@@ -277,9 +270,9 @@ class BalsamMPIExecutor(MPIExecutor):
         app.save()
         logger.debug("Added App {}".format(app.name))
 
-    def submit(self, calc_type, num_procs=None, num_nodes=None,
-               ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stderr=None, stage_inout=None,
+    def submit(self, calc_type=None, app_name=None, num_procs=None,
+               num_nodes=None, ranks_per_node=None, machinefile=None,
+               app_args=None, stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules to execute
@@ -287,7 +280,13 @@ class BalsamMPIExecutor(MPIExecutor):
 
         The created task object is returned.
         """
-        app = self.default_app(calc_type)
+
+        if app_name is not None:
+            app = self.get_app(app_name)
+        elif calc_type is not None:
+            app = self.default_app(calc_type)
+        else:
+            raise ExecutorException("Either app_name or calc_type must be set")
 
         # Specific to this class
         if machinefile is not None:
@@ -322,7 +321,7 @@ class BalsamMPIExecutor(MPIExecutor):
         add_task_args = {'name': task.name,
                          'workflow': self.workflow_name,
                          'user_workdir': default_workdir,
-                         'application': app.name,
+                         'application': app.gname,
                          'args': task.app_args,
                          'num_nodes': num_nodes,
                          'ranks_per_node': ranks_per_node,

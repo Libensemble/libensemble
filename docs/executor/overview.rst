@@ -4,7 +4,7 @@ Executor Overview
 A typical libEnsemble workflow will include launching tasks from a
 :ref:`sim_f<api_sim_f>` (or :ref:`gen_f<api_gen_f>`) running on a worker. We use
 "task" to represent an application submission by libEnsemble to the system,
-may be a supercomputer, cluster, or other compute resource.
+may be the compute nodes of a supercomputer, cluster, or other compute resource.
 
 The task could be launched via a subprocess call to ``mpirun`` or an alternative
 launcher such as ``aprun`` or ``jsrun``. The ``sim_f`` may then monitor this task,
@@ -13,9 +13,9 @@ check output, and possibly kill the task.
 An **Executor** interface is provided by libEnsemble to remove the burden of
 system interaction from the user and ease the writing of portable user scripts that
 launch applications. The Executor provides the key functions: ``submit()``,
-``poll()``, and ``kill()``. Task attributes can be queried to determine the status
-following each of these commands. Functions are also provided to access and
-interrogate files in the task's working directory.
+``poll()``, ``wait()``, and ``kill()``. Task attributes can be queried to determine
+the status following each of these commands. Functions are also provided to access
+and interrogate files in the task's working directory.
 
 The main Executor class is an abstract class and is inherited by the MPIExecutor,
 for direct running of MPI applications. Another Executor is the BalsamMPIExecutor,
@@ -83,7 +83,7 @@ In user sim func::
 See the :doc:`executor<executor>` interface for API.
 
 For a more realistic example see
-the :doc:`Electrostatic Forces example <../examples/calling_scripts>`,
+the :doc:`Electrostatic Forces example <../tutorials/executor_forces_tutorial>`,
 which launches the ``forces.x`` application as an MPI task.
 
 .. note::
@@ -91,9 +91,26 @@ which launches the ``forces.x`` application as an MPI task.
     **"jobs"** within Balsam, including within Balsam's database and when
     describing the state of a completed submission.
 
+Note that applications can also be registered to the Executor using a name. The
+equivalent lines in the above example would be:
+
+Calling script::
+
+    exctr.register_calc(full_path='/path/to/my/exe', app_name='forces_app')
+
+User sim func::
+
+    task = exctr.submit(app_name='forces_app', num_procs=8, app_args='input.txt',
+                        stdout='out.txt', stderr='err.txt')
+
+The ``app_name`` can be any identfier, while ``full_path`` is the application to
+be run. This approach allows multiple applications to be registered.
+
 The MPIExecutor autodetects system criteria such as the appropriate MPI launcher
 and mechanisms to poll and kill tasks. It will also partition resources amongst
-workers, ensuring that runs utilise different resources (e.g. nodes).
+workers, ensuring that runs utilise different resources (e.g. nodes). The
+``zero_resource_workers`` list option specifies workers that will not need
+resources (e.g. a persistent generator might run on worker 1).
 Furthermore, the MPIExecutor offers resilience via the feature of re-launching
 tasks that fail because of system factors.
 

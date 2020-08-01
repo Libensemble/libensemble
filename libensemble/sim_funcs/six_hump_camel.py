@@ -5,6 +5,7 @@ __all__ = ['six_hump_camel_with_different_ranks_and_nodes', 'six_hump_camel', 's
 
 # import subprocess
 import os
+import sys
 import numpy as np
 import time
 from libensemble.executors.executor import Executor
@@ -156,3 +157,9 @@ def six_hump_camel_grad(x):
     grad[1] = x1 + 16*x2**3 - 8*x2
 
     return grad
+
+
+if __name__ == "__main__":
+    x = (float(sys.argv[1]), float(sys.argv[2]))
+    result = six_hump_camel_func(x)
+    print(result)
