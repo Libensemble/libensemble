@@ -160,6 +160,7 @@ cleanup() {
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
     filelist=(ensemble_*);              [ -e ${filelist[0]} ] && rm -r ensemble_*
     filelist=(sim_*);                   [ -e ${filelist[0]} ] && rm -r sim_*
+    filelist=(gen_*);                   [ -e ${filelist[0]} ] && rm -r gen_*
     filelist=(nodelist_*);              [ -e ${filelist[0]} ] && rm nodelist_*
     filelist=(x_*.txt y_*.txt);         [ -e ${filelist[0]} ] && rm x_*.txt y_*.txt
     filelist=(opt_*.txt_flag);          [ -e ${filelist[0]} ] && rm opt_*.txt_flag
