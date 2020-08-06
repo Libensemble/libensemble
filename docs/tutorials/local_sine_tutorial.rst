@@ -8,14 +8,10 @@ multiprocessing.
 
 The foundation of writing libEnsemble routines is accounting for four components:
 
-    1. The generator function :ref:`gen_f<api_gen_f>`, which produces values
-           for simulations
-    2. The simulator function :ref:`sim_f<api_sim_f>`, which performs
-           simulations based on values from ``gen_f``
-    3. The allocation function :ref:`alloc_f<api_alloc_f>`, which decides which
-           of the previous two functions should be called when
-    4. The calling script, which defines parameters and information about these
-           functions and the libEnsemble task, then begins execution
+    1. The generator function :ref:`gen_f<api_gen_f>`, which produces values for simulations
+    2. The simulator function :ref:`sim_f<api_sim_f>`, which performs simulations based on values from ``gen_f``
+    3. The allocation function :ref:`alloc_f<api_alloc_f>`, which decides which of the previous two functions should be called
+    4. The calling script, which defines parameters and information about these functions and the libEnsemble task, then begins execution
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
 user requests. The manager coordinates data transfer between workers and assigns

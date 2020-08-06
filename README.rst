@@ -236,7 +236,7 @@ Resources
 .. _NumPy: http://www.numpy.org
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc: http://www.mcs.anl.gov/petsc
-.. _poster: https://figshare.com/articles/LibEnsemble_PETSc_TAO-_Sustaining_a_library_for_dynamic_ensemble-based_computations/7765454
+.. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
 .. _psutil: https://pypi.org/project/psutil/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/

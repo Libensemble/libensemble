@@ -5,11 +5,6 @@
 
 .. include:: welcome.rst
 
-.. toctree::
-    :hidden:
-    :maxdepth: 1
-
-    SciPy 2020 <scipy2020>
 
 .. toctree::
    :maxdepth: 2
@@ -39,6 +34,7 @@
    known_issues
    release_notes
    contributing
+   posters
 
 .. toctree::
    :maxdepth: 2
