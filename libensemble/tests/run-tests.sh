@@ -127,6 +127,7 @@ cleanup() {
   THISDIR=${PWD}
   cd $ROOT_DIR/$TESTING_DIR
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
+    filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
   for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
   cd $ROOT_DIR/$DIR
     filelist=(libE_history_at_abort_*.npy); [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
