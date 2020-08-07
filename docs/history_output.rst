@@ -74,15 +74,18 @@ Defining any compatible settings initiates this system with default settings for
 unspecified options. Each setting will be described in detail here:
 
 * ``'sim_dirs_make'``: Boolean. Enables per-simulation directories with default
-  settings. Directories are labeled in the form ``'sim0-worker1'`` and without
-  further configuration, placed in the ensemble directory ``./ensemble``,
-  relative to where libEnsemble was launched. Default: ``True`` with other
-  options enabled. If ``False``, all workers will operate within the ensemble
-  directory without producing per-simulation directories.
+  settings. Directories are labeled in the form ``'sim0-worker1'``, by sim ID
+  and initiating worker. Without further configuration, directories are placed
+  in the ensemble directory ``./ensemble``, relative to where libEnsemble was
+  launched. Default: ``True`` with other sim_dir options enabled. If
+  ``False``, all workers will operate within the ensemble directory without
+  producing per-simulation directories.
 
 * ``'gen_dirs_make'``: Boolean. Enabled per-generator instance directories with
-  default settings. Directories are labeled in the form ``'gen1-worker1'`` and
-  behave similarly to simulation directories.
+  default settings. Directories are labeled in the form ``'gen1-worker1'``. by
+  initiating worker and how many times that worker has initiated the generator.
+  These behave similarly to simulation directories. Default: ``True`` with
+  other gen_dir options enabled.
 
 * ``'ensemble_dir_path'``: This location, typically referred to as the ensemble
   directory, is where each worker places its calculation directories. If not
