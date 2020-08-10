@@ -27,13 +27,23 @@ allowed_alloc_spec_keys = ['alloc_f',  #
                            'out',      #
                            'user']     #
 
-libE_spec_calc_dir_keys = ['sim_dirs_make',
-                           'ensemble_copy_back',
-                           'sim_dir_copy_files',
+libE_spec_calc_dir_misc = ['ensemble_copy_back',
                            'ensemble_dir_path',
-                           'use_worker_dirs',
-                           'sim_dir_symlink_files',
-                           'sim_input_dir']
+                           'use_worker_dirs']
+
+libE_spec_sim_dir_keys = ['sim_dirs_make',
+                          'sim_dir_copy_files',
+                          'sim_dir_symlink_files',
+                          'sim_input_dir']
+
+libE_spec_gen_dir_keys = ['gen_dirs_make',
+                          'gen_dir_copy_files',
+                          'gen_dir_symlink_files',
+                          'gen_input_dir']
+
+libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + \
+    libE_spec_sim_dir_keys + \
+    libE_spec_gen_dir_keys
 
 allowed_libE_spec_keys = ['abort_on_exception',     #
                           'authkey',                #
@@ -49,5 +59,5 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'save_H_and_persis_on_abort',        #
                           'workerID',               #
                           'worker_timeout',         #
-                          'zero_resource_workers',                    #
-                          'worker_cmd'] + libE_spec_calc_dir_keys
+                          'zero_resource_workers',  #
+                          'worker_cmd'] + libE_spec_calc_dir_combined

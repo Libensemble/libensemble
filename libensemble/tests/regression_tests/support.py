@@ -17,12 +17,24 @@ def nan_func(calc_in, persis_info, sim_specs, libE_info):
     return (H, persis_info)
 
 
-def write_func(calc_in, persis_info, sim_specs, libE_info):
+def write_sim_func(calc_in, persis_info, sim_specs, libE_info):
     out = np.zeros(1, dtype=sim_specs['out'])
     out['f'] = calc_in['x']
-    with open('test_out.txt', 'a') as f:
+    with open('test_sim_out.txt', 'a') as f:
         f.write('sim_f received: {}\n'.format(out['f']))
     return out, persis_info
+
+
+def write_uniform_gen_func(H, persis_info, gen_specs, _):
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
+    n = len(lb)
+    b = gen_specs['user']['gen_batch_size']
+    H_o = np.zeros(b, dtype=gen_specs['out'])
+    H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+    with open('test_gen_out.txt', 'a') as f:
+        f.write('gen_f produced: {}\n'.format(H_o['x']))
+    return H_o, persis_info
 
 
 uniform_or_localopt_gen_out = [('priority', float),
