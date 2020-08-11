@@ -94,7 +94,8 @@ install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
       conda install nlopt mpi4py scipy mpich;
       export PETSC_CONFIGURE_OPTIONS='--with-batch';
-      pip install petsc petsc4py;
+      # pip install petsc petsc4py;
+      conda install petsc4py
     else
       conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI;
     fi
