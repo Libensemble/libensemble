@@ -81,7 +81,7 @@ before_install:
   - conda info -a # For debugging conda issues
   - conda config --add channels conda-forge
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      conda create --yes --name condaenv python=3.7;
+      conda create --yes --name condaenv python=$PY;
     else
       conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION;
     fi
