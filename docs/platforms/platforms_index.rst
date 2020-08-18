@@ -137,11 +137,15 @@ a hostlist or machinefile supplied may be undesirably scheduled to the same node
 Zero-resource workers
 ~~~~~~~~~~~~~~~~~~~~~
 
-Users with persistent user functions may notice that associated persistent
-workers are still mapped system resources. This can be wasteful if those
-functions only run in-place and don't use the Executor to submit applications
-to allocated nodes.
+Users with persistent ``gen_f`` or ``sim_f`` functions may notice with certain
+configurations that associated persistent workers are still assigned system
+resources. This can be wasteful if those functions only run in-place and don't
+use the Executor to submit applications to allocated nodes:
 
+.. image:: ../images/persis_wasted_node.png
+    :alt: wasted_node
+    :scale: 40
+    :align: center
 
 Overriding Auto-detection
 -------------------------
