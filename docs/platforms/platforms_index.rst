@@ -15,7 +15,7 @@ the remaining allocated nodes:
 
 .. image:: ../images/centralized_new.png
     :alt: centralized
-    :scale: 40
+    :scale: 30
     :align: center
 
 Alternatively, in **distributed** mode, libEnsemble is launched with the processes
@@ -24,7 +24,7 @@ they launch. There may be multiple nodes per worker, or multiple workers per nod
 
 .. image:: ../images/distributed_new.png
     :alt: distributed
-    :scale: 40
+    :scale: 30
     :align: center
 
 The distributed approach allows the libEnsemble worker to read files produced by the
