@@ -137,13 +137,29 @@ a hostlist or machinefile supplied may be undesirably scheduled to the same node
 Zero-resource workers
 ~~~~~~~~~~~~~~~~~~~~~
 
-Users with persistent ``gen_f`` or ``sim_f`` functions may notice with certain
-configurations that associated persistent workers are still assigned system
-resources. This can be wasteful if those functions only run in-place and don't
-use the Executor to submit applications to allocated nodes:
+Users with persistent ``gen_f`` or functions may notice with certain
+configurations that associated persistent workers are still automatically assigned
+system resources. This can be wasteful since those workers only run in-place and
+don't use the Executor to submit applications to allocated nodes:
 
 .. image:: ../images/persis_wasted_node.png
-    :alt: wasted_node
+    :alt: persis_wasted_node
+    :scale: 40
+    :align: center
+
+This can be resolved within the Executor definition in a calling script. Set the
+parameter ``zero_resource_workers`` to a list of worker IDs that shouldn't have
+system resources assigned. For example, when using a single instance of Persistent
+:doc:`APOSMM<../examples/aposmm>`, the Executor definition may resemble::
+
+    exctr = MPIExecutor(central_mode=True, zero_resource_workers=[1])
+
+Worker 1 will now not be allocated resources. Note that additional worker
+processes can be added to take advantage of the free resources (if using the
+same resource set) for simulation instances:
+
+.. image:: ../images/persis_add_worker.png
+    :alt: persis_add_worker
     :scale: 40
     :align: center
 
