@@ -12,6 +12,7 @@ from gemulator.emulation import emulation_prediction, emulation_builder, emulati
 
 
 # SH: Based on borehole problem - please change.
+# Test push from github online
 def gen_thetas(n, persis_info):
     """Generates and returns n inputs for the Borehole function, according to distributions
     outlined in Harper and Gupta (1983).
