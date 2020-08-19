@@ -22,8 +22,8 @@
 # TODO for step 1:
 #    Determine exit_criteria (currently returns to gen but does not finish).
 #    Determine output from model.
-#    Create valid sim func / problem definition
-#    What is A/B in x array - I dont have this.
+#    ---Create valid sim func / problem definition---
+#    ---What is A/B in x array - I dont have this.--- Used 0/1 for now.
 #    Rename files/vars as required.
 #    Decide if we want persistent gen / persistence of x/thetas
 #    Determine pass condition for test (assertions at end).
@@ -36,38 +36,41 @@ from libensemble.gen_funcs.cwp import trainmseerror as gen_f
 from libensemble.sim_funcs.cwpsim import borehole as sim_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas'], 'out': [('f', float)]}
+if __name__ == '__main__':
 
-n_thetas = 10  # 100
-n_x = 5        # 50
-nparams = 8    # No. of theta params
-ndims = 2      # No. of x co-ordinates.
+    nworkers, is_master, libE_specs, _ = parse_args()
 
-n_evals = n_thetas * n_x
+    sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas'], 'out': [('f', float)]}
 
-gen_out = [('x', float, ndims), ('thetas', float, nparams)]
-gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out]+['f', 'returned'],
-             'out': gen_out,
-             'user': {'n_thetas': n_thetas,    # Num thetas
-                      'gen_batch_size': n_x,   # Num x points to create
-                      'lb': np.array([0, 0]),  # Low bound for x
-                      'ub': np.array([6, 6]),  # High bound for x
-                      }
-             }
+    n_thetas = 10  # 100
+    n_x = 5        # 50
+    nparams = 8    # No. of theta params
+    ndims = 3      # No. of x co-ordinates.
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    n_evals = n_thetas * n_x
 
-# exit_criteria = {'sim_max': n_evals}
-exit_criteria = {'sim_max': n_evals+1}  # Does not finish - but does go back to gen
+    gen_out = [('x', float, ndims), ('thetas', float, nparams)]
+    gen_specs = {'gen_f': gen_f,
+                 'in': [o[0] for o in gen_out]+['f', 'returned'],
+                 'out': gen_out,
+                 'user': {'n_thetas': n_thetas,    # Num thetas
+                          'gen_batch_size': n_x,   # Num x points to create
+                          'lb': np.array([0, 0]),  # Low bound for x
+                          'ub': np.array([6, 6]),  # High bound for x
+                          }
+                 }
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs,
-                            exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-if is_master:
-    assert np.all(H['returned'])
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # exit_criteria = {'sim_max': n_evals}
+    exit_criteria = {'sim_max': n_evals+1}  # Does not finish - but does go back to gen
+
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs,
+                                exit_criteria, persis_info,
+                                libE_specs=libE_specs)
+
+    if is_master:
+        assert np.all(H['returned'])
+        save_libE_output(H, persis_info, __file__, nworkers)

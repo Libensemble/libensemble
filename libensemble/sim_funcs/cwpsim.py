@@ -8,8 +8,8 @@ bounds = np.array([[63070, 115600],
                    [990, 1110],
                    [700, 820],
                    [0, np.inf],  # Not sure if the physics have a more meaningful upper bound
-                   [1, 1.2],  # Very low probability of being outside of this range
                    [9855, 12045],
+                   [1, 1.2],  # Very low probability of being outside of this range
                    [1120, 1680]])
 
 
@@ -41,8 +41,8 @@ def borehole_func(H):
         x[:,2]: Hu, potentiometric head of upper aquifer (m)
         x[:,3]: Hl, potentiometric head of lower aquifer (m)
         x[:,4]: r, radius of influence (m)
-        x[:,5]: rw, radius of borehole (m)
-        x[:,6]: Kw, hydraulic conductivity of borehole (m/year)
+        x[:,5]: Kw, hydraulic conductivity of borehole (m/year)
+        x[:,6]: rw, radius of borehole (m)
         x[:,7]: L, length of borehole (m)
 
     Returns
@@ -54,17 +54,29 @@ def borehole_func(H):
     """
 
     thetas = H['thetas']
+    xs = H['x']
 
-    assert np.all(thetas >= bounds[:, 0]) and np.all(thetas <= bounds[:, 1]), "Point not within bounds"
+    assert np.all(thetas >= bounds[:6, 0]) and \
+        np.all(thetas <= bounds[:6, 1]) and \
+        np.all(xs[:, :-1] >= bounds[6:, 0]) and \
+        np.all(xs[:, :-1] <= bounds[6:, 1]), "Point not within bounds"
 
-    axis = 1
+    taxis = 1
     if thetas.ndim == 1:
-        axis = 0
+        taxis = 0
+    (Tu, Tl, Hu, Hl, r, Kw) = np.split(thetas, 6, taxis)
 
-    (Tu, Tl, Hu, Hl, r, rw, Kw, L) = np.split(thetas, 8, axis)
+    xaxis = 1
+    if xs.ndim == 1:
+        xaxis = 0
+    (rw, L) = np.split(xs[:, :-1], 2, xaxis)
 
     numer = 2 * np.pi * Tu * (Hu - Hl)
     denom1 = 2 * L * Tu / (np.log(r/rw) * rw**2 * Kw)
     denom2 = Tu / Tl
 
-    return (numer / (np.log(r/rw) * (1 + denom1 + denom2))).reshape(-1)
+    f = (numer / (np.log(r/rw) * (1 + denom1 + denom2))).reshape(-1)
+
+    f[xs[:, -1] == 1] = f ** (1.5)
+
+    return f

@@ -14,13 +14,13 @@ from gemulator.emulation import emulation_prediction, emulation_builder, emulati
 # SH: Based on borehole problem - please change.
 # Test push from github online
 def gen_thetas(n, persis_info):
-    """Generates and returns n inputs for the Borehole function, according to distributions
+    """Generates and returns n parameters for the Borehole function, according to distributions
     outlined in Harper and Gupta (1983).
 
     input:
-      n: number of input to generate
+      n: number of parameter to generate
     output:
-      matrix of (n, 8), input to borehole_func(x) function
+      matrix of (n, 6), input as to borehole_func(t, x) function
     """
 
     randstream = persis_info['rand_stream']
@@ -30,16 +30,31 @@ def gen_thetas(n, persis_info):
     Hu = randstream.uniform(990, 1110, n)
     Hl = randstream.uniform(700, 820, n)
     r = randstream.lognormal(7.71, 1.0056, n)
-    rw = randstream.normal(1.1, 0.0161812, n)
     Kw = randstream.uniform(9855, 12045, n)
-    L = randstream.uniform(1120, 1680, n)
-
-    thetas = np.column_stack((Tu, Tl, Hu, Hl, r, rw, Kw, L))
+    thetas = np.column_stack((Tu, Tl, Hu, Hl, r, Kw))
     return thetas, persis_info
 
 
+def gen_xs(n, persis_info):
+    """Generate and returns n inputs for the modified Borehole function."""
+    randstream = persis_info['rand_stream']
+
+    rw = randstream.normal(1.1, 0.0161812, n)
+    L = randstream.uniform(1120, 1680, n)
+
+    cat = np.repeat(0, n)
+    cat[randstream.uniform(0, 1, n) >= 0.5] = 1
+
+    x = np.column_stack((rw, L))
+    xs = np.empty((n, x.shape[1]+1), dtype='object')
+    xs[:, :x.shape[1]] = x
+    xs[:, -1] = cat
+
+    return xs, persis_info
+
+
 def trainmseerror(H, persis_info, gen_specs, libE_info):
-    """Gen to implement trainmseerror"""
+    """Gen to implement trainmseerror."""
 
     n_thetas = gen_specs['user']['n_thetas']
     n_x = gen_specs['user']['gen_batch_size']  # Num of x points
@@ -47,11 +62,12 @@ def trainmseerror(H, persis_info, gen_specs, libE_info):
     # Could generate initial inputs here or read in
     if H.size == 0:
         print('Generating initial inputs')
-        H_x, persis_info = uniform_random_sample(H, persis_info, gen_specs, libE_info)
+        # H_x, persis_info = uniform_random_sample(H, persis_info, gen_specs, libE_info)
+        xs, persis_info = gen_xs(n_x, persis_info)
         thetas, persis_info = gen_thetas(n_thetas, persis_info)
-        xs = H_x['x']
 
         H_o = np.zeros(n_x*n_thetas, dtype=gen_specs['out'])
+        print(gen_specs['out'])
 
         # (x, thetas)
         # for i, x in enumerate(xs):
@@ -59,6 +75,7 @@ def trainmseerror(H, persis_info, gen_specs, libE_info):
         #     H_o['x'][offset:offset+n_thetas] = x
         #     H_o['thetas'][offset:offset+n_thetas] = thetas
 
+        # !!! Populating through H_o
         # (thetas, x)
         for i, t in enumerate(thetas):
             offset = i*n_x
