@@ -356,10 +356,10 @@ class WorkerResources:
 
         if workerID in zero_resource_list:
             local_nodelist = []
-            logger.debug("Worker {} is a zero-resource worker")
+            logger.debug("Worker is a zero-resource worker")
         else:
             index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
             local_nodelist = split_list[index]
-            logger.debug("Worker {}'s local_nodelist is {}".format(workerID, local_nodelist))
+            logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
 
         return local_nodelist
