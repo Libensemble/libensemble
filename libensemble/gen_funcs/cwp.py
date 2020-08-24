@@ -1,14 +1,6 @@
 import numpy as np
-from libensemble.gen_funcs.sampling import uniform_random_sample
+# from libensemble.gen_funcs.sampling import uniform_random_sample
 from gemulator.emulation import emulation_prediction, emulation_builder, emulation_draws
-
-# To obtain cwp test data (modify <prefix>)
-# cwp_dir = '<prefix>/calibration'
-# train_dir = os.path.join(cwp_dir, 'functionbase/examples/output/debug/.tmperror/trainmseerror')
-# theta = np.loadtxt(os.path.join(train_dir, 'traintheta.csv'),delimiter=',',ndmin=2)
-# x = np.loadtxt(os.path.join(train_dir, 'trainx.csv'),delimiter=',',ndmin=2, dtype=object)
-# fevals = np.loadtxt(os.path.join(train_dir, 'trainfevals.csv'),delimiter=',',ndmin=2)
-# failures =  np.loadtxt(os.path.join(train_dir, 'trainfailures.csv'),delimiter=',',ndmin=2)
 
 
 # SH: Based on borehole problem - please change.
@@ -46,16 +38,15 @@ def gen_xs(n, persis_info):
     cat[randstream.uniform(0, 1, n) >= 0.5] = 1
 
     x = np.column_stack((rw, L))
-    xs = np.empty((n, x.shape[1]+1), dtype='object')
+    xs = np.empty((n, x.shape[1] + 1), dtype='object')
     xs[:, :x.shape[1]] = x
     xs[:, -1] = cat
 
     return xs, persis_info
 
 
-def trainmseerror(H, persis_info, gen_specs, libE_info):
+def testmseerror(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
-
     n_thetas = gen_specs['user']['n_thetas']
     n_x = gen_specs['user']['gen_batch_size']  # Num of x points
 
@@ -67,7 +58,9 @@ def trainmseerror(H, persis_info, gen_specs, libE_info):
         thetas, persis_info = gen_thetas(n_thetas, persis_info)
 
         H_o = np.zeros(n_x*n_thetas, dtype=gen_specs['out'])
-        print(gen_specs['out'])
+
+        # Initialize exit criterion
+        H_o['mse'] = 1
 
         # (x, thetas)
         # for i, x in enumerate(xs):
@@ -75,7 +68,6 @@ def trainmseerror(H, persis_info, gen_specs, libE_info):
         #     H_o['x'][offset:offset+n_thetas] = x
         #     H_o['thetas'][offset:offset+n_thetas] = thetas
 
-        # !!! Populating through H_o
         # (thetas, x)
         for i, t in enumerate(thetas):
             offset = i*n_x
@@ -86,36 +78,43 @@ def trainmseerror(H, persis_info, gen_specs, libE_info):
         persis_info['x'] = xs  # tied to worker
         persis_info['thetas'] = thetas  # tied to worker
 
+        # Store a fixed test dataset in persistent info
+        n_test_thetas = 100
+
+        test_thetas, persis_info = gen_thetas(n_test_thetas, persis_info)
+        persis_info['test_thetas'] = test_thetas
+
+        test_fevals = np.zeros(n_x * n_test_thetas, dtype=float)
+        # MC: How do I ask simfunc to populate the test dataset and save in persis_info?
+        persis_info['test_fevals'] = test_fevals
+
         return H_o, persis_info
     else:
-        # Note currently each x will evaluate the same as x is independent in sim - but helps check values.
-        failures = np.zeros((n_thetas, n_x))
+        failures = np.zeros((n_thetas, n_x))  # MC Note: need to generate random / quantile-based failures
         x = persis_info['x']
         theta = persis_info['thetas']
         fevals = np.reshape(H['f'], (n_thetas, n_x))
 
-        # Commented lines from original file.
-        # N = fevals.shape[0]
-        # Ntrain = int(N / 10)
-        # print(fevals.shape)
-        # indices = np.arange(N)
-        # np.random.seed(0)  # for reproducible results
-        # # np.random.shuffle(indices)
-        # train_indices = indices[:Ntrain]
-        # test_indices = indices[Ntrain:]
-
-        # train model
-        # print(np.sum(failures, axis=0))
-        # print(np.sum(failures, axis=1))
-
+        # MC: Goal - Call builder in initialization,
+        # Call updater in subsequent loops
         model = emulation_builder(theta, x, fevals, failures)
 
-        predtrain, predvar = emulation_prediction(model, theta)
-        trainmse = np.nanmean((predtrain[model['theta_ind_valid'], :] -
-                              fevals[model['theta_ind_valid'], :]) ** 2)
+        # predtrain, _ = emulation_prediction(model, theta)
+        # trainmse = np.nanmean((predtrain[model['theta_ind_valid'], :] -
+        #                       fevals[model['theta_ind_valid'], :]) ** 2)
 
-        # draws = emulation_draws(model, theta)
+        test_thetas = persis_info['test_thetas']
+        predtest, _ = emulation_prediction(model, test_thetas)
 
-        # H_o = ?
+        test_fevals = persis_info['test_fevals'].reshape(predtest.shape)
+        mse = np.nanmean((predtest - test_fevals) ** 2)
 
-        return H_o, persis_info
+        H['mse'] = mse
+
+        # MC: If mse not under threshold, send one additional theta to simfunc
+        n_new_thetas = 1
+        new_thetas, persis_info = gen_thetas(n_new_thetas, persis_info)
+        # Update theta here (?)
+        persis_info['thetas'] = np.vstack((theta, new_thetas))
+
+        return H, persis_info

@@ -32,7 +32,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.gen_funcs.cwp import trainmseerror as gen_f
+from libensemble.gen_funcs.cwp import testmseerror as gen_f
 from libensemble.sim_funcs.cwpsim import borehole as sim_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
@@ -45,12 +45,12 @@ if __name__ == '__main__':
 
     n_thetas = 10  # 100
     n_x = 5        # 50
-    nparams = 8    # No. of theta params
+    nparams = 6    # No. of theta params
     ndims = 3      # No. of x co-ordinates.
 
     n_evals = n_thetas * n_x
 
-    gen_out = [('x', float, ndims), ('thetas', float, nparams)]
+    gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,))]
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'returned'],
                  'out': gen_out,
@@ -64,7 +64,8 @@ if __name__ == '__main__':
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     # exit_criteria = {'sim_max': n_evals}
-    exit_criteria = {'sim_max': n_evals+1}  # Does not finish - but does go back to gen
+    exit_criteria = {'sim_max': n_evals + n_x, # Evaluate at n_x more points, i.e. one additional theta (row)
+                     'stop_val': ('mse', 10 ** (-4))} # stop when mse is less than a threshold
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs,
