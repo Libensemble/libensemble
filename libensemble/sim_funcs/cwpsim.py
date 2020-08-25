@@ -21,6 +21,9 @@ def borehole(H, persis_info, sim_specs, _):
     H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
     H_o['f'] = borehole_func(H)
 
+    # Temp
+    H_o['failures'] = 0
+
     return H_o, persis_info
 
 
