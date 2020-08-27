@@ -53,6 +53,8 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
     n_test_thetas = gen_specs['user']['n_test_thetas']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
+    mse_exit = gen_specs['user']['mse_exit']  # MSE threshold for exiting
+    step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
 
     # Initialize output
     H_o = np.zeros(n_x*(n_test_thetas+n_thetas), dtype=gen_specs['out'])
@@ -117,12 +119,12 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
         # H_o['mse'] = mse
         # Exit gen when mse reaches threshold
         print('\n mse is {}'.format(mse), flush=True)
-        if mse < 1.0:
+        if mse < mse_exit:
             print('Gen exiting on mse', flush=True)
             break
 
         # MC: If mse not under threshold, send one additional theta to simfunc
-        n_thetas = 1
+        n_thetas = step_add_theta
         new_thetas, persis_info = gen_thetas(n_thetas, persis_info)
         theta = np.vstack((theta, new_thetas))
 
