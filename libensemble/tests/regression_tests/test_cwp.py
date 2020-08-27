@@ -41,12 +41,13 @@ if __name__ == '__main__':
 
     sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas'], 'out': [('f', float), ('failures', float)]}
 
-    n_test_thetas = 100  # No. of thetas for test data
-    n_init_thetas = 25   # Initial batch of thetas
-    n_x = 5              # No. of x values
-    nparams = 6          # No. of theta params
-    ndims = 3            # No. of x co-ordinates.
-    max_emul_runs = 10   # Max no. of runs of emulator
+    n_test_thetas = 100         # No. of thetas for test data
+    n_init_thetas = 25          # Initial batch of thetas
+    n_x = 5                     # No. of x values
+    nparams = 6                 # No. of theta params
+    ndims = 3                   # No. of x co-ordinates.
+    max_emul_runs = 75          # Max no. of runs of emulator
+    mse_exit = 1.0              # MSE threshold for exiting
 
     # Stop after max_emul_runs runs of the emulator
     max_evals = (n_init_thetas + n_test_thetas) * n_x + max_emul_runs*n_x
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     # Currently just allow gen to exit if mse goes below threshold value
     exit_criteria = {'sim_max': max_evals}
     # exit_criteria = {'sim_max': max_evals,
-    #                  'stop_val': ('mse', 10 ** (-4))} # stop when mse is less than a threshold
+                     # 'stop_val': ('mse', mse_exit)}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs,

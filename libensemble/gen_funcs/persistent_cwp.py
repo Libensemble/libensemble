@@ -113,12 +113,11 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
 
         predtest, _ = emulation_prediction(model, test_thetas)
         mse = np.nanmean((predtest - test_fevals) ** 2)
-        print(mse)
 
         # H_o['mse'] = mse
         # Exit gen when mse reaches threshold
         print('\n mse is {}'.format(mse), flush=True)
-        if mse < 10 ** (-4):
+        if mse < 1.0:
             print('Gen exiting on mse', flush=True)
             break
 
