@@ -1,15 +1,13 @@
-# SH: Based on borehole problem - please change
-# SH: Uses x and thetas but evals are independent of x.
-
 import numpy as np
 
+# bounds for (Tu, Tl, Hu, Hl, r, Kw, rw, L)
 bounds = np.array([[63070, 115600],
                    [63.1, 116],
                    [990, 1110],
                    [700, 820],
                    [0, np.inf],  # Not sure if the physics have a more meaningful upper bound
                    [9855, 12045],
-                   [1, 1.2],  # Very low probability of being outside of this range
+                   [0.05, 0.15],  # Very low probability of being outside of this range
                    [1120, 1680]])
 
 
@@ -34,19 +32,19 @@ def borehole_func(H):
 
     Parameters
     ----------
+    theta: matrix of dimentsion (n, 6),
+        theta[:,0]: Tu, transmissivity of upper aquifer (m^2/year)
+        theta[:,1]: Tl, transmissivity of lower aquifer (m^2/year)
+        theta[:,2]: Hu, potentiometric head of upper aquifer (m)
+        theta[:,3]: Hl, potentiometric head of lower aquifer (m)
+        theta[:,4]: r, radius of influence (m)
+        theta[:,5]: Kw, hydraulic conductivity of borehole (m/year)
 
-    x: matrix of dimension (n, 8), where n is the number of input configurations:
-
+    x: matrix of dimension (n, 3), where n is the number of input configurations:
         .. code-block::
-
-        x[:,0]: Tu, transmissivity of upper aquifer (m^2/year)
-        x[:,1]: Tl, transmissivity of lower aquifer (m^2/year)
-        x[:,2]: Hu, potentiometric head of upper aquifer (m)
-        x[:,3]: Hl, potentiometric head of lower aquifer (m)
-        x[:,4]: r, radius of influence (m)
-        x[:,5]: Kw, hydraulic conductivity of borehole (m/year)
-        x[:,6]: rw, radius of borehole (m)
-        x[:,7]: L, length of borehole (m)
+        x[:,0]: rw, radius of borehole (m)
+        x[:,1]: L, length of borehole (m)
+        x[:,2]: a in {0, 1}. type label for modification
 
     Returns
     -------
@@ -80,6 +78,6 @@ def borehole_func(H):
 
     f = (numer / (np.log(r/rw) * (1 + denom1 + denom2))).reshape(-1)
 
-    f[xs[:, -1] == 1] = f ** (1.5)
+    f[xs[:, -1] == 1] = f[xs[:, -1].astype(bool)] ** (1.5)
 
     return f

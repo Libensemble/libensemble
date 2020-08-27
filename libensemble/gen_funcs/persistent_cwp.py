@@ -33,7 +33,7 @@ def gen_xs(n, persis_info):
     """Generate and returns n inputs for the modified Borehole function."""
     randstream = persis_info['rand_stream']
 
-    rw = randstream.normal(1.1, 0.0161812, n)
+    rw = randstream.normal(0.1, 0.0161812, n)
     L = randstream.uniform(1120, 1680, n)
 
     cat = np.repeat(0, n)
@@ -113,6 +113,7 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
 
         predtest, _ = emulation_prediction(model, test_thetas)
         mse = np.nanmean((predtest - test_fevals) ** 2)
+        print(mse)
 
         # H_o['mse'] = mse
         # Exit gen when mse reaches threshold

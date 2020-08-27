@@ -31,7 +31,7 @@ def gen_xs(n, persis_info):
     """Generate and returns n inputs for the modified Borehole function."""
     randstream = persis_info['rand_stream']
 
-    rw = randstream.normal(1.1, 0.0161812, n)
+    rw = randstream.normal(0.1, 0.0161812, n)
     L = randstream.uniform(1120, 1680, n)
 
     cat = np.repeat(0, n)
@@ -94,6 +94,8 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
         x = persis_info['x']
         theta = persis_info['thetas']
         fevals = np.reshape(H['f'], (n_thetas, n_x))
+
+
 
         # MC: Goal - Call builder in initialization,
         # Call updater in subsequent loops

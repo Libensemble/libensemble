@@ -5,7 +5,7 @@ bounds = np.array([[63070, 115600],
                    [990, 1110],
                    [700, 820],
                    [0, np.inf],  # Not sure if the physics have a more meaningful upper bound
-                   [1, 1.2],  # Very low probability of being outside of this range
+                   [0.05, 0.15],  # Very low probability of being outside of this range
                    [9855, 12045],
                    [1120, 1680]])
 
@@ -79,7 +79,7 @@ def gen_borehole_input(n):
     Hu = np.random.uniform(990, 1110, n)
     Hl = np.random.uniform(700, 820, n)
     r = np.random.lognormal(7.71, 1.0056, n)
-    rw = np.random.normal(1.1, 0.0161812, n)
+    rw = np.random.normal(0.1, 0.0161812, n)
     Kw = np.random.uniform(9855, 12045, n)
     L = np.random.uniform(1120, 1680, n)
 
