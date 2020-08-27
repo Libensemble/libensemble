@@ -96,16 +96,19 @@ Initialize a Balsam database at a location of your choice. E.g::
 
 Further notes on using Balsam:
 
-* Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before you calling ``qsub``. You can check with script ps_nodes_.
+* Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before calling ``qsub``. You can check with the script ps_nodes_.
+
+* Balsam requires PostgreSQL version 9.6.4 or later, but problems may be encountered when using the default ``pg_ctl`` and PostgreSQL 10.12 installation found in ``/usr/bin``. This may be resolved by loading the postgresql/9.6.12 within submission scripts that use Balsam.
 
 * By default there are a maximum of 128 connections to the database. Each worker will use a connection and a few extra are needed. To increase the number of connections append a new ``max_connections`` line to the ``balsamdb/postgresql.conf`` file under the database directory. E.g.~ ``max_connections=1024``
 
+* There is a Balsam module available (balsam/0.3.8), but the module's Python installation supersedes others when loaded. In practice, libEnsemble or other Python packages installed into another environment become inaccessible. Installing Balsam into a Python virtual environment is recommended instead.
 
 Read Balsam's documentation here_.
 
 .. note::
-    Balsam will create the run directories inside the data subdirectory within the database
-    directory. From here, files can be staged out to the user directory (see the example
+    Balsam will create run-specific directories inside ``data/my_workflow`` in the database
+    directory. For example: ``$HOME/my_balsam_db/data/libe_workflow/job_run_libe_forces_b7073fa9/`` From here, files can be staged out to the user directory (see the example
     batch script below).
 
 Job Submission
