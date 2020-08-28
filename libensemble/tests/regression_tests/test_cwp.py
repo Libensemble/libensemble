@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     nworkers, is_master, libE_specs, _ = parse_args()
 
-    sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas'], 'out': [('f', float), ('failures', float)]}
+    sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas', 'quantile'], 'out': [('f', float), ('failures', float)]}
 
     n_test_thetas = 100         # No. of thetas for test data
     n_init_thetas = 25          # Initial batch of thetas
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     max_evals = (n_init_thetas + n_test_thetas) * n_x + max_emul_runs*n_x
     # print('max_evals is {}'.format(max_evals),flush=True)
 
-    gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,))]
+    gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,)), ('quantile', float)]
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'failures', 'returned'],
                  'out': gen_out,

@@ -57,7 +57,7 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
 
     # Initialize output
-    H_o = np.zeros(n_x*(n_test_thetas+n_thetas), dtype=gen_specs['out'])
+    H_o = np.zeros(n_x*(n_test_thetas), dtype=gen_specs['out'])
 
     # Initialize exit criterion
     # H_o['mse'] = 1
@@ -67,34 +67,43 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
 
     # Generate test thetas
     test_thetas, persis_info = gen_thetas(n_test_thetas, persis_info)
-    offset = 0
-    for t in test_thetas:
+    for i, t in enumerate(test_thetas):
+        offset = i*n_x
         H_o['x'][offset:offset+n_x] = x
         H_o['thetas'][offset:offset+n_x] = t
         offset += n_x
+
+    H_o['quantile'] = np.inf
+    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+    # -------------------------------------------------------------------------
+
+    H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
+    test_fevals = np.reshape(calc_in['f'], (n_test_thetas, n_x))
+
+    # MC Note: need to generate random / quantile-based failures
+    quantile = np.quantile(test_fevals, 0.95)
+    H_o['quantile'] = quantile
 
     # Generate initial batch of thetas
     theta, persis_info = gen_thetas(n_thetas, persis_info)
-    for t in theta:
+    for i, t in enumerate(theta):
+        offset = i*n_x
         H_o['x'][offset:offset+n_x] = x
         H_o['thetas'][offset:offset+n_x] = t
-        offset += n_x
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+    # -------------------------------------------------------------------------
 
     # count = 0  # test only
-    test_fevals = None
+    fevals = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # count += 1  # test
         # print('count is', count,flush=True)
 
-        if test_fevals is None:
-            ntevals = n_x * n_test_thetas
-            test_fevals = np.reshape(calc_in['f'][:ntevals], (n_test_thetas, n_x))
-            fevals = np.reshape(calc_in['f'][ntevals:], (n_thetas, n_x))
-
-            # MC Note: need to generate random / quantile-based failures
-            failures = np.reshape(calc_in['failures'][ntevals:], (n_thetas, n_x))
+        if fevals is None:
+            fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
+            failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
+            # build_emulator = True
         else:
             new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
@@ -102,6 +111,11 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
             # SH Note: Presuming model input is everything so far.
             fevals = np.vstack((fevals, new_fevals))
             failures = np.vstack((failures, new_failures))
+            # build_emulator = #some function
+
+        # SH Testing. Cumulative failure rate
+        # frate = np.count_nonzero(failures)/failures.size
+        # print('failure rate is {}'.format(frate))
 
         # MC: Goal - Call builder in initialization,
         # Call updater in subsequent loops
@@ -129,6 +143,7 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
         theta = np.vstack((theta, new_thetas))
 
         H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
+        H_o['quantile'] = quantile
         for i, t in enumerate(new_thetas):
             offset = i*n_x
             H_o['x'][offset:offset+n_x] = x
