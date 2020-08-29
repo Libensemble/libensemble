@@ -164,7 +164,7 @@ for run in range(3):
 
     # Persistent info between iterations
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    persis_info['next_to_give'] = 0
+    persis_info['next_to_give'] = 0 #if H0 is None else len(H0)
     persis_info['total_gen_calls'] = 0
 
     # Perform the run
