@@ -118,12 +118,12 @@ On Theta, libEnsemble can be launched to two locations:
 
     1. **A MOM Node**: All of libEnsemble's manager and worker processes
     run centrally on a front-end MOM node. libEnsemble's MPI Executor takes
-    responsibility for direct user-application submissions to allocated compute nodes.
+    responsibility for direct user-application submission to allocated compute nodes.
     libEnsemble must be configured to run with *multiprocessing* communications,
     since mpi4py isn't configured for use on the MOM nodes.
 
     2. **The Compute Nodes**: libEnsemble is submitted to Balsam, and all manager
-    and worker processes are tasked to a compute node and run centrally. libEnsemble's
+    and worker processes are tasked to a back-end compute node and run centrally. libEnsemble's
     Balsam Executor interfaces with Balsam running on a MOM node for dynamic
     user-application submission to the compute nodes.
 
