@@ -118,6 +118,7 @@ for run in range(3):
         exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
 
     elif run == 1:
+        gen_specs['user']['use_chkpt'] = False
         # In the second run, we initialize VTMOP with an initial sample:
         np.random.seed(0)
         size = 1000
