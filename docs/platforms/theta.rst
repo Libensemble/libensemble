@@ -47,7 +47,6 @@ you are using ``mpi4py`` make sure the install picks up Cray's compiler drivers.
     $ conda activate my_env
     $ CC=cc MPICC=cc pip install mpi4py --no-binary mpi4py
 
-
 More information_ on using conda on Theta is also available.
 
 Installing libEnsemble and Balsam
@@ -85,7 +84,6 @@ from workers (see Job Submission below). The Balsam Executor will stage in tasks
 to a database hosted on a MOM node, which will submit these tasks dynamically to
 the compute nodes.
 
-
 Balsam can be installed with::
 
     pip install balsam-flow
@@ -99,7 +97,6 @@ Further notes on using Balsam:
 * Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before you calling ``qsub``. You can check with script ps_nodes_.
 
 * By default there are a maximum of 128 connections to the database. Each worker will use a connection and a few extra are needed. To increase the number of connections append a new ``max_connections`` line to the ``balsamdb/postgresql.conf`` file under the database directory. E.g.~ ``max_connections=1024``
-
 
 Read Balsam's documentation here_.
 
