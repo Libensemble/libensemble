@@ -142,7 +142,7 @@ for run in range(3):
     elif run == 2:
         try:
             os.remove('manager_done_file')
-        except:
+        except OSError:
             pass
 
         # In the third run, we restart VTMOP by loading in the history array saved in run==1
