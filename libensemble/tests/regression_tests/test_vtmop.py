@@ -136,10 +136,15 @@ for run in range(3):
             H0['f'][i] = Out['f']
 
         gen_specs['user']['first_batch_size'] = 0
-        # Run for 1100 evaluations or 300 seconds
-        exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
+        # Run for 200 more evaluations or 300 seconds
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
 
     elif run == 2:
+        try:
+            os.remove('manager_done_file')
+        except:
+            pass
+
         # In the third run, we restart VTMOP by loading in the history array saved in run==1
         gen_specs['user']['use_chkpt'] = True
 
@@ -160,8 +165,8 @@ for run in range(3):
         H0[['given', 'returned']] = True
         H0['f'] = H['f'][:size]
 
-        # Run for 100 more evaluations or 300 seconds
-        exit_criteria = {'sim_max': size+100, 'elapsed_wallclock_time': 300}
+        # Run for 200 more evaluations or 300 seconds
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
 
     # Persistent info between iterations
     persis_info = add_unique_random_streams({}, nworkers + 1)
