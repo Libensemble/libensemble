@@ -103,6 +103,9 @@ Once the persistent generator's loop has been broken, it should return with an a
 See :doc:`calc_status<data_structures/calc_status>` for more information about
 the message tags.
 
+Examples of normal and persistent generator functions
+can be found :doc:`here<examples/gen_funcs>`.
+
 Simulator Function
 ==================
 
