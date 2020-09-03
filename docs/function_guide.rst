@@ -109,6 +109,30 @@ can be found :doc:`here<examples/gen_funcs>`.
 Simulator Function
 ==================
 
+As described in the :ref:`API<api_sim_f>`, the ``sim_f`` is called by libEnsemble
+via a similar interface to the ``gen_f``::
+
+    out = sim_f(H[sim_specs['in']][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
+
+In practice, most ``sim_f`` function definitions resemble::
+
+    def my_simulator(H, persis_info, sim_specs, libE_info):
+
+Where :doc:`sim_specs<data_structures/sim_specs>` is a
+dictionary containing pre-defined parameters for the ``sim_f``, and the other
+parameters serve similar purposes to those in the ``gen_f``.
+
+The pattern of setting up a local ``H``, parsing out parameters from
+``sim_specs``, performing calculations, and returning the local ``H``
+with ``persis_info`` should be familiar::
+
+    batch_size = sim_specs['user']['batch_size']
+    local_H_out = np.zeros(batch_size, dtype=sim_specs['out'])
+
+    ... # Perform simulations
+
+    return local_H_out, persis_info
+
 Executor
 --------
 
