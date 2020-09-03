@@ -5,8 +5,22 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTE
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 
-def gen_thetas(n, persis_info):
+def gen_true_theta(persis_info):
+    """Generate one parameter to be the true parameter for calibration."""
+    randstream = persis_info['rand_stream']
 
+    Tu = randstream.uniform(89000, 90000, 1)
+    Tl = randstream.uniform(80, 100, 1)
+    Hu = randstream.uniform(1030, 1070, 1)
+    Hl = randstream.uniform(750, 770, 1)
+    r = randstream.uniform(700, 900, 1)
+    Kw = randstream.uniform(10800, 11100, 1)
+    theta = np.column_stack((Tu, Tl, Hu, Hl, r, Kw))
+
+    return theta, persis_info
+
+
+def gen_thetas(n, persis_info):
     """Generates and returns n parameters for the Borehole function, according to distributions
     outlined in Harper and Gupta (1983).
 
@@ -46,17 +60,56 @@ def gen_xs(n, persis_info):
     return xs, persis_info
 
 
-def testmseerror(H, persis_info, gen_specs, libE_info):
+def gen_new_thetas(n, persis_info):
+    thetas, _ = gen_thetas(n, persis_info)
+    return thetas, persis_info
+
+
+def select_next_theta(model, cur_thetas, obs, errstd, n_explore_theta, expect_impr_exit, persis_info):
+    new_thetas, persis_info = gen_new_thetas(n_explore_theta, persis_info)
+
+    fpred, _ = emulation_prediction(model, cur_thetas)
+    fdraws = emulation_draws(model, new_thetas, options={'numsamples': 500})
+
+    cur_chi2 = np.sum(((fpred - obs) / errstd) ** 2, axis=1)
+    best_chi2 = np.min(cur_chi2)
+
+    new_chi2 = np.zeros((fdraws.shape[0], fdraws.shape[2]))
+    for k in np.arange(fdraws.shape[2]):
+        new_chi2[:, k] = np.sum(((fdraws[:, :, k] - obs) / errstd) ** 2, axis=1)
+
+    expect_improvement = ((best_chi2 > new_chi2)*(best_chi2 - new_chi2)).mean(axis=1)
+    # prob_improvement = (best_chi2 > new_chi2).mean(axis=1)
+    print('No. of thetas = {:d}'.format(cur_thetas.shape[0]))
+    print('MAX EI = {:.2f}'.format(np.max(expect_improvement)))
+    print('Best chi^2 = {:.2f}'.format(best_chi2))
+
+    if np.max(expect_improvement) < 0.001 * obs.shape[0]:  # > 0.95:  tolerance?
+        stop_flag = True
+        new_theta = None
+    else:
+        stop_flag = False
+        new_theta = np.copy(new_thetas[np.argmax(expect_improvement)])
+        # print(new_theta)
+        # print('new chi2: {:.2f}'.format(np.min(new_chi2)))
+
+    return np.atleast_2d(new_theta), stop_flag, persis_info
+
+
+def testcalib(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
     comm = libE_info['comm']
-    n_test_thetas = gen_specs['user']['n_test_thetas']
+    randstream = persis_info['rand_stream']
+    # n_test_thetas = gen_specs['user']['n_test_thetas']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
-    mse_exit = gen_specs['user']['mse_exit']  # MSE threshold for exiting
+    # mse_exit = gen_specs['user']['mse_exit']  # MSE threshold for exiting
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
+    expect_impr_exit = gen_specs['user']['expect_impr_exit']  # Expected improvement exit value
+    n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
 
     # Initialize output
-    H_o = np.zeros(n_x*(n_test_thetas), dtype=gen_specs['out'])
+    H_o = np.zeros(n_x, dtype=gen_specs['out'])
 
     # Initialize exit criterion
     # H_o['mse'] = 1
@@ -64,24 +117,30 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
     # Could generate initial inputs here or read in
     x, persis_info = gen_xs(n_x, persis_info)
 
-    # Generate test thetas
-    test_thetas, persis_info = gen_thetas(n_test_thetas, persis_info)
-    for i, t in enumerate(test_thetas):
-        offset = i*n_x
-        H_o['x'][offset:offset+n_x] = x
-        H_o['thetas'][offset:offset+n_x] = t
-        offset += n_x
+    # Generate true theta
+    true_theta, persis_info = gen_true_theta(persis_info)
 
-    H_o['quantile'] = np.inf
+    H_o['x'][0:n_x] = x
+    H_o['thetas'][0:n_x] = true_theta
+
+    H_o['quantile'] = [np.inf]
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------
 
-    H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-    test_fevals = np.reshape(calc_in['f'], (n_test_thetas, n_x))
+    true_fevals = np.reshape(calc_in['f'], (n_x))
 
+    H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
+    errstd = 0.001 * true_fevals
+
+    obs = true_fevals + randstream.normal(0, errstd, n_x).reshape((n_x))
+    H_o['obs'] = obs
+    H_o['errstd'] = errstd
+    H_o['quantile'] = [np.inf]
     # MC Note: need to generate random / quantile-based failures
-    quantile = np.quantile(test_fevals, 0.95)
-    H_o['quantile'] = quantile
+    # quantile = np.quantile(test_fevals, 0.95)
+    # H_o['quantile'] = quantile
+
+    # 2020/09/03 MC: I thought the initial batch would return before the first emulator build.
 
     # Generate initial batch of thetas
     theta, persis_info = gen_thetas(n_thetas, persis_info)
@@ -102,6 +161,7 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
         if fevals is None:
             fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
+            # build_emulator = True
         else:
             new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
@@ -115,34 +175,29 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
         # frate = np.count_nonzero(failures)/failures.size
         # print('failure rate is {}'.format(frate))
 
-        # MC: Goal - Call builder in initialization,
-        # Call updater in subsequent loops
-
         # print('shapes {} {} {} {}\n'.format(theta.shape, x.shape, fevals.shape, failures.shape), flush=True)
+        # MC: if condition, rebuild
+
         model = emulation_builder(theta, x, fevals, failures)
 
-        # predtrain, _ = emulation_prediction(model, theta)
-        # trainmse = np.nanmean((predtrain[model['theta_ind_valid'], :] -
-        #                       fevals[model['theta_ind_valid'], :]) ** 2)
+        new_theta, stop_flag, persis_info = select_next_theta(model, theta, obs, errstd, n_explore_theta, expect_impr_exit, persis_info)
 
-        predtest, _ = emulation_prediction(model, test_thetas)
-        mse = np.nanmean((predtest - test_fevals) ** 2)
-
-        # H_o['mse'] = mse
         # Exit gen when mse reaches threshold
-        print('\n mse is {}'.format(mse), flush=True)
-        if mse < mse_exit:
-            print('Gen exiting on mse', flush=True)
+        # print('\n maximum expected improvement is {}'.format(), flush=True)
+        if stop_flag:
+            print('Reached threshold.', flush=True)
+            print('Number of thetas in total: {:d}'.format(theta.shape[0]))
             break
 
         # MC: If mse not under threshold, send additional thetas to simfunc
         n_thetas = step_add_theta
-        new_thetas, persis_info = gen_thetas(n_thetas, persis_info)
-        theta = np.vstack((theta, new_thetas))
+        # new_thetas, persis_info = gen_thetas(n_thetas, persis_info)
+        theta = np.vstack((theta, new_theta))
 
         H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-        H_o['quantile'] = quantile
-        for i, t in enumerate(new_thetas):
+
+        H_o['quantile'] = [np.inf]
+        for i, t in enumerate(new_theta):
             offset = i*n_x
             H_o['x'][offset:offset+n_x] = x
             H_o['thetas'][offset:offset+n_x] = t
