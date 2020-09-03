@@ -25,9 +25,11 @@ In practice, most ``gen_f`` function definitions resemble::
 
 Where :doc:`H<data_structures/history_array>` is a selection of the
 :doc:`History array<history_output>`, determined by sim IDs from the
-``alloc_f``, and :doc:`persis_info<data_structures/persis_info>` is a dictionary
-containing state information. See the API above for detailed descriptions of the
-other parameters.
+``alloc_f``, :doc:`persis_info<data_structures/persis_info>` is a dictionary
+containing state information, :doc:`gen_specs<data_structures/gen_specs>` is a
+dictionary containing pre-defined parameters for the ``gen_f``, and ``libE_info``
+is a dictionary containing libEnsemble-specific entries. See the API above for
+more detailed descriptions of the parameters.
 
 Typically users start by parsing their custom parameters initially defined
 within ``gen_specs['user']`` in the calling script and defining a *local* History
@@ -42,6 +44,11 @@ alongside ``persis_info``::
 
         return local_H_out, persis_info
 
+.. note::
+
+    State ``gen_f`` information like checkpointing should be
+    appended to ``persis_info``.
+
 Persistent Generator
 --------------------
 
@@ -53,22 +60,48 @@ The ``gen_f`` is initiated as persistent by the ``alloc_f``.
 
 Functions for a persistent generator to communicate directly with the manager
 are available in the :ref:`libensemble.tools.gen_support<p_gen_routines>` module.
-They are relatively simple to understand and implement.
+Additional necessary resources are the status tags ``STOP_TAG``, ``PERSIS_STOP``, and
+``FINISHED_PERSISTENT_GEN_TAG`` from ``libensemble.message_numbers``, with return
+values from the ``gen_support`` functions compared to these tags to determine when
+the generator should break its loop and return.
+
+Implementing the above functions is relatively simple.
 
 .. currentmodule:: libensemble.tools.gen_support
 .. autofunction:: send_mgr_worker_msg
 
-Describe function
+This function call typically resembles::
+
+    send_mgr_worker_msg(libE_info['comm'], local_H_out[selected_IDs])
 
 .. currentmodule:: libensemble.tools.gen_support
 .. autofunction:: get_mgr_worker_msg
 
-Describe function
+This function call typically resembles::
+
+    tag, Work, calc_in = get_mgr_worker_msg(libE_info['comm'])
+
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        cleanup()
+        break
 
 .. currentmodule:: libensemble.tools.gen_support
 .. autofunction:: sendrecv_mgr_worker_msg
 
-Describe function
+This function performs both of the previous functions in a single statement. Its
+usage typically resembles::
+
+    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], local_H_out[selected_IDs])
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        cleanup()
+        break
+
+Once the persistent generator's loop has been broken, it should return with an additional tag::
+
+    return local_H_out, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+See :doc:`calc_status<data_structures/calc_status>` for more information about
+the message tags.
 
 Simulator Function
 ==================
