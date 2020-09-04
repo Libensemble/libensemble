@@ -129,12 +129,30 @@ with ``persis_info`` should be familiar::
     batch_size = sim_specs['user']['batch_size']
     local_H_out = np.zeros(batch_size, dtype=sim_specs['out'])
 
-    ... # Perform simulations
+    ... # Perform simulation calculations
 
     return local_H_out, persis_info
 
 Executor
 --------
 
+libEnsemble's Executor is commonly used within simulator functions to launch
+and monitor applications. An excellent overview is already available
+:doc:`here<executor/overview>`.
+
 Allocation Function
 ===================
+
+Although the included allocation functions, or ``alloc_f``'s are sufficient for
+most users, those exploring more exact control over data passed to their ``gen_f``
+and ``sim_f`` can write their own.
+
+Most ``alloc_f`` function definitions resemble::
+
+    def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+
+Where :doc:`W<data_structures/worker_array>` is an array containing information
+about each worker's state.
+
+.. currentmodule:: libensemble.tools.alloc_support
+.. autofunction:: avail_worker_ids
