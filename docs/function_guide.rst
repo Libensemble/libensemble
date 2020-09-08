@@ -14,12 +14,12 @@ writing different kinds of User Functions, and common development patterns.
 Generator Function
 ==================
 
-As described in the :ref:`API<api_gen_f>`, the ``gen_f`` is called by libEnsemble
-via the following::
+As described in the :ref:`API<api_gen_f>`, the ``gen_f`` is called by a
+libEnsemble worker via the following::
 
     out = gen_f(H[gen_specs['in']][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
 
-In practice, most ``gen_f`` function definitions resemble::
+In practice, most ``gen_f`` function definitions written by users resemble::
 
     def my_generator(H, persis_info, gen_specs, libE_info):
 
@@ -109,12 +109,12 @@ can be found :doc:`here<examples/gen_funcs>`.
 Simulator Function
 ==================
 
-As described in the :ref:`API<api_sim_f>`, the ``sim_f`` is called by libEnsemble
-via a similar interface to the ``gen_f``::
+As described in the :ref:`API<api_sim_f>`, the ``sim_f`` is called by a
+libEnsemble worker via a similar interface to the ``gen_f``::
 
     out = sim_f(H[sim_specs['in']][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
 
-In practice, most ``sim_f`` function definitions resemble::
+In practice, most ``sim_f`` function definitions written by users resemble::
 
     def my_simulator(H, persis_info, sim_specs, libE_info):
 
@@ -145,14 +145,18 @@ Allocation Function
 
 Although the included allocation functions, or ``alloc_f``'s are sufficient for
 most users, those exploring more exact control over data passed to their ``gen_f``
-and ``sim_f`` can write their own.
+and ``sim_f`` can write their own. The ``alloc_f`` is unique since it is called
+by the libEnsemble's manager instead of a worker, and serves as an algorithm
+for evaluating what values should be distributed to a ``gen_f`` or ``sim_f``.
 
-Most ``alloc_f`` function definitions resemble::
+Most ``alloc_f`` function definitions written by users resemble::
 
     def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
 Where :doc:`W<data_structures/worker_array>` is an array containing information
 about each worker's state.
+
+Inside an ``alloc_f``, a :doc:`Work dictionary<data_structures/work_dict>`
 
 .. currentmodule:: libensemble.tools.alloc_support
 .. autofunction:: avail_worker_ids
