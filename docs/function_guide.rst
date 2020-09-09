@@ -133,12 +133,21 @@ with ``persis_info`` should be familiar::
 
     return local_H_out, persis_info
 
+Descriptions of included simulator functions can be found :ref:`here<examples/sim_funcs>`.
+
+The :ref:`Simple Sine tutorial<tutorials/local_sine_tutorial>` is an
+excellent introduction for writing simple user functions and using them
+with libEnsemble.
+
 Executor
 --------
 
 libEnsemble's Executor is commonly used within simulator functions to launch
 and monitor applications. An excellent overview is already available
 :doc:`here<executor/overview>`.
+
+See the :doc:`Executor with Electrostatic Forces tutorial<tutorials/executor_forces_tutorial>`
+for an additional example to try out.
 
 Allocation Functions
 ====================
@@ -161,8 +170,8 @@ instantiated::
 
     Work = {}
 
-Then, populated with integer keys ``i`` and dictionary values to
-give to worker ``i``. An example Work dictionary from a run of
+then populated with integer keys ``i`` for each worker and dictionary values to
+give to those workers. An example Work dictionary from a run of
 the ``test_1d_sampling.py`` regression test resembles::
 
     {
@@ -195,13 +204,13 @@ the ``test_1d_sampling.py`` regression test resembles::
         }
     }
 
-Based on information from the API reference above, it can be seen that this Work
-dictionary describes instructions for each of the four workers to call the ``sim_f``
-with data from the ``'x'`` field and a given ``'H_row'``, and a given ``'persis_info'``
-dictionary.
+Based on information from the API reference above, this Work dictionary
+describes instructions for each of the four workers to call the ``sim_f``
+with data from the ``'x'`` field and a given ``'H_row'`` from the
+History array, and also pass ``persis_info``.
 
-Constructing these arrays and determining which workers are available for receiving
-data is simplified by several functions available within the
+Constructing these arrays and determining which workers are available
+for receiving data is simplified by several functions available within the
 ``libensemble.tools.alloc_support`` module:
 
 .. currentmodule:: libensemble.tools.alloc_support
@@ -217,4 +226,39 @@ functions.
 .. currentmodule:: libensemble.tools.alloc_support
 .. autofunction:: gen_work
 
-Note that these two functions *append* an entry in-place to the Work dictionary.
+Note that these two functions *append* an entry in-place to the Work dictionary,
+and that additional parameters are appended to ``libE_info``.
+
+In practice, the structure of many allocation functions resemble::
+
+    Work = {}
+    ...
+    for ID in avail_worker_ids(W):
+        ...
+        if some_condition:
+            sim_work(Work, ID, chosen_H_fields, chosen_H_rows, persis_info)
+            ...
+
+        if another_condition:
+            gen_work(Work, ID, chosen_H_fields, chosen_H_rows, persis_info)
+            ...
+
+    return Work, persis_info
+
+The final three functions available in the ``alloc_support`` module
+are primarily for evaluating running generators:
+
+.. currentmodule:: libensemble.tools.alloc_support
+.. autofunction:: test_any_gen
+
+.. currentmodule:: libensemble.tools.alloc_support
+.. autofunction:: count_gens
+
+.. currentmodule:: libensemble.tools.alloc_support
+.. autofunction:: count_persis_gens
+
+Descriptions of included allocation functions can be found :doc:`here<examples/alloc_funcs>`.
+Below is the ``fast_alloc`` allocation function as an example:
+
+..  literalinclude:: ../libensemble/alloc_funcs/fast_alloc.py
+    :caption: /libensemble/alloc_funcs/fast_alloc.py
