@@ -124,7 +124,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     H_o['thetas'][0:n_x] = true_theta
 
     H_o['quantile'] = [np.inf]
+
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
     # -------------------------------------------------------------------------
 
     true_fevals = np.reshape(calc_in['f'], (n_x))
@@ -180,7 +183,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
         model = emulation_builder(theta, x, fevals, failures)
 
-        new_theta, stop_flag, persis_info = select_next_theta(model, theta, obs, errstd, n_explore_theta, expect_impr_exit, persis_info)
+        new_theta, stop_flag, persis_info = \
+            select_next_theta(model, theta, obs, errstd, n_explore_theta, expect_impr_exit, persis_info)
 
         # Exit gen when mse reaches threshold
         # print('\n maximum expected improvement is {}'.format(), flush=True)

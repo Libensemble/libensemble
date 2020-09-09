@@ -1,6 +1,6 @@
 import numpy as np
 # from libensemble.gen_funcs.sampling import uniform_random_sample
-from gemulator.emulation import emulation_prediction, emulation_builder, emulation_draws
+from gemulator.emulation import emulation_prediction, emulation_builder  # , emulation_draws
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
@@ -73,7 +73,10 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
         offset += n_x
 
     H_o['quantile'] = np.inf
+
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
     # -------------------------------------------------------------------------
 
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
