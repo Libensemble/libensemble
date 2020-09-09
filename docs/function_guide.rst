@@ -11,8 +11,8 @@ libEnsemble includes several ready-to-use User Functions like
 This guide serves as an overview of both necessary and optional components for
 writing different kinds of User Functions, and common development patterns.
 
-Generator Function
-==================
+Generator Functions
+===================
 
 As described in the :ref:`API<api_gen_f>`, the ``gen_f`` is called by a
 libEnsemble worker via the following::
@@ -49,8 +49,8 @@ alongside ``persis_info``::
     State ``gen_f`` information like checkpointing should be
     appended to ``persis_info``.
 
-Persistent Generator
---------------------
+Persistent Generators
+---------------------
 
 While normal generators return after completing their calculation, persistent
 generators receive Work units, perform computations, and communicate results
@@ -106,8 +106,8 @@ the message tags.
 Examples of normal and persistent generator functions
 can be found :doc:`here<examples/gen_funcs>`.
 
-Simulator Function
-==================
+Simulator Functions
+===================
 
 As described in the :ref:`API<api_sim_f>`, the ``sim_f`` is called by a
 libEnsemble worker via a similar interface to the ``gen_f``::
@@ -140,23 +140,81 @@ libEnsemble's Executor is commonly used within simulator functions to launch
 and monitor applications. An excellent overview is already available
 :doc:`here<executor/overview>`.
 
-Allocation Function
-===================
+Allocation Functions
+====================
 
 Although the included allocation functions, or ``alloc_f``'s are sufficient for
-most users, those exploring more exact control over data passed to their ``gen_f``
+most users, those who want to fine-tune how data is passed to their ``gen_f``
 and ``sim_f`` can write their own. The ``alloc_f`` is unique since it is called
-by the libEnsemble's manager instead of a worker, and serves as an algorithm
-for evaluating what values should be distributed to a ``gen_f`` or ``sim_f``.
+by the libEnsemble's manager instead of a worker.
 
 Most ``alloc_f`` function definitions written by users resemble::
 
     def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
 Where :doc:`W<data_structures/worker_array>` is an array containing information
-about each worker's state.
+about each worker's state, and ``H`` is the *entire* History array available to
+the manager at the point the ``alloc_f`` is called.
 
-Inside an ``alloc_f``, a :doc:`Work dictionary<data_structures/work_dict>`
+Inside an ``alloc_f``, a :doc:`Work dictionary<data_structures/work_dict>` is
+instantiated::
+
+    Work = {}
+
+Then, populated with integer keys ``i`` and dictionary values to
+give to worker ``i``. An example Work dictionary from a run of
+the ``test_1d_sampling.py`` regression test resembles::
+
+    {
+        1: {
+            'H_fields': ['x'],
+            'persis_info': {'rand_stream': RandomState(...) at ..., 'worker_num': 1},
+            'tag': 1,
+            'libE_info': {'H_rows': array([368])}
+        },
+
+        2: {
+            'H_fields': ['x'],
+            'persis_info': {'rand_stream': RandomState(...) at ..., 'worker_num': 2},
+            'tag': 1,
+            'libE_info': {'H_rows': array([369])}
+        },
+
+        3: {
+            'H_fields': ['x'],
+            'persis_info': {'rand_stream': RandomState(...) at ..., 'worker_num': 3},
+            'tag': 1,
+            'libE_info': {'H_rows': array([370])}
+        },
+
+        4: {
+            'H_fields': ['x'],
+            'persis_info': {'rand_stream': RandomState(...) at ..., 'worker_num': 4},
+            'tag': 1,
+            'libE_info': {'H_rows': array([371])}
+        }
+    }
+
+Based on information from the API reference above, it can be seen that this Work
+dictionary describes instructions for each of the four workers to call the ``sim_f``
+with data from the ``'x'`` field and a given ``'H_row'``, and a given ``'persis_info'``
+dictionary.
+
+Constructing these arrays and determining which workers are available for receiving
+data is simplified by several functions available within the
+``libensemble.tools.alloc_support`` module:
 
 .. currentmodule:: libensemble.tools.alloc_support
 .. autofunction:: avail_worker_ids
+
+Many ``alloc_f`` routines loop over the available workers returned by the above
+function to construct their Work dictionaries with the help of the following two
+functions.
+
+.. currentmodule:: libensemble.tools.alloc_support
+.. autofunction:: sim_work
+
+.. currentmodule:: libensemble.tools.alloc_support
+.. autofunction:: gen_work
+
+Note that these two functions *append* an entry in-place to the Work dictionary.
