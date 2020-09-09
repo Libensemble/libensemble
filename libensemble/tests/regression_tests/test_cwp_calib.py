@@ -71,7 +71,7 @@ if __name__ == '__main__':
                           }
                  }
 
-    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     # Currently just allow gen to exit if mse goes below threshold value
