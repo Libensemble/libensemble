@@ -51,6 +51,7 @@ if __name__ == '__main__':
     expect_impr_exit = 0.0001*n_x   # Expected Improvement
     step_add_theta = 1              # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 1000          # No. of thetas to explore while selecting the next theta
+    build_emul_on_thread = True     # Build emul on background thread
 
     # Stop after max_emul_runs runs of the emulator
     max_evals = (n_init_thetas + 1) * n_x + max_emul_runs*n_x
@@ -69,6 +70,7 @@ if __name__ == '__main__':
                           'expect_impr_exit': expect_impr_exit,  # EI threshold for exit
                           'step_add_theta': step_add_theta,      # No. of thetas to generate per step
                           'n_explore_theta': n_explore_theta,    # No. of thetas to explore each step
+                          'async_build': build_emul_on_thread    # Build emul on background thread
                           }
                  }
 

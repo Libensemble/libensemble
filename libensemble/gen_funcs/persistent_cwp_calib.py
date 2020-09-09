@@ -3,6 +3,7 @@ import numpy as np
 from gemulator.emulation import emulation_prediction, emulation_builder, emulation_draws
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+import concurrent.futures
 
 
 def gen_true_theta(persis_info):
@@ -96,6 +97,13 @@ def select_next_theta(model, cur_thetas, obs, errstd, n_explore_theta, expect_im
     return np.atleast_2d(new_theta), stop_flag, persis_info
 
 
+def build_emulator(theta, x, fevals, failures):
+    """Build the emulator"""
+    # import time; time.sleep(5)  # test delay
+    model = emulation_builder(theta, x, fevals, failures)
+    return model
+
+
 def testcalib(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
     comm = libE_info['comm']
@@ -107,6 +115,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
     expect_impr_exit = gen_specs['user']['expect_impr_exit']  # Expected improvement exit value
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
+    async_build = gen_specs['user']['async_build']  # Build emulator in background thread
 
     # Initialize output
     H_o = np.zeros(n_x, dtype=gen_specs['out'])
@@ -156,15 +165,16 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     # -------------------------------------------------------------------------
 
     # count = 0  # test only
+    model_exists = False
     fevals = None
+    future = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # count += 1  # test
         # print('count is', count,flush=True)
-
         if fevals is None:
             fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
-            # build_emulator = True
+            rebuild = True  # Currently only applies when async
         else:
             new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
@@ -172,7 +182,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             # SH Note: Presuming model input is everything so far.
             fevals = np.vstack((fevals, new_fevals))
             failures = np.vstack((failures, new_failures))
-            # build_emulator = #some function
+            rebuild = False  # Currently only applies when async
 
         # SH Testing. Cumulative failure rate
         # frate = np.count_nonzero(failures)/failures.size
@@ -181,8 +191,26 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         # print('shapes {} {} {} {}\n'.format(theta.shape, x.shape, fevals.shape, failures.shape), flush=True)
         # MC: if condition, rebuild
 
-        model = emulation_builder(theta, x, fevals, failures)
+        if async_build:
+            if model_exists:
+                if future.done():
+                    model = future.result()
+                    print('\nNew emulator built', flush=True)
+                    rebuild = True
+                else:
+                    print('Re-using emulator', flush=True)
 
+            if rebuild:
+                executor = concurrent.futures.ThreadPoolExecutor()
+                future = executor.submit(build_emulator, theta, x, fevals, failures)
+                if not model_exists:
+                    model = future.result()
+                    model_exists = True
+        else:
+            # Always rebuilds...
+            model = build_emulator(theta, x, fevals, failures)
+
+        print('model id is {}'.format(id(model)), flush=True)  # test line - new model?
         new_theta, stop_flag, persis_info = \
             select_next_theta(model, theta, obs, errstd, n_explore_theta, expect_impr_exit, persis_info)
 
@@ -207,5 +235,11 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             H_o['thetas'][offset:offset+n_x] = t
 
         tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+
+    if async_build:
+        try:
+            executor.shutdown(wait=True)
+        except Exception:
+            pass
 
     return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
