@@ -56,18 +56,19 @@ if __name__ == '__main__':
     max_evals = (n_init_thetas + 1) * n_x + max_emul_runs*n_x
     # print('max_evals is {}'.format(max_evals),flush=True)
 
-    gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,)), ('quantile', float), ('obs', float, n_x), ('errstd', float, n_x)]
+    gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,)),
+               ('quantile', float), ('obs', float, n_x), ('errstd', float, n_x)]
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'failures', 'returned'],
                  'out': gen_out,
                  'user': {
-                     # 'n_test_thetas': n_test_thetas,    # Num test thetas
-                          'n_init_thetas': n_init_thetas,    # Num thetas
-                          'num_x_vals': n_x,                 # Num x points to create
-                          # 'mse_exit': mse_exit,              # Threshold for exit
-                          'expect_impr_exit': expect_impr_exit, # EI threshold for exit
-                          'step_add_theta': step_add_theta,  # No. of thetas to generate per step
-                          'n_explore_theta': n_explore_theta,# No. of thetas to explore each step
+                          # 'n_test_thetas': n_test_thetas,      # Num test thetas
+                          'n_init_thetas': n_init_thetas,        # Num thetas
+                          'num_x_vals': n_x,                     # Num x points to create
+                          # 'mse_exit': mse_exit,                # Threshold for exit
+                          'expect_impr_exit': expect_impr_exit,  # EI threshold for exit
+                          'step_add_theta': step_add_theta,      # No. of thetas to generate per step
+                          'n_explore_theta': n_explore_theta,    # No. of thetas to explore each step
                           }
                  }
 
@@ -76,8 +77,7 @@ if __name__ == '__main__':
 
     # Currently just allow gen to exit if mse goes below threshold value
     exit_criteria = {'sim_max': max_evals}
-    # exit_criteria = {'sim_max': max_evals,
-                     # 'stop_val': ('mse', mse_exit)}
+    # exit_criteria = {'sim_max': max_evals, 'stop_val': ('mse', mse_exit)}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs,

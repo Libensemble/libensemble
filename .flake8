@@ -47,3 +47,6 @@ per-file-ignores =
 
         # cwp ignores (during development)
         libensemble/gen_funcs/cwp.py:F401, F841, E128, E303
+        libensemble/gen_funcs/persistent_cwp.py:F401, F841, E128, E303
+        libensemble/gen_funcs/persistent_cwp_calib.py:F401, F841, E128, E303
+        libensemble/tests/regression_tests/test_cwp*:E402, E121, E126, E131, E123

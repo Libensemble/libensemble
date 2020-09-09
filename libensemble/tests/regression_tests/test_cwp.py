@@ -71,8 +71,7 @@ if __name__ == '__main__':
 
     # Currently just allow gen to exit if mse goes below threshold value
     exit_criteria = {'sim_max': max_evals}
-    # exit_criteria = {'sim_max': max_evals,
-                     # 'stop_val': ('mse', mse_exit)}
+    # exit_criteria = {'sim_max': max_evals, 'stop_val': ('mse', mse_exit)}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs,
