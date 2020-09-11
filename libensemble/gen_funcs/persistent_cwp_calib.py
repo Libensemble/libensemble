@@ -104,11 +104,18 @@ def build_emulator(theta, x, fevals, failures):
     return model
 
 
+def gen_observations(fevals, errstd_constant, randstream):
+    n_x = fevals.shape[0]
+    errstd = errstd_constant * fevals
+    obs = fevals + randstream.normal(0, errstd, n_x).reshape((n_x))
+    return obs, errstd
+
+
 def testcalib(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
     comm = libE_info['comm']
     randstream = persis_info['rand_stream']
-    # n_test_thetas = gen_specs['user']['n_test_thetas']
+    n_test_thetas = gen_specs['user']['n_test_thetas']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
     # mse_exit = gen_specs['user']['mse_exit']  # MSE threshold for exiting
@@ -116,9 +123,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     expect_impr_exit = gen_specs['user']['expect_impr_exit']  # Expected improvement exit value
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
     async_build = gen_specs['user']['async_build']  # Build emulator in background thread
+    errstd_constant = gen_specs['user']['errstd_constant']  # Constant for gener
 
     # Initialize output
-    H_o = np.zeros(n_x, dtype=gen_specs['out'])
+    H_o = np.zeros((n_test_thetas + 1) * n_x, dtype=gen_specs['out'])
 
     # Initialize exit criterion
     # H_o['mse'] = 1
@@ -128,9 +136,15 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     # Generate true theta
     true_theta, persis_info = gen_true_theta(persis_info)
+    test_thetas, persis_info = gen_thetas(n_test_thetas, persis_info)
 
     H_o['x'][0:n_x] = x
     H_o['thetas'][0:n_x] = true_theta
+
+    for i, t in enumerate(test_thetas):
+        offset = (i+1)*n_x
+        H_o['x'][offset:offset+n_x] = x
+        H_o['thetas'][offset:offset+n_x] = t
 
     H_o['quantile'] = [np.inf]
 
@@ -139,20 +153,17 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
     # -------------------------------------------------------------------------
 
-    true_fevals = np.reshape(calc_in['f'], (n_x))
+    returned_fevals = np.reshape(calc_in['f'], (n_test_thetas + 1, n_x))
+    true_fevals = returned_fevals[0, :]
+    test_fevals = returned_fevals[1:, :]
+
+    obs, errstd = gen_observations(true_fevals, errstd_constant, randstream)
 
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-    errstd = 0.001 * true_fevals
-
-    obs = true_fevals + randstream.normal(0, errstd, n_x).reshape((n_x))
-    H_o['obs'] = obs
-    H_o['errstd'] = errstd
-    H_o['quantile'] = [np.inf]
+    H_o['quantile'] = np.quantile(test_fevals, 0.95)
     # MC Note: need to generate random / quantile-based failures
     # quantile = np.quantile(test_fevals, 0.95)
     # H_o['quantile'] = quantile
-
-    # 2020/09/03 MC: I thought the initial batch would return before the first emulator build.
 
     # Generate initial batch of thetas
     theta, persis_info = gen_thetas(n_thetas, persis_info)
@@ -185,8 +196,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             rebuild = False  # Currently only applies when async
 
         # SH Testing. Cumulative failure rate
-        # frate = np.count_nonzero(failures)/failures.size
-        # print('failure rate is {}'.format(frate))
+        frate = np.count_nonzero(failures)/failures.size
+        print('failure rate is {}'.format(frate))
 
         # print('shapes {} {} {} {}\n'.format(theta.shape, x.shape, fevals.shape, failures.shape), flush=True)
         # MC: if condition, rebuild
