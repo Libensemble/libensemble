@@ -24,8 +24,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # Initialize alloc_specs['user'] if not set.
     alloc_specs['user'] = alloc_specs.get('user', {})
 
-    # In batch_mode (default), gen called only when all evaluations have returned. **update docstring*****
+    # In batch_mode (default), gen called only when all evaluations have returned.
     batch_mode = alloc_specs['user'].get('batch_mode', True)  # Defaults to true
+    batch_to_sim_id = alloc_specs['user'].get('batch_to_sim_id', -1)  # Always do batch up to this sim_id
 
     if persis_info.get('gen_started') and gen_count == 0:
         # The one persistent worker is done. Exiting
@@ -39,7 +40,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         give_back_to_gen = False
         if inds_since_last_gen.size > 0:
-            if batch_mode:
+            if max(inds_since_last_gen) < batch_to_sim_id or batch_mode:
                 if np.all(H['returned'][gen_inds]):
                     give_back_to_gen = True
             else:

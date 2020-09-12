@@ -76,7 +76,12 @@ if __name__ == '__main__':
                           }
                  }
 
-    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
+    # alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
+    batch_sim_id = (n_init_thetas + n_test_thetas + 1) * n_x
+    alloc_specs = {'alloc_f': alloc_f,
+                   'out': [('given_back', bool)],
+                   'user': {'batch_to_sim_id': batch_sim_id}}
+
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     # Currently just allow gen to exit if mse goes below threshold value
