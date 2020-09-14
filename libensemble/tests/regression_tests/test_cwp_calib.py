@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     nworkers, is_master, libE_specs, _ = parse_args()
 
-    sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas', 'quantile'], 'out': [('f', float), ('failures', float)]}
+    sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas', 'quantile'], 'out': [('f', float), ('failures', bool)]}
 
     n_test_thetas = 100           # No. of thetas for test data
     n_init_thetas = 25              # Initial batch of thetas
@@ -58,6 +58,9 @@ if __name__ == '__main__':
     max_evals = (n_init_thetas + n_test_thetas + 1) * n_x + max_emul_runs*n_x
     # print('max_evals is {}'.format(max_evals),flush=True)
 
+    # batch mode until after batch_sim_id
+    batch_sim_id = (n_init_thetas + n_test_thetas + 1) * n_x
+
     gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,)),
                ('quantile', float), ('obs', float, n_x), ('errstd', float, n_x)]
     gen_specs = {'gen_f': gen_f,
@@ -73,14 +76,17 @@ if __name__ == '__main__':
                           'n_explore_theta': n_explore_theta,    # No. of thetas to explore each step
                           'async_build': build_emul_on_thread,   # Build emul on background thread
                           'errstd_constant': errstd_constant,    # Constant for generating noise in obs
+                          'batch_to_sim_id': batch_sim_id,
                           }
                  }
 
     # alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
-    batch_sim_id = (n_init_thetas + n_test_thetas + 1) * n_x
     alloc_specs = {'alloc_f': alloc_f,
                    'out': [('given_back', bool)],
-                   'user': {'batch_to_sim_id': batch_sim_id}}
+                   'user': {'batch_to_sim_id': batch_sim_id,
+                            'batch_mode': False  # set batch mode (alloc behavior after batch_sim_id)
+                            }
+                   }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 

@@ -2,7 +2,7 @@ import numpy as np
 # from libensemble.gen_funcs.sampling import uniform_random_sample
 from gemulator.emulation import emulation_prediction, emulation_builder, emulation_draws
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
 import concurrent.futures
 
 
@@ -66,7 +66,7 @@ def gen_new_thetas(n, persis_info):
     return thetas, persis_info
 
 
-def select_next_theta(model, cur_thetas, obs, errstd, n_explore_theta, expect_impr_exit, persis_info):
+def select_next_theta(model, cur_thetas, obs, errstd, n_explore_theta, expect_impr_exit, persis_info):   # !!! add step_add_theta
     new_thetas, persis_info = gen_new_thetas(n_explore_theta, persis_info)
 
     fpred, _ = emulation_prediction(model, cur_thetas)
@@ -124,6 +124,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
     async_build = gen_specs['user']['async_build']  # Build emulator in background thread
     errstd_constant = gen_specs['user']['errstd_constant']  # Constant for gener
+    batch_last_sim_id = gen_specs['user']['batch_to_sim_id']  # Last batch sim_id
 
     # Initialize output
     H_o = np.zeros((n_test_thetas + 1) * n_x, dtype=gen_specs['out'])
@@ -160,18 +161,17 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     obs, errstd = gen_observations(true_fevals, errstd_constant, randstream)
 
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-    H_o['quantile'] = np.quantile(test_fevals, 0.95)
-    # MC Note: need to generate random / quantile-based failures
-    # quantile = np.quantile(test_fevals, 0.95)
-    # H_o['quantile'] = quantile
+    quantile = np.quantile(test_fevals, 0.95)
+    H_o['quantile'] = quantile
 
-    # Generate initial batch of thetas
+    # Generate initial batch of thetas for emulator
     theta, persis_info = gen_thetas(n_thetas, persis_info)
     for i, t in enumerate(theta):
         offset = i*n_x
         H_o['x'][offset:offset+n_x] = x
         H_o['thetas'][offset:offset+n_x] = t
 
+    # tag, Work, calc_in = send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------
 
@@ -182,22 +182,60 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # count += 1  # test
         # print('count is', count,flush=True)
-        if fevals is None:
+
+        if fevals is None:  # initial batch
             fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
+
+            data_status = np.full_like(fevals, 1, dtype=int)
+            data_status[failures] = -1
+
             rebuild = True  # Currently only applies when async
         else:
-            new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
-            new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
+            # fevals = np.full((n_thetas, n_x), np.nan, dtype=float)
+            # failures = np.full_like(fevals, False)
+            # data_status = np.full_like(fevals, 0, dtype=int)  # 0: incomplete, 1: successfully completed, -1: failed
+            sim_id = calc_in['sim_id']
+            r, c = divmod(sim_id - (n_test_thetas + 1) * n_x, n_x)  # r, c are arrays if sim_id is an array
+            n_max_incoming_row = np.max(r) - fevals.shape[0] + 1
+            print(r, c)
+
+            if n_max_incoming_row > 0:
+                fevals = np.pad(fevals, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=np.nan)
+                fevals[r, c] = calc_in['f']
+
+                print(fevals[r, :])  # MC test
+                failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
+                failures[r, c] = calc_in['failures']
+                print(failures[r, :])  # MC test
+
+                data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
+                for i in np.arange(r.shape[0]):
+                    data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
+
+                print(data_status[r, :])  # MC test
+                # new_fevals = np.full((n_thetas, n_x), np.nan)
+                # new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
+                # new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
 
             # SH Note: Presuming model input is everything so far.
-            fevals = np.vstack((fevals, new_fevals))
-            failures = np.vstack((failures, new_failures))
-            rebuild = False  # Currently only applies when async
+            # fevals = np.vstack((fevals, new_fevals))
+            # failures = np.vstack((failures, new_failures))
+            print(r, np.mean(data_status[r, :] != 0))
+            if np.mean(data_status[r, :] != 0) > 0.5:  # MC: wait for data or not, check fill proportion of incomplete rows
+                rebuild = True
+                print('rebuild')  # MC Test
+            else:
+                rebuild = False  # Currently only applies when async
+                print('no rebuild')  # MC Test
+                tag, Work, calc_in = get_mgr_worker_msg(comm)
+                print('received')
+                print(Work)
+                continue  # continue in while loop without going forward with selection etc.
 
         # SH Testing. Cumulative failure rate
         frate = np.count_nonzero(failures)/failures.size
-        print('failure rate is {}'.format(frate))
+        print('failure rate is {:.6f}'.format(frate))
 
         # print('shapes {} {} {} {}\n'.format(theta.shape, x.shape, fevals.shape, failures.shape), flush=True)
         # MC: if condition, rebuild
@@ -239,13 +277,14 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
         H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
 
-        H_o['quantile'] = [np.inf]
+        H_o['quantile'] = quantile
         for i, t in enumerate(new_theta):
             offset = i*n_x
             H_o['x'][offset:offset+n_x] = x
             H_o['thetas'][offset:offset+n_x] = t
 
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+        # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+        tag, Work, calc_in = send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
 
     if async_build:
         try:
