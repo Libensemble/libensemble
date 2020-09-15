@@ -7,7 +7,8 @@ functions: a :ref:`Generator Function<api_gen_f>`, a :ref:`Simulator Function<ap
 and an :ref:`Allocation Functions<api_alloc_f>`, or ``gen_f``, ``sim_f``, and
 ``alloc_f`` respectively. These are all referred to as User Functions. Although
 libEnsemble includes several ready-to-use User Functions like
-:doc:`APOSMM<examples/aposmm>`, it's expected that most users will write their own.
+:doc:`APOSMM<examples/aposmm>`, it's expected many users will write their own or
+adjust included functions for their own use-cases.
 This guide serves as an overview of both necessary and optional components for
 writing different kinds of User Functions, and common development patterns.
 
@@ -30,6 +31,11 @@ containing state information, :doc:`gen_specs<data_structures/gen_specs>` is a
 dictionary containing pre-defined parameters for the ``gen_f``, and ``libE_info``
 is a dictionary containing libEnsemble-specific entries. See the API above for
 more detailed descriptions of the parameters.
+
+.. note::
+
+    If the ``gen_f`` is a persistent generator, then ``gen_specs`` will often be
+    empty since the ``alloc_f`` determines what fields to send to the generator.
 
 Typically users start by parsing their custom parameters initially defined
 within ``gen_specs['user']`` in the calling script and defining a *local* History
@@ -56,7 +62,13 @@ While normal generators return after completing their calculation, persistent
 generators receive Work units, perform computations, and communicate results
 directly to the manager in a loop, not returning until explicitly instructed by
 the manager. The calling worker becomes a dedicated :ref:`persistent worker<persis_worker>`.
-The ``gen_f`` is initiated as persistent by the ``alloc_f``.
+A ``gen_f`` is initiated as persistent by the ``alloc_f``, which also determines
+which structures are sent to the ``gen_f``. In such cases, ``gen_specs`` is often
+empty.
+
+Many users prefer persistent generators since they do not need to be
+re-initialized every time their past work is completed and evaluated by a simulation,
+and can evaluate returned simulation results over the course of an entire libEnsemble routine.
 
 Functions for a persistent generator to communicate directly with the manager
 are available in the :ref:`libensemble.tools.gen_support<p_gen_routines>` module.
@@ -65,7 +77,7 @@ Additional necessary resources are the status tags ``STOP_TAG``, ``PERSIS_STOP``
 values from the ``gen_support`` functions compared to these tags to determine when
 the generator should break its loop and return.
 
-Implementing the above functions is relatively simple.
+Implementing the above functions is relatively simple:
 
 .. currentmodule:: libensemble.tools.gen_support
 .. autofunction:: send_mgr_worker_msg
@@ -73,6 +85,8 @@ Implementing the above functions is relatively simple.
 This function call typically resembles::
 
     send_mgr_worker_msg(libE_info['comm'], local_H_out[selected_IDs])
+
+Note that ``send_mgr_worker_msg()`` has no return.
 
 .. currentmodule:: libensemble.tools.gen_support
 .. autofunction:: get_mgr_worker_msg
@@ -84,6 +98,9 @@ This function call typically resembles::
     if tag in [STOP_TAG, PERSIS_STOP]:
         cleanup()
         break
+
+The logic following the function call is typically used to break the persistent
+generator's main loop and return.
 
 .. currentmodule:: libensemble.tools.gen_support
 .. autofunction:: sendrecv_mgr_worker_msg
@@ -134,6 +151,9 @@ with ``persis_info`` should be familiar::
 
     return local_H_out, persis_info
 
+Simulator functions can also return a :doc:`calc_status<data_structures/calc_status>`
+integer attribute from the ``libensemble.message_numbers`` module to be logged.
+
 Descriptions of included simulator functions can be found :doc:`here<examples/sim_funcs>`.
 
 The :doc:`Simple Sine tutorial<tutorials/local_sine_tutorial>` is an
@@ -163,8 +183,8 @@ Most ``alloc_f`` function definitions written by users resemble::
     def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
 Where :doc:`W<data_structures/worker_array>` is an array containing information
-about each worker's state, and ``H`` is the *entire* History array available to
-the manager at the point the ``alloc_f`` is called.
+about each worker's state, and ``H`` is the *trimmed* History array,
+containing rows initialized by the generator.
 
 Inside an ``alloc_f``, a :doc:`Work dictionary<data_structures/work_dict>` is
 instantiated::
@@ -246,6 +266,12 @@ In practice, the structure of many allocation functions resemble::
 
     return Work, persis_info
 
+The Work dictionary is returned to the manager with ``persis_info``. If ``1``
+is returned as third value, this instructs the run to stop.
+
+.. note:: An error occurs when the ``alloc_f`` returns nothing when
+          all workers are idle
+
 The final three functions available in the ``alloc_support`` module
 are primarily for evaluating running generators:
 
@@ -259,7 +285,14 @@ are primarily for evaluating running generators:
 .. autofunction:: count_persis_gens
 
 Descriptions of included allocation functions can be found :doc:`here<examples/alloc_funcs>`.
-Below is the ``fast_alloc`` allocation function as an example:
+The default allocation function used by libEnsemble if one isn't specified is
+``give_sim_work_first``. During its worker ID loop, it checks if there's unallocated
+work and assigns simulations for that work if so. Otherwise, it initializes
+generators for up to ``'num_active_gens'`` instances. Other settings like
+``batch_mode`` and blocking of un-active workers is also supported. See
+:ref:`here<gswf_label>` for more information about ``give_sim_work_first``.
+
+For a shorter, simpler example, here is the ``fast_alloc`` allocation function:
 
 ..  literalinclude:: ../libensemble/alloc_funcs/fast_alloc.py
     :caption: /libensemble/alloc_funcs/fast_alloc.py

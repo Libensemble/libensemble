@@ -8,6 +8,8 @@ Below are example allocation functions available in libEnsemble.
 
 .. note:: The default alloc_func is give_sim_work_first.
 
+.. gswf_label
+
 give_sim_work_first
 -------------------
 .. automodule:: give_sim_work_first
