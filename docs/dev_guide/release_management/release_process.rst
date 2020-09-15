@@ -28,6 +28,8 @@ Before release
   - On-line CI (currently Travis) tests must pass.
 
   - Scaling tests must be run on HPC platforms listed as supported in release notes.
+    Test variants by platform, launch mechanism, scale, and other factors can
+    be configured and exported by the libE-Templater_.
 
   - Coverage must not have decreased unless there is a justifiable reason.
 
@@ -64,3 +66,5 @@ After release
   on the kanban project board (inc. the release checklist).
 
 - Email libEnsemble mailing list, and notify the `everyone` channel in the libEnsemble Slack workspace.
+
+.. _libE-Templater: https://github.com/Libensemble/libE-templater
