@@ -7,8 +7,9 @@ def avail_worker_ids(W, persistent=None):
     if persistent is None:
         return W['worker_id'][W['active'] == 0]
     if persistent:
-        return W['worker_id'][np.logical_and(W['active'] == 0,
-                                             W['persis_state'] != 0)]
+        return W['worker_id'][W['persis_state'] != 0]
+        # return W['worker_id'][np.logical_and(W['active'] == 0,
+                                             # W['persis_state'] != 0)]
     return W['worker_id'][np.logical_and(W['active'] == 0,
                                          W['persis_state'] == 0)]
 

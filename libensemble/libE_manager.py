@@ -236,9 +236,9 @@ class Manager:
         """Checks validity of an allocation function order
         """
         assert w != 0, "Can't send to worker 0; this is the manager."
-        assert self.W[w-1]['active'] == 0, \
-            "Allocation function requested work be sent to to worker %d, an "\
-            "already active worker." % w
+        # assert self.W[w-1]['active'] == 0, \
+            # "Allocation function requested work be sent to to worker %d, an "\
+            # "already active worker." % w
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
