@@ -96,7 +96,8 @@ usage typically resembles::
         cleanup()
         break
 
-Once the persistent generator's loop has been broken, it should return with an additional tag::
+Once the persistent generator's loop has been broken because of
+the tag from the manager, it should return with an additional tag::
 
     return local_H_out, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
@@ -133,9 +134,9 @@ with ``persis_info`` should be familiar::
 
     return local_H_out, persis_info
 
-Descriptions of included simulator functions can be found :ref:`here<examples/sim_funcs>`.
+Descriptions of included simulator functions can be found :doc:`here<examples/sim_funcs>`.
 
-The :ref:`Simple Sine tutorial<tutorials/local_sine_tutorial>` is an
+The :doc:`Simple Sine tutorial<tutorials/local_sine_tutorial>` is an
 excellent introduction for writing simple user functions and using them
 with libEnsemble.
 
@@ -226,8 +227,8 @@ functions.
 .. currentmodule:: libensemble.tools.alloc_support
 .. autofunction:: gen_work
 
-Note that these two functions *append* an entry in-place to the Work dictionary,
-and that additional parameters are appended to ``libE_info``.
+Note that these two functions *append* an entry in-place to the Work dictionary
+and additional parameters are appended to ``libE_info``.
 
 In practice, the structure of many allocation functions resemble::
 
