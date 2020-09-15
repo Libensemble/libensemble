@@ -459,6 +459,11 @@ class Worker:
 
                 mtag, Work = self.comm.recv()
 
+                # Active recv is for persistent only - throw away here
+                if Work['libE_info'].get('active_recv', False):
+                    _, _, _ = self._recv_H_rows(Work)
+                    continue
+
                 if mtag == STOP_TAG:
                     break
 

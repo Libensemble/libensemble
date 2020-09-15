@@ -49,7 +49,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if give_back_to_gen:
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
-                     np.atleast_1d(inds_since_last_gen), persis_info[i], persistent=True)
+                     np.atleast_1d(inds_since_last_gen), persis_info[i], persistent=True, active_recv=True)
             H['given_back'][inds_since_last_gen] = True
 
     task_avail = ~H['given']
