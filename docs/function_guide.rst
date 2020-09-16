@@ -35,7 +35,7 @@ more detailed descriptions of the parameters.
 .. note::
 
     If the ``gen_f`` is a persistent generator, then ``gen_specs`` will often be
-    empty since the ``alloc_f`` determines what fields to send to the generator.
+    empty if the ``alloc_f`` determines what fields to send to the generator.
 
 Typically users start by parsing their custom parameters initially defined
 within ``gen_specs['user']`` in the calling script and defining a *local* History
@@ -67,8 +67,9 @@ which structures are sent to the ``gen_f``. In such cases, ``gen_specs`` is ofte
 empty.
 
 Many users prefer persistent generators since they do not need to be
-re-initialized every time their past work is completed and evaluated by a simulation,
-and can evaluate returned simulation results over the course of an entire libEnsemble routine.
+re-initialized every time their past work is completed and evaluated by a
+simulation, and an can evaluate returned simulation results over the course of
+an entire libEnsemble routine as a single function instance.
 
 Functions for a persistent generator to communicate directly with the manager
 are available in the :ref:`libensemble.tools.gen_support<p_gen_routines>` module.
@@ -269,7 +270,7 @@ In practice, the structure of many allocation functions resemble::
 The Work dictionary is returned to the manager with ``persis_info``. If ``1``
 is returned as third value, this instructs the run to stop.
 
-.. note:: An error occurs when the ``alloc_f`` returns nothing when
+.. note:: An error occurs when the ``alloc_f`` returns nothing while
           all workers are idle
 
 The final three functions available in the ``alloc_support`` module
@@ -289,7 +290,7 @@ The default allocation function used by libEnsemble if one isn't specified is
 ``give_sim_work_first``. During its worker ID loop, it checks if there's unallocated
 work and assigns simulations for that work if so. Otherwise, it initializes
 generators for up to ``'num_active_gens'`` instances. Other settings like
-``batch_mode`` and blocking of un-active workers is also supported. See
+``batch_mode`` and blocking of non-active workers is also supported. See
 :ref:`here<gswf_label>` for more information about ``give_sim_work_first``.
 
 For a shorter, simpler example, here is the ``fast_alloc`` allocation function:
