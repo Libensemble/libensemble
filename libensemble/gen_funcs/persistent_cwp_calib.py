@@ -199,17 +199,17 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             sim_id = calc_in['sim_id']
             r, c = divmod(sim_id - (n_test_thetas + 1) * n_x, n_x)  # r, c are arrays if sim_id is an array
             n_max_incoming_row = np.max(r) - fevals.shape[0] + 1
-            print(r, c)
 
             if n_max_incoming_row > 0:
                 fevals = np.pad(fevals, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=np.nan)
 
             fevals[r, c] = calc_in['f']
-
+            # print(fevals[(gen_specs['user']['n_init_thetas']):,:])
             # print(fevals[r, :])  # MC test
             failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
             failures[r, c] = calc_in['failures']
             # print(failures[r, :])  # MC test
+            # print(failures[(gen_specs['user']['n_init_thetas']):,:])
 
             data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
             for i in np.arange(r.shape[0]):
@@ -226,13 +226,9 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             print(r, np.mean(data_status[r, :] != 0))
             if np.mean(data_status[r, :] != 0) > 0.5:  # MC: wait for data or not, check fill proportion of incomplete rows
                 rebuild = True
-                print('rebuild')  # MC Test
             else:
                 rebuild = False  # Currently only applies when async
-                print('no rebuild')  # MC Test
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
-                print('received')
-                print(Work)
                 continue  # continue in while loop without going forward with selection etc.
 
         # SH Testing. Cumulative failure rate
@@ -253,6 +249,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
             if rebuild:
                 executor = concurrent.futures.ThreadPoolExecutor()
+                print('shapes: ')
+                print(theta.shape, x.shape, fevals.shape, failures.shape)
                 future = executor.submit(build_emulator, theta, x, fevals, failures)
                 if not model_exists:
                     model = future.result()
@@ -264,7 +262,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         print('model id is {}'.format(id(model)), flush=True)  # test line - new model?
         new_theta, stop_flag, persis_info = \
             select_next_theta(model, theta, obs, errstd, n_explore_theta, expect_impr_exit, persis_info)
-
+        print('theta removed: ' + str(model['theta_ind_removed']))
         # Exit gen when mse reaches threshold
         # print('\n maximum expected improvement is {}'.format(), flush=True)
         if stop_flag:
@@ -285,8 +283,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             H_o['x'][offset:offset+n_x] = x
             H_o['thetas'][offset:offset+n_x] = t
 
-        # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
-        send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+        # send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
 
     if async_build:
         try:
