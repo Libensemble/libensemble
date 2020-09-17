@@ -171,7 +171,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         H_o['x'][offset:offset+n_x] = x
         H_o['thetas'][offset:offset+n_x] = t
 
-    # tag, Work, calc_in = send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
+    # send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------
 
@@ -184,6 +184,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         # print('count is', count,flush=True)
 
         if fevals is None:  # initial batch
+            print(max(calc_in['sim_id']))
             fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
 
@@ -202,21 +203,22 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
             if n_max_incoming_row > 0:
                 fevals = np.pad(fevals, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=np.nan)
-                fevals[r, c] = calc_in['f']
 
-                print(fevals[r, :])  # MC test
-                failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
-                failures[r, c] = calc_in['failures']
-                print(failures[r, :])  # MC test
+            fevals[r, c] = calc_in['f']
 
-                data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
-                for i in np.arange(r.shape[0]):
-                    data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
+            # print(fevals[r, :])  # MC test
+            failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
+            failures[r, c] = calc_in['failures']
+            # print(failures[r, :])  # MC test
 
-                print(data_status[r, :])  # MC test
-                # new_fevals = np.full((n_thetas, n_x), np.nan)
-                # new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
-                # new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
+            data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
+            for i in np.arange(r.shape[0]):
+                data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
+
+            # print(data_status[r, :])  # MC test
+            # new_fevals = np.full((n_thetas, n_x), np.nan)
+            # new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
+            # new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
 
             # SH Note: Presuming model input is everything so far.
             # fevals = np.vstack((fevals, new_fevals))
@@ -284,7 +286,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             H_o['thetas'][offset:offset+n_x] = t
 
         # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
-        tag, Work, calc_in = send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
+        send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
 
     if async_build:
         try:
