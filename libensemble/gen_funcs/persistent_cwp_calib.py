@@ -164,6 +164,13 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     quantile = np.quantile(test_fevals, 0.95)
     H_o['quantile'] = quantile
 
+    # arbitrary priority
+    priority = np.arange(n_x*n_thetas)
+    np.random.shuffle(priority)
+    H_o['priority'] = priority
+
+    print(H_o['priority'])
+
     # Generate initial batch of thetas for emulator
     theta, persis_info = gen_thetas(n_thetas, persis_info)
     for i, t in enumerate(theta):
@@ -206,7 +213,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
 
             fevals[r, c] = calc_in['f']
-            # print(fevals[(gen_specs['user']['n_init_thetas']):,:])
+            print(fevals[(gen_specs['user']['n_init_thetas']):,:])
             # print(fevals[r, :])  # MC test
             failures[r, c] = calc_in['failures']
             # print(failures[r, :])  # MC test
@@ -277,6 +284,11 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         theta = np.vstack((theta, new_theta))
 
         H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
+
+        # arbitrary priority
+        priority = np.arange(n_x*n_thetas)
+        np.random.shuffle(priority)
+        H_o['priority'] = priority
 
         H_o['quantile'] = quantile
         for i, t in enumerate(new_theta):
