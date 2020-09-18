@@ -246,9 +246,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     rebuild = True
                 else:
                     print('Re-using emulator', flush=True)
+            else:
+                executor = concurrent.futures.ThreadPoolExecutor()
 
             if rebuild:
-                executor = concurrent.futures.ThreadPoolExecutor()
                 print('shapes: ')
                 print(theta.shape, x.shape, fevals.shape, failures.shape)
                 future = executor.submit(build_emulator, theta, x, fevals, failures)
