@@ -54,9 +54,19 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
+
         if np.any(task_avail):
+            if 'priority' in H.dtype.fields:
+                priorities = H['priority'][task_avail]
+                if gen_specs['user'].get('give_all_with_same_priority'):
+                    q_inds = (priorities == np.max(priorities))
+                else:
+                    q_inds = np.argmax(priorities)
+            else:
+                q_inds = 0
+
             # perform sim evaluations (if they exist in History).
-            sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
+            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point
             sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
             task_avail[sim_ids_to_send] = False
 
