@@ -62,7 +62,8 @@ if __name__ == '__main__':
     batch_sim_id = (n_init_thetas + n_test_thetas + 1) * n_x
 
     gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,)),
-               ('quantile', float), ('obs', float, n_x), ('errstd', float, n_x)]
+               ('quantile', float), ('obs', float, n_x), ('errstd', float, n_x),
+               ('priority', int)]
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'failures', 'returned'],
                  'out': gen_out,
