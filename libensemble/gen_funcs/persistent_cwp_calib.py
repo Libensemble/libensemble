@@ -202,16 +202,16 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
             if n_max_incoming_row > 0:
                 fevals = np.pad(fevals, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=np.nan)
+                failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
+                data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
 
             fevals[r, c] = calc_in['f']
             # print(fevals[(gen_specs['user']['n_init_thetas']):,:])
             # print(fevals[r, :])  # MC test
-            failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
             failures[r, c] = calc_in['failures']
             # print(failures[r, :])  # MC test
             # print(failures[(gen_specs['user']['n_init_thetas']):,:])
 
-            data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
             for i in np.arange(r.shape[0]):
                 data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
 
