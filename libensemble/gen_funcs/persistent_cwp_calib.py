@@ -111,6 +111,32 @@ def gen_observations(fevals, errstd_constant, randstream):
     return obs, errstd
 
 
+# SH. Test condition.
+def cancel_condition(row):
+    if -1 in row:
+        return True
+    return False
+
+
+def cancel_row(pre_count, r, n_x, data_status, comm):
+    # Cancel rest of row
+    sim_ids_to_cancel = []
+    row_offset = r*n_x
+    for i in range(n_x):
+        sim_id_cancl = pre_count + row_offset + i
+        if data_status[r, i] == 0:
+            sim_ids_to_cancel.append(sim_id_cancl)
+            data_status[r, i] = -2  # SH: For cancelled ??
+
+    # Send only these fields to existing H row and it will slot in change.
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
+    H_o['sim_id'] = sim_ids_to_cancel
+    H_o['cancel'] = True
+    send_mgr_worker_msg(comm, H_o)
+    # SH: data_status will be modified without return - but optional for clarity
+    # return data_status
+
+
 def testcalib(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
     comm = libE_info['comm']
@@ -125,9 +151,11 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     async_build = gen_specs['user']['async_build']  # Build emulator in background thread
     errstd_constant = gen_specs['user']['errstd_constant']  # Constant for gener
     batch_last_sim_id = gen_specs['user']['batch_to_sim_id']  # Last batch sim_id
+    ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status (still puts in feval/failures)
 
     # Initialize output
-    H_o = np.zeros((n_test_thetas + 1) * n_x, dtype=gen_specs['out'])
+    pre_count = (n_test_thetas + 1) * n_x
+    H_o = np.zeros(pre_count, dtype=gen_specs['out'])
 
     # Initialize exit criterion
     # H_o['mse'] = 1
@@ -203,8 +231,9 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             # fevals = np.full((n_thetas, n_x), np.nan, dtype=float)
             # failures = np.full_like(fevals, False)
             # data_status = np.full_like(fevals, 0, dtype=int)  # 0: incomplete, 1: successfully completed, -1: failed
+
             sim_id = calc_in['sim_id']
-            r, c = divmod(sim_id - (n_test_thetas + 1) * n_x, n_x)  # r, c are arrays if sim_id is an array
+            r, c = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
             n_max_incoming_row = np.max(r) - fevals.shape[0] + 1
 
             if n_max_incoming_row > 0:
@@ -213,14 +242,25 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
 
             fevals[r, c] = calc_in['f']
-            print(fevals[(gen_specs['user']['n_init_thetas']):,:])
-            # print(fevals[r, :])  # MC test
+            # print('fevals',fevals[(gen_specs['user']['n_init_thetas']):,:])
+            print('fevals',fevals[r, :])  # MC test
             failures[r, c] = calc_in['failures']
             # print(failures[r, :])  # MC test
             # print(failures[(gen_specs['user']['n_init_thetas']):,:])
 
+            # Set data_status. Using -2 for cancelled entries.
             for i in np.arange(r.shape[0]):
+                if ignore_cancelled and data_status[r[i], c[i]] == -2:
+                    continue
                 data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
+
+            # test to ensure failure and cancel row
+            if r == 25:
+                if data_status[r, c] == 1:
+                    data_status[r, c] = -1
+
+            if cancel_condition(data_status[r, :]):
+                cancel_row(pre_count, r, n_x, data_status, comm)  # Sends cancellation - updates data_status
 
             # print(data_status[r, :])  # MC test
             # new_fevals = np.full((n_thetas, n_x), np.nan)

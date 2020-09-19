@@ -52,7 +52,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                      np.atleast_1d(inds_since_last_gen), persis_info[i], persistent=True, active_recv=True)
             H['given_back'][inds_since_last_gen] = True
 
-    task_avail = ~H['given']
+    task_avail = ~H['given'] & ~H['cancel']
     for i in avail_worker_ids(W, persistent=False):
 
         if np.any(task_avail):

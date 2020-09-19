@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,)),
                ('quantile', float), ('obs', float, n_x), ('errstd', float, n_x),
-               ('priority', int)]
+               ('priority', int), ('cancel', bool)]
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'failures', 'returned'],
                  'out': gen_out,
@@ -78,6 +78,7 @@ if __name__ == '__main__':
                           'async_build': build_emul_on_thread,   # Build emul on background thread
                           'errstd_constant': errstd_constant,    # Constant for generating noise in obs
                           'batch_to_sim_id': batch_sim_id,
+                          'ignore_cancelled': True
                           }
                  }
 
@@ -102,5 +103,6 @@ if __name__ == '__main__':
                                 libE_specs=libE_specs)
 
     if is_master:
-        assert np.all(H['returned'])
+        print('Cancelled sims', H['sim_id'][H['cancel']])
+        #assert np.all(H['returned'])
         save_libE_output(H, persis_info, __file__, nworkers)
