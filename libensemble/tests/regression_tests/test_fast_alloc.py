@@ -28,7 +28,7 @@ nworkers, is_master, libE_specs, _ = parse_args()
 
 num_pts = 30*(nworkers - 1)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'user': {}}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float),('large',float,5000000)], 'user': {}}
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
@@ -40,7 +40,7 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': num_pts, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2*num_pts, 'elapsed_wallclock_time': 300}
 
 if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want
@@ -48,7 +48,7 @@ if libE_specs['comms'] == 'tcp':
     # each time, and the worker will not know what port to connect to.
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-for time in np.append([0], np.logspace(-5, -1, 5)):
+for time in [0]:
     if time == 0:
         alloc_specs = {'alloc_f': alloc_f2, 'out': []}
     else:
@@ -69,4 +69,4 @@ for time in np.append([0], np.logspace(-5, -1, 5)):
 
         if is_master:
             assert flag == 0
-            assert len(H) == num_pts
+            assert len(H) == 2*num_pts
