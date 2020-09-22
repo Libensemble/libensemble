@@ -31,15 +31,21 @@ from libensemble.gen_funcs.persistent_cwp_calib import testcalib as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.sim_funcs.cwpsim import borehole as sim_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.executors.mpi_executor import MPIExecutor
 
 # from libensemble import libE_logger
 # libE_logger.set_level('DEBUG')  # To get debug logging in ensemble.log
 
 if __name__ == '__main__':
 
+    exctr = MPIExecutor()
+
     nworkers, is_master, libE_specs, _ = parse_args()
 
-    sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas', 'quantile'], 'out': [('f', float), ('failures', bool)]}
+    sim_specs = {'sim_f': sim_f,
+                 'in': ['x', 'thetas', 'quantile'],
+                 'out': [('f', float), ('failures', bool)],
+                 'user': {'kill_sim_test': True}}
 
     n_test_thetas = 100           # No. of thetas for test data
     n_init_thetas = 25              # Initial batch of thetas
@@ -63,7 +69,7 @@ if __name__ == '__main__':
 
     gen_out = [('x', float, ndims), ('thetas', float, nparams), ('mse', float, (1,)),
                ('quantile', float), ('obs', float, n_x), ('errstd', float, n_x),
-               ('priority', int), ('cancel', bool)]
+               ('priority', int), ('cancel', bool), ('kill_sent', bool)]
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'failures', 'returned'],
                  'out': gen_out,
@@ -104,5 +110,6 @@ if __name__ == '__main__':
 
     if is_master:
         print('Cancelled sims', H['sim_id'][H['cancel']])
+        print('Killed sims', H['sim_id'][H['kill_sent']])
         #assert np.all(H['returned'])
         save_libE_output(H, persis_info, __file__, nworkers)
