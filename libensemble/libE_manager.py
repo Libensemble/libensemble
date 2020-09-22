@@ -9,6 +9,7 @@ import glob
 import logging
 import socket
 import numpy as np
+import copy
 
 from libensemble.utils.timer import Timer
 from libensemble.message_numbers import \
@@ -258,7 +259,8 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
+            A = copy.deepcopy(self.hist.H[Work['H_fields']][work_rows])
+            self.wcomms[w-1].send(0, A)
 
     def _update_state_on_alloc(self, Work, w):
         """Updates a workers' active/idle status following an allocation order"""
