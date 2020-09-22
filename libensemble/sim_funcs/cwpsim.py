@@ -1,4 +1,8 @@
 import numpy as np
+import time
+from libensemble.executors.executor import Executor
+from libensemble.message_numbers import (UNSET_TAG, TASK_FAILED,
+                                         MAN_SIGNAL_KILL, WORKER_DONE)
 
 # bounds for (Tu, Tl, Hu, Hl, r, Kw, rw, L)
 bounds = np.array([[63070, 115600],
@@ -10,21 +14,63 @@ bounds = np.array([[63070, 115600],
                    [0.05, 0.15],  # Very low probability of being outside of this range
                    [1120, 1680]])
 
+check_for_man_kills = True
 
-def borehole(H, persis_info, sim_specs, _):
+
+def check_for_kill_recv(sim_specs, libE_info):
+    """ Checks for manager kill signal"""
+
+    calc_status = UNSET_TAG
+    comm = libE_info['comm']
+    poll_interval = 0.01
+    timeout_sec = 0.01
+
+    if sim_specs['user'].get('kill_sim_test', False):
+        # Run these sims longer to test kill
+        sim_id = libE_info['H_rows'][0]
+        if 630 <= sim_id <= 634:
+            poll_interval = 0.2
+            timeout_sec = 5
+
+    # Example poll loop - generally used if launch and wait for applcation to run.
+    exctr = Executor.executor
+    start_time = time.time()
+    while time.time() - start_time < timeout_sec:
+        time.sleep(poll_interval)
+        exctr.manager_poll(comm)
+        if exctr.manager_signal == 'kill':
+            # exctr.kill(task) # No task running
+            calc_status = MAN_SIGNAL_KILL
+            break
+
+    return calc_status
+
+
+def borehole(H, persis_info, sim_specs, libE_info):
     """
     Wraps the borehole function
     """
 
+    calc_status = UNSET_TAG  # Calc_status gets printed in libE_stats.txt
+
     H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
     H_o['f'] = borehole_func(H)
 
+    if check_for_man_kills:
+        calc_status = check_for_kill_recv(sim_specs, libE_info)
+
+    if calc_status == MAN_SIGNAL_KILL:
+        H_o['f'] = np.nan
+        return H_o, persis_info, calc_status
+
     if H_o['f'] > H['quantile'][0]:
         H_o['failures'] = 1
+        calc_status = TASK_FAILED
     else:
         H_o['failures'] = 0
+        calc_status = WORKER_DONE
 
-    return H_o, persis_info
+    return H_o, persis_info, calc_status
 
 
 def borehole_func(H):
