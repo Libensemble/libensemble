@@ -47,7 +47,6 @@ you are using ``mpi4py`` make sure the install picks up Cray's compiler drivers.
     $ conda activate my_env
     $ CC=cc MPICC=cc pip install mpi4py --no-binary mpi4py
 
-
 More information_ on using conda on Theta is also available.
 
 Installing libEnsemble and Balsam
@@ -84,7 +83,6 @@ Balsam_ allows libEnsemble to be run on compute nodes, and still submit tasks
 from workers (see Job Submission below). The Balsam Executor will stage in tasks
 to a database hosted on a MOM node, which will submit these tasks dynamically to
 the compute nodes.
-
 
 Balsam can be installed with::
 

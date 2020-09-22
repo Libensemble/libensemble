@@ -113,34 +113,48 @@ H = []
 
 for run in range(3):
     if run == 0:
-        H0 = None
         # Run for 1100 evaluations or 300 seconds
+        H0 = None
         exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
 
     elif run == 1:
-        # In the second run, we initialize VTMOP with an initial sample:
+        # In the second run, we initialize VTMOP with an initial sample of previously evaluated points
         np.random.seed(0)
         size = 1000
+
+        # Generate the sample
         X = np.random.uniform(gen_specs['user']['lb'], gen_specs['user']['ub'], (size, num_dims))
         f = np.zeros((size, num_objs))
 
+        # Initialize H0
         H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
                                    ('returned', bool), ('given', bool)])
         H0['x'] = X
         H0['sim_id'] = range(size)
         H0[['given', 'returned']] = True
 
+        # Perform objective function evaluations
         for i in range(size):
             Out, _ = sim_f(H0[[i]])
             H0['f'][i] = Out['f']
 
+        # Run for 200 more evaluations or 300 seconds
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
+
         gen_specs['user']['first_batch_size'] = 0
-        # Run for 1100 evaluations or 300 seconds
-        exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
+        gen_specs['user']['use_chkpt'] = False  # Need to set this as it can be overwritten within the libE call.
 
     elif run == 2:
         # In the third run, we restart VTMOP by loading in the history array saved in run==1
         gen_specs['user']['use_chkpt'] = True
+
+        # Inelegant way to have the manager copy over the VTMOP checkpoint
+        # file, and have every worker get the H value from the run==1 case to
+        # use in the restart.
+        try:
+            os.remove('manager_done_file')
+        except OSError:
+            pass
 
         if is_master:
             os.rename('vtmop.chkpt_finishing_' + s1, 'vtmop.chkpt')
@@ -151,6 +165,7 @@ for run in range(3):
                 time.sleep(0.1)
             H = np.load('H_for_vtmop_restart.npy')
 
+        # Initialize H0 with values from H (from the run==1 case)
         size = sum(H['returned'])
         H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
                                    ('returned', bool), ('given', bool)])
@@ -159,12 +174,12 @@ for run in range(3):
         H0[['given', 'returned']] = True
         H0['f'] = H['f'][:size]
 
-        # Run for 100 more evaluations or 300 seconds
-        exit_criteria = {'sim_max': size+100, 'elapsed_wallclock_time': 300}
+        # Run for 200 more evaluations or 300 seconds
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
 
     # Persistent info between iterations
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    persis_info['next_to_give'] = 0
+    persis_info['next_to_give'] = 0 if H0 is None else len(H0)
     persis_info['total_gen_calls'] = 0
 
     # Perform the run

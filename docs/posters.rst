@@ -1,7 +1,6 @@
 Posters and Presentations
 =========================
 
-
 SciPy 2020 Virtual Poster
 -------------------------
 
@@ -9,7 +8,6 @@ SciPy 2020 Virtual Poster
    :maxdepth: 3
 
    scipy2020
-
 
 SciPy 2020 PDF Poster
 ---------------------
