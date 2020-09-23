@@ -27,4 +27,3 @@ do
     ssh $hname "hostname; ps aux|grep $uname|grep '$appname'"
   fi
 done
-

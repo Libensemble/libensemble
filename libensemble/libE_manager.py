@@ -9,7 +9,6 @@ import glob
 import logging
 import socket
 import numpy as np
-import copy
 
 from libensemble.utils.timer import Timer
 from libensemble.message_numbers import \
@@ -261,12 +260,12 @@ class Manager:
         if len(work_rows):
             d = self.hist.H[Work['H_fields']][work_rows].dtype
             k = list(d.fields.keys())
-            w = list(d.fields.values())
-            v = [i[0] for i in w]
-            A = np.zeros(len(work_rows),dtype=list(zip(k,v)))
+            v1 = list(d.fields.values())
+            v = [i[0] for i in v1]
+            A = np.zeros(len(work_rows), dtype=list(zip(k, v)))
             for f in k:
                 A[f] = self.hist.H[f][work_rows]
-            
+
             self.wcomms[w-1].send(0, A)
 
     def _update_state_on_alloc(self, Work, w):
