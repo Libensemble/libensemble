@@ -259,7 +259,13 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            A = copy.deepcopy(self.hist.H[Work['H_fields']][work_rows])
+            d = self.hist.H[Work['H_fields']][work_rows].dtype
+            k = list(d.fields.keys())
+            v = list(d.fields.values())
+            A = np.zeros(len(work_rows),dtype=list(zip(k,v)))
+            for f in k:
+                A[f] = self.hist.H[f][work_rows]
+            
             self.wcomms[w-1].send(0, A)
 
     def _update_state_on_alloc(self, Work, w):
