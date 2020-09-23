@@ -261,7 +261,8 @@ class Manager:
         if len(work_rows):
             d = self.hist.H[Work['H_fields']][work_rows].dtype
             k = list(d.fields.keys())
-            v = list(d.fields.values())
+            w = list(d.fields.values())
+            v = [i[0] for i in w]
             A = np.zeros(len(work_rows),dtype=list(zip(k,v)))
             for f in k:
                 A[f] = self.hist.H[f][work_rows]
