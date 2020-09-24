@@ -259,14 +259,6 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            # d = self.hist.H[Work['H_fields']][work_rows].dtype
-            # k = list(d.fields.keys())
-            # v1 = list(d.fields.values())
-            # v = [i[0] for i in v1]
-            # A = np.zeros(len(work_rows), dtype=list(zip(k, v)))
-            # for f in k:
-            #     A[f] = self.hist.H[f][work_rows]
-            # self.wcomms[w-1].send(0, A)
             self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
 
     def _update_state_on_alloc(self, Work, w):
