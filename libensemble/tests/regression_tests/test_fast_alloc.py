@@ -48,7 +48,7 @@ if libE_specs['comms'] == 'tcp':
     # each time, and the worker will not know what port to connect to.
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-for time in [0]:
+for time in np.append([0], np.logspace(-5, -1, 5)):
     if time == 0:
         alloc_specs = {'alloc_f': alloc_f2, 'out': []}
     else:
