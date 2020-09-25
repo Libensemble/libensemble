@@ -66,18 +66,19 @@ def gen_new_thetas(n, persis_info):
     return thetas, persis_info
 
 
-def select_next_theta(model, cur_thetas, obs, errstd, n_explore_theta, expect_impr_exit, persis_info):   # !!! add step_add_theta
+def select_next_theta(model, cur_thetas, n_explore_theta, expect_impr_exit, persis_info):   # !!! add step_add_theta
     new_thetas, persis_info = gen_new_thetas(n_explore_theta, persis_info)
 
     fpred, _ = emulation_prediction(model, cur_thetas)
+
     fdraws = emulation_draws(model, new_thetas, options={'numsamples': 500})
 
-    cur_chi2 = np.sum(((fpred - obs) / errstd) ** 2, axis=1)
+    cur_chi2 = np.sum(fpred ** 2, axis=1)
     best_chi2 = np.min(cur_chi2)
 
     new_chi2 = np.zeros((fdraws.shape[0], fdraws.shape[2]))
     for k in np.arange(fdraws.shape[2]):
-        new_chi2[:, k] = np.sum(((fdraws[:, :, k] - obs) / errstd) ** 2, axis=1)
+        new_chi2[:, k] = np.sum(fdraws[:, :, k] ** 2, axis=1)
 
     expect_improvement = ((best_chi2 > new_chi2)*(best_chi2 - new_chi2)).mean(axis=1)
     # prob_improvement = (best_chi2 > new_chi2).mean(axis=1)
@@ -85,7 +86,7 @@ def select_next_theta(model, cur_thetas, obs, errstd, n_explore_theta, expect_im
     print('MAX EI = {:.2f}'.format(np.max(expect_improvement)))
     print('Best chi^2 = {:.2f}'.format(best_chi2))
 
-    if np.max(expect_improvement) < 0.001 * obs.shape[0]:  # > 0.95:  tolerance?
+    if np.max(expect_improvement) < 0.001 * fpred.shape[1]:  # > 0.95:  tolerance?
         stop_flag = True
         new_theta = None
     else:
@@ -104,6 +105,13 @@ def build_emulator(theta, x, fevals, failures):
     return model
 
 
+def standardize_f(fevals, obs, errstd, colind=None):
+    if colind is None:
+        return (fevals - obs) / errstd
+    else:
+        return (fevals - obs[colind]) / errstd[colind]
+
+
 def gen_observations(fevals, errstd_constant, randstream):
     n_x = fevals.shape[0]
     errstd = errstd_constant * fevals
@@ -113,7 +121,7 @@ def gen_observations(fevals, errstd_constant, randstream):
 
 # SH. Test condition.
 def cancel_condition(row):
-    if -1 in row:
+    if -1 in row:  # -2 instead?
         return True
     return False
 
@@ -219,8 +227,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         # print('count is', count,flush=True)
 
         if fevals is None:  # initial batch
-            print(max(calc_in['sim_id']))
             fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
+            fevals = standardize_f(fevals, obs, errstd)  # standardize fevals by obs and supplied std
             failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
 
             data_status = np.full_like(fevals, 1, dtype=int)
@@ -241,9 +249,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
                 data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
 
-            fevals[r, c] = calc_in['f']
+            fevals[r, c] = standardize_f(calc_in['f'], obs, errstd, c)
             # print('fevals',fevals[(gen_specs['user']['n_init_thetas']):,:])
-            print('fevals',fevals[r, :])  # MC test
             failures[r, c] = calc_in['failures']
             # print(failures[r, :])  # MC test
             # print(failures[(gen_specs['user']['n_init_thetas']):,:])
@@ -262,21 +269,13 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             if cancel_condition(data_status[r, :]):
                 cancel_row(pre_count, r, n_x, data_status, comm)  # Sends cancellation - updates data_status
 
-            # print(data_status[r, :])  # MC test
-            # new_fevals = np.full((n_thetas, n_x), np.nan)
-            # new_fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
-            # new_failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
-
-            # SH Note: Presuming model input is everything so far.
-            # fevals = np.vstack((fevals, new_fevals))
-            # failures = np.vstack((failures, new_failures))
             print(r, np.mean(data_status[r, :] != 0))
             if np.mean(data_status[r, :] != 0) > 0.5:  # MC: wait for data or not, check fill proportion of incomplete rows
                 rebuild = True
             else:
                 rebuild = False  # Currently only applies when async
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
-                continue  # continue in while loop without going forward with selection etc.
+                continue
 
         # SH Testing. Cumulative failure rate
         frate = np.count_nonzero(failures)/failures.size
@@ -309,7 +308,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
         print('model id is {}'.format(id(model)), flush=True)  # test line - new model?
         new_theta, stop_flag, persis_info = \
-            select_next_theta(model, theta, obs, errstd, n_explore_theta, expect_impr_exit, persis_info)
+            select_next_theta(model, theta, n_explore_theta, expect_impr_exit, persis_info)
         print('theta removed: ' + str(model['theta_ind_removed']))
         # Exit gen when mse reaches threshold
         # print('\n maximum expected improvement is {}'.format(), flush=True)
