@@ -9,7 +9,6 @@ import glob
 import logging
 import socket
 import numpy as np
-from numpy.lib.recfunctions import repack_fields
 
 from libensemble.utils.timer import Timer
 from libensemble.message_numbers import \
@@ -25,6 +24,9 @@ from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.tools.fields_keys import libE_spec_calc_dir_combined
 import cProfile
 import pstats
+
+if tuple(np.__version__.split('.')) >= ('1', '15'):
+    from numpy.lib.recfunctions import repack_fields
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -259,7 +261,10 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
+            if 'repack_fields' in dir():
+                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
+            else:
+                self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
     def _update_state_on_alloc(self, Work, w):
         """Updates a workers' active/idle status following an allocation order"""
