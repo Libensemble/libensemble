@@ -222,6 +222,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     model_exists = False
     fevals = None
     future = None
+
+    # store model_id and data_status used to build model
+    model_data_status = None
+    future_model_data_status = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # count += 1  # test
         # print('count is', count,flush=True)
@@ -284,12 +288,14 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         # print('shapes {} {} {} {}\n'.format(theta.shape, x.shape, fevals.shape, failures.shape), flush=True)
         # MC: if condition, rebuild
 
+
         if async_build:
             if model_exists:
                 if future.done():
                     model = future.result()
+                    model_data_status = np.copy(future_model_data_status)
                     print('\nNew emulator built', flush=True)
-                    rebuild = True
+                    # rebuild = True
                 else:
                     print('Re-using emulator', flush=True)
             else:
@@ -298,13 +304,18 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             if rebuild:
                 print('shapes: ')
                 print(theta.shape, x.shape, fevals.shape, failures.shape)
+                future_model_data_status = np.copy(data_status)
                 future = executor.submit(build_emulator, theta, x, fevals, failures)
                 if not model_exists:
                     model = future.result()
+                    model_data_status = np.copy(future_model_data_status)
                     model_exists = True
         else:
             # Always rebuilds...
+            model_data_status = np.copy(model_data_status)
             model = build_emulator(theta, x, fevals, failures)
+
+        # print(model_data_status == future_model_data_status)
 
         print('model id is {}'.format(id(model)), flush=True)  # test line - new model?
         new_theta, stop_flag, persis_info = \
