@@ -1,6 +1,7 @@
 import numpy as np
 # from libensemble.gen_funcs.sampling import uniform_random_sample
-from gemulator.emulation import emulation_prediction, emulation_builder, emulation_draws
+from libensemble.gen_funcs.cwp_calib_support import select_next_theta
+from gemulator.emulation import emulation_builder
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
 import concurrent.futures
@@ -30,7 +31,6 @@ def gen_thetas(n, persis_info):
     output:
       matrix of (n, 6), input as to borehole_func(t, x) function
     """
-
     randstream = persis_info['rand_stream']
 
     Tu = randstream.uniform(63070, 115600, n)
@@ -61,43 +61,6 @@ def gen_xs(n, persis_info):
     return xs, persis_info
 
 
-def gen_new_thetas(n, persis_info):
-    thetas, _ = gen_thetas(n, persis_info)
-    return thetas, persis_info
-
-
-def select_next_theta(model, cur_thetas, n_explore_theta, expect_impr_exit, persis_info):   # !!! add step_add_theta
-    new_thetas, persis_info = gen_new_thetas(n_explore_theta, persis_info)
-
-    fpred, _ = emulation_prediction(model, cur_thetas)
-
-    fdraws = emulation_draws(model, new_thetas, options={'numsamples': 500})
-
-    cur_chi2 = np.sum(fpred ** 2, axis=1)
-    best_chi2 = np.min(cur_chi2)
-
-    new_chi2 = np.zeros((fdraws.shape[0], fdraws.shape[2]))
-    for k in np.arange(fdraws.shape[2]):
-        new_chi2[:, k] = np.sum(fdraws[:, :, k] ** 2, axis=1)
-
-    expect_improvement = ((best_chi2 > new_chi2)*(best_chi2 - new_chi2)).mean(axis=1)
-    # prob_improvement = (best_chi2 > new_chi2).mean(axis=1)
-    print('No. of thetas = {:d}'.format(cur_thetas.shape[0]))
-    print('MAX EI = {:.2f}'.format(np.max(expect_improvement)))
-    print('Best chi^2 = {:.2f}'.format(best_chi2))
-
-    if np.max(expect_improvement) < 0.001 * fpred.shape[1]:  # > 0.95:  tolerance?
-        stop_flag = True
-        new_theta = None
-    else:
-        stop_flag = False
-        new_theta = np.copy(new_thetas[np.argmax(expect_improvement)])
-        # print(new_theta)
-        # print('new chi2: {:.2f}'.format(np.min(new_chi2)))
-
-    return np.atleast_2d(new_theta), stop_flag, persis_info
-
-
 def build_emulator(theta, x, fevals, failures):
     """Build the emulator"""
     # import time; time.sleep(5)  # test delay
@@ -112,6 +75,13 @@ def standardize_f(fevals, obs, errstd, colind=None):
         return (fevals - obs[colind]) / errstd[colind]
 
 
+def rebuild_condition(data_status):
+    if 0 in data_status:
+        return False
+    else:
+        return True
+
+
 def gen_observations(fevals, errstd_constant, randstream):
     n_x = fevals.shape[0]
     errstd = errstd_constant * fevals
@@ -121,7 +91,7 @@ def gen_observations(fevals, errstd_constant, randstream):
 
 # SH. Test condition.
 def cancel_condition(row):
-    if -1 in row:  # -2 instead?
+    if -2 in row:
         return True
     return False
 
@@ -129,12 +99,14 @@ def cancel_condition(row):
 def cancel_row(pre_count, r, n_x, data_status, comm):
     # Cancel rest of row
     sim_ids_to_cancel = []
-    row_offset = r*n_x
-    for i in range(n_x):
-        sim_id_cancl = pre_count + row_offset + i
-        if data_status[r, i] == 0:
-            sim_ids_to_cancel.append(sim_id_cancl)
-            data_status[r, i] = -2  # SH: For cancelled ??
+    rows = np.unique(r)
+    for r in rows:
+        row_offset = r*n_x
+        for i in range(n_x):
+            sim_id_cancl = pre_count + row_offset + i
+            if data_status[r, i] == 0:
+                sim_ids_to_cancel.append(sim_id_cancl)
+                data_status[r, i] = -2  # SH: For cancelled ??
 
     # Send only these fields to existing H row and it will slot in change.
     H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
@@ -200,12 +172,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     quantile = np.quantile(test_fevals, 0.95)
     H_o['quantile'] = quantile
 
-    # arbitrary priority
+    # arbitrary priority (currently random within a batch)
     priority = np.arange(n_x*n_thetas)
     np.random.shuffle(priority)
     H_o['priority'] = priority
-
-    print(H_o['priority'])
 
     # Generate initial batch of thetas for emulator
     theta, persis_info = gen_thetas(n_thetas, persis_info)
@@ -266,15 +236,18 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
 
             # test to ensure failure and cancel row
-            if r == 25:
-                if data_status[r, c] == 1:
-                    data_status[r, c] = -1
+            if 25 in r:
+                print('r is:', r,flush=True)
+                for i in np.arange(r.shape[0]):
+                    if data_status[r[i], c[i]] == 1:
+                        data_status[r[i], c[i]] = -2  # cancel flag
+
+            print('data_status row {} b4 cancel is:  {}'.format(r, data_status[r[0]:]),flush=True)
 
             if cancel_condition(data_status[r, :]):
                 cancel_row(pre_count, r, n_x, data_status, comm)  # Sends cancellation - updates data_status
 
-            print(r, np.mean(data_status[r, :] != 0))
-            if np.mean(data_status[r, :] != 0) > 0.5:  # MC: wait for data or not, check fill proportion of incomplete rows
+            if rebuild_condition(data_status):  # MC: wait for data or not, check fill proportion of incomplete rows
                 rebuild = True
             else:
                 rebuild = False  # Currently only applies when async
