@@ -28,9 +28,16 @@ def check_for_kill_recv(sim_specs, libE_info):
     if sim_specs['user'].get('kill_sim_test', False):
         # Run these sims longer to test kill
         sim_id = libE_info['H_rows'][0]
-        if 630 <= sim_id <= 634:
-            poll_interval = 0.2
-            timeout_sec = 5
+        # Set last column to be slow
+        # if 630 <= sim_id <= 634:
+        poll_interval = 0.2
+        if sim_id > 630:
+            if (sim_id + 1) % 5:  # MC: Hard col numbers, perhaps another reason to move delay into the sim function
+                timeout_sec = 5 + np.random.normal(scale=0.5)
+            else:
+                timeout_sec = 0.5 + np.random.normal(scale=0.01)
+        else:
+            return
 
     # Example poll loop - generally used if launch and wait for applcation to run.
     exctr = Executor.executor
@@ -54,7 +61,7 @@ def borehole(H, persis_info, sim_specs, libE_info):
     calc_status = UNSET_TAG  # Calc_status gets printed in libE_stats.txt
 
     H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
-    H_o['f'] = borehole_func(H)
+    H_o['f'] = borehole_func(H)  # Delay happens within borehole_func
 
     if check_for_man_kills:
         calc_status = check_for_kill_recv(sim_specs, libE_info)
