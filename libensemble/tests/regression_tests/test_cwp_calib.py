@@ -52,10 +52,10 @@ if __name__ == '__main__':
     n_x = 5                         # No. of x values
     nparams = 6                     # No. of theta params
     ndims = 3                       # No. of x co-ordinates.
-    max_emul_runs = 20              # Max no. of runs of emulator
+    max_emul_runs = 50              # Max no. of runs of emulator
     # mse_exit = 1.0                  # MSE threshold for exiting
     expect_impr_exit = 0.0001*n_x   # Expected Improvement
-    step_add_theta = 1              # No. of thetas to generate per step, before emulator is rebuilt
+    step_add_theta = 2              # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 1000          # No. of thetas to explore while selecting the next theta
     build_emul_on_thread = True     # Build emul on background thread
     errstd_constant = 0.0005        # Constant for generating noise in obs
