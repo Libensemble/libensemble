@@ -30,7 +30,7 @@ def gen_new_thetas(n, persis_info):
     return thetas, persis_info
 
 
-def select_next_theta(model, cur_thetas, n_explore_theta, expect_impr_exit, persis_info):   # !!! add step_add_theta
+def select_next_theta(model, cur_thetas, n_explore_theta, n_choose_theta, expect_impr_exit, persis_info):   # !!! add step_add_theta
     new_thetas, persis_info = gen_new_thetas(n_explore_theta, persis_info)
 
     fpred, _ = emulation_prediction(model, cur_thetas)
@@ -55,7 +55,9 @@ def select_next_theta(model, cur_thetas, n_explore_theta, expect_impr_exit, pers
         new_theta = None
     else:
         stop_flag = False
-        new_theta = np.copy(new_thetas[np.argmax(expect_improvement)])
+        # print('argmax:{}'.format(np.argmax(expect_improvement)))  # verify argmax vs argsort
+        # print('argsort:{}'.format(np.argsort(expect_improvement)[-n_choose_theta:]))
+        new_theta = np.copy(new_thetas[np.argsort(expect_improvement)[-n_choose_theta:]])
         # print(new_theta)
         # print('new chi2: {:.2f}'.format(np.min(new_chi2)))
 
