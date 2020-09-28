@@ -1,6 +1,6 @@
 import numpy as np
 # from libensemble.gen_funcs.sampling import uniform_random_sample
-from libensemble.gen_funcs.cwp_calib_support import select_next_theta
+from libensemble.gen_funcs.cwp_calib_support import select_next_theta, obviate_pend_thetas
 from gemulator.emulation import emulation_builder
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
@@ -91,10 +91,10 @@ def gen_observations(fevals, errstd_constant, randstream):
 
 
 # SH. Test condition.
-def cancel_condition(row):
-    if -2 in row:
-        return True
-    return False
+# def cancel_condition(row):
+#     if -2 in row:
+#         return True
+#     return False
 
 
 def cancel_row(pre_count, r, n_x, data_status, comm):
@@ -195,8 +195,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     future = None
 
     # store model_id and data_status used to build model
+    model = None
     model_data_status = None
     future_model_data_status = None
+
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # count += 1  # test
         # print('count is', count,flush=True)
@@ -222,7 +224,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             if n_max_incoming_row > 0:
                 fevals = np.pad(fevals, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=np.nan)
                 failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
-                data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
+                # data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
 
             fevals[r, c] = standardize_f(calc_in['f'], obs, errstd, c)
             # print('fevals',fevals[(gen_specs['user']['n_init_thetas']):,:])
@@ -236,24 +238,24 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     continue
                 data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
 
-            # test to ensure failure and cancel row
-            if 25 in r:
-                print('r is:', r,flush=True)
-                for i in np.arange(r.shape[0]):
-                    if data_status[r[i], c[i]] == 1:
-                        data_status[r[i], c[i]] = -2  # cancel flag
+            print('data_status row {} current is:  {}'.format(r, data_status[r]), flush=True)
+            # # test to ensure failure and cancel row
+            # if 25 in r:
+            #     print('r is:', r,flush=True)
+            #     for i in np.arange(r.shape[0]):
+            #         if data_status[r[i], c[i]] == 1:
+            #             data_status[r[i], c[i]] = -2  # cancel flag
 
-            print('data_status row {} b4 cancel is:  {}'.format(r, data_status[r[0]:]),flush=True)
+            # print('data_status row {} b4 cancel is:  {}'.format(r, data_status[r[0]:]),flush=True)
 
-            if cancel_condition(data_status[r, :]):
-                cancel_row(pre_count, r, n_x, data_status, comm)  # Sends cancellation - updates data_status
+            # if cancel_condition(data_status[r, :]):
+            #     cancel_row(pre_count, r, n_x, data_status, comm)  # Sends cancellation - updates data_status
 
             if rebuild_condition(data_status):  # MC: wait for data or not, check fill proportion of incomplete rows
                 rebuild = True
             else:
                 rebuild = False  # Currently only applies when async
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
-                continue
 
         # SH Testing. Cumulative failure rate
         frate = np.count_nonzero(failures)/failures.size
@@ -266,9 +268,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         if async_build:
             if model_exists:
                 if future.done():
+                    if id(model) != id(future.result()):
+                        print('\nNew emulator built', flush=True)
                     model = future.result()
                     model_data_status = np.copy(future_model_data_status)
-                    print('\nNew emulator built', flush=True)
                     # rebuild = True
                 else:
                     print('Re-using emulator', flush=True)
@@ -290,38 +293,47 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             model = build_emulator(theta, x, fevals, failures)
 
         # print(model_data_status == future_model_data_status)
+        # print('model id is {}'.format(id(model)), flush=True)  # test line - new model?
 
-        print('model id is {}'.format(id(model)), flush=True)  # test line - new model?
-        new_theta, stop_flag, persis_info = \
-            select_next_theta(model, theta, n_explore_theta, expect_impr_exit, persis_info)
-        print('theta removed: ' + str(model['theta_ind_removed']))
-        # Exit gen when mse reaches threshold
-        # print('\n maximum expected improvement is {}'.format(), flush=True)
-        if stop_flag:
-            print('Reached threshold.', flush=True)
-            print('Number of thetas in total: {:d}'.format(theta.shape[0]))
-            break
+        if rebuild_condition(data_status):
+            new_theta, stop_flag, persis_info = \
+                select_next_theta(model, theta, n_explore_theta, step_add_theta, expect_impr_exit, persis_info)
 
-        # MC: If mse not under threshold, send additional thetas to simfunc
-        n_thetas = step_add_theta
-        # new_thetas, persis_info = gen_thetas(n_thetas, persis_info)
-        theta = np.vstack((theta, new_theta))
+            print('theta removed: ' + str(model['theta_ind_removed']))
+            if stop_flag:
+                print('Reached threshold.', flush=True)
+                print('Number of thetas in total: {:d}'.format(theta.shape[0]))
+                break
 
-        H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
+            n_thetas = step_add_theta
 
-        # arbitrary priority
-        priority = np.arange(n_x*n_thetas)
-        np.random.shuffle(priority)
-        H_o['priority'] = priority
+            # new_thetas, persis_info = gen_thetas(n_thetas, persis_info)
+            theta = np.vstack((theta, new_theta))
 
-        H_o['quantile'] = quantile
-        for i, t in enumerate(new_theta):
-            offset = i*n_x
-            H_o['x'][offset:offset+n_x] = x
-            H_o['thetas'][offset:offset+n_x] = t
+            data_status = np.pad(data_status, ((0, step_add_theta), (0, 0)), constant_values=0)
+            H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
 
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
-        # send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
+            # arbitrary priority
+            priority = np.arange(n_x*n_thetas)
+            np.random.shuffle(priority)
+            H_o['priority'] = priority
+
+            H_o['quantile'] = quantile
+            for i, t in enumerate(new_theta):
+                offset = i*n_x
+                H_o['x'][offset:offset+n_x] = x
+                H_o['thetas'][offset:offset+n_x] = t
+
+            tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+        else:
+            pass
+
+        r_obviate = obviate_pend_thetas(model, theta, data_status)
+        # if cancel_condition(data_status[r_obviate, :]):
+        if r_obviate[0].shape[0] > 0:
+            print('data_status row {} b4 cancel is:  {}'.format(r_obviate, data_status[r_obviate]),flush=True)
+            cancel_row(pre_count, r_obviate, n_x, data_status, comm)
+
 
     if async_build:
         try:
