@@ -14,6 +14,15 @@ bounds = np.array([[63070, 115600],
                    [0.05, 0.15],  # Very low probability of being outside of this range
                    [1120, 1680]])
 
+bounds = np.array([[0, np.inf],
+                   [0, np.inf],
+                   [0, np.inf],
+                   [0, np.inf],
+                   [0, np.inf],
+                   [0, np.inf],
+                   [0, np.inf],
+                   [0, np.inf]])
+
 check_for_man_kills = True
 
 
@@ -31,7 +40,7 @@ def check_for_kill_recv(sim_specs, libE_info):
         # Set last column to be slow
         # if 630 <= sim_id <= 634:
         poll_interval = 0.2
-        if sim_id > 630:
+        if sim_id > 630:  # after initial batch
             if (sim_id + 1) % 5:  # MC: Hard col numbers, perhaps another reason to move delay into the sim function
                 timeout_sec = 5 + np.random.normal(scale=0.5)
             else:

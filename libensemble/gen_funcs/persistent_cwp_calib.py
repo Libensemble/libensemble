@@ -38,7 +38,8 @@ def gen_thetas(n, persis_info):
     Hu = randstream.uniform(990, 1110, n)
     Hl = randstream.uniform(700, 820, n)
     r = randstream.lognormal(7.71, 1.0056, n)
-    Kw = randstream.uniform(9855, 12045, n)
+    # Kw = randstream.uniform(9855, 12045, n)
+    Kw = randstream.uniform(1500, 15000, n)  # adding non-linearity to function
     thetas = np.column_stack((Tu, Tl, Hu, Hl, r, Kw))
     return thetas, persis_info
 
