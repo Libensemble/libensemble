@@ -22,7 +22,7 @@ def gen_true_theta(persis_info):
     return theta, persis_info
 
 
-def gen_thetas(n, persis_info):
+def gen_thetas(n, persis_info, hard=True):
     """Generates and returns n parameters for the Borehole function, according to distributions
     outlined in Harper and Gupta (1983).
 
@@ -38,8 +38,10 @@ def gen_thetas(n, persis_info):
     Hu = randstream.uniform(990, 1110, n)
     Hl = randstream.uniform(700, 820, n)
     r = randstream.lognormal(7.71, 1.0056, n)
-    # Kw = randstream.uniform(9855, 12045, n)
-    Kw = randstream.uniform(1500, 15000, n)  # adding non-linearity to function
+    if hard:
+        Kw = randstream.uniform(1500, 15000, n)  # adding non-linearity to function
+    else:
+        Kw = randstream.uniform(9855, 12045, n)
     thetas = np.column_stack((Tu, Tl, Hu, Hl, r, Kw))
     return thetas, persis_info
 
@@ -64,7 +66,6 @@ def gen_xs(n, persis_info):
 
 def build_emulator(theta, x, fevals, failures):
     """Build the emulator"""
-    # import time; time.sleep(5)  # test delay
     model = emulation_builder(theta, x, fevals, failures)
     return model
 
@@ -74,6 +75,13 @@ def standardize_f(fevals, obs, errstd, colind=None):
         return (fevals - obs) / errstd
     else:
         return (fevals - obs[colind]) / errstd[colind]
+
+
+def select_condition(data_status):
+    if 0 in data_status:
+        return False
+    else:
+        return True
 
 
 def rebuild_condition(data_status):
@@ -125,7 +133,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     n_test_thetas = gen_specs['user']['n_test_thetas']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
-    # mse_exit = gen_specs['user']['mse_exit']  # MSE threshold for exiting
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
     expect_impr_exit = gen_specs['user']['expect_impr_exit']  # Expected improvement exit value
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
@@ -137,9 +144,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     # Initialize output
     pre_count = (n_test_thetas + 1) * n_x
     H_o = np.zeros(pre_count, dtype=gen_specs['out'])
-
-    # Initialize exit criterion
-    # H_o['mse'] = 1
 
     # Could generate initial inputs here or read in
     x, persis_info = gen_xs(n_x, persis_info)
@@ -213,10 +217,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
             rebuild = True  # Currently only applies when async
         else:
-            # fevals = np.full((n_thetas, n_x), np.nan, dtype=float)
-            # failures = np.full_like(fevals, False)
-            # data_status = np.full_like(fevals, 0, dtype=int)  # 0: incomplete, 1: successfully completed, -1: failed
-
             sim_id = calc_in['sim_id']
             r, c = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
             n_max_incoming_row = np.max(r) - fevals.shape[0] + 1
@@ -227,10 +227,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 # data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
 
             fevals[r, c] = standardize_f(calc_in['f'], obs, errstd, c)
-            # print('fevals',fevals[(gen_specs['user']['n_init_thetas']):,:])
             failures[r, c] = calc_in['failures']
-            # print(failures[r, :])  # MC test
-            # print(failures[(gen_specs['user']['n_init_thetas']):,:])
 
             # Set data_status. Using -2 for cancelled entries.
             for i in np.arange(r.shape[0]):
@@ -238,18 +235,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     continue
                 data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
 
-            print('data_status row {} current is:  {}'.format(r, data_status[r]), flush=True)
-            # # test to ensure failure and cancel row
-            # if 25 in r:
-            #     print('r is:', r,flush=True)
-            #     for i in np.arange(r.shape[0]):
-            #         if data_status[r[i], c[i]] == 1:
-            #             data_status[r[i], c[i]] = -2  # cancel flag
-
-            # print('data_status row {} b4 cancel is:  {}'.format(r, data_status[r[0]:]),flush=True)
-
-            # if cancel_condition(data_status[r, :]):
-            #     cancel_row(pre_count, r, n_x, data_status, comm)  # Sends cancellation - updates data_status
+            # print('data_status row {} current is:  {}'.format(r, data_status[r]), flush=True)
 
             if rebuild_condition(data_status):  # MC: wait for data or not, check fill proportion of incomplete rows
                 rebuild = True
@@ -258,12 +244,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
 
         # SH Testing. Cumulative failure rate
-        frate = np.count_nonzero(failures)/failures.size
-        print('failure rate is {:.6f}'.format(frate))
-
-        # print('shapes {} {} {} {}\n'.format(theta.shape, x.shape, fevals.shape, failures.shape), flush=True)
-        # MC: if condition, rebuild
-
+        # frate = np.count_nonzero(failures)/failures.size
+        # print('failure rate is {:.6f}'.format(frate))
 
         if async_build:
             if model_exists:
@@ -279,8 +261,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 executor = concurrent.futures.ThreadPoolExecutor()
 
             if rebuild:
-                print('shapes: ')
-                print(theta.shape, x.shape, fevals.shape, failures.shape)
+                # print('shapes: ')
+                # print(theta.shape, x.shape, fevals.shape, failures.shape)
                 future_model_data_status = np.copy(data_status)
                 future = executor.submit(build_emulator, theta, x, fevals, failures)
                 if not model_exists:
@@ -292,10 +274,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             model_data_status = np.copy(model_data_status)
             model = build_emulator(theta, x, fevals, failures)
 
-        # print(model_data_status == future_model_data_status)
-        # print('model id is {}'.format(id(model)), flush=True)  # test line - new model?
-
-        if rebuild_condition(data_status):
+        if select_condition(data_status):
             new_theta, stop_flag, persis_info = \
                 select_next_theta(model, theta, n_explore_theta, step_add_theta, expect_impr_exit, persis_info)
 
@@ -306,8 +285,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 break
 
             n_thetas = step_add_theta
-
-            # new_thetas, persis_info = gen_thetas(n_thetas, persis_info)
             theta = np.vstack((theta, new_theta))
 
             data_status = np.pad(data_status, ((0, step_add_theta), (0, 0)), constant_values=0)
@@ -329,11 +306,9 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             pass
 
         r_obviate = obviate_pend_thetas(model, theta, data_status)
-        # if cancel_condition(data_status[r_obviate, :]):
         if r_obviate[0].shape[0] > 0:
-            print('data_status row {} b4 cancel is:  {}'.format(r_obviate, data_status[r_obviate]),flush=True)
+            print('rows sent for cancel is:  {}'.format(r_obviate), flush=True)
             cancel_row(pre_count, r_obviate, n_x, data_status, comm)
-
 
     if async_build:
         try:

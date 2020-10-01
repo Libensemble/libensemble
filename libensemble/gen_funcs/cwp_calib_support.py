@@ -26,12 +26,30 @@ def gen_thetas(n, persis_info):
     thetas = np.column_stack((Tu, Tl, Hu, Hl, r, Kw))
     return thetas, persis_info
 
-def gen_new_thetas(n, persis_info):
-    thetas, _ = gen_thetas(n, persis_info)
+
+def gen_new_thetas(n, t0, bounds, persis_info):
+    thetas, _ = gen_local_thetas(n, t0, bounds, persis_info)
+    return thetas, persis_info
+
+
+def gen_local_thetas(n, t0, bounds, persis_info, r=0.05, mode='Gaussian'):
+    '''Generate new thetas close to given theta t0.'''
+    randstream = persis_info['rand_stream']
+
+    p = t0.shape[0] if t0.ndim == 1 else t0.shape[1]
+
+    rnge = bounds[:,1] - bounds[:,0]
+
+    Z = randstream.normal(size=(n, p))
+    thetas = t0 + r * rnge * Z / 3
+
     return thetas, persis_info
 
 
 def select_next_theta(model, cur_thetas, n_explore_theta, n_choose_theta, expect_impr_exit, persis_info):   # !!! add step_add_theta
+    bounds = np.zeros((cur_thetas.shape[1], 2))  # with some initial data
+    for j in np.arange(cur_thetas.shape[1]):
+        bounds[j, :] = [np.min(cur_thetas[:, j]), np.max(cur_thetas[:, j])]
     new_thetas, persis_info = gen_new_thetas(n_explore_theta, persis_info)
 
     fpred, _ = emulation_prediction(model, cur_thetas)
