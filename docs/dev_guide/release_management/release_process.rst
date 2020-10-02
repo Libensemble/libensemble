@@ -23,6 +23,9 @@ Before release
 
 - ``setup.py`` and ``libensemble/__init__.py`` are checked to ensure all information is up to date.
 
+- ``MANIFEST.in`` is checked. Locally, try out ``python setup.py sdist`` and check created tarball.
+  contains correct files and directories for PyPI package.
+
 - Tests are run with source to be released (this may iterate):
 
   - On-line CI (currently Travis) tests must pass.
