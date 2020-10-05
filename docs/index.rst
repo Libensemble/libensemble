@@ -14,7 +14,6 @@
    advanced_installation
    overview_usecases
    programming_libE
-   function_guide
    running_libE
    platforms/platforms_index
 
