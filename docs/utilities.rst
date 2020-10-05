@@ -10,6 +10,7 @@ Calling Script Function Support
 
 Generator Function Support
 --------------------------
+.. _p_gen_routines:
 
 These routines are commonly used within persistent generator functions
 like ``persistent_aposmm`` in ``libensemble/gen_funcs/`` for intermediate
