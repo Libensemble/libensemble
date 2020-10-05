@@ -38,7 +38,6 @@ def check_for_kill_recv(sim_specs, libE_info):
         # Run these sims longer to test kill
         sim_id = libE_info['H_rows'][0]
         # Set last column to be slow
-        # if 630 <= sim_id <= 634:
         poll_interval = 0.2
         if sim_id > 630:  # after initial batch
             if (sim_id + 1) % 5:  # MC: Hard col numbers, perhaps another reason to move delay into the sim function
@@ -121,10 +120,16 @@ def borehole_func(H):
     thetas = H['thetas']
     xs = H['x']
 
-    assert np.all(thetas >= bounds[:6, 0]) and \
-        np.all(thetas <= bounds[:6, 1]) and \
-        np.all(xs[:, :-1] >= bounds[6:, 0]) and \
-        np.all(xs[:, :-1] <= bounds[6:, 1]), "Point not within bounds"
+    if not (np.all(thetas >= bounds[:6, 0]) and
+            np.all(thetas <= bounds[:6, 1]) and
+            np.all(xs[:, :-1] >= bounds[6:, 0]) and
+            np.all(xs[:, :-1] <= bounds[6:, 1])):
+        return np.nan
+
+    # assert np.all(thetas >= bounds[:6, 0]) and \
+    #     np.all(thetas <= bounds[:6, 1]) and \
+    #     np.all(xs[:, :-1] >= bounds[6:, 0]) and \
+    #     np.all(xs[:, :-1] <= bounds[6:, 1]), "Point not within bounds"
 
     taxis = 1
     if thetas.ndim == 1:

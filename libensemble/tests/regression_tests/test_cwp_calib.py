@@ -54,11 +54,10 @@ if __name__ == '__main__':
     ndims = 3                       # No. of x co-ordinates.
     max_emul_runs = 50              # Max no. of runs of emulator
     # mse_exit = 1.0                  # MSE threshold for exiting
-    expect_impr_exit = 0.0001*n_x   # Expected Improvement
-    step_add_theta = 2              # No. of thetas to generate per step, before emulator is rebuilt
+    step_add_theta = 5              # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 1000          # No. of thetas to explore while selecting the next theta
     build_emul_on_thread = True     # Build emul on background thread
-    errstd_constant = 0.0005        # Constant for generating noise in obs
+    errstd_constant = 0.00005        # Constant for generating noise in obs
 
     # Stop after max_emul_runs runs of the emulator
     max_evals = (n_init_thetas + n_test_thetas + 1) * n_x + max_emul_runs*n_x
@@ -78,7 +77,6 @@ if __name__ == '__main__':
                           'n_init_thetas': n_init_thetas,        # Num thetas
                           'num_x_vals': n_x,                     # Num x points to create
                           # 'mse_exit': mse_exit,                # Threshold for exit
-                          'expect_impr_exit': expect_impr_exit,  # EI threshold for exit
                           'step_add_theta': step_add_theta,      # No. of thetas to generate per step
                           'n_explore_theta': n_explore_theta,    # No. of thetas to explore each step
                           'async_build': build_emul_on_thread,   # Build emul on background thread

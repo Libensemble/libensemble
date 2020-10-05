@@ -1,7 +1,7 @@
 import numpy as np
 # from libensemble.gen_funcs.sampling import uniform_random_sample
-from libensemble.gen_funcs.cwp_calib_support import select_next_theta, obviate_pend_thetas
 from gemulator.emulation import emulation_builder
+from gemulator.calibration_support import select_next_theta, obviate_pend_thetas
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
 import concurrent.futures
@@ -134,7 +134,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
-    expect_impr_exit = gen_specs['user']['expect_impr_exit']  # Expected improvement exit value
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
     async_build = gen_specs['user']['async_build']  # Build emulator in background thread
     errstd_constant = gen_specs['user']['errstd_constant']  # Constant for gener
@@ -275,8 +274,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             model = build_emulator(theta, x, fevals, failures)
 
         if select_condition(data_status):
-            new_theta, stop_flag, persis_info = \
-                select_next_theta(model, theta, n_explore_theta, step_add_theta, expect_impr_exit, persis_info)
+            new_theta, stop_flag = \
+                select_next_theta(model, theta, n_explore_theta, step_add_theta)
 
             print('theta removed: ' + str(model['theta_ind_removed']))
             if stop_flag:
