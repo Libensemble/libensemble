@@ -265,7 +265,7 @@ while getopts ":p:n:a:y:W:hcszurmlt" opt; do
       ;;
     W)
       echo "Warning level parameter: $OPTARG" >&2
-      PYTHON_FLAGS='-W error'
+      PYTHON_FLAGS="-W $OPTARG"
       ;;
     h)
       usage
