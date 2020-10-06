@@ -9,6 +9,7 @@ export RUN_UNIT_TESTS=true    #Recommended for pre-push / CI tests
 export RUN_COV_TESTS=true     #Provide coverage report
 export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
 export RUN_PEP_TESTS=false     #Code syle conventions
+export PYTHON_FLAGS=''        #Flags for PYTHON_RUN
 
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
@@ -202,6 +203,7 @@ usage() {
   echo "  -t              Run the regression tests using TCP comms"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
+  echo "  -W {name}       Supply warnings level for tests"
   echo "  -n {name}       Supply a name to this test run"
   echo "  -a {args}       Supply a string of args to add to mpiexec line"
   echo "  -y {args}       Supply a list of regression tests as a reg. expression  e.g. '-y test_persistent_aposmm*'"
@@ -211,7 +213,7 @@ usage() {
   exit 1
 }
 
-while getopts ":p:n:a:y:hcszurmlt" opt; do
+while getopts ":p:n:a:y:W:hcszurmlt" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -260,6 +262,10 @@ while getopts ":p:n:a:y:hcszurmlt" opt; do
     y)
       echo "Running with user supplied test list"
       export REG_TEST_LIST="$OPTARG"
+      ;;
+    W)
+      echo "Warning level parameter: $OPTARG" >&2
+      PYTHON_FLAGS='-W error'
       ;;
     h)
       usage
@@ -379,9 +385,9 @@ if [ "$root_found" = true ]; then
     cd $ROOT_DIR/$DIR
 #     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
-      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL #To see std out/err while running
+      $PYTHON_RUN $PYTHON_FLAGS -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL #To see std out/err while running
     else
-      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
+      $PYTHON_RUN $PYTHON_FLAGS -m pytest --timeout=100 $COV_LINE_SERIAL
     fi;
 
     code=$?
@@ -481,26 +487,26 @@ if [ "$root_found" = true ]; then
 
              if [ "$REG_USE_PYTEST" = true ]; then
                if [ "$LAUNCHER" = mpi ]; then
-                 mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+                 mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $PYTHON_FLAGS -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                  test_code=$?
                else
-                 $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+                 $TIMEOUT $PYTHON_RUN $PYTHON_FLAGS -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
                fi
              else
                if [ "$LAUNCHER" = mpi ]; then
                  if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $PYTHON_FLAGS $COV_LINE_PARALLEL $TEST_SCRIPT
                    test_code=$?
                  else
-                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $PYTHON_FLAGS $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                    test_code=$?
                  fi
                else
                  if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
+                   $TIMEOUT $PYTHON_RUN $PYTHON_FLAGS $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
                    test_code=$?
                  else
-                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+                   $TIMEOUT $PYTHON_RUN $PYTHON_FLAGS $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
                    test_code=$?
                  fi
                fi
