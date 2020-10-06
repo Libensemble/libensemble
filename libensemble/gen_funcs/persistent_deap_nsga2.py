@@ -31,6 +31,16 @@ def nsga2_toolbox(gen_specs):
     lb = gen_specs['user']['lb']
     ub = gen_specs['user']['ub']
 
+    try:
+        del creator.MyFitness
+    except Exception:
+        pass
+
+    try:
+        del creator.Individual
+    except Exception:
+        pass
+
     creator.create('MyFitness', base.Fitness, weights=w)
     creator.create('Individual', array.array, typecode='d', fitness=creator.MyFitness)
     toolbox = base.Toolbox()
