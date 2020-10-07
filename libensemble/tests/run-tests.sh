@@ -203,7 +203,7 @@ usage() {
   echo "  -t              Run the regression tests using TCP comms"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
-  echo "  -W {name}       Supply warnings level for tests"
+  echo "  -A {-flag arg}  Supply arguments to python"
   echo "  -n {name}       Supply a name to this test run"
   echo "  -a {args}       Supply a string of args to add to mpiexec line"
   echo "  -y {args}       Supply a list of regression tests as a reg. expression  e.g. '-y test_persistent_aposmm*'"
