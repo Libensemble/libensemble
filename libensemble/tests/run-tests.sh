@@ -9,6 +9,7 @@ export RUN_UNIT_TESTS=true    #Recommended for pre-push / CI tests
 export RUN_COV_TESTS=true     #Provide coverage report
 export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
 export RUN_PEP_TESTS=false     #Code syle conventions
+export PYTHON_FLAGS=''        #Flags for PYTHON_RUN
 
 # Regression test options
 #export REG_TEST_LIST='test_number1.py test_number2.py' #selected/ordered
@@ -202,6 +203,7 @@ usage() {
   echo "  -t              Run the regression tests using TCP comms"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
+  echo "  -A {-flag arg}  Supply arguments to python"
   echo "  -n {name}       Supply a name to this test run"
   echo "  -a {args}       Supply a string of args to add to mpiexec line"
   echo "  -y {args}       Supply a list of regression tests as a reg. expression  e.g. '-y test_persistent_aposmm*'"
@@ -211,7 +213,7 @@ usage() {
   exit 1
 }
 
-while getopts ":p:n:a:y:hcszurmlt" opt; do
+while getopts ":p:n:a:y:A:hcszurmlt" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -260,6 +262,10 @@ while getopts ":p:n:a:y:hcszurmlt" opt; do
     y)
       echo "Running with user supplied test list"
       export REG_TEST_LIST="$OPTARG"
+      ;;
+    A)
+      echo "Python arguments passed: $OPTARG" >&2
+      PYTHON_FLAGS="$PYTHON_FLAGS $OPTARG"
       ;;
     h)
       usage
@@ -320,7 +326,7 @@ if [ $CLEAN_ONLY = "true" ]; then
 fi;
 
 #If not supplied will go to just python (no number) - eg. with tox/virtual envs
-PYTHON_RUN=python$PYTHON_VER
+PYTHON_RUN="python$PYTHON_VER $PYTHON_FLAGS"
 echo -e "Python run: $PYTHON_RUN"
 
 textreset=$(tput sgr0)

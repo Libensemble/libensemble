@@ -142,7 +142,7 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -z -$COMMS_TYPE
+  - ./libensemble/tests/run-tests.sh -A "-W error" -z -$COMMS_TYPE
 
 # Track code coverage
 after_success:
