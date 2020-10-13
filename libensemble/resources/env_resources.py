@@ -109,7 +109,7 @@ class EnvResources:
         """Returns nodelist with entries in abbreviated form"""
         if self.scheduler == 'Cobalt':
             return EnvResources.cobalt_abbrev_nodenames(node_list)
-        else:
+        elif self.scheduler is not None:
             return EnvResources.abbrev_nodenames(node_list)
         return node_list
 
