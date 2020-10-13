@@ -39,6 +39,7 @@ def teardown_function(function):
 
 
 def sname(name):
+    print('sname being set')
     return name.split(".", 1)[0]
 
 
@@ -91,7 +92,7 @@ def test_get_global_nodelist_frm_lsf_shortform():
 
 def test_get_global_nodelist_standalone():
     mynode = socket.gethostname()
-    exp_node = sname(mynode)
+    exp_node = mynode  # sname(mynode)
     env_resources = EnvResources(nodelist_env_slurm="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
@@ -288,7 +289,7 @@ def test_get_local_nodelist_distrib_mode():
     #     assert 0
 
     workerID = 5
-    exp_node = sname(mynode)
+    exp_node = mynode  # sname(mynode)
     exp_out = [exp_node]
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
@@ -323,7 +324,7 @@ def test_get_local_nodelist_distrib_mode():
 
 def test_get_local_nodelist_distrib_mode_uneven_split():
     mynode = socket.gethostname()
-    exp_node = sname(mynode)
+    exp_node = mynode  # sname(mynode)
     nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
     with open('node_list', 'w') as f:
         for i, node in enumerate(nodelist_in):
