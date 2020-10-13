@@ -150,9 +150,9 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
         fits = [ind.fitness.values[0] for ind in pop]
         if tag in [STOP_TAG, PERSIS_STOP]:
             # Min value when exiting
-            print('Met exit criteria. Current minimum is:', np.min(fits))
+            print('Met exit criteria. Current best fitness is:', np.min(fits))
         else:
-            print('Current minimum:', np.min(fits))
+            print('Current fitness minimum:', np.min(fits))
             print('Sum of fit values at end of loop', sum(fits))
 
     return Out, persis_info, FINISHED_PERSISTENT_GEN_TAG
