@@ -406,6 +406,7 @@ class Executor:
         The executor manager_signal attribute will be updated.
 
         """
+        self.manager_signal = 'none'  # Reset
 
         # Check for messages; disregard anything but a stop signal
         if not comm.mail_flag():

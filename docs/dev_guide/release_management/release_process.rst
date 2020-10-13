@@ -16,12 +16,15 @@ Before release
 - Release notes for this version are added to the documentation with release
   date, including a list of supported (tested) platforms.
 
-- Version number is updated wherever it appears
+- Version number is updated wherever it appears (and ``+dev`` suffix is removed)
   (in ``setup.py``, ``libensemble/__init__.py``, ``README.rst`` and twice in ``docs/conf.py``)
 
 - Year in ``README.rst`` under *Citing libEnsemble* and in ``docs/conf.py`` is checked for correctness.
 
 - ``setup.py`` and ``libensemble/__init__.py`` are checked to ensure all information is up to date.
+
+- ``MANIFEST.in`` is checked. Locally, try out ``python setup.py sdist`` and check created tarball.
+  contains correct files and directories for PyPI package.
 
 - Tests are run with source to be released (this may iterate):
 
@@ -58,6 +61,8 @@ An administrator will take the following steps.
   - Spack package will be updated (:ref:`Spack release<rel-spack>`).
 
 - If the merge was made from a release branch (instead of develop), merge this branch into develop.
+
+- Create a new commit on develop that appends ``+dev`` to the version number (wherever is appears).
 
 After release
 -------------
