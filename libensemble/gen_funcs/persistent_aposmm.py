@@ -413,19 +413,19 @@ def update_history_optimal(x_opt, opt_flag, H, run_inds):
     # assert dists[ind] <= tol_x1, "Closest point to x_opt not within {}?".format(tol_x1)
 
     if dists[ind] > tol_x1:
-        print("Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]) + "\n" +
-              "Check that the local optimizer is working correctly\n", x_opt, run_inds, flush=True)
+        print("[APOSMM] Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]) + "\n" +
+              "[APOSMM] Check that the local optimizer is working correctly\n", x_opt, run_inds, flush=True)
 
     tol_x2 = 1e-8
     failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < tol_x2)
     if opt_flag:
         if np.any(failsafe):
-            print("This run has {} point(s) with smaller 'f' value within {} of "
+            print("[APOSMM] This run has {} point(s) with smaller 'f' value within {} of "
                   "the point ruled to be the run minimum. \nMarking all as being "
                   "a 'local_min' to prevent APOSMM from starting another run "
                   "immediately from these points.".format(sum(failsafe), tol_x2))
-            print("Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
-            print("Check that the local optimizer is working correctly", flush=True)
+            print("[APOSMM] Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
+            print("[APOSMM] Check that the local optimizer is working correctly", flush=True)
             H['local_min'][run_inds[failsafe]] = 1
 
         H['local_min'][opt_ind] = 1
@@ -627,7 +627,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
 
         over_written_fields = ['dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l', 'ind_of_better_s']
         if any([i in H.dtype.names for i in over_written_fields]):
-            print("\n persistent_aposmm ignores any given values in these fields: " + str(over_written_fields) + "\n")
+            print("\n[APOSMM] persistent_aposmm ignores any given values in these fields: " + str(over_written_fields) + "\n")
 
         initialize_dists_and_inds(local_H, len(H))
 
