@@ -226,7 +226,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
         # https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#return-values
         opt_flag = 1
     elif return_val >= 5:
-        print("The run started from " + str(x0) + " reached it maximum number "
+        print("The run started from " + str(x0) + " reached its maximum number "
               "of function evaluations: " + str(run_max_eval) + ". No point from "
               "this run will be ruled as a minimum! APOSMM may start a new run "
               "from some point in this run.")
