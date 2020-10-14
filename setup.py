@@ -30,7 +30,7 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.7.0',
+    version='0.7.1',
     description='Library to coordinate the concurrent evaluation of dynamic ensembles of calculations',
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
