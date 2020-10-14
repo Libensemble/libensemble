@@ -17,32 +17,32 @@ API additions:
 
 * Executor updates
 
- * Addition of a zero resource workers option for persistent gens (does not allocate nodes to gen) (#500)
+ * Addition of a zero-resource worker option for persistent gens (does not allocate nodes to gen) (#500)
  * Multiple applications can be registered to the Executor (and submitted) by name. (#498)
  * Wait function added to Tasks (#499)
 
-* Gen directories can now be created with analogous options for sim dirs.  (#349 / #489)
+* Gen directories can now be created with options analogous to those for sim dirs.  (#349 / #489)
 
 Other changes:
 
-* Improve comms efficiency (Repack fields when numpy version 1.16+) (#511)
+* Improve comms efficiency (Repack fields when NumPy version 1.15+) (#511)
 * Fix multiprocessing error on macOS/Python3.8 (Use 'fork' instead of 'spawn') (#502 / #503)
 
 Updates to example functions:
 
 * Allow APOSMM to trigger ensemble exit when condition reached (#507)
-* Improvement to how persistent APOSMM shut-downs subprocesses (e.g. prevents PETSc MPI-abort) (#478)
+* Improvement in how persistent APOSMM shuts down subprocesses (preventing PETSc MPI-abort) (#478)
 
 Documentation:
 
-* APOSMM Tutorial added. (#468)
-* User function writing guide added to docs (e.g. creating sim_f, gen_f, alloc_f) (#510)
+* APOSMM Tutorial added (#468)
+* Writing guide for user functions added to docs (e.g., creating sim_f, gen_f, alloc_f) (#510)
 * Addition of posters and presentations section to docs (inc. Jupyter notebooks/binder links) (#492 #497)
 
 :Note:
 
 * Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), and Bridges (HPE system at PSC).
-* Cori (Cray XC40/Slurm) was not tested with release code due to system access issues.
+* Cori (Cray XC40/Slurm) was not tested with release code due to system issues.
 * Tested Python versions: (Cpython) 3.5, 3.6, 3.7, 3.8
 
 :Known issues:
