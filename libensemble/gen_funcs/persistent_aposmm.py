@@ -170,9 +170,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     tag, Work, calc_in = get_mgr_worker_msg(comm)
 
                 if tag in [STOP_TAG, PERSIS_STOP]:
-                    # clean_up_and_stop(local_H, local_opters)
                     clean_up_and_stop(local_opters)
                     persis_info['run_order'] = run_order
+                    break
+
+                if np.sum(local_H['local_min']) >= user_specs.get('stop_after_this_many_minima', np.inf):
+                    # This break happens here so the manager can be informed about the last minima.
                     break
 
                 n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)

@@ -58,7 +58,6 @@ Or, you can install via ``conda``:
 See :doc:`here<../advanced_installation>` for more information on advanced options
 for installing libEnsemble.
 
-
 Special note on resource sets and Executor submit options
 ---------------------------------------------------------
 

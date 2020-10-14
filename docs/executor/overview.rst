@@ -29,7 +29,6 @@ alternative Executor like Balsam is used, then the applications can be
 registered as in the example below. Once in the user-side worker code (sim/gen func),
 an MPI-based Executor can be retrieved without any need to specify the type.
 
-
 **Example usage (code runnable with or without a Balsam backend):**
 
 In calling function::
