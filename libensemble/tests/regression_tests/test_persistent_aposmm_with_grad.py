@@ -100,4 +100,6 @@ if is_master:
         print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
         assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
 
+    assert len(H) < exit_criteria['sim_max'], "Test should have stopped early"
+
     save_libE_output(H, persis_info, __file__, nworkers)
