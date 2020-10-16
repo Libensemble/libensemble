@@ -235,6 +235,11 @@ def test_checking_inputs_single():
     check_inputs(gen_specs=gen_specs)
     check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
 
+    libE_specs['use_worker_dirs'] = True
+    libE_specs['sim_input_dir'] = './__init__.py'
+    libE_specs['sim_dir_copy_files'] = ['./__init__.py']
+    check_inputs(libE_specs=libE_specs)
+
 
 def test_logging_disabling():
     remove_file_if_exists('ensemble.log')
