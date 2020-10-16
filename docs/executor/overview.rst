@@ -45,9 +45,15 @@ In calling function::
 
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
+.. note::
+    The *Executor* set up in the calling script is stored as a class attribute and
+    does **not** have to be passed to *libE*. It is extracted via *Executor.executor*
+    in the sim function (regardless of type).
+
 In user sim func::
 
     import time
+    from libensemble.executors.executor import Executor
 
     # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
@@ -119,5 +125,9 @@ with each system, including proxy launchers or task management systems such as
 Balsam_. Currently, these Executors launch at the application level within
 an existing resource pool. However, submissions to a batch scheduler may be
 supported in future Executors.
+
+See :doc:`Running on HPC Systems<../platforms/platforms_index>` to see, with
+diagrams, how common Executor options such as ``central_mode`` affect the
+run configuration on clusters and supercomputers.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
