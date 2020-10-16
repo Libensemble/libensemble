@@ -40,7 +40,7 @@ def check_libE_specs(libE_specs, serial_check=False):
         if k in['sim_dir_copy_files', 'sim_dir_symlink_files', 'gen_dir_copy_files', 'gen_dir_symlink_files']:
             assert isinstance(libE_specs[k], list), "Value for libE_specs['{}'] must be a list of path-like strings".format(k)
             for j in libE_specs[k]:
-                assert os.path.exists(j), "The path '{}' in libE_specs['{}'] does not refer to an existing path.".format(j, k)
+                assert os.path.exists(j), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(j, k)
 
 
 def check_alloc_specs(alloc_specs):
