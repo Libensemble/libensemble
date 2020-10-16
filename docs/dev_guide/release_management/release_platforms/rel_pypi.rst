@@ -7,8 +7,10 @@ libEnsemble is released on the Python Package Index (commonly known as PyPI).
 This enables users to ``pip install`` the package.
 
 The package is stored on PyPI in the form of a source distribution (commonly
-known as a tarball). The tarball could be obtained from GitHub, although
-historically this has been created with a checkout of libEnsemble from git.
+known as a tarball). The tarball should be created as detailed below (which
+creates the distribution package using the MANIFEST.in file in the git root
+directory. Do not use the tarball on GitHub, which does not follow MANIFEST.in
+and does not contain the required PKG-INFO file.
 
 You will need logon credentials for the libEnsemble PyPI. You will also need
 twine (which can be pip or Conda installed).

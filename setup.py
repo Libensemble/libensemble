@@ -30,7 +30,7 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.7.0',
+    version='0.7.1+dev',
     description='Library to coordinate the concurrent evaluation of dynamic ensembles of calculations',
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
@@ -65,7 +65,7 @@ setup(
 
     extras_require={
         'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap', 'mpmath'],
-        'docs': ['sphinxcontrib.bibtex']},
+        'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
 
     classifiers=[
         'Development Status :: 4 - Beta',

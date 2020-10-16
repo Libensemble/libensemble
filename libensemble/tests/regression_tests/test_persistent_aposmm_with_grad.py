@@ -53,6 +53,7 @@ gen_specs = {'gen_f': gen_f,
              'user': {'initial_sample_size': 0,  # Don't need to do evaluations because the sampling already done below
                       'localopt_method': 'LD_MMA',
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+                      'stop_after_this_many_minima': 25,
                       'xtol_rel': 1e-6,
                       'ftol_rel': 1e-6,
                       'max_active_runs': 6,
@@ -98,5 +99,7 @@ if is_master:
         # We use their values to test APOSMM has identified all minima
         print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
         assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
+
+    assert len(H) < exit_criteria['sim_max'], "Test should have stopped early"
 
     save_libE_output(H, persis_info, __file__, nworkers)
