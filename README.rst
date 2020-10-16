@@ -214,7 +214,7 @@ Resources
                    David Bindel and John-Luke Navarro},
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
-    number      = {Revision 0.7.1},
+    number      = {Revision 0.7.1+dev},
     year        = {2020},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
