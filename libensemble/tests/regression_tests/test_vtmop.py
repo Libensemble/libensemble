@@ -23,6 +23,9 @@
 # TESTSUITE_NPROCS:
 
 import numpy as np
+import os
+import time
+from libensemble.utils.timer import Timer
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -31,6 +34,8 @@ from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 from libensemble.gen_funcs.vtmop import vtmop_gen as gen_f
 from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+
+timer = Timer()
 
 # Set the problem dimensions here
 num_dims = 5
@@ -66,18 +71,18 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
              'in': ['x', 'f'],
              'out': [('x', float, num_dims)],
              'user': {
-                 # Set the number of objectives. The number of design variables is
-                 # inferred based on the length of lb.
+                 # Set the number of objectives. The number of design variables
+                 # is inferred based on the length of lb.
                  'num_obj': num_objs,
                  # Set the bound constraints.
                  'lb': lower_bounds,
                  'ub': upper_bounds,
                  # search_batch_size is the number of points used to search
                  # each local trust region (using Latin hypercube design).
-                 # This should be a multiple of the number of concurrent function
-                 # evaluations and on the order of 2*d (where d is the number of
-                 # design variables)
-                 'search_batch_size': int(np.ceil(2*num_dims/nworkers)*nworkers),
+                 # This should be a multiple of the number of concurrent
+                 # function evaluations and on the order of 4*d (where d is
+                 # the number of design variables)
+                 'search_batch_size': int(np.ceil(4*num_dims/nworkers)*nworkers),
                  # opt_batch_size is the preferred number of candidate designs.
                  # When the actual number of candidates is not a multiple of
                  # opt_batch_size, additional candidates are randomly generated
@@ -92,55 +97,101 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
                  # initial database will cause an error since the surrogates
                  # cannot be fit without sufficient data.
                  'first_batch_size': 1000,
-                 # Set the trust region radius. This setting is problem
-                 # dependent. A good starting place would be between 10% and
-                 # 25% of the median edge length of the bounding box (err on
-                 # the smaller side when the number of design variables is
-                 # greater than 5 or 6).
-                 'trust_rad': np.median(upper_bounds - lower_bounds)*0.1,
-                 # Are you reloading from a checkpoint
+                 # Set the trust region radius as a fraction of ub[:]-lb[:].
+                 # This setting is problem dependent. A good starting place
+                 # would be between 0.1 and 0.2.
+                 'trust_rad': 0.1,
+                 # Are you reloading from a checkpoint?
                  'use_chkpt': False},
              }
 
 # Set up the allocator
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
-for run in range(2):
-    if run == 1:
-        # In the second run, we initialize VTMOP with an initial sample:
-        np.random.seed(0)
-        sample_size = 1000
-        X = np.random.uniform(gen_specs['user']['lb'], gen_specs['user']['ub'], (sample_size, num_dims))
-        f = np.zeros((sample_size, num_objs))
+s1 = []
+H = []
 
-        H0 = np.zeros(sample_size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
-                                          ('returned', bool), ('given', bool)])
+for run in range(3):
+    if run == 0:
+        # Run for 1100 evaluations or 300 seconds
+        H0 = None
+        exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
+
+    elif run == 1:
+        # In the second run, we initialize VTMOP with an initial sample of previously evaluated points
+        np.random.seed(0)
+        size = 1000
+
+        # Generate the sample
+        X = np.random.uniform(gen_specs['user']['lb'], gen_specs['user']['ub'], (size, num_dims))
+        f = np.zeros((size, num_objs))
+
+        # Initialize H0
+        H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
+                                   ('returned', bool), ('given', bool)])
         H0['x'] = X
-        H0['sim_id'] = range(sample_size)
+        H0['sim_id'] = range(size)
         H0[['given', 'returned']] = True
 
-        for i in range(sample_size):
+        # Perform objective function evaluations
+        for i in range(size):
             Out, _ = sim_f(H0[[i]])
             H0['f'][i] = Out['f']
 
-        gen_specs['user']['use_chkpt'] = True
+        # Run for 200 more evaluations or 300 seconds
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
+
         gen_specs['user']['first_batch_size'] = 0
-    else:
-        H0 = None
+        gen_specs['user']['use_chkpt'] = False  # Need to set this as it can be overwritten within the libE call.
+
+    elif run == 2:
+        # In the third run, we restart VTMOP by loading in the history array saved in run==1
+        gen_specs['user']['use_chkpt'] = True
+
+        # Inelegant way to have the manager copy over the VTMOP checkpoint
+        # file, and have every worker get the H value from the run==1 case to
+        # use in the restart.
+        try:
+            os.remove('manager_done_file')
+        except OSError:
+            pass
+
+        if is_master:
+            os.rename('vtmop.chkpt_finishing_' + s1, 'vtmop.chkpt')
+            np.save('H_for_vtmop_restart.npy', H)
+            open('manager_done_file', 'w').close()
+        else:
+            while not os.path.isfile('manager_done_file'):
+                time.sleep(0.1)
+            H = np.load('H_for_vtmop_restart.npy')
+
+        # Initialize H0 with values from H (from the run==1 case)
+        size = sum(H['returned'])
+        H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
+                                   ('returned', bool), ('given', bool)])
+        H0['x'] = H['x'][:size]
+        H0['sim_id'] = range(size)
+        H0[['given', 'returned']] = True
+        H0['f'] = H['f'][:size]
+
+        # Run for 200 more evaluations or 300 seconds
+        exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
 
     # Persistent info between iterations
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    persis_info['next_to_give'] = 0
+    persis_info['next_to_give'] = 0 if H0 is None else len(H0)
     persis_info['total_gen_calls'] = 0
-
-    # Run for 2000 evaluations or 300 seconds
-    exit_criteria = {'sim_max': 1100, 'elapsed_wallclock_time': 300}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
 
-    # The master takes care of checkpointint/output
+    # The master takes care of checkpointing/output
     if is_master:
+        # Renaming vtmop checkpointing file, if needed for later use.
+        timer.start()
+        s1 = timer.date_start.replace(' ', '_')
+        os.rename('vtmop.chkpt', 'vtmop.chkpt_finishing_' + s1)
+
         assert flag == 0
         save_libE_output(H, persis_info, __file__, nworkers)

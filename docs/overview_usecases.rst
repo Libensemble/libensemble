@@ -87,13 +87,17 @@ it's capabilities.
   generation and simulation routines, submit additional tasks for execution,
   and return results to the manager.
 
+* **Calling Script**: libEnsemble is typically imported, parameterized, and
+  initiated in a single Python file referred to as a *calling script*. ``sim_f``
+  and ``gen_f`` functions are also commonly configured and parameterized here.
+
 * **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be
-  launched. When using the libEnsemble executor, a *submitted* task is executed
+  launched. When using the libEnsemble Executor, a *submitted* task is executed
   immediately or queued for execution.
 
 * **Tasks**: Sub-processes or independent units of work. Workers perform
   *tasks* as directed by the manager; tasks may include submitting external
-  programs for execution using the executor.
+  programs for execution using the Executor.
 
 * **Persistent**: Typically, a worker communicates with the manager
   before and after initiating a user ``gen_f`` or ``sim_f`` calculation. However, user

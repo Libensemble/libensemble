@@ -76,54 +76,6 @@ def test_copy_back():
         shutil.rmtree(dir)
 
 
-def test_copy_back_exception():
-    """ Test _copy_back handling of FileExistsError with certain
-    settings"""
-    class FakeWorker:
-        """ Enough information to test _copy_back() """
-        def __init__(self, libE_specs, prefix, startdir, loc_stack):
-            self.libE_specs = libE_specs
-            self.prefix = prefix
-            self.startdir = startdir
-            self.loc_stack = loc_stack
-
-    inputdir = './calc'
-    copybackdir = './calc_back'
-    inputfile = './calc/file'
-
-    for dir in [inputdir, copybackdir]:
-        os.makedirs(dir, exist_ok=True)
-
-    libE_specs = {'sim_dirs_make': False, 'ensemble_dir_path': inputdir,
-                  'ensemble_copy_back': True}
-
-    ls = LocationStack()
-    ls.register_loc('test', inputfile)
-    fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
-
-    # Testing catch and continue
-    for i in range(2):
-        Worker._copy_back(fake_worker)
-    assert 'file' in os.listdir(copybackdir), \
-        'File not copied back to starting dir'
-
-    libE_specs = {'sim_dirs_make': True, 'ensemble_dir_path': inputdir,
-                  'ensemble_copy_back': True}
-    fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
-
-    flag = 1
-
-    # Testing catch and raise
-    try:
-        Worker._copy_back(fake_worker)
-    except FileExistsError:
-        flag = 0
-    assert flag == 0
-
-    for dir in [inputdir, copybackdir]:
-        shutil.rmtree(dir)
-
-
 def test_worker_dirs_but_no_sim_dirs():
     """Test Worker._make_calc_dir() directory structure without sim_dirs"""
     inputdir = './calc'
@@ -204,6 +156,5 @@ if __name__ == '__main__':
     test_range_two_ranges()
     test_range_mixes()
     test_copy_back()
-    test_copy_back_exception()
     test_worker_dirs_but_no_sim_dirs()
     test_loc_stack_FileExists_exceptions()

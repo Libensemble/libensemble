@@ -309,6 +309,15 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
+    # On Python 3.8 on macOS, the default start method for new processes was
+    #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
+    # These crashes haven't yet been observed with libE, but with 'spawn' runs,
+    #  warnings about leaked semaphore objects are displayed instead.
+    # The next several statements enforce 'fork' on macOS (Python 3.8)
+    if os.uname().sysname == 'Darwin':
+        from multiprocessing import set_start_method
+        set_start_method('fork', force=True)
+
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
 

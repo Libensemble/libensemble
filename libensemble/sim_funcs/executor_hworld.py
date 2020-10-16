@@ -71,26 +71,57 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     cores = sim_specs['user']['cores']
     comm = libE_info['comm']
 
+    use_balsam = 'balsam_test' in sim_specs['user']
+
     args_for_sim = 'sleep 1'
     # pref send this in X as a sim_in from calling script
     global sim_count
     sim_count += 1
     timeout = 6.0
+    wait = False
+    launch_shc = False
     if sim_count == 1:
         args_for_sim = 'sleep 1'  # Should finish
     elif sim_count == 2:
         args_for_sim = 'sleep 1 Error'  # Worker kill on error
-    elif sim_count == 3:
+    if sim_count == 3:
+        wait = True
+        args_for_sim = 'sleep 1'  # Should finish
+        launch_shc = True
+    elif sim_count == 4:
         args_for_sim = 'sleep 3'  # Worker kill on timeout
         timeout = 1.0
-    elif sim_count == 4:
-        args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
     elif sim_count == 5:
-        args_for_sim = 'sleep 18'  # Manager kill - if signal received else completes
-        timeout = 20.0
+        args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
+    elif sim_count == 6:
+        args_for_sim = 'sleep 60'  # Manager kill - if signal received else completes
+        timeout = 65.0
 
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
-    task, calc_status = polling_loop(comm, exctr, task, timeout)
+    if use_balsam:
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,
+                            hyperthreads=True, machinefile='notused', stdout='notused',
+                            wait_on_run=True)
+    else:
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
+
+    if wait:
+        task.wait()
+        if not task.finished:
+            calc_status = UNSET_TAG
+        if task.state == 'FINISHED':
+            calc_status = WORKER_DONE
+        elif task.state == 'FAILED':
+            calc_status = TASK_FAILED
+
+    else:
+        task, calc_status = polling_loop(comm, exctr, task, timeout)
+
+    if use_balsam:
+        task.read_file_in_workdir('ensemble.log')
+        try:
+            task.read_stderr()
+        except ValueError:
+            pass
 
     # assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     # assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
@@ -100,6 +131,13 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     H_o = np.zeros(batch, dtype=sim_specs['out'])
     for i, x in enumerate(H['x']):
         H_o['f'][i] = six_hump_camel_func(x)
+        if launch_shc:
+            # Test launching a named app.
+            app_args = ' '.join(str(val) for val in list(x[:]))
+            task = exctr.submit(app_name='six_hump_camel', num_procs=1, app_args=app_args)
+            task.wait()
+            output = np.float64(task.read_stdout())
+            assert np.isclose(H_o['f'][i], output)
 
     # This is just for testing at calling script level - status of each task
     H_o['cstat'] = calc_status

@@ -38,6 +38,11 @@ def teardown_function(function):
         os.remove('node_list')
 
 
+def sname(name):
+    print('sname being set')
+    return name.split(".", 1)[0]
+
+
 # Tests ========================================================================================
 
 # Tests Resources.get_global_nodelist (This requires above tests to work)
@@ -87,12 +92,13 @@ def test_get_global_nodelist_frm_lsf_shortform():
 
 def test_get_global_nodelist_standalone():
     mynode = socket.gethostname()
+    exp_node = mynode  # sname(mynode)
     env_resources = EnvResources(nodelist_env_slurm="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
     global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
-    assert global_nodelist == [mynode], "global_nodelist returned does not match expected"
+    assert global_nodelist == [exp_node], "global_nodelist returned does not match expected"
 
 
 def test_get_global_nodelist_frm_wrklst_file():
@@ -196,7 +202,7 @@ def test_get_local_nodelist_central_mode_remove_libE_proc():
                 f.write(mynode + '\n')
 
     resources = Resources(central_mode=True)
-    resources.add_comm_info(libE_nodes=mynode)
+    resources.add_comm_info(libE_nodes=[mynode])
 
     # Now mock up some more stuff - so consistent
 
@@ -283,19 +289,20 @@ def test_get_local_nodelist_distrib_mode():
     #     assert 0
 
     workerID = 5
-    exp_out = [mynode]
+    exp_node = mynode  # sname(mynode)
+    exp_out = [exp_node]
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
     num_workers = 1
     workerID = 1
-    exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', mynode, 'knl-0137', 'knl-0138', 'knl-0139']
+    exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', exp_node, 'knl-0137', 'knl-0138', 'knl-0139']
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
     num_workers = 4
     workerID = 3
-    exp_out = [mynode, 'knl-0137']
+    exp_out = [exp_node, 'knl-0137']
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
@@ -303,12 +310,12 @@ def test_get_local_nodelist_distrib_mode():
     num_workers = 16
 
     workerID = 9
-    exp_out = [mynode]
+    exp_out = [exp_node]
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
     workerID = 10
-    exp_out = [mynode]
+    exp_out = [exp_node]
 
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
@@ -317,6 +324,7 @@ def test_get_local_nodelist_distrib_mode():
 
 def test_get_local_nodelist_distrib_mode_uneven_split():
     mynode = socket.gethostname()
+    exp_node = mynode  # sname(mynode)
     nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
     with open('node_list', 'w') as f:
         for i, node in enumerate(nodelist_in):
@@ -329,7 +337,7 @@ def test_get_local_nodelist_distrib_mode_uneven_split():
 
     # May not be at head of list - should perhaps be warning or enforced
     workerID = 2
-    exp_out = ['knl-0137', mynode, 'knl-0138', 'knl-0139']
+    exp_out = ['knl-0137', exp_node, 'knl-0138', 'knl-0139']
     local_nodelist = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
     assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
     os.remove('node_list')
@@ -387,6 +395,34 @@ def test_worker_resources():
         assert worker.workers_per_node == 2, 'worker.workers_per_node does not match'
 
 
+def test_map_workerid_to_index():
+    num_workers = 4
+    zero_resource_list = []
+
+    for workerID in range(1, num_workers+1):
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+        assert index == workerID - 1, "index incorrect. Received: " + str(index)
+
+    zero_resource_list = [1]
+    for workerID in range(2, num_workers+1):
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+        assert index == workerID - 2, "index incorrect. Received: " + str(index)
+
+    zero_resource_list = [1, 2]
+    for workerID in range(3, num_workers+1):
+        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+        assert index == workerID - 3, "index incorrect. Received: " + str(index)
+
+    zero_resource_list = [1, 3]
+    workerID = 2
+    index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+    assert index == 0, "index incorrect. Received: " + str(index)
+
+    workerID = 4
+    index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+    assert index == 1, "index incorrect. Received: " + str(index)
+
+
 if __name__ == "__main__":
     setup_standalone_run()
 
@@ -405,5 +441,6 @@ if __name__ == "__main__":
     test_get_local_nodelist_distrib_mode_uneven_split()
 
     test_worker_resources()
+    test_map_workerid_to_index()
 
     teardown_standalone_run()

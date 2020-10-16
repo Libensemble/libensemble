@@ -3,6 +3,11 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
+# The following is not explicitly called but is needed for 3d plotting to work
+# with older versions of python/matplotlib. It is not needed for python3.8 with
+# matplotlib version 3.2.1.
+from mpl_toolkits import mplot3d  # noqa
+
 
 # Loop through objective points in f and extract the Pareto front.
 # input: f is a list (dimensions n X p) of n p-dimensional objective points.

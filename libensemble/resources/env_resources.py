@@ -23,8 +23,8 @@ class EnvResources:
 
     These are set on initialization.
 
-    :ivar dict nodelists: Environment variable names to query for nodelists by schedular
-    :ivar dict ndlist_funcs: Functions to extract nodelists from environment by schedular
+    :ivar dict nodelists: Environment variable names to query for nodelists by scheduler
+    :ivar dict ndlist_funcs: Functions to extract nodelists from environment by scheduler
     """
 
     default_nodelist_env_slurm = 'SLURM_NODELIST'
@@ -63,7 +63,7 @@ class EnvResources:
             Note: This is queried only if a node_list file is not provided and auto_resources=True.
         """
 
-        self.schedular = None
+        self.scheduler = None
         self.nodelists = {}
         self.nodelists['Slurm'] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm
         self.nodelists['Cobalt'] = nodelist_env_cobalt or EnvResources.default_nodelist_env_cobalt
@@ -76,23 +76,41 @@ class EnvResources:
         self.ndlist_funcs['LSF'] = EnvResources.get_lsf_nodelist
         self.ndlist_funcs['LSF_shortform'] = EnvResources.get_lsf_nodelist_frm_shortform
 
-    def get_nodelist(self):
-        """Returns nodelist from environment or an empty list"""
         for env, env_var in self.nodelists.items():
             if os.environ.get(env_var):
-                self.schedular = env
-                logger.debug("{0} env found - getting nodelist from {0}".format(env))
-                get_list_func = self.ndlist_funcs[env]
-                global_nodelist = get_list_func(env_var)
-                return global_nodelist
+                self.scheduler = env
+                break
+
+    def get_nodelist(self):
+        """Returns nodelist from environment or an empty list"""
+        if self.scheduler:
+            env = self.scheduler
+            env_var = self.nodelists[env]
+            logger.debug("{} env found - getting nodelist from {}".format(env, env_var))
+            get_list_func = self.ndlist_funcs[env]
+            global_nodelist = get_list_func(env_var)
+            return global_nodelist
         return []
 
-    def abbrev_nodenames(self, node_list):
+    @staticmethod
+    def abbrev_nodenames(node_list, prefix=None):
+        """Returns nodelist with only string upto first dot"""
+        newlist = [s.split(".", 1)[0] for s in node_list]
+        return newlist
+
+    @staticmethod
+    def cobalt_abbrev_nodenames(node_list, prefix='nid'):
+        """Returns nodelist with prefix and leading zeros stripped"""
+        newlist = [s.lstrip(prefix) for s in node_list]
+        newlist = [s.lstrip('0') for s in newlist]
+        return newlist
+
+    def shortnames(self, node_list):
         """Returns nodelist with entries in abbreviated form"""
-        if self.schedular == 'Slurm':
-            return EnvResources.slurm_abbrev_nodenames(node_list)
-        if self.schedular == 'Cobalt':
+        if self.scheduler == 'Cobalt':
             return EnvResources.cobalt_abbrev_nodenames(node_list)
+        elif self.scheduler is not None:
+            return EnvResources.abbrev_nodenames(node_list)
         return node_list
 
     @staticmethod
@@ -155,19 +173,6 @@ class EnvResources:
             for nid in range(a, b):
                 nidlst.append(str(nid))
         return sorted(nidlst, key=int)
-
-    @staticmethod
-    def slurm_abbrev_nodenames(node_list, prefix=None):
-        """Returns nodelist with only string upto first dot"""
-        newlist = [s.split(".", 1)[0] for s in node_list]
-        return newlist
-
-    @staticmethod
-    def cobalt_abbrev_nodenames(node_list, prefix='nid'):
-        """Returns nodelist with prefix and leading zeros stripped"""
-        newlist = [s.lstrip(prefix) for s in node_list]
-        newlist = [s.lstrip('0') for s in newlist]
-        return newlist
 
     @staticmethod
     def get_lsf_nodelist(node_list_env):

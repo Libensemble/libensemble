@@ -7,6 +7,7 @@ import socket
 import logging
 import os
 import shutil
+import re
 import logging.handlers
 from itertools import count, groupby
 from operator import itemgetter
@@ -19,7 +20,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.tools.fields_keys import libE_spec_calc_dir_keys
+from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
@@ -148,24 +149,30 @@ class Worker:
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
         "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
 
-        sim_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
+        if calc_str == 'sim':
+            calc_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
+            do_calc_dirs = libE_specs.get('sim_dirs_make', True)
+            copy_files = libE_specs.get('sim_dir_copy_files', [])
+            symlink_files = libE_specs.get('sim_dir_symlink_files', [])
+        else:  # calc_str is 'gen'
+            calc_input_dir = libE_specs.get('gen_input_dir', '').rstrip('/')
+            do_calc_dirs = libE_specs.get('gen_dirs_make', True)
+            copy_files = libE_specs.get('gen_dir_copy_files', [])
+            symlink_files = libE_specs.get('gen_dir_symlink_files', [])
 
-        do_sim_dirs = libE_specs.get('sim_dirs_make', True)
         prefix = libE_specs.get('ensemble_dir_path', './ensemble')
-        copy_files = libE_specs.get('sim_dir_copy_files', [])
-        symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         do_work_dirs = libE_specs.get('use_worker_dirs', False)
 
-        # If using sim_input_dir, set of files to copy is contents of provided dir
-        if sim_input_dir:
-            copy_files = set(copy_files + [os.path.join(sim_input_dir, i) for i in os.listdir(sim_input_dir)])
+        # If using calc_input_dir, set of files to copy is contents of provided dir
+        if calc_input_dir:
+            copy_files = set(copy_files + [os.path.join(calc_input_dir, i) for i in os.listdir(calc_input_dir)])
 
         # If identical paths to copy and symlink, remove those paths from symlink_files
         if len(symlink_files):
             symlink_files = [i for i in symlink_files if i not in copy_files]
 
         # Cases where individual sim_dirs not created.
-        if not do_sim_dirs:
+        if not do_calc_dirs:
             if do_work_dirs:  # Each worker does work in worker dirs
                 key = workerID
                 dir = "worker" + str(workerID)
@@ -257,41 +264,71 @@ class Worker:
             return '_'.join(ranges)
 
     def _copy_back(self):
-        """ Cleanup indication file & copy output to init dir, if specified"""
+        """Copy back all ensemble dir contents to launch location"""
         if os.path.isdir(self.prefix) and self.libE_specs.get('ensemble_copy_back', False):
+
+            no_calc_dirs = not self.libE_specs.get('sim_dirs_make', True) or \
+                not self.libE_specs.get('gen_dirs_make', True)
 
             ensemble_dir_path = self.libE_specs.get('ensemble_dir_path', './ensemble')
             copybackdir = os.path.basename(ensemble_dir_path)
+
             if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
                 copybackdir += '_back'
+
             for dir in self.loc_stack.dirs.values():
-                try:
-                    shutil.copytree(dir, os.path.join(copybackdir, os.path.basename(dir)), symlinks=True)
-                    if os.path.basename(dir).startswith('worker'):
-                        break  # Worker dir (with all sim_dirs) copied.
-                except FileExistsError:
-                    if not self.libE_specs.get('sim_dirs_make', True):
+                dest_path = os.path.join(copybackdir, os.path.basename(dir))
+                if dir == self.prefix:  # occurs when no_calc_dirs is True
+                    continue  # otherwise, entire ensemble dir copied into copyback dir
+
+                shutil.copytree(dir, dest_path, symlinks=True)
+                if os.path.basename(dir).startswith('worker'):
+                    return  # Worker dir (with all contents) has been copied.
+
+            # If not using calc dirs, likely miscellaneous files to copy back
+            if no_calc_dirs:
+                p = re.compile(r"((^sim)|(^gen))\d+_worker\d+")
+                for file in [i for i in os.listdir(self.prefix) if not p.match(i)]:  # each non-calc_dir file
+                    source_path = os.path.join(self.prefix, file)
+                    dest_path = os.path.join(copybackdir, file)
+                    try:
+                        if os.path.isdir(source_path):
+                            shutil.copytree(source_path, dest_path, symlinks=True)
+                        else:
+                            shutil.copy(source_path, dest_path, follow_symlinks=False)
+                    except FileExistsError:
                         continue
-                    else:
-                        raise
+                    except shutil.SameFileError:  # creating an identical symlink
+                        continue
 
     def _determine_dir_then_calc(self, Work, calc_type, calc_in, calc):
-        "Determines choice for sim_dir structure, then performs calculation."
+        "Determines choice for calc_dir structure, then performs calculation."
 
         if not self.loc_stack:
             self.loc_stack = LocationStack()
 
-        H_rows = Worker._extract_H_ranges(Work)
+        if calc_type == EVAL_SIM_TAG:
+            H_rows = Worker._extract_H_ranges(Work)
+        else:
+            H_rows = str(self.calc_iter[calc_type])
+
         calc_str = calc_type_strings[calc_type]
 
-        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_keys]):
-            calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
-                                             H_rows, calc_str, self.loc_stack)
+        calc_dir = Worker._make_calc_dir(self.libE_specs, self.workerID,
+                                         H_rows, calc_str, self.loc_stack)
 
-            with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
-                return calc(calc_in, Work['persis_info'], Work['libE_info'])
+        with self.loc_stack.loc(calc_dir):  # Switching to calc_dir
+            return calc(calc_in, Work['persis_info'], Work['libE_info'])
 
-        return calc(calc_in, Work['persis_info'], Work['libE_info'])
+    def _use_calc_dirs(self, type):
+        "Determines calc_dirs enabling for each calc type"
+
+        if type == EVAL_SIM_TAG:
+            dir_type_keys = libE_spec_sim_dir_keys
+        else:
+            dir_type_keys = libE_spec_gen_dir_keys
+
+        return any([setting in self.libE_specs for setting in dir_type_keys])
 
     def _handle_calc(self, Work, calc_in):
         """Runs a calculation on this worker object.
@@ -322,7 +359,7 @@ class Worker:
             with timer:
                 logger.debug("Calling calc {}".format(calc_type))
 
-                if calc_type == EVAL_SIM_TAG:
+                if self._use_calc_dirs(calc_type):
                     out = self._determine_dir_then_calc(Work, calc_type, calc_in, calc)
                 else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])

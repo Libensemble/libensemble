@@ -69,13 +69,13 @@ def runline_check(H, persis_info, sim_specs, libE_info):
                             dry_run=True)
 
         outline = task.runline
-        exp_list[i] = exp_nodelist_for_worker(exp_list[i], libE_info['workerID'])
+        new_exp_list = exp_nodelist_for_worker(exp_list[i], libE_info['workerID'])
 
-        if outline != exp_list[i]:
+        if outline != new_exp_list:
             print('outline is: {}'.format(outline), flush=True)
-            print('exp     is: {}'.format(exp_list[i]), flush=True)
+            print('exp     is: {}'.format(new_exp_list), flush=True)
 
-        assert(outline == exp_list[i])
+        assert(outline == new_exp_list)
 
     calc_status = WORKER_DONE
     output = np.zeros(1, dtype=sim_specs['out'])

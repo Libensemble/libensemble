@@ -9,7 +9,7 @@ Theta features three tiers of nodes: login, MOM,
 and compute nodes. Users on login nodes submit batch jobs to the MOM nodes.
 MOM nodes execute user batch scripts to run on the compute nodes via ``aprun``.
 
-Theta does not allow more than one MPI application per compute node.
+Theta will not schedule more than one MPI application per compute node.
 
 Configuring Python
 ------------------
@@ -18,10 +18,11 @@ Begin by loading the Python 3 Miniconda_ module::
 
     $ module load miniconda-3/latest
 
-Create a conda_ virtual environment, cloning the base environment. This
-environment will contain mpi4py_ and many other packages you may find useful::
+Create a conda_ virtual environment. We recommend cloning the base
+environment. This environment will contain mpi4py_ and many other packages that
+are configured correctly for Theta::
 
-    $ conda create --name my_env --clone $MINICONDA_INSTALL_PATH
+    $ conda create --name my_env --clone $CONDA_PREFIX
 
 .. note::
     The "executing transaction" step of creating your new environment may take a while!
@@ -32,7 +33,19 @@ instructions to configure your shell with conda.
 
 Activate your virtual environment with ::
 
+    $ export PYTHONNOUSERSITE=1
     $ conda activate my_env
+
+Alternative
+^^^^^^^^^^^
+
+If you do not wish to clone the miniconda environment and instead create your own, and
+you are using ``mpi4py`` make sure the install picks up Cray's compiler drivers. E.g::
+
+    $ conda create --name my_env python=3.7
+    $ export PYTHONNOUSERSITE=1
+    $ conda activate my_env
+    $ CC=cc MPICC=cc pip install mpi4py --no-binary mpi4py
 
 More information_ on using conda on Theta is also available.
 
@@ -53,7 +66,7 @@ Your prompt should be similar to the following line:
 .. note::
     If you encounter pip errors, run ``python -m pip install --upgrade pip`` first.
 
-Or, you can install via ``conda``:
+Or, you can install via ``conda`` (which comes with some common dependencies):
 
 .. code-block:: console
 
@@ -66,68 +79,66 @@ for installing libEnsemble.
 Balsam (Optional)
 ^^^^^^^^^^^^^^^^^
 
-Balsam_ is an ALCF Python utility for coordinating and executing workflows of
-computations on systems such as Theta. Balsam can stage in tasks to a database hosted
-on a MOM node and submit these tasks dynamically to the compute nodes. libEnsemble
-can also be submitted to Balsam for centralized execution on a compute-node.
-libEnsemble can then submit tasks to Balsam through libEnsemble's Balsam
-executor for execution on additional allocated nodes.
+Balsam_ allows libEnsemble to be run on compute nodes, and still submit tasks
+from workers (see Job Submission below). The Balsam Executor will stage in tasks
+to a database hosted on a MOM node, which will submit these tasks dynamically to
+the compute nodes.
 
-Load the Balsam module with ::
+Balsam can be installed with::
 
-    $ module load balsam/0.3.5.1
+    pip install balsam-flow
 
-Initialize a new database similarly to the following (from the Balsam docs):
+Initialize a Balsam database at a location of your choice. E.g::
 
-.. code-block:: bash
+    balsam init ~/myWorkflow
 
-    $ balsam init ~/libe-workflow
-    $ source balsamactivate libe-workflow
-    $ balsam app --name libe-app --executable "calling.py"
-    $ balsam job --name libe-job --workflow test --application libe-app --args "hello!"
-    $ balsam submit-launch -A [project] -q default -t 5 -n 1 --job-mode=mpi
-    $ watch balsam ls   #  follow status in realtime from command-line
+Further notes on using Balsam:
+
+* Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before calling ``qsub``. You can check with the script ps_nodes_.
+
+* Balsam requires PostgreSQL version 9.6.4 or later, but problems may be encountered when using the default ``pg_ctl`` and PostgreSQL 10.12 installation installed in ``/usr/bin``. This may be resolved by loading the postgresql/9.6.12 modules within submission scripts that use Balsam.
+
+* By default there are a maximum of 128 concurrent database connections. Each worker will use a connection and a few extra are needed. Increase the number of connections by appending a new ``max_connections=`` line to ``balsamdb/postgresql.conf`` in the database directory. E.g.~ ``max_connections=1024``
+
+* There is a Balsam module available (balsam/0.3.8), but the module's Python installation supersedes others when loaded. In practice, libEnsemble or other Python packages installed into another environment become inaccessible. Installing Balsam into a separate Python virtual environment is recommended instead.
 
 Read Balsam's documentation here_.
 
 .. note::
-    Balsam will create the run directories inside the data subdirectory within the database
-    directory. From here, files can be staged out to the user directory (see the example
-    batch script below).
+    Balsam creates run-specific directories inside ``data/my_workflow`` in the database
+    directory. For example: ``$HOME/my_balsam_db/data/libe_workflow/job_run_libe_forces_b7073fa9/``.
+    From here, files can be staged out (see the example batch script below).
 
 Job Submission
 --------------
 
-Theta uses Cobalt_ for job management and submission. For libEnsemble, the most
-important command is ``qsub``, for submitting batch scripts from the login nodes
-to execute on the MOM nodes.
-
 On Theta, libEnsemble can be launched to two locations:
 
     1. **A MOM Node**: All of libEnsemble's manager and worker processes
-    run on a front-end MOM node. libEnsemble's MPI executor takes
+    run centrally on a front-end MOM node. libEnsemble's MPI Executor takes
     responsibility for direct user-application submission to allocated compute nodes.
     libEnsemble must be configured to run with *multiprocessing* communications,
     since mpi4py isn't configured for use on the MOM nodes.
 
     2. **The Compute Nodes**: libEnsemble is submitted to Balsam, and all manager
-    and worker processes are tasked to a back-end compute node. libEnsemble's
-    Balsam executor interfaces with Balsam running on a MOM node for dynamic
+    and worker processes are tasked to a back-end compute node and run centrally. libEnsemble's
+    Balsam Executor interfaces with Balsam running on a MOM node for dynamic
     user-application submission to the compute nodes.
 
-    .. image:: ../images/combined_ThS.png
-        :alt: central_MOM
+    .. image:: ../images/central_balsam.png
+        :alt: central_Balsam
         :scale: 40
         :align: center
 
-When considering on which nodes to run libEnsemble, consider whether your user
-functions execute computationally expensive code or code built for specific
-architectures. Recall also that only the MOM nodes can launch MPI applications.
+When considering on which nodes to run libEnsemble, consider whether your ``sim_f``
+or ``gen_f`` user functions (not applications) execute computationally expensive
+code, or code built specifically for the compute node architecture. Recall also
+that only the MOM nodes can launch MPI applications.
 
 Although libEnsemble workers on the MOM nodes can technically submit
 user applications to the compute nodes directly via ``aprun`` within user functions, it
 is highly recommended that the aforementioned :doc:`executor<../executor/overview>`
-interface be used instead. The libEnsemble executor features advantages such as
+interface be used instead. The libEnsemble Executor features advantages such as
 automatic resource detection, portability, launch failure resilience, and ease of use.
 
 Theta features one default production queue, ``default``, and two debug queues,
@@ -185,15 +196,15 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
 
     # --- Prepare Python ---
 
-    # Load conda module
-    module load miniconda-3/latest
+    # Obtain Conda PATH from miniconda-3/latest module
+    CONDA_DIR=/soft/datascience/conda/miniconda3/latest/bin
 
     # Name of conda environment
     export CONDA_ENV_NAME=my_env
 
     # Activate conda environment
     export PYTHONNOUSERSITE=1
-    source activate $CONDA_ENV_NAME
+    source $CONDA_DIR/activate $CONDA_ENV_NAME
 
     # --- Prepare libEnsemble ---
 
@@ -206,12 +217,7 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
     # Number of workers.
     export NWORKERS='--nworkers 128'
 
-    # Conda location - theta specific
-    export PATH=/home/user/path/to/packages/:$PATH
-    export LD_LIBRARY_PATH=/home/user/path/to/packages/:$LD_LIBRARY_PATH
-    export PYTHONPATH=/home/user/path/to/env/packages:$PYTHONPATH
-
-    # Required for python kills on Theta
+    # Required for killing tasks from workers on Theta
     export PMI_NO_FORK=1
 
     # Unload Theta modules that may interfere with task monitoring/kills
@@ -229,14 +235,17 @@ libEnsemble on Theta is achieved by running ::
 Balsam Runs
 ^^^^^^^^^^^
 
-Here is an example Balsam submission script:
+Here is an example Balsam submission script. It requires a pre-initialized (but not activated)
+postgresql_ database. Note, the example runs libEnsemble over two dedicated nodes, reserving the
+other 127 nodes for launched applications. libEnsemble is run with MPI on 128 processors
+(one manager and 127 workers).:
 
 .. code-block:: bash
 
     #!/bin/bash -x
     #COBALT -t 60
     #COBALT -O libE_test
-    #COBALT -n 128
+    #COBALT -n 129
     #COBALT -q default
     #COBALT -A [project]
 
@@ -244,7 +253,10 @@ Here is an example Balsam submission script:
     export EXE=calling_script.py
 
     # Number of workers.
-    export NUM_WORKERS=128
+    export NUM_WORKERS=127
+
+    # Number of nodes to run libE
+    export LIBE_NODES=2
 
     # Wall-clock for entire libE run (supplied to Balsam)
     export LIBE_WALLCLOCK=45
@@ -252,20 +264,15 @@ Here is an example Balsam submission script:
     # Name of working directory where Balsam places running jobs/output
     export WORKFLOW_NAME=libe_workflow
 
-    #Tell libE manager to stop workers, dump timing.dat and exit after time.
-    export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
+    # If user script takes ``elapsed_wallclock_time`` argument.
+    # export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
+    export SCRIPT_ARGS=""
 
     # Name of conda environment
     export CONDA_ENV_NAME=my_env
+    export BALSAM_DB_NAME=myWorkflow
 
-    # Conda location - theta specific
-    export PATH=/path/to/python/bin:$PATH
-    export LD_LIBRARY_PATH=~/path/to/conda/env/lib:$LD_LIBRARY_PATH
-
-    #Ensure environment isolated
-    export PYTHONNOUSERSITE=1
-
-    # Required for python kills on Theta
+    # Required for killing tasks from workers on Theta
     export PMI_NO_FORK=1
 
     # Unload Theta modules that may interfere with task monitoring/kills
@@ -273,17 +280,25 @@ Here is an example Balsam submission script:
     module unload darshan
     module unload xalt
 
+    # Obtain Conda PATH from miniconda-3/latest module
+    CONDA_DIR=/soft/datascience/conda/miniconda3/latest/bin
+
+    # Ensure environment is isolated
+    export PYTHONNOUSERSITE=1
+
     # Activate conda environment
-    . activate $CONDA_ENV_NAME
+    source $CONDA_DIR/activate $CONDA_ENV_NAME
 
     # Activate Balsam database
-    . balsamactivate default
+    source balsamactivate $BALSAM_DB_NAME
 
     # Currently need at least one DB connection per worker (for postgres).
-    if [[ $NUM_WORKERS -gt 128 ]]
+    if [[ $NUM_WORKERS -gt 100 ]]
     then
-       #Add a margin
-       echo -e "max_connections=$(($NUM_WORKERS+10)) #Appended by submission script" >> $BALSAM_DB_PATH/balsamdb/postgresql.conf
+       # Add a margin
+       export BALSAM_DB_PATH=~/$BALSAM_DB_NAME  # Pre-pend with PATH
+       echo -e "max_connections=$(($NUM_WORKERS+20)) # Appended by submission script" \
+       >> $BALSAM_DB_PATH/balsamdb/postgresql.conf
     fi
     wait
 
@@ -294,18 +309,28 @@ Here is an example Balsam submission script:
     sleep 3
 
     # Add calling script to Balsam database as app and job.
-    THIS_DIR=$PWD
-    SCRIPT_BASENAME=${EXE%.*}
+    export THIS_DIR=$PWD
+    export SCRIPT_BASENAME=${EXE%.*}
+
+    export LIBE_PROCS=$((NUM_WORKERS+1))  # Manager and workers
+    export PROCS_PER_NODE=$((LIBE_PROCS/LIBE_NODES))  # Must divide evenly
 
     balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
 
-    # Running libE on one node - one manager and upto 63 workers
-    balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
+    balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME \
+    --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS \
+    --wall-time-minutes $LIBE_WALLCLOCK \
+    --num-nodes $LIBE_NODES --ranks-per-node $PROCS_PER_NODE \
+    --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" \
+    --url-in="local:/$THIS_DIR/*" --yes
 
-    #Run job
+    # Run job
     balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
 
-    . balsamdeactivate
+    wait
+    source balsamdeactivate
+
+Further examples of Balsam submission scripts can be be found in the :doc:`examples<example_scripts>`.
 
 Debugging Strategies
 --------------------
@@ -331,6 +356,9 @@ Read the documentation for Balsam here_.
 .. _Cobalt: https://www.alcf.anl.gov/support-center/theta/submit-job-theta
 .. _`Support Center`: https://www.alcf.anl.gov/support-center/theta
 .. _here: https://balsam.readthedocs.io/en/latest/
+.. .. _Balsam install: https://balsam.readthedocs.io/en/latest/#quick-setup
+.. _ps_nodes: https://github.com/Libensemble/libensemble/blob/develop/examples/misc/ps_nodes.sh
+.. _postgresql: https://www.alcf.anl.gov/support-center/theta/postgresql-and-sqlite
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _conda: https://conda.io/en/latest/
 .. _information: https://www.alcf.anl.gov/user-guides/conda

@@ -2,12 +2,13 @@
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
 import os
+import re
 import sys
 import time
 import pytest
 import socket
 from libensemble.resources.resources import ResourcesException
-from libensemble.executors.executor import Executor, ExecutorException
+from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
 from libensemble.executors.executor import NOT_STARTED_STATES
 
 
@@ -193,6 +194,39 @@ def test_launch_and_poll():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
     assert task.run_attempts == 1, "task.run_attempts should be 1. Returned " + str(task.run_attempts)
+
+
+def test_launch_and_wait():
+    """ Test of launching and waiting on task"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 1'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    task.wait()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    task.wait()  # Already complete
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+
+
+def test_launch_and_wait_timeout():
+    """ Test of launching and waiting on task timeout (and kill)"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 5'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    try:
+        task.wait(timeout=0.5)
+    except TimeoutExpired:
+        assert not task.finished, "task.finished should be False. Returned " + str(task.finished)
+        task.kill()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_launch_wait_on_run():
@@ -473,6 +507,12 @@ def test_launch_no_app():
         assert e.args[0] == 'Default sim app is not set'
     else:
         assert 0
+    try:
+        _ = exctr.submit(num_procs=cores, app_args=args_for_sim)
+    except ExecutorException as e:
+        assert e.args[0] == 'Either app_name or calc_type must be set'
+    else:
+        assert 0
 
 
 def test_kill_task_with_no_submit():
@@ -490,13 +530,17 @@ def test_kill_task_with_no_submit():
         assert 0
 
     # Create a task directly with no submit (Not supported for users)
+    # Debatably make taskID 0 as executor should be deleted if use setup function.
+    # But this allows any task ID.
+    exp_msg = ('Attempting to kill task libe_task_my_simtask.x_.+that has '
+               'no process ID - check tasks been launched')
+    exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout='stdout.txt')
     try:
         exctr.kill(task1)
     except ExecutorException as e:
-        assert e.args[0][:50] == 'Attempting to kill task task_my_simtask.x.simfunc_'
-        assert e.args[0][52:] == ' that has no process ID - check tasks been launched'
+        assert bool(re.match(exp_re, e.args[0]))
     else:
         assert 0
 
@@ -508,13 +552,15 @@ def test_poll_task_with_no_submit():
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
+    exp_msg = ('Polled task libe_task_my_simtask.x_.+ '
+               'has no process ID - check tasks been launched')
+    exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout='stdout.txt')
     try:
         task1.poll()
     except ExecutorException as e:
-        assert e.args[0][:38] == 'Polled task task_my_simtask.x.simfunc_'
-        assert e.args[0][40:] == ' has no process ID - check tasks been launched'
+        assert bool(re.match(exp_re, e.args[0]))
     else:
         assert 0
 
@@ -556,9 +602,45 @@ def test_retries_run_fail():
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
 
+def test_register_apps():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()  # This registers an app my_simtask.x (default sim)
+    exctr = Executor.executor
+    exctr.register_calc(full_path='/path/to/fake_app1.x', app_name='fake_app1')
+    exctr.register_calc(full_path='/path/to/fake_app2.py', app_name='fake_app2')
+
+    # Check selected attributes
+    app = exctr.get_app('my_simtask.x')
+    assert app.name == 'my_simtask.x'
+    assert app.gname == 'libe_app_my_simtask.x'
+
+    app = exctr.get_app('fake_app1')
+    assert app.name == 'fake_app1'
+    assert app.gname == 'libe_app_fake_app1'
+    assert app.exe == 'fake_app1.x'
+    assert app.calc_dir == '/path/to'
+
+    app = exctr.get_app('fake_app2')
+    assert app.name == 'fake_app2'
+    assert app.gname == 'libe_app_fake_app2'
+
+    py_exe, app_exe = app.full_path.split()
+    assert os.path.split(py_exe)[1].startswith('python')
+    assert app_exe == '/path/to/fake_app2.py'
+
+    try:
+        app = exctr.get_app('fake_app3')
+    except ExecutorException as e:
+        assert e.args[0] == 'Application fake_app3 not found in registry'
+        # Ordering of dictionary may vary
+        # assert e.args[1] == "Registered applications: ['my_simtask.x', 'fake_app1', 'fake_app2']"
+
+
 if __name__ == "__main__":
     # setup_module(__file__)
     test_launch_and_poll()
+    test_launch_and_wait()
+    test_launch_and_wait_timeout()
     test_launch_wait_on_run()
     test_kill_on_file()
     test_kill_on_timeout()
@@ -576,4 +658,5 @@ if __name__ == "__main__":
     test_task_failure()
     test_retries_launch_fail()
     test_retries_run_fail()
+    test_register_apps()
     # teardown_module(__file__)

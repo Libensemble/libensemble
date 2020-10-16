@@ -14,7 +14,7 @@ import time
 
 import libensemble.utils.launcher as launcher
 from libensemble.resources.mpi_resources import MPIResources
-from libensemble.executors.executor import Executor, Task
+from libensemble.executors.executor import Executor, Task, ExecutorException
 from libensemble.executors.mpi_runner import MPIRunner
 
 logger = logging.getLogger(__name__)
@@ -29,6 +29,7 @@ class MPIExecutor(Executor):
     def __init__(self, auto_resources=True,
                  allow_oversubscribe=True,
                  central_mode=False,
+                 zero_resource_workers=[],
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
@@ -62,6 +63,9 @@ class MPIExecutor(Executor):
             mode. Central mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
             Distributed mode means workers share nodes with applications.
+
+        zero_resource_workers: list of ints, optional
+            List of workers that require no resources.
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format
@@ -118,6 +122,7 @@ class MPIExecutor(Executor):
             self.resources = \
                 MPIResources(top_level_dir=self.top_level_dir,
                              central_mode=central_mode,
+                             zero_resource_workers=zero_resource_workers,
                              allow_oversubscribe=allow_oversubscribe,
                              launcher=self.mpi_runner.run_command,
                              cores_on_node=cores_on_node,
@@ -175,9 +180,9 @@ class MPIExecutor(Executor):
             else:
                 break
 
-    def submit(self, calc_type, num_procs=None, num_nodes=None,
-               ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stderr=None, stage_inout=None,
+    def submit(self, calc_type=None, app_name=None, num_procs=None,
+               num_nodes=None, ranks_per_node=None, machinefile=None,
+               app_args=None, stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules execution.
@@ -187,8 +192,12 @@ class MPIExecutor(Executor):
         Parameters
         ----------
 
-        calc_type: String
+        calc_type: String, optional
             The calculation type: 'sim' or 'gen'
+            Only used if app_name is not supplied. Uses default sim or gen application.
+
+        app_name: String, optional
+            The application name. Must be supplied if calc_type is not.
 
         num_procs: int, optional
             The total number of MPI tasks on which to submit the task
@@ -247,7 +256,13 @@ class MPIExecutor(Executor):
         then the available resources will be divided among workers.
         """
 
-        app = self.default_app(calc_type)
+        if app_name is not None:
+            app = self.get_app(app_name)
+        elif calc_type is not None:
+            app = self.default_app(calc_type)
+        else:
+            raise ExecutorException("Either app_name or calc_type must be set")
+
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
@@ -274,7 +289,7 @@ class MPIExecutor(Executor):
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
-            task.set_as_complete()
+            task._set_complete(dry_run=True)
         else:
             # Launch Task
             self._launch_with_retries(task, runline, sglaunch, wait_on_run)

@@ -103,8 +103,14 @@ The ``libE_specs`` options for TCP are::
     'authkey' [String]:
         Authkey.
 
+Limitations of TCP mode
+^^^^^^^^^^^^^^^^^^^^^^^
+
+- There cannot be two calls to ``libE`` in the same script.
+
 Persistent Workers
 ------------------
+.. _persis_worker:
 
 In a regular (non-persistent) worker, the user's generator or simulation function is called whenever the worker
 receives work. A persistent worker is one that continues to run the generator or simulation function between work units,

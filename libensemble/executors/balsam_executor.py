@@ -20,7 +20,7 @@ import datetime
 
 from libensemble.resources.mpi_resources import MPIResources
 from libensemble.executors.executor import \
-    Task, ExecutorException, jassert, STATES
+    Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
 import balsam.launcher.dag as dag
@@ -85,23 +85,17 @@ class BalsamTask(Task):
         if self.total_time is None:
             self.total_time = time.time() - self.submit_time
 
-    def poll(self):
-        """Polls and updates the status attributes of the supplied task"""
-        if not self.check_poll():
-            return
-
-        # Get current state of tasks from Balsam database
-        self.process.refresh_from_db()
-        balsam_state = self.process.state
-        self.runtime = self._get_time_since_balsam_submit()
-
-        if balsam_state in models.END_STATES:
-            self.finished = True
-            self.calc_task_timing()
+    def _set_complete(self, dry_run=False):
+        """Set task as complete"""
+        self.finished = True
+        if dry_run:
+            self.success = True
+            self.state = 'FINISHED'
+        else:
+            balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
+            self.calc_task_timing()
             self.success = (balsam_state == 'JOB_FINISHED')
-            # self.errcode - requested feature from Balsam devs
-
             if balsam_state == 'JOB_FINISHED':
                 self.state = 'FINISHED'
             elif balsam_state == 'PARENT_KILLED':  # Not currently used
@@ -116,6 +110,22 @@ class BalsamTask(Task):
             logger.info("Task {} ended with state {}".
                         format(self.name, self.state))
 
+    def poll(self):
+        """Polls and updates the status attributes of the supplied task"""
+        if self.dry_run:
+            return
+
+        if not self._check_poll():
+            return
+
+        # Get current state of tasks from Balsam database
+        self.process.refresh_from_db()
+        balsam_state = self.process.state
+        self.runtime = self._get_time_since_balsam_submit()
+
+        if balsam_state in models.END_STATES:
+            self._set_complete()
+
         elif balsam_state in models.ACTIVE_STATES:
             self.state = 'RUNNING'
             self.workdir = self.workdir or self.process.working_directory
@@ -128,6 +138,36 @@ class BalsamTask(Task):
             raise ExecutorException(
                 "Task state returned from Balsam is not in known list of "
                 "Balsam states. Task state is {}".format(balsam_state))
+
+    def wait(self, timeout=None):
+        """Waits on completion of the task or raises TimeoutExpired exception
+
+        Status attributes of task are updated on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+
+        if self.dry_run:
+            return
+
+        if not self._check_poll():
+            return
+
+        # Wait on the task
+        start = time.time()
+        self.process.refresh_from_db()
+        while self.process.state not in models.END_STATES:
+            time.sleep(0.2)
+            self.process.refresh_from_db()
+            if timeout and time.time() - start > timeout:
+                self.runtime = self._get_time_since_balsam_submit()
+                raise TimeoutExpired(self.name, timeout)
+
+        self.runtime = self._get_time_since_balsam_submit()
+        self._set_complete()
 
     def kill(self, wait_time=None):
         """ Kills or cancels the supplied task """
@@ -152,6 +192,7 @@ class BalsamMPIExecutor(MPIExecutor):
     def __init__(self, auto_resources=True,
                  allow_oversubscribe=True,
                  central_mode=True,
+                 zero_resource_workers=[],
                  nodelist_env_slurm=None,
                  nodelist_env_cobalt=None,
                  nodelist_env_lsf=None,
@@ -173,6 +214,7 @@ class BalsamMPIExecutor(MPIExecutor):
         super().__init__(auto_resources,
                          allow_oversubscribe,
                          central_mode,
+                         zero_resource_workers,
                          nodelist_env_slurm,
                          nodelist_env_cobalt,
                          nodelist_env_lsf,
@@ -185,20 +227,19 @@ class BalsamMPIExecutor(MPIExecutor):
         BalsamMPIExecutor.del_apps()
         BalsamMPIExecutor.del_tasks()
 
-        for calc_type in self.default_apps:
-            if self.default_apps[calc_type] is not None:
-                calc_name = self.default_apps[calc_type].name
-                desc = self.default_apps[calc_type].desc
-                full_path = self.default_apps[calc_type].full_path
-                self.add_app(calc_name, full_path, desc)
+        for app in self.apps.values():
+            calc_name = app.gname
+            desc = app.desc
+            full_path = app.full_path
+            self.add_app(calc_name, full_path, desc)
 
     @staticmethod
     def del_apps():
-        """Deletes all Balsam apps whose names contains .simfunc or .genfunc"""
+        """Deletes all Balsam apps in the libe_app namespace"""
         AppDef = models.ApplicationDefinition
 
         # Some error handling on deletes.... is it internal
-        for app_type in ['.simfunc', '.genfunc']:
+        for app_type in [Application.prefix]:
             deletion_objs = AppDef.objects.filter(name__contains=app_type)
             if deletion_objs:
                 for del_app in deletion_objs.iterator():
@@ -207,20 +248,14 @@ class BalsamMPIExecutor(MPIExecutor):
 
     @staticmethod
     def del_tasks():
-        """Deletes all Balsam tasks whose names contains .simfunc or .genfunc"""
-        for app_type in ['.simfunc', '.genfunc']:
+        """Deletes all Balsam tasks """
+        for app_type in [Task.prefix]:
             deletion_objs = models.BalsamJob.objects.filter(
                 name__contains=app_type)
             if deletion_objs:
                 for del_task in deletion_objs.iterator():
                     logger.debug("Deleting task {}".format(del_task.name))
                 deletion_objs.delete()
-
-        # May be able to use union function - to combine - see queryset help.
-        # Eg (not tested)
-        # del_simfuncs = Task.objects.filter(name__contains='.simfunc')
-        # del_genfuncs = Task.objects.filter(name__contains='.genfunc')
-        # deletion_objs = deletion_objs.union()
 
     @staticmethod
     def add_app(name, exepath, desc):
@@ -235,9 +270,9 @@ class BalsamMPIExecutor(MPIExecutor):
         app.save()
         logger.debug("Added App {}".format(app.name))
 
-    def submit(self, calc_type, num_procs=None, num_nodes=None,
-               ranks_per_node=None, machinefile=None, app_args=None,
-               stdout=None, stderr=None, stage_inout=None,
+    def submit(self, calc_type=None, app_name=None, num_procs=None,
+               num_nodes=None, ranks_per_node=None, machinefile=None,
+               app_args=None, stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules to execute
@@ -245,7 +280,13 @@ class BalsamMPIExecutor(MPIExecutor):
 
         The created task object is returned.
         """
-        app = self.default_app(calc_type)
+
+        if app_name is not None:
+            app = self.get_app(app_name)
+        elif calc_type is not None:
+            app = self.default_app(calc_type)
+        else:
+            raise ExecutorException("Either app_name or calc_type must be set")
 
         # Specific to this class
         if machinefile is not None:
@@ -280,7 +321,7 @@ class BalsamMPIExecutor(MPIExecutor):
         add_task_args = {'name': task.name,
                          'workflow': self.workflow_name,
                          'user_workdir': default_workdir,
-                         'application': app.name,
+                         'application': app.gname,
                          'args': task.app_args,
                          'num_nodes': num_nodes,
                          'ranks_per_node': ranks_per_node,
@@ -295,7 +336,7 @@ class BalsamMPIExecutor(MPIExecutor):
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
-            task.set_as_complete()
+            task._set_complete(dry_run=True)
         else:
             task.process = dag.add_job(**add_task_args)
 

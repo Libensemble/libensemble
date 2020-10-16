@@ -13,18 +13,18 @@ The first mode we refer to as **central** mode, where the libEnsemble manager an
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
 the remaining allocated nodes:
 
-.. image:: ../images/centralized_Bb.png
+.. image:: ../images/centralized_new.png
     :alt: centralized
-    :scale: 40
+    :scale: 30
     :align: center
 
 Alternatively, in **distributed** mode, libEnsemble is launched with the processes
 spread across nodes. The worker processes will share nodes with the applications
 they launch. There may be multiple nodes per worker, or multiple workers per node:
 
-.. image:: ../images/distributed_Bb.png
+.. image:: ../images/distributed_new.png
     :alt: distributed
-    :scale: 40
+    :scale: 30
     :align: center
 
 The distributed approach allows the libEnsemble worker to read files produced by the
@@ -90,14 +90,14 @@ gen scripts are not doing too much work (other than launching applications). Thi
 is inherently centralized. The entire node allocation is available for the worker-launched
 tasks.
 
-To run libEnsemble on the compute nodes of these systems requires an altervative Executor,
+To run libEnsemble on the compute nodes of these systems requires an alternative Executor,
 such as :doc:`Balsam<../executor/balsam_executor>`, which runs on the
-launch nodes and launches tasks submitted by workers. Running on compute nodes is potentially
-more scalable and will better manage sim and gen functions that contain considerable
-computational work or I/O.
+launch nodes and launches tasks submitted by workers. Running libEnsemble on the compute
+nodes is potentially more scalable and will better manage ``sim_f`` and ``gen_f`` functions
+that contain considerable computational work or I/O.
 
-    .. image:: ../images/combined_ThS.png
-        :alt: central_MOM
+    .. image:: ../images/central_balsam.png
+        :alt: central_balsam
         :scale: 40
         :align: center
 
@@ -128,11 +128,41 @@ as follows::
 
 Resource detection can be disabled by initializing the Executor with the argument
 ``auto_resources=False``, and users' can simply supply run
-configuration on the executor submit line. This will usually work sufficiently on systems that
+configuration on the Executor submit line. This will usually work sufficiently on systems that
 have application level scheduling (e.g: ``aprun``, ``jsrun``) as these will slot each run into
 available nodes where possible. ``jsrun`` can also queue runs. However, on
 other cluster and multi-node systems, if auto-resources is disabled, then runs without
 a hostlist or machinefile supplied may be undesirably scheduled to the same nodes.
+
+Zero-resource workers
+~~~~~~~~~~~~~~~~~~~~~
+
+Users with persistent ``gen_f`` functions may notice that the persistent workers
+are still automatically assigned system resources. This can be wasteful since those
+workers only run ``gen_f`` routines in-place and don't use the Executor to submit
+applications to allocated nodes:
+
+.. image:: ../images/persis_wasted_node.png
+    :alt: persis_wasted_node
+    :scale: 40
+    :align: center
+
+This can be resolved within the Executor definition in the calling script. Set the
+parameter ``zero_resource_workers`` to a list of worker IDs that shouldn't have
+system resources assigned. For example, when using a single instance of Persistent
+:doc:`APOSMM<../examples/aposmm>` as your ``gen_f``, the Executor definition
+may resemble::
+
+    exctr = MPIExecutor(central_mode=True, zero_resource_workers=[1])
+
+Worker 1 will now not be allocated resources. Note that additional worker
+processes can be added to take advantage of the free resources (if using the
+same resource set) for simulation instances:
+
+.. image:: ../images/persis_add_worker.png
+    :alt: persis_add_worker
+    :scale: 40
+    :align: center
 
 Overriding Auto-detection
 -------------------------

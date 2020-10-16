@@ -120,10 +120,10 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 
 This line launches libEnsemble with a manager and **three** workers to one
 allocated compute node, with three nodes available for the workers to launch
-user applications (via the executor or a direct run command such as ``mpiexec``).
+user applications (via the Executor or a direct run command such as ``mpiexec``).
 
 This is an example of running in :doc:`centralized<platforms_index>` mode;
-if using the :doc:`executor<../executor/ex_index>`, it should
+if using the :doc:`Executor<../executor/ex_index>`, it should
 be initiated with ``central_mode=True``. libEnsemble must be run in central mode
 on Cori because jobs cannot share nodes.
 

@@ -5,11 +5,12 @@ optimization routines.
 __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
+import psutil
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
-
 import libensemble.gen_funcs
+
 optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
@@ -83,8 +84,8 @@ class LocalOptInterfacer(object):
             immediately after creating the class.
 
         """
-        self.parent_can_read = Event()
 
+        self.parent_can_read = Event()
         self.comm_queue = Queue()
         self.child_can_read = Event()
 
@@ -133,6 +134,7 @@ class LocalOptInterfacer(object):
         :param grad: A numpy array of the function's gradient.
         :param fvec: A numpy array of the function's component values.
         """
+
         self.parent_can_read.clear()
 
         if 'grad' in data.dtype.names:
@@ -149,29 +151,23 @@ class LocalOptInterfacer(object):
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
         elif isinstance(x_new, ConvergedMsg):
-            self.process.join()
-            self.comm_queue.close()
-            self.comm_queue.join_thread()
-            self.is_running = False
+            self.close()
         else:
             x_new = np.atleast_2d(x_new)
 
         return x_new
 
-    def destroy(self, previous_x):
+    def destroy(self):
+        """Recursively kill any optimizer processes still running"""
+        if self.process.is_alive():
+            process = psutil.Process(self.process.pid)
+            for child in process.children(recursive=True):
+                child.kill()
+            process.kill()
+        self.close()
 
-        while not isinstance(previous_x, ConvergedMsg):
-            self.parent_can_read.clear()
-            if self.grad0 is None:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0),))
-            else:
-                self.comm_queue.put((previous_x, 0*np.ones_like(self.f0), np.zeros_like(self.grad0)))
-
-            self.child_can_read.set()
-            self.parent_can_read.wait()
-
-            previous_x = self.comm_queue.get()
-        assert isinstance(previous_x, ConvergedMsg)
+    def close(self):
+        """Join process and close queue"""
         self.process.join()
         self.comm_queue.close()
         self.comm_queue.join_thread()
@@ -230,13 +226,13 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
         # https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#return-values
         opt_flag = 1
     elif return_val >= 5:
-        print("The run started from " + str(x0) + " reached it maximum number "
+        print("[APOSMM] The run started from " + str(x0) + " reached its maximum number "
               "of function evaluations: " + str(run_max_eval) + ". No point from "
               "this run will be ruled as a minimum! APOSMM may start a new run "
               "from some point in this run.")
         opt_flag = 0
     else:
-        print("NLopt returned with a negative return value, which indicates an error")
+        print("[APOSMM] NLopt returned with a negative return value, which indicates an error")
         opt_flag = 0
 
     if user_specs.get('periodic'):
@@ -274,7 +270,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     if res['status'] in user_specs['opt_return_codes']:
         opt_flag = 1
     else:
-        print("The SciPy localopt run started from " + str(x0) + " stopped"
+        print("[APOSMM] The SciPy localopt run started from " + str(x0) + " stopped"
               " without finding a local min.\nThe 'status' of the run is " + str(res['status']) +
               " and the message is: \"" + res['message'] +
               "\".\nNo point from this run will be ruled as a minimum! APOSMM may "
@@ -367,7 +363,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     if soln.flag == soln.EXIT_SUCCESS:
         opt_flag = 1
     else:
-        print("The DFO-LS run started from " + str(x0) + " stopped with an exit "
+        print("[APOSMM] The DFO-LS run started from " + str(x0) + " stopped with an exit "
               "flag of " + str(soln.flag) + ". No point from this run will be "
               "ruled as a minimum! APOSMM may start a new run from some point "
               "in this run.")
@@ -446,7 +442,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         opt_flag = 1
     else:
         # https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Tao/TaoGetConvergedReason.html
-        print("The run started from " + str(x0) + " exited with a nonpositive reason. No point from "
+        print("[APOSMM] The run started from " + str(x0) + " exited with a nonpositive reason. No point from "
               "this run will be ruled as a minimum! APOSMM may start a new run from some point in this run.")
         opt_flag = 0
 
@@ -524,7 +520,7 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
 def finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs):
 
     if user_specs.get('print') and opt_flag:
-        print('Local optimum on the [0,1]^n domain', x_opt, flush=True)
+        print('[APOSMM] Local optimum on the [0,1]^n domain', x_opt, flush=True)
     comm_queue.put(ConvergedMsg(x_opt, opt_flag))
     parent_can_read.set()
 

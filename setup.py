@@ -30,7 +30,7 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.7.0',
+    version='0.7.1',
     description='Library to coordinate the concurrent evaluation of dynamic ensembles of calculations',
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
@@ -53,7 +53,7 @@ setup(
 
     package_data={'libensemble.sim_funcs.branin': ['known_minima_and_func_values']},
 
-    install_requires=['numpy'],
+    install_requires=['numpy', 'psutil'],
 
     # If run tests through setup.py - downloads these but does not install
     tests_require=['pytest>=3.1',
@@ -64,8 +64,8 @@ setup(
                    ],
 
     extras_require={
-        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap'],
-        'docs': ['sphinxcontrib.bibtex']},
+        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap', 'mpmath'],
+        'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
 
     classifiers=[
         'Development Status :: 4 - Beta',

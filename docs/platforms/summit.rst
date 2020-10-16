@@ -58,6 +58,60 @@ Or, you can install via ``conda``:
 See :doc:`here<../advanced_installation>` for more information on advanced options
 for installing libEnsemble.
 
+Special note on resource sets and Executor submit options
+---------------------------------------------------------
+
+When using the portable MPI run configuration options (e.g., num_nodes) to the
+:doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function, it is important
+to note that, due to the `resource sets`_ used on Summit, the options refer to
+resource sets as follows:
+
+- num_procs (int, optional) – The total number resource sets for this run.
+
+- num_nodes (int, optional) – The number of nodes on which to submit the run.
+
+- ranks_per_node (int, optional) – The number of resource sets per node.
+
+It is recommended that the user defines a resource set as the minimal configuration
+of CPU cores/processes and GPUs. These can be added to the ``extra_args`` option
+of the *submit* function. Alternatively, the portable options can be ignored and
+everything expressed in ``extra_args``.
+
+For example, the following *jsrun* line would run three resource sets,
+each having one core (with one process), and one GPU, along with some extra options::
+
+    jsrun -n 3 -a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu"
+
+To express this line in the ``submit`` function may look
+something like the following::
+
+    exctr = Executor.executor
+    task = exctr.submit(app_name='mycode',
+                        num_procs=3,
+                        extra_args='-a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu"'
+                        app_args="-i input")
+
+This would be equivalent to::
+
+    exctr = Executor.executor
+    task = exctr.submit(app_name='mycode',
+                        extra_args='-n 3 -a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu"'
+                        app_args="-i input")
+
+The auto-resources in the Executor works out the resources available to each worker,
+but unlike some other systems, ``jsrun`` on Summit dynamically schedules runs to
+available slots across and within nodes. It can also queue tasks. This allows variable
+size runs to easily be handled on Summit. If these runs over-use the auto-resource
+allocations, auto_resources can be turned off in the Executor setup. E.g: In the
+calling script::
+
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor(central_mode=True, auto_resources=False)
+
+In the above example, the task being submitted used three GPUs, which is half those
+available on a Summit node, and thus two such tasks may be allocated to each node
+(from different workers), if they were running at the same time.
+
 Job Submission
 --------------
 
@@ -153,3 +207,4 @@ See the OLCF guides_ for more information about Summit.
 .. _guides: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
 .. _conda: https://conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
+.. _resource sets: https://docs.olcf.ornl.gov/systems/summit_user_guide.html#job-launcher-jsrun

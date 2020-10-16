@@ -84,12 +84,16 @@ pip install coveralls || return
 git clone -b $LIBE_BRANCH https://github.com/Libensemble/libensemble.git || return
 cd libensemble/ || return
 pip install -e . || return
+
+wget https://github.com/balsam-alcf/balsam/archive/0.3.8.tar.gz
+mkdir ../balsam; tar xf 0.3.8.tar.gz -C ../balsam
 python install/configure_balsam_install.py
 export BALSAM_DB_PATH=~/test-balsam
 ulimit -Sn 10000
 
 if [ "$RUN_TESTS" = true ]; then
     ./libensemble/tests/run-tests.sh -z
+fi
 
 echo -e "\n\nScript completed...\n\n"
 set +ex

@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
 def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -18,6 +18,8 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     """
 
     Work = {}
+    gen_count = count_persis_gens(W)
+
     if persis_info.get('first_call', True):
         assert np.all(H['given']), "Initial points in H have never been given."
         assert np.all(H['given_back']), "Initial points in H have never been given_back."
@@ -33,6 +35,9 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         persis_info['samples_in_H0'] = sum(H['local_pt'] == 0)
         persis_info['next_to_give'] = len(H)  #
         persis_info['first_call'] = False
+    elif gen_count == 0:
+        # The one persistent gen is done. Exiting
+        return Work, persis_info, 1
 
     # If any persistent worker's calculated values have returned, give them back.
     for i in avail_worker_ids(W, persistent=True):

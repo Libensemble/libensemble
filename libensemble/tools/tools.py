@@ -35,15 +35,14 @@ _USER_SIM_ID_WARNING = \
     ('\n' + 79*'*' + '\n' +
      "User generator script will be creating sim_id.\n" +
      "Take care to do this sequentially.\n" +
-     "Also, any information given back for existing sim_id values will be overwritten!\n" +
-     "So everything in gen_specs['out'] should be in gen_specs['in']!" +
+     "Information given back to the gen_f for existing sim_id values may be overwritten!\n" +
      '\n' + 79*'*' + '\n\n')
 
 # ==================== Ensemble directory re-use error =========================
 
-_USER_SIM_DIR_WARNING = \
+_USER_CALC_DIR_WARNING = \
     ('\n' + 79*'*' + '\n' +
-     "libEnsemble attempted to reuse {} as a parent directory for sim_dirs.\n" +
+     "libEnsemble attempted to reuse {} as a parent directory for calc dirs.\n" +
      "If allowed to continue, previous results may have been overwritten!\n" +
      "Resolve this by ensuring libE_specs['ensemble_dir_path'] is unique for each run." +
      '\n' + 79*'*' + '\n\n')

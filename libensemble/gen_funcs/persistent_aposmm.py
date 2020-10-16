@@ -10,7 +10,8 @@ __all__ = ['aposmm', 'initialize_APOSMM', 'decide_where_to_start_localopt', 'upd
 
 import numpy as np
 from scipy.spatial.distance import cdist
-from math import log, gamma, pi, sqrt
+from math import log, pi, sqrt
+from mpmath import gamma
 from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, ConvergedMsg, simulate_recv_from_manager
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
@@ -45,6 +46,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'grad' [n floats]``: The gradient (if available) of the objective with respect to `x`.
 
     Note:
+
     - If any of the above fields are desired after a libEnsemble run, name
       them in ``gen_specs['out']``.
     - If intitializing APOSMM with past function values, make sure to include
@@ -57,7 +59,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
-      (see 'advance_local_run' below for supported methods)
+      (see 'advance_local_run' below for supported methods). When using a SciPy
+      method, must supply ``'opt_return_codes'``, a list of integers that will
+      be used to determine if the x produced by the localopt method should be
+      ruled a local minimum. (For example, SciPy's COBYLA has a 'status' of 1 if
+      at an optimum, but SciPy's Nelder-Mead and BFGS have a 'status' of 0 if at
+      an optimum.)
     - ``'initial_sample_size' [int]``: Number of uniformly sampled points
       must be returned (non-nan value) before a local opt run is started. Can be
       zero if no additional sampling is desired, but if zero there must be past
@@ -133,107 +140,116 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-    user_specs = gen_specs['user']
 
-    n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
-    local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass = initialize_children(user_specs)
-
-    if user_specs['initial_sample_size'] != 0:
-        # Send our initial sample. We don't need to check that n_s is large enough:
-        # the alloc_func only returns when the initial sample has function values.
-        persis_info = add_k_sample_points_to_local_H(user_specs['initial_sample_size'], user_specs,
-                                                     persis_info, n, comm, local_H,
-                                                     sim_id_to_child_inds)
-        if not user_specs.get('standalone'):
-            send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
-        something_sent = True
-    else:
-        something_sent = False
-
-    tag = None
-    first_pass = True
-    while 1:
-        new_opt_inds_to_send_mgr = []
-        new_inds_to_send_mgr = []
-
-        if something_sent:
-            if user_specs.get('standalone'):
-                tag, Work, calc_in = simulate_recv_from_manager(local_H, gen_specs)
-            else:
-                tag, Work, calc_in = get_mgr_worker_msg(comm)
-
-            if tag in [STOP_TAG, PERSIS_STOP]:
-                clean_up_and_stop(local_H, local_opters, run_order)
-                persis_info['run_order'] = run_order
-                break
-
-            n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
-
-            for row in calc_in:
-                if sim_id_to_child_inds.get(row['sim_id']):
-                    # Point came from a child local opt run
-                    for child_idx in sim_id_to_child_inds[row['sim_id']]:
-                        x_new = local_opters[child_idx].iterate(row[fields_to_pass])
-                        if isinstance(x_new, ConvergedMsg):
-                            x_opt = x_new.x
-                            opt_flag = x_new.opt_flag
-                            opt_ind = update_history_optimal(x_opt, opt_flag, local_H, run_order[child_idx])
-                            new_opt_inds_to_send_mgr.append(opt_ind)
-                            local_opters.pop(child_idx)
-                        else:
-                            add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
-                            new_inds_to_send_mgr.append(len(local_H)-1)
-
-                            run_order[child_idx].append(local_H[-1]['sim_id'])
-                            run_pts[child_idx].append(x_new)
-                            if local_H[-1]['sim_id'] in sim_id_to_child_inds:
-                                sim_id_to_child_inds[local_H[-1]['sim_id']] += (child_idx, )
-                            else:
-                                sim_id_to_child_inds[local_H[-1]['sim_id']] = (child_idx, )
-
-        starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
-
-        for ind in starting_inds:
-            if len([p for p in local_opters.values() if p.is_running]) < user_specs.get('max_active_runs', np.inf):
-                local_H['started_run'][ind] = 1
-
-                # Initialize a local opt run
-                local_opter = LocalOptInterfacer(user_specs, local_H[ind]['x_on_cube'],
-                                                 local_H[ind]['f'] if 'f' in fields_to_pass else local_H[ind]['fvec'],
-                                                 local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
-
-                local_opters[total_runs] = local_opter
-
-                x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second point can't be ruled optimal
-
-                add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
-                new_inds_to_send_mgr.append(len(local_H)-1)
-
-                run_order[total_runs] = [ind, local_H[-1]['sim_id']]
-                run_pts[total_runs] = [local_H['x_on_cube'], x_new]
-
-                if local_H[-1]['sim_id'] in sim_id_to_child_inds:
-                    sim_id_to_child_inds[local_H[-1]['sim_id']] += (total_runs, )
-                else:
-                    sim_id_to_child_inds[local_H[-1]['sim_id']] = (total_runs, )
-
-                total_runs += 1
-
-        if first_pass:
-            num_samples_needed = persis_info['nworkers'] - 1 - len(new_inds_to_send_mgr)
-            first_pass = False
+    try:
+        user_specs = gen_specs['user']
+        n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
+        local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass = initialize_children(user_specs)
+        if user_specs['initial_sample_size'] != 0:
+            # Send our initial sample. We don't need to check that n_s is large enough:
+            # the alloc_func only returns when the initial sample has function values.
+            persis_info = add_k_sample_points_to_local_H(user_specs['initial_sample_size'], user_specs,
+                                                         persis_info, n, comm, local_H,
+                                                         sim_id_to_child_inds)
+            if not user_specs.get('standalone'):
+                send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
+            something_sent = True
         else:
-            num_samples_needed = n_r-len(new_inds_to_send_mgr)
+            something_sent = False
 
-        if num_samples_needed > 0:
-            persis_info = add_k_sample_points_to_local_H(num_samples_needed, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds)
-            new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_samples_needed, len(local_H)))
+        tag = None
+        first_pass = True
+        while 1:
+            new_opt_inds_to_send_mgr = []
+            new_inds_to_send_mgr = []
 
-        if not user_specs.get('standalone'):
-            send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
-        something_sent = True
+            if something_sent:
+                if user_specs.get('standalone'):
+                    tag, Work, calc_in = simulate_recv_from_manager(local_H, gen_specs)
+                else:
+                    tag, Work, calc_in = get_mgr_worker_msg(comm)
 
-    return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
+                if tag in [STOP_TAG, PERSIS_STOP]:
+                    clean_up_and_stop(local_opters)
+                    persis_info['run_order'] = run_order
+                    break
+
+                if np.sum(local_H['local_min']) >= user_specs.get('stop_after_this_many_minima', np.inf):
+                    # This break happens here so the manager can be informed about the last minima.
+                    break
+
+                n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
+
+                for row in calc_in:
+                    if sim_id_to_child_inds.get(row['sim_id']):
+                        # Point came from a child local opt run
+                        for child_idx in sim_id_to_child_inds[row['sim_id']]:
+                            x_new = local_opters[child_idx].iterate(row[fields_to_pass])
+                            if isinstance(x_new, ConvergedMsg):
+                                x_opt = x_new.x
+                                opt_flag = x_new.opt_flag
+                                opt_ind = update_history_optimal(x_opt, opt_flag, local_H, run_order[child_idx])
+                                new_opt_inds_to_send_mgr.append(opt_ind)
+                                local_opters.pop(child_idx)
+                            else:
+                                add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
+                                new_inds_to_send_mgr.append(len(local_H)-1)
+
+                                run_order[child_idx].append(local_H[-1]['sim_id'])
+                                run_pts[child_idx].append(x_new)
+                                if local_H[-1]['sim_id'] in sim_id_to_child_inds:
+                                    sim_id_to_child_inds[local_H[-1]['sim_id']] += (child_idx, )
+                                else:
+                                    sim_id_to_child_inds[local_H[-1]['sim_id']] = (child_idx, )
+
+            starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
+
+            for ind in starting_inds:
+                if len([p for p in local_opters.values() if p.is_running]) < user_specs.get('max_active_runs', np.inf):
+                    local_H['started_run'][ind] = 1
+
+                    # Initialize a local opt run
+                    local_opter = LocalOptInterfacer(user_specs, local_H[ind]['x_on_cube'],
+                                                     local_H[ind]['f'] if 'f' in fields_to_pass else local_H[ind]['fvec'],
+                                                     local_H[ind]['grad'] if 'grad' in fields_to_pass else None)
+
+                    local_opters[total_runs] = local_opter
+
+                    x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second point can't be ruled optimal
+
+                    add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
+                    new_inds_to_send_mgr.append(len(local_H)-1)
+
+                    run_order[total_runs] = [ind, local_H[-1]['sim_id']]
+                    run_pts[total_runs] = [local_H['x_on_cube'], x_new]
+
+                    if local_H[-1]['sim_id'] in sim_id_to_child_inds:
+                        sim_id_to_child_inds[local_H[-1]['sim_id']] += (total_runs, )
+                    else:
+                        sim_id_to_child_inds[local_H[-1]['sim_id']] = (total_runs, )
+
+                    total_runs += 1
+
+            if first_pass:
+                num_samples_needed = persis_info['nworkers'] - 1 - len(new_inds_to_send_mgr)
+                first_pass = False
+            else:
+                num_samples_needed = n_r-len(new_inds_to_send_mgr)
+
+            if num_samples_needed > 0:
+                persis_info = add_k_sample_points_to_local_H(num_samples_needed, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds)
+                new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_samples_needed, len(local_H)))
+
+            if not user_specs.get('standalone'):
+                send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
+            something_sent = True
+
+        return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    finally:
+        try:
+            clean_up_and_stop(local_opters)
+        except NameError:
+            pass
 
 
 def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass):
@@ -397,19 +413,19 @@ def update_history_optimal(x_opt, opt_flag, H, run_inds):
     # assert dists[ind] <= tol_x1, "Closest point to x_opt not within {}?".format(tol_x1)
 
     if dists[ind] > tol_x1:
-        print("Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]) + "\n" +
-              "Check that the local optimizer is working correctly\n", x_opt, run_inds, flush=True)
+        print("[APOSMM] Dist from reported x_opt to closest evaluated point is: " + str(dists[ind]) + "\n" +
+              "[APOSMM] Check that the local optimizer is working correctly\n", x_opt, run_inds, flush=True)
 
     tol_x2 = 1e-8
     failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < tol_x2)
     if opt_flag:
         if np.any(failsafe):
-            print("This run has {} point(s) with smaller 'f' value within {} of "
+            print("[APOSMM] This run has {} point(s) with smaller 'f' value within {} of "
                   "the point ruled to be the run minimum. \nMarking all as being "
                   "a 'local_min' to prevent APOSMM from starting another run "
                   "immediately from these points.".format(sum(failsafe), tol_x2))
-            print("Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
-            print("Check that the local optimizer is working correctly", flush=True)
+            print("[APOSMM] Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
+            print("[APOSMM] Check that the local optimizer is working correctly", flush=True)
             H['local_min'][run_inds[failsafe]] = 1
 
         H['local_min'][opt_ind] = 1
@@ -611,7 +627,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
 
         over_written_fields = ['dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l', 'ind_of_better_s']
         if any([i in H.dtype.names for i in over_written_fields]):
-            print("\n persistent_aposmm ignores any given values in these fields: " + str(over_written_fields) + "\n")
+            print("\n[APOSMM] persistent_aposmm ignores any given values in these fields: " + str(over_written_fields) + "\n")
 
         initialize_dists_and_inds(local_H, len(H))
 
@@ -666,14 +682,15 @@ def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H,
     return persis_info
 
 
-def clean_up_and_stop(local_H, local_opters, run_order):
+# def clean_up_and_stop(local_H, local_opters):
+def clean_up_and_stop(local_opters):
     # FIXME: This has to be a clean exit.
 
     # print('[Parent]: The optimal points and values are:\n',
     #       local_H[np.where(local_H['local_min'])][['x', 'f']], flush=True)
 
     for i, p in local_opters.items():
-        p.destroy(local_H['x_on_cube'][run_order[i][-1]])
+        p.destroy()
 
 
 # def display_exception(e):

@@ -16,18 +16,23 @@ Before release
 - Release notes for this version are added to the documentation with release
   date, including a list of supported (tested) platforms.
 
-- Version number is updated wherever it appears
+- Version number is updated wherever it appears (and ``+dev`` suffix is removed)
   (in ``setup.py``, ``libensemble/__init__.py``, ``README.rst`` and twice in ``docs/conf.py``)
 
 - Year in ``README.rst`` under *Citing libEnsemble* and in ``docs/conf.py`` is checked for correctness.
 
 - ``setup.py`` and ``libensemble/__init__.py`` are checked to ensure all information is up to date.
 
+- ``MANIFEST.in`` is checked. Locally, try out ``python setup.py sdist`` and check created tarball.
+  contains correct files and directories for PyPI package.
+
 - Tests are run with source to be released (this may iterate):
 
   - On-line CI (currently Travis) tests must pass.
 
   - Scaling tests must be run on HPC platforms listed as supported in release notes.
+    Test variants by platform, launch mechanism, scale, and other factors can
+    be configured and exported by the libE-Templater_.
 
   - Coverage must not have decreased unless there is a justifiable reason.
 
@@ -57,6 +62,8 @@ An administrator will take the following steps.
 
 - If the merge was made from a release branch (instead of develop), merge this branch into develop.
 
+- Create a new commit on develop that appends ``+dev`` to the version number (wherever is appears).
+
 After release
 -------------
 
@@ -64,3 +71,5 @@ After release
   on the kanban project board (inc. the release checklist).
 
 - Email libEnsemble mailing list, and notify the `everyone` channel in the libEnsemble Slack workspace.
+
+.. _libE-Templater: https://github.com/Libensemble/libE-templater
