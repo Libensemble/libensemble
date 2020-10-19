@@ -20,7 +20,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys
+from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, libE_spec_calc_dir_misc
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
@@ -162,6 +162,10 @@ class Worker:
 
         prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         do_work_dirs = libE_specs.get('use_worker_dirs', False)
+
+        # If 'use_worker_dirs' only calc_dir option. Use worker dirs, but no calc dirs
+        if do_work_dirs and not libE_specs.get('sim_dirs_make') and not libE_specs.get('gen_dirs_make'):
+            do_calc_dirs = False
 
         # If using calc_input_dir, set of files to copy is contents of provided dir
         if calc_input_dir:
@@ -327,6 +331,8 @@ class Worker:
             dir_type_keys = libE_spec_sim_dir_keys
         else:
             dir_type_keys = libE_spec_gen_dir_keys
+
+        dir_type_keys += libE_spec_calc_dir_misc
 
         return any([setting in self.libE_specs for setting in dir_type_keys])
 
