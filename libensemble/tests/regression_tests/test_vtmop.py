@@ -57,7 +57,7 @@ def sim_f(H, *unused):
 
 
 # Set up the problem
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 lower_bounds = lower*np.ones(num_dims)
 upper_bounds = upper*np.ones(num_dims)
 
@@ -156,7 +156,7 @@ for run in range(3):
         except OSError:
             pass
 
-        if is_master:
+        if is_manager:
             os.rename('vtmop.chkpt_finishing_' + s1, 'vtmop.chkpt')
             np.save('H_for_vtmop_restart.npy', H)
             open('manager_done_file', 'w').close()
@@ -186,8 +186,8 @@ for run in range(3):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
 
-    # The master takes care of checkpointing/output
-    if is_master:
+    # The manager takes care of checkpointing/output
+    if is_manager:
         # Renaming vtmop checkpointing file, if needed for later use.
         timer.start()
         s1 = timer.date_start.replace(' ', '_')

@@ -32,7 +32,7 @@ libE_specs = {'comm': MPI.COMM_WORLD,
               }
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
-is_master = MPI.COMM_WORLD.Get_rank() == 0
+is_manager = MPI.COMM_WORLD.Get_rank() == 0
 
 cores_per_task = 1
 
@@ -68,7 +68,7 @@ exit_criteria = {'elapsed_wallclock_time': 60}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     print('\nChecking expected task status against Workers ...\n')
     calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR,
                                       WORKER_DONE, WORKER_KILL_ON_TIMEOUT,

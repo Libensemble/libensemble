@@ -9,7 +9,7 @@ from mpi4py import MPI
 libE_specs = {'comms': 'mpi'}                   # 'nworkers' removed, 'comms' now 'mpi'
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1        # one process belongs to manager
-is_master = (MPI.COMM_WORLD.Get_rank() == 0)    # master process has MPI rank 0
+is_manager = (MPI.COMM_WORLD.Get_rank() == 0)   # manager process has MPI rank 0
 
 gen_specs = {'gen_f': gen_random_sample,        # Our generator function
              'out': [('x', float, (1,))],       # gen_f output (name, type, size).
@@ -31,8 +31,8 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
 # Some (optional) statements to visualize our History array
-# Only the master process should execute this
-if is_master:
+# Only the manager process should execute this
+if is_manager:
     print([i for i in H.dtype.fields])
     print(H)
 

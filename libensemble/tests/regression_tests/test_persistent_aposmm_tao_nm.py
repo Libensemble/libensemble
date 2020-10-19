@@ -28,7 +28,7 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -60,7 +60,7 @@ exit_criteria = {'sim_max': 1000}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
     assert np.sum(~H['local_pt']) > 100, "Had to do at least 100 sample points"
     assert np.sum(H['local_pt']) > 100, "Why didn't at least 100 local points occur?"

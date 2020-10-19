@@ -27,7 +27,7 @@ from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_fo
 from libensemble.tools import parse_args, add_unique_random_streams
 
 # Parse args for test code
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -58,7 +58,7 @@ alloc_specs = {'out': [], 'alloc_f': alloc_f}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     assert flag == 0
     # Change the last weights to correct values (H is a list on other cores and only array on manager)
     ind = 2*gen_specs['user']['subbatch_size']*gen_specs['user']['num_subbatches']

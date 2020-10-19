@@ -332,7 +332,7 @@ of the calling script as follows:
     libE_specs = {'comms': 'mpi'}                 # 'nworkers' removed, 'comms' now 'mpi'
 
     nworkers = MPI.COMM_WORLD.Get_size() - 1
-    is_master = (MPI.COMM_WORLD.Get_rank() == 0)  # master process has MPI rank 0
+    is_manager = (MPI.COMM_WORLD.Get_rank() == 0)  # master process has MPI rank 0
 
 So that only one process executes the graphing and printing portion of our code,
 modify the bottom of the calling script like this:
@@ -344,7 +344,7 @@ modify the bottom of the calling script like this:
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 libE_specs=libE_specs)
 
-    if is_master:
+    if is_manager:
         # Some (optional) statements to visualize our history array
         print([i for i in H.dtype.fields])
         print(H)

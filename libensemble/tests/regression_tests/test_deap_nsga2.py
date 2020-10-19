@@ -16,7 +16,7 @@ from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
 from libensemble.gen_funcs.persistent_deap_nsga2 import deap_nsga2 as gen_f
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 
 def deap_six_hump(H, persis_info, sim_specs, _):
@@ -28,7 +28,7 @@ def deap_six_hump(H, persis_info, sim_specs, _):
     return Out, persis_info
 
 
-if is_master:
+if is_manager:
     start_time = time()
 
 assert nworkers >= 2, "Cannot run with a persistent gen_f if only one worker."
@@ -103,7 +103,7 @@ for run in range(2):
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
-    if is_master:
+    if is_manager:
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"
         assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."

@@ -27,7 +27,7 @@ from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first a
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info, aposmm_gen_out as gen_out
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Declare the run parameters/functions
 m = 214
@@ -76,7 +76,7 @@ exit_criteria = {'sim_max': budget}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     assert flag == 0
     assert len(H) >= budget
     save_libE_output(H, persis_info, __file__, nworkers)
