@@ -31,7 +31,7 @@ c_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('com
 print('creating ensemble dir: ', c_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
-    if is_master and not os.path.isdir(dir):
+    if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True

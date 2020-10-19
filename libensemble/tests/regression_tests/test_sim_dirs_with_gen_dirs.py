@@ -37,7 +37,7 @@ print('creating ensemble dir: ', c_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy_sim, dir_to_symlink_sim,
             gen_input_dir, dir_to_copy_gen, dir_to_symlink_gen]:
-    if is_master and not os.path.isdir(dir):
+    if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True
