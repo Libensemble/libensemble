@@ -12,6 +12,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
+        `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling_async.py>`_ # noqa
     """
 
     Work = {}
@@ -21,18 +22,33 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # The one persistent worker is done. Exiting
         return Work, persis_info, 1
 
-    # If i is in persistent mode, and all of its calculated values have
-    # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
-        gen_inds = (H['gen_worker'] == i)
-        if np.all(H['returned'][gen_inds]):
-            last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
-            inds_of_last_batch_from_gen = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
-            gen_work(Work, i,
-                     sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
-                     np.atleast_1d(inds_of_last_batch_from_gen), persis_info[i], persistent=True)
+        if gen_specs['user'].get('async', False):
+            # If i is in persistent mode, asynchronous behavior is desired, and
+            # *any* of its calculated values have returned, give them back to i.
+            # Otherwise, give nothing to i
+            returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], H['gen_worker'] == i))
+            if np.any(returned_but_not_given):
+                inds_to_give = np.where(returned_but_not_given)[0]
+                gen_work(Work, i,
+                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
+                         np.atleast_1d(inds_to_give), persis_info[i], persistent=True)
 
-            H['given_back'][inds_of_last_batch_from_gen] = True
+                H['given_back'][inds_to_give] = True
+
+        else:
+            # If i is in persistent mode, batch behavior is desired, and
+            # *all* of its calculated values have returned, give them back to i.
+            # Otherwise, give nothing to i
+            gen_inds = (H['gen_worker'] == i)
+            if np.all(H['returned'][gen_inds]):
+                last_time_gen_gave_batch = np.max(H['gen_time'][gen_inds])
+                inds_to_give = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
+                gen_work(Work, i,
+                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
+                         np.atleast_1d(inds_to_give), persis_info[i], persistent=True)
+
+                H['given_back'][inds_to_give] = True
 
     task_avail = ~H['given']
     for i in avail_worker_ids(W, persistent=False):
