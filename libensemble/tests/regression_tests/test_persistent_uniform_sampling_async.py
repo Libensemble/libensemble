@@ -24,7 +24,7 @@ from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -55,7 +55,7 @@ exit_criteria = {'gen_max': 100, 'elapsed_wallclock_time': 300}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     [_, counts] = np.unique(H['gen_time'], return_counts=True)
     assert counts[0] == nworkers - 1, "The first gen_time should be common among gen_batch_size number of points"
     assert len(np.unique(counts)) > 1, "There is no variablitiy in the gen_times but there should be for the async case"

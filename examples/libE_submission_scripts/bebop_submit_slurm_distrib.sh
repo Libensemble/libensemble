@@ -46,7 +46,7 @@ fi;
 #-----------------------------------------------------------------------------
 
 # A little useful information
-echo -e "Master process running on: $HOSTNAME"
+echo -e "Manager process running on: $HOSTNAME"
 echo -e "Directory is:  $PWD"
 
 # Generate a node list with 1 node per line:

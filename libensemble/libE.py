@@ -221,16 +221,16 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
     with DupComm(libE_specs['comm']) as comm:
         rank = comm.Get_rank()
-        is_master = (rank == 0)
+        is_manager = (rank == 0)
 
         exctr = Executor.executor
         if exctr is not None:
             local_host = socket.gethostname()
             libE_nodes = list(set(comm.allgather(local_host)))
-            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_manager)
 
         # Run manager or worker code, depending
-        if is_master:
+        if is_manager:
             return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs, H0)
 

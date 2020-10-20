@@ -29,7 +29,7 @@ from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want
     # repeated calls to libE -- the manager sets up a different server
@@ -80,7 +80,7 @@ exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
-if is_master:
+if is_manager:
     assert flag == 0
     save_libE_output(H, persis_info, __file__, nworkers)
 
@@ -89,7 +89,7 @@ alloc_specs['user'].pop('stop_on_NaNs')
 persis_info = deepcopy(persis_info_safe)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
-if is_master:
+if is_manager:
     assert flag == 0
 
 # Perform the run also not stopping on partial fvec evals
@@ -97,5 +97,5 @@ alloc_specs['user'].pop('stop_partial_fvec_eval')
 persis_info = deepcopy(persis_info_safe)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
-if is_master:
+if is_manager:
     assert flag == 0

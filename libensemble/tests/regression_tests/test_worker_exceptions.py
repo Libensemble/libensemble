@@ -21,7 +21,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE_manager import ManagerException
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 n = 2
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
@@ -50,5 +50,5 @@ except ManagerException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0
 
-if is_master:
+if is_manager:
     assert return_flag == 0

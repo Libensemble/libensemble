@@ -31,9 +31,9 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
-if is_master:
+if is_manager:
     start_time = time()
 
 if nworkers < 2:
@@ -72,7 +72,7 @@ exit_criteria = {'sim_max': 1000}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
     print('[Manager]: Time taken =', time() - start_time, flush=True)
 
