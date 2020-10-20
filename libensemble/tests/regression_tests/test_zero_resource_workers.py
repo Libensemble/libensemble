@@ -87,7 +87,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
 # --------------------------------------------------------------------
 
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
@@ -104,7 +104,7 @@ nsim_workers = nworkers-len(in_place)
 comms = libE_specs['comms']
 nodes_per_worker = 2
 node_file = 'nodelist_zero_resource_workers_' + str(comms) + '_wrks_' + str(nworkers)
-if is_master:
+if is_manager:
     if os.path.exists(node_file):
         os.remove(node_file)
     with open(node_file, 'w') as f:

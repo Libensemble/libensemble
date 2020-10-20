@@ -23,9 +23,9 @@ else:
 
 libE_logger.set_level('INFO')  # INFO is now default
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
-if is_master:
+if is_manager:
     print('\nRunning with {} workers\n'.format(nworkers))
 
 sim_app = os.path.join(os.getcwd(), 'forces.x')
@@ -101,11 +101,11 @@ try:
                                 libE_specs=libE_specs)
 
 except ManagerException:
-    if is_master and sim_specs['user']['fail_on_sim']:
+    if is_manager and sim_specs['user']['fail_on_sim']:
         check_log_exception()
         test_libe_stats('Exception occurred\n')
 else:
-    if is_master:
+    if is_manager:
         save_libE_output(H, persis_info, __file__, nworkers)
         if sim_specs['user']['fail_on_submit']:
             test_libe_stats('Task Failed\n')

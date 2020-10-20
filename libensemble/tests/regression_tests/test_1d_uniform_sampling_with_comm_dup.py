@@ -25,7 +25,7 @@ from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if libE_specs['comms'] != 'mpi':
     sys.exit("This test only runs with MPI -- aborting...")
@@ -37,7 +37,7 @@ libE_specs = None  # Let MPI use defaults
 
 # Check independence of default communicator from MPI.COMM_WORLD
 world = MPI.COMM_WORLD
-if not is_master:
+if not is_manager:
     world.isend(world.Get_rank(), dest=0, tag=0)
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
@@ -59,7 +59,7 @@ exit_criteria = {'gen_max': 501}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
     # Potential to cause a hang
     worker_ids = []

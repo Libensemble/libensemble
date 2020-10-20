@@ -58,7 +58,7 @@ else:
 
 libE_logger.set_level('INFO')
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Set to full path of warp executable
 sim_app = machine_specs['sim_app']
@@ -219,5 +219,5 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, alloc_specs, libE_specs)
 
 # Save results to numpy file
-if is_master:
+if is_manager:
     save_libE_output(H, persis_info, __file__, nworkers)
