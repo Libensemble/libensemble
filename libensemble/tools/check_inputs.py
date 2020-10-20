@@ -177,7 +177,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
     """
     out_names = [e[0] for e in libE_fields]
     if H0 is not None:
-        out_names += [H0.dtype.names]
+        out_names += list(H0.dtype.names)
     if sim_specs is not None:
         out_names += [e[0] for e in sim_specs.get('out', [])]
     if gen_specs is not None:
