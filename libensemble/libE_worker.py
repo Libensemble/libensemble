@@ -151,12 +151,12 @@ class Worker:
 
         if calc_str == 'sim':
             calc_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
-            do_calc_dirs = libE_specs.get('sim_dirs_make', True)
+            do_calc_dirs = libE_specs.get('sim_dirs_make', False)
             copy_files = libE_specs.get('sim_dir_copy_files', [])
             symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         else:  # calc_str is 'gen'
             calc_input_dir = libE_specs.get('gen_input_dir', '').rstrip('/')
-            do_calc_dirs = libE_specs.get('gen_dirs_make', True)
+            do_calc_dirs = libE_specs.get('gen_dirs_make', False)
             copy_files = libE_specs.get('gen_dir_copy_files', [])
             symlink_files = libE_specs.get('gen_dir_symlink_files', [])
 
