@@ -33,7 +33,7 @@
 cd $PBS_O_WORKDIR
 
 # A little useful information for the log file...
-echo Master process running on: $HOSTNAME
+echo Manager process running on: $HOSTNAME
 echo Directory is:  $PWD
 echo PBS has allocated the following nodes:
 cat $PBS_NODEFILE

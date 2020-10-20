@@ -22,14 +22,14 @@ from libensemble.tests.regression_tests.support import write_sim_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 o_ensemble = './ensemble_inputdir_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
 for dir in [sim_input_dir, dir_to_copy]:
-    if is_master and not os.path.isdir(dir):
+    if is_manager and not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_input_dir'] = sim_input_dir
@@ -55,7 +55,7 @@ exit_criteria = {'sim_max': 21}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     assert os.path.isdir(o_ensemble), \
         'Ensemble directory {} not created.'.format(o_ensemble)
     assert os.path.basename(dir_to_copy) in os.listdir(o_ensemble), \
