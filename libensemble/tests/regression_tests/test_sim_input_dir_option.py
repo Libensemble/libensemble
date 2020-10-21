@@ -29,7 +29,7 @@ dir_to_copy = sim_input_dir + '/copy_this'
 o_ensemble = './ensemble_inputdir_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
 for dir in [sim_input_dir, dir_to_copy]:
-    if is_manager and not os.path.isdir(dir):
+    if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_input_dir'] = sim_input_dir
