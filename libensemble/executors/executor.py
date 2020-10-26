@@ -337,6 +337,7 @@ class Executor:
         self.wait_time = 60
         self.list_of_tasks = []
         self.workerID = None
+        self.comm = None
         Executor.executor = self
 
     def _serial_setup(self):
@@ -400,20 +401,19 @@ class Executor:
                     "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
-    def manager_poll(self, comm):
+    def manager_poll(self):
         """ Polls for a manager signal
 
         The executor manager_signal attribute will be updated.
 
         """
-        self.manager_signal = 'none'  # Reset
 
         self.manager_signal = 'none'  # Reset
 
         # Check for messages; disregard anything but a stop signal
-        if not comm.mail_flag():
+        if not self.comm.mail_flag():
             return
-        mtag, man_signal = comm.recv()
+        mtag, man_signal = self.comm.recv()
         if mtag != STOP_TAG:
             return
 
@@ -426,7 +426,7 @@ class Executor:
         else:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
-        comm.push_to_buffer(mtag, man_signal)
+        self.comm.push_to_buffer(mtag, man_signal)
 
     def get_task(self, taskid):
         """ Returns the task object for the supplied task ID """
@@ -439,9 +439,10 @@ class Executor:
         """Sets the worker ID for this executor"""
         self.workerID = workerid
 
-    def set_worker_info(self, workerid=None):
+    def set_worker_info(self, comm, workerid=None):
         """Sets info for this executor"""
         self.workerID = workerid
+        self.comm = comm
 
     def poll(self, task):
         "Polls a task"

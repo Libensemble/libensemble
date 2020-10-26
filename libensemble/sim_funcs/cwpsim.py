@@ -30,7 +30,6 @@ def check_for_kill_recv(sim_specs, libE_info):
     """ Checks for manager kill signal"""
 
     calc_status = UNSET_TAG
-    comm = libE_info['comm']
     poll_interval = 0.01
     timeout_sec = 0.01
 
@@ -52,7 +51,7 @@ def check_for_kill_recv(sim_specs, libE_info):
     start_time = time.time()
     while time.time() - start_time < timeout_sec:
         time.sleep(poll_interval)
-        exctr.manager_poll(comm)
+        exctr.manager_poll()
         if exctr.manager_signal == 'kill':
             # exctr.kill(task) # No task running
             calc_status = MAN_SIGNAL_KILL
