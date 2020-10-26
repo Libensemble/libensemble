@@ -98,13 +98,6 @@ def gen_observations(fevals, errstd_constant, randstream):
     return obs, errstd
 
 
-# SH. Test condition.
-# def cancel_condition(row):
-#     if -2 in row:
-#         return True
-#     return False
-
-
 def cancel_row(pre_count, r, n_x, data_status, comm):
     # Cancel rest of row
     sim_ids_to_cancel = []
@@ -115,15 +108,13 @@ def cancel_row(pre_count, r, n_x, data_status, comm):
             sim_id_cancl = pre_count + row_offset + i
             if data_status[r, i] == 0:
                 sim_ids_to_cancel.append(sim_id_cancl)
-                data_status[r, i] = -2  # SH: For cancelled ??
+                data_status[r, i] = -2
 
     # Send only these fields to existing H row and it will slot in change.
     H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
     H_o['sim_id'] = sim_ids_to_cancel
     H_o['cancel'] = True
     send_mgr_worker_msg(comm, H_o)
-    # SH: data_status will be modified without return - but optional for clarity
-    # return data_status
 
 
 def testcalib(H, persis_info, gen_specs, libE_info):
@@ -137,14 +128,13 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
     async_build = gen_specs['user']['async_build']  # Build emulator in background thread
     errstd_constant = gen_specs['user']['errstd_constant']  # Constant for gener
-    batch_last_sim_id = gen_specs['user']['batch_to_sim_id']  # Last batch sim_id
     ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status (still puts in feval/failures)
 
     # Initialize output
     pre_count = (n_test_thetas + 1) * n_x
     H_o = np.zeros(pre_count, dtype=gen_specs['out'])
 
-    # Could generate initial inputs here or read in
+    # Could generate initial inputs here
     x, persis_info = gen_xs(n_x, persis_info)
 
     # Generate true theta
@@ -176,7 +166,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     quantile = np.quantile(test_fevals, 0.95)
     H_o['quantile'] = quantile
 
-    # arbitrary priority (currently random within a batch)
     priority = np.arange(n_x*n_thetas)
     np.random.shuffle(priority)
     H_o['priority'] = priority
@@ -188,11 +177,9 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         H_o['x'][offset:offset+n_x] = x
         H_o['thetas'][offset:offset+n_x] = t
 
-    # send_mgr_worker_msg(comm, H_o)  # MC Note: Using send results in "unable to unpack NoneType"
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------
 
-    # count = 0  # test only
     model_exists = False
     fevals = None
     future = None
@@ -203,9 +190,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     future_model_data_status = None
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
-        # count += 1  # test
-        # print('count is', count,flush=True)
-
         if fevals is None:  # initial batch
             fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
             fevals = standardize_f(fevals, obs, errstd)  # standardize fevals by obs and supplied std
@@ -223,7 +207,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             if n_max_incoming_row > 0:
                 fevals = np.pad(fevals, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=np.nan)
                 failures = np.pad(failures, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=1)
-                # data_status = np.pad(data_status, ((0, n_max_incoming_row), (0, 0)), 'constant', constant_values=0)
 
             fevals[r, c] = standardize_f(calc_in['f'], obs, errstd, c)
             failures[r, c] = calc_in['failures']
@@ -234,17 +217,11 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     continue
                 data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
 
-            # print('data_status row {} current is:  {}'.format(r, data_status[r]), flush=True)
-
-            if rebuild_condition(data_status):  # MC: wait for data or not, check fill proportion of incomplete rows
+            if rebuild_condition(data_status):
                 rebuild = True
             else:
                 rebuild = False  # Currently only applies when async
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
-
-        # SH Testing. Cumulative failure rate
-        # frate = np.count_nonzero(failures)/failures.size
-        # print('failure rate is {:.6f}'.format(frate))
 
         if async_build:
             if model_exists:
@@ -253,15 +230,12 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                         print('\nNew emulator built', flush=True)
                     model = future.result()
                     model_data_status = np.copy(future_model_data_status)
-                    # rebuild = True
                 else:
                     print('Re-using emulator', flush=True)
             else:
                 executor = concurrent.futures.ThreadPoolExecutor()
 
             if rebuild:
-                # print('shapes: ')
-                # print(theta.shape, x.shape, fevals.shape, failures.shape)
                 future_model_data_status = np.copy(data_status)
                 future = executor.submit(build_emulator, theta, x, fevals, failures)
                 if not model_exists:
@@ -277,7 +251,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             new_theta, stop_flag = \
                 select_next_theta(model, theta, n_explore_theta, step_add_theta)
 
-            print('theta removed: ' + str(model['theta_ind_removed']))
             if stop_flag:
                 print('Reached threshold.', flush=True)
                 print('Number of thetas in total: {:d}'.format(theta.shape[0]))
