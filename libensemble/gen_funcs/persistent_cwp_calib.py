@@ -191,7 +191,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             n_thetas = step_add_theta
             theta = np.vstack((theta, new_theta))
 
-            data_status = np.pad(data_status, ((0, step_add_theta), (0, 0)), constant_values=0)
+            data_status = np.pad(data_status, ((0, step_add_theta), (0, 0)), 'constant', constant_values=0)
             H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
 
             # arbitrary priority
