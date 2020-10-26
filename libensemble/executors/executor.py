@@ -343,6 +343,9 @@ class Executor:
     def _serial_setup(self):
         pass  # To be overloaded
 
+    def add_comm_info(self, libE_nodes, serial_setup):
+        pass  # To be overloaded
+
     @property
     def sim_default_app(self):
         """Returns the default simulation app"""
@@ -443,6 +446,82 @@ class Executor:
         """Sets info for this executor"""
         self.workerID = workerid
         self.comm = comm
+
+    def submit(self, calc_type=None, app_name=None, app_args=None,
+               stdout=None, stderr=None, dry_run=False, wait_on_run=False):
+        """Create a new task and run in place as a sub-process.
+
+        The created task object is returned.
+
+        Parameters
+        ----------
+
+        calc_type: String, optional
+            The calculation type: 'sim' or 'gen'
+            Only used if app_name is not supplied. Uses default sim or gen application.
+
+        app_name: String, optional
+            The application name. Must be supplied if calc_type is not.
+
+        app_args: string, optional
+            A string of the application arguments to be added to task
+            submit command line
+
+        stdout: string, optional
+            A standard output filename
+
+        stderr: string, optional
+            A standard error filename
+
+        dry_run: boolean, optional
+            Whether this is a dry_run - no task will be launched; instead
+            runline is printed to logger (at INFO level)
+
+        wait_on_run: boolean, optional
+            Whether to wait for task to be polled as RUNNING (or other
+            active/end state) before continuing
+
+        Returns
+        -------
+
+        task: obj: Task
+            The lauched task object
+
+        """
+
+        if app_name is not None:
+            app = self.get_app(app_name)
+        elif calc_type is not None:
+            app = self.default_app(calc_type)
+        else:
+            raise ExecutorException("Either app_name or calc_type must be set")
+
+        default_workdir = os.getcwd()
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        runline = task.app.full_path.split()
+        if task.app_args is not None:
+            runline.extend(task.app_args.split())
+
+        if dry_run:
+            logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+        else:
+            # Launch Task
+            logger.info("Launching task {}: {}".
+                        format(task.name, " ".join(runline)))
+
+            task.process = launcher.launch(runline, cwd='./',
+                                           stdout=open(task.stdout, 'w'),
+                                           stderr=open(task.stderr, 'w'),
+                                           start_new_session=False)
+            if (wait_on_run):
+                self._wait_on_run(task, 0)  # No fail time as no re-starts in-place
+
+            if not task.timer.timing:
+                task.timer.start()
+                task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
+
+            self.list_of_tasks.append(task)
+        return task
 
     def poll(self, task):
         "Polls a task"
