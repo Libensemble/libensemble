@@ -72,8 +72,7 @@ if __name__ == '__main__':
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'failures', 'returned'],
                  'out': gen_out,
-                 'user': {
-                          'n_test_thetas': n_test_thetas,      # Num test thetas
+                 'user': {'n_test_thetas': n_test_thetas,      # Num test thetas
                           'n_init_thetas': n_init_thetas,        # Num thetas
                           'num_x_vals': n_x,                     # Num x points to create
                           # 'mse_exit': mse_exit,                # Threshold for exit
@@ -109,5 +108,6 @@ if __name__ == '__main__':
     if is_master:
         print('Cancelled sims', H['sim_id'][H['cancel']])
         print('Killed sims', H['sim_id'][H['kill_sent']])
-        #assert np.all(H['returned'])
+        # MC: Clean up of unreturned
+        # assert np.all(H['returned'])
         save_libE_output(H, persis_info, __file__, nworkers)
