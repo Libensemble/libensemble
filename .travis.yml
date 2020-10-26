@@ -36,19 +36,30 @@ jobs:
       env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
       language: generic
       python: 3.7
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
+      language: generic
+      python: 3.8
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.8 COMMS_TYPE=l  # local
+      language: generic
+      python: 3.8
+    - os: osx
+      osx_image: xcode11.3
+      env: MPI=mpich PY=3.8 COMMS_TYPE=t  # tcp
+      language: generic
+      python: 3.8
+  fast_finish: true
   allow_failures:
       - python: 3.8
-  fast_finish: true  # So a build can be marked as complete if required jobs
-                     #  succeed before nonrequired jobs (py 3.8) timeout.
-
-# Below will update the OSX octave used on Travis.  This was so slow that we
-# were hitting the 50 minute limit on Travis. We no longer update octave in
-# homebrew, and can no longer run regression # tests using octave on OSX.
-# addons:
-#   homebrew:
-#     packages:
-#     - octave
-#     update: true
+      - os: osx
+        env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
+      - os: osx
+        env: MPI=mpich PY=3.8 COMMS_TYPE=l  # mpi
+      - os: osx
+        env: MPI=mpich PY=3.8 COMMS_TYPE=t  # mpi
 
 services:
     - postgresql
@@ -70,7 +81,7 @@ before_install:
   - conda info -a # For debugging conda issues
   - conda config --add channels conda-forge
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      conda create --yes --name condaenv python=3.7;
+      conda create --yes --name condaenv python=$PY;
     else
       conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION;
     fi
@@ -94,7 +105,7 @@ install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
       conda install nlopt mpi4py scipy mpich;
       export PETSC_CONFIGURE_OPTIONS='--with-batch';
-      pip install petsc petsc4py;
+      conda install petsc4py;
     else
       conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI;
     fi
@@ -131,7 +142,7 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -z -$COMMS_TYPE
+  - ./libensemble/tests/run-tests.sh -A "-W error" -z -$COMMS_TYPE
 
 # Track code coverage
 after_success:

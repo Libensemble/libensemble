@@ -1,15 +1,23 @@
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG
 
 
-def sendrecv_mgr_worker_msg(comm, output, status=None):
+def sendrecv_mgr_worker_msg(comm, output):
     """Send message from worker to manager and receive response.
+
+    :param comm: libEnsemble communicator object
+    :param output: Output array to be sent to manager
+    :returns: message tag, Work dictionary, calc_in array
     """
     send_mgr_worker_msg(comm, output)
-    return get_mgr_worker_msg(comm, status=status)
+    return get_mgr_worker_msg(comm)
 
 
 def send_mgr_worker_msg(comm, output):
     """Send message from worker to manager.
+
+    :param comm: libEnsemble communicator object
+    :param output: Output array to be sent to manager
+    :returns: None
     """
     D = {'calc_out': output,
          'libE_info': {'persistent': True},
@@ -19,8 +27,11 @@ def send_mgr_worker_msg(comm, output):
     comm.send(EVAL_GEN_TAG, D)
 
 
-def get_mgr_worker_msg(comm, status=None):
+def get_mgr_worker_msg(comm):
     """Get message to worker from manager.
+
+    :param comm: libEnsemble communicator object
+    :returns: message tag, Work dictionary, calc_in array
     """
     tag, Work = comm.recv()
     if tag in [STOP_TAG, PERSIS_STOP]:

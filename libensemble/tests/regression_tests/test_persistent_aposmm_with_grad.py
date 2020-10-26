@@ -31,9 +31,9 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
-if is_master:
+if is_manager:
     start_time = time()
 
 if nworkers < 2:
@@ -53,6 +53,7 @@ gen_specs = {'gen_f': gen_f,
              'user': {'initial_sample_size': 0,  # Don't need to do evaluations because the sampling already done below
                       'localopt_method': 'LD_MMA',
                       'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
+                      'stop_after_this_many_minima': 25,
                       'xtol_rel': 1e-6,
                       'ftol_rel': 1e-6,
                       'max_active_runs': 6,
@@ -88,7 +89,7 @@ for i in range(sample_size):
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs, H0=H0)
 
-if is_master:
+if is_manager:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])
     print('[Manager]: Time taken =', time() - start_time, flush=True)
 
@@ -98,5 +99,7 @@ if is_master:
         # We use their values to test APOSMM has identified all minima
         print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
         assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
+
+    assert len(H) < exit_criteria['sim_max'], "Test should have stopped early"
 
     save_libE_output(H, persis_info, __file__, nworkers)

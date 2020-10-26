@@ -406,6 +406,7 @@ class Executor:
         The executor manager_signal attribute will be updated.
 
         """
+        self.manager_signal = 'none'  # Reset
 
         self.manager_signal = 'none'  # Reset
 

@@ -79,7 +79,7 @@ Specifications for libEnsemble::
       libE_specs = {'comm': MPI.COMM_WORLD,
                     'comms': 'mpi',
                     'save_every_k_gens': 1000,
-                    'make_sim_dirs: True,
+                    'sim_dirs_make: True,
                     'ensemble_dir_path': '/scratch/ensemble'
                     'profile_worker': False}
 

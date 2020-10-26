@@ -226,13 +226,13 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
         # https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#return-values
         opt_flag = 1
     elif return_val >= 5:
-        print("The run started from " + str(x0) + " reached it maximum number "
+        print("[APOSMM] The run started from " + str(x0) + " reached its maximum number "
               "of function evaluations: " + str(run_max_eval) + ". No point from "
               "this run will be ruled as a minimum! APOSMM may start a new run "
               "from some point in this run.")
         opt_flag = 0
     else:
-        print("NLopt returned with a negative return value, which indicates an error")
+        print("[APOSMM] NLopt returned with a negative return value, which indicates an error")
         opt_flag = 0
 
     if user_specs.get('periodic'):
@@ -270,7 +270,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     if res['status'] in user_specs['opt_return_codes']:
         opt_flag = 1
     else:
-        print("The SciPy localopt run started from " + str(x0) + " stopped"
+        print("[APOSMM] The SciPy localopt run started from " + str(x0) + " stopped"
               " without finding a local min.\nThe 'status' of the run is " + str(res['status']) +
               " and the message is: \"" + res['message'] +
               "\".\nNo point from this run will be ruled as a minimum! APOSMM may "
@@ -363,7 +363,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     if soln.flag == soln.EXIT_SUCCESS:
         opt_flag = 1
     else:
-        print("The DFO-LS run started from " + str(x0) + " stopped with an exit "
+        print("[APOSMM] The DFO-LS run started from " + str(x0) + " stopped with an exit "
               "flag of " + str(soln.flag) + ". No point from this run will be "
               "ruled as a minimum! APOSMM may start a new run from some point "
               "in this run.")
@@ -442,7 +442,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         opt_flag = 1
     else:
         # https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Tao/TaoGetConvergedReason.html
-        print("The run started from " + str(x0) + " exited with a nonpositive reason. No point from "
+        print("[APOSMM] The run started from " + str(x0) + " exited with a nonpositive reason. No point from "
               "this run will be ruled as a minimum! APOSMM may start a new run from some point in this run.")
         opt_flag = 0
 
@@ -520,7 +520,7 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
 def finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs):
 
     if user_specs.get('print') and opt_flag:
-        print('Local optimum on the [0,1]^n domain', x_opt, flush=True)
+        print('[APOSMM] Local optimum on the [0,1]^n domain', x_opt, flush=True)
     comm_queue.put(ConvergedMsg(x_opt, opt_flag))
     parent_can_read.set()
 

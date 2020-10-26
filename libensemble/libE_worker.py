@@ -287,7 +287,7 @@ class Worker:
 
             # If not using calc dirs, likely miscellaneous files to copy back
             if no_calc_dirs:
-                p = re.compile("((^sim)|(^gen))\d+_worker\d+")
+                p = re.compile(r"((^sim)|(^gen))\d+_worker\d+")
                 for file in [i for i in os.listdir(self.prefix) if not p.match(i)]:  # each non-calc_dir file
                     source_path = os.path.join(self.prefix, file)
                     dest_path = os.path.join(copybackdir, file)

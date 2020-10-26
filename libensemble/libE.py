@@ -16,6 +16,7 @@ is dumped to file, and MPI abort is called.
 __all__ = ['libE']
 
 import os
+import platform
 import logging
 import random
 import socket
@@ -221,16 +222,16 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
     with DupComm(libE_specs['comm']) as comm:
         rank = comm.Get_rank()
-        is_master = (rank == 0)
+        is_manager = (rank == 0)
 
         exctr = Executor.executor
         if exctr is not None:
             local_host = socket.gethostname()
             libE_nodes = list(set(comm.allgather(local_host)))
-            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_manager)
 
         # Run manager or worker code, depending
-        if is_master:
+        if is_manager:
             return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs, H0)
 
@@ -308,6 +309,15 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         exctr.add_comm_info(libE_nodes=local_host, serial_setup=True)
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # On Python 3.8 on macOS, the default start method for new processes was
+    #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
+    # These crashes haven't yet been observed with libE, but with 'spawn' runs,
+    #  warnings about leaked semaphore objects are displayed instead.
+    # The next several statements enforce 'fork' on macOS (Python 3.8)
+    if platform.system() == 'Darwin':
+        from multiprocessing import set_start_method
+        set_start_method('fork', force=True)
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)

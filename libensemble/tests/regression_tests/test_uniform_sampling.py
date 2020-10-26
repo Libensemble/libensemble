@@ -23,7 +23,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['save_every_k_sims'] = 400
 libE_specs['save_every_k_gens'] = 300
 
@@ -50,7 +50,7 @@ exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     assert flag == 0
 
     tol = 0.1

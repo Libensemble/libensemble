@@ -1,7 +1,6 @@
 Posters and Presentations
 =========================
 
-
 SciPy 2020 Virtual Poster
 -------------------------
 
@@ -10,17 +9,16 @@ SciPy 2020 Virtual Poster
 
    scipy2020
 
-
 SciPy 2020 PDF Poster
 ---------------------
 
 .. raw:: html
 
-    <iframe src="https://widgets.figshare.com/articles/12559520/embed?show_title=1" width="700" height="466" allowfullscreen="true" frameborder="0"></iframe>
+    <iframe src="https://widgets.figshare.com/articles/12559520/embed?show_title=true" width="700" height="466" allowfullscreen="true" frameborder="0"></iframe>
 
 CSE 2019 Poster
 ---------------
 
 .. raw:: html
 
-    <iframe src="https://widgets.figshare.com/articles/7765454/embed?show_title=1" width="700" height="466" allowfullscreen="true" frameborder="0"></iframe>
+    <iframe src="https://widgets.figshare.com/articles/7765454/embed?show_title=true" width="754" height="466" allowfullscreen="true" frameborder="0"></iframe>

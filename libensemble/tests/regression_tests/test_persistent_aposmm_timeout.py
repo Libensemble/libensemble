@@ -23,7 +23,7 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -43,6 +43,7 @@ gen_specs = {'gen_f': gen_f,
                       'localopt_method': 'LN_BOBYQA',
                       'xtol_abs': 1e-8,
                       'ftol_abs': 1e-8,
+                      'run_max_eval': 30,
                       'lb': np.array([0, -np.pi/2]),
                       'ub': np.array([2*np.pi, 3*np.pi/2]),
                       'periodic': True,
@@ -61,7 +62,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     assert flag == 2, "Test should have timed out"
     assert persis_info[1].get('run_order'), "Run_order should have been given back"
     min_ids = np.where(H['local_min'])

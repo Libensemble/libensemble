@@ -156,7 +156,7 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
 .. code-block:: python
     :linenos:
 
-    nworkers, is_master, libE_specs, _ = parse_args()
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
     sim_specs = {'sim_f': six_hump_camel, # Simulation function
                  'in': ['x'],             # Accepts 'x' values
@@ -230,7 +230,7 @@ check calculated minima:
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
-    if is_master:
+    if is_manager:
         print('Minima:', H[np.where(H['local_min'])]['x'])
 
 Final Setup, Run, and Output

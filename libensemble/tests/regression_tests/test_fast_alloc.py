@@ -24,11 +24,11 @@ from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 num_pts = 30*(nworkers - 1)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'user': {}}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('large', float, 1000000)], 'user': {}}
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
@@ -40,7 +40,7 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': num_pts, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2*num_pts, 'elapsed_wallclock_time': 300}
 
 if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want
@@ -67,6 +67,6 @@ for time in np.append([0], np.logspace(-5, -1, 5)):
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs)
 
-        if is_master:
+        if is_manager:
             assert flag == 0
-            assert len(H) == num_pts
+            assert len(H) == 2*num_pts

@@ -47,7 +47,6 @@ you are using ``mpi4py`` make sure the install picks up Cray's compiler drivers.
     $ conda activate my_env
     $ CC=cc MPICC=cc pip install mpi4py --no-binary mpi4py
 
-
 More information_ on using conda on Theta is also available.
 
 Installing libEnsemble and Balsam
@@ -85,7 +84,6 @@ from workers (see Job Submission below). The Balsam Executor will stage in tasks
 to a database hosted on a MOM node, which will submit these tasks dynamically to
 the compute nodes.
 
-
 Balsam can be installed with::
 
     pip install balsam-flow
@@ -96,40 +94,39 @@ Initialize a Balsam database at a location of your choice. E.g::
 
 Further notes on using Balsam:
 
-* Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before you calling ``qsub``. You can check with script ps_nodes_.
+* Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before calling ``qsub``. You can check with the script ps_nodes_.
 
-* By default there are a maximum of 128 connections to the database. Each worker will use a connection and a few extra are needed. To increase the number of connections append a new ``max_connections`` line to the ``balsamdb/postgresql.conf`` file under the database directory. E.g.~ ``max_connections=1024``
+* Balsam requires PostgreSQL version 9.6.4 or later, but problems may be encountered when using the default ``pg_ctl`` and PostgreSQL 10.12 installation installed in ``/usr/bin``. This may be resolved by loading the postgresql/9.6.12 modules within submission scripts that use Balsam.
 
+* By default there are a maximum of 128 concurrent database connections. Each worker will use a connection and a few extra are needed. Increase the number of connections by appending a new ``max_connections=`` line to ``balsamdb/postgresql.conf`` in the database directory. E.g.~ ``max_connections=1024``
+
+* There is a Balsam module available (balsam/0.3.8), but the module's Python installation supersedes others when loaded. In practice, libEnsemble or other Python packages installed into another environment become inaccessible. Installing Balsam into a separate Python virtual environment is recommended instead.
 
 Read Balsam's documentation here_.
 
 .. note::
-    Balsam will create the run directories inside the data subdirectory within the database
-    directory. From here, files can be staged out to the user directory (see the example
-    batch script below).
+    Balsam creates run-specific directories inside ``data/my_workflow`` in the database
+    directory. For example: ``$HOME/my_balsam_db/data/libe_workflow/job_run_libe_forces_b7073fa9/``.
+    From here, files can be staged out (see the example batch script below).
 
 Job Submission
 --------------
 
-Theta uses Cobalt_ for job management and submission. For libEnsemble, the most
-important command is ``qsub``, for submitting batch scripts from the login nodes
-to execute on the MOM nodes.
-
 On Theta, libEnsemble can be launched to two locations:
 
     1. **A MOM Node**: All of libEnsemble's manager and worker processes
-    run on a front-end MOM node. libEnsemble's MPI Executor takes
+    run centrally on a front-end MOM node. libEnsemble's MPI Executor takes
     responsibility for direct user-application submission to allocated compute nodes.
     libEnsemble must be configured to run with *multiprocessing* communications,
     since mpi4py isn't configured for use on the MOM nodes.
 
     2. **The Compute Nodes**: libEnsemble is submitted to Balsam, and all manager
-    and worker processes are tasked to a back-end compute node. libEnsemble's
+    and worker processes are tasked to a back-end compute node and run centrally. libEnsemble's
     Balsam Executor interfaces with Balsam running on a MOM node for dynamic
     user-application submission to the compute nodes.
 
-    .. image:: ../images/combined_ThS.png
-        :alt: central_MOM
+    .. image:: ../images/central_balsam.png
+        :alt: central_Balsam
         :scale: 40
         :align: center
 
