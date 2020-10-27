@@ -16,6 +16,7 @@ is dumped to file, and MPI abort is called.
 __all__ = ['libE']
 
 import os
+import platform
 import logging
 import random
 import socket
@@ -314,7 +315,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     # These crashes haven't yet been observed with libE, but with 'spawn' runs,
     #  warnings about leaked semaphore objects are displayed instead.
     # The next several statements enforce 'fork' on macOS (Python 3.8)
-    if os.uname().sysname == 'Darwin':
+    if platform.system() == 'Darwin':
         from multiprocessing import set_start_method
         set_start_method('fork', force=True)
 
