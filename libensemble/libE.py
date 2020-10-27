@@ -434,6 +434,15 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
     port = libE_specs.get('port', 0)
     authkey = libE_specs.get('authkey', libE_tcp_authkey())
 
+    # On Python 3.8 on macOS, the default start method for new processes was
+    #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
+    # These crashes haven't yet been observed with libE, but with 'spawn' runs,
+    #  warnings about leaked semaphore objects are displayed instead.
+    # The next several statements enforce 'fork' on macOS (Python 3.8)
+    if platform.system() == 'Darwin':
+        from multiprocessing import set_start_method
+        set_start_method('fork', force=True)
+
     with ServerQCommManager(port, authkey.encode('utf-8')) as manager:
 
         # Get port if needed because of auto-assignment
