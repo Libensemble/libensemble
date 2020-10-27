@@ -10,8 +10,12 @@ since pytest slurps up everything (including all the modules) in one go.
 
 import time
 import signal
+import platform
 import libensemble.comms.comms as comms
 
+if platform.system() == 'Darwin':
+    from multiprocessing import set_start_method
+    set_start_method('fork', force=True)
 
 def test_qcomm_proc_terminate1():
     "Test that an already-done QCommProcess gracefully handles terminate()."
