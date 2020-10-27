@@ -15,7 +15,7 @@ from libensemble.tools import parse_args
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 assert libE_specs['comms'] == 'mpi', "This test can only be run with mpi comms -- aborting..."
 
@@ -90,8 +90,8 @@ test_exp = {1: all_ranks,
 for test_num in range(1, len(tests)+1):
     mpi_comm = tests[test_num]()
     if check_ranks(mpi_comm, test_exp, test_num):
-        is_master = (mpi_comm.Get_rank() == 0)
-        if is_master:
+        is_manager = (mpi_comm.Get_rank() == 0)
+        if is_manager:
             manager_main(mpi_comm)
         else:
             worker_main(mpi_comm)

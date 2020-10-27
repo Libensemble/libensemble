@@ -24,7 +24,7 @@ from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -52,7 +52,7 @@ exit_criteria = {'gen_max': 40, 'elapsed_wallclock_time': 300}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     assert len(np.unique(H['gen_time'])) == 2
 
     save_libE_output(H, persis_info, __file__, nworkers)

@@ -31,7 +31,7 @@ from libensemble.tests.regression_tests.support import (persis_info_1 as persis_
                                                         aposmm_gen_out as gen_out,
                                                         six_hump_camel_minima as minima)
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 n = 2
 sim_specs = {'sim_f': sim_f,
@@ -71,14 +71,14 @@ if libE_specs['comms'] == 'mpi':
     libE_abort = libE_mpi_abort
 
 # Perform the run (TCP worker mode)
-if libE_specs['comms'] == 'tcp' and not is_master:
+if libE_specs['comms'] == 'tcp' and not is_manager:
     run = int(sys.argv[-1])
     libE_tcp_worker(sim_specs, gen_specs[run], libE_specs)
     quit()
 
 # Perform the run
 for run in range(3):
-    if libE_specs['comms'] == 'tcp' and is_master:
+    if libE_specs['comms'] == 'tcp' and is_manager:
         libE_specs['worker_cmd'].append(str(run))
 
     if run == 1:
@@ -111,7 +111,7 @@ for run in range(3):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                 persis_info, alloc_specs, libE_specs)
 
-    if is_master:
+    if is_manager:
         if flag != 0:
             print("Exit was not on convergence (code {})".format(flag), flush=True)
             libE_abort()

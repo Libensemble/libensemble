@@ -20,9 +20,9 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from time import time
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
-if is_master:
+if is_manager:
     start_time = time()
 
 if nworkers < 2:
@@ -56,7 +56,7 @@ for run in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
 
-    if is_master:
+    if is_manager:
         if run == 0:
             true_val = six_hump_camel_func(gen_specs['user']['x0'])
 

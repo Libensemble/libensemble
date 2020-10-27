@@ -23,7 +23,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.libE_manager import ManagerException
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
@@ -67,5 +67,5 @@ except ManagerException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0
 
-if is_master:
+if is_manager:
     assert return_flag == 0

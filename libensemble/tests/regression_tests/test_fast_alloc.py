@@ -24,7 +24,7 @@ from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 num_pts = 30*(nworkers - 1)
 
@@ -67,6 +67,6 @@ for time in np.append([0], np.logspace(-5, -1, 5)):
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs)
 
-        if is_master:
+        if is_manager:
             assert flag == 0
             assert len(H) == 2*num_pts

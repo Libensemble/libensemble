@@ -22,7 +22,7 @@ from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.tools import parse_args, save_libE_output
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
@@ -46,7 +46,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             alloc_specs=alloc_specs, libE_specs=libE_specs,
                             H0=H0)
 
-if is_master:
+if is_manager:
     assert len(H) == len(H0)
     assert np.array_equal(H0['x'], H['x'])
     assert np.all(H['returned'])
