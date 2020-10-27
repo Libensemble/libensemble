@@ -103,7 +103,10 @@ install:
   - conda install libblas libopenblas # Prevent 'File exists' error
 
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
-      conda install nlopt mpich scipy mpi4py;
+      conda install nlopt;
+      conda install mpich;
+      conda install scipy;
+      conda install mpi4py;
       export PETSC_CONFIGURE_OPTIONS='--with-batch';
       conda install petsc4py;
     else
