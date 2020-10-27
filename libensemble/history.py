@@ -82,9 +82,9 @@ class History:
         self.offset = len(H0)
         self.index = self.offset
 
-        self.given_count = np.sum(H0['given'])
+        self.given_count = np.sum(H['given'])
 
-        self.sim_count = np.sum(H0['returned'])
+        self.sim_count = np.sum(H['returned'])
 
     def update_history_f(self, D):
         """
