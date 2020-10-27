@@ -18,6 +18,7 @@ if platform.system() == 'Darwin':
     from multiprocessing import set_start_method
     set_start_method('fork', force=True)
 
+
 def test_qcomm():
     "Test queue-based bidirectional communicator."
 

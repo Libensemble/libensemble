@@ -17,6 +17,7 @@ if platform.system() == 'Darwin':
     from multiprocessing import set_start_method
     set_start_method('fork', force=True)
 
+
 def test_qcomm_proc_terminate1():
     "Test that an already-done QCommProcess gracefully handles terminate()."
 
