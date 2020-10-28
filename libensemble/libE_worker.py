@@ -465,11 +465,12 @@ class Worker:
                     elif Work is MAN_SIGNAL_KILL:
                         continue
 
-                # Active recv is for persistent only - throw away here
-                if Work['libE_info'].get('active_recv', False):
-                    if len(Work['libE_info']['H_rows']) > 0:
-                        _, _, _ = self._recv_H_rows(Work)
-                    continue
+                # Active recv is for persistent worker only - throw away here
+                if Work.get('libE_info', False):
+                    if Work['libE_info'].get('active_recv', False) and not Work['libE_info'].get('persistent', False):
+                        if len(Work['libE_info']['H_rows']) > 0:
+                            _, _, _ = self._recv_H_rows(Work)
+                        continue
 
                 response = self._handle(Work)
                 if response is None:
