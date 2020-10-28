@@ -11,8 +11,8 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
     """
 
     Work = {}
-    if not persis_info:
-        persis_info['next_to_give'] = 0
+    # Unless already defined, initialize next_to_give to be the first point in H
+    persis_info['next_to_give'] = persis_info.get('next_to_give', 0)
 
     if persis_info['next_to_give'] >= len(H):
         return Work, persis_info, 1
