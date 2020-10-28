@@ -6,6 +6,7 @@ __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
 import psutil
+import platform
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
@@ -13,6 +14,11 @@ import libensemble.gen_funcs
 
 optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
+
+# Resolves multiprocessing issues with Python 3.8+ on macOS
+if platform.system() == 'Darwin':
+    from multiprocessing import set_start_method
+    set_start_method('fork', force=True)
 
 if optimizers is None:
     from petsc4py import PETSc
