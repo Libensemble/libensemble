@@ -2,7 +2,7 @@ import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
 
-def avail_worker_ids(W, persistent=None):
+def avail_worker_ids(W, persistent=None, active_recv=False):
     """Returns available workers (``active == 0``), as an array, filtered by ``persis_state``.
 
     :param W: :doc:`Worker array<../data_structures/worker_array>`
@@ -11,9 +11,12 @@ def avail_worker_ids(W, persistent=None):
     if persistent is None:
         return W['worker_id'][W['active'] == 0]
     if persistent:
-        return W['worker_id'][W['persis_state'] != 0]
-        # return W['worker_id'][np.logical_and(W['active'] == 0,
-                                             # W['persis_state'] != 0)]
+        if active_recv:
+            return W['worker_id'][np.logical_and(W['persis_state'] != 0,
+                                                 W['active_recv'] != 0)]
+        else:
+            return W['worker_id'][np.logical_and(W['active'] == 0,
+                                                 W['persis_state'] != 0)]
     return W['worker_id'][np.logical_and(W['active'] == 0,
                                          W['persis_state'] == 0)]
 

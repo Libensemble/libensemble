@@ -99,7 +99,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     # If i is in persistent mode, and all of its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in avail_worker_ids(W, persistent=True):
+    for i in avail_worker_ids(W, persistent=True, active_recv=True):
         gen_inds = (H['gen_worker'] == i)
         inds_since_last_gen = H['sim_id'][gen_inds][H['returned'] & ~H['given_back']]
 
@@ -139,7 +139,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
-                     persistent=True)
+                     persistent=True, active_recv=True)
             persis_info['gen_started'] = True
 
     return Work, persis_info, 0

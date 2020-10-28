@@ -121,6 +121,7 @@ class Manager:
     worker_dtype = [('worker_id', int),
                     ('active', int),
                     ('persis_state', int),
+                    ('active_recv', int),
                     ('blocked', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
@@ -239,9 +240,14 @@ class Manager:
         """Checks validity of an allocation function order
         """
         assert w != 0, "Can't send to worker 0; this is the manager."
-        # assert self.W[w-1]['active'] == 0, \
-            # "Allocation function requested work be sent to to worker %d, an "\
-            # "already active worker." % w
+        if self.W[w-1]['active_recv']:
+            assert 'active_recv' in Work['libE_info'], \
+                "Messages to a worker in active_recv mode should have active_recv"\
+                "set to True in libE_info. Work['libE_info'] is {}".format(Work['libE_info'])
+        else:
+            assert self.W[w-1]['active'] == 0, \
+                "Allocation function requested work be sent to worker %d, an "\
+                "already active worker." % w
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
@@ -270,9 +276,14 @@ class Manager:
         """Updates a workers' active/idle status following an allocation order"""
 
         self.W[w-1]['active'] = Work['tag']
-        if 'libE_info' in Work and 'persistent' in Work['libE_info']:
-            self.W[w-1]['persis_state'] = Work['tag']
-
+        if 'libE_info' in Work:
+            if 'persistent' in Work['libE_info']:
+                self.W[w-1]['persis_state'] = Work['tag']
+                if 'active_recv' in Work['libE_info']:
+                    self.W[w-1]['active_recv'] = Work['tag']
+            else:
+                assert 'active_recv' not in Work['libE_info'], \
+                    "active_recv worker must also be persistent"
         if 'blocking' in Work['libE_info']:
             for w_i in Work['libE_info']['blocking']:
                 assert self.W[w_i-1]['active'] == 0, \
@@ -334,12 +345,15 @@ class Manager:
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
-        if w not in self.persis_pending:
+        if w not in self.persis_pending and not self.W[w-1]['active_recv']:
             self.W[w-1]['active'] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             self.W[w-1]['persis_state'] = 0
+            if self.W[w-1]['active_recv']:
+                self.W[w-1]['active'] = 0
+                self.W[w-1]['active_recv'] = 0
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
                 self.W[w-1]['active'] = 0
