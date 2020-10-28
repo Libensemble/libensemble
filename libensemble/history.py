@@ -51,7 +51,7 @@ class History:
 
         # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
         dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
-        H = np.zeros(L + len(H0), dtype=dtype_list)
+        H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
 
         if len(H0):
             # Prepend H with H0
@@ -63,15 +63,15 @@ class History:
                 #     H[field][ind] = val
 
             if 'given' not in fields:
-                print("Marking entries in H0 as having been given and returned", flush=True)
+                logger.manager_warning("Marking entries in H0 as having been 'given' and 'returned'")
                 H['given'][:len(H0)] = 1
                 H['returned'][:len(H0)] = 1
             elif 'returned' not in fields:
-                print("Marking entries in H0 as having been returned", flush=True)
-                H['returned'][:len(H0)] = 1
+                logger.manager_warning("Marking entries in H0 as having been 'returned' if 'given'")
+                H['returned'][:len(H0)] = H0['given']
 
             if 'sim_id' not in fields:
-                print("Assigning sim_ids to entries in H0", flush=True)
+                logger.manager_warning("Assigning sim_ids to entries in H0")
                 H['sim_id'][:len(H0)] = np.arange(0, len(H0))
 
         H['sim_id'][-L:] = -1
