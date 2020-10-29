@@ -149,7 +149,7 @@ unspecified options. Each setting will be described in detail here:
   of new simulation directories. If ``'sim_dirs_make'`` is False, this directory's
   contents are copied into the ensemble directory.
 
-* ``'sim_input_dir'``: A path to a directory to copy for generator
+* ``'gen_input_dir'``: A path to a directory to copy for generator
   directories. This directory and it's contents are copied to form the base
   of new generator directories. If ``'gen_dirs_make'`` is False, this directory's
   contents are copied into the ensemble directory.
