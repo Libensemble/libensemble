@@ -12,7 +12,12 @@ libE_fields = [('sim_id', int),        # Unique id of entry in H that was genera
                ]
 # end_libE_fields_rst_tag
 
-protected_libE_fields = [e[0] for e in libE_fields]
+protected_libE_fields = ['gen_worker',
+                         'gen_time',
+                         'given',
+                         'returned',
+                         'given_time',
+                         'sim_worker']
 
 allowed_sim_spec_keys = ['sim_f',  #
                          'in',     #
