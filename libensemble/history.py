@@ -51,9 +51,10 @@ class History:
 
         # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
         dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
-        H = np.zeros(L + len(H0), dtype=dtype_list)
+        H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
 
         if len(H0):
+            # Prepend H with H0
             fields = H0.dtype.names
 
             for field in fields:
@@ -61,10 +62,17 @@ class History:
                 # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
                 #     H[field][ind] = val
 
-        # Prepend H with H0
-        H['sim_id'][:len(H0)] = np.arange(0, len(H0))
-        H['given'][:len(H0)] = 1
-        H['returned'][:len(H0)] = 1
+            if 'given' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'given' and 'returned'")
+                H['given'][:len(H0)] = 1
+                H['returned'][:len(H0)] = 1
+            elif 'returned' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'returned' if 'given'")
+                H['returned'][:len(H0)] = H0['given']
+
+            if 'sim_id' not in fields:
+                logger.manager_warning("Assigning sim_ids to entries in H0")
+                H['sim_id'][:len(H0)] = np.arange(0, len(H0))
 
         H['sim_id'][-L:] = -1
         H['given_time'][-L:] = np.inf
@@ -74,12 +82,9 @@ class History:
         self.offset = len(H0)
         self.index = self.offset
 
-        # libE.check_inputs also checks that all points in H0 are 'returned', so gen and sim have been run.
-        # assert np.all(H0['given']), "H0 contains unreturned points. Exiting"
-        self.given_count = self.offset
+        self.given_count = np.sum(H['given'])
 
-        # assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
-        self.sim_count = self.offset
+        self.sim_count = np.sum(H['returned'])
 
     def update_history_f(self, D):
         """
