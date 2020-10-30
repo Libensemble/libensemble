@@ -13,7 +13,7 @@ Fields in ``H`` include those specified in ``sim_specs['out']``,
 
 Below are the protected fields used in ``H``. Other than ``'sim_id'``, these
 fields cannot be overwritten by user functions (unless
-``libE_spces['safe_mode']`` is set to ``True``).
+``libE_spces['safe_mode']`` is set to ``False``).
 
 ..  literalinclude:: ../../libensemble/tools/fields_keys.py
     :start-at: libE_fields
