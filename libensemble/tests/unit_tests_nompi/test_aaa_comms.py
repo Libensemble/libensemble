@@ -10,12 +10,10 @@ since pytest slurps up everything (including all the modules) in one go.
 
 import time
 import signal
-import platform
+from libensemble.tools.tools import osx_set_mp_method
 import libensemble.comms.comms as comms
 
-if platform.system() == 'Darwin':
-    from multiprocessing import set_start_method
-    set_start_method('fork', force=True)
+osx_set_mp_method()
 
 
 def test_qcomm_proc_terminate1():

@@ -7,16 +7,14 @@ Unit test of comms for libensemble.
 import time
 import queue
 import logging
-import platform
+from libensemble.tools.tools import osx_set_mp_method
 
 import numpy as np
 import libensemble.comms.comms as comms
 import libensemble.comms.logs as commlogs
 
 
-if platform.system() == 'Darwin':
-    from multiprocessing import set_start_method
-    set_start_method('fork', force=True)
+osx_set_mp_method()
 
 
 def test_qcomm():
