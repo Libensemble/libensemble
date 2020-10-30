@@ -2,7 +2,7 @@ import numpy as np
 import time
 import logging
 
-from libensemble.tools.fields_keys import libE_fields
+from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ class History:
 
         for j, ind in enumerate(new_inds):
             for field in returned_H.dtype.names:
-
+                assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]):
                     self.H[field][ind] = returned_H[field][j]
                 else:
@@ -175,6 +175,7 @@ class History:
             update_inds = D['sim_id']
 
         for field in D.dtype.names:
+            assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
         self.H['gen_time'][update_inds] = time.time()
