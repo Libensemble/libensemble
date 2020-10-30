@@ -188,6 +188,15 @@ def test_update_history_x_in():
     assert hist.index == 10
     assert hist.sim_count == 0
 
+    # Force assertion error when a libE protected field appears in gen_worker
+    H_o = np.zeros(size, dtype=gen_specs['out'] + [('given', bool)])
+    try:
+        hist.update_history_x_in(gen_worker, H_o)
+    except AssertionError:
+        assert 1, "Failed like it should have"
+    else:
+        assert 0, "Didn't fail like it should have"
+
 
 def test_update_history_x_in_sim_ids():
     hist, _, gen_specs, _, _ = setup.hist_setup2A_genout_sim_ids(7)

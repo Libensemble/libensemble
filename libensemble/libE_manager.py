@@ -21,9 +21,10 @@ from libensemble.message_numbers import \
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
-from libensemble.tools.fields_keys import libE_spec_calc_dir_combined
+from libensemble.tools.fields_keys import libE_spec_calc_dir_combined, protected_libE_fields
 import cProfile
 import pstats
+import copy
 
 if tuple(np.__version__.split('.')) >= ('1', '15'):
     from numpy.lib.recfunctions import repack_fields
@@ -130,6 +131,7 @@ class Manager:
         timer = Timer()
         timer.start()
         self.date_start = timer.date_start.replace(' ', '_')
+        self.safe_mode = libE_specs.get('safe_mode', True)
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -428,9 +430,18 @@ class Manager:
     # --- Main loop
 
     def _alloc_work(self, H, persis_info):
-        "Calls work allocation function from alloc_specs"
+        """
+        Calls work allocation function from alloc_specs. Copies protected libE
+        fields before the alloc_f call and ensures they weren't modified
+        """
+        if self.safe_mode:
+            saveH = copy.deepcopy(H[protected_libE_fields])
+
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+
+        if self.safe_mode:
+            assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
 
         if len(output) == 2:
             output = output + ((0,))

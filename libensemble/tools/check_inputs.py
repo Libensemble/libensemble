@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
     allowed_sim_spec_keys, allowed_alloc_spec_keys, allowed_libE_spec_keys
@@ -27,6 +28,26 @@ def check_libE_specs(libE_specs, serial_check=False):
     for k in libE_specs.keys():
         assert k in allowed_libE_spec_keys,\
             "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
+
+        if k in ['ensemble_copy_back', 'use_worker_dirs', 'sim_dirs_make', 'gen_dirs_make']:
+            assert isinstance(libE_specs[k], bool), "Value for libE_specs['{}'] must be Boolean".format(k)
+
+        if k in ['sim_input_dir', 'gen_input_dir']:
+            assert isinstance(libE_specs[k], str), \
+                "Value for libE_specs['{}'] must be a single path-like string".format(k)
+            assert os.path.exists(libE_specs[k]), \
+                "libE_specs['{}'] does not refer to an existing path.".format(k)
+
+        if k == 'ensemble_dir_path':
+            assert isinstance(libE_specs[k], str), \
+                "Value for libE_specs['{}'] must be a single path-like string".format(k)
+
+        if k in ['sim_dir_copy_files', 'sim_dir_symlink_files', 'gen_dir_copy_files', 'gen_dir_symlink_files']:
+            assert isinstance(libE_specs[k], list), \
+                "Value for libE_specs['{}'] must be a list of path-like strings".format(k)
+            for j in libE_specs[k]:
+                assert os.path.exists(j), \
+                    "'{}' in libE_specs['{}'] does not refer to an existing path.".format(j, k)
 
 
 def check_alloc_specs(alloc_specs):
@@ -155,8 +176,8 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
 
     """
     out_names = [e[0] for e in libE_fields]
-    if H0 is not None:
-        out_names += [H0.dtype.names]
+    if H0 is not None and H0.dtype.names is not None:
+        out_names += list(H0.dtype.names)
     if sim_specs is not None:
         out_names += [e[0] for e in sim_specs.get('out', [])]
     if gen_specs is not None:
