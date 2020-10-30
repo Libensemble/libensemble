@@ -1,7 +1,16 @@
 """Contains parameter selection and obviation methods for cwpCalibration."""
 
 import numpy as np
-from gemulator.calibration_support import gen_local_thetas
+
+
+def gen_local_thetas(n, t0, rnge, r=0.1, mode='Gaussian'):
+    """Generate new thetas close to given theta t0."""
+    p = t0.shape[0] if t0.ndim == 1 else t0.shape[1]
+
+    Z = np.random.normal(size=(n, p))
+    thetas = t0 + r * rnge * Z
+
+    return thetas
 
 
 def gen_new_thetas(n, t0, rnge):
