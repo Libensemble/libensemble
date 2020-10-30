@@ -68,6 +68,9 @@ Specifications for libEnsemble::
             TCP Only: Port number
         'authkey' [String]:
             TCP Only: Authkey
+        'safe_mode' [boolean]:
+            Prevents user functions from overwritting protected libE fields.
+            Default: True
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or

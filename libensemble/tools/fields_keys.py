@@ -61,6 +61,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'nworkers',               #
                           'port',                   #
                           'profile_worker',         #
+                          'safe_mode',              #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #
                           'save_H_and_persis_on_abort',        #
