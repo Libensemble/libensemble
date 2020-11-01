@@ -95,7 +95,7 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
     number_of_gen_points = gen_specs['user']['gen_batch_size']
 
     # Initialize the dragonfly GP optimizer
-    domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list, ub_list)[:-1] ] )
+    domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list[:-1], ub_list[:-1]) ] )
     fidel_space = EuclideanDomain( [ [lb_list[-1], ub_list[-1]] ] )
     func_caller = EuclideanFunctionCaller( None,
                             raw_domain=domain,
@@ -118,7 +118,7 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
         H_o = np.zeros(number_of_gen_points, dtype=gen_specs['out'])
         for i in range(number_of_gen_points):
             resolution, input_vector = opt.ask()
-            H_o['x'][i] = np.concatenate( input_vector, resolution )
+            H_o['x'][i] = np.concatenate( (input_vector, resolution) )
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
