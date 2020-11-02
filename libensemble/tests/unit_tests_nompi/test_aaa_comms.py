@@ -16,7 +16,7 @@ import libensemble.comms.comms as comms
 def test_qcomm_proc_terminate1():
     "Test that an already-done QCommProcess gracefully handles terminate()."
 
-    def worker_main(comm):
+    def worker_main(mpi_comm):
         return
 
     with comms.QCommProcess(worker_main) as mgr_comm:
@@ -28,7 +28,7 @@ def test_qcomm_proc_terminate1():
 def test_qcomm_proc_terminate2():
     "Test that a QCommProcess run amok can be gracefully terminated."
 
-    def worker_main(comm):
+    def worker_main(mpi_comm):
         while True:
             time.sleep(1)
 
@@ -44,9 +44,9 @@ def ignore_handler(signum, frame):
 def test_qcomm_proc_terminate3():
     "Test that a QCommProcess ignoring SIGTERM manages."
 
-    def worker_main(comm):
+    def worker_main(mpi_comm):
         signal.signal(signal.SIGTERM, ignore_handler)
-        while not comm.mail_flag():
+        while not mpi_comm.mail_flag():
             pass
 
     with comms.QCommProcess(worker_main) as mgr_comm:
@@ -83,9 +83,9 @@ def test_qcomm_proc_terminate3():
 def test_qcomm_proc_terminate4():
     "Test that a QCommProcess can handle event timeouts correctly."
 
-    def worker_main(comm):
+    def worker_main(mpi_comm):
         while not comm.mail_flag():
-            comm.send("Hello")
+            mpi_comm.send("Hello")
             time.sleep(0.01)
 
     with comms.QCommProcess(worker_main) as mgr_comm:

@@ -270,8 +270,8 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
-    comm = MainMPIComm(libE_comm)
-    worker_main(comm, sim_specs, gen_specs, libE_specs, log_comm=True)
+    mpi_comm = MainMPIComm(libE_comm)
+    worker_main(mpi_comm, sim_specs, gen_specs, libE_specs, log_comm=True)
     logger.debug("Worker {} exiting".format(libE_comm.Get_rank()))
 
 

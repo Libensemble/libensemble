@@ -380,13 +380,13 @@ def test_qcomm_threadproc():
 def test_comm_logging():
     "Test logging from a worker process is handled correctly."
 
-    def worker_main(comm):
-        ch = commlogs.CommLogHandler(comm)
+    def worker_main(mpi_comm):
+        ch = commlogs.CommLogHandler(mpi_comm)
         logger = logging.getLogger()
         logger.addHandler(ch)
         logger.setLevel(logging.INFO)
         logger.info("Test message")
-        comm.send("Done!")
+        mpi_comm.send("Done!")
 
     with comms.QCommProcess(worker_main) as mgr_comm:
         msg = mgr_comm.recv()
