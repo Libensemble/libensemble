@@ -84,7 +84,7 @@ def test_qcomm_proc_terminate4():
     "Test that a QCommProcess can handle event timeouts correctly."
 
     def worker_main(mpi_comm):
-        while not comm.mail_flag():
+        while not mpi_comm.mail_flag():
             mpi_comm.send("Hello")
             time.sleep(0.01)
 

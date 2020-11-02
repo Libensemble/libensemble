@@ -34,7 +34,7 @@ def _mpi_parse_args(args):
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_manager = MPI.COMM_WORLD.Get_rank() == 0
-    libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+    libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
     return nworkers, is_manager, libE_specs, args.tester_args
 
 

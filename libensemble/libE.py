@@ -203,8 +203,8 @@ def libE_mpi_defaults(libE_specs):
 
     from mpi4py import MPI
 
-    if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD  # Will be duplicated immediately
+    if 'mpi_comm' not in libE_specs:
+        libE_specs['mpi_comm'] = MPI.COMM_WORLD  # Will be duplicated immediately
 
     return libE_specs, MPI.COMM_NULL
 
@@ -215,28 +215,28 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
 
-    if libE_specs['comm'] == mpi_comm_null:
-        return [], persis_info, 3  # Process not in comm
+    if libE_specs['mpi_comm'] == mpi_comm_null:
+        return [], persis_info, 3  # Process not in mpi_comm
 
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    with DupComm(libE_specs['comm']) as comm:
-        rank = comm.Get_rank()
+    with DupComm(libE_specs['mpi_comm']) as mpi_comm:
+        rank = mpi_comm.Get_rank()
         is_manager = (rank == 0)
 
         exctr = Executor.executor
         if exctr is not None:
             local_host = socket.gethostname()
-            libE_nodes = list(set(comm.allgather(local_host)))
+            libE_nodes = list(set(mpi_comm.allgather(local_host)))
             exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_manager)
 
         # Run manager or worker code, depending
         if is_manager:
-            return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
+            return libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs, H0)
 
         # Worker returns a subset of MPI output
-        libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
+        libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs)
         return [], {}, []
 
 

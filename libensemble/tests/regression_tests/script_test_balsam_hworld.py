@@ -25,7 +25,7 @@ def build_simfunc():
     subprocess.check_call(buildstring.split())
 
 
-libE_specs = {'comm': MPI.COMM_WORLD,
+libE_specs = {'mpi_comm': MPI.COMM_WORLD,
               'comms': 'mpi',
               'save_every_k_sims': 400,
               'save_every_k_gens': 20,

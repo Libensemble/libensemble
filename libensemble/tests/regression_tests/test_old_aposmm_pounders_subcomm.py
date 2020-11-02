@@ -28,13 +28,13 @@ from libensemble.tests.regression_tests.common import mpi_comm_excl
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
-libE_specs['comm'], mpi_comm_null = mpi_comm_excl()
+libE_specs['mpi_comm'], mpi_comm_null = mpi_comm_excl()
 
-if libE_specs['comm'] == mpi_comm_null:
+if libE_specs['mpi_comm'] == mpi_comm_null:
     is_excluded = True
     is_manager = False
 else:
-    is_manager = (libE_specs['comm'].Get_rank() == 0)
+    is_manager = (libE_specs['mpi_comm'].Get_rank() == 0)
     is_excluded = False
 
 # Declare the run parameters/functions
