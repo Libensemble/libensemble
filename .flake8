@@ -44,3 +44,9 @@ per-file-ignores =
         libensemble/gen_funcs/persistent_aposmm.py:E402, E501
         libensemble/tests/regression_tests/test_persistent_aposmm*:E402
         libensemble/tests/regression_tests/test_old_aposmm*:E402
+
+        # cwp ignores (during development)
+        libensemble/gen_funcs/cwp.py:F401, F841, E128, E303
+        libensemble/gen_funcs/persistent_cwp.py:F401, F841, E128, E303
+        libensemble/gen_funcs/persistent_cwp_calib.py:F401, F841, E128, E303
+        libensemble/tests/regression_tests/test_cwp*:E402, E121, E126, E131, E123

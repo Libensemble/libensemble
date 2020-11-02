@@ -18,7 +18,7 @@ import numpy as np
 from libensemble.message_numbers import \
     EVAL_SIM_TAG, EVAL_GEN_TAG, \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
-from libensemble.message_numbers import MAN_SIGNAL_FINISH
+from libensemble.message_numbers import MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, libE_spec_calc_dir_misc
 
@@ -466,7 +466,17 @@ class Worker:
                 mtag, Work = self.comm.recv()
 
                 if mtag == STOP_TAG:
-                    break
+                    if Work is MAN_SIGNAL_FINISH:
+                        break
+                    elif Work is MAN_SIGNAL_KILL:
+                        continue
+
+                # Active recv is for persistent worker only - throw away here
+                if Work.get('libE_info', False):
+                    if Work['libE_info'].get('active_recv', False) and not Work['libE_info'].get('persistent', False):
+                        if len(Work['libE_info']['H_rows']) > 0:
+                            _, _, _ = self._recv_H_rows(Work)
+                        continue
 
                 response = self._handle(Work)
                 if response is None:

@@ -13,49 +13,57 @@ from libensemble.executors.executor import NOT_STARTED_STATES
 
 
 USE_BALSAM = False
-
 NCORES = 1
-sim_app = './my_simtask.x'
+build_sims = ['my_simtask.c', 'my_serialtask.c', 'c_startup.c']
+
+sim_app = 'simdir/my_simtask.x'
+serial_app = 'simdir/my_serialtask.x'
+c_startup = 'simdir/c_startup.x'
+py_startup = 'simdir/py_startup.py'
 
 
 def setup_module(module):
-    print("setup_module      module:%s" % module.__name__)
+    try:
+        print("setup_module module:%s" % module.__name__)
+    except AttributeError:
+        print("setup_module (direct run) module:%s" % module)
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
+    build_simfuncs()
 
 
 def setup_function(function):
-    print("setup_function    function:%s" % function.__name__)
+    print("setup_function function:%s" % function.__name__)
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
 
 
 def teardown_module(module):
-    print("teardown_module   module:%s" % module.__name__)
+    try:
+        print("teardown_module module:%s" % module.__name__)
+    except AttributeError:
+        print("teardown_module (direct run) module:%s" % module)
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
 
 
-def build_simfunc():
+def build_simfuncs():
     import subprocess
-
-    # Build simfunc
-    # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
-    buildstring = 'mpicc -o my_simtask.x simdir/my_simtask.c'
-    # subprocess.run(buildstring.split(), check=True) # Python3.5+
-    subprocess.check_call(buildstring.split())
+    #import pdb;pdb.set_trace()
+    for sim in build_sims:
+        app_name = '.'.join([sim.split('.')[0],'x'])
+        if not os.path.isfile(app_name):
+            buildstring = 'mpicc -o ' + os.path.join('simdir',app_name) + ' ' + os.path.join('simdir',sim)
+            subprocess.check_call(buildstring.split())
 
 
 # This would typically be in the user calling script
 # Cannot test auto_resources here - as no workers set up.
 def setup_executor():
-    # sim_app = './my_simtask.x'
-    if not os.path.isfile(sim_app):
-        build_simfunc()
-
+    """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import BalsamMPIExecutor
         exctr = BalsamMPIExecutor(auto_resources=False)
@@ -66,26 +74,23 @@ def setup_executor():
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 
-def setup_executor_noreg():
-    # sim_app = './my_simtask.x'
-    if not os.path.isfile(sim_app):
-        build_simfunc()
+def setup_serial_executor():
+    """Set up serial Executor"""
+    from libensemble.executors.executor import Executor
+    exctr = Executor()
+    exctr.register_calc(full_path=serial_app, calc_type='sim')
 
-    if USE_BALSAM:
-        from libensemble.executors.balsam_executor import BalsamMPIExecutor
-        exctr = BalsamMPIExecutor(auto_resources=False)
-    else:
-        from libensemble.executors.mpi_executor import MPIExecutor
-        exctr = MPIExecutor(auto_resources=False)
 
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+def setup_executor_startups():
+    """Set up serial Executor"""
+    from libensemble.executors.executor import Executor
+    exctr = Executor()
+    exctr.register_calc(full_path=c_startup, app_name='c_startup')
+    exctr.register_calc(full_path=py_startup, app_name='py_startup')
 
 
 def setup_executor_noapp():
-    # sim_app = './my_simtask.x'
-    if not os.path.isfile(sim_app):
-        build_simfunc()
-
+    """Set up an MPI Executor but do not register application"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import BalsamMPIExecutor
         exctr = BalsamMPIExecutor(auto_resources=False)
@@ -97,10 +102,7 @@ def setup_executor_noapp():
 
 
 def setup_executor_fakerunner():
-    # sim_app = './my_simtask.x'
-    if not os.path.isfile(sim_app):
-        build_simfunc()
-
+    """Set up an MPI Executor with a non-existent MPI runner"""
     if USE_BALSAM:
         print('Balsom does not support this feature - running MPIExecutor')
 
@@ -117,7 +119,7 @@ def setup_executor_fakerunner():
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
 def polling_loop(exctr, task, timeout_sec=0.5, delay=0.05):
-    # import time
+    """Iterate over a loop, polling for an exit condition"""
     start = time.time()
 
     while time.time() - start < timeout_sec:
@@ -149,7 +151,7 @@ def polling_loop(exctr, task, timeout_sec=0.5, delay=0.05):
 
 
 def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
-    # import time
+    """Iterate over a loop, polling for exit conditions on multiple tasks"""
     start = time.time()
 
     while time.time() - start < timeout_sec:
@@ -483,18 +485,6 @@ def test_launch_as_gen():
         assert 0
 
 
-def test_launch_default_reg():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
-    setup_executor_noreg()
-    exctr = Executor.executor
-    cores = NCORES
-    args_for_sim = 'sleep 0.1'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    task = polling_loop(exctr, task)
-    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
-
-
 def test_launch_no_app():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor_noapp()
@@ -636,8 +626,43 @@ def test_register_apps():
         # assert e.args[1] == "Registered applications: ['my_simtask.x', 'fake_app1', 'fake_app2']"
 
 
+def test_serial_exes():
+    setup_serial_executor()
+    exctr = Executor.executor
+    args_for_sim = 'sleep 0.1'
+    task = exctr.submit(calc_type='sim', app_args=args_for_sim, wait_on_run=True)
+    task.wait()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+
+
+def test_serial_startup_times():
+    setup_executor_startups()
+    exctr = Executor.executor
+
+    t1 = time.time()
+    task = exctr.submit(app_name='c_startup')
+    task.wait()
+    stime = float(task.read_stdout())
+    startup_time = stime - t1
+    print('start up time for c program', startup_time)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert 0 < startup_time < 1, "Start up time for C program took " + str(startup_time)
+
+    t1 = time.time()
+    task = exctr.submit(app_name='py_startup')
+    task.wait()
+    stime = float(task.read_stdout())
+    startup_time = stime - t1
+    print('start up time for python program', startup_time)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert 0 < startup_time < 1, "Start up time for python program took " + str(startup_time)
+
+
 if __name__ == "__main__":
-    # setup_module(__file__)
+    setup_module(__file__)
     test_launch_and_poll()
     test_launch_and_wait()
     test_launch_and_wait_timeout()
@@ -651,7 +676,6 @@ if __name__ == "__main__":
     test_finish_and_kill()
     test_launch_and_kill()
     test_launch_as_gen()
-    test_launch_default_reg()
     test_launch_no_app()
     test_kill_task_with_no_submit()
     test_poll_task_with_no_submit()
@@ -659,4 +683,6 @@ if __name__ == "__main__":
     test_retries_launch_fail()
     test_retries_run_fail()
     test_register_apps()
-    # teardown_module(__file__)
+    test_serial_exes()
+    test_serial_startup_times()
+    teardown_module(__file__)

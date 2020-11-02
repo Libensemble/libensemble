@@ -305,7 +305,7 @@ class Executor:
         task.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
         task.submit_time = task.timer.tstart
         while task.state in NOT_STARTED_STATES:
-            time.sleep(0.2)
+            time.sleep(0.02)
             task.poll()
         logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time()-start))
         if not task.finished:
@@ -314,7 +314,7 @@ class Executor:
             if fail_time:
                 remaining = fail_time - task.timer.elapsed
                 while task.state not in END_STATES and remaining > 0:
-                    time.sleep(min(1.0, remaining))
+                    time.sleep(min(0.2, remaining))
                     task.poll()
                     remaining = fail_time - task.timer.elapsed
                 logger.debug("After {} seconds: task {} polled as {}".format(task.timer.elapsed, task.name, task.state))
@@ -337,9 +337,13 @@ class Executor:
         self.wait_time = 60
         self.list_of_tasks = []
         self.workerID = None
+        self.comm = None
         Executor.executor = self
 
     def _serial_setup(self):
+        pass  # To be overloaded
+
+    def add_comm_info(self, libE_nodes, serial_setup):
         pass  # To be overloaded
 
     @property
@@ -400,18 +404,19 @@ class Executor:
                     "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
-    def manager_poll(self, comm):
+    def manager_poll(self):
         """ Polls for a manager signal
 
         The executor manager_signal attribute will be updated.
 
         """
+
         self.manager_signal = 'none'  # Reset
 
         # Check for messages; disregard anything but a stop signal
-        if not comm.mail_flag():
+        if not self.comm.mail_flag():
             return
-        mtag, man_signal = comm.recv()
+        mtag, man_signal = self.comm.recv()
         if mtag != STOP_TAG:
             return
 
@@ -424,7 +429,7 @@ class Executor:
         else:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
-        comm.push_to_buffer(mtag, man_signal)
+        self.comm.push_to_buffer(mtag, man_signal)
 
     def get_task(self, taskid):
         """ Returns the task object for the supplied task ID """
@@ -437,9 +442,86 @@ class Executor:
         """Sets the worker ID for this executor"""
         self.workerID = workerid
 
-    def set_worker_info(self, workerid=None):
+    def set_worker_info(self, comm, workerid=None):
         """Sets info for this executor"""
         self.workerID = workerid
+        self.comm = comm
+
+    def submit(self, calc_type=None, app_name=None, app_args=None,
+               stdout=None, stderr=None, dry_run=False, wait_on_run=False):
+        """Create a new task and run in place as a sub-process.
+
+        The created task object is returned.
+
+        Parameters
+        ----------
+
+        calc_type: String, optional
+            The calculation type: 'sim' or 'gen'
+            Only used if app_name is not supplied. Uses default sim or gen application.
+
+        app_name: String, optional
+            The application name. Must be supplied if calc_type is not.
+
+        app_args: string, optional
+            A string of the application arguments to be added to task
+            submit command line
+
+        stdout: string, optional
+            A standard output filename
+
+        stderr: string, optional
+            A standard error filename
+
+        dry_run: boolean, optional
+            Whether this is a dry_run - no task will be launched; instead
+            runline is printed to logger (at INFO level)
+
+        wait_on_run: boolean, optional
+            Whether to wait for task to be polled as RUNNING (or other
+            active/end state) before continuing
+
+        Returns
+        -------
+
+        task: obj: Task
+            The lauched task object
+
+        """
+
+        if app_name is not None:
+            app = self.get_app(app_name)
+        elif calc_type is not None:
+            app = self.default_app(calc_type)
+        else:
+            raise ExecutorException("Either app_name or calc_type must be set")
+
+        default_workdir = os.getcwd()
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        runline = task.app.full_path.split()
+        if task.app_args is not None:
+            runline.extend(task.app_args.split())
+
+        if dry_run:
+            logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+        else:
+            # Launch Task
+            logger.info("Launching task {}: {}".
+                        format(task.name, " ".join(runline)))
+
+            task.process = launcher.launch(runline, cwd='./',
+                                           stdout=open(task.stdout, 'w'),
+                                           stderr=open(task.stderr, 'w'),
+                                           start_new_session=False)
+            if (wait_on_run):
+                self._wait_on_run(task, 0)  # No fail time as no re-starts in-place
+
+            if not task.timer.timing:
+                task.timer.start()
+                task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
+
+            self.list_of_tasks.append(task)
+        return task
 
     def poll(self, task):
         "Polls a task"
