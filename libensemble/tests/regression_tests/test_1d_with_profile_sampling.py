@@ -24,7 +24,7 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs['profile_worker'] = True
+libE_specs['profile'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 

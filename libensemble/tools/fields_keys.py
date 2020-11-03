@@ -19,11 +19,10 @@ protected_libE_fields = ['gen_worker',
                          'given_time',
                          'sim_worker']
 
-allowed_sim_spec_keys = ['sim_f',   #
-                         'in',      #
-                         'out',     #
-                         'profile', #
-                         'user']    #
+allowed_sim_spec_keys = ['sim_f',  #
+                         'in',     #
+                         'out',    #
+                         'user']   #
 
 allowed_gen_spec_keys = ['gen_f',  #
                          'in',     #
@@ -61,7 +60,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'ip',                     #
                           'nworkers',               #
                           'port',                   #
-                          'profile_worker',         #
+                          'profile',                #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #
                           'save_H_and_persis_on_abort',        #
