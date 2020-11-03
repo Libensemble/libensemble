@@ -24,7 +24,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['save_every_k_gens'] = 300
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'profile': True}
 
 gen_specs = {'gen_f': gen_f,
              'out': [('x', float, (1,))],

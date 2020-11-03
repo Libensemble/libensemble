@@ -19,10 +19,11 @@ protected_libE_fields = ['gen_worker',
                          'given_time',
                          'sim_worker']
 
-allowed_sim_spec_keys = ['sim_f',  #
-                         'in',     #
-                         'out',    #
-                         'user']   #
+allowed_sim_spec_keys = ['sim_f',   #
+                         'in',      #
+                         'out',     #
+                         'profile', #
+                         'user']    #
 
 allowed_gen_spec_keys = ['gen_f',  #
                          'in',     #
