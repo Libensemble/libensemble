@@ -34,7 +34,7 @@ gen_specs = {'gen_f': gen_f,
                       }
              }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
 exit_criteria = {'gen_max': 501}
 
