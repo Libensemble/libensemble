@@ -123,7 +123,8 @@ def test_exception_raising_manager_no_abort():
 def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
     with pytest.raises(KeyError):
-        H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs={'mpi_comm': fake_mpi})
+        H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1},
+                       libE_specs={'mpi_comm': fake_mpi})
         pytest.fail('Expected KeyError exception')
 
 
