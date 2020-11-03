@@ -69,7 +69,7 @@ def manager_main(hist, libE_specs, alloc_specs,
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -87,7 +87,7 @@ def manager_main(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr.disable()
         profile_stats_fname = 'manager.prof'
 
