@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 task_timing = False
 
 
-def worker_main(mpi_comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
+def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
     """Evaluates calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
@@ -45,7 +45,7 @@ def worker_main(mpi_comm, sim_specs, gen_specs, libE_specs, workerID=None, log_c
 
     Parameters
     ----------
-    mpi_comm: mpi_communicator
+    comm: communicator
         Comm object for manager communications
 
     sim_specs: dict
@@ -58,10 +58,10 @@ def worker_main(mpi_comm, sim_specs, gen_specs, libE_specs, workerID=None, log_c
         Parameters/information for libE operations
 
     workerID: int
-        Manager assigned worker ID (if None, default is mpi_comm.rank)
+        Manager assigned worker ID (if None, default is comm.rank)
 
     log_comm: boolean
-        Whether to send logging over mpi_comm
+        Whether to send logging over comm
     """
 
     if libE_specs.get('profile_worker'):
@@ -69,15 +69,15 @@ def worker_main(mpi_comm, sim_specs, gen_specs, libE_specs, workerID=None, log_c
         pr.enable()
 
     # Receive dtypes from manager
-    _, dtypes = mpi_comm.recv()
-    workerID = workerID or mpi_comm.rank
+    _, dtypes = comm.recv()
+    workerID = workerID or comm.rank
 
     # Initialize logging on comms
     if log_comm:
-        worker_logging_config(mpi_comm, workerID)
+        worker_logging_config(comm, workerID)
 
     # Set up and run worker
-    worker = Worker(mpi_comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
+    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     worker.run()
 
     if libE_specs.get('profile_worker'):
@@ -109,7 +109,7 @@ class Worker:
 
     These are public object attributes.
 
-    :ivar mpi_comm mpi_communicator:
+    :ivar comm communicator:
         Comm object for manager communications
 
     :ivar dict dtypes:
@@ -128,11 +128,11 @@ class Worker:
         Stack holding directory structure of this Worker
     """
 
-    def __init__(self, mpi_comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
+    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
         """Initializes new worker object
 
         """
-        self.mpi_comm = mpi_comm
+        self.comm = comm
         self.dtypes = dtypes
         self.workerID = workerID
         self.sim_specs = sim_specs
@@ -143,7 +143,7 @@ class Worker:
         self.loc_stack = None
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
-        Worker._set_executor(self.workerID, self.mpi_comm)
+        Worker._set_executor(self.workerID, self.comm)
 
     @staticmethod
     def _make_calc_dir(libE_specs, workerID, H_rows, calc_str, locs):
@@ -235,11 +235,11 @@ class Worker:
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
-    def _set_executor(workerID, mpi_comm):
+    def _set_executor(workerID, comm):
         "Optional - sets worker ID in the executor, return if set"
         exctr = Executor.executor
         if isinstance(exctr, Executor):
-            exctr.set_worker_info(mpi_comm, workerID)
+            exctr.set_worker_info(comm, workerID)
             return True
         else:
             logger.info("No executor set on worker {}".format(workerID))
@@ -380,8 +380,8 @@ class Worker:
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
 
             # Check for buffered receive
-            if self.mpi_comm.recv_buffer:
-                tag, message = self.mpi_comm.recv()
+            if self.comm.recv_buffer:
+                tag, message = self.comm.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     if message is MAN_SIGNAL_FINISH:
                         calc_status = MAN_SIGNAL_FINISH
@@ -417,7 +417,7 @@ class Worker:
         libE_info = Work['libE_info']
         calc_type = Work['tag']
         if len(libE_info['H_rows']) > 0:
-            _, calc_in = self.mpi_comm.recv()
+            _, calc_in = self.comm.recv()
         else:
             calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
 
@@ -435,11 +435,11 @@ class Worker:
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
 
         # Call user function
-        libE_info['mpi_comm'] = self.mpi_comm
+        libE_info['comm'] = self.comm
         libE_info['workerID'] = self.workerID
         # libE_info['worker_team'] = [self.workerID] + libE_info.get('blocking', [])
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
-        del libE_info['mpi_comm']
+        del libE_info['comm']
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:
@@ -463,7 +463,7 @@ class Worker:
             for worker_iter in count(start=1):
                 logger.debug("Iteration {}".format(worker_iter))
 
-                mtag, Work = self.mpi_comm.recv()
+                mtag, Work = self.comm.recv()
 
                 if mtag == STOP_TAG:
                     break
@@ -471,12 +471,12 @@ class Worker:
                 response = self._handle(Work)
                 if response is None:
                     break
-                self.mpi_comm.send(0, response)
+                self.comm.send(0, response)
 
         except Exception as e:
-            self.mpi_comm.send(0, WorkerErrMsg(str(e), format_exc()))
+            self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
             self._copy_back()  # Copy back current results on Exception
         else:
-            self.mpi_comm.kill_pending()
+            self.comm.kill_pending()
         finally:
             self._copy_back()
