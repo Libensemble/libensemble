@@ -96,7 +96,7 @@ class History:
 
         for j, ind in enumerate(new_inds):
             for field in returned_H.dtype.names:
-                if safe_mode: 
+                if safe_mode:
                     assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]):
                     self.H[field][ind] = returned_H[field][j]
@@ -176,7 +176,7 @@ class History:
             update_inds = D['sim_id']
 
         for field in D.dtype.names:
-            if safe_mode: 
+            if safe_mode:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
