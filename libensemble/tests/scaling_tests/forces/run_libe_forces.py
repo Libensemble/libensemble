@@ -84,7 +84,7 @@ else:
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
 libE_specs['sim_dirs_make'] = True      # Separate each sim into a separate directory
-libE_specs['profile_worker'] = False    # Whether to have libE profile on (default False)
+libE_specs['profile'] = False    # Whether to have libE profile on (default False)
 
 # Maximum number of simulations
 sim_max = 8

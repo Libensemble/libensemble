@@ -60,7 +60,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'ip',                     #
                           'nworkers',               #
                           'port',                   #
-                          'profile_worker',         #
+                          'profile',                #
                           'safe_mode',              #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #

@@ -16,7 +16,6 @@ is dumped to file, and MPI abort is called.
 __all__ = ['libE']
 
 import os
-import platform
 import logging
 import random
 import socket
@@ -34,7 +33,7 @@ from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
-from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.tools.tools import _USER_SIM_ID_WARNING, osx_set_mp_method
 from libensemble.tools.check_inputs import check_inputs
 
 logger = logging.getLogger(__name__)
@@ -314,10 +313,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
     # These crashes haven't yet been observed with libE, but with 'spawn' runs,
     #  warnings about leaked semaphore objects are displayed instead.
-    # The next several statements enforce 'fork' on macOS (Python 3.8)
-    if platform.system() == 'Darwin':
-        from multiprocessing import set_start_method
-        set_start_method('fork', force=True)
+    # This function enforces 'fork' on macOS (Python 3.8)
+    osx_set_mp_method()
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
@@ -433,6 +430,8 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
     ip = libE_specs.get('ip', None) or get_ip()
     port = libE_specs.get('port', 0)
     authkey = libE_specs.get('authkey', libE_tcp_authkey())
+
+    osx_set_mp_method()
 
     with ServerQCommManager(port, authkey.encode('utf-8')) as manager:
 

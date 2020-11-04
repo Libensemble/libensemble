@@ -69,7 +69,7 @@ def manager_main(hist, libE_specs, alloc_specs,
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -87,7 +87,7 @@ def manager_main(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr.disable()
         profile_stats_fname = 'manager.prof'
 
@@ -263,7 +263,7 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            if 'repack_fields' in dir():
+            if 'repack_fields' in globals():
                 self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
