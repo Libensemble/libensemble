@@ -75,8 +75,9 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 500}
 
 sample_points = np.zeros((0, n))
+rand_stream = np.random.RandomState(0)
 for i in range(ceil(exit_criteria['sim_max']/gen_specs['user']['lhs_divisions'])):
-    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions']), axis=0)
+    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions'], rand_stream), axis=0)
 
 gen_specs['user']['sample_points'] = sample_points*(ub-lb) + lb
 
