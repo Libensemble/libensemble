@@ -64,7 +64,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
         Whether to send logging over comm
     """
 
-    if libE_specs.get('profile_worker'):
+    if libE_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -80,7 +80,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     worker.run()
 
-    if libE_specs.get('profile_worker'):
+    if libE_specs.get('profile'):
         pr.disable()
         profile_state_fname = 'worker_%d.prof' % (workerID)
 
