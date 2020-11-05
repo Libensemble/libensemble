@@ -18,7 +18,7 @@ Nonetheless, we hope that these selections are inspirational for implementing
 similar approaches in other user functions.
 
 Generator - Point Cancellation and Dedicated Fields
---------------------------------------------------=
+---------------------------------------------------
 
 While the CWP persistent generator loops, it detects using a library function
 if any pending points (combinations of "thetas" and "xs") distributed for
