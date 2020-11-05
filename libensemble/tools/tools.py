@@ -108,12 +108,13 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess='Run completed
 # ===================== per-process numpy random-streams =======================
 
 
-def add_unique_random_streams(persis_info, nstreams):
+def add_unique_random_streams(persis_info, nstreams, seed=''):
     """
     Creates nstreams random number streams for the libE manager and workers
-    when nstreams is num_workers + 1. Stream i is initialized with seed i.
+    when nstreams is num_workers + 1. Stream i is initialized with seed i by default.
+    Otherwise the streams can be initialized with a provided seed.
 
-    The entries are appended to the existing persis_info dictionary.
+    The entries are appended to the provided persis_info dictionary.
 
     .. code-block:: python
 
@@ -131,16 +132,28 @@ def add_unique_random_streams(persis_info, nstreams):
 
         Number of independent random number streams to produce
 
+    seed: :obj:`int`
+
+        (Optional) Seed for identical random number streams for each worker. If
+        explicitly set to ``None``, random number streams are unique and seed
+        via other pseudorandom mechanisms.
+
     """
 
     for i in range(nstreams):
+
+        if isinstance(seed, int) or seed is None:
+            random_seed = seed
+        else:
+            random_seed = i
+
         if i in persis_info:
             persis_info[i].update({
-                'rand_stream': np.random.RandomState(i),
+                'rand_stream': np.random.RandomState(random_seed),
                 'worker_num': i})
         else:
             persis_info[i] = {
-                'rand_stream': np.random.RandomState(i),
+                'rand_stream': np.random.RandomState(random_seed),
                 'worker_num': i}
     return persis_info
 
