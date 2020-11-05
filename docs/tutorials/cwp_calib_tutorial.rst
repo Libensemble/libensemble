@@ -36,8 +36,8 @@ the calculation status of each point, and ``comm`` is a communicator object from
 Within ``cancel_row()``, each row in ``r_obviate`` is iterated over, and if a
 point's specific ``data_status`` indicates it has not yet been simulated, it's appended
 to a list of ``sim_id``'s to be sent to the Manager for cancellation. A new, separate
-local :doc:`History array<../history_output>` is defined with ``'sim_id'`` and
-``'cancel'`` datatypes. This array is then sent to the manager with the
+local :doc:`History array<../history_output>` is defined with the selected ``'sim_id'`` s and
+ the ``'cancel'`` field set to ``True``. This array is then sent to the manager with the
 ``send_mgr_worker_msg`` persistent generator helper function. Each of these
 helper functions is described :ref:`here<p_gen_routines>`. The entire
 ``cancel_row()`` routine is listed below::
@@ -60,9 +60,8 @@ helper functions is described :ref:`here<p_gen_routines>`. The entire
         H_o['cancel'] = True
         send_mgr_worker_msg(comm, H_o)
 
-
-Manager - Cancellation Signals and History Updates
---------------------------------------------------
+Manager - Cancellation, History Updates, and Allocation
+-------------------------------------------------------
 
 On the side of the manager, between routines to call the allocation function and
 distribute allocated work to each worker, the manager selects points from the History
@@ -75,7 +74,9 @@ array that:
 
 If any points match these characteristics, the workers that are noted as currently
 processing these points are sent ``STOP`` tags and a kill signal. Then, ``'kill_sent'``
-is marked ``True`` for each of these points in the manager's History array.
+is marked ``True`` for each of these points in the manager's History array. During
+the subsequent allocation function calls, any points in the manager's History array
+that have ``'cancel'`` as ``True`` are not allocated.
 
 Calling Script - Reading Results
 --------------------------------
