@@ -17,24 +17,12 @@ rather than outlining a step-by-step process for writing this exact use-case.
 Nonetheless, we hope that these selections are inspirational for implementing
 similar approaches in other user functions.
 
-Generator Side - Reserved Fields and Point Cancellation
--------------------------------------------------------
+Generator - Point Cancellation and Dedicated Fields
+--------------------------------------------------=
 
-Like all generator functions, a local :doc:`History array<../history_array>`
-is initialized with a given size and datatype::
-
-    H_o = np.zeros(pre_count, dtype=gen_specs['out'])
-
-``gen_specs['out']`` is defined in our calling script, like all specification
-dictionaries explored in previous tutorials. For now, know that ``gen_specs['out']``
-contains the following elements (alongside many others)::
-
-    [('sim_id', int), ('cancel', bool), ('kill_sent', bool)]
-
-``'sim_id'`` should be familiar from previous tutorials. While the CWP persistent
-generator loops, it detects using a library function if any pending points
-(combinations of "thetas" and "xs") distributed for simulation ought to be
-cancelled (obviated), then calls ``cancel_row()``::
+While the CWP persistent generator loops, it detects using a library function
+if any pending points (combinations of "thetas" and "xs") distributed for
+simulation ought to be cancelled (obviated), then calls ``cancel_row()``::
 
     r_obviate = obviate_pend_thetas(model, theta, data_status)
     if r_obviate[0].shape[0] > 0:
@@ -42,15 +30,17 @@ cancelled (obviated), then calls ``cancel_row()``::
 
 Where ``pre_count`` is a matrix of "thetas" and "xs", ``r_obviate`` is a selection
 of rows to cancel, ``n_x`` is the number of ``x`` values, ``data_status`` describes
-the calculation status of each point, and ``comm`` is a communicator object used
-to send and receive messages from the Manager.
+the calculation status of each point, and ``comm`` is a communicator object from
+:doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
 
 Within ``cancel_row()``, each row in ``r_obviate`` is iterated over, and if a
 point's specific ``data_status`` indicates it has not yet been simulated, it's appended
-to a list of ``sim_id``'s to be sent to the Manager for cancellation. This communication
-is then accomplished through the ``send_mgr_worker_msg`` persistent generator helper
-function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
-The entire ``cancel_row()`` routine is listed below::
+to a list of ``sim_id``'s to be sent to the Manager for cancellation. A new, separate
+local :doc:`History array<../history_output>` is defined with ``'sim_id'`` and
+``'cancel'`` datatypes. This array is then sent to the manager with the
+``send_mgr_worker_msg`` persistent generator helper function. Each of these
+helper functions is described :ref:`here<p_gen_routines>`. The entire
+``cancel_row()`` routine is listed below::
 
     def cancel_row(pre_count, r, n_x, data_status, comm):
         # Cancel rest of row
@@ -70,12 +60,9 @@ The entire ``cancel_row()`` routine is listed below::
         H_o['cancel'] = True
         send_mgr_worker_msg(comm, H_o)
 
-Note that a new local History array is defined and populated with the requested ``sim_id``'s
-to cancel and have their ``'cancel'`` fields set to ``True``. This is then sent
-to the manager.
 
-Manager Side - Cancellation Signals and History Updates
--------------------------------------------------------
+Manager - Cancellation Signals and History Updates
+--------------------------------------------------
 
 On the side of the manager, between routines to call the allocation function and
 distribute allocated work to each worker, the manager selects points from the History
@@ -89,3 +76,15 @@ array that:
 If any points match these characteristics, the workers that are noted as currently
 processing these points are sent ``STOP`` tags and a kill signal. Then, ``'kill_sent'``
 is marked ``True`` for each of these points in the manager's History array.
+
+Calling Script - Reading Results
+--------------------------------
+
+Within the libEnsemble calling script, once the main :doc:`libE()<../libe_module>`
+function call has returned, it's a simple enough process to view the History rows
+that were either marked as cancelled and/or had a kill signal sent to their associated
+simulation instances during the run::
+
+    if is_master:
+        print('Cancelled sims', H[H['cancel']])
+        print('Killed sims', H[H['kill_sent']])

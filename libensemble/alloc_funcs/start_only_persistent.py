@@ -77,7 +77,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     back to the persistent generator. If batch_mode is False, then any returned
     points are given back to the generator.
 
-    Batch mode is determined by ``alloc_specs['user']['batch_mode']`
+    Batch mode is determined by ``alloc_specs['user']['batch_mode']``
 
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
