@@ -1,9 +1,12 @@
-==============================================
-Selective Sim Cancellation with Persistent CWP
-==============================================
+===========================================================
+Borehole Calibration with Selective Simulation Cancellation
+===========================================================
+
+Introduction - Calibration with libEnsemble and CWP
+---------------------------------------------------
 
 This tutorial demonstrates libEnsemble's capability to selectively cancel pending
-simulations based on asynchronous directives from the *Persistent CWP* calibration
+simulations based on instructions from the *Persistent CWP* calibration
 generator function. This capability is critical for this calibration use-case since
 it isn't useful for the generator to receive pending, extraneous evaluations
 from resources that may be more effectively applied towards critical evaluations.
@@ -11,11 +14,10 @@ from resources that may be more effectively applied towards critical evaluations
 [JLN: BETTER JUSTIFICATION GOES HERE?]
 
 For a somewhat different approach than libEnsemble's :doc:`other tutorials<tutorials>`,
-we'll emphasize the settings, components, and data fields within the calling script and CWP
-:ref:`persistent generator<persistent-gens>` that make this capability possible,
-rather than outlining a step-by-step process for writing this exact use-case.
-Nonetheless, we hope that these selections are inspirational for implementing
-similar approaches in other user functions.
+we'll emphasize the settings, functions, and data fields within the calling script, CWP
+:ref:`persistent generator<persistent-gens>`, ``Manager``, and :ref:`sim_f<api_sim_f>`
+that make this capability possible, rather than outlining a step-by-step process
+for writing this exact use-case.
 
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
