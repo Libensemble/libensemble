@@ -1,6 +1,6 @@
-======================================================
-Selective Pending Sim Cancellation with Persistent CWP
-======================================================
+==============================================
+Selective Sim Cancellation with Persistent CWP
+==============================================
 
 This tutorial demonstrates libEnsemble's capability to selectively cancel pending
 simulations based on asynchronous directives from the *Persistent CWP* calibration
@@ -17,12 +17,13 @@ rather than outlining a step-by-step process for writing this exact use-case.
 Nonetheless, we hope that these selections are inspirational for implementing
 similar approaches in other user functions.
 
-Generator - Point Cancellation and Dedicated Fields
----------------------------------------------------
+Generator - Point Cancellation Requests and Dedicated Fields
+------------------------------------------------------------
 
-While the CWP persistent generator loops, it detects using a library function
-if any pending points (combinations of "thetas" and "xs") distributed for
-simulation ought to be cancelled (obviated), then calls ``cancel_row()``::
+While the CWP persistent generator loops and updates it's model based on returned
+points from simulations, it detects using a library function if any pending points
+(combinations of "thetas" and "xs") generated and distributed for simulation
+ought to be cancelled (obviated), then calls ``cancel_row()``::
 
     r_obviate = obviate_pend_thetas(model, theta, data_status)
     if r_obviate[0].shape[0] > 0:
@@ -34,13 +35,13 @@ the calculation status of each point, and ``comm`` is a communicator object from
 :doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
 
 Within ``cancel_row()``, each row in ``r_obviate`` is iterated over, and if a
-point's specific ``data_status`` indicates it has not yet been simulated, it's appended
-to a list of ``sim_id``'s to be sent to the Manager for cancellation. A new, separate
-local :doc:`History array<../history_output>` is defined with the selected ``'sim_id'`` s and
- the ``'cancel'`` field set to ``True``. This array is then sent to the manager with the
-``send_mgr_worker_msg`` persistent generator helper function. Each of these
-helper functions is described :ref:`here<p_gen_routines>`. The entire
-``cancel_row()`` routine is listed below::
+point's specific ``data_status`` indicates it has not yet been evaluated by a simulation,
+it's appended to a list of ``sim_id``'s to be sent to the Manager for cancellation.
+A new, separate local :doc:`History array<../history_output>` is defined with the
+selected ``'sim_id'`` s and the ``'cancel'`` field set to ``True``. This array is
+then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
+helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
+The entire ``cancel_row()`` routine within Persistent CWP is listed below::
 
     def cancel_row(pre_count, r, n_x, data_status, comm):
         # Cancel rest of row
@@ -63,29 +64,77 @@ helper functions is described :ref:`here<p_gen_routines>`. The entire
 Manager - Cancellation, History Updates, and Allocation
 -------------------------------------------------------
 
-On the side of the manager, between routines to call the allocation function and
-distribute allocated work to each worker, the manager selects points from the History
+On the side of the Manager, between routines to call the allocation function and
+distribute allocated work to each worker, the Manager selects points from the History
 array that:
 
     1) Have been marked as ``'given'`` by the allocation function
     2) Have been marked to ``'cancel'`` by the generator
-    3) Have *not* been marked as ``'returned'`` by the manager
-    4) Have *not* had a kill signal sent by the manager and marked with ``'kill_sent'``
+    3) Have *not* been marked as ``'returned'`` by the Manager
+    4) Have *not* been marked with ``'kill_sent'`` by the Manager
 
 If any points match these characteristics, the workers that are noted as currently
 processing these points are sent ``STOP`` tags and a kill signal. Then, ``'kill_sent'``
-is marked ``True`` for each of these points in the manager's History array. During
-the subsequent allocation function calls, any points in the manager's History array
-that have ``'cancel'`` as ``True`` are not allocated.
+is marked ``True`` for each of these points in the Manager's History array. During
+the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
+function calls, any points in the Manager's History array that have ``'cancel'``
+as ``True`` are not allocated::
+
+    task_avail = ~H['given'] & ~H['cancel']
+
+Simulator - Receiving Kill Signal and Cancelling Tasks
+------------------------------------------------------
+
+Within currently running simulation functions, the :doc:`Executor<../executor/overview>`
+has been used to launch simulations based on points from the CWP Persistent generator,
+and has entered a routine to loop and check for signals from the Manager::
+
+    H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
+    H_o['f'] = borehole_func(H)  # Delay happens within borehole_func
+
+    if check_for_man_kills:
+        calc_status = check_for_kill_recv(sim_specs, libE_info)
+
+The contents of ``check_for_kill_recv()`` resemble::
+
+    exctr = Executor.executor
+    start_time = time.time()
+    while time.time() - start_time < timeout_time:
+        time.sleep(poll_interval)
+        exctr.manager_poll()
+        if exctr.manager_signal == 'kill':
+            exctr.kill(task)
+            calc_status = MAN_SIGNAL_KILL
+            break
+
+    return calc_status
+
+Where the loop periodically sleeps then polls for signals from the Manager using
+the :ref:`executor.manager_poll()<manager_poll_label>` function. Notice above that
+immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
+task launched by the Executor is killed with the loop breaking and the function
+returning with the ``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
+This status will be logged in ``libE_stats.txt``.
 
 Calling Script - Reading Results
 --------------------------------
 
 Within the libEnsemble calling script, once the main :doc:`libE()<../libe_module>`
 function call has returned, it's a simple enough process to view the History rows
-that were either marked as cancelled and/or had a kill signal sent to their associated
-simulation instances during the run::
+that were either marked as cancelled and/or had a kill signal sent to their
+associated simulation instances during the run::
+
+    H, persis_info, flag = libE(sim_specs, gen_specs,
+                                exit_criteria, persis_info,
+                                alloc_specs=alloc_specs,
+                                libE_specs=libE_specs)
 
     if is_master:
         print('Cancelled sims', H[H['cancel']])
         print('Killed sims', H[H['kill_sent']])
+
+Please see the ``test_cwp_calib.py`` regression test for an example
+routine using the Persistent CWP calibration persistent generator, found
+in ``gen_funcs/persistent_cwp_calib.py``. The associated simulation function
+and allocation functions are included in ``sim_funcs/cwpsim.py`` and
+``alloc_funcs/start_only_persistent.py`` respectively.
