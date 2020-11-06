@@ -69,7 +69,7 @@ def manager_main(hist, libE_specs, alloc_specs,
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -87,7 +87,7 @@ def manager_main(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr.disable()
         profile_stats_fname = 'manager.prof'
 
@@ -348,9 +348,9 @@ class Manager:
                 self.W[w-1]['active'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv)
+                self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv['calc_out'])
+                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode)
                 assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
                     "Gen must return work when is is the only thing active and not persistent."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:

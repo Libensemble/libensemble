@@ -86,7 +86,7 @@ class History:
 
         self.sim_count = np.sum(H['returned'])
 
-    def update_history_f(self, D):
+    def update_history_f(self, D, safe_mode):
         """
         Updates the history after points have been evaluated
         """
@@ -96,7 +96,8 @@ class History:
 
         for j, ind in enumerate(new_inds):
             for field in returned_H.dtype.names:
-                assert field not in protected_libE_fields, "The field '" + field + "' is protected"
+                if safe_mode:
+                    assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]):
                     self.H[field][ind] = returned_H[field][j]
                 else:
@@ -134,7 +135,7 @@ class History:
         else:
             self.given_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, D):
+    def update_history_x_in(self, gen_worker, D, safe_mode):
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -175,7 +176,8 @@ class History:
             update_inds = D['sim_id']
 
         for field in D.dtype.names:
-            assert field not in protected_libE_fields, "The field '" + field + "' is protected"
+            if safe_mode:
+                assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
         self.H['gen_time'][update_inds] = time.time()
