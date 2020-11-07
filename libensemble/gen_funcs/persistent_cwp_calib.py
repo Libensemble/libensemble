@@ -54,8 +54,8 @@ def update_arrays(fevals, failures, data_status, calc_in, pre_count, n_x, obs, e
         data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
 
 
-def cancel_row(pre_count, r, n_x, data_status, comm):
-    # Cancel rest of row
+def cancel_rows(pre_count, r, n_x, data_status, comm):
+    """Cancel rows"""
     sim_ids_to_cancel = []
     rows = np.unique(r)
     for r in rows:
@@ -73,20 +73,36 @@ def cancel_row(pre_count, r, n_x, data_status, comm):
     send_mgr_worker_msg(comm, H_o)
 
 
-def load_H(H, x, thetas, offset=0):
-    """Fill inputs num_points x num_thetas"""
+def assign_priority(n_x, n_thetas):
+    """Assign priorities to points"""
+
+    # Arbitrary priorities
+    priority = np.arange(n_x*n_thetas)
+    np.random.shuffle(priority)
+    return priority
+
+
+def load_H(H, x, thetas, offset=0, set_priorities=False, quantile=[np.inf]):
+    """Fill inputs into H0.
+
+    There will be num_points x num_thetas entries
+    """
     n_x = len(x)
     for i, t in enumerate(thetas):
         start = (i+offset)*n_x
         H['x'][start:start+n_x] = x
         H['thetas'][start:start+n_x] = t
 
+    H['quantile'] = quantile
+    if set_priorities:
+        n_thetas = len(thetas)
+        H['priority'] = assign_priority(n_x, n_thetas)
+
 
 def gen_testvals(ntests, x, persis_info, gen_specs):
     """Generate true values and test values using libE"""
     n_x = len(x)
     H_o = np.zeros((ntests + 1) * n_x, dtype=gen_specs['out'])
-    H_o['quantile'] = [np.inf]  # Do not generate random failures
 
     # Generate true theta and load into H
     true_theta, persis_info = gen_true_theta(persis_info)
@@ -95,7 +111,7 @@ def gen_testvals(ntests, x, persis_info, gen_specs):
 
     # Generate test thetas and load into H
     test_thetas, persis_info = gen_thetas(ntests, persis_info)
-    load_H(H_o, x, test_thetas, 1)
+    load_H(H_o, x, test_thetas, offset=1)
     return H_o
 
 
@@ -110,7 +126,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
     async_build = gen_specs['user']['async_build']  # Build emulator in background thread
     errstd_constant = gen_specs['user']['errstd_constant']  # Constant for generator
-    ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status (still puts in feval/failures)
+    ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status
     quantile = gen_specs['user']['quantile']  # Proportion of particles that succeed
 
     # Create points at which to evaluate the sim
@@ -131,14 +147,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
     threshold_to_failure = np.quantile(test_fevals, quantile)
-    H_o['quantile'] = threshold_to_failure
-    priority = np.arange(n_x*n_thetas)
-    np.random.shuffle(priority)
-    H_o['priority'] = priority
-
     theta, persis_info = gen_thetas(n_thetas, persis_info)
-    load_H(H_o, x, theta)
-
+    load_H(H_o, x, theta, set_priorities=True, quantile=threshold_to_failure)
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------
 
@@ -160,10 +170,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             update_arrays(fevals, failures, data_status, calc_in,
                            pre_count, n_x, obs, errstd, ignore_cancelled)
 
-            if rebuild_condition(data_status):
-                build_new_model = True
-            else:
-                build_new_model = False
+            build_new_model = rebuild_condition(data_status)
+            if not build_new_model:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
@@ -203,29 +211,22 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                 print('Number of thetas in total: {:d}'.format(theta.shape[0]))
                 break
 
-            n_thetas = step_add_theta
-            theta = np.vstack((theta, new_theta))
-
+            # Add space for new new thetas
             data_status = np.pad(data_status, ((0, step_add_theta), (0, 0)), 'constant', constant_values=0)
             fevals = np.pad(fevals, ((0, step_add_theta), (0, 0)), 'constant', constant_values=np.nan)
             failures = np.pad(failures, ((0, step_add_theta), (0, 0)), 'constant', constant_values=1)
 
+            n_thetas = step_add_theta
+            theta = np.vstack((theta, new_theta))
             H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-
-            # arbitrary priority
-            priority = np.arange(n_x*n_thetas)
-            np.random.shuffle(priority)
-            H_o['priority'] = priority
-            H_o['quantile'] = threshold_to_failure
-
-            load_H(H_o, x, new_theta)
+            load_H(H_o, x, new_theta, set_priorities=True, quantile=threshold_to_failure)
             tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
 
         # Determine evaluations to cancel
         r_obviate = obviate_pend_thetas(model, theta, data_status)
         if r_obviate[0].shape[0] > 0:
             print('rows sent for cancel is:  {}'.format(r_obviate), flush=True)
-            cancel_row(pre_count, r_obviate, n_x, data_status, comm)
+            cancel_rows(pre_count, r_obviate, n_x, data_status, comm)
 
     if async_build:
         try:
