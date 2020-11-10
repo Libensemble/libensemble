@@ -182,8 +182,8 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
 
 class DupComm:
     """Duplicate MPI communicator for use with a with statement"""
-    def __init__(self, comm):
-        self.parent_comm = comm
+    def __init__(self, mpi_comm):
+        self.parent_comm = mpi_comm
 
     def __enter__(self):
         self.dup_comm = self.parent_comm.Dup()
@@ -193,9 +193,9 @@ class DupComm:
         self.dup_comm.Free()
 
 
-def comms_abort(comm):
+def comms_abort(mpi_comm):
     "Abort all MPI ranks"
-    comm.Abort(1)  # Exit code 1 to represent an abort
+    mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
 
 def libE_mpi_defaults(libE_specs):
@@ -270,8 +270,8 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
     "Worker routine run at ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
-    mpi_comm = MainMPIComm(libE_comm)
-    worker_main(mpi_comm, sim_specs, gen_specs, libE_specs, log_comm=True)
+    comm = MainMPIComm(libE_comm)
+    worker_main(comm, sim_specs, gen_specs, libE_specs, log_comm=True)
     logger.debug("Worker {} exiting".format(libE_comm.Get_rank()))
 
 
