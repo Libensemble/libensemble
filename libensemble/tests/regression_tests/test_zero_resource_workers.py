@@ -113,7 +113,7 @@ if is_manager:
         f.flush()
         os.fsync(f)
 if comms == 'mpi':
-    libE_specs['comm'].Barrier()
+    libE_specs['mpi_comm'].Barrier()
 
 
 # Mock up system

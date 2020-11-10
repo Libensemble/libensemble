@@ -30,8 +30,8 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 num_comms = 2  # Must have atleast num_comms*2 processors
 nworkers, is_manager, libE_specs, _ = parse_args()
-libE_specs['comm'], sub_comm_number = mpi_comm_split(num_comms)
-is_manager = (libE_specs['comm'].Get_rank() == 0)
+libE_specs['mpi_comm'], sub_comm_number = mpi_comm_split(num_comms)
+is_manager = (libE_specs['mpi_comm'].Get_rank() == 0)
 
 # Declare the run parameters/functions
 m = 214

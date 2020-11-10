@@ -45,7 +45,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
 
     Parameters
     ----------
-    comm: comm
+    comm: communicator
         Comm object for manager communications
 
     sim_specs: dict
@@ -109,7 +109,7 @@ class Worker:
 
     These are public object attributes.
 
-    :ivar comm comm:
+    :ivar comm communicator:
         Comm object for manager communications
 
     :ivar dict dtypes:
