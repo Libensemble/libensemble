@@ -41,6 +41,8 @@ alongside ``persis_info``::
     State ``gen_f`` information like checkpointing should be
     appended to ``persis_info``.
 
+.. _persistent-gens:
+
 Persistent Generators
 ---------------------
 
