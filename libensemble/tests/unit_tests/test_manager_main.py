@@ -6,7 +6,7 @@ from mpi4py import MPI
 import libensemble.libE_manager as man
 import libensemble.tests.unit_tests.setup as setup
 
-libE_specs = {'comm': MPI.COMM_WORLD}
+libE_specs = {'mpi_comm': MPI.COMM_WORLD}
 
 
 def test_term_test_1():

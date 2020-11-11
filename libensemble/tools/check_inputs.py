@@ -18,7 +18,7 @@ def check_libE_specs(libE_specs, serial_check=False):
     comms_type = libE_specs.get('comms', 'mpi')
     if comms_type in ['mpi']:
         if not serial_check:
-            assert libE_specs['comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+            assert libE_specs['mpi_comm'].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
     elif comms_type in ['local']:
         assert libE_specs['nworkers'] >= 1, "Must specify at least one worker"
     elif comms_type in ['tcp']:
@@ -172,7 +172,7 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
 
         If true, assumes running a serial check. This means, for example,
         the details of current MPI communicator are not checked (can be
-        run with libE_specs{'comm': 'mpi'} without running through mpiexec.
+        run with libE_specs{'mpi_comm': 'mpi'} without running through mpiexec.
 
     """
     out_names = [e[0] for e in libE_fields]
