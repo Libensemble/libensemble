@@ -23,6 +23,7 @@
    tutorials/local_sine_tutorial
    tutorials/executor_forces_tutorial
    tutorials/aposmm_tutorial
+   tutorials/cwp_calib_tutorial
    examples/examples_index
 
 .. toctree::
