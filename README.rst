@@ -83,6 +83,7 @@ libEnsemble can also be run on launch nodes using multiprocessing.
 The example simulation and generation functions and tests require the following:
 
 * SciPy_
+* mpmath_
 * petsc4py_
 * DFO-LS_
 * Tasmanian_
@@ -238,6 +239,7 @@ Resources
 .. _PETSc: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
 .. _psutil: https://pypi.org/project/psutil/
+.. _mpmath: http://mpmath.org/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
