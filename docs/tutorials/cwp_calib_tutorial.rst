@@ -19,6 +19,9 @@ we'll emphasize the settings, functions, and data fields within the calling scri
 that make this capability possible, rather than outlining a step-by-step process
 for writing this exact use-case.
 
+.. note::
+    The generator function featured in this tutorial can be found in ``gen_funcs/persistent_cwp_calib.py``. This version uses simplified standalone routines in place of the in-development CWP library.
+
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
 
@@ -40,7 +43,7 @@ Within ``cancel_row()``, each row in ``r_obviate`` is iterated over, and if a
 point's specific ``data_status`` indicates it has not yet been evaluated by a simulation,
 it's appended to a list of ``sim_id``'s to be sent to the Manager for cancellation.
 A new, separate local :doc:`History array<../history_output>` is defined with the
-selected ``'sim_id'`` s and the ``'cancel'`` field set to ``True``. This array is
+selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
 The entire ``cancel_row()`` routine within Persistent CWP is listed below::
@@ -58,9 +61,9 @@ The entire ``cancel_row()`` routine within Persistent CWP is listed below::
                     data_status[r, i] = -2
 
         # Send only these fields to existing H row and it will slot in change.
-        H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
+        H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
         H_o['sim_id'] = sim_ids_to_cancel
-        H_o['cancel'] = True
+        H_o['cancel_requested'] = True
         send_mgr_worker_msg(comm, H_o)
 
 Manager - Cancellation, History Updates, and Allocation
@@ -71,7 +74,7 @@ distribute allocated work to each worker, the Manager selects points from the Hi
 array that:
 
     1) Have been marked as ``'given'`` by the allocation function
-    2) Have been marked to ``'cancel'`` by the generator
+    2) Have been marked to ``'cancel_requested'`` by the generator
     3) Have *not* been marked as ``'returned'`` by the Manager
     4) Have *not* been marked with ``'kill_sent'`` by the Manager
 
@@ -79,10 +82,10 @@ If any points match these characteristics, the workers that are noted as current
 processing these points are sent ``STOP`` tags and a kill signal. Then, ``'kill_sent'``
 is marked ``True`` for each of these points in the Manager's History array. During
 the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
-function calls, any points in the Manager's History array that have ``'cancel'``
+function calls, any points in the Manager's History array that have ``'cancel_requested'``
 as ``True`` are not allocated::
 
-    task_avail = ~H['given'] & ~H['cancel']
+    task_avail = ~H['given'] & ~H['cancel_requested']
 
 Simulator - Receiving Kill Signal and Cancelling Tasks
 ------------------------------------------------------
@@ -132,11 +135,10 @@ associated simulation instances during the run::
                                 libE_specs=libE_specs)
 
     if is_master:
-        print('Cancelled sims', H[H['cancel']])
+        print('Cancelled sims', H[H['cancel_requested']])
         print('Killed sims', H[H['kill_sent']])
 
 Please see the ``test_cwp_calib.py`` regression test for an example
-routine using the Persistent CWP calibration persistent generator, found
-in ``gen_funcs/persistent_cwp_calib.py``. The associated simulation function
-and allocation functions are included in ``sim_funcs/cwpsim.py`` and
-``alloc_funcs/start_only_persistent.py`` respectively.
+routine using the Persistent CWP calibration persistent generator.
+The associated simulation function and allocation functions are included in
+``sim_funcs/cwpsim.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
