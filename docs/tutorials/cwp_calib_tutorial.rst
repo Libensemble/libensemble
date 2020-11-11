@@ -25,16 +25,27 @@ for writing this exact use-case.
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
 
+Given "observed values" at a given set of points ("x"s), the CWP generator seeks to fit
+a Gaussian process model to these points using a function parameterized with
+"Thetas". The goal is to find the Theta that most closely matches observed values.
+
+After an initial batch of randomly sampled values, the model is used to generate
+new Thetas. Each Theta is evaluated via the ``sim_f`` at each of the points, until
+some threshold is reached. As mentioned previously, we want the capability to cancel
+previously-requested but pending evaluations (of Thetas) to improve efficiency.
+
+[JLN: BETTER DESCRIPTION OF PROBLEM GOES HERE?]
+
 While the CWP persistent generator loops and updates it's model based on returned
 points from simulations, it detects using a library function if any pending points
-(combinations of "thetas" and "xs") generated and distributed for simulation
-ought to be cancelled (obviated), then calls ``cancel_row()``::
+generated and distributed for simulation ought to be cancelled (obviated), then
+calls ``cancel_row()``::
 
     r_obviate = obviate_pend_thetas(model, theta, data_status)
     if r_obviate[0].shape[0] > 0:
         cancel_row(pre_count, r_obviate, n_x, data_status, comm)
 
-Where ``pre_count`` is a matrix of "thetas" and "xs", ``r_obviate`` is a selection
+Where ``pre_count`` is a matrix of "thetas" and "x"s, ``r_obviate`` is a selection
 of rows to cancel, ``n_x`` is the number of ``x`` values, ``data_status`` describes
 the calculation status of each point, and ``comm`` is a communicator object from
 :doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
@@ -66,11 +77,19 @@ The entire ``cancel_row()`` routine within Persistent CWP is listed below::
         H_o['cancel_requested'] = True
         send_mgr_worker_msg(comm, H_o)
 
+While most Workers, including those running other persistent generators, are only
+allocated work when they're in an :ref:`idle or non-active state<../data_structures/worker_array>`,
+the CWP generator performs an irregular sending / receiving of data from the Manager
+and must be prepared to send or receive data at any moment.
+This is necessary since the generator asynchronously updates its model and
+cancels pending evaluations. Therefore, the Worker running this generator remains
+in a unique *active receive* state, until it becomes non-persistent.
+
 Manager - Cancellation, History Updates, and Allocation
 -------------------------------------------------------
 
 On the side of the Manager, between routines to call the allocation function and
-distribute allocated work to each worker, the Manager selects points from the History
+distribute allocated work to each Worker, the Manager selects points from the History
 array that:
 
     1) Have been marked as ``'given'`` by the allocation function
@@ -78,7 +97,7 @@ array that:
     3) Have *not* been marked as ``'returned'`` by the Manager
     4) Have *not* been marked with ``'kill_sent'`` by the Manager
 
-If any points match these characteristics, the workers that are noted as currently
+If any points match these characteristics, the Workers that are noted as currently
 processing these points are sent ``STOP`` tags and a kill signal. Then, ``'kill_sent'``
 is marked ``True`` for each of these points in the Manager's History array. During
 the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
@@ -86,6 +105,10 @@ function calls, any points in the Manager's History array that have ``'cancel_re
 as ``True`` are not allocated::
 
     task_avail = ~H['given'] & ~H['cancel_requested']
+
+This ``alloc_f`` also has the capability to first allocate those points that have
+higher ``'priority'`` values in the local History array, effectively prioritizing
+simulations with prioritized points from the ``gen_f``.
 
 Simulator - Receiving Kill Signal and Cancelling Tasks
 ------------------------------------------------------
