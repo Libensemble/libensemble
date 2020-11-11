@@ -38,8 +38,8 @@ previously-requested but pending evaluations (of Thetas) to improve efficiency.
 
 While the CWP persistent generator loops and updates it's model based on returned
 points from simulations, it detects using a library function if any pending points
-generated and distributed for simulation ought to be cancelled (obviated), then
-calls ``cancel_row()``::
+and Thetas distributed for simulation are no longer needed to for the model,
+and ought to be cancelled (obviated). The generator then calls ``cancel_row()``::
 
     r_obviate = obviate_pend_thetas(model, theta, data_status)
     if r_obviate[0].shape[0] > 0:
