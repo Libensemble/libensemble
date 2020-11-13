@@ -187,12 +187,14 @@ libEnsemble on Summit is achieved by running ::
 
     $ bsub myscript.sh
 
+Example submission scripts are also given in the :doc:`examples<example_scripts>`.
+
 Launching User Applications from libEnsemble Workers
 ----------------------------------------------------
 
 Only the launch nodes can submit MPI runs to the compute nodes via ``jsrun``.
 This can be accomplished in user ``sim_f`` functions directly. However, it is highly
-recommended that the :doc:`executor<../executor/overview>` interface
+recommended that the :doc:`Executor<../executor/ex_index>` interface
 be used inside the ``sim_f`` or ``gen_f``, because this provides a portable interface
 with many advantages including automatic resource detection, portability,
 launch failure resilience, and ease of use.
