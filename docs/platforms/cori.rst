@@ -174,7 +174,7 @@ Example submission scripts are also given in the :doc:`examples<example_scripts>
 Cori FAQ
 --------
 
-*** Error in `<PATH>/bin/python': break adjusted to free malloc space: 0x0000010000000000 ***
+**Error in `<PATH>/bin/python': break adjusted to free malloc space: 0x0000010000000000**
 
 This error has been encountered on Cori when running with an incorrect
 installation of ``mpi4py``. See instructions above.
