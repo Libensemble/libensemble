@@ -208,8 +208,9 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
         # Store this information in the format expected by libE
         H_o = np.zeros(number_of_gen_points, dtype=gen_specs['out'])
         for i in range(number_of_gen_points):
-            resolution, input_vector = opt.ask()
-            H_o['x'][i] = np.concatenate( (input_vector, resolution) )
+            z, input_vector = opt.ask()
+            H_o['x'][i] = input_vector
+            H_o['z'][i] = z[0]
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
@@ -219,11 +220,10 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
             n = len(calc_in['f'])
             # Update the GP with latest simulation results
             for i in range(n):
-                x = calc_in['x'][i]
-                input_vector = x[:-1]
-                resolution = x[-1]
+                input_vector = calc_in['x'][i]
+                z = calc_in['z'][i]
                 y = calc_in['f'][i]
-                opt.tell([ (resolution, input_vector, -y) ])
+                opt.tell([ ([z], input_vector, -y) ])
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
