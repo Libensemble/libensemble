@@ -3,7 +3,10 @@ persistent_tasmanian
 
 Required: Tasmanian_, pypackaging_, scikit-build_
 
-``E.g: pip install scikit-build packaging Tasmanian``
+Note that Tasmanian can be pip installed, but currently must
+use either *venv* or *--user* install.
+
+``E.g: pip install scikit-build packaging Tasmanian --user``
 
 .. automodule:: persistent_tasmanian
   :members:
