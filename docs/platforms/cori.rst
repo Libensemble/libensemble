@@ -13,11 +13,19 @@ Configuring Python and Installation
 
 Begin by loading the Python 3 Anaconda_ module::
 
-    module load python/3.7-anaconda-2019.07
+    module load python
 
-In many cases this may provide all the dependent packages you need (including
-mpi4py). Note that these packages are installed under the ``/global/common``
-file system. This performs best for imported Python packages.
+Create a conda environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can create a conda_ environment in which to install libEnsemble and
+all dependencies. If using ``mpi4py``, it is recommended that you clone
+the ``lazy-mpi4py`` environment provided by NERSC::
+
+    conda create --name my_env --clone lazy-mpi4py
+
+If you wish to build ``mpi4py``, it will need to be done using the
+specific `Python instructions from NERSC`_.
 
 Installing libEnsemble
 ----------------------
@@ -25,61 +33,30 @@ Installing libEnsemble
 Having loaded the Anaconda Python module, libEnsemble can be installed
 by one of the following ways.
 
-1. External pip installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-libEnsemble can be installed locally either with::
-
-    pip install libensemble --user
-
-Or, if you have a project directory under ``/global/common/software`` it is
-recommended to pip install there, for performance::
-
-    export PREFIX_PATH=/global/common/software/<project_name>/packages
-    pip install --install-option="--prefix=$PREFIX_PATH" libensemble
-
-For the latter option, to ensure you pick up from this install you will need
-to prepend to your ``PYTHONPATH`` when running (check the exact ``pythonX.Y`` version)::
-
-    export PYTHONPATH=$PREFIX_PATH/lib/<pythonX.Y>/site-packages:$PYTHONPATH
-
-If libEnsemble is not found, ensure that local paths are being used with::
-
-    export PYTHONNOUSERSITE=0
-
-2. Create a conda environment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-As an alternative to using an external pip install, you can create your own
-conda_ environment in which to install libEnsemble and all dependencies.
-If using ``mpi4py``, installation will need to be done using the
-`specific instructions from NERSC`_. libEnsemble can then be pip installed
-into the environment.
+1. Install via **pip** into the environment.
 
 .. code-block:: console
 
     (my_env) user@cori07:~$ pip install libensemble
 
-Or, install via ``conda``:
+2. Install via **conda**:
 
 .. code-block:: console
 
     (my_env) user@cori07:~$ conda config --add channels conda-forge
     (my_env) user@cori07:~$ conda install -c conda-forge libensemble
 
-Again, it is preferable to create your conda environment under the ``common``
-file system. This can be done by modifying your ``~/.condarc`` file.
-For example, add the lines::
+It is preferable to create your conda environment under the
+``/global/common`` file system, which performs best for imported Python
+packages. This can be done by modifying your ``~/.condarc`` file. For
+example, add the lines::
 
     envs_dirs:
       - /path/to/my/conda_envs
     env_prompt: ({name})
 
-The env_prompt line ensures the whole directory path is not prepended to
-your prompt (The ({name}) here is literal, do not substitute).
-
-If highly parallel runs experience long start-up delays, consider the NERSC
-documentation on `scaling Python`_.
+The ``env_prompt`` line ensures the whole directory path is not prepended to
+your prompt (The ``({name})`` here is literal, do not substitute).
 
 See :doc:`here<../advanced_installation>` for more information on advanced options
 for installing libEnsemble.
@@ -90,7 +67,9 @@ Job Submission
 Cori uses Slurm_ for job submission and management. The two commands you'll
 likely use the most to initiate jobs are ``salloc`` and ``sbatch`` for running
 interactively and batch, respectively. libEnsemble runs on the compute nodes
-on Cori using either ``multi-processing`` or ``mpi4py``.
+on Cori using either ``multi-processing`` or ``mpi4py``. We recommend reading
+the `Python instructions from NERSC`_ for specific guidance on using both
+``multiprocessing``(used by local mode in libEnsemble) and ``mpi4py``.
 
 .. note::
     While it is possible to submit jobs from the user ``$HOME`` file system, this
@@ -102,7 +81,6 @@ on Cori using either ``multi-processing`` or ``mpi4py``.
     as this is read-only from compute nodes, but any imported codes (including
     libEnsemble and gen/sim functions) are best imported from there, especially
     when running at scale.
-    See instructions in `scaling Python`_ for more information.
 
 Interactive Runs
 ^^^^^^^^^^^^^^^^
@@ -190,7 +168,17 @@ user application. libEnsemble could be run on more than one node, but here the
     # leaving 256 nodes for worker launched applications.
     srun --overcommit --ntasks 129 --nodes=1 python calling_script.py
 
-Example submission scripts are also given in the examples_ directory.
+Example submission scripts are also given in the :doc:`examples<example_scripts>`.
+
+
+Cori FAQ
+--------
+
+*** Error in `<PATH>/bin/python': break adjusted to free malloc space: 0x0000010000000000 ***
+
+This error has been encountered on Cori when running with an incorrect
+installation of ``mpi4py``. See instructions above.
+
 
 Additional Information
 ----------------------
@@ -204,6 +192,4 @@ See the NERSC Cori docs here_ for more information about Cori.
 .. _Slurm: https://slurm.schedmd.com/
 .. _here: https://docs.nersc.gov/jobs/
 .. _options: https://slurm.schedmd.com/srun.html
-.. _examples: https://github.com/Libensemble/libensemble/tree/develop/examples/job_submission_scripts
-.. _specific instructions from NERSC: https://docs.nersc.gov/development/languages/python/parallel-python/
-.. _scaling Python: https://docs.nersc.gov/development/languages/python/parallel-python/
+.. _Python instructions from NERSC: https://docs.nersc.gov/development/languages/python/parallel-python/
