@@ -87,18 +87,19 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
-    # Note: the resolution should be the last variable
-    # TODO: Add a corresponding automated check
+    
+    # Fidelity range.
+    fidel_range = gen_specs['user']['range']
 
-    # Hard-coded cost function: TODO: generalize, allow user to pass
-    cost_func = lambda z: z[0]**2
+    # Get fidelity cost function.
+    cost_func = gen_specs['user']['cost_func']
 
     # Number of points to generate initially
     number_of_gen_points = gen_specs['user']['gen_batch_size']
 
     # Initialize the dragonfly GP optimizer
-    domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list[:-1], ub_list[:-1]) ] )
-    fidel_space = EuclideanDomain( [ [lb_list[-1], ub_list[-1]] ] )
+    domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list, ub_list) ] )
+    fidel_space = EuclideanDomain( [ fidel_range ] )
     func_caller = EuclideanFunctionCaller( None,
                             raw_domain=domain,
                             raw_fidel_space=fidel_space,
@@ -119,8 +120,9 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
         # Store this information in the format expected by libE
         H_o = np.zeros(number_of_gen_points, dtype=gen_specs['out'])
         for i in range(number_of_gen_points):
-            resolution, input_vector = opt.ask()
-            H_o['x'][i] = np.concatenate( (input_vector, resolution) )
+            z, input_vector = opt.ask()
+            H_o['x'][i] = input_vector
+            H_o['z'][i] = z[0]
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
@@ -130,11 +132,10 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
             n = len(calc_in['f'])
             # Update the GP with latest simulation results
             for i in range(n):
-                x = calc_in['x'][i]
-                input_vector = x[:-1]
-                resolution = x[-1]
+                input_vector = calc_in['x'][i]
+                z = calc_in['z'][i]
                 y = calc_in['f'][i]
-                opt.tell([ (resolution, input_vector, -y) ])
+                opt.tell([ ([z], input_vector, -y) ])
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
