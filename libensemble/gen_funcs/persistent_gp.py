@@ -13,9 +13,11 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTE
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 # import dragonfly Gaussian Process functions
-from dragonfly.exd.domains import EuclideanDomain, IntegralDomain
-from dragonfly.exd.experiment_caller import EuclideanFunctionCaller
-from dragonfly.opt.gp_bandit import EuclideanGPBandit
+from dragonfly.exd.domains import EuclideanDomain
+from dragonfly.exd.experiment_caller import (EuclideanFunctionCaller,
+                                             CPFunctionCaller)
+from dragonfly.opt.gp_bandit import EuclideanGPBandit, CPGPBandit
+from dragonfly.exd.cp_domain_utils import load_config
 from argparse import Namespace
 
 def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
@@ -160,28 +162,42 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
 
     # Multifidelity settings.
     cost_func = gen_specs['user']['cost_func']
-    discrete_fidel = gen_specs['user']['discrete']
+    # discrete_fidel = gen_specs['user']['discrete']
     fidel_range = gen_specs['user']['range']
 
-    # Number of points to generate initially
+    # Number of points to generate initially.
     number_of_gen_points = gen_specs['user']['gen_batch_size']
 
-    # Initialize the dragonfly GP optimizer
-    domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list, ub_list) ] )
-    if discrete_fidel:
-        fidel_space = IntegralDomain([ fidel_range ])
-    else:
-        fidel_space = EuclideanDomain([ fidel_range ] )
-    func_caller = EuclideanFunctionCaller( None,
-                            raw_domain=domain,
-                            raw_fidel_space=fidel_space,
-                            fidel_cost_func=cost_func,
-                            raw_fidel_to_opt=ub_list[-1] )
-    opt = EuclideanGPBandit( func_caller,
-                            ask_tell_mode=True,
-                            is_mf=True,
-                            options=Namespace(acq='ts',
-                            build_new_model_every=number_of_gen_points) )
+    # Create configuration dictionary from which Dragongly will
+    # automatically generate the necessary domains and orderings.
+    config_params = {}
+    config_params['domain'] = []
+    for ub, lb in zip(ub_list, lb_list):
+        domain_dict = {
+            'max': ub,
+            'min': lb,
+            'type': 'float'
+        }
+        config_params['domain'].append(domain_dict)
+    config_params['fidel_space'] = [{
+        'type': 'discrete',
+        'items': fidel_range
+    }]
+    config_params['fidel_to_opt'] = [fidel_range[-1]]
+    config = load_config(config_params)
+
+    # Initialize the dragonfly GP optimizer.
+    func_caller = CPFunctionCaller(
+        None,
+        domain=config.domain,
+        domain_orderings=config.domain_orderings,
+        fidel_space=config.fidel_space,
+        fidel_cost_func=cost_func,
+        fidel_to_opt=config.fidel_to_opt,
+        fidel_space_orderings=config.fidel_space_orderings)
+    opt = CPGPBandit(
+        func_caller, ask_tell_mode=True, is_mf=True,
+        options=Namespace(acq='ts', build_new_model_every=number_of_gen_points))
     opt.initialise()
 
     # Receive information from the manager (or a STOP_TAG)
