@@ -143,11 +143,11 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def persistent_gp_mfd_gen_f( H, persis_info, gen_specs, libE_info ):
+def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
     """
-    Create a Gaussian Process model, for multi-fidelity optimization,
-    and update it as new simulation results are available, and generate
-    inputs for the next simulations.
+    Create a Gaussian Process model, for multi-fidelity optimization
+    in a discrete fidelity space, and update it as new simulation results are
+    available, and generate inputs for the next simulations.
 
     This is a persistent `genf` i.e. this function is called by a dedicated
     worker and does not return until the end of the whole libEnsemble run.
