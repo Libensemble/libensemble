@@ -104,7 +104,7 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
                             raw_domain=domain,
                             raw_fidel_space=fidel_space,
                             fidel_cost_func=cost_func,
-                            raw_fidel_to_opt=ub_list[-1] )
+                            raw_fidel_to_opt=fidel_range[-1] )
     opt = EuclideanGPBandit( func_caller,
                             ask_tell_mode=True,
                             is_mf=True,
