@@ -205,5 +205,5 @@ See the NERSC Cori docs here_ for more information about Cori.
 .. _here: https://docs.nersc.gov/jobs/
 .. _options: https://slurm.schedmd.com/srun.html
 .. _examples: https://github.com/Libensemble/libensemble/tree/develop/examples/job_submission_scripts
-.. _specific instructions from NERSC: https://docs.nersc.gov/programming/high-level-environments/python/mpi4py/
-.. _scaling Python: https://docs.nersc.gov/programming/high-level-environments/python/scaling-up
+.. _specific instructions from NERSC: https://docs.nersc.gov/development/languages/python/parallel-python/
+.. _scaling Python: https://docs.nersc.gov/development/languages/python/parallel-python/
