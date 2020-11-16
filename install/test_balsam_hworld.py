@@ -121,6 +121,7 @@ if __name__ == '__main__':
 
     basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
 
+    subprocess.run('../../../install/configure-balsam-test.sh'.split())
     modify_Balsam_worker()
     modify_Balsam_JobEnv()
     run_Balsam_job()
@@ -131,3 +132,4 @@ if __name__ == '__main__':
     move_job_coverage(jobdir)
 
     print('Test complete.')
+    subprocess.run('../../../install/cleanup-balsam-test.sh'.split())

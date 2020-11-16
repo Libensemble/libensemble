@@ -41,4 +41,3 @@ if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
     install_balsam()
     move_test_balsam('test_balsam_hworld.py')
     configure_coverage()
-    subprocess.run('./install/configure-balsam-test.sh'.split())
