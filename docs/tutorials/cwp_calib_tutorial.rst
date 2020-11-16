@@ -8,7 +8,7 @@ Introduction - Calibration with libEnsemble and CWP
 This tutorial demonstrates libEnsemble's capability to selectively cancel pending
 simulations based on instructions from the *Persistent CWP* calibration
 generator function. This capability is critical for this calibration use-case since
-it isn't useful for the generator to receive pending, extraneous evaluations
+it isn't useful for the generator to receive extraneous evaluations
 from resources that may be more effectively applied towards critical evaluations.
 
 [JLN: BETTER JUSTIFICATION GOES HERE?]
@@ -25,39 +25,38 @@ for writing this exact use-case.
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
 
-Given "observed values" at a given set of points ("x"s), the CWP generator seeks to fit
+Given "observed values" at a given set of points called "x"s, the CWP generator seeks to fit
 a Gaussian process model to these points using a function parameterized with
 "Thetas". The goal is to find the Theta that most closely matches observed values.
 
-After an initial batch of randomly sampled values, the model is used to generate
+After an initial batch of randomly sampled values, the model generates
 new Thetas. Each Theta is evaluated via the ``sim_f`` at each of the points, until
-some threshold is reached. As mentioned previously, we want the capability to cancel
-previously-requested but pending evaluations (of Thetas) to improve efficiency.
+some error threshold is reached.
 
 [JLN: BETTER DESCRIPTION OF PROBLEM GOES HERE?]
 
-While the CWP persistent generator loops and updates it's model based on returned
+While the generator loops and updates the model based on returned
 points from simulations, it detects using a library function if any pending points
-and Thetas distributed for simulation are no longer needed to for the model,
+and Thetas distributed for simulation are no longer needed for the model
 and ought to be cancelled (obviated). The generator then calls ``cancel_row()``::
 
     r_obviate = obviate_pend_thetas(model, theta, data_status)
     if r_obviate[0].shape[0] > 0:
         cancel_row(pre_count, r_obviate, n_x, data_status, comm)
 
-Where ``pre_count`` is a matrix of "thetas" and "x"s, ``r_obviate`` is a selection
+``pre_count`` is a matrix of Thetas and "x"s, ``r_obviate`` is a selection
 of rows to cancel, ``n_x`` is the number of ``x`` values, ``data_status`` describes
 the calculation status of each point, and ``comm`` is a communicator object from
 :doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
 
 Within ``cancel_row()``, each row in ``r_obviate`` is iterated over, and if a
-point's specific ``data_status`` indicates it has not yet been evaluated by a simulation,
-it's appended to a list of ``sim_id``'s to be sent to the Manager for cancellation.
+point's ``data_status`` indicates it has not yet been evaluated by a simulation,
+it's ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
 A new, separate local :doc:`History array<../history_output>` is defined with the
 selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
-The entire ``cancel_row()`` routine within Persistent CWP is listed below::
+The entire ``cancel_row()`` routine is listed below::
 
     def cancel_row(pre_count, r, n_x, data_status, comm):
         # Cancel rest of row
@@ -77,38 +76,36 @@ The entire ``cancel_row()`` routine within Persistent CWP is listed below::
         H_o['cancel_requested'] = True
         send_mgr_worker_msg(comm, H_o)
 
-While most Workers, including those running other persistent generators, are only
-allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`,
-the CWP generator performs an irregular sending / receiving of data from the Manager
-and must be prepared to send or receive data at any moment.
-This is necessary since the generator asynchronously updates its model and
-cancels pending evaluations. Therefore, the Worker running this generator remains
-in a unique *active receive* state, until it becomes non-persistent.
+Most Workers, including those running other persistent generators, are only
+allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`.
+However, since this generator must asynchronously update its model and
+cancel pending evaluations, the Worker running this generator remains
+in a unique *active receive* state, until it becomes non-persistent. This means
+both the Manager and persistent Worker must be prepared for irregular sending /
+receiving of data.
 
 Manager - Cancellation, History Updates, and Allocation
 -------------------------------------------------------
 
-On the side of the Manager, between routines to call the allocation function and
-distribute allocated work to each Worker, the Manager selects points from the History
-array that:
+Between routines to call the allocation function and distribute allocated work
+to each Worker, the Manager selects points from the History array that are:
 
-    1) Have been marked as ``'given'`` by the allocation function
-    2) Have been marked to ``'cancel_requested'`` by the generator
-    3) Have *not* been marked as ``'returned'`` by the Manager
-    4) Have *not* been marked with ``'kill_sent'`` by the Manager
+    1) Marked as ``'given'`` by the allocation function
+    2) Marked with ``'cancel_requested'`` by the generator
+    3) *Not* been marked as ``'returned'`` by the Manager
+    4) *Not* been marked with ``'kill_sent'`` by the Manager
 
-If any points match these characteristics, the Workers that are noted as currently
-processing these points are sent ``STOP`` tags and a kill signal. Then, ``'kill_sent'``
-is marked ``True`` for each of these points in the Manager's History array. During
+If any points match these characteristics, the Workers that are processing these
+points are sent ``STOP`` tags and a kill signal. ``'kill_sent'``
+is set to ``True`` for each of these points in the Manager's History array. During
 the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
 function calls, any points in the Manager's History array that have ``'cancel_requested'``
 as ``True`` are not allocated::
 
     task_avail = ~H['given'] & ~H['cancel_requested']
 
-This ``alloc_f`` also has the capability to first allocate those points that have
-higher ``'priority'`` values in the local History array, effectively prioritizing
-simulations with prioritized points from the ``gen_f``::
+This ``alloc_f`` also can prioritize allocating points that have
+higher ``'priority'`` values from the ``gen_f`` values in the local History array::
 
     # Loop through available simulation workers
     for i in avail_worker_ids(W, persistent=False):
@@ -150,11 +147,11 @@ The contents of ``check_for_kill_recv()`` resemble::
 
     return calc_status
 
-Where the loop periodically sleeps then polls for signals from the Manager using
-the :ref:`executor.manager_poll()<manager_poll_label>` function. Notice above that
+The loop periodically sleeps, then polls for signals from the Manager using
+the :ref:`executor.manager_poll()<manager_poll_label>` function. Notice that
 immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
-task launched by the Executor is killed with the loop breaking and the function
-returning with the ``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
+task launched by the Executor is killed and the function returns with the
+``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
 This status will be logged in ``libE_stats.txt``.
 
 Calling Script - Reading Results
@@ -174,7 +171,15 @@ associated simulation instances during the run::
         print('Cancelled sims', H[H['cancel_requested']])
         print('Killed sims', H[H['kill_sent']])
 
+Here's an example graph showing the relationship between scheduled, cancelled (obviated),
+failed, and completed simulations requested by the ``gen_f``. Notice that for each
+batch of scheduled simulations, most either complete or fail but the rest are
+successfully obviated:
+
+.. image:: ../images/numparam.png
+  :alt: cwp_sample_graph
+
 Please see the ``test_cwp_calib.py`` regression test for an example
-routine using the Persistent CWP calibration persistent generator.
-The associated simulation function and allocation functions are included in
+routine using the Persistent CWP calibration generator.
+The associated simulation function and allocation function are included in
 ``sim_funcs/cwpsim.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
