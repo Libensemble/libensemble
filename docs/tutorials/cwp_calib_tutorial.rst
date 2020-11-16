@@ -15,7 +15,7 @@ from resources that may be more effectively applied towards critical evaluations
 
 For a somewhat different approach than libEnsemble's :doc:`other tutorials<tutorials>`,
 we'll emphasize the settings, functions, and data fields within the calling script, CWP
-:ref:`persistent generator<persistent-gens>`, ``Manager``, and :ref:`sim_f<api_sim_f>`
+:ref:`persistent generator<persistent-gens>`, Manager, and :ref:`sim_f<api_sim_f>`
 that make this capability possible, rather than outlining a step-by-step process
 for writing this exact use-case.
 
