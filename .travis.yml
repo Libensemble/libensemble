@@ -136,8 +136,8 @@ install:
 
 before_script:
   - flake8 libensemble
-  - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
-  - source setbalsampath.sh # Imperfect method for env var persist after setup
+  # - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
+  # - source setbalsampath.sh # Imperfect method for env var persist after setup
   - ulimit -Sn 10000   # More concurrent file descriptors (for persis aposmm)
 
 # Run test (-z show output)

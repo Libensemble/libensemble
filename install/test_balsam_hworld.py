@@ -118,6 +118,7 @@ if __name__ == '__main__':
     # Used by Balsam Coverage config file. Dont evaluate Balsam data dir
     libepath = os.path.dirname(libensemble.__file__)
     os.environ['LIBE_PATH'] = libepath
+    os.environ['BALSAM_DB_PATH'] = '~/test-balsam'
 
     basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
 
