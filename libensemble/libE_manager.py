@@ -435,7 +435,10 @@ class Manager:
         fields before the alloc_f call and ensures they weren't modified
         """
         if self.safe_mode:
-            saveH = copy.deepcopy(H[protected_libE_fields])
+            if 'repack_fields' in globals():
+                saveH = copy.deepcopy(repack_fields(H[protected_libE_fields]))
+            else:
+                saveH = copy.deepcopy(H[protected_libE_fields])
 
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
