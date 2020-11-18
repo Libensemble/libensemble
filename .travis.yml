@@ -17,7 +17,7 @@ env:
   matrix:
     - COMMS_TYPE=m  # mpi
     - COMMS_TYPE=l  # local
-    - COMMS_TYPE=t  # tcp
+    #- COMMS_TYPE=t  # tcp
 
 jobs:
   include:
@@ -31,11 +31,11 @@ jobs:
       env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
       language: generic
       python: 3.7
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
-      language: generic
-      python: 3.7
+    #- os: osx
+    #  osx_image: xcode11.3
+    #  env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
+    #  language: generic
+    #  python: 3.7
     - os: osx
       osx_image: xcode11.3
       env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
@@ -46,11 +46,11 @@ jobs:
       env: MPI=mpich PY=3.8 COMMS_TYPE=l  # local
       language: generic
       python: 3.8
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.8 COMMS_TYPE=t  # tcp
-      language: generic
-      python: 3.8
+    #- os: osx
+    #  osx_image: xcode11.3
+    #  env: MPI=mpich PY=3.8 COMMS_TYPE=t  # tcp
+    #  language: generic
+    #  python: 3.8
   fast_finish: true
   allow_failures:
       - python: 3.8
