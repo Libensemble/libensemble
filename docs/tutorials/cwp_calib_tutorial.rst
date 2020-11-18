@@ -2,19 +2,20 @@
 Borehole Calibration with Selective Simulation Cancellation
 ===========================================================
 
-Introduction - Calibration with libEnsemble and CWP
+Introduction - Calibration with libEnsemble and a regression model
 ---------------------------------------------------
 
 This tutorial demonstrates libEnsemble's capability to selectively cancel pending
-simulations based on instructions from the *Persistent CWP* calibration
-generator function. This capability is critical for this calibration use-case since
-it isn't useful for the generator to receive extraneous evaluations
-from resources that may be more effectively applied towards critical evaluations.
+simulations based on instructions from a calibration generator function.
+This capability to cancel scheduled simulations is critical for this calibration
+use-case since it isn't useful for the generator to receive extraneous evaluations
+from resources that may be more effectively applied towards critical evaluations,
+especially when evaluations are expensive.
 
 [JLN: BETTER JUSTIFICATION GOES HERE?]
 
 For a somewhat different approach than libEnsemble's :doc:`other tutorials<tutorials>`,
-we'll emphasize the settings, functions, and data fields within the calling script, CWP
+we'll emphasize the settings, functions, and data fields within the calling script, simple regression
 :ref:`persistent generator<persistent-gens>`, Manager, and :ref:`sim_f<api_sim_f>`
 that make this capability possible, rather than outlining a step-by-step process
 for writing this exact use-case.
@@ -25,9 +26,10 @@ for writing this exact use-case.
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
 
-Given "observed values" at a given set of points called "x"s, the CWP generator seeks to fit
-a Gaussian process model to these points using a function parameterized with
-"Thetas". The goal is to find the Theta that most closely matches observed values.
+Given "observed values" at a given set of points called "x"s, the simple regression generator seeks to fit
+a regression model to these points using a function parameterized with
+"Thetas". The purpose is to find a set of Thetas that closely matches observed values, given the uncertainty in observations.
+Specifically, the purpose is to sample from the posterior distribution of Thetas.
 
 After an initial batch of randomly sampled values, the model generates
 new Thetas. Each Theta is evaluated via the ``sim_f`` at each of the points, until
@@ -124,7 +126,7 @@ Simulator - Receiving Kill Signal and Cancelling Tasks
 ------------------------------------------------------
 
 Within currently running simulation functions, the :doc:`Executor<../executor/overview>`
-has been used to launch simulations based on points from the CWP Persistent generator,
+has been used to launch simulations based on points from the simple regression generator,
 and has entered a routine to loop and check for signals from the Manager::
 
     H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
@@ -180,6 +182,6 @@ successfully obviated:
   :alt: cwp_sample_graph
 
 Please see the ``test_cwp_calib.py`` regression test for an example
-routine using the Persistent CWP calibration generator.
+routine using the simple regression calibration generator.
 The associated simulation function and allocation function are included in
 ``sim_funcs/cwpsim.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
