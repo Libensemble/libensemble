@@ -2,17 +2,13 @@
 Borehole Calibration with Selective Simulation Cancellation
 ===========================================================
 
-Introduction - Calibration with libEnsemble and a regression model
----------------------------------------------------
+Introduction - Calibration with libEnsemble and a Regression Model
+------------------------------------------------------------------
 
 This tutorial demonstrates libEnsemble's capability to selectively cancel pending
 simulations based on instructions from a calibration generator function.
-This capability to cancel scheduled simulations is critical for this calibration
-use-case since it isn't useful for the generator to receive extraneous evaluations
-from resources that may be more effectively applied towards critical evaluations,
-especially when evaluations are expensive.
-
-[JLN: BETTER JUSTIFICATION GOES HERE?]
+This capability is desirable since compute resources may then be more effectively
+applied towards critical evaluations, especially when evaluations are expensive.
 
 For a somewhat different approach than libEnsemble's :doc:`other tutorials<tutorials>`,
 we'll emphasize the settings, functions, and data fields within the calling script, simple regression
@@ -20,10 +16,12 @@ we'll emphasize the settings, functions, and data fields within the calling scri
 that make this capability possible, rather than outlining a step-by-step process
 for writing this exact use-case.
 
-.. note::
-    The generator function featured in this tutorial can be found in ``gen_funcs/persistent_cwp_calib.py``. This version uses simplified standalone routines in place of an in-development calibration-emulation library, which includes implementation
-    of a specific method for calibration. It is important to note that, the generator function is swappable with any user-defined
-    function that is capable of instructing cancellation based on the received evaluations.
+The generator function featured in this tutorial can be found in
+``gen_funcs/persistent_cwp_calib.py``. This version uses simplified standalone
+routines in place of an in-development calibration-emulation library, which includes
+implementation of a specific method for calibration. It is important to note that,
+the generator function is swappable with any user-defined function that is capable
+of instructing cancellation based on the received evaluations.
 
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
@@ -44,18 +42,18 @@ error threshold is reached.
 While the generator loops and updates the model based on returned
 points from simulations, it detects using a library function if any pending points
 and Thetas distributed for simulation are no longer needed for the model
-and ought to be cancelled (obviated). The generator then calls ``cancel_row()``::
+and ought to be cancelled (obviated). The generator then calls ``cancel_rows()``::
 
     r_obviate = obviate_pend_thetas(model, theta, data_status)
     if r_obviate[0].shape[0] > 0:
-        cancel_row(pre_count, r_obviate, n_x, data_status, comm)
+        cancel_rows(pre_count, r_obviate, n_x, data_status, comm)
 
-``pre_count`` is a matrix of Thetas and "x"s, ``r_obviate`` is a selection
+``pre_count`` is a scalar of the number of ``sim_id``s, ``r_obviate`` is a selection
 of rows to cancel, ``n_x`` is the number of ``x`` values, ``data_status`` describes
 the calculation status of each point, and ``comm`` is a communicator object from
 :doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
 
-Within ``cancel_row()``, each row in ``r_obviate`` is iterated over, and if a
+Within ``cancel_rows()``, each row in ``r_obviate`` is iterated over, and if a
 point's ``data_status`` indicates it has not yet been evaluated by a simulation,
 it's ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
 A new, separate local :doc:`History array<../history_output>` is defined with the
@@ -64,7 +62,7 @@ then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
 The entire ``cancel_row()`` routine is listed below::
 
-    def cancel_row(pre_count, r, n_x, data_status, comm):
+    def cancel_rows(pre_count, r, n_x, data_status, comm):
         # Cancel rest of row
         sim_ids_to_cancel = []
         rows = np.unique(r)
@@ -86,7 +84,7 @@ Most Workers, including those running other persistent generators, are only
 allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`.
 However, since this generator must asynchronously update its model and
 cancel pending evaluations, the Worker running this generator remains
-in a unique *active receive* state, until it becomes non-persistent. This means
+in an *active receive* state, until it becomes non-persistent. This means
 both the Manager and persistent Worker must be prepared for irregular sending /
 receiving of data.
 
