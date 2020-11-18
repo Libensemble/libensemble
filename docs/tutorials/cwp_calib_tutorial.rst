@@ -21,7 +21,9 @@ that make this capability possible, rather than outlining a step-by-step process
 for writing this exact use-case.
 
 .. note::
-    The generator function featured in this tutorial can be found in ``gen_funcs/persistent_cwp_calib.py``. This version uses simplified standalone routines in place of the in-development CWP library.
+    The generator function featured in this tutorial can be found in ``gen_funcs/persistent_cwp_calib.py``. This version uses simplified standalone routines in place of an in-development calibration-emulation library, which includes implementation
+    of a specific method for calibration. It is important to note that, the generator function is swappable with any user-defined
+    function that is capable of instructing cancellation based on the received evaluations.
 
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
@@ -32,10 +34,12 @@ a regression model to these points using a function parameterized with
 Specifically, the purpose is to sample from the posterior distribution of Thetas.
 
 After an initial batch of randomly sampled values, the model generates
-new Thetas. Each Theta is evaluated via the ``sim_f`` at each of the points, until
-some error threshold is reached.
-
-[JLN: BETTER DESCRIPTION OF PROBLEM GOES HERE?]
+new Thetas. The model seeks to generate Thetas such that by evaluating at the new Thetas it gains
+information about how the model function behaves and if certain Thetas are more likely to be
+sampled from the posterior or not. Intuitively, the model generates Thetas at parameters where
+there is a lack of information, e.g. predictive variance is high.
+Each Theta is evaluated via the ``sim_f`` at each of the points, until some
+error threshold is reached.
 
 While the generator loops and updates the model based on returned
 points from simulations, it detects using a library function if any pending points
