@@ -436,7 +436,7 @@ class Manager:
         """
         if self.safe_mode:
             if 'repack_fields' in globals():
-                saveH = repack_fields(H[protected_libE_fields])
+                saveH = repack_fields(H[protected_libE_fields], recurse=True)
             else:
                 saveH = copy.deepcopy(H[protected_libE_fields])
 
