@@ -16,6 +16,8 @@ exmple = '''examples:
  would show lines where given is True and returned is False.
  '''
 
+np.set_printoptions(linewidth=1)
+
 parser = argparse.ArgumentParser(description=desc, epilog=exmple,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-f', '--fields', nargs='+', default=[])
