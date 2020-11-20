@@ -6,12 +6,12 @@ import argparse
 
 desc = "Script to print selected fields of a libEnsemble history array from a file"
 exmple = '''examples:
- ./print_fields_npy.py out1.npy --fields sim_id x f returned
+ ./print_fields.py out1.npy --fields sim_id x f returned
 
  If no fields are supplied the whole array is printed.
 
  You can filter by using conditions, but only boolean are supported currently e.g:
- ./print_fields_npy.py out1.npy -f sim_id x f -c given ~returned
+ ./print_fields.py out1.npy -f sim_id x f -c given ~returned
 
  would show lines where given is True and returned is False.
  '''
