@@ -230,7 +230,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     if async_build:
         try:
-            executor.shutdown(wait=True)
+            executor.shutdown(wait=True, cancel_futures=True)
         except Exception:
             pass
 
