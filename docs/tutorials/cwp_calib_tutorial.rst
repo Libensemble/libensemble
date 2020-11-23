@@ -35,9 +35,7 @@ After an initial batch of randomly sampled values, the model generates
 new Thetas, such that by performing ``sim_f`` evaluations at these new Thetas the model gains
 information about how the model function behaves and if certain Thetas are more likely to be
 sampled from the posterior or not. Intuitively, the model generates Thetas at parameters where
-there is a lack of information, e.g. where predictive variance is high.
-Each Theta is evaluated via the ``sim_f`` at each of the points, until some
-error threshold is reached:
+there is a lack of information, e.g. where predictive variance is high:
 
 .. math::
 
@@ -46,6 +44,8 @@ error threshold is reached:
 
 In the above matrix, ``Y`` is a matrix of ``sim_f`` evaluations of ``(Theta, x)``
 pairs, and forms the basis for building the regression model within the ``gen_f``.
+Such evaluations are performed until some error threshold is reached, at which
+point the generator exits and returns, initiating the shutdown of the libEnsemble routine.
 
 The following is a pseudocode overview of the generator::
 
