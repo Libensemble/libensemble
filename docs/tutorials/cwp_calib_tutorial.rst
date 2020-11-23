@@ -21,10 +21,9 @@ Generator - Overview of the Calibration Problem
 
 The generator function featured in this tutorial can be found in
 ``gen_funcs/persistent_cwp_calib.py``. This version uses simplified standalone
-routines in place of an in-development calibration-emulation library, which includes
-implementation of a specific method for calibration. It is important to note that
-the generator function is swappable with any user-defined function that is capable
-of instructing cancellation based on the received evaluations.
+routines in place of an in-development calibration-emulation library. Note that
+this ``gen_f`` is swappable with any other ``gen_f`` that can instruct cancellation
+based on received evaluations.
 
 Given "observed values" at a given set of points called "x"s, the simple regression
 generator seeks to fit a regression model to these points using a function parameterized
@@ -32,20 +31,21 @@ with "Thetas". The purpose is to find a set of Thetas that closely matches obser
 values, given the uncertainty in observations. Specifically, the purpose is to sample
 from the posterior distribution of Thetas.
 
+After an initial batch of randomly sampled values, the model generates
+new Thetas, such that by performing ``sim_f`` evaluations at these new Thetas the model gains
+information about how the model function behaves and if certain Thetas are more likely to be
+sampled from the posterior or not. Intuitively, the model generates Thetas at parameters where
+there is a lack of information, e.g. where predictive variance is high.
+Each Theta is evaluated via the ``sim_f`` at each of the points, until some
+error threshold is reached:
+
 .. math::
 
     \newcommand{\T}{\mathsf{T}}
     Y = \begin{pmatrix}    f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T    \end{pmatrix} = \begin{pmatrix} f(\theta_1, x_1) & \ldots & f(\theta_1, x_m) \\ \vdots & \ddots & \vdots \\ f(\theta_n, x_1) & \ldots & f(\theta_n, x_m) \end{pmatrix}
 
-[JLN: Contextualize above matrix with previous description and gen_f]
-
-After an initial batch of randomly sampled values, the model generates
-new Thetas. The model seeks to generate Thetas such that by evaluating at the new Thetas it gains
-information about how the model function behaves and if certain Thetas are more likely to be
-sampled from the posterior or not. Intuitively, the model generates Thetas at parameters where
-there is a lack of information, e.g. predictive variance is high.
-Each Theta is evaluated via the ``sim_f`` at each of the points, until some
-error threshold is reached.
+In the above matrix, ``Y`` is a matrix of ``sim_f`` evaluations of ``(Theta, x)``
+pairs, and forms the basis for building the regression model within the ``gen_f``.
 
 The following is a pseudocode overview of the generator::
 
