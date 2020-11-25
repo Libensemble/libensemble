@@ -264,6 +264,15 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
+                if self.hist.H[Work['H_fields']][work_rows].itemsize > 1000000:
+                    print(self.hist.H[Work['H_fields']][work_rows].itemsize, flush=True)
+                    print(repack_fields(self.hist.H[Work['H_fields']][work_rows]).itemsize, flush=True)
+                    # print(self.hist.H)
+                    # print(Work['H_fields'])
+                    # print(work_rows)
+                    # print(self.hist.H[Work['H_fields']][work_rows])
+                    # print(repack_fields(self.hist.H[Work['H_fields']][work_rows]))
+                    # print(repack_fields(self.hist.H[Work['H_fields']]))
                 self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows], recurse=True))
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
