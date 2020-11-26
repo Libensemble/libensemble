@@ -122,13 +122,19 @@ class Resources:
                                           nodelist_env_lsf=nodelist_env_lsf,
                                           nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
-        # This is global nodelist avail to workers - may change to global_worker_nodelist
-        self.local_host = self.env_resources.shortnames([socket.gethostname()])[0]
         if node_file is None:
             node_file = Resources.DEFAULT_NODEFILE
+
         self.global_nodelist = Resources.get_global_nodelist(node_file=node_file,
                                                              rundir=self.top_level_dir,
                                                              env_resources=self.env_resources)
+
+        self.shortnames = Resources.is_nodelist_shortnames(self.global_nodelist)
+        if self.shortnames:
+            self.local_host = self.env_resources.shortnames([socket.gethostname()])[0]
+        else:
+            self.local_host = socket.gethostname()
+
         self.launcher = launcher
         remote_detect = False
         if self.local_host not in self.global_nodelist:
@@ -150,7 +156,10 @@ class Resources:
 
         Removes libEnsemble nodes from nodelist if in central_mode.
         """
-        self.libE_nodes = self.env_resources.shortnames(libE_nodes)
+        if self.shortnames:
+            self.libE_nodes = self.env_resources.shortnames(libE_nodes)
+        else:
+            self.libE_nodes = libE_nodes
         libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
         if libE_nodes_in_list:
             if self.central_mode and len(self.global_nodelist) > 1:
@@ -203,6 +212,14 @@ class Resources:
 
     # ---------------------------------------------------------------------------
 
+    @staticmethod
+    def is_nodelist_shortnames(nodelist):
+        """Returns True if any entry contains a '.', else False"""
+        for item in nodelist:
+            if '.' in item:
+                return False
+        return True
+
     # This is for central mode where libE nodes will not share with app nodes
     @staticmethod
     def remove_nodes(global_nodelist_in, remove_list):
@@ -237,8 +254,9 @@ class Resources:
             with open(node_filepath, 'r') as f:
                 for line in f:
                     global_nodelist.append(line.rstrip())
-            if env_resources:
-                global_nodelist = env_resources.shortnames(global_nodelist)
+            # Expect correct format - if anything - could have an option to truncate.
+            # if env_resources:
+                # global_nodelist = env_resources.shortnames(global_nodelist)
         else:
             logger.debug("No node_file found - searching for nodelist in environment")
             if env_resources:
@@ -247,7 +265,8 @@ class Resources:
             if not global_nodelist:
                 # Assume a standalone machine
                 logger.info("Can not find nodelist from environment. Assuming standalone")
-                global_nodelist.append(env_resources.shortnames([socket.gethostname()])[0])
+                # global_nodelist.append(env_resources.shortnames([socket.gethostname()])[0])
+                global_nodelist.append(socket.gethostname())
 
         if global_nodelist:
             return global_nodelist
