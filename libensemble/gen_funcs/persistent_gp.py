@@ -96,7 +96,7 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
-    
+
     # Fidelity range.
     fidel_range = gen_specs['user']['range']
 
@@ -121,6 +121,16 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
                             build_new_model_every=number_of_gen_points) )
     opt.initialise()
 
+    # If there is any past history, feed it to the GP
+    if len(H) > 0:
+        for i in range(len(H)):
+            x = H['x'][i]
+            z = H['z'][i]
+            y = H['f'][i]
+            opt.tell([ ([z], x, -y) ])
+        # Update hyperparameters
+        opt._build_new_model()
+
     # Receive information from the manager (or a STOP_TAG)
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
@@ -141,10 +151,10 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
             n = len(calc_in['f'])
             # Update the GP with latest simulation results
             for i in range(n):
-                input_vector = calc_in['x'][i]
+                x = calc_in['x'][i]
                 z = calc_in['z'][i]
                 y = calc_in['f'][i]
-                opt.tell([ ([z], input_vector, -y) ])
+                opt.tell([ ([z], x, -y) ])
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
@@ -167,8 +177,6 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
-    # Note: the resolution should be the last variable
-    # TODO: Add a corresponding automated check
 
     # Multifidelity settings.
     cost_func = gen_specs['user']['cost_func']
@@ -210,6 +218,16 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
         options=Namespace(acq='ts', build_new_model_every=number_of_gen_points))
     opt.initialise()
 
+    # If there is any past history, feed it to the GP
+    if len(H) > 0:
+        for i in range(len(H)):
+            x = H['x'][i]
+            z = H['z'][i]
+            y = H['f'][i]
+            opt.tell([ ([z], x, -y) ])
+        # Update hyperparameters
+        opt._build_new_model()
+
     # Receive information from the manager (or a STOP_TAG)
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
@@ -230,10 +248,10 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
             n = len(calc_in['f'])
             # Update the GP with latest simulation results
             for i in range(n):
-                input_vector = calc_in['x'][i]
+                x = calc_in['x'][i]
                 z = calc_in['z'][i]
                 y = calc_in['f'][i]
-                opt.tell([ ([z], input_vector, -y) ])
+                opt.tell([ ([z], x, -y) ])
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
