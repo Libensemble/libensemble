@@ -314,7 +314,10 @@ class WorkerResources:
 
     @staticmethod
     def get_workers_on_a_node(num_workers, resources):
-        """Returns the number of workers that can be placed on each node"""
+        """Returns the number of workers that can be placed on each node
+
+        If there are more nodes than workers, returns 1.
+        """
         num_nodes = len(resources.global_nodelist)
         # Round up if theres a remainder
         workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)
