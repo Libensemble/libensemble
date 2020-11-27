@@ -42,6 +42,15 @@ def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
           options=Namespace(acq='ts', build_new_model_every=number_of_gen_points) )
     opt.initialise()
 
+    # If there is any past history, feed it to the GP
+    if len(H) > 0:
+        for i in range(len(H)):
+            x = H['x'][i]
+            y = H['f'][i]
+            opt.tell([ (x, -y) ])
+        # Update hyperparameters
+        opt._build_new_model()
+
     # Receive information from the manager (or a STOP_TAG)
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
