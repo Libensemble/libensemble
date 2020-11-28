@@ -310,7 +310,8 @@ class WorkerResources:
         self.workerID = workerID
         self.local_nodelist = WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
         self.local_node_count = len(self.local_nodelist)
-        self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers, resources)
+        self.num_workers_2assign2 = WorkerResources.get_workers2assign2(self.num_workers, resources)
+        self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers_2assign2, resources)
 
     @staticmethod
     def get_workers_on_a_node(num_workers, resources):
@@ -337,17 +338,22 @@ class WorkerResources:
         return index
 
     @staticmethod
+    def get_workers2assign2(num_workers, resources):
+        """Returns workers to assign resources to"""
+        zero_resource_list = resources.zero_resource_workers
+        return num_workers - len(zero_resource_list)
+
+    @staticmethod
     def get_local_nodelist(num_workers, workerID, resources):
         """Returns the list of nodes available to the current worker
 
         Assumes that self.global_nodelist has been calculated (in __init__).
         Also self.global_nodelist will have already removed non-application nodes
         """
-
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
         zero_resource_list = resources.zero_resource_workers
-        num_workers_2assign2 = num_workers - len(zero_resource_list)
+        num_workers_2assign2 = WorkerResources.get_workers2assign2(num_workers, resources)
 
         # Check if current host in nodelist - if it is then in distributed mode.
         distrib_mode = resources.local_host in global_nodelist
