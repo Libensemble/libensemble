@@ -1,7 +1,6 @@
 # This script is submitted as an app and job to Balsam. The job submission is
 #   via 'balsam launch' executed in the test_balsam_hworld.py script.
 
-import os
 import numpy as np
 import mpi4py
 from mpi4py import MPI
