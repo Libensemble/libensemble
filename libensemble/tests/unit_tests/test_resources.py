@@ -83,7 +83,7 @@ def test_get_global_nodelist_frm_slurm_single():
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
 
-def test_get_global_nodelist_frm_slurm_straigt_list():
+def test_get_global_nodelist_frm_slurm_straight_list():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "n0000.es1,n0002.es1"
     exp_out = ['n0000.es1', 'n0002.es1']
     env_resources = EnvResources(nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST",
@@ -495,7 +495,7 @@ if __name__ == "__main__":
     test_get_global_nodelist_frm_slurm()
     test_get_global_nodelist_frm_slurm_suffix()
     test_get_global_nodelist_frm_slurm_single()
-    test_get_global_nodelist_frm_slurm_straigt_list()
+    test_get_global_nodelist_frm_slurm_straight_list()
     test_get_global_nodelist_frm_slurm_multigroup()
     test_get_global_nodelist_frm_slurm_complex()
 
