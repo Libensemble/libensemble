@@ -263,19 +263,21 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
+            H_selections = self.hist.H[Work['H_fields']][work_rows]
             if 'repack_fields' in globals():
-                if self.hist.H[Work['H_fields']][work_rows].itemsize > 1000000:
-                    print(self.hist.H[Work['H_fields']][work_rows].itemsize, flush=True)
-                    print(repack_fields(self.hist.H[Work['H_fields']][work_rows]).itemsize, flush=True)
+                if H_selections.itemsize > 1000000:
+                    print('current itemsize: ', H_selections.itemsize, flush=True)
+                    print('repack only: ', repack_fields(H_selections).itemsize, flush=True)
+                    print('repack getfield: ', repack_fields(H_selections.getfield(H_selections.dtype.fields), recurse=True).itemsize, flush=True)  # getfield() alone produces highly variant itemsizes and offsets!
                     # print(self.hist.H)
                     # print(Work['H_fields'])
                     # print(work_rows)
                     # print(self.hist.H[Work['H_fields']][work_rows])
                     # print(repack_fields(self.hist.H[Work['H_fields']][work_rows]))
                     # print(repack_fields(self.hist.H[Work['H_fields']]))
-                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows], recurse=True))
+                self.wcomms[w-1].send(0, repack_fields(H_selections, recurse=True))
             else:
-                self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
+                self.wcomms[w-1].send(0, H_selections)
 
     def _update_state_on_alloc(self, Work, w):
         """Updates a workers' active/idle status following an allocation order"""
