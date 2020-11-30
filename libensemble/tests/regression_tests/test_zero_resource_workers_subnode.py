@@ -52,7 +52,7 @@ if not (nsim_workers*nodes_per_worker).is_integer():
     sys.exit("Sim workers ({}) must divide evenly into nodes".format(nsim_workers))
 
 comms = libE_specs['comms']
-node_file = 'nodelist_zero_resource_workers_subnode_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_zero_resource_workers_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = int(nsim_workers*nodes_per_worker)
 
 if is_manager:

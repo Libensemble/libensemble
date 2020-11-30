@@ -48,7 +48,7 @@ nsim_workers = nworkers-n_gens
 
 comms = libE_specs['comms']
 nodes_per_worker = 2
-node_file = 'nodelist_zero_resource_workers_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_zero_resource_workers_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = nsim_workers*nodes_per_worker
 
 if is_manager:

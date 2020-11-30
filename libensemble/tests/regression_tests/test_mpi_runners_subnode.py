@@ -4,9 +4,9 @@
 # This test must be run on an even number of workers >= 2 (e.g. odd no. of procs when using mpi4py).
 #
 # Execute via one of the following commands (e.g. 2 workers):
-#    mpiexec -np 3 python3 test_zero_resource_workers_subnode.py
-#    python3 test_zero_resource_workers_subnode.py --nworkers 2 --comms local
-#    python3 test_zero_resource_workers_subnode.py --nworkers 2 --comms tcp
+#    mpiexec -np 3 python3 test_mpi_runners_subnode.py.py
+#    python3 test_mpi_runners_subnode.py.py --nworkers 2 --comms local
+#    python3 test_mpi_runners_subnode.py.py --nworkers 2 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 3-1=2.
 # """
@@ -34,8 +34,6 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
-libE_specs['zero_resource_workers'] = [1]
-
 
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
@@ -50,7 +48,7 @@ if not (nsim_workers*nodes_per_worker).is_integer():
     sys.exit("Sim workers ({}) must divide evenly into nodes".format(nsim_workers))
 
 comms = libE_specs['comms']
-node_file = 'nodelist_zero_resource_workers_subnode_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_mpi_runners_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = int(nsim_workers*nodes_per_worker)
 
 if is_manager:
