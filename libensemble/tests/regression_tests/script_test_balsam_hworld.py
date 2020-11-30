@@ -21,7 +21,7 @@ mpi4py.rc.recv_mprobe = False  # Disable matching probes
 def build_simfunc():
     import subprocess
     print('Balsam job launched in: {}'.format(os.getcwd()))
-    buildstring = 'mpicc -o my_simtask.x libensemble/tests/unit_tests/simdir/my_simtask.c'
+    buildstring = 'mpicc -o my_simtask.x ../tests/unit_tests/simdir/my_simtask.c'
     subprocess.check_call(buildstring.split())
 
 
