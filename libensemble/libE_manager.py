@@ -273,7 +273,11 @@ class Manager:
                     # print(self.hist.H[Work['H_fields']][work_rows])
                     # print(repack_fields(self.hist.H[Work['H_fields']][work_rows]))
                     # print(repack_fields(self.hist.H[Work['H_fields']]))
-                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows], recurse=True))
+                    A = repack_fields(self.hist.H[Work['H_fields']][work_rows])
+                    print(A.itemsize, flush=True)
+                    self.wcomms[w-1].send(0, A)
+                else:
+                    self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows], recurse=True))
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
