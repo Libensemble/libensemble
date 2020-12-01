@@ -268,7 +268,9 @@ class Manager:
                 if H_selections.itemsize > 1000000:
                     print('current itemsize: ', H_selections.itemsize, flush=True)
                     print('repack only: ', repack_fields(H_selections).itemsize, flush=True)
-                    print('repack getfield: ', repack_fields(H_selections.getfield(H_selections.dtype.fields), recurse=True).itemsize, flush=True)  # getfield() alone produces highly variant itemsizes and offsets!
+                    # getfield() alone produces highly variant itemsizes and offsets!
+                    print('repack getfield: ', repack_fields(H_selections.getfield(H_selections.dtype.fields),
+                                                             recurse=True).itemsize, flush=True)
                     # print(self.hist.H)
                     # print(Work['H_fields'])
                     # print(work_rows)
