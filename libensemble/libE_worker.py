@@ -20,7 +20,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys
+from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, libE_spec_calc_dir_misc
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.timer import Timer
@@ -45,7 +45,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
 
     Parameters
     ----------
-    comm: comm
+    comm: communicator
         Comm object for manager communications
 
     sim_specs: dict
@@ -64,7 +64,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
         Whether to send logging over comm
     """
 
-    if libE_specs.get('profile_worker'):
+    if libE_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -80,7 +80,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     worker.run()
 
-    if libE_specs.get('profile_worker'):
+    if libE_specs.get('profile'):
         pr.disable()
         profile_state_fname = 'worker_%d.prof' % (workerID)
 
@@ -109,7 +109,7 @@ class Worker:
 
     These are public object attributes.
 
-    :ivar comm comm:
+    :ivar comm communicator:
         Comm object for manager communications
 
     :ivar dict dtypes:
@@ -151,17 +151,21 @@ class Worker:
 
         if calc_str == 'sim':
             calc_input_dir = libE_specs.get('sim_input_dir', '').rstrip('/')
-            do_calc_dirs = libE_specs.get('sim_dirs_make', True)
+            do_calc_dirs = libE_specs.get('sim_dirs_make', False)
             copy_files = libE_specs.get('sim_dir_copy_files', [])
             symlink_files = libE_specs.get('sim_dir_symlink_files', [])
         else:  # calc_str is 'gen'
             calc_input_dir = libE_specs.get('gen_input_dir', '').rstrip('/')
-            do_calc_dirs = libE_specs.get('gen_dirs_make', True)
+            do_calc_dirs = libE_specs.get('gen_dirs_make', False)
             copy_files = libE_specs.get('gen_dir_copy_files', [])
             symlink_files = libE_specs.get('gen_dir_symlink_files', [])
 
         prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         do_work_dirs = libE_specs.get('use_worker_dirs', False)
+
+        # If 'use_worker_dirs' only calc_dir option. Use worker dirs, but no calc dirs
+        if do_work_dirs and not libE_specs.get('sim_dirs_make') and not libE_specs.get('gen_dirs_make'):
+            do_calc_dirs = False
 
         # If using calc_input_dir, set of files to copy is contents of provided dir
         if calc_input_dir:
@@ -327,6 +331,8 @@ class Worker:
             dir_type_keys = libE_spec_sim_dir_keys
         else:
             dir_type_keys = libE_spec_gen_dir_keys
+
+        dir_type_keys += libE_spec_calc_dir_misc
 
         return any([setting in self.libE_specs for setting in dir_type_keys])
 

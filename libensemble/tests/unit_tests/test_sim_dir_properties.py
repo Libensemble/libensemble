@@ -85,8 +85,7 @@ def test_worker_dirs_but_no_sim_dirs():
     for dir in [inputdir, inputfile, ensemble_dir]:
         os.makedirs(dir, exist_ok=True)
 
-    libE_specs = {'sim_dirs_make': False, 'ensemble_dir_path': ensemble_dir,
-                  'use_worker_dirs': True, 'sim_input_dir': inputdir}
+    libE_specs = {'ensemble_dir_path': ensemble_dir, 'use_worker_dirs': True, 'sim_input_dir': inputdir}
 
     ls = LocationStack()
     for i in range(4):  # Should work at any range

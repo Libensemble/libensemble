@@ -2,7 +2,7 @@ import numpy as np
 import libensemble.gen_funcs.persistent_aposmm as al
 import libensemble.tests.unit_tests.setup as setup
 
-libE_specs = {'comm': {}}
+libE_info = {'comm': {}}
 
 
 def test_persis_aposmm_localopt_test():
@@ -16,7 +16,7 @@ def test_persis_aposmm_localopt_test():
     gen_specs_0['user']['lb'] = np.zeros(2)
 
     try:
-        al.aposmm(H, {}, gen_specs_0, libE_specs)
+        al.aposmm(H, {}, gen_specs_0, libE_info)
     except NotImplementedError:
         assert 1, "Failed because method is unknown."
     else:

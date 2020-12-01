@@ -43,7 +43,7 @@ def assertion(passed):
         print("\n\nException received as expected")
 
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -79,11 +79,11 @@ try:
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
 except Exception as e:
-    if is_master:
+    if is_manager:
         if e.args[1] == 'NLopt roundoff-limited':
             assertion(True)
         else:
             assertion(False)
 else:
-    if is_master:
+    if is_manager:
         assertion(False)

@@ -5,7 +5,7 @@ persis_info
 
 Supply persistent information to libEnsemble::
 
-    persis_info: [dict] :
+    persis_info: [dict]:
         Dictionary containing persistent info
 
 Holds data that is passed to and from workers updating some state information. A typical example

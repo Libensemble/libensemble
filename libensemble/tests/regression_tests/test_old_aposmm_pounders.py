@@ -26,7 +26,7 @@ from libensemble.gen_funcs.old_aposmm import aposmm_logic as gen_f
 from libensemble.tests.regression_tests.support import persis_info_2 as persis_info, aposmm_gen_out as gen_out
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Declare the run parameters/functions
 m = 214
@@ -63,7 +63,7 @@ exit_criteria = {'sim_max': budget}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     assert flag == 0
     assert len(H) >= budget
 

@@ -29,7 +29,7 @@ from libensemble.gen_funcs.sampling import lhs_sample
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -75,8 +75,9 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 500}
 
 sample_points = np.zeros((0, n))
+rand_stream = np.random.RandomState(0)
 for i in range(ceil(exit_criteria['sim_max']/gen_specs['user']['lhs_divisions'])):
-    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions']), axis=0)
+    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions'], rand_stream), axis=0)
 
 gen_specs['user']['sample_points'] = sample_points*(ub-lb) + lb
 
@@ -84,7 +85,7 @@ gen_specs['user']['sample_points'] = sample_points*(ub-lb) + lb
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     assert flag == 0
     assert len(H) >= budget
 

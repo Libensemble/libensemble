@@ -126,7 +126,7 @@ on Bebop is achieved by running ::
     sbatch myscript.sh
 
 Example submission scripts for running on Bebop in distributed and centralized mode
-are also given in the examples_ directory.
+are also given in the :doc:`examples<example_scripts>`.
 
 Debugging Strategies
 --------------------
@@ -146,4 +146,3 @@ See the LCRC Bebop docs here_ for more information about Bebop.
 .. _Slurm: https://slurm.schedmd.com/
 .. _here: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-bebop/
 .. _options: https://slurm.schedmd.com/srun.html
-.. _examples: https://github.com/Libensemble/libensemble/tree/develop/examples/job_submission_scripts

@@ -29,7 +29,7 @@ from libensemble.tests.regression_tests.common import build_simfunc
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 3 4
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 USE_BALSAM = False
 
@@ -47,7 +47,7 @@ else:
     use_auto_resources = True
     mess_resources = 'Auto_resources set to True'
 
-if is_master:
+if is_manager:
     print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_tasks, logical_cores, mess_resources))
 
 sim_app = './my_simtask.x'
@@ -92,7 +92,7 @@ exit_criteria = {'elapsed_wallclock_time': 20}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     print('\nChecking expected task status against Workers ...\n')
 
     # Expected list: Last is zero as will not be entered into H array on

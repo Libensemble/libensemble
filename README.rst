@@ -83,7 +83,9 @@ libEnsemble can also be run on launch nodes using multiprocessing.
 The example simulation and generation functions and tests require the following:
 
 * SciPy_
+* mpmath_
 * petsc4py_
+* DEAP_
 * DFO-LS_
 * Tasmanian_
 * NLopt_
@@ -224,6 +226,7 @@ Resources
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
@@ -231,6 +234,7 @@ Resources
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
 .. _MPICH: http://www.mpich.org/
+.. _mpmath: http://mpmath.org/
 .. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
 .. _NumPy: http://www.numpy.org

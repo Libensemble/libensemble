@@ -3,6 +3,7 @@ This module stores environment variables for use in resource detection
 """
 
 import os
+import re
 import logging
 from collections import OrderedDict
 
@@ -126,13 +127,13 @@ class EnvResources:
         return a, b, nnum_len
 
     @staticmethod
-    def _noderange_append(prefix, nidstr):
+    def _noderange_append(prefix, nidstr, suffix):
         """Formats and appends nodes to overall nodelist"""
         nidlst = []
         for nidgroup in nidstr.split(','):
             a, b, nnum_len = EnvResources._range_split(nidgroup)
             for nid in range(a, b):
-                nidlst.append(prefix + str(nid).zfill(nnum_len))
+                nidlst.append(prefix + str(nid).zfill(nnum_len) + suffix)
         return nidlst
 
     @staticmethod
@@ -141,24 +142,22 @@ class EnvResources:
         fullstr = os.environ[node_list_env]
         if not fullstr:
             return []
-        part_splitstr = fullstr.split('],')
-        if len(part_splitstr) == 1:     # Single Partition
-            splitstr = fullstr.split('[', 1)
-            if len(splitstr) == 1:      # Single Node
-                return splitstr
-            prefix = splitstr[0]
-            nidstr = splitstr[1].strip("]")
-            nidlst = EnvResources._noderange_append(prefix, nidstr)
-        else:                           # Multiple Partitions
-            splitgroups = [str.split('[', 1) for str in part_splitstr]
-            prefixgroups = [group[0] for group in splitgroups]
-            nodegroups = [group[1].strip(']') for group in splitgroups]
-            nidlst = []
-            for i in range(len(prefixgroups)):
-                prefix = prefixgroups[i]
-                nidstr = nodegroups[i]
-                nidlst.extend(EnvResources._noderange_append(prefix, nidstr))
-
+        # Split at commas outside of square brackets
+        r = re.compile(r'(?:[^,\[]|\[[^\]]*\])+')
+        part_splitstr = r.findall(fullstr)
+        nidlst = []
+        for i in range(len(part_splitstr)):
+            part = part_splitstr[i]
+            splitstr = part.split('[', 1)
+            if len(splitstr) == 1:
+                nidlst.append(splitstr[0])
+            else:
+                prefix = splitstr[0]
+                remainder = splitstr[1]
+                splitstr = remainder.split(']', 1)
+                nidstr = splitstr[0]
+                suffix = splitstr[1]
+                nidlst.extend(EnvResources._noderange_append(prefix, nidstr, suffix))
         return sorted(nidlst)
 
     @staticmethod
