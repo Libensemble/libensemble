@@ -263,9 +263,8 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            H_selections = self.hist.H[Work['H_fields']][work_rows]
             if 'repack_fields' in globals():
-                if H_selections.itemsize > 1000000:
+                if self.hist.H[Work['H_fields']][work_rows].itemsize > 1000000:
                     print('current itemsize: ', H_selections.itemsize, flush=True)
                     print('repack only: ', repack_fields(H_selections).itemsize, flush=True)
                     # getfield() alone produces highly variant itemsizes and offsets!
@@ -283,7 +282,7 @@ class Manager:
                 else:
                     self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows], recurse=True))
             else:
-                self.wcomms[w-1].send(0, H_selections)
+                self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
     def _update_state_on_alloc(self, Work, w):
         """Updates a workers' active/idle status following an allocation order"""
