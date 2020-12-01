@@ -1,17 +1,26 @@
 name: init-libEnsemble-CI
 on: [push]
 jobs:
-    test-check-libE-py-version:
+    build-test:
 
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest, macOS-latest]
+                os: [ubuntu-latest, macos-latest]
                 python-version: [3.6, 3.7, 3.8]
+                comms-type: [MPI, local]
+                exclude:
+                    - os: macos-latest
+                      python-version: 3.6
+                    - os: macos-latest
+                      python-version: 3.7
+
+        env:
+            HYDRA_LAUNCHER: 'fork'
 
         steps:
         - uses: actions/checkout@v2
-        - name: Set up Conda with Python ${{ matrix.python-version }}
+        - name: Setup conda - Python ${{ matrix.python-version }}
           uses: s-weigand/setup-conda@v1
           with:
             update-conda: true
