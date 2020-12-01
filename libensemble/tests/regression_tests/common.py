@@ -6,6 +6,17 @@ import os
 import os.path
 
 
+def create_node_file(num_nodes, name='node_list'):
+    """Create a nodelist file"""
+    if os.path.exists(name):
+        os.remove(name)
+    with open(name, 'w') as f:
+        for i in range(1, num_nodes + 1):
+            f.write('node-' + str(i) + '\n')
+        f.flush()
+        os.fsync(f)
+
+
 def mpi_comm_excl(exc=[0], comm=None):
     "Exlude ranks from a communicator for MPI comms."
     from mpi4py import MPI
