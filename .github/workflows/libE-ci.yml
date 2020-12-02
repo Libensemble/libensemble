@@ -1,5 +1,5 @@
 name: init-libEnsemble-CI
-on: workflow_dispatch
+on: push
 jobs:
     install-test:
 
