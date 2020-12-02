@@ -19,14 +19,14 @@ jobs:
         steps:
         - uses: actions/checkout@v2
         - name: Setup conda - Python ${{ matrix.python-version }}
-          uses: s-weigand/setup-conda@v1
+          uses: conda-incubator/setup-miniconda@v2
           with:
-            update-conda: true
+            activate-environment: condaenv
             python-version: ${{ matrix.python-version }}
-            conda-channels: anaconda, conda-forge
+            channels: conda-forge
 
         - name: Install Octave on Ubuntu
-          if: matrix.os == 'ubuntu-latest'
+          if: matrix.os == 'ubuntu-16.04'
           run: |
             sudo add-apt-repository -y ppa:octave/stable
             sudo apt-get update -qq
@@ -59,7 +59,7 @@ jobs:
             pip install coveralls
 
         - name: Install Tasmanian on Ubuntu
-          if: matrix.os == 'ubuntu-latest'
+          if: matrix.os == 'ubuntu-16.04'
           run: |
             pip install scikit-build packaging Tasmanian --user
 
