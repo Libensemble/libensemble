@@ -27,8 +27,6 @@ jobs:
             channels: conda-forge
             channel-priority: flexible
             auto-update-conda: true
-          run: |
-            pip install --upgrade pip
 
         - name: SSH to GitHub Actions
           uses: mxschmitt/action-tmate@v3
