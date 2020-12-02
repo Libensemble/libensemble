@@ -42,7 +42,7 @@ jobs:
         - name: Conda install dependencies
           if: matrix.python-version != 3.8
           run: |
-            conda install -c conda-forge nlopt, petsc4py, petsc, mumps-mpi, mpi4py, scipy, mpich
+            conda install -c conda-forge mpi4py
 
         - name: Install universal dependencies
           run: |
