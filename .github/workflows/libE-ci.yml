@@ -26,9 +26,12 @@ jobs:
             python-version: ${{ matrix.python-version }}
             channels: conda-forge
             channel-priority: flexible
+            auto-update-conda: true
+          run: |
+            pip install --upgrade pip
 
         - name: SSH to GitHub Actions
-          uses: P3TERX/ssh2actions@v1.0.0
+          uses: mxschmitt/action-tmate@v3
 
         - name: Install Octave on Ubuntu
           if: matrix.os == 'ubuntu-16.04'
