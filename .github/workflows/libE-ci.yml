@@ -34,19 +34,29 @@ jobs:
 
         - name: Conda install dependencies, with-batch PETSc
           if: matrix.python-version == 3.8
+          env:
+            PETSC_CONFIGURE_OPTIONS: '--with-batch'
           run: |
-            conda install -c conda-forge nlopt mpi4py scipy mpich
-            export PETSC_CONFIGURE_OPTIONS='--with-batch'
-            conda install -c conda-forge petsc4py
+            conda install nlopt
+            conda install scipy
+            conda install mpich
+            conda install mpi4py
+            conda install petsc4py
 
         - name: Conda install dependencies
           if: matrix.python-version != 3.8
           run: |
-            conda install -c conda-forge mpi4py
+            conda install nlopt
+            conda install scipy
+            conda install mpich
+            conda install mpi4py
+            conda install mumps-mpi
+            conda install petsc
+            conda install petsc4py
 
-        - name: Install universal dependencies
+        - name: Install pip dependencies
           run: |
-            conda install -c conda-forge libblas libopenblas psutil
+            conda install libblas libopenblas psutil
             python -m pip install --upgrade pip
             pip install DFO-LS
             pip install deap
