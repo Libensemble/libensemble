@@ -22,8 +22,10 @@ jobs:
           uses: conda-incubator/setup-miniconda@v2
           with:
             activate-environment: condaenv
+            miniconda-version: "latest"
             python-version: ${{ matrix.python-version }}
             channels: conda-forge
+            channel-priority: flexible
 
         - name: Install Octave on Ubuntu
           if: matrix.os == 'ubuntu-16.04'
@@ -33,18 +35,18 @@ jobs:
         - name: Conda install dependencies, with-batch PETSc
           if: matrix.python-version == 3.8
           run: |
-            conda install nlopt mpi4py scipy mpich
+            conda install -c conda-forge nlopt mpi4py scipy mpich
             export PETSC_CONFIGURE_OPTIONS='--with-batch'
-            conda install petsc4py
+            conda install -c conda-forge petsc4py
 
         - name: Conda install dependencies
           if: matrix.python-version != 3.8
           run: |
-            conda install nlopt, petsc4py, petsc, mumps-mpi, mpi4py, scipy, mpich
+            conda install -c conda-forge nlopt, petsc4py, petsc, mumps-mpi, mpi4py, scipy, mpich
 
         - name: Install universal dependencies
           run: |
-            conda install libblas libopenblas psutil
+            conda install -c conda-forge libblas libopenblas psutil
             python -m pip install --upgrade pip
             pip install DFO-LS
             pip install deap
