@@ -38,6 +38,7 @@ jobs:
             conda install petsc4py
         - name: Conda install dependencies
           if: matrix.python-version != 3.8
+          run: |
             conda install nlopt, petsc4py, petsc, mumps-mpi, mpi4py, scipy, mpich
         - name: Install universal dependencies
           run: |
