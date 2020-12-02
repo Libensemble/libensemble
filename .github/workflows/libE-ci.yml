@@ -1,12 +1,12 @@
 name: init-libEnsemble-CI
 on: push
 jobs:
-    install-test:
+    test-libE:
 
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest]
+                os: [ubuntu-16.04, macos-latest]
                 python-version: [3.6, 3.7, 3.8]
                 comms-type: [m, l]
                 exclude:
@@ -24,22 +24,26 @@ jobs:
             update-conda: true
             python-version: ${{ matrix.python-version }}
             conda-channels: anaconda, conda-forge
+
         - name: Install Octave on Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
             sudo add-apt-repository -y ppa:octave/stable
             sudo apt-get update -qq
             sudo apt install -y octave
+
         - name: Conda install dependencies, with-batch PETSc
           if: matrix.python-version == 3.8
           run: |
             conda install nlopt mpi4py scipy mpich
             export PETSC_CONFIGURE_OPTIONS='--with-batch'
             conda install petsc4py
+
         - name: Conda install dependencies
           if: matrix.python-version != 3.8
           run: |
             conda install nlopt, petsc4py, petsc, mumps-mpi, mpi4py, scipy, mpich
+
         - name: Install universal dependencies
           run: |
             conda install libblas libopenblas psutil
@@ -53,10 +57,12 @@ jobs:
             pip install pytest-timeout
             pip install mock
             pip install coveralls
+
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
             pip install scikit-build packaging Tasmanian --user
+
         - name: Install libEnsemble, final before-test checks and adjusts
           run: |
             python install/find_mpi.py
@@ -64,6 +70,7 @@ jobs:
             pip install -e .
             flake8 libensemble
             ulimit -Sn 10000
+
         - name: Run tests
           run: |
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
