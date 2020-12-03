@@ -16,6 +16,10 @@ jobs:
         env:
             HYDRA_LAUNCHER: 'fork'
 
+        defaults:
+            run:
+                shell: bash -l {0}
+
         steps:
         - uses: actions/checkout@v2
         - name: Setup conda - Python ${{ matrix.python-version }}
