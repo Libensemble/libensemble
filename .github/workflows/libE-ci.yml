@@ -1,5 +1,5 @@
 name: init-libEnsemble-CI
-on: push
+on: [push, pull_request]
 jobs:
     test-libE:
 
@@ -15,6 +15,7 @@ jobs:
 
         env:
             HYDRA_LAUNCHER: 'fork'
+            TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         defaults:
@@ -33,6 +34,7 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
+        # Uncomment the following 2 lines to enable tmate debug sessions
         # - name: SSH to GitHub Actions
         #   uses: mxschmitt/action-tmate@v3
 
@@ -40,6 +42,7 @@ jobs:
           if: matrix.os == 'ubuntu-16.04'
           run: conda install gcc_linux-64
 
+        # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers and older SDK
           if: matrix.os == 'macos-latest'
           run: |
@@ -47,10 +50,11 @@ jobs:
             mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk
             conda install clang_osx-64=9.0.1
 
-        - name: Install Octave on Ubuntu
+        - name: Install Octave and bc on Ubuntu
           if: matrix.os == 'ubuntu-16.04'
           run: |
             sudo apt-get install octave
+            sudo apt-get install bc
 
         - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil
           run: |
