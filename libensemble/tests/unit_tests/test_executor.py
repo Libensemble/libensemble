@@ -116,7 +116,7 @@ def setup_executor_fakerunner():
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
-def polling_loop(exctr, task, timeout_sec=0.5, delay=0.05):
+def polling_loop(exctr, task, timeout_sec=0.8, delay=0.05):
     # import time
     start = time.time()
 
@@ -188,7 +188,7 @@ def test_launch_and_poll():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.4'
+    args_for_sim = 'sleep 0.2'
     task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
