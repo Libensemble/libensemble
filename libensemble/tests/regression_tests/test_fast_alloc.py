@@ -49,6 +49,7 @@ if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 for time in np.append([0], np.logspace(-5, -1, 5)):
+    print("Starting for time: ", time, flush=True)
     if time == 0:
         alloc_specs = {'alloc_f': alloc_f2, 'out': []}
     else:
