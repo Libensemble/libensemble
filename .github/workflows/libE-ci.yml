@@ -80,6 +80,7 @@ jobs:
 
         - name: Install libEnsemble, final before-test checks and adjusts
           run: |
+            which python
             python install/find_mpi.py
             mpiexec --version
             pip install -e .
