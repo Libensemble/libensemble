@@ -30,7 +30,6 @@ jobs:
             activate-environment: condaenv
             miniconda-version: "latest"
             python-version: ${{ matrix.python-version }}
-            channels: conda-forge
             channel-priority: flexible
             auto-update-conda: true
 
