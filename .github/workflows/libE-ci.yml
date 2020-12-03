@@ -75,6 +75,7 @@ jobs:
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-16.04'
           run: |
+            which python
             pip install scikit-build packaging Tasmanian --user
 
         - name: Install libEnsemble, final before-test checks and adjusts
