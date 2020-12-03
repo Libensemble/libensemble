@@ -104,18 +104,17 @@ jobs:
             flake8 libensemble
             ulimit -Sn 10000
 
-        - name: Run tests, coveralls
+        - name: Run tests, Ubuntu
           if: matrix.os == 'ubuntu-16.04'
-          run: |
-            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
-            mv libensemble/tests/.cov* .
-            coveralls
+          run: ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run tests, coveralls (with macOS conda env adjustments)
+        - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
+          run: ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+
+        - name: Run coveralls
           run: |
-            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
             mv libensemble/tests/.cov* .
             coveralls
