@@ -35,36 +35,42 @@ jobs:
         # - name: SSH to GitHub Actions
         #   uses: mxschmitt/action-tmate@v3
 
+        - name: Install Ubuntu compilers
+          if: matrix.os == 'ubuntu-16.04'
+          run: conda install gcc_linux-64
+
+        - name: Install macOS compilers
+          if: matrix.os == 'macos-latest'
+          run: conda install clang_osx-64=9.0.1
+
         - name: Install Octave on Ubuntu
           if: matrix.os == 'ubuntu-16.04'
           run: |
             sudo apt-get install octave
 
-        - name: Conda install dependencies, with-batch PETSc
+        - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil
+          run: |
+            conda install nlopt
+            conda install scipy
+            conda install mpich
+            conda install mpi4py
+            conda install libblas libopenblas psutil
+
+        - name: Install with-batch PETSc and petsc4py
           if: matrix.python-version == 3.8
           env:
             PETSC_CONFIGURE_OPTIONS: '--with-batch'
-          run: |
-            conda install nlopt
-            conda install scipy
-            conda install mpich
-            conda install mpi4py
-            conda install petsc4py
+          run: conda install petsc4py
 
-        - name: Conda install dependencies
+        - name: Install mumps-mpi, PETSc, petsc4py
           if: matrix.python-version != 3.8
           run: |
-            conda install nlopt
-            conda install scipy
-            conda install mpich
-            conda install mpi4py
             conda install mumps-mpi
             conda install petsc
             conda install petsc4py
 
-        - name: Install pip dependencies
+        - name: Install DFO-LS, mpmath, deap, other test dependencies
           run: |
-            conda install libblas libopenblas psutil
             python -m pip install --upgrade pip
             pip install DFO-LS
             pip install mpmath
@@ -80,19 +86,17 @@ jobs:
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-16.04'
           run: |
-            which python
             pip install scikit-build packaging Tasmanian --user
 
-        - name: Install libEnsemble, final before-test checks and adjusts
+        - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
-            which python
             python install/find_mpi.py
             mpiexec --version
             pip install -e .
             flake8 libensemble
             ulimit -Sn 10000
 
-        - name: Run tests
+        - name: Run tests, coveralls
           run: |
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
             mv libensemble/tests/.cov* .
