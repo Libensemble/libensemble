@@ -188,7 +188,7 @@ def test_launch_and_poll():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.2'
+    args_for_sim = 'sleep 0.4'
     task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
