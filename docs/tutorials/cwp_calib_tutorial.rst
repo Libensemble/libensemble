@@ -47,22 +47,28 @@ pairs, and forms the basis for building the regression model within the ``gen_f`
 Such evaluations are performed until some error threshold is reached, at which
 point the generator exits and returns, initiating the shutdown of the libEnsemble routine.
 
-The following is a pseudocode overview of the generator::
+The following is a pseudocode overview of the generator. Functions directly from
+the calibration library used within the generator function have the ``calib: `` prefix.
+Helper functions defined to improve the data received by the calibration library by
+interfacing with libEnsemble have the ``libE: `` prefix. All other statements are
+workflow logic or persistent generator helper functions like ``send`` or ``receive``::
 
-    1    calculate test values and first batch
-    2    while no STOP signal received:
-    3        receive & unpack evaluated points into 2D Theta x Point structures
-    4        if new model condition:
-    5            construct new model
-    6        else:
-    7            wait to receive more points
-    8        if data_status condition:
-    9            generate new rows of points from model
-    10           if error threshold reached:
-    11               exit loop - done
-    12           send new rows of points to be evaluated
-    13       if any sent points must be obviated:
-    14           cancel points
+    1    libE: calculate test values and first batch
+    2    while STOP_signal not received:
+    3        receive: evaluated points
+    4        unpack points into 2D Theta x Point structures
+    5        if new model condition:
+    6            calib: construct new model
+    7        else:
+    8            wait to receive more points
+    9        if data_status condition:
+    10           calib: generate new rows of points from model
+    11           calib: if error threshold reached:
+    12               exit loop - done
+    13           send: new rows of points to be evaluated
+    14       if any sent points must be obviated:
+    15           libE: mark points with cancel request
+    16               send: points with cancel request
 
 Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
