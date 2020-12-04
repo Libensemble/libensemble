@@ -264,6 +264,8 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
+                print('H_fields: ', Work['H_fields'])
+                print('work_rows: ', work_rows)
                 if self.hist.H[Work['H_fields']][work_rows].itemsize > 1000000:
                     print('current itemsize: ', self.hist.H[Work['H_fields']][work_rows].itemsize, flush=True)
                     print('repack only: ', repack_fields(self.hist.H[Work['H_fields']][work_rows]).itemsize, flush=True)
