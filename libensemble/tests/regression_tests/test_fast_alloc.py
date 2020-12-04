@@ -15,6 +15,7 @@
 
 import sys
 import numpy as np
+import tracemalloc
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -48,7 +49,7 @@ if libE_specs['comms'] == 'tcp':
     # each time, and the worker will not know what port to connect to.
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-for time in np.append([0], np.logspace(-5, -2, 4)):
+for time in np.append([0], np.logspace(-5, -1, 5)):
     print("Starting for time: ", time, flush=True)
     if time == 0:
         alloc_specs = {'alloc_f': alloc_f2, 'out': []}
@@ -65,9 +66,18 @@ for time in np.append([0], np.logspace(-5, -2, 4)):
         persis_info['next_to_give'] = 0
         persis_info['total_gen_calls'] = 1
 
+        tracemalloc.start()
+        snapshot1 = tracemalloc.take_snapshot()
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs)
+        snapshot2 = tracemalloc.take_snapshot()
+        tracemalloc.stop()
 
         if is_manager:
             assert flag == 0
             assert len(H) == 2*num_pts
+            top_stats = snapshot2.compare_to(snapshot1, 'lineno')
+
+            print("[ Top 10 differences ]")
+            for stat in top_stats[:10]:
+                print(stat)
