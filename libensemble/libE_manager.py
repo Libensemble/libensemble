@@ -264,7 +264,9 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
-                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
+                A = repack_fields(self.hist.H[Work['H_fields']][work_rows])
+                print('Itemsize of A: ', A.itemsize, flush=True, end='\n\n')
+                self.wcomms[w-1].send(0, A)
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
