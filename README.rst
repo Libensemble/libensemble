@@ -62,7 +62,7 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.5 or above
+* Python_ 3.6 or above
 * NumPy_
 * psutil_
 
