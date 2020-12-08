@@ -48,9 +48,9 @@ Such evaluations are performed until some error threshold is reached, at which
 point the generator exits and returns, initiating the shutdown of the libEnsemble routine.
 
 The following is a pseudocode overview of the generator. Functions directly from
-the calibration library used within the generator function have the ``calib: `` prefix.
+the calibration library used within the generator function have the ``calib:`` prefix.
 Helper functions defined to improve the data received by the calibration library by
-interfacing with libEnsemble have the ``libE: `` prefix. All other statements are
+interfacing with libEnsemble have the ``libE:`` prefix. All other statements are
 workflow logic or persistent generator helper functions like ``send`` or ``receive``::
 
     1    libE: calculate test values and first batch
