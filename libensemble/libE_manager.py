@@ -264,27 +264,7 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
-                print('H_fields: ', Work['H_fields'])
-                print('work_rows: ', work_rows)
-                if self.hist.H[Work['H_fields']][work_rows].itemsize > 1000000:
-                    print('current itemsize: ', self.hist.H[Work['H_fields']][work_rows].itemsize, flush=True)
-                    print('repack only: ', repack_fields(self.hist.H[Work['H_fields']][work_rows]).itemsize, flush=True)
-                    # getfield() alone produces highly variant itemsizes and offsets!
-                    print('repack getfield: ', repack_fields(
-                          self.hist.H[Work['H_fields']][work_rows].getfield(
-                              self.hist.H[Work['H_fields']][work_rows].dtype.fields),
-                          recurse=True).itemsize, flush=True)
-                    # print(self.hist.H)
-                    # print(Work['H_fields'])
-                    # print(work_rows)
-                    # print(self.hist.H[Work['H_fields']][work_rows])
-                    # print(repack_fields(self.hist.H[Work['H_fields']][work_rows]))
-                    # print(repack_fields(self.hist.H[Work['H_fields']]))
-                    A = repack_fields(self.hist.H[Work['H_fields']][work_rows])
-                    print('Itemsize of A: ', A.itemsize, flush=True, end='\n\n')
-                    self.wcomms[w-1].send(0, A)
-                else:
-                    self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows], recurse=True))
+                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
