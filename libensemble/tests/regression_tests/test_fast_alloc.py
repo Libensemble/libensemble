@@ -24,6 +24,9 @@ from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
 from libensemble.tools import parse_args, add_unique_random_streams
 
+import resource
+resource.setrlimit(resource.RLIMIT_AS, (int(3e9), int(3e9)))
+
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 num_pts = 30*(nworkers)
@@ -71,3 +74,5 @@ for time in np.append([0], np.logspace(-5, -2, 4)):
         if is_manager:
             assert flag == 0
             assert len(H) == 2*num_pts
+
+        del H
