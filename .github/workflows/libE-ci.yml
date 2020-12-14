@@ -36,8 +36,8 @@ jobs:
             auto-update-conda: true
 
         # Uncomment the following 2 lines to enable tmate debug sessions
-        # - name: SSH to GitHub Actions
-        #   uses: mxschmitt/action-tmate@v3
+        - name: SSH to GitHub Actions
+          uses: mxschmitt/action-tmate@v3
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-16.04'
