@@ -264,10 +264,7 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
-                new_dtype = []
-                for name, typ in self.hist.H.dtype.fields.items():
-                    if name in Work['H_fields']:
-                        new_dtype.append((name, typ[0]))
+                new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work['H_fields']]
                 H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
                 for i, row in enumerate(work_rows):
                     H_to_be_sent[i] = repack_fields(self.hist.H[Work['H_fields']][row])
