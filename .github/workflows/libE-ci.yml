@@ -107,7 +107,7 @@ jobs:
 
         # Uncomment the following 2 lines to enable tmate debug sessions
         - name: SSH to GitHub Actions
-          uses: mxschmitt/action-tmate@v3
+          uses: P3TERX/ssh2actions@main
 
         - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
