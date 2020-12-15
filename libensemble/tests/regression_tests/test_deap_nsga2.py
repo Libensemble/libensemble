@@ -35,7 +35,7 @@ if is_manager:
 assert nworkers >= 2, "Cannot run with a persistent gen_f if only one worker."
 
 # Number of generations, population size, indiviual size, and objectives
-ngen = 100
+ngen = 125
 pop_size = 80
 ind_size = 2
 num_obj = 2
