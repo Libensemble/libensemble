@@ -43,7 +43,7 @@ num_obj = 2
 # Variable Bounds (deap requires lists, not arrays!!!)
 lb = [-3.0, -2.0]
 ub = [3.0, 2.0]
-w = (-1.0,)  # Must be a tuple
+w = (-1.0, -1.0)  # Must be a tuple
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is being minimized
