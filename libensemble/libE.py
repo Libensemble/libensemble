@@ -34,6 +34,7 @@ from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.resources.resources import Resources
 from libensemble.tools.check_inputs import check_inputs
 
 logger = logging.getLogger(__name__)
@@ -134,6 +135,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     comms_type = libE_specs.get('comms')
 
+    # SH TODO: As this is in libE, could just set up in comm specific routines below, is it worth keeping two stages?
+    Resources.init_resources(libE_specs)
+
     assert comms_type in libE_funcs, "Unknown comms type: {}".format(comms_type)
     return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria,
                                   persis_info, alloc_specs, libE_specs, H0)
@@ -217,20 +221,29 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     if libE_specs['comm'] == mpi_comm_null:
         return [], persis_info, 3  # Process not in comm
 
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
+    #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     with DupComm(libE_specs['comm']) as comm:
         rank = comm.Get_rank()
         is_master = (rank == 0)
 
-        exctr = Executor.executor
-        if exctr is not None:
+        resources = Resources.resources
+        if resources is not None:
             local_host = socket.gethostname()
             libE_nodes = list(set(comm.allgather(local_host)))
-            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_master)
+            resources.add_comm_info(libE_nodes=libE_nodes)
+            nworkers = comm.Get_size() - 1
+
+        exctr = Executor.executor
+        if exctr is not None:
+            exctr.set_resources(resources)
+            exctr.add_comm_info(serial_setup=is_master)
 
         # Run manager or worker code, depending
         if is_master:
+            if resources is not None:
+                resources.set_managerworker_resources(nworkers)
             return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs, H0)
 
@@ -300,12 +313,19 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     "Main routine for thread/process launch of libE."
 
     nworkers = libE_specs['nworkers']
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
+    #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    resources = Resources.resources
+    if resources is not None:
+        local_host = [socket.gethostname()]
+        resources.add_comm_info(libE_nodes=local_host)
 
     exctr = Executor.executor
     if exctr is not None:
-        local_host = [socket.gethostname()]
-        exctr.add_comm_info(libE_nodes=local_host, serial_setup=True)
+        exctr.set_resources(resources)
+        exctr.add_comm_info(serial_setup=True)
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -320,6 +340,10 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
+
+    # Set manager resources after the forkpoint.
+    if resources is not None:
+        resources.set_managerworker_resources(nworkers)
 
     if not libE_specs.get('disable_log_files', False):
         manager_logging_config()
@@ -361,20 +385,33 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "Main routine for TCP multiprocessing launch of libE."
 
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
+    #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     is_worker = True if 'workerID' in libE_specs else False
 
+    # SH TODO: Need to determine resources should work with TCP
+    #          If auto_resources is set to False, perhaps should be default with TCP, then
+    #          then resources will be None
+    nworkers = libE_specs['nworkers']
+    resources = Resources.resources
+    if resources is not None:
+        local_host = [socket.gethostname()]
+        resources.add_comm_info(libE_nodes=local_host)
+
     exctr = Executor.executor
     if exctr is not None:
-        local_host = [socket.gethostname()]
         # TCP does not currently support auto_resources but when does, assume
         # each TCP worker is in a different resource pool (only knowing local_host)
-        exctr.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)
+        exctr.set_resources(resources)
+        exctr.add_comm_info(serial_setup=not is_worker)
 
-    if 'workerID' in libE_specs:
+    if is_worker:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)
         return [], persis_info, []
+
+    if resources is not None:
+        resources.set_managerworker_resources(nworkers)
 
     return libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                         persis_info, alloc_specs, libE_specs, H0)

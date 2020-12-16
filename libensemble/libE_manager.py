@@ -22,6 +22,7 @@ from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.tools.fields_keys import libE_spec_calc_dir_combined
+from libensemble.resources.resources import Resources
 import cProfile
 import pstats
 
@@ -118,9 +119,12 @@ Posting kill messages for all workers.
 class Manager:
     """Manager class for libensemble."""
 
+    # SH TODO: May add other fields when have gen/sim pools, that specialize worker.
     worker_dtype = [('worker_id', int),
                     ('active', int),
                     ('persis_state', int),
+                    ('worker_group', int),
+                    ('zero_resource_worker', bool),
                     ('blocked', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
@@ -152,6 +156,13 @@ class Manager:
             self.check_ensemble_dir(libE_specs)
             if libE_specs.get('ensemble_copy_back', False):
                 Manager.make_copyback_dir(libE_specs)
+
+        resources = Resources.resources
+        if resources is not None:
+            self.W['worker_group'] = resources.managerworker_resources.group_list
+            for wrk in self.W:
+                if wrk['worker_id'] in resources.zero_resource_workers:
+                    wrk['zero_resource_worker'] = True
 
     @staticmethod
     def make_copyback_dir(libE_specs):
@@ -429,6 +440,7 @@ class Manager:
 
     def _alloc_work(self, H, persis_info):
         "Calls work allocation function from alloc_specs"
+
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
 

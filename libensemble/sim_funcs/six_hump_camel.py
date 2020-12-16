@@ -1,7 +1,7 @@
 """
 This module contains various versions that evaluate the six hump camel function.
 """
-__all__ = ['six_hump_camel_with_different_ranks_and_nodes', 'six_hump_camel', 'six_hump_camel_simple']
+__all__ = ['six_hump_camel_with_different_resources', 'six_hump_camel', 'six_hump_camel_simple']
 
 # import subprocess
 import os
@@ -10,9 +10,12 @@ import numpy as np
 import time
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
+from libensemble.resources.resources import Resources
 
 
-def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, libE_info):
+# SH TODO: Should we move this to below
+#          Check/update docstring
+def six_hump_camel_with_different_resources(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel for a collection of points given in ``H['x']`` but also
     performs a system call with a given number of nodes and ranks per node
@@ -22,57 +25,58 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         `test_uniform_sampling_with_different_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py>`_ # noqa
     """
 
-    from mpi4py import MPI
     batch = len(H['x'])
     H_o = np.zeros(batch, dtype=sim_specs['out'])
+    app = sim_specs['user'].get('app', 'helloworld')
+    dry_run = sim_specs['user'].get('dry_run', False)  # dry_run only prints run lines in ensemble.log
+    use_cuda = sim_specs['user'].get('use_cuda', False)  # Sets CUDA_VISIBLE_DEVICES
+    core_multiplier = 1  # Only used if resource_sets is passed in H['in']
+
+    if use_cuda:
+        resources = Resources.resources.worker_resources  # Get resources available to this worker
+        # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # SH TODO: Do you need this
+        if resources.even_slots:
+            os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, resources.slots_on_node))
+            # print('CUDA_VISIBLE_DEVICES is',os.environ["CUDA_VISIBLE_DEVICES"])
+        else:
+            # Unless use a matching sub-set, but usually you probably don't want this
+            print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
 
     exctr = Executor.executor  # Get Executor
-
     task_states = []
     for i, x in enumerate(H['x']):
-
-        if 'blocking' in libE_info:
-            ranks_involved = [MPI.COMM_WORLD.Get_rank()] + list(libE_info['blocking'])
-        else:
-            ranks_involved = [MPI.COMM_WORLD.Get_rank()]
-
-        machinefilename = 'machinefile_for_sim_id=' + str(libE_info['H_rows'][i]) + \
-                          '_resource_set='+'_'.join([str(r) for r in ranks_involved])
-
-        with open(machinefilename, 'w') as f:
-            for rank in ranks_involved:
-                b = sim_specs['user']['nodelist'][rank] + '\n'
-                f.write(b*H['ranks_per_node'][i])
-
-        out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + \
-                   '_resource_set='+'_'.join([str(r) for r in ranks_involved])
-
+        out_name = 'sim_id=' + str(libE_info['H_rows'][i])
         outfile = out_name + ".out"
         errfile = out_name + ".err"
-        for iofile in outfile, errfile:
-            try:
-                os.remove(iofile)
-            except FileNotFoundError:
-                pass
 
-        # Run directly -------------------------------------------------------
-        # call_str = ["mpiexec", "-machinefile", machinefilename,
-        #             "python", os.path.join(os.path.dirname(__file__), "helloworld.py")]
-        # p = subprocess.call(call_str, stdout=open(outfile, 'w'), stderr=open(errfile, 'w'), shell=False)
-        # if p == 0:
-            # task_states.append('FINISHED')
-        # else:
-            # task_states.append('FAILED')
+        # If passing resource sets in, use that here (you can oversubscribe on node)
+        # else let automatic resources set nodes/procs to use all available set.
+        nprocs = None  # Will be as if argument is not present
+        if 'resource_sets' in sim_specs['in']:
+            nprocs = H['resource_sets'][i] * core_multiplier
+            # print('nprocs is',nprocs,flush=True)
 
-        # Run with Executor --------------------------------------------------
-        task = exctr.submit(calc_type='sim', machinefile=machinefilename,
-                            stdout=outfile, stderr=errfile, hyperthreads=True)
-        while(not task.finished):
-            time.sleep(0.2)
-            task.poll()
+        inpt = None  # Will be as if argument is not present
+        if app == 'six_hump_camel':
+            inpt = ' '.join(map(str, H['x'][i]))
+
+        task = exctr.submit(app_name=app, app_args=inpt, num_procs=nprocs,
+                            stdout=outfile, stderr=errfile,
+                            dry_run=dry_run)
+        task.wait()
+        # while(not task.finished):
+        #     time.sleep(0.1)
+        #     task.poll()
+
         task_states.append(task.state)
 
-        H_o['f'][i] = six_hump_camel_func(x)
+        if app == 'six_hump_camel':
+            # H_o['f'][i] = float(task.read_stdout())  # Reads whole file
+            with open(outfile) as f:
+                H_o['f'][i] = float(f.readline().strip())  # Read just first line
+        else:
+            # To return something in test
+            H_o['f'][i] = six_hump_camel_func(x)
 
         # v = np.random.uniform(0, 10)
         # print('About to sleep for :' + str(v))
