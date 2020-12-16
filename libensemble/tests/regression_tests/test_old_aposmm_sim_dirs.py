@@ -30,7 +30,7 @@ from libensemble.tests.regression_tests.support import (persis_info_2 as persis_
                                                         branin_vals_and_minima as M)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 libE_specs['sim_input_dir'] = resource_filename('libensemble.sim_funcs.branin', '')  # to be copied by each worker
 
@@ -81,7 +81,7 @@ for run in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                 persis_info, libE_specs=libE_specs)
 
-    if is_master:
+    if is_manager:
         M = M[M[:, -1].argsort()]  # Sort by function values (last column)
         k = M.shape[0]
         tol = 1e-5

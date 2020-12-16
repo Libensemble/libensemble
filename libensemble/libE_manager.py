@@ -21,10 +21,11 @@ from libensemble.message_numbers import \
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
-from libensemble.tools.fields_keys import libE_spec_calc_dir_combined
 from libensemble.resources.resources import Resources
+from libensemble.tools.fields_keys import libE_spec_calc_dir_combined, protected_libE_fields
 import cProfile
 import pstats
+import copy
 
 if tuple(np.__version__.split('.')) >= ('1', '15'):
     from numpy.lib.recfunctions import repack_fields
@@ -69,7 +70,7 @@ def manager_main(hist, libE_specs, alloc_specs,
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -87,7 +88,7 @@ def manager_main(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr.disable()
         profile_stats_fname = 'manager.prof'
 
@@ -134,6 +135,7 @@ class Manager:
         timer = Timer()
         timer.start()
         self.date_start = timer.date_start.replace(' ', '_')
+        self.safe_mode = libE_specs.get('safe_mode', True)
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -272,7 +274,7 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            if 'repack_fields' in dir():
+            if 'repack_fields' in globals():
                 self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
@@ -357,9 +359,9 @@ class Manager:
                 self.W[w-1]['active'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv)
+                self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv['calc_out'])
+                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode)
                 assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
                     "Gen must return work when is is the only thing active and not persistent."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
@@ -439,10 +441,18 @@ class Manager:
     # --- Main loop
 
     def _alloc_work(self, H, persis_info):
-        "Calls work allocation function from alloc_specs"
+        """
+        Calls work allocation function from alloc_specs. Copies protected libE
+        fields before the alloc_f call and ensures they weren't modified
+        """
+        if self.safe_mode:
+            saveH = copy.deepcopy(H[protected_libE_fields])
 
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+
+        if self.safe_mode:
+            assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
 
         if len(output) == 2:
             output = output + ((0,))

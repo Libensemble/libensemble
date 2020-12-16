@@ -68,7 +68,6 @@ class MPIResources(Resources):
         """
         node_list = self.worker_resources.local_nodelist
         rassert(node_list, "Node list is empty - aborting")
-
         local_node_count = self.worker_resources.local_node_count
 
         cores_avail_per_node = \

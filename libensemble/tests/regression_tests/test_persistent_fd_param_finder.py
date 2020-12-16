@@ -23,7 +23,7 @@ from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as 
 from libensemble.alloc_funcs.start_fd_persistent import finite_diff_alloc as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -62,7 +62,7 @@ exit_criteria = {'gen_max': 1000}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     assert len(H) < exit_criteria['gen_max'], "Problem didn't stop early, which should have been the case."
     assert np.all(persis_info[1]['Fnoise'] > 0), "gen_f didn't find noise for all F_i components."
 

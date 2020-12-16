@@ -288,7 +288,7 @@ done
 
 # If none selected default to running all tests
 if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ];then
-    RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=true
+    RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=false
 fi
 
 #-----------------------------------------------------------------------------------------
@@ -457,7 +457,7 @@ if [ "$root_found" = true ]; then
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
         OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
-        for NPROCS in $NPROCS_LIST
+        for NPROCS in ${NPROCS_LIST:(-1)}
         do
           NWORKERS=$((NPROCS-1))
 

@@ -33,8 +33,8 @@ from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
-from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.resources.resources import Resources
+from libensemble.tools.tools import _USER_SIM_ID_WARNING, osx_set_mp_method
 from libensemble.tools.check_inputs import check_inputs
 
 logger = logging.getLogger(__name__)
@@ -185,8 +185,8 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
 
 class DupComm:
     """Duplicate MPI communicator for use with a with statement"""
-    def __init__(self, comm):
-        self.parent_comm = comm
+    def __init__(self, mpi_comm):
+        self.parent_comm = mpi_comm
 
     def __enter__(self):
         self.dup_comm = self.parent_comm.Dup()
@@ -196,9 +196,9 @@ class DupComm:
         self.dup_comm.Free()
 
 
-def comms_abort(comm):
+def comms_abort(mpi_comm):
     "Abort all MPI ranks"
-    comm.Abort(1)  # Exit code 1 to represent an abort
+    mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
 
 def libE_mpi_defaults(libE_specs):
@@ -206,8 +206,8 @@ def libE_mpi_defaults(libE_specs):
 
     from mpi4py import MPI
 
-    if 'comm' not in libE_specs:
-        libE_specs['comm'] = MPI.COMM_WORLD  # Will be duplicated immediately
+    if 'mpi_comm' not in libE_specs:
+        libE_specs['mpi_comm'] = MPI.COMM_WORLD  # Will be duplicated immediately
 
     return libE_specs, MPI.COMM_NULL
 
@@ -218,37 +218,37 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
 
-    if libE_specs['comm'] == mpi_comm_null:
-        return [], persis_info, 3  # Process not in comm
+    if libE_specs['mpi_comm'] == mpi_comm_null:
+        return [], persis_info, 3  # Process not in mpi_comm
 
     # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
     #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    with DupComm(libE_specs['comm']) as comm:
-        rank = comm.Get_rank()
-        is_master = (rank == 0)
+    with DupComm(libE_specs['mpi_comm']) as mpi_comm:
+        rank = mpi_comm.Get_rank()
+        is_manager = (rank == 0)
 
         resources = Resources.resources
         if resources is not None:
             local_host = socket.gethostname()
-            libE_nodes = list(set(comm.allgather(local_host)))
+            libE_nodes = list(set(mpi_comm.allgather(local_host)))
             resources.add_comm_info(libE_nodes=libE_nodes)
-            nworkers = comm.Get_size() - 1
+            nworkers = mpi_comm.Get_size() - 1
 
         exctr = Executor.executor
         if exctr is not None:
             exctr.set_resources(resources)
-            exctr.add_comm_info(serial_setup=is_master)
+            exctr.add_comm_info(serial_setup=is_manager)
 
         # Run manager or worker code, depending
-        if is_master:
+        if is_manager:
             if resources is not None:
                 resources.set_managerworker_resources(nworkers)
-            return libE_mpi_manager(comm, sim_specs, gen_specs, exit_criteria,
+            return libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs, H0)
 
         # Worker returns a subset of MPI output
-        libE_mpi_worker(comm, sim_specs, gen_specs, libE_specs)
+        libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs)
         return [], {}, []
 
 
@@ -333,10 +333,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
     # These crashes haven't yet been observed with libE, but with 'spawn' runs,
     #  warnings about leaked semaphore objects are displayed instead.
-    # The next several statements enforce 'fork' on macOS (Python 3.8)
-    if os.uname().sysname == 'Darwin':
-        from multiprocessing import set_start_method
-        set_start_method('fork', force=True)
+    # This function enforces 'fork' on macOS (Python 3.8)
+    osx_set_mp_method()
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
@@ -469,6 +467,8 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
     ip = libE_specs.get('ip', None) or get_ip()
     port = libE_specs.get('port', 0)
     authkey = libE_specs.get('authkey', libE_tcp_authkey())
+
+    osx_set_mp_method()
 
     with ServerQCommManager(port, authkey.encode('utf-8')) as manager:
 

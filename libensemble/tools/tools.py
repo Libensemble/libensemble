@@ -6,6 +6,7 @@ and user functions.
 import os
 import sys
 import logging
+import platform
 import numpy as np
 import pickle
 
@@ -107,12 +108,13 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess='Run completed
 # ===================== per-process numpy random-streams =======================
 
 
-def add_unique_random_streams(persis_info, nstreams):
+def add_unique_random_streams(persis_info, nstreams, seed=''):
     """
     Creates nstreams random number streams for the libE manager and workers
-    when nstreams is num_workers + 1. Stream i is initialized with seed i.
+    when nstreams is num_workers + 1. Stream i is initialized with seed i by default.
+    Otherwise the streams can be initialized with a provided seed.
 
-    The entries are appended to the existing persis_info dictionary.
+    The entries are appended to the provided persis_info dictionary.
 
     .. code-block:: python
 
@@ -130,16 +132,28 @@ def add_unique_random_streams(persis_info, nstreams):
 
         Number of independent random number streams to produce
 
+    seed: :obj:`int`
+
+        (Optional) Seed for identical random number streams for each worker. If
+        explicitly set to ``None``, random number streams are unique and seed
+        via other pseudorandom mechanisms.
+
     """
 
     for i in range(nstreams):
+
+        if isinstance(seed, int) or seed is None:
+            random_seed = seed
+        else:
+            random_seed = i
+
         if i in persis_info:
             persis_info[i].update({
-                'rand_stream': np.random.RandomState(i),
+                'rand_stream': np.random.RandomState(random_seed),
                 'worker_num': i})
         else:
             persis_info[i] = {
-                'rand_stream': np.random.RandomState(i),
+                'rand_stream': np.random.RandomState(random_seed),
                 'worker_num': i}
     return persis_info
 
@@ -148,3 +162,15 @@ def add_unique_random_streams(persis_info, nstreams):
 def eprint(*args, **kwargs):
     """Prints a user message to standard error"""
     print(*args, file=sys.stderr, **kwargs)
+
+
+# ===================== OSX set multiprocessing start =======================
+# On Python 3.8 on macOS, the default start method for new processes was
+#  switched to 'spawn' by default due to 'fork' potentially causing crashes.
+# These crashes haven't yet been observed with libE, but with 'spawn' runs,
+#  warnings about leaked semaphore objects are displayed instead.
+# The next several statements enforce 'fork' on macOS (Python 3.8)
+def osx_set_mp_method():
+    if platform.system() == 'Darwin':
+        from multiprocessing import set_start_method
+        set_start_method('fork', force=True)

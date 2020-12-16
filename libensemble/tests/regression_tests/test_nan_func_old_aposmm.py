@@ -21,7 +21,7 @@ from support import nan_func as sim_f, aposmm_gen_out as gen_out
 from libensemble.gen_funcs.old_aposmm import aposmm_logic as gen_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 n = 2
 
 sim_specs = {'sim_f': sim_f,
@@ -51,7 +51,7 @@ exit_criteria = {'sim_max': 100, 'elapsed_wallclock_time': 300}
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
-if is_master:
+if is_manager:
     assert flag == 0
     assert np.all(~H['local_pt'])
 

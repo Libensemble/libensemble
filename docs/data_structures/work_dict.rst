@@ -8,7 +8,7 @@ given to worker ``i``. ``Work[i]`` has the following form::
 
     Work[i]: [dict]:
 
-        Required keys :
+        Required keys:
         'persis_info' [dict]: Any persistent info to be sent to worker 'i'
         'H_fields' [list]: The field names of the history 'H' to be sent to worker 'i'
         'tag' [int]: 'EVAL_SIM_TAG'/'EVAL_GEN_TAG' if worker 'i' is to call sim/gen_func

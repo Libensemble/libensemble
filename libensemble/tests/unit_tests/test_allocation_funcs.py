@@ -6,7 +6,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.history import History
 
 al = {'alloc_f': give_sim_work_first, 'out': []}
-libE_specs = {'comm': MPI.COMM_WORLD}
+libE_specs = {'mpi_comm': MPI.COMM_WORLD}
 H0 = []
 
 
