@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
 
 # SH TODO: May be move the more advanced functions below sim_work/gen_work?
-
+#          Should add check that req. resource sets not larger than whole allocation.
 
 class AllocException(Exception):
     "Raised for any exception in the alloc support"

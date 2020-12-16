@@ -9,6 +9,7 @@ This module detects and returns system resources
 #          Alternative - do Executor same way as this (init in libE), and then can uses combined custom_info again!
 #          Also will need to update docs/tests with new custom_info options.
 #          Remove debugging comments/commented out code + check/update docstrings
+#          Deal with unbalanced cases, and if not, return meaningful error message
 
 import os
 import socket
