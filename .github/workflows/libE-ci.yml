@@ -50,6 +50,7 @@ jobs:
         - name: Install Octave and bc on Ubuntu
           if: matrix.os == 'ubuntu-16.04'
           run: |
+            sudo apt-get update
             sudo apt-get install octave
             sudo apt-get install bc
 
