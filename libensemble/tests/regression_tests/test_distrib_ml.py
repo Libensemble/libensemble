@@ -15,9 +15,8 @@ import numpy as np
 import multiprocessing
 
 from libensemble.libE import libE
-from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
-import libensemble.sim_funcs.six_hump_camel as six_hump_camel
-from libensemble.gen_funcs.distrib_ml_eval_model import distrib_ml_eval_model as gen_f
+from libensemble.sim_funcs.distrib_ml_eval_model import distrib_ml_eval_model as sim_f
+from libensemble.gen_funcs.distrib_ml_build_model import distrib_ml_build_model as gen_f
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -57,7 +56,10 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('model_file', "<U50"), ('cstat', int)],
-             'user':{'num_procs': 4}
+             'user':{'num_procs': 4,
+                     'app_args': "--device cpu --epochs 32",
+                     'dry_run': True,
+                     'time_limit': 1800}  # seconds
             }
 
 libE_specs['gen_dirs_make'] = True
