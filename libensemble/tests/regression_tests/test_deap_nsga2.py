@@ -36,14 +36,14 @@ assert nworkers >= 2, "Cannot run with a persistent gen_f if only one worker."
 
 # Number of generations, population size, indiviual size, and objectives
 ngen = 100
-pop_size = 80
+pop_size = 100
 ind_size = 2
 num_obj = 2
 
 # Variable Bounds (deap requires lists, not arrays!!!)
 lb = [-3.0, -2.0]
 ub = [3.0, 2.0]
-w = (-1.0,)  # Must be a tuple
+w = (-1.0, -1.0)  # Must be a tuple
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is being minimized
@@ -113,5 +113,5 @@ for run in range(2):
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"
         assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
-        assert min(H['fitness_values'][:, 0]) <= 1e-3, script_name + " didn't find the minimum for objective 0."
+        assert min(H['fitness_values'][:, 0]) <= 4e-3, script_name + " didn't find the minimum for objective 0."
         assert min(H['fitness_values'][:, 1]) <= -1.0, script_name + " didn't find the minimum for objective 1."

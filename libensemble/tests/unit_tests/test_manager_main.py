@@ -50,7 +50,6 @@ def test_term_test_3():
     time.sleep(0.5)
     hist.given_count = 4
     assert mgr.term_test()
-    #
 
 
 if __name__ == "__main__":
