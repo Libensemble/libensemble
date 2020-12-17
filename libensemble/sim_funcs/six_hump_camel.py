@@ -1,7 +1,8 @@
 """
 This module contains various versions that evaluate the six hump camel function.
 """
-__all__ = ['six_hump_camel_with_different_resources', 'six_hump_camel', 'six_hump_camel_simple']
+__all__ = ['six_hump_camel_CUDA_variable_resources', 'six_hump_camel_with_different_resources',
+           'six_hump_camel', 'six_hump_camel_simple']
 
 # import subprocess
 import os
@@ -11,6 +12,49 @@ import time
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
 from libensemble.resources.resources import Resources
+
+
+# SH TODO: Resource variable names are subject to change
+def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info):
+    """Launches an app setting GPU resources
+
+    The standard test apps do not run on GPU, but demonstrates accessing resource
+    information to set CUDA_VISIBLE_DEVICES, and typical run configuration.
+    """
+    x = H['x'][0]
+    H_o = np.zeros(1, dtype=sim_specs['out'])
+
+    # Interrogate resources available to this worker
+    resources = Resources.resources.worker_resources
+    if resources.even_slots:  # Need same slots on each node
+        # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # To order by PCI  bus IDs
+        os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, resources.slots_on_node))  # List to string
+        num_nodes = resources.local_node_count
+        cores_per_node = resources.slot_count  # One CPU per GPU
+    else:
+        # Unless use a matching sub-set, but usually you probably don't want this
+        print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
+
+    # Create application input file
+    inpt = ' '.join(map(str, x))
+    exctr = Executor.executor  # Get Executor
+
+    # Launch application via system MPI runner, using assigned resources.
+    task = exctr.submit(app_name='six_hump_camel',
+                        app_args=inpt,
+                        num_nodes=num_nodes,
+                        ranks_per_node=cores_per_node,
+                        stdout='out.txt',
+                        stderr='err.txt')
+
+    task.wait()  # Wait for run to complete
+
+    # Access app output
+    with open('out.txt') as f:
+        H_o['f'] = float(f.readline().strip())  # Read just first line
+
+    calc_status = WORKER_DONE if task.state == 'FINISHED' else 'FAILED'
+    return H_o, persis_info, calc_status
 
 
 # SH TODO: Should we move this to below
@@ -29,26 +73,11 @@ def six_hump_camel_with_different_resources(H, persis_info, sim_specs, libE_info
     H_o = np.zeros(batch, dtype=sim_specs['out'])
     app = sim_specs['user'].get('app', 'helloworld')
     dry_run = sim_specs['user'].get('dry_run', False)  # dry_run only prints run lines in ensemble.log
-    use_cuda = sim_specs['user'].get('use_cuda', False)  # Sets CUDA_VISIBLE_DEVICES
     core_multiplier = 1  # Only used if resource_sets is passed in H['in']
-
-    if use_cuda:
-        resources = Resources.resources.worker_resources  # Get resources available to this worker
-        # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # SH TODO: Do you need this
-        if resources.even_slots:
-            os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, resources.slots_on_node))
-            # print('CUDA_VISIBLE_DEVICES is',os.environ["CUDA_VISIBLE_DEVICES"])
-        else:
-            # Unless use a matching sub-set, but usually you probably don't want this
-            print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
 
     exctr = Executor.executor  # Get Executor
     task_states = []
     for i, x in enumerate(H['x']):
-        out_name = 'sim_id=' + str(libE_info['H_rows'][i])
-        outfile = out_name + ".out"
-        errfile = out_name + ".err"
-
         # If passing resource sets in, use that here (you can oversubscribe on node)
         # else let automatic resources set nodes/procs to use all available set.
         nprocs = None  # Will be as if argument is not present
@@ -60,8 +89,9 @@ def six_hump_camel_with_different_resources(H, persis_info, sim_specs, libE_info
         if app == 'six_hump_camel':
             inpt = ' '.join(map(str, H['x'][i]))
 
-        task = exctr.submit(app_name=app, app_args=inpt, num_procs=nprocs,
-                            stdout=outfile, stderr=errfile,
+        task = exctr.submit(app_name=app, app_args=inpt,
+                            num_procs=nprocs,
+                            stdout='out.txt', stderr='err.txt',
                             dry_run=dry_run)
         task.wait()
         # while(not task.finished):
@@ -72,7 +102,7 @@ def six_hump_camel_with_different_resources(H, persis_info, sim_specs, libE_info
 
         if app == 'six_hump_camel':
             # H_o['f'][i] = float(task.read_stdout())  # Reads whole file
-            with open(outfile) as f:
+            with open('out.txt') as f:
                 H_o['f'][i] = float(f.readline().strip())  # Read just first line
         else:
             # To return something in test
