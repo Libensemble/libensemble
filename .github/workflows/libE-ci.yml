@@ -106,8 +106,8 @@ jobs:
           run: ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         # Uncomment the following 2 lines to enable tmate debug sessions
-        - name: SSH to GitHub Actions
-          uses: P3TERX/ssh2actions@main
+        # - name: SSH to GitHub Actions
+        #   uses: P3TERX/ssh2actions@main
 
         - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
