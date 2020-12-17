@@ -13,7 +13,6 @@ import os
 import time
 import numpy as np
 import multiprocessing
-import tensorflow as
 
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
@@ -53,12 +52,13 @@ exctr.register_calc(full_path=gen_app, app_name='ml_keras_mnist')  # Named app
 sim_specs = {'sim_f': sim_f,
              'in': ['model_file'],
              'out': [('prediction', int)]
-             }
+            }
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'out': [('model_file', "<U50")]
-             }
+             'out': [('model_file', "<U50"), ('cstat', int)],
+             'user':{'num_procs': 4}
+            }
 
 libE_specs['gen_dirs_make'] = True
 libE_specs['ensemble_dir_path'] = './' + time.asctime().replace(' ', '_')

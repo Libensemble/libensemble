@@ -2,13 +2,12 @@ from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
                                          MAN_SIGNAL_FINISH, WORKER_DONE,
                                          TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
+import os
 import numpy as np
 
-__all__ = ['executor_hworld']
+__all__ = ['distrib_ml_eval_model']
 
 # Alt send values through X
-sim_count = 0
-
 
 def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
     import time
@@ -66,9 +65,11 @@ def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
 
 
 def distrib_ml_eval_model(H, persis_info, gen_specs, libE_info):
-    exctr = MPIExecutor.executor
 
-    task = exctr.submit(calc_type='gen', num_procs=cores, hyperthreads=True)
+    num_procs = gen_specs['user']['num_procs']
+
+    exctr = MPIExecutor.executor
+    task = exctr.submit(calc_type='gen', num_procs=num_procs, hyperthreads=True)
 
     if wait:
         task.wait()
@@ -83,6 +84,7 @@ def distrib_ml_eval_model(H, persis_info, gen_specs, libE_info):
         task, calc_status = polling_loop(comm, exctr, task, timeout)
 
     # This is just for testing at calling script level - status of each task
+    H_o = np.zeros(batch, dtype=sim_specs['out'])
     H_o['cstat'] = calc_status
 
     return H_o, persis_info, calc_status
