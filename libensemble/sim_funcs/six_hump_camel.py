@@ -31,8 +31,8 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
         os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, resources.slots_on_node))  # List to string
         num_nodes = resources.local_node_count
         cores_per_node = resources.slot_count  # One CPU per GPU
-        #print('CUDA_VISIBLE_DEVICES is {} nodes {} ppn {}'
-              #.format(os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node), flush=True)
+        print('CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}'
+              .format(os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node), flush=True)
     else:
         # Unless use a matching sub-set, but usually you probably don't want this
         print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
