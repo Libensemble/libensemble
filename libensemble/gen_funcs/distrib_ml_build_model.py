@@ -59,8 +59,7 @@ def distrib_ml_build_model(H, persis_info, gen_specs, libE_info):
                 calc_status = UNSET_TAG
 
         time.sleep(0.2)
-        model_file = glob.glob('./final_model_*')
-        history_file = glob.glob('./final_history_*')
+        model_file = glob.glob('final_model_*')
         assert len(model_file), \
             "Keras Application did not write final output to file."
         assert f'Epoch {epochs}/{epochs}' in task.read_stdout(), \

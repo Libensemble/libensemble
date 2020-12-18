@@ -61,7 +61,7 @@ sim_specs = {'sim_f': sim_f,
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'out': [('model_file', "<U50", (1,)), ('cstat', int, (1,))],
+             'out': [('model_file', "<U70", (1,)), ('cstat', int, (1,))],
              'user':{'num_procs': 4,
                      'app_args': "--device cpu --epochs " + str(epochs),
                      'dry_run': dry_run,
