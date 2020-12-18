@@ -11,7 +11,7 @@
 # Can't run this line in calling Python file. Balsam installation hasn't been
 #   noticed by the Python runtime yet.
 python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
-export EXE=$PWD/libensemble/tests/regression_tests/script_test_balsam_hworld.py
+export EXE=script_test_balsam_hworld.py
 export NUM_WORKERS=2
 export WORKFLOW_NAME=libe_test-balsam
 export LIBE_WALLCLOCK=3
