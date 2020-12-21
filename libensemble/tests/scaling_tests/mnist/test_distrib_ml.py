@@ -1,27 +1,13 @@
-# """
-# Runs libEnsemble testing the executor functionality.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_executor_hworld.py
-#    python3 test_executor_hworld.py --nworkers 3 --comms local
-#    python3 test_executor_hworld.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
-
 import os
 import time
 import numpy as np
 import multiprocessing
 
 from libensemble.libE import libE
-from libensemble.sim_funcs.distrib_ml_eval_model import distrib_ml_eval_model as sim_f
-from libensemble.gen_funcs.distrib_ml_build_model import distrib_ml_build_model as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
 
-# Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 3 4
+from distrib_ml_eval_model import distrib_ml_eval_model as sim_f
+from distrib_ml_build_model import distrib_ml_build_model as gen_f
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -46,7 +32,7 @@ if is_manager:
 from libensemble.executors.mpi_executor import MPIExecutor
 exctr = MPIExecutor(auto_resources=use_auto_resources)
 
-gen_app = os.path.abspath('../../../../sdl_ai_workshop/01_distributedDeepLearning/Horovod/tensorflow2_keras_mnist.py')
+gen_app = os.path.abspath('../../../../../sdl_ai_workshop/01_distributedDeepLearning/Horovod/tensorflow2_keras_mnist.py')
 
 exctr.register_calc(full_path=gen_app, app_name='ml_keras_mnist')  # Named app
 
