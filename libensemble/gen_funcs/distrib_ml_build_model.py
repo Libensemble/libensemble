@@ -71,6 +71,5 @@ def distrib_ml_build_model(H, persis_info, gen_specs, libE_info):
 
     H_o['cstat'] = calc_status
     H_o['model_file'] = os.path.join(current_dir, model_file[0])
-    print('producing in gen, ', H_o['model_file'])
 
     return H_o, persis_info, calc_status

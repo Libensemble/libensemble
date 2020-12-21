@@ -17,7 +17,7 @@ import multiprocessing
 from libensemble.libE import libE
 from libensemble.sim_funcs.distrib_ml_eval_model import distrib_ml_eval_model as sim_f
 from libensemble.gen_funcs.distrib_ml_build_model import distrib_ml_build_model as gen_f
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -27,6 +27,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 dry_run = False
 epochs = 2
+num_models_to_evaluate = 4
 
 cores_per_task = 1
 logical_cores = multiprocessing.cpu_count()
@@ -45,7 +46,7 @@ if is_manager:
 from libensemble.executors.mpi_executor import MPIExecutor
 exctr = MPIExecutor(auto_resources=use_auto_resources)
 
-gen_app = '/Users/John-Luke/Desktop/libensemble/sdl_ai_workshop/01_distributedDeepLearning/Horovod/tensorflow2_keras_mnist.py'
+gen_app = os.path.abspath('../../../../sdl_ai_workshop/01_distributedDeepLearning/Horovod/tensorflow2_keras_mnist.py')
 
 exctr.register_calc(full_path=gen_app, app_name='ml_keras_mnist')  # Named app
 
@@ -55,8 +56,7 @@ libE_specs['ensemble_dir_path'] = './mnist_ensemble_' + time.asctime().replace('
 sim_specs = {'sim_f': sim_f,
              'in': ['model_file'],
              'out': [('loss', float, (1,)), ('accuracy', float, (1,))],
-             'user':{'ensemble_dir': libE_specs['ensemble_dir_path'],
-                     'eval_steps': 256}
+             'user':{'eval_steps': 256}
             }
 
 gen_specs = {'gen_f': gen_f,
@@ -70,11 +70,13 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)  # JLN: I *really* don't think I need this!
 
-exit_criteria = {'sim_max': 4}
+exit_criteria = {'sim_max': num_models_to_evaluate}
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs)
 
 if is_manager:
     print('Routine complete!')
+    save_libE_output(H, persis_info, __file__, nworkers)
+    print(H.dtype.names)
     print(H)
