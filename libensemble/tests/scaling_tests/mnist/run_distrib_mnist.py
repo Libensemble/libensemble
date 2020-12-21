@@ -13,6 +13,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 dry_run = False
 epochs = 2
+num_procs_for_app = 4
 num_models_to_evaluate = 4
 
 cores_per_task = 1
@@ -48,7 +49,7 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('model_file', "<U70", (1,)), ('cstat', int, (1,))],
-             'user':{'num_procs': 4,
+             'user':{'num_procs': num_procs_for_app,
                      'app_args': "--device cpu --epochs " + str(epochs),
                      'dry_run': dry_run,
                      'time_limit': 1800}  # seconds
