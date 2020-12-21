@@ -32,7 +32,7 @@ if is_manager:
 from libensemble.executors.mpi_executor import MPIExecutor
 exctr = MPIExecutor(auto_resources=use_auto_resources)
 
-gen_app = os.path.abspath('../../../../../sdl_ai_workshop/01_distributedDeepLearning/Horovod/tensorflow2_keras_mnist.py')
+gen_app = os.path.abspath('./tensorflow2_keras_mnist.py')
 
 exctr.register_calc(full_path=gen_app, app_name='ml_keras_mnist')  # Named app
 
