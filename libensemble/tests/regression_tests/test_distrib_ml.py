@@ -26,7 +26,7 @@ from libensemble.tools import parse_args, add_unique_random_streams
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 dry_run = False
-epochs = 8
+epochs = 2
 
 cores_per_task = 1
 logical_cores = multiprocessing.cpu_count()
