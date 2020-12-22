@@ -1,11 +1,9 @@
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.message_numbers import ( UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL,
+from libensemble.message_numbers import (UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL,
                                          WORKER_DONE, TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
 import os
-import sys
 import time
 import glob
-import pickle
 import numpy as np
 
 __all__ = ['distrib_ml_build_model']
