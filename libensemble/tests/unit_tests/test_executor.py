@@ -116,7 +116,7 @@ def setup_executor_fakerunner():
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
-def polling_loop(exctr, task, timeout_sec=0.5, delay=0.05):
+def polling_loop(exctr, task, timeout_sec=0.8, delay=0.05):
     # import time
     start = time.time()
 
