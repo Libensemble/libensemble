@@ -9,7 +9,7 @@ jobs:
             matrix:
                 os: [ubuntu-16.04, macos-latest]
                 python-version: [3.6, 3.7, 3.8, 3.9]
-                comms-type: [m, l]
+                comms-type: [m, l, t]
                 exclude:
                     - os: macos-latest
                       python-version: 3.6
