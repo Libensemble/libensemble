@@ -25,6 +25,7 @@ omit =
     */sim_funcs/mop_funcs.py
     */gen_funcs/vtmop.py
     */gen_funcs/old_aposmm.py
+    */alloc_funcs/fast_alloc_to_aposmm.py
     */regression_tests/test_vtmop.py
 exclude_lines =
     if __name__ == .__main__.:
