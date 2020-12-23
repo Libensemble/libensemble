@@ -1,12 +1,14 @@
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import (UNSET_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL,
-                                         WORKER_DONE, TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
+                                         WORKER_DONE, TASK_FAILED, WORKER_KILL_ON_TIMEOUT,
+                                         WORKER_KILL)
 import os
 import time
 import glob
 import numpy as np
 
 __all__ = ['distrib_ml_build_model']
+
 
 def distrib_ml_build_model(H, persis_info, gen_specs, libE_info):
 

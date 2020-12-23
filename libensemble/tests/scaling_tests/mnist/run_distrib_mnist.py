@@ -1,10 +1,10 @@
 import os
 import time
-import numpy as np
 import multiprocessing
 
 from libensemble.libE import libE
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
+from libensemble.executors.mpi_executor import MPIExecutor
 
 from distrib_ml_eval_model import distrib_ml_eval_model as sim_f
 from distrib_ml_build_model import distrib_ml_build_model as gen_f
@@ -30,7 +30,6 @@ else:
 if is_manager:
     print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_tasks, logical_cores, mess_resources))
 
-from libensemble.executors.mpi_executor import MPIExecutor
 exctr = MPIExecutor(auto_resources=use_auto_resources)
 
 gen_app = os.path.abspath('./tensorflow2_keras_mnist.py')
@@ -43,17 +42,17 @@ libE_specs['ensemble_dir_path'] = './mnist_ensemble_' + time.asctime().replace('
 sim_specs = {'sim_f': sim_f,
              'in': ['model_file'],
              'out': [('loss', float, (1,)), ('accuracy', float, (1,))],
-             'user':{'eval_steps': 256}
-            }
+             'user': {'eval_steps': 256}
+             }
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('model_file', "<U70", (1,)), ('cstat', int, (1,))],
-             'user':{'num_procs': num_procs_for_app,
-                     'app_args': "--device cpu --epochs " + str(epochs),
-                     'dry_run': dry_run,
-                     'time_limit': 1800}  # seconds
-            }
+             'user': {'num_procs': num_procs_for_app,
+                      'app_args': "--device cpu --epochs " + str(epochs),
+                      'dry_run': dry_run,
+                      'time_limit': 1800}  # seconds
+             }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)  # JLN: I *really* don't think I need this!
 
