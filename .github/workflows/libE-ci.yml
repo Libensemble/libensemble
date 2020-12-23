@@ -1,4 +1,4 @@
-name: init-libEnsemble-CI
+name: libEnsemble-CI
 on: [push, pull_request]
 jobs:
     test-libE:
