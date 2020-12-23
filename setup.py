@@ -9,6 +9,7 @@ from setuptools.command.test import test as TestCommand
 with open("VERSION", "r") as f:
     version_str = f.read().strip('\n')
 
+
 class Run_TestSuite(TestCommand):
     def run_tests(self):
         import os
