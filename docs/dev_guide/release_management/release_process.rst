@@ -28,7 +28,7 @@ Before release
 
 - Tests are run with source to be released (this may iterate):
 
-  - On-line CI (currently Travis) tests must pass.
+  - On-line CI (Travis and GitHub Actions) tests must pass.
 
   - Scaling tests must be run on HPC platforms listed as supported in release notes.
     Test variants by platform, launch mechanism, scale, and other factors can

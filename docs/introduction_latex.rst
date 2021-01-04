@@ -28,6 +28,7 @@ We now present further information on running and testing libEnsemble.
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
+.. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _mock: https://pypi.org/project/mock
