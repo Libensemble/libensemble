@@ -68,6 +68,8 @@ extensions = ['sphinxcontrib.bibtex',
               # 'sphinx.ext.intersphinx',
               'sphinx.ext.imgconverter',
               'sphinx.ext.mathjax']
+bibtex_bibfiles = ['references.bib']
+bibtex_default_style = 'unsrt'
 # autosectionlabel_prefix_document = True
 # extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
 #breathe_projects = { "libEnsemble": "../code/src/xml/" }

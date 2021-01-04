@@ -264,7 +264,12 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
-                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
+                new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work['H_fields']]
+                H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
+                for i, row in enumerate(work_rows):
+                    H_to_be_sent[i] = repack_fields(self.hist.H[Work['H_fields']][row])
+                # H_to_be_sent = repack_fields(self.hist.H[Work['H_fields']])[work_rows]
+                self.wcomms[w-1].send(0, H_to_be_sent)
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
@@ -435,7 +440,10 @@ class Manager:
         fields before the alloc_f call and ensures they weren't modified
         """
         if self.safe_mode:
-            saveH = copy.deepcopy(H[protected_libE_fields])
+            if 'repack_fields' in globals():
+                saveH = repack_fields(H[protected_libE_fields], recurse=True)
+            else:
+                saveH = copy.deepcopy(H[protected_libE_fields])
 
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)

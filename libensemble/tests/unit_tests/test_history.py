@@ -3,6 +3,9 @@ from libensemble.message_numbers import WORKER_DONE
 import numpy as np
 from numpy import inf
 
+if tuple(np.__version__.split('.')) >= ('1', '15'):
+    from numpy.lib.recfunctions import repack_fields
+
 # Consider fixtures for this - parameterization may save duplication if always use pytest.
 
 # Comparing hist produced: options (using mix of first two)
@@ -456,6 +459,13 @@ def test_update_history_f_vec():
     assert hist.index == 0  # In real case this would be ahead....
 
 
+def test_repack_fields():
+    if 'repack_fields' in globals():
+        H0 = np.zeros(3, dtype=[('g', float), ('x', float), ('large', float, 1000000)])
+        assert H0.itemsize != repack_fields(H0[['x', 'g']]).itemsize, "These should not be the same size"
+        assert repack_fields(H0[['x', 'g']]).itemsize < 100, "This should not be that large"
+
+
 if __name__ == "__main__":
     test_hist_init_1()
     test_hist_init_1A_H0()
@@ -468,3 +478,4 @@ if __name__ == "__main__":
     test_update_history_x_out()
     test_update_history_f()
     test_update_history_f_vec()
+    test_repack_fields()
