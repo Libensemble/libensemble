@@ -1,3 +1,4 @@
+include VERSION
 include setup.py
 include *.cfg
 include *.rst
