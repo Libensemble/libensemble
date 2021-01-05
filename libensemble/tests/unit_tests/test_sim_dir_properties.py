@@ -1,7 +1,7 @@
 import os
 import shutil
 import numpy as np
-from libensemble.libE_worker import Worker
+from libensemble.libE_directory import EnsembleDirectory
 from libensemble.utils.loc_stack import LocationStack
 
 
@@ -10,7 +10,7 @@ def test_range_single_element():
 
     work = {'H_fields': ['x', 'num_nodes', 'ranks_per_node'],
             'libE_info': {'H_rows': np.array([5]), 'workerID': 1}}
-    assert Worker._extract_H_ranges(work) == '5', \
+    assert EnsembleDirectory._extract_H_ranges(work) == '5', \
         'Failed to correctly parse single H row'
 
 
@@ -19,7 +19,7 @@ def test_range_two_separate_elements():
 
     work = {'H_fields': ['x', 'num_nodes', 'ranks_per_node'],
             'libE_info': {'H_rows': np.array([2, 8]), 'workerID': 1}}
-    assert Worker._extract_H_ranges(work) == '2_8', \
+    assert EnsembleDirectory._extract_H_ranges(work) == '2_8', \
         'Failed to correctly parse nonsequential H rows'
 
 
@@ -29,7 +29,7 @@ def test_range_two_ranges():
     work = {'H_fields': ['x', 'num_nodes', 'ranks_per_node'],
             'libE_info': {'H_rows': np.array([0, 1, 2, 3, 7, 8]),
                           'workerID': 1}}
-    assert Worker._extract_H_ranges(work) == '0-3_7-8', \
+    assert EnsembleDirectory._extract_H_ranges(work) == '0-3_7-8', \
         'Failed to correctly parse multiple H ranges'
 
 
@@ -39,7 +39,7 @@ def test_range_mixes():
     work = {'H_fields': ['x', 'num_nodes', 'ranks_per_node'],
             'libE_info': {'H_rows': np.array([2, 3, 4, 6, 8, 9, 11, 14]),
                           'workerID': 1}}
-    assert Worker._extract_H_ranges(work) == '2-4_6_8-9_11_14', \
+    assert EnsembleDirectory._extract_H_ranges(work) == '2-4_6_8-9_11_14', \
         'Failed to correctly parse H row single elements and ranges.'
 
 
@@ -47,13 +47,13 @@ def test_copy_back():
     """ When workers conclude their work, workers have the option of copying
     back their work into a directory created by the manager."""
 
-    class FakeWorker:
-        """ Enough information to test _copy_back() """
-        def __init__(self, libE_specs, prefix, startdir, loc_stack):
-            self.libE_specs = libE_specs
-            self.prefix = prefix
-            self.startdir = startdir
-            self.loc_stack = loc_stack
+    # class FakeWorker:
+    #     """ Enough information to test _copy_back() """
+    #     def __init__(self, libE_specs, prefix, startdir, loc_stack):
+    #         self.libE_specs = libE_specs
+    #         self.prefix = prefix
+    #         self.startdir = startdir
+    #         self.loc_stack = loc_stack
 
     inputdir = './calc'
     copybackdir = './calc_back'
@@ -67,8 +67,9 @@ def test_copy_back():
 
     ls = LocationStack()
     ls.register_loc('test', inputfile)
-    fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
-    Worker._copy_back(fake_worker)
+    # fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
+    ed = EnsembleDirectory(libE_specs, ls)
+    EnsembleDirectory.copy_back(ed)
     assert 'file' in os.listdir(copybackdir), \
         'File not copied back to starting dir'
 
@@ -88,8 +89,9 @@ def test_worker_dirs_but_no_sim_dirs():
     libE_specs = {'ensemble_dir_path': ensemble_dir, 'use_worker_dirs': True, 'sim_input_dir': inputdir}
 
     ls = LocationStack()
+    ed = EnsembleDirectory(libE_specs, ls)
     for i in range(4):  # Should work at any range
-        Worker._make_calc_dir(libE_specs, 1, 1, 'sim', ls)
+        EnsembleDirectory._make_calc_dir(ed, 1, 1, 'sim', ls)
 
     assert 'worker1' in os.listdir(ensemble_dir)
     assert 'file' in os.listdir(os.path.join(ensemble_dir, 'worker1'))
@@ -113,8 +115,9 @@ def test_loc_stack_FileExists_exceptions():
                   'sim_dir_symlink_files': [symlinkfile]}
 
     ls = LocationStack()
+    ed = EnsembleDirectory(libE_specs=libE_specs, loc_stack=ls)
     for i in range(2):  # Should work at any range
-        Worker._make_calc_dir(libE_specs, 1, '1', 'sim', ls)
+        EnsembleDirectory._make_calc_dir(ed, 1, '1', 'sim', ls)
 
     assert len(os.listdir(ensemble_dir)) == 1, 'Should only be a single worker file in ensemble'
     assert 'worker1' in os.listdir(ensemble_dir), 'Only directory should be worker1'
@@ -126,9 +129,10 @@ def test_loc_stack_FileExists_exceptions():
                   'use_worker_dirs': True, 'sim_dir_copy_files': [copyfile]}
 
     flag = 1
-    Worker._make_calc_dir(libE_specs, 1, '1', 'sim', ls)
+    ed = EnsembleDirectory(libE_specs=libE_specs, loc_stack=ls)
+    EnsembleDirectory._make_calc_dir(ed, 1, '1', 'sim', ls)
     try:
-        Worker._make_calc_dir(libE_specs, 1, '1', 'sim', ls)
+        EnsembleDirectory._make_calc_dir(ed, 1, '1', 'sim', ls)
     except FileExistsError:
         flag = 0
     assert flag == 0
@@ -138,9 +142,10 @@ def test_loc_stack_FileExists_exceptions():
                   'use_worker_dirs': True, 'sim_dir_symlink_files': [symlinkfile]}
 
     flag = 1
-    Worker._make_calc_dir(libE_specs, 1, '2', 'sim', ls)
+    ed = EnsembleDirectory(libE_specs=libE_specs, loc_stack=ls)
+    EnsembleDirectory._make_calc_dir(ed, 1, '2', 'sim', ls)
     try:
-        Worker._make_calc_dir(libE_specs, 1, '2', 'sim', ls)
+        EnsembleDirectory._make_calc_dir(ed, 1, '2', 'sim', ls)
     except FileExistsError:
         flag = 0
     assert flag == 0
