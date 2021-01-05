@@ -39,7 +39,9 @@ def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
     domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list, ub_list) ] )
     func_caller = EuclideanFunctionCaller(None, domain)
     opt = EuclideanGPBandit( func_caller, ask_tell_mode=True,
-          options=Namespace(acq='ts', build_new_model_every=number_of_gen_points) )
+          options=Namespace(
+              acq='ts', build_new_model_every=number_of_gen_points,
+              init_capital=number_of_gen_points) )
     opt.initialise()
 
     # If there is any past history, feed it to the GP
@@ -118,7 +120,8 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
                             ask_tell_mode=True,
                             is_mf=True,
                             options=Namespace(acq='ts',
-                            build_new_model_every=number_of_gen_points) )
+                            build_new_model_every=number_of_gen_points,
+                            init_capital=number_of_gen_points) )
     opt.initialise()
 
     # If there is any past history, feed it to the GP
@@ -215,7 +218,9 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
         fidel_space_orderings=config.fidel_space_orderings)
     opt = CPGPBandit(
         func_caller, ask_tell_mode=True, is_mf=True,
-        options=Namespace(acq='ts', build_new_model_every=number_of_gen_points))
+        options=Namespace(
+            acq='ts', build_new_model_every=number_of_gen_points,
+            init_capital=number_of_gen_points))
     opt.initialise()
 
     # If there is any past history, feed it to the GP
