@@ -20,7 +20,8 @@ from dragonfly.opt.gp_bandit import EuclideanGPBandit, CPGPBandit
 from dragonfly.exd.cp_domain_utils import load_config
 from argparse import Namespace
 
-def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
+
+def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     """
     Create a Gaussian Process model, update it as new simulation results
     are available, and generate inputs for the next simulations.
@@ -36,10 +37,10 @@ def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
     number_of_gen_points = gen_specs['user']['gen_batch_size']
 
     # Initialize the dragonfly GP optimizer
-    domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list, ub_list) ] )
+    domain = EuclideanDomain([[lo, up] for lo, up in zip(lb_list, ub_list)])
     func_caller = EuclideanFunctionCaller(None, domain)
-    opt = EuclideanGPBandit( func_caller, ask_tell_mode=True,
-          options=Namespace(acq='ts', build_new_model_every=number_of_gen_points) )
+    opt = EuclideanGPBandit(func_caller, ask_tell_mode=True,
+                            options=Namespace(acq='ts', build_new_model_every=number_of_gen_points))
     opt.initialise()
 
     # If there is any past history, feed it to the GP
@@ -47,7 +48,7 @@ def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
         for i in range(len(H)):
             x = H['x'][i]
             y = H['f'][i]
-            opt.tell([ (x, -y) ])
+            opt.tell([(x, -y)])
         # Update hyperparameters
         opt._build_new_model()
 
@@ -72,7 +73,7 @@ def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
             for i in range(n):
                 x = calc_in['x'][i]
                 y = calc_in['f'][i]
-                opt.tell([ (x, -y) ])
+                opt.tell([(x, -y)])
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
@@ -83,8 +84,7 @@ def persistent_gp_gen_f( H, persis_info, gen_specs, libE_info ):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-
-def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
+def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
     """
     Create a Gaussian Process model, for multi-fidelity optimization,
     and update it as new simulation results are available, and generate
@@ -107,18 +107,17 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
     number_of_gen_points = gen_specs['user']['gen_batch_size']
 
     # Initialize the dragonfly GP optimizer
-    domain = EuclideanDomain( [ [l,u] for l,u in zip(lb_list, ub_list) ] )
-    fidel_space = EuclideanDomain( [ fidel_range ] )
-    func_caller = EuclideanFunctionCaller( None,
-                            raw_domain=domain,
-                            raw_fidel_space=fidel_space,
-                            fidel_cost_func=cost_func,
-                            raw_fidel_to_opt=fidel_range[-1] )
-    opt = EuclideanGPBandit( func_caller,
+    domain = EuclideanDomain([[lo, up] for lo, up in zip(lb_list, ub_list)])
+    fidel_space = EuclideanDomain([fidel_range])
+    func_caller = EuclideanFunctionCaller(None,
+                                          raw_domain=domain,
+                                          raw_fidel_space=fidel_space,
+                                          fidel_cost_func=cost_func,
+                                          raw_fidel_to_opt=fidel_range[-1])
+    opt = EuclideanGPBandit(func_caller,
                             ask_tell_mode=True,
                             is_mf=True,
-                            options=Namespace(acq='ts',
-                            build_new_model_every=number_of_gen_points) )
+                            options=Namespace(acq='ts', build_new_model_every=number_of_gen_points))
     opt.initialise()
 
     # If there is any past history, feed it to the GP
@@ -127,7 +126,7 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
             x = H['x'][i]
             z = H['z'][i]
             y = H['f'][i]
-            opt.tell([ ([z], x, -y) ])
+            opt.tell([([z], x, -y)])
         # Update hyperparameters
         opt._build_new_model()
 
@@ -154,7 +153,7 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
                 x = calc_in['x'][i]
                 z = calc_in['z'][i]
                 y = calc_in['f'][i]
-                opt.tell([ ([z], x, -y) ])
+                opt.tell([([z], x, -y)])
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
@@ -165,7 +164,7 @@ def persistent_gp_mf_gen_f( H, persis_info, gen_specs, libE_info ):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
+def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
     """
     Create a Gaussian Process model, for multi-fidelity optimization
     in a discrete fidelity space, and update it as new simulation results are
@@ -224,7 +223,7 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
             x = H['x'][i]
             z = H['z'][i]
             y = H['f'][i]
-            opt.tell([ ([z], x, -y) ])
+            opt.tell([([z], x, -y)])
         # Update hyperparameters
         opt._build_new_model()
 
@@ -251,7 +250,7 @@ def persistent_gp_mf_disc_gen_f( H, persis_info, gen_specs, libE_info ):
                 x = calc_in['x'][i]
                 z = calc_in['z'][i]
                 y = calc_in['f'][i]
-                opt.tell([ ([z], x, -y) ])
+                opt.tell([([z], x, -y)])
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
