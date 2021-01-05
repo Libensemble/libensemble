@@ -191,10 +191,9 @@ class EnsembleDirectory:
             no_calc_dirs = not self.sim_dirs_make or \
                 not self.gen_dirs_make
 
-            ensemble_dir_path = self.prefix
-            copybackdir = os.path.basename(ensemble_dir_path)
+            copybackdir = os.path.basename(self.prefix)
 
-            if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
+            if os.path.relpath(self.prefix) == os.path.relpath(copybackdir):
                 copybackdir += '_back'
 
             for dir in self.loc_stack.dirs.values():

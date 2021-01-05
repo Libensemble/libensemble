@@ -47,14 +47,6 @@ def test_copy_back():
     """ When workers conclude their work, workers have the option of copying
     back their work into a directory created by the manager."""
 
-    # class FakeWorker:
-    #     """ Enough information to test _copy_back() """
-    #     def __init__(self, libE_specs, prefix, startdir, loc_stack):
-    #         self.libE_specs = libE_specs
-    #         self.prefix = prefix
-    #         self.startdir = startdir
-    #         self.loc_stack = loc_stack
-
     inputdir = './calc'
     copybackdir = './calc_back'
     inputfile = './calc/file'
