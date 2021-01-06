@@ -26,7 +26,7 @@ import pickle  # Only used when saving output on error
 from libensemble.utils import launcher
 from libensemble.utils.timer import Timer
 from libensemble.history import History
-from libensemble.libE_manager import manager_main, ManagerException
+from libensemble.manager import manager_main, ManagerException
 from libensemble.libE_worker import worker_main
 from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
@@ -139,7 +139,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
                                   persis_info, alloc_specs, libE_specs, H0)
 
 
-def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
+def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
                  alloc_specs, libE_specs, hist,
                  on_abort=None, on_cleanup=None):
     "Generic manager routine run."
@@ -153,7 +153,7 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         persis_info, exit_flag, elapsed_time = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                          exit_criteria, persis_info, wcomms)
-        logger.info("libE_manager total time: {}".format(elapsed_time))
+        logger.info("manager total time: {}".format(elapsed_time))
 
     except ManagerException as e:
         _report_manager_exception(hist, persis_info, e, save_H=save_H)
@@ -260,7 +260,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
         comms_abort(mpi_comm)
 
     # Run generic manager
-    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+    return manager(wcomms, sim_specs, gen_specs, exit_criteria,
                         persis_info, alloc_specs, libE_specs, hist,
                         on_abort=on_abort)
 
@@ -328,7 +328,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
 
     # Run generic manager
-    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+    return manager(wcomms, sim_specs, gen_specs, exit_criteria,
                         persis_info, alloc_specs, libE_specs, hist,
                         on_cleanup=cleanup)
 
@@ -455,7 +455,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                 launcher.cancel(wp, timeout=libE_specs.get('worker_timeout'))
 
         # Run generic manager
-        return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
+        return manager(wcomms, sim_specs, gen_specs, exit_criteria,
                             persis_info, alloc_specs, libE_specs, hist,
                             on_cleanup=cleanup)
 
