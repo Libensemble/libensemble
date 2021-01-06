@@ -1,7 +1,7 @@
 import os
 import shutil
 import numpy as np
-from libensemble.libE_worker import Worker
+from libensemble.worker import Worker
 from libensemble.utils.loc_stack import LocationStack
 
 

@@ -27,7 +27,7 @@ from libensemble.utils import launcher
 from libensemble.utils.timer import Timer
 from libensemble.history import History
 from libensemble.manager import manager_main, ManagerException
-from libensemble.libE_worker import worker_main
+from libensemble.worker import worker_main
 from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config

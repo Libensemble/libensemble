@@ -19,7 +19,7 @@ from libensemble.message_numbers import \
     TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
-from libensemble.libE_worker import WorkerErrMsg
+from libensemble.worker import WorkerErrMsg
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.tools.fields_keys import libE_spec_calc_dir_combined, protected_libE_fields
 import cProfile
