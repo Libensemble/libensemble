@@ -32,7 +32,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 inds_to_give = np.where(returned_but_not_given)[0]
                 gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
-                         np.atleast_1d(inds_to_give), persis_info[i], persistent=True)
+                         np.atleast_1d(inds_to_give), persis_info.get(i), persistent=True)
 
                 H['given_back'][inds_to_give] = True
 
@@ -46,7 +46,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 inds_to_give = H['sim_id'][gen_inds][H['gen_time'][gen_inds] == last_time_gen_gave_batch]
                 gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
-                         np.atleast_1d(inds_to_give), persis_info[i], persistent=True)
+                         np.atleast_1d(inds_to_give), persis_info.get(i), persistent=True)
 
                 H['given_back'][inds_to_give] = True
 
@@ -55,13 +55,13 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if np.any(task_avail):
             # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i))
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
             persis_info['gen_started'] = True
 
