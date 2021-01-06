@@ -54,9 +54,6 @@ class EnsembleDirectory:
             self.gen_dir_symlink_files = self.specs.get('gen_dir_symlink_files', [])
             self.ensemble_copy_back = self.specs.get('ensemble_copy_back', False)
 
-    def set_libE_specs(self, libE_specs):
-        self.__init__(libE_specs=libE_specs)
-
     def _make_copyback_dir(self):
         copybackdir = os.path.basename(self.prefix)  # Current directory, same basename
         if os.path.relpath(self.prefix) == os.path.relpath(copybackdir):
