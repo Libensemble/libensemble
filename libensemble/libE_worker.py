@@ -136,7 +136,7 @@ class Worker:
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
-        self.EnsembleDirectory = libE_specs.get('EnsembleDirectory', EnsembleDirectory(libE_specs=libE_specs))
+        self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):

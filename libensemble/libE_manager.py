@@ -151,7 +151,7 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        temp_EnsembleDirectory = libE_specs.get('EnsembleDirectory', EnsembleDirectory(libE_specs=libE_specs))
+        temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
         try:
             temp_EnsembleDirectory.make_copyback_check()
