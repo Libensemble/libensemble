@@ -21,7 +21,7 @@ import os
 import sys
 from datetime import datetime
 
-with open("../VERSION", "r") as f:
+with open("../libensemble/VERSION", "r") as f:
     version_str = f.read().strip('\n')
 
 if sys.version_info >= (3, 3):

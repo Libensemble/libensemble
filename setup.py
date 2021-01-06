@@ -6,7 +6,7 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
-with open("VERSION", "r") as f:
+with open("./libensemble/VERSION", "r") as f:
     version_str = f.read().strip('\n')
 
 
