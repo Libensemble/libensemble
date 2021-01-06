@@ -34,6 +34,9 @@ class EnsembleDirectory:
         Parameters/information for libE operations. EnsembleDirectory only extracts
         values specific for ensemble directory operations. Can technically contain
         a different set of settings then the libE_specs passed to libE().
+
+    loc_stack: object
+        A LocationStack object from libEnsemble's internal libensemble.utils.loc_stack module.
     """
 
     def __init__(self, libE_specs=None, loc_stack=None):
@@ -55,12 +58,14 @@ class EnsembleDirectory:
             self.ensemble_copy_back = self.specs.get('ensemble_copy_back', False)
 
     def _make_copyback_dir(self):
+        """Make copyback directory, adding suffix if identical to ensemble dir"""
         copybackdir = os.path.basename(self.prefix)  # Current directory, same basename
         if os.path.relpath(self.prefix) == os.path.relpath(copybackdir):
             copybackdir += '_back'
         os.makedirs(copybackdir)
 
     def make_copyback_check(self):
+        """Check for existing copyback, make copyback if doesn't exist"""
         try:
             os.rmdir(self.prefix)
         except FileNotFoundError:
@@ -71,7 +76,7 @@ class EnsembleDirectory:
             self._make_copyback_dir()
 
     def use_calc_dirs(self, type):
-        "Determines calc_dirs enabling for each calc type"
+        """Determines calc_dirs enabling for each calc type"""
 
         if type == EVAL_SIM_TAG:
             dir_type_keys = libE_spec_sim_dir_keys
@@ -84,7 +89,7 @@ class EnsembleDirectory:
 
     @staticmethod
     def _extract_H_ranges(Work):
-        """ Convert received H_rows into ranges for labeling """
+        """Convert received H_rows into ranges for labeling """
         work_H_rows = Work['libE_info']['H_rows']
         if len(work_H_rows) == 1:
             return str(work_H_rows[0])
@@ -100,7 +105,7 @@ class EnsembleDirectory:
             return '_'.join(ranges)
 
     def _make_calc_dir(self, workerID, H_rows, calc_str, locs):
-        "Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"
+        """Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"""
 
         if calc_str == 'sim':
             input_dir = self.sim_input_dir
@@ -165,7 +170,7 @@ class EnsembleDirectory:
         return calc_dir
 
     def prep_calc_dir(self, Work, calc_iter, workerID, calc_type):
-        "Determines choice for calc_dir structure, then performs calculation."
+        """Determines choice for calc_dir structure, then performs calculation."""
 
         if not self.loc_stack:
             self.loc_stack = LocationStack()
