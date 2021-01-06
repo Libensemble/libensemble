@@ -20,7 +20,7 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
-from libensemble.libE_directory import EnsembleDirectory
+from libensemble.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile

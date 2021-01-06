@@ -16,7 +16,7 @@ from libensemble.message_numbers import \
     UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.libE_directory import EnsembleDirectory
+from libensemble.output_directory import EnsembleDirectory
 
 from libensemble.utils.timer import Timer
 from libensemble.executors.executor import Executor

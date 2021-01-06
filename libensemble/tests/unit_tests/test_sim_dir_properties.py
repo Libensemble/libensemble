@@ -1,7 +1,7 @@
 import os
 import shutil
 import numpy as np
-from libensemble.libE_directory import EnsembleDirectory
+from libensemble.output_directory import EnsembleDirectory
 from libensemble.utils.loc_stack import LocationStack
 
 
