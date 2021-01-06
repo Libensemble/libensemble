@@ -433,11 +433,11 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
     osx_set_mp_method()
 
-    with ServerQCommManager(port, authkey.encode('utf-8')) as manager:
+    with ServerQCommManager(port, authkey.encode('utf-8')) as tcp_manager:
 
         # Get port if needed because of auto-assignment
         if port == 0:
-            _, port = manager.address
+            _, port = tcp_manager.address
 
         if not libE_specs.get('disable_log_files', False):
             manager_logging_config()
@@ -446,7 +446,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
         # Launch worker team and set up logger
         worker_procs, wcomms =\
-            libE_tcp_start_team(manager, nworkers, workers,
+            libE_tcp_start_team(tcp_manager, nworkers, workers,
                                 ip, port, authkey, launchf)
 
         def cleanup():
