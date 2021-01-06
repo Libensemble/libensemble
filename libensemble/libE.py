@@ -140,8 +140,8 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
 
 def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
-                 alloc_specs, libE_specs, hist,
-                 on_abort=None, on_cleanup=None):
+            alloc_specs, libE_specs, hist,
+            on_abort=None, on_cleanup=None):
     "Generic manager routine run."
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
@@ -261,8 +261,8 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     # Run generic manager
     return manager(wcomms, sim_specs, gen_specs, exit_criteria,
-                        persis_info, alloc_specs, libE_specs, hist,
-                        on_abort=on_abort)
+                   persis_info, alloc_specs, libE_specs, hist,
+                   on_abort=on_abort)
 
 
 def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
@@ -329,8 +329,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     # Run generic manager
     return manager(wcomms, sim_specs, gen_specs, exit_criteria,
-                        persis_info, alloc_specs, libE_specs, hist,
-                        on_cleanup=cleanup)
+                   persis_info, alloc_specs, libE_specs, hist,
+                   on_cleanup=cleanup)
 
 
 # ==================== TCP version =================================
@@ -456,8 +456,8 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
         # Run generic manager
         return manager(wcomms, sim_specs, gen_specs, exit_criteria,
-                            persis_info, alloc_specs, libE_specs, hist,
-                            on_cleanup=cleanup)
+                       persis_info, alloc_specs, libE_specs, hist,
+                       on_cleanup=cleanup)
 
 
 def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
