@@ -17,7 +17,7 @@ Before release
   date, including a list of supported (tested) platforms.
 
 - Version number is updated wherever it appears (and ``+dev`` suffix is removed)
-  (in ``setup.py``, ``libensemble/__init__.py``, ``README.rst`` and twice in ``docs/conf.py``)
+  (in ``libensemble/VERSION``and ``README.rst``).
 
 - Year in ``README.rst`` under *Citing libEnsemble* and in ``docs/conf.py`` is checked for correctness.
 
