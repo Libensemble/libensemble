@@ -5,6 +5,7 @@ import multiprocessing
 from libensemble.libE import libE
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
 from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 from distrib_ml_eval_model import distrib_ml_eval_model as sim_f
 from distrib_ml_build_model import distrib_ml_build_model as gen_f
@@ -14,6 +15,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 dry_run = False
 epochs = 2
 num_procs_for_app = 4
+num_active_gens = nworkers
 num_models_to_evaluate = 4
 
 cores_per_task = 1
@@ -53,6 +55,10 @@ gen_specs = {'gen_f': gen_f,
                       'dry_run': dry_run,
                       'time_limit': 1800}  # seconds
              }
+
+alloc_specs = {'alloc_f': give_sim_work_first,
+               'out': [('allocated', bool)],
+               'user': {'batch_mode': True, 'num_active_gens': num_active_gens}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)  # JLN: I *really* don't think I need this!
 
