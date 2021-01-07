@@ -20,8 +20,9 @@ from libensemble.message_numbers import \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
 from libensemble.libE_worker import WorkerErrMsg
+from libensemble.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
-from libensemble.tools.fields_keys import libE_spec_calc_dir_combined, protected_libE_fields
+from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile
 import pstats
 import copy
@@ -150,27 +151,12 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_combined]):
-            self.check_ensemble_dir(libE_specs)
-            if libE_specs.get('ensemble_copy_back', False):
-                Manager.make_copyback_dir(libE_specs)
+        temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
-    @staticmethod
-    def make_copyback_dir(libE_specs):
-        ensemble_dir_path = libE_specs.get('ensemble_dir_path', './ensemble')
-        copybackdir = os.path.basename(ensemble_dir_path)  # Current directory, same basename
-        if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
-            copybackdir += '_back'
-        os.makedirs(copybackdir)
-
-    def check_ensemble_dir(self, libE_specs):
-        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         try:
-            os.rmdir(prefix)
-        except FileNotFoundError:  # Ensemble dir doesn't exist.
-            pass
+            temp_EnsembleDirectory.make_copyback_check()
         except OSError as e:  # Ensemble dir exists and isn't empty.
-            logger.manager_warning(_USER_CALC_DIR_WARNING.format(prefix))
+            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.prefix))
             self._kill_workers()
             raise ManagerException('Manager errored on initialization',
                                    'Ensemble directory already existed and wasn\'t empty.', e)
