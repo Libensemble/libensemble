@@ -6,6 +6,7 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
+exec(open('libensemble/version.py').read())
 
 class Run_TestSuite(TestCommand):
     def run_tests(self):
@@ -30,7 +31,7 @@ class ToxTest(TestCommand):
 
 setup(
     name='libensemble',
-    version='0.7.1+dev',
+    version=__version__,
     description='Library to coordinate the concurrent evaluation of dynamic ensembles of calculations',
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
