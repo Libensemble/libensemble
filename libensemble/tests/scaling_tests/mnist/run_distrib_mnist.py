@@ -18,21 +18,7 @@ num_procs_for_app = 4
 num_active_gens = nworkers
 num_models_to_evaluate = 4
 
-cores_per_task = 1
-logical_cores = multiprocessing.cpu_count()
-cores_all_tasks = nworkers*cores_per_task
-
-if cores_all_tasks > logical_cores:
-    use_auto_resources = False
-    mess_resources = 'Oversubscribing - auto_resources set to False'
-else:
-    use_auto_resources = True
-    mess_resources = 'Auto_resources set to True'
-
-if is_manager:
-    print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_tasks, logical_cores, mess_resources))
-
-exctr = MPIExecutor(auto_resources=use_auto_resources)
+exctr = MPIExecutor(auto_resources=True)
 
 gen_app = os.path.abspath('./tensorflow2_keras_mnist.py')
 
@@ -58,7 +44,7 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': give_sim_work_first,
                'out': [('allocated', bool)],
-               'user': {'batch_mode': True, 'num_active_gens': num_active_gens}}
+               'user': {'batch_mode': False, 'num_active_gens': num_active_gens}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)  # JLN: I *really* don't think I need this!
 
