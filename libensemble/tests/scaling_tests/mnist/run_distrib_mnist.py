@@ -1,6 +1,5 @@
 import os
 import time
-import multiprocessing
 
 from libensemble.libE import libE
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
