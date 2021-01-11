@@ -11,19 +11,19 @@ file name can also be supplied.
 
 To change the logging level to DEBUG, provide the following in the calling scripts::
 
-    from libensemble import logger
-    logger.set_level('DEBUG')
+    from libensemble import libE_logger
+    libE_logger.set_level('DEBUG')
 
 Logger messages of MANAGER_WARNING level or higher are also displayed through stderr by default.
 This boundary can be adjusted as follows::
 
-    from libensemble import logger
+    from libensemble import libE_logger
 
     # Only display messages with level >= ERROR
-    logger.set_stderr_level('ERROR')
+    libE_logger.set_stderr_level('ERROR')
 
 stderr displaying can be effectively disabled by setting the stderr level to CRITICAL.
 
-.. automodule:: logger
+.. automodule:: libE_logger
   :members:
   :no-undoc-members:
