@@ -3,6 +3,7 @@
 
 [run]
 data_file = .cov_merge_out
+relative_files = True
 
 [html]
 directory = cov_merge

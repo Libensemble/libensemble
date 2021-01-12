@@ -119,10 +119,9 @@ jobs:
             mv libensemble/tests/.cov* .
 
         - name: Run Coveralls Parallel
-          uses: coverallsapp/github-action@master
+          uses: AndreMiras/coveralls-python-action@develop
           with:
               github-token: ${{ secrets.github_token }}
-              flag-name: run-${{ matrix.test_number }}
               parallel: true
 
     finish:
@@ -130,7 +129,7 @@ jobs:
         runs-on: ubuntu-16.04
         steps:
         - name: Coveralls Finished
-          uses: coverallsapp/github-action@master
+          uses: AndreMiras/coveralls-python-action@develop
           with:
               github-token: ${{ secrets.github_token }}
               parallel-finished: true
