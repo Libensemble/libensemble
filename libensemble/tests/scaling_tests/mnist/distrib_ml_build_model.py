@@ -17,7 +17,14 @@ def distrib_ml_build_model(H, persis_info, gen_specs, libE_info):
     app_args = gen_specs['user']['app_args']
     dry_run = gen_specs['user']['dry_run']
     time_limit = gen_specs['user']['time_limit']
-    epochs = app_args.split('epochs ')[-1]
+
+    if len(H) == 0:
+        epochs = gen_specs['user']['init_epochs']
+    else:
+        epochs = H['epochs_to_try'][0][0]
+
+    app_args += " --epochs " + str(epochs)
+
     calc_status = UNSET_TAG
 
     H_o = np.zeros(1, dtype=gen_specs['out'])
@@ -62,8 +69,9 @@ def distrib_ml_build_model(H, persis_info, gen_specs, libE_info):
         model_file = glob.glob('final_model_*')
         assert len(model_file), \
             "Keras Application did not write final output to file."
-        assert f'Epoch {epochs}/{epochs}' in task.read_stdout(), \
-            "Keras Application did not complete all epochs."
+        if epochs > 1:
+            assert f'Epoch {epochs}/{epochs}' in task.read_stdout(), \
+                "Keras Application did not complete all epochs."
 
     current_dir = os.getcwd().split('/')[-1]  # gen_dir
     if dry_run:

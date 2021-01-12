@@ -129,7 +129,7 @@ else:
 if hvd.rank() == 0:
     callbacks.append(tf.keras.callbacks.ModelCheckpoint('./checkpoints/keras_mnist-{epoch}.h5'))
     # JLN 2020: Added csv log callback for model progress
-    callbacks.append(tf.keras.callbacks.CSVLogger('./mnist_log.csv', append=True, separator=';'))
+    callbacks.append(tf.keras.callbacks.CSVLogger('./mnist_log.csv', append=True, separator=','))
 
 # Horovod: write logs on worker 0.
 verbose = 1 if hvd.rank() == 0 else 0

@@ -1,4 +1,5 @@
 import os
+import csv
 import numpy as np
 import tensorflow as tf
 
@@ -26,5 +27,14 @@ def distrib_ml_eval_model(H, persis_info, sim_specs, libE_info):
 
     H_o['loss'] = loss
     H_o['accuracy'] = accuracy
+
+    with open(os.path.join(model_file.split('/')[0], 'mnist_log.csv'), 'r') as f:
+        reader = csv.DictReader(f)
+        num_epochs = len([row['epoch'] for row in reader])
+
+    if accuracy < 0.95:
+        H_o['epochs_to_try'] = num_epochs + 1
+    else:
+        H_o['epochs_to_try'] = num_epochs
 
     return H_o, persis_info
