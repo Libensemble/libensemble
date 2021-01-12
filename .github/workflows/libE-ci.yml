@@ -114,9 +114,23 @@ jobs:
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
-          run: ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
-
-        - name: Run coveralls
           run: |
+            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
             mv libensemble/tests/.cov* .
-            coveralls
+
+        - name: Run Coveralls Parallel
+          uses: coverallsapp/github-action@master
+          with:
+              github-token: ${{ secrets.github_token }}
+              flag-name: run-${{ matrix.test_number }}
+              parallel: true
+
+    finish:
+        needs: test-libE
+        runs-on: ubuntu-16.04
+        steps:
+        - name: Coveralls Finished
+          uses: coverallsapp/github-action@master
+          with:
+              github-token: ${{ secrets.github_token }}
+              parallel-finished: true
