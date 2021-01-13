@@ -105,6 +105,7 @@ jobs:
         - name: Run tests, Ubuntu
           if: matrix.os == 'ubuntu-16.04'
           run: ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+          mv libensemble/tests/.cov* .
 
         # Uncomment the following 2 lines to enable tmate debug sessions
         # - name: SSH to GitHub Actions
@@ -119,6 +120,7 @@ jobs:
             mv libensemble/tests/.cov* .
 
         - name: Run Coveralls Parallel
+          if: matrix.os == 'ubuntu-16.04'
           uses: AndreMiras/coveralls-python-action@develop
           with:
               github-token: ${{ secrets.github_token }}
