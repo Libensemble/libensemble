@@ -144,9 +144,9 @@ script:
   - ./libensemble/tests/run-tests.sh -A "-W error" -z -$COMMS_TYPE
 
 # Track code coverage
-after_success:
-  - mv libensemble/tests/.cov* .
-  - coveralls
+# after_success:
+#   - mv libensemble/tests/.cov* .
+#   - coveralls
 
 after_failure:
 - cat libensemble/tests/regression_tests/log.err

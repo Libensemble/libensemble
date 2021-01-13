@@ -118,22 +118,8 @@ jobs:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+
+        - name: Merge coverage, run Coveralls
+          run: |
             mv libensemble/tests/.cov* .
-
-        - name: Run Coveralls Parallel
-          if: matrix.os == 'ubuntu-16.04'
-          uses: AndreMiras/coveralls-python-action@develop
-          with:
-              github-token: ${{ secrets.github_token }}
-              parallel: true
-
-    finish:
-        if: always()
-        needs: test-libE
-        runs-on: ubuntu-16.04
-        steps:
-        - name: Coveralls Finished
-          uses: AndreMiras/coveralls-python-action@develop
-          with:
-              github-token: ${{ secrets.github_token }}
-              parallel-finished: true
+            coveralls
