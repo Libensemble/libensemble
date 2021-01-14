@@ -11,54 +11,26 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
-  jobs:
     - MPI=mpich
-  matrix:
-    # - COMMS_TYPE=m  # mpi
     - COMMS_TYPE=l  # local
-    #- COMMS_TYPE=t  # tcp
 
 jobs:
   include:
-    - os: osx
-      # osx_image: xcode11.3
-      # env: MPI=mpich PY=3.7 COMMS_TYPE=m  # mpi
-      # language: generic
-      # python: 3.7
     - os: osx
       osx_image: xcode11.3
       env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
       language: generic
       python: 3.7
-    #- os: osx
-    #  osx_image: xcode11.3
-    #  env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
-    #  language: generic
-    #  python: 3.7
-    # - os: osx
-    #   osx_image: xcode11.3
-    #   env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
-    #   language: generic
-    #   python: 3.8
     - os: osx
       osx_image: xcode11.3
       env: MPI=mpich PY=3.8 COMMS_TYPE=l  # local
       language: generic
       python: 3.8
-    #- os: osx
-    #  osx_image: xcode11.3
-    #  env: MPI=mpich PY=3.8 COMMS_TYPE=t  # tcp
-    #  language: generic
-    #  python: 3.8
   fast_finish: true
   allow_failures:
       - python: 3.8
-      # - os: osx
-      #   env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
       - os: osx
         env: MPI=mpich PY=3.8 COMMS_TYPE=l  # mpi
-      # - os: osx
-      #   env: MPI=mpich PY=3.8 COMMS_TYPE=t  # mpi
 
 services:
     - postgresql
@@ -95,7 +67,7 @@ install:
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
         sudo add-apt-repository -y ppa:octave/stable;
         sudo apt-get update -qq;
-        # sudo apt install -y octave;
+        sudo apt install -y octave;
     fi
 
   - conda install $COMPILERS
@@ -114,9 +86,9 @@ install:
   - pip install deap
   - conda install psutil
   - pip install mpmath
-  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-  #       pip install scikit-build packaging Tasmanian --user;
-  #   fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        pip install scikit-build packaging Tasmanian --user;
+    fi
     # End: dependencies only for regression tests
     #
   - pip install flake8
