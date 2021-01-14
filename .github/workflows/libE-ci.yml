@@ -35,11 +35,6 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - name: Setup PostgreSQL
-          run: |
-            sudo systemctl start postgresql.service
-            pg_isready
-
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-16.04'
           run: conda install gcc_linux-64
@@ -106,12 +101,6 @@ jobs:
             pip install -e .
             flake8 libensemble
             ulimit -Sn 10000
-
-        - name: Install Balsam
-          run: |
-            wget https://github.com/balsam-alcf/balsam/archive/0.3.8.tar.gz
-            mkdir ../balsam; tar xf 0.3.8.tar.gz -C ../balsam;
-            python install/configure_balsam_install.py
 
         - name: Run tests, Ubuntu
           if: matrix.os == 'ubuntu-16.04'
