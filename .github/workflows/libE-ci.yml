@@ -119,6 +119,22 @@ jobs:
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Merge coverage, run Coveralls
+          env:
+              COVERALLS_PARALLEL: true
           run: |
             mv libensemble/tests/.cov* .
             coveralls --service=github
+
+    coveralls:
+        name: Notify coveralls of all jobs completing
+        needs: test-libE
+        if: always()
+        runs-on: ubuntu-16.04
+        container: python:3-slim
+        steps:
+        - name: Finished
+          run: |
+            pip3 install --upgrade coveralls
+            coveralls --finish
+          env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

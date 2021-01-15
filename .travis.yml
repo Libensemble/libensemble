@@ -113,7 +113,6 @@ before_script:
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -u -A "-W error" -z -$COMMS_TYPE
   - ./libensemble/tests/run-tests.sh -y 'test_balsam*' -A "-W error" -z -$COMMS_TYPE
 
 # Track code coverage
