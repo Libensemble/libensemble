@@ -13,6 +13,8 @@ jobs:
                 exclude:
                     - os: macos-latest
                       python-version: 3.6
+                    - os: macos-latest
+                      python-version: 3.7
 
         env:
             HYDRA_LAUNCHER: 'fork'
@@ -82,7 +84,7 @@ jobs:
             pip install mpmath
             pip install deap
             pip install flake8
-            pip install coverage==4.5.4
+            pip install coverage
             pip install pytest
             pip install pytest-cov
             pip install pytest-timeout
@@ -104,7 +106,8 @@ jobs:
 
         - name: Run tests, Ubuntu
           if: matrix.os == 'ubuntu-16.04'
-          run: ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+          run: |
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         # Uncomment the following 2 lines to enable tmate debug sessions
         # - name: SSH to GitHub Actions
@@ -114,9 +117,26 @@ jobs:
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
-          run: ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+          run: |
+            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run coveralls
+        - name: Merge coverage, run Coveralls
+          env:
+              COVERALLS_PARALLEL: true
           run: |
             mv libensemble/tests/.cov* .
-            coveralls
+            coveralls --service=github
+
+    coveralls:
+        name: Notify coveralls of all jobs completing
+        needs: test-libE
+        if: always()
+        runs-on: ubuntu-16.04
+        container: python:3-slim
+        steps:
+        - name: Finished
+          run: |
+            pip3 install --upgrade coveralls
+            coveralls --finish
+          env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
