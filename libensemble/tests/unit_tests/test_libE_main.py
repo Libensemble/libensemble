@@ -67,7 +67,7 @@ def test_manager_exception():
     remove_file_if_exists(hfile_abort)
     remove_file_if_exists(pfile_abort)
 
-    with mock.patch('libensemble.libE_manager.manager_main') as managerMock:
+    with mock.patch('libensemble.manager.manager_main') as managerMock:
         managerMock.side_effect = Exception
         # Collision between libE.py and libE() (after mods to __init__.py) means
         #   libensemble.libE.comms_abort tries to refer to the function, not file
@@ -250,7 +250,7 @@ def test_logging_disabling():
     logconfig = LogConfig.config
     logconfig.logger_set = False
 
-    with mock.patch('libensemble.libE_manager.manager_main') as managerMock:
+    with mock.patch('libensemble.manager.manager_main') as managerMock:
         managerMock.side_effect = Exception
         with mock.patch('libensemble.comms_abort') as abortMock:
             abortMock.side_effect = Exception
