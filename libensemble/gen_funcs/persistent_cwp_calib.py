@@ -2,9 +2,9 @@
 This module contains a simple calibration example of using libEnsemble with gemulator package.
 """
 import numpy as np
-from libensemble.gen_funcs.cwp_calib_fn_support import gen_xs, gen_thetas, gen_observations, standardize_f, gen_true_theta
-from libensemble.gen_funcs.cwp_calib_model import model_builder
-from libensemble.gen_funcs.cwp_calib_model import select_next_theta, obviate_pend_thetas
+from libensemble.gen_funcs.cwp_calib_support import gen_xs, gen_thetas, gen_observations, standardize_f, gen_true_theta
+from gemulator.emulation import emulation_builder
+from gemulator.calibration_support import select_next_theta, obviate_pend_thetas
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
 import concurrent.futures
@@ -12,7 +12,7 @@ import concurrent.futures
 
 def build_emulator(theta, x, fevals, failures):
     """Build the emulator"""
-    model = model_builder(theta, x, fevals, failures)
+    model = emulation_builder(theta, x, fevals, failures)
     return model
 
 
