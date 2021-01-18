@@ -15,7 +15,7 @@ exclude =
         libensemble/sim_funcs/chwirut1.py
         examples/sim_funcs/chwirut1.py
         # Don't want to change keras application beyond necessities
-        libensemble/tests/scaling_tests/mnist/tensorflow2_keras_mnist.py
+        libensemble/tests/scaling_tests/mnist_simple/tensorflow2_keras_mnist.py
 
 # Note that you can use wildcard exceptions with something such as
 # libensemble/libensemble/tests/regression_tests/*:F401
