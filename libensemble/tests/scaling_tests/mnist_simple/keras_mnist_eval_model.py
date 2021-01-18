@@ -4,10 +4,10 @@ import numpy as np
 import tensorflow as tf
 
 
-__all__ = ['distrib_ml_eval_model']
+__all__ = ['keras_mnist_eval_model']
 
 
-def distrib_ml_eval_model(H, persis_info, sim_specs, libE_info):
+def keras_mnist_eval_model(H, persis_info, sim_specs, libE_info):
 
     eval_steps = sim_specs['user']['eval_steps']
     model_file = H['model_file'][0][0]

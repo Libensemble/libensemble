@@ -6,8 +6,8 @@ from libensemble.tools import parse_args, add_unique_random_streams, save_libE_o
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
-from distrib_ml_eval_model import distrib_ml_eval_model as sim_f
-from distrib_ml_build_model import distrib_ml_build_model as gen_f
+from keras_mnist_eval_model import keras_mnist_eval_model as sim_f
+from keras_mnist_build_model import keras_mnist_build_model as gen_f
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 

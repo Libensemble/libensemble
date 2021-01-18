@@ -48,7 +48,7 @@ def polling_loop(task, exctr, comm, time_limit=1800, poll_interval=10):
     return calc_status
 
 
-def distrib_ml_build_model(H, persis_info, gen_specs, libE_info):
+def keras_mnist_build_model(H, persis_info, gen_specs, libE_info):
 
     comm = libE_info['comm']
     num_procs = gen_specs['user']['num_procs']
