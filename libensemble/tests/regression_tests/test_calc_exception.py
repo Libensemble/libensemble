@@ -16,7 +16,7 @@
 import numpy as np
 
 from libensemble.libE import libE
-from libensemble.libE_manager import ManagerException
+from libensemble.manager import ManagerException
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 

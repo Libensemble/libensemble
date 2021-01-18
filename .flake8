@@ -25,7 +25,7 @@ per-file-ignores =
         libensemble/libensemble/__init__.py:F401
 
         # worker uses regex with chars that resemble escape sequences
-        libensemble/libE_worker.py:W605
+        libensemble/worker.py:W605
 
         # Need to turn of matching probes (before other imports) on some
         # systems/versions of MPI:

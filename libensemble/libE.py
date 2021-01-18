@@ -26,8 +26,8 @@ import pickle  # Only used when saving output on error
 from libensemble.utils import launcher
 from libensemble.utils.timer import Timer
 from libensemble.history import History
-from libensemble.libE_manager import manager_main, ManagerException
-from libensemble.libE_worker import worker_main
+from libensemble.manager import manager_main, ManagerException
+from libensemble.worker import worker_main
 from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
@@ -139,9 +139,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
                                   persis_info, alloc_specs, libE_specs, H0)
 
 
-def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
-                 alloc_specs, libE_specs, hist,
-                 on_abort=None, on_cleanup=None):
+def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
+            alloc_specs, libE_specs, hist,
+            on_abort=None, on_cleanup=None):
     "Generic manager routine run."
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
@@ -153,7 +153,7 @@ def libE_manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         persis_info, exit_flag, elapsed_time = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                          exit_criteria, persis_info, wcomms)
-        logger.info("libE_manager total time: {}".format(elapsed_time))
+        logger.info("manager total time: {}".format(elapsed_time))
 
     except ManagerException as e:
         _report_manager_exception(hist, persis_info, e, save_H=save_H)
@@ -260,9 +260,9 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
         comms_abort(mpi_comm)
 
     # Run generic manager
-    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
-                        persis_info, alloc_specs, libE_specs, hist,
-                        on_abort=on_abort)
+    return manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                   persis_info, alloc_specs, libE_specs, hist,
+                   on_abort=on_abort)
 
 
 def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
@@ -328,9 +328,9 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
 
     # Run generic manager
-    return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
-                        persis_info, alloc_specs, libE_specs, hist,
-                        on_cleanup=cleanup)
+    return manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                   persis_info, alloc_specs, libE_specs, hist,
+                   on_cleanup=cleanup)
 
 
 # ==================== TCP version =================================
@@ -433,11 +433,11 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
     osx_set_mp_method()
 
-    with ServerQCommManager(port, authkey.encode('utf-8')) as manager:
+    with ServerQCommManager(port, authkey.encode('utf-8')) as tcp_manager:
 
         # Get port if needed because of auto-assignment
         if port == 0:
-            _, port = manager.address
+            _, port = tcp_manager.address
 
         if not libE_specs.get('disable_log_files', False):
             manager_logging_config()
@@ -446,7 +446,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
         # Launch worker team and set up logger
         worker_procs, wcomms =\
-            libE_tcp_start_team(manager, nworkers, workers,
+            libE_tcp_start_team(tcp_manager, nworkers, workers,
                                 ip, port, authkey, launchf)
 
         def cleanup():
@@ -455,9 +455,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                 launcher.cancel(wp, timeout=libE_specs.get('worker_timeout'))
 
         # Run generic manager
-        return libE_manager(wcomms, sim_specs, gen_specs, exit_criteria,
-                            persis_info, alloc_specs, libE_specs, hist,
-                            on_cleanup=cleanup)
+        return manager(wcomms, sim_specs, gen_specs, exit_criteria,
+                       persis_info, alloc_specs, libE_specs, hist,
+                       on_cleanup=cleanup)
 
 
 def libE_tcp_worker(sim_specs, gen_specs, libE_specs):

@@ -5,7 +5,7 @@ from forces_simf import run_forces  # Sim func from current dir
 
 # Import libEnsemble modules
 from libensemble.libE import libE
-from libensemble.libE_manager import ManagerException
+from libensemble.manager import ManagerException
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import libE_logger
 from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception

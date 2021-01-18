@@ -21,7 +21,7 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_sim_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.libE_manager import ManagerException
+from libensemble.manager import ManagerException
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
