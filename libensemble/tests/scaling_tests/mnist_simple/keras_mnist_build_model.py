@@ -7,7 +7,7 @@ import time
 import glob
 import numpy as np
 
-__all__ = ['distrib_ml_build_model']
+__all__ = ['keras_mnist_build_model']
 
 
 def polling_loop(task, exctr, comm, time_limit=1800, poll_interval=10):
