@@ -13,7 +13,7 @@
 # Constaint: - As set up - only uses one node (up to 63 workers) for libE.
 
 # Name of calling script
-export EXE=run_distrib_mnist.py
+export EXE=run_keras_mnist_simple.py
 
 # Number of workers.
 export NUM_WORKERS=4 # Can be passed as argument to calling script
@@ -27,7 +27,6 @@ export OMP_PROC_BIND=spread
 export CONDA_ENV_NAME=again
 export PYTHONNOUSERSITE=1 #Ensure environment isolated
 export PMI_NO_FORK=1 # Required for python kills on Theta
-export LIBE_PLOTS=false   # Require plot scripts (see at end)
 
 module load miniconda-3/latest
 module load gcc/9.3.0
@@ -48,9 +47,3 @@ module unload xalt
 
 #python $EXE $NUM_WORKERS $LIBE_WALLCLOCK > out.txt 2>&1
 python $EXE --comms local --nworkers $NUM_WORKERS > job_run_libe_forces.out 2>&1
-
-if [[ $LIBE_PLOTS = "true" ]]; then
-  python ../../../plot_libe_calcs_util_v_time.py
-  python ../../../plot_libE_histogram.py
-  python ../../../plot_libe_runs_util_v_time.py
-fi
