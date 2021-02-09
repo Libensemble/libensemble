@@ -6,6 +6,16 @@ Created on Tue Feb  9 10:27:23 2021
 import numpy as np
 
 
+def borehole(H, persis_info, sim_specs, _):
+    """
+    Wraps the borehole function
+    """
+
+    H_o = np.zeros(H['x'].shape[0], dtype=sim_specs['out'])
+    H_o['f'] = borehole_failmodel(H['x'], H['thetas'])
+    return H_o, persis_info
+
+
 def borehole_failmodel(x, theta):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
     f = borehole_model(x, theta)
