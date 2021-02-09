@@ -61,17 +61,17 @@ def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_can
     return
 
 
-def cancel_rows(pre_count, r, n_x, data_status, comm):
-    """Cancel rows"""
+def cancel_columns(pre_count, r, n_x, pending, complete, comm):
+    """Cancel columns"""
     sim_ids_to_cancel = []
     rows = np.unique(r)
     for r in rows:
         row_offset = r*n_x
         for i in range(n_x):
             sim_id_cancl = pre_count + row_offset + i
-            if data_status[r, i] == 0:
+            if pending[r, i]:
                 sim_ids_to_cancel.append(sim_id_cancl)
-                data_status[r, i] = -2
+                pending[r, i] = 0
 
     # Send only these fields to existing H row and it will slot in change.
     H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
@@ -81,8 +81,7 @@ def cancel_rows(pre_count, r, n_x, data_status, comm):
 
 
 def assign_priority(n_x, n_thetas):
-    """Assign priorities to points"""
-
+    """Assign priorities to points."""
     # Arbitrary priorities
     priority = np.arange(n_x*n_thetas)
     np.random.shuffle(priority)
@@ -183,7 +182,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
 
             # Add space for new thetas
-            pad_arrays(len(new_theta), len(x), fevals, pending, complete)
+            pad_arrays(len(new_theta), n_x, fevals, pending, complete)
 
             n_thetas = step_add_theta
             theta = np.vstack((theta, new_theta))
@@ -195,6 +194,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             pending, c_obviate = obviate_pend_theta(info, pending)
             if len(c_obviate) > 0:
                 print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
-                cancel_rows(pre_count, r_obviate, n_x, data_status, comm)
+                cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
 
     return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
