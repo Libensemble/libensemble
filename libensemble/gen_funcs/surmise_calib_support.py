@@ -42,10 +42,29 @@ def gen_xs(nx, persis_info):
     return xs, persis_info
 
 
-def gen_observations(fevals, errstd_constant, persis_info):
+def gen_observations(fevals, obsvar, persis_info):
     """Generate observations."""
     randstream = persis_info['rand_stream']
     n_x = fevals.shape[0]
-    errstd = errstd_constant  # * np.ones(n_x)
-    obs = fevals + randstream.normal(0, errstd, n_x).reshape((n_x))
-    return obs, errstd
+    obs = fevals + randstream.normal(0, np.sqrt(obsvar), n_x).reshape((n_x))
+    return obs
+
+
+def select_next_theta(numnewtheta, cal, emu, pending, numexplore):
+    numnewtheta += 2
+    thetachoices = cal.theta(numexplore)
+    choicescost = np.ones(thetachoices.shape[0])
+    thetaneworig, info = emu.supplement(size=numnewtheta, thetachoices=thetachoices,
+                                        choicescost=choicescost,
+                                        cal=cal, overwrite=True,
+                                        args={'includepending': True,
+                                              'costpending': 0.01 + 0.99 * np.mean(pending, 0),
+                                              'pending': pending})
+    thetaneworig = thetaneworig[:numnewtheta, :]
+    thetanew = thetaneworig
+    return thetanew, info
+
+
+def obviate_pend_theta(info, pending):
+    pending[:, info['obviatesugg']] = False
+    return pending, info['obviatesugg']

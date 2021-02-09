@@ -2,7 +2,8 @@
 This module contains a simple calibration example of using libEnsemble with gemulator package.
 """
 import numpy as np
-from libensemble.gen_funcs.cwp_calib_support import gen_xs, gen_thetas, gen_observations, gen_true_theta
+from libensemble.gen_funcs.surmise_calib_support import gen_xs, gen_thetas, gen_observations, gen_true_theta, \
+    thetaprior, select_next_theta, obviate_pend_theta
 from surmise.calibration import calibrator
 from surmise.emulation import emulator
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
@@ -19,40 +20,45 @@ def build_emulator(theta, x, fevals):
     emu.fit()
     return emu
 
-def select_condition(data_status):
-    if 0 in data_status:
+def select_condition(pending):
+    if 0 in pending:
         return False
     else:
         return True
 
 
-def rebuild_condition(data_status):
-    if 0 in data_status:
+def rebuild_condition(pending):  # needs changes
+    if 0 in pending:
         return False
     else:
         return True
 
 
-def create_arrays(calc_in, n_thetas, n_x, obs, errstd):
+def create_arrays(calc_in, n_thetas, n_x):
     """Create 2D (point * rows) arrays fevals, failures and data_status from calc_in"""
     fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
-    failures = np.reshape(calc_in['failures'], (n_thetas, n_x))
-    data_status = np.full_like(fevals, 1, dtype=int)
-    data_status[failures] = -1
-    return fevals, failures, data_status
+    pending = np.full(fevals.shape, False)
+    complete = np.full(fevals.shape, True)
+
+    return fevals, pending, complete
 
 
-def update_arrays(fevals, failures, data_status, calc_in, pre_count, n_x, obs, errstd, ignore_cancelled):
+def pad_arrays(n_thetanew, n_x, fevals, pending, complete):
+    fevals = np.hstack((fevals, np.full((n_x, n_thetanew), np.nan)))
+    pending = np.hstack((pending, np.full((n_x, n_thetanew), True)))
+    complete = np.hstack((complete, np.full((n_x, n_thetanew), False)))
+    return
+
+
+def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_cancelled):
     """Unpack from calc_in into 2D (point * rows) fevals, failures, data_status"""
     sim_id = calc_in['sim_id']
     r, c = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
-    failures[r, c] = calc_in['failures']
 
-    # Set data_status. Using -2 for cancelled entries.
-    for i in np.arange(r.shape[0]):
-        if ignore_cancelled and data_status[r[i], c[i]] == -2:
-            continue
-        data_status[r[i], c[i]] = -1 if calc_in['failures'][i] else 1
+    fevals[r, c] = calc_in['f']
+    pending[r, c] = False
+    complete[r, c] = True
+    return
 
 
 def cancel_rows(pre_count, r, n_x, data_status, comm):
@@ -83,7 +89,7 @@ def assign_priority(n_x, n_thetas):
     return priority
 
 
-def load_H(H, x, thetas, offset=0, set_priorities=False, quantile=[np.inf]):
+def load_H(H, x, thetas, offset=0, set_priorities=False):
     """Fill inputs into H0.
 
     There will be num_points x num_thetas entries
@@ -94,25 +100,20 @@ def load_H(H, x, thetas, offset=0, set_priorities=False, quantile=[np.inf]):
         H['x'][start:start+n_x] = x
         H['thetas'][start:start+n_x] = t
 
-    H['quantile'] = quantile
     if set_priorities:
         n_thetas = len(thetas)
         H['priority'] = assign_priority(n_x, n_thetas)
 
 
-def gen_testvals(ntests, x, gen_specs):
-    """Generate true values and test values using libE"""
+def gen_truevals(x, gen_specs):
+    """Generate true values using libE."""
     n_x = len(x)
-    H_o = np.zeros((ntests + 1) * n_x, dtype=gen_specs['out'])
+    H_o = np.zeros((1) * n_x, dtype=gen_specs['out'])
 
     # Generate true theta and load into H
     true_theta = gen_true_theta()
     H_o['x'][0:n_x] = x
     H_o['thetas'][0:n_x] = true_theta
-
-    # Generate test thetas and load into H
-    test_thetas = gen_thetas(ntests)
-    load_H(H_o, x, test_thetas, offset=1)
     return H_o
 
 
@@ -120,101 +121,80 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
     comm = libE_info['comm']
     randstream = persis_info['rand_stream']
-    n_test_thetas = gen_specs['user']['n_test_thetas']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
-    async_build = gen_specs['user']['async_build']  # Build emulator in background thread
-    errstd_constant = gen_specs['user']['errstd_constant']  # Constant for generator
+    obsvar = gen_specs['user']['obsvar']  # Constant for generator
     ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status
-    quantile = gen_specs['user']['quantile']  # Proportion of particles that succeed
 
     # Create points at which to evaluate the sim
     x, persis_info = gen_xs(n_x, persis_info)
 
-    H_o = gen_testvals(n_test_thetas, x, gen_specs)
+    H_o = gen_truevals(x, gen_specs)
     pre_count = len(H_o)
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
         return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
-    returned_fevals = np.reshape(calc_in['f'], (n_test_thetas + 1, n_x))
-    true_fevals = returned_fevals[0, :]
-    test_fevals = returned_fevals[1:, :]
-    obs, errstd = gen_observations(true_fevals, errstd_constant, randstream)
+    returned_fevals = np.reshape(calc_in['f'], (1, n_x))
+    true_fevals = returned_fevals
+    obs = gen_observations(true_fevals, obsvar, randstream)
 
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-    threshold_to_failure = np.quantile(test_fevals, quantile)
     theta = gen_thetas(n_thetas)
-    load_H(H_o, x, theta, set_priorities=True, quantile=threshold_to_failure)
+    load_H(H_o, x, theta, set_priorities=True)
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------
 
-    model_exists = False
     fevals = None
-    future = None
-
-    # store model_id and data_status used to build model
-    model = None
-    model_data_status = None
-    future_model_data_status = None
+    prev_pending = None
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
         if fevals is None:  # initial batch
-            fevals, failures, data_status = create_arrays(calc_in, n_thetas, n_x, obs, errstd)
-            # build_new_model = True
-
+            fevals, pending, complete = create_arrays(calc_in, n_thetas, n_x)
             emu = build_emulator(theta, x, fevals)
+            cal = calibrator(emu, obs, x, thetaprior, obsvar, method='directbayes')
+
+            prev_pending = pending.copy()
+            update_model = False
         else:
             # Update fevals, failures, data_status from calc_in
-            update_arrays(fevals, failures, data_status, calc_in,
-                           pre_count, n_x, obs, errstd, ignore_cancelled)
+            update_arrays(fevals, pending, complete, calc_in,
+                          pre_count, n_x, ignore_cancelled)
 
-            build_new_model = rebuild_condition(data_status)
-            if not build_new_model:
+            update_model = rebuild_condition(pending, prev_pending)
+            if not update_model:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
 
-        if build_new_model:
-            model_data_status = np.copy(data_status)
+        if update_model:
             emu.update(theta=theta, f=fevals)
+            cal.fit()
 
+            prev_pending = pending.copy()
+            update_model = False
 
         # Conditionally generate new thetas from model
-        if select_condition(data_status):
-            new_theta, stop_flag = \
-                select_next_theta(model, theta, n_explore_theta, step_add_theta)
+        if select_condition(pending):
+            new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
 
-            if stop_flag:
-                print('Reached threshold.', flush=True)
-                print('Number of thetas in total: {:d}'.format(theta.shape[0]))
-                break
-
-            # Add space for new new thetas
-            data_status = np.pad(data_status, ((0, step_add_theta), (0, 0)), 'constant', constant_values=0)
-            fevals = np.pad(fevals, ((0, step_add_theta), (0, 0)), 'constant', constant_values=np.nan)
-            failures = np.pad(failures, ((0, step_add_theta), (0, 0)), 'constant', constant_values=1)
+            # Add space for new thetas
+            pad_arrays(len(new_theta), len(x), fevals, pending, complete)
 
             n_thetas = step_add_theta
             theta = np.vstack((theta, new_theta))
             H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-            load_H(H_o, x, new_theta, set_priorities=True, quantile=threshold_to_failure)
+            load_H(H_o, x, new_theta, set_priorities=True)
             tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
 
-        # Determine evaluations to cancel
-        r_obviate = obviate_pend_thetas(model, theta, data_status)
-        if r_obviate[0].shape[0] > 0:
-            print('rows sent for cancel is:  {}'.format(r_obviate), flush=True)
-            cancel_rows(pre_count, r_obviate, n_x, data_status, comm)
-
-    if async_build:
-        try:
-            executor.shutdown(wait=True, cancel_futures=True)
-        except Exception:
-            pass
+            # Determine evaluations to cancel
+            pending, c_obviate = obviate_pend_theta(info, pending)
+            if len(c_obviate) > 0:
+                print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
+                cancel_rows(pre_count, r_obviate, n_x, data_status, comm)
 
     return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
