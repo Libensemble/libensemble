@@ -175,8 +175,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             update_arrays(fevals, pending, complete, calc_in,
                           pre_count, n_x, ignore_cancelled)
 
+
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
+                print('here')
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
