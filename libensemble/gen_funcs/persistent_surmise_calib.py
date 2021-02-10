@@ -13,6 +13,7 @@ import concurrent.futures
 
 def build_emulator(theta, x, fevals):
     """Build the emulator."""
+    print(x.shape, theta.shape, fevals.shape)
     emu = emulator(x, theta, fevals, method='PCGPwM',
                    options={'xrmnan': 'all',
                             'thetarmnan': 'never',
@@ -27,11 +28,13 @@ def select_condition(pending):
         return True
 
 
-def rebuild_condition(pending):  # needs changes
-    if 0 in pending:
-        return False
-    else:
+def rebuild_condition(pending, prev_pending, n_theta=1):  # needs changes
+    n_x = pending.shape[0]
+    print(np.sum(prev_pending), np.sum(pending))
+    if np.sum(prev_pending) - np.sum(pending) > n_x * n_theta:
         return True
+    else:
+        return False
 
 
 def create_arrays(calc_in, n_thetas, n_x):
@@ -43,17 +46,24 @@ def create_arrays(calc_in, n_thetas, n_x):
     return fevals, pending, complete
 
 
-def pad_arrays(n_thetanew, n_x, fevals, pending, complete):
+def pad_arrays(n_x, thetanew, theta, fevals, pending, complete):
+    print('before:', fevals.shape, theta.shape, pending.shape, complete.shape)
+
+    n_thetanew = len(thetanew)
+
+    theta = np.vstack((theta, thetanew))
     fevals = np.hstack((fevals, np.full((n_x, n_thetanew), np.nan)))
     pending = np.hstack((pending, np.full((n_x, n_thetanew), True)))
     complete = np.hstack((complete, np.full((n_x, n_thetanew), False)))
+
+    print('after:', fevals.shape, theta.shape, pending.shape, complete.shape)
     return
 
 
 def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_cancelled):
     """Unpack from calc_in into 2D (point * rows) fevals, failures, data_status"""
     sim_id = calc_in['sim_id']
-    r, c = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
+    c, r = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
 
     fevals[r, c] = calc_in['f']
     pending[r, c] = False
@@ -154,6 +164,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         if fevals is None:  # initial batch
             fevals, pending, complete = create_arrays(calc_in, n_thetas, n_x)
+            print(fevals.shape, obs.shape, x.shape, obsvar.shape)
             emu = build_emulator(theta, x, fevals)
             cal = calibrator(emu, obs, x, thetaprior, obsvar, method='directbayes')
 
@@ -182,10 +193,9 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
 
             # Add space for new thetas
-            pad_arrays(len(new_theta), n_x, fevals, pending, complete)
+            pad_arrays(n_x, new_theta, theta, fevals, pending, complete)
 
             n_thetas = step_add_theta
-            theta = np.vstack((theta, new_theta))
             H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
             load_H(H_o, x, new_theta, set_priorities=True)
             tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)

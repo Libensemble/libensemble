@@ -18,7 +18,7 @@ class thetaprior:
 
 def gen_true_theta():
     """Generate one parameter to be the true parameter for calibration."""
-    theta0 = np.array([0.5] * 4)
+    theta0 = np.atleast_2d(np.array([0.5] * 4))
 
     return theta0
 
