@@ -21,17 +21,14 @@ def build_emulator(theta, x, fevals):
     emu.fit()
     return emu
 
+
 def select_condition(pending):
-    if 0 in pending:
-        return False
-    else:
-        return True
+    return False if 1 in pending else True
 
 
-def rebuild_condition(pending, prev_pending, n_theta=1):  # needs changes
+def rebuild_condition(pending, prev_pending, n_theta=5):  # needs changes
     n_x = pending.shape[0]
-    print(np.sum(prev_pending), np.sum(pending))
-    if np.sum(prev_pending) - np.sum(pending) > n_x * n_theta:
+    if np.sum(prev_pending) - np.sum(pending) >= n_x * n_theta:
         return True
     else:
         return False
