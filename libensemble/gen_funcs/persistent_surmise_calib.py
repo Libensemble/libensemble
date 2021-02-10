@@ -22,11 +22,12 @@ def build_emulator(theta, x, fevals):
     return emu
 
 
-def select_condition(pending):
-    return False if 1 in pending else True
+def select_condition(pending, n_remaining_theta=5):
+    n_x = pending.shape[0]
+    return False if np.sum(pending) > n_remaining_theta * n_x else True
 
 
-def rebuild_condition(pending, prev_pending, n_theta=5):  # needs changes
+def rebuild_condition(pending, prev_pending, n_theta=2):  # needs changes
     n_x = pending.shape[0]
     if np.sum(prev_pending) - np.sum(pending) >= n_x * n_theta or np.sum(pending) == 0:
         return True
@@ -38,9 +39,10 @@ def create_arrays(calc_in, n_thetas, n_x):
     """Create 2D (point * rows) arrays fevals, failures and data_status from calc_in"""
     fevals = np.reshape(calc_in['f'], (n_x, n_thetas))
     pending = np.full(fevals.shape, False)
+    prev_pending = pending.copy()
     complete = np.full(fevals.shape, True)
 
-    return fevals, pending, complete
+    return fevals, pending, prev_pending, complete
 
 
 def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
@@ -63,26 +65,23 @@ def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_can
     sim_id = calc_in['sim_id']
     c, r = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
 
-    print(sim_id, r, c)
-
     fevals[r, c] = calc_in['f']
     pending[r, c] = False
     complete[r, c] = True
-    raise
     return
 
 
-def cancel_columns(pre_count, r, n_x, pending, complete, comm):
+def cancel_columns(pre_count, c, n_x, pending, complete, comm):
     """Cancel columns"""
     sim_ids_to_cancel = []
-    rows = np.unique(r)
-    for r in rows:
-        row_offset = r*n_x
+    columns = np.unique(c)
+    for c in columns:
+        col_offset = c*n_x
         for i in range(n_x):
-            sim_id_cancl = pre_count + row_offset + i
-            if pending[r, i]:
+            sim_id_cancl = pre_count + col_offset + i
+            if pending[i, c]:
                 sim_ids_to_cancel.append(sim_id_cancl)
-                pending[r, i] = 0
+                pending[i, c] = 0
 
     # Send only these fields to existing H row and it will slot in change.
     H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
@@ -164,18 +163,18 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
         if fevals is None:  # initial batch
-            fevals, pending, complete = create_arrays(calc_in, n_thetas, n_x)
+            fevals, pending, prev_pending, complete = create_arrays(calc_in, n_thetas, n_x)
             print(fevals.shape, obs.shape, x.shape, obsvar.shape)
             emu = build_emulator(theta, x, fevals)
             cal = calibrator(emu, obs, x, thetaprior, obsvar, method='directbayes')
 
-            prev_pending = pending.copy()
+            # prev_pending = pending.copy()
+            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
             update_model = False
         else:
             # Update fevals, failures, data_status from calc_in
             update_arrays(fevals, pending, complete, calc_in,
                           pre_count, n_x, ignore_cancelled)
-
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
@@ -183,9 +182,22 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     break
 
         if update_model:
+            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete),4),
+                                                    np.sum(1-pending-complete),
+                                                    np.prod(pending.shape)))
+            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending),4),
+                                                            np.sum(pending),
+                                                            np.prod(pending.shape)))
+            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete),4),
+                                                            np.sum(complete),
+                                                            np.prod(pending.shape)))
+
             emu.update(theta=theta, f=fevals)
             cal.fit()
 
+            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+
+            step_add_theta += 2
             prev_pending = pending.copy()
             update_model = False
 

@@ -50,10 +50,10 @@ if __name__ == '__main__':
 
     subprocess_borehole = False     # Whether to subprocess borehole function
     n_init_thetas = 10              # Initial batch of thetas
-    n_x = 25                        # No. of x values
+    n_x = 50                        # No. of x values
     nparams = 4                     # No. of theta params
     ndims = 3                       # No. of x co-ordinates.
-    max_add_thetas = 100            # Max no. of thetas added for evaluation
+    max_add_thetas = 50            # Max no. of thetas added for evaluation
     step_add_theta = 10             # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 200           # No. of thetas to explore while selecting the next theta
     obsvar = 10 ** (-2)             # Constant for generating noise in obs
