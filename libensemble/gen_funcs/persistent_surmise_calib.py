@@ -43,7 +43,7 @@ def create_arrays(calc_in, n_thetas, n_x):
     return fevals, pending, complete
 
 
-def pad_arrays(n_x, thetanew, theta, fevals, pending, complete):
+def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
     print('before:', fevals.shape, theta.shape, pending.shape, complete.shape)
 
     n_thetanew = len(thetanew)
@@ -51,10 +51,11 @@ def pad_arrays(n_x, thetanew, theta, fevals, pending, complete):
     theta = np.vstack((theta, thetanew))
     fevals = np.hstack((fevals, np.full((n_x, n_thetanew), np.nan)))
     pending = np.hstack((pending, np.full((n_x, n_thetanew), True)))
+    prev_pending = np.hstack((prev_pending, np.full((n_x, n_thetanew), True)))
     complete = np.hstack((complete, np.full((n_x, n_thetanew), False)))
 
     print('after:', fevals.shape, theta.shape, pending.shape, complete.shape)
-    return
+    return theta, fevals, pending, prev_pending, complete
 
 
 def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_cancelled):
@@ -62,9 +63,12 @@ def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_can
     sim_id = calc_in['sim_id']
     c, r = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
 
+    print(sim_id, r, c)
+
     fevals[r, c] = calc_in['f']
     pending[r, c] = False
     complete[r, c] = True
+    raise
     return
 
 
@@ -172,10 +176,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             update_arrays(fevals, pending, complete, calc_in,
                           pre_count, n_x, ignore_cancelled)
 
-
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
-                print('here')
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
@@ -192,10 +194,11 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
 
             # Add space for new thetas
-            pad_arrays(n_x, new_theta, theta, fevals, pending, complete)
+            theta, fevals, pending, prev_pending, complete = \
+                pad_arrays(n_x, new_theta, theta, fevals, pending, prev_pending, complete)
 
-            n_thetas = step_add_theta
-            H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
+            # n_thetas = step_add_theta
+            H_o = np.zeros(n_x*(len(new_theta)), dtype=gen_specs['out'])
             load_H(H_o, x, new_theta, set_priorities=True)
             tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
 
