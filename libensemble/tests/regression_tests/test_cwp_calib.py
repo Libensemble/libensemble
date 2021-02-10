@@ -53,13 +53,13 @@ if __name__ == '__main__':
     n_x = 25                        # No. of x values
     nparams = 4                     # No. of theta params
     ndims = 3                       # No. of x co-ordinates.
-    max_emul_runs = 100             # Max no. of runs of emulator
+    max_add_thetas = 100            # Max no. of thetas added for evaluation
     step_add_theta = 10             # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 200           # No. of thetas to explore while selecting the next theta
     obsvar = 10 ** (-2)             # Constant for generating noise in obs
 
     # Stop after max_emul_runs runs of the emulator
-    max_evals = (n_init_thetas + 1) * n_x + max_emul_runs*n_x
+    max_evals = (n_init_thetas + 1) * n_x + max_add_thetas*n_x
 
     # batch mode until after batch_sim_id
     batch_sim_id = (n_init_thetas + 1) * n_x
