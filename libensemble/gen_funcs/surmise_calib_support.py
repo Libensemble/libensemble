@@ -52,7 +52,7 @@ def gen_observations(fevals, obsvar, persis_info):
 
 
 def select_next_theta(numnewtheta, cal, emu, pending, numexplore):
-    numnewtheta += 2
+    # numnewtheta += 2
     thetachoices = cal.theta(numexplore)
     choicescost = np.ones(thetachoices.shape[0])
     thetaneworig, info = emu.supplement(size=numnewtheta, thetachoices=thetachoices,
