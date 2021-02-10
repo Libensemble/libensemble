@@ -67,5 +67,4 @@ def select_next_theta(numnewtheta, cal, emu, pending, numexplore):
 
 
 def obviate_pend_theta(info, pending):
-    pending[:, info['obviatesugg']] = False
     return pending, info['obviatesugg']

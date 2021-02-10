@@ -215,7 +215,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
 
             # Determine evaluations to cancel
-            pending, c_obviate = obviate_pend_theta(info, pending)
+            c_obviate = info['obviatesugg']
             if len(c_obviate) > 0:
                 print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
                 cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
