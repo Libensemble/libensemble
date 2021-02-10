@@ -27,7 +27,7 @@ def select_condition(pending, n_remaining_theta=5):
     return False if np.sum(pending) > n_remaining_theta * n_x else True
 
 
-def rebuild_condition(pending, prev_pending, n_theta=2):  # needs changes
+def rebuild_condition(pending, prev_pending, n_theta=5):  # needs changes
     n_x = pending.shape[0]
     if np.sum(prev_pending) - np.sum(pending) >= n_x * n_theta or np.sum(pending) == 0:
         return True

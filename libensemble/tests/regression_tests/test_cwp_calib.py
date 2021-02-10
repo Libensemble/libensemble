@@ -49,8 +49,8 @@ if __name__ == '__main__':
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     subprocess_borehole = False     # Whether to subprocess borehole function
-    n_init_thetas = 10              # Initial batch of thetas
-    n_x = 50                        # No. of x values
+    n_init_thetas = 15              # Initial batch of thetas
+    n_x = 25                        # No. of x values
     nparams = 4                     # No. of theta params
     ndims = 3                       # No. of x co-ordinates.
     max_add_thetas = 50            # Max no. of thetas added for evaluation
