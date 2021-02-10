@@ -9,10 +9,7 @@ class thetaprior:
 
     def lpdf(theta):
         """Return log prior density."""
-        if theta.ndim > 1.5:
-            return np.squeeze(np.sum(sps.norm.logpdf(theta, 1, 0.5), 1))
-        else:
-            return np.squeeze(np.sum(sps.norm.logpdf(theta, 1, 0.5)))
+        return (np.sum(sps.norm.logpdf(theta, 1, 0.5), 1)).reshape((len(theta), 1))
 
     def rnd(n):
         """Return random draws from prior."""
@@ -45,9 +42,12 @@ def gen_xs(nx, persis_info):
 def gen_observations(fevals, obsvar, persis_info):
     """Generate observations."""
     randstream = persis_info['rand_stream']
-    n_x = fevals.shape[0]
+    n_x = len(np.squeeze(fevals))
     obs = fevals + randstream.normal(0, np.sqrt(obsvar), n_x).reshape((n_x))
     obsvar = obsvar * np.ones(n_x)
+
+    obs = np.squeeze(obs)
+    obsvar = np.squeeze(obsvar)
     return obs, obsvar
 
 
