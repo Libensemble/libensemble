@@ -36,7 +36,7 @@ def rebuild_condition(pending):  # needs changes
 
 def create_arrays(calc_in, n_thetas, n_x):
     """Create 2D (point * rows) arrays fevals, failures and data_status from calc_in"""
-    fevals = np.reshape(calc_in['f'], (n_thetas, n_x))
+    fevals = np.reshape(calc_in['f'], (n_x, n_thetas))
     pending = np.full(fevals.shape, False)
     complete = np.full(fevals.shape, True)
 
