@@ -99,19 +99,19 @@ def assign_priority(n_x, n_thetas):
     return priority
 
 
-def load_H(H, x, thetas, offset=0, set_priorities=False):
+def load_H(H, xs, thetas, offset=0, set_priorities=False):
     """Fill inputs into H0.
 
     There will be num_points x num_thetas entries
     """
-    n_x = len(x)
-    for i, t in enumerate(thetas):
-        start = (i+offset)*n_x
-        H['x'][start:start+n_x] = x
-        H['thetas'][start:start+n_x] = t
+    n_thetas = len(thetas)
+    for i, x in enumerate(xs):
+        start = (i+offset)*n_thetas
+        H['x'][start:start+n_thetas] = x
+        H['thetas'][start:start+n_thetas] = thetas
 
     if set_priorities:
-        n_thetas = len(thetas)
+        n_x = len(xs)
         H['priority'] = assign_priority(n_x, n_thetas)
 
 
