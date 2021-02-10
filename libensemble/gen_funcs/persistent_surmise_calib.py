@@ -139,7 +139,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     returned_fevals = np.reshape(calc_in['f'], (1, n_x))
     true_fevals = returned_fevals
-    obs = gen_observations(true_fevals, obsvar, randstream)
+    obs, obsvar = gen_observations(true_fevals, obsvar, persis_info)
 
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])

@@ -47,7 +47,8 @@ def gen_observations(fevals, obsvar, persis_info):
     randstream = persis_info['rand_stream']
     n_x = fevals.shape[0]
     obs = fevals + randstream.normal(0, np.sqrt(obsvar), n_x).reshape((n_x))
-    return obs
+    obsvar = obsvar * np.ones(n_x)
+    return obs, obsvar
 
 
 def select_next_theta(numnewtheta, cal, emu, pending, numexplore):
