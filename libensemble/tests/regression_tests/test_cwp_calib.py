@@ -56,7 +56,7 @@ if __name__ == '__main__':
     max_add_thetas = 50            # Max no. of thetas added for evaluation
     step_add_theta = 10             # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 200           # No. of thetas to explore while selecting the next theta
-    obsvar = 10 ** (-2)             # Constant for generating noise in obs
+    obsvar = 10 ** (-1)             # Constant for generating noise in obs
 
     # Stop after max_emul_runs runs of the emulator
     max_evals = (n_init_thetas + 1) * n_x + max_add_thetas*n_x

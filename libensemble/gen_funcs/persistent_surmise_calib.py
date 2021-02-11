@@ -46,7 +46,7 @@ def create_arrays(calc_in, n_thetas, n_x):
 
 
 def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
-    print('before:', fevals.shape, theta.shape, pending.shape, complete.shape)
+    # print('before:', fevals.shape, theta.shape, pending.shape, complete.shape)
 
     n_thetanew = len(thetanew)
 
@@ -56,7 +56,7 @@ def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
     prev_pending = np.hstack((prev_pending, np.full((n_x, n_thetanew), True)))
     complete = np.hstack((complete, np.full((n_x, n_thetanew), False)))
 
-    print('after:', fevals.shape, theta.shape, pending.shape, complete.shape)
+    # print('after:', fevals.shape, theta.shape, pending.shape, complete.shape)
     return theta, fevals, pending, prev_pending, complete
 
 
@@ -134,7 +134,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
-    obsvar = gen_specs['user']['obsvar']  # Constant for generator
+    obsvar_const = gen_specs['user']['obsvar']  # Constant for generator
     ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status
 
     # Create points at which to evaluate the sim
@@ -149,7 +149,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     returned_fevals = np.reshape(calc_in['f'], (1, n_x))
     true_fevals = returned_fevals
-    obs, obsvar = gen_observations(true_fevals, obsvar, persis_info)
+    obs, obsvar = gen_observations(true_fevals, obsvar_const, persis_info)
 
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
@@ -164,12 +164,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         if fevals is None:  # initial batch
             fevals, pending, prev_pending, complete = create_arrays(calc_in, n_thetas, n_x)
-            print(fevals.shape, obs.shape, x.shape, obsvar.shape)
             emu = build_emulator(theta, x, fevals)
             cal = calibrator(emu, obs, x, thetaprior, obsvar, method='directbayes')
 
-            # prev_pending = pending.copy()
-            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
             update_model = False
         else:
             # Update fevals, failures, data_status from calc_in
@@ -219,5 +217,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             if len(c_obviate) > 0:
                 print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
                 cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
+            pending[:, c_obviate] = False
 
     return H, persis_info, FINISHED_PERSISTENT_GEN_TAG

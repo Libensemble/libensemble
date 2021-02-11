@@ -39,15 +39,15 @@ def gen_xs(nx, persis_info):
     return xs, persis_info
 
 
-def gen_observations(fevals, obsvar, persis_info):
+def gen_observations(fevals, obsvar_const, persis_info):
     """Generate observations."""
     randstream = persis_info['rand_stream']
     n_x = len(np.squeeze(fevals))
+    obsvar = np.maximum(obsvar_const*fevals, 5)
+    obsvar = np.squeeze(obsvar)
     obs = fevals + randstream.normal(0, np.sqrt(obsvar), n_x).reshape((n_x))
-    obsvar = obsvar * np.ones(n_x)
 
     obs = np.squeeze(obs)
-    obsvar = np.squeeze(obsvar)
     return obs, obsvar
 
 
