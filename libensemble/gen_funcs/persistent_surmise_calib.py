@@ -109,6 +109,7 @@ def load_H(H, xs, thetas, offset=0, set_priorities=False):
     for i, x in enumerate(xs):
         start = (i+offset)*n_thetas
         H['x'][start:start+n_thetas] = x
+        H['gen_time_in_gen'] = time.time()
         H['thetas'][start:start+n_thetas] = thetas
 
     if set_priorities:
