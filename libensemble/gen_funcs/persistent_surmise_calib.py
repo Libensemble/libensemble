@@ -10,6 +10,7 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTE
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
 import concurrent.futures
 
+import time
 
 def build_emulator(theta, x, fevals):
     """Build the emulator."""
@@ -84,9 +85,10 @@ def cancel_columns(pre_count, c, n_x, pending, complete, comm):
                 pending[i, c] = 0
 
     # Send only these fields to existing H row and it will slot in change.
-    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool), ('cancel_time', float)])
     H_o['sim_id'] = sim_ids_to_cancel
     H_o['cancel'] = True
+    H_o['cancel_time'] = time.time()
     send_mgr_worker_msg(comm, H_o)
 
 

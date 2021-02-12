@@ -5,12 +5,17 @@ Below are the fields used within libEnsemble
 libE_fields = [('sim_id', int),        # Unique id of entry in H that was generated
                ('gen_worker', int),    # Worker that generated the entry
                ('gen_time', float),    # Time (since epoch) entry was entered into H
+               ('first_gen_time', float),    # Time (since epoch) entry was entered into H
                ('given', bool),        # True if entry has been given for sim eval
                ('returned', bool),     # True if entry has been returned from sim eval
+               ('returned_time', float),  # Time entry was been returned from sim eval
                ('given_time', float),  # Time (since epoch) that the entry was given
+               ('first_given_time', float),  # Time (since epoch) that the entry was given
                ('sim_worker', int),    # Worker that did (or is doing) the sim eval
                ('cancel', bool),       # True if entry has been cancelled
-               ('kill_sent', bool)     # True if a kill signal has been sent to worker
+               ('cancel_time', float),  # Time cancel marked
+               ('kill_sent', bool),     # True if a kill signal has been sent to worker
+               ('kill_sent_time', float)  # Time kill sent
                ]
 # end_libE_fields_rst_tag
 
