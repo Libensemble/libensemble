@@ -92,7 +92,7 @@ if __name__ == '__main__':
                      'delay_start': batch_sim_id,  # Add delay starting from sim_id
                      }
     else:
-        subp_opts = {}
+        subp_opts = {'num_x': n_x}
 
     sim_specs = {'sim_f': sim_f,
                  'in': ['x', 'thetas'],

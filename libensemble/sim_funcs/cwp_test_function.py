@@ -7,7 +7,7 @@ import numpy as np
 import time
 
 
-def borehole(H, persis_info, sim_specs, _):
+def borehole(H, persis_info, sim_specs, libE_info):
     """
     Wraps the borehole function
     """
@@ -15,15 +15,20 @@ def borehole(H, persis_info, sim_specs, _):
     time.sleep(np.random.uniform())
 
     H_o = np.zeros(H['x'].shape[0], dtype=sim_specs['out'])
-    H_o['f'] = borehole_failmodel(H['x'], H['thetas'])
-    H_o['f'] = borehole_model(H['x'], H['thetas'])
+
+    # If observation do not use failure model
+    sim_id = libE_info['H_rows'][0]
+    if sim_id > sim_specs['user']['subp_opts']['num_x']:
+        H_o['f'] = borehole_failmodel(H['x'], H['thetas'])
+    else:
+        H_o['f'] = borehole_model(H['x'], H['thetas'])
     return H_o, persis_info
 
 
 def borehole_failmodel(x, theta):
     """Given x and theta, return matrix of [row x] times [row theta] of values."""
     f = borehole_model(x, theta)
-    wheretoobig = np.where((f / borehole_true(x)) > 1.05)
+    wheretoobig = np.where((f / borehole_true(x)) > 1.10)
     f[wheretoobig[0], wheretoobig[1]] = np.inf
 
     return f
