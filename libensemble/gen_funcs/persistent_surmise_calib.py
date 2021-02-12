@@ -197,7 +197,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
             print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
 
-            step_add_theta += 2
+            # step_add_theta += 2
             prev_pending = pending.copy()
             update_model = False
 
