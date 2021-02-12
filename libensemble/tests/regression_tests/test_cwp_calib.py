@@ -59,7 +59,8 @@ if __name__ == '__main__':
     obsvar = 10 ** (-1)             # Constant for generating noise in obs
 
     # Stop after max_emul_runs runs of the emulator
-    max_evals = (n_init_thetas + 1) * n_x + max_add_thetas*n_x
+    # max_evals = (n_init_thetas + 1) * n_x + max_add_thetas*n_x
+    max_evals = 2500
 
     # batch mode until after batch_sim_id
     batch_sim_id = (n_init_thetas + 1) * n_x
@@ -102,7 +103,7 @@ if __name__ == '__main__':
                  }
 
     gen_out = [('x', float, ndims), ('thetas', float, nparams),
-               ('priority', int), ('obs', float, n_x), ('obsvar', float, n_x)]
+               ('priority', int), ('obs', float, n_x), ('gen_time_in_gen',float), ('obsvar', float, n_x)]
 
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'returned'],
