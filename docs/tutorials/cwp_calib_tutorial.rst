@@ -214,7 +214,7 @@ failed, and completed simulations requested by the ``gen_f``. Notice that for ea
 batch of scheduled simulations, most either complete or fail but the rest are
 successfully obviated:
 
-.. image:: ../images/numparam.png
+.. image:: ../images/gen_v_fail_or_cancel.png
   :alt: cwp_sample_graph
 
 Please see the ``test_cwp_calib.py`` regression test for an example
