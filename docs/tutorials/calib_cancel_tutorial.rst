@@ -19,10 +19,8 @@ Generator - Overview of the Calibration Problem
 -----------------------------------------------
 
 The generator function featured in this tutorial can be found in
-``gen_funcs/persistent_cwp_calib.py``. This version uses simplified standalone
-routines in place of an in-development calibration-emulation library. Note that
-this ``gen_f`` is swappable with any other ``gen_f`` that can instruct cancellation
-based on received evaluations.
+``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for it's
+calibration surrogate model interface.
 
 Given "observed values" at a given set of points called "x"s, the simple regression
 generator seeks to fit a regression model to these points using a function parameterized
@@ -75,42 +73,44 @@ Generator - Point Cancellation Requests and Dedicated Fields
 While the generator loops and updates the model based on returned
 points from simulations, it detects using a library function if any pending points
 and Thetas distributed for simulation are no longer needed for the model
-and ought to be cancelled (obviated). The generator then calls ``cancel_rows()``::
+and ought to be cancelled (obviated). The generator then calls ``cancel_columns()``::
 
-    r_obviate = obviate_pend_thetas(model, theta, data_status)
-    if r_obviate[0].shape[0] > 0:
-        cancel_rows(pre_count, r_obviate, n_x, data_status, comm)
+    new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
+    ...
+    c_obviate = info['obviatesugg']  # suggested
+    if len(c_obviate) > 0:
+        cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
 
-``pre_count`` is a scalar of the number of ``sim_id``s, ``r_obviate`` is a selection
-of rows to cancel, ``n_x`` is the number of ``x`` values, ``data_status`` describes
-the calculation status of each point, and ``comm`` is a communicator object from
+``pre_count`` is a scalar of the number of ``sim_id``s, ``c_obviate`` is a selection
+of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` and ``complete``
+contain pending and simulated points, respectively. ``comm`` is a communicator object from
 :doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
 
-Within ``cancel_rows()``, each row in ``r_obviate`` is iterated over, and if a
-point's ``data_status`` indicates it has not yet been evaluated by a simulation,
+Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
+point is ``pending`` and thus has not yet been evaluated by a simulation,
 it's ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
 A new, separate local :doc:`History array<../history_output>` is defined with the
-selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
+selected ``'sim_id'`` s and the ``'cancel'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
-The entire ``cancel_row()`` routine is listed below::
+The entire ``cancel_columns()`` routine is listed below::
 
-    def cancel_rows(pre_count, r, n_x, data_status, comm):
-        # Cancel rest of row
+    def cancel_columns(pre_count, c, n_x, pending, complete, comm):
+        """Cancel columns"""
         sim_ids_to_cancel = []
-        rows = np.unique(r)
-        for r in rows:
-            row_offset = r*n_x
+        columns = np.unique(c)
+        for c in columns:
+            col_offset = c*n_x
             for i in range(n_x):
-                sim_id_cancl = pre_count + row_offset + i
-                if data_status[r, i] == 0:
+                sim_id_cancl = pre_count + col_offset + i
+                if pending[i, c]:
                     sim_ids_to_cancel.append(sim_id_cancl)
-                    data_status[r, i] = -2
+                    pending[i, c] = 0
 
         # Send only these fields to existing H row and it will slot in change.
-        H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
+        H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
         H_o['sim_id'] = sim_ids_to_cancel
-        H_o['cancel_requested'] = True
+        H_o['cancel'] = True
         send_mgr_worker_msg(comm, H_o)
 
 Most Workers, including those running other persistent generators, are only
@@ -121,6 +121,9 @@ in an *active receive* state, until it becomes non-persistent. This means
 both the Manager and persistent Worker must be prepared for irregular sending /
 receiving of data.
 
+Note that this ``gen_f`` is swappable with any other ``gen_f`` that can instruct
+cancellation based on received evaluations.
+
 Manager - Cancellation, History Updates, and Allocation
 -------------------------------------------------------
 
@@ -128,7 +131,7 @@ Between routines to call the allocation function and distribute allocated work
 to each Worker, the Manager selects points from the History array that are:
 
     1) Marked as ``'given'`` by the allocation function
-    2) Marked with ``'cancel_requested'`` by the generator
+    2) Marked with ``'cancel'`` by the generator
     3) *Not* been marked as ``'returned'`` by the Manager
     4) *Not* been marked with ``'kill_sent'`` by the Manager
 
@@ -136,10 +139,10 @@ If any points match these characteristics, the Workers that are processing these
 points are sent ``STOP`` tags and a kill signal. ``'kill_sent'``
 is set to ``True`` for each of these points in the Manager's History array. During
 the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
-function calls, any points in the Manager's History array that have ``'cancel_requested'``
+function calls, any points in the Manager's History array that have ``'cancel'``
 as ``True`` are not allocated::
 
-    task_avail = ~H['given'] & ~H['cancel_requested']
+    task_avail = ~H['given'] & ~H['cancel']
 
 This ``alloc_f`` also can prioritize allocating points that have
 higher ``'priority'`` values from the ``gen_f`` values in the local History array::
@@ -185,7 +188,7 @@ The contents of ``check_for_kill_recv()`` resemble::
     return calc_status
 
 The loop periodically sleeps, then polls for signals from the Manager using
-the :ref:`executor.manager_poll()<manager_poll_label>` function. Notice that
+the :ref:`executor.manager_poll()<manager_poll_label>` function. Note that
 immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
 task launched by the Executor is killed and the function returns with the
 ``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
@@ -205,7 +208,7 @@ associated simulation instances during the run::
                                 libE_specs=libE_specs)
 
     if is_master:
-        print('Cancelled sims', H[H['cancel_requested']])
+        print('Cancelled sims', H[H['cancel']])
         print('Killed sims', H[H['kill_sent']])
 
 Here's an example graph showing the relationship between scheduled, cancelled (obviated),
@@ -219,4 +222,6 @@ successfully obviated:
 Please see the ``test_cwp_calib.py`` regression test for an example
 routine using the simple regression calibration generator.
 The associated simulation function and allocation function are included in
-``sim_funcs/cwpsim.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
+``sim_funcs/cwp_test_function.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
+
+.. _surmise: https://github.com/surmising/surmise
