@@ -6,15 +6,14 @@ Introduction - Calibration with libEnsemble and a Regression Model
 ------------------------------------------------------------------
 
 This tutorial demonstrates libEnsemble's capability to selectively cancel pending
-simulations based on instructions from a calibration generator function.
+simulations based on instructions from a calibration Generator Function.
 This capability is desirable, especially when evaluations are expensive, since
 compute resources may then be more effectively applied towards critical evaluations.
 
 For a somewhat different approach than libEnsemble's :doc:`other tutorials<tutorials>`,
-we'll emphasize the settings, functions, and data fields within the calling script, simple regression
+we'll emphasize the settings, functions, and data fields within the calling script,
 :ref:`persistent generator<persistent-gens>`, Manager, and :ref:`sim_f<api_sim_f>`
-that make this capability possible, rather than outlining a step-by-step process
-for writing this exact use-case.
+that make this capability possible, rather than outlining a step-by-step process.
 
 Generator - Overview of the Calibration Problem
 -----------------------------------------------
