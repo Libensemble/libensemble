@@ -71,15 +71,16 @@ Generator - Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------------------
 
 While the generator loops and updates the model based on returned
-points from simulations, it detects using a library function if any pending points
-and Thetas distributed for simulation are no longer needed for the model
-and ought to be cancelled (obviated). The generator then calls ``cancel_columns()``::
+points from simulations, it detects conditionally if any new Thetas should be generated
+from the model, simultaneously evaluating if any pending simulations ought to be
+cancelled ("obviated"). If so, the generator then calls``cancel_columns()``::
 
-    new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
-    ...
-    c_obviate = info['obviatesugg']  # suggested
-    if len(c_obviate) > 0:
-        cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
+    if select_condition(pending):
+        new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
+        ...
+        c_obviate = info['obviatesugg']  # suggested
+        if len(c_obviate) > 0:
+            cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
 
 ``pre_count`` is a scalar of the number of ``sim_id``s, ``c_obviate`` is a selection
 of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` and ``complete``
@@ -88,7 +89,7 @@ contain pending and simulated points, respectively. ``comm`` is a communicator o
 
 Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
 point is ``pending`` and thus has not yet been evaluated by a simulation,
-it's ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
+its ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
 A new, separate local :doc:`History array<../history_output>` is defined with the
 selected ``'sim_id'`` s and the ``'cancel'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
@@ -163,34 +164,45 @@ higher ``'priority'`` values from the ``gen_f`` values in the local History arra
 Simulator - Receiving Kill Signal and Cancelling Tasks
 ------------------------------------------------------
 
-Within currently running simulation functions, the :doc:`Executor<../executor/overview>`
-has been used to launch simulations based on points from the simple regression generator,
-and has entered a routine to loop and check for signals from the Manager::
+Within the Simulation Function, the :doc:`Executor<../executor/overview>`
+is used to launch simulations based on points from the simple regression generator,
+and then enters a routine to loop and check for signals from the Manager::
 
-    H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
-    H_o['f'] = borehole_func(H)  # Delay happens within borehole_func
+    def subproc_borehole_func(H, subp_opts, libE_info):
+        sim_id = libE_info['H_rows'][0]
+        H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
+        ...
+        exctr = Executor.executor
+        task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
+        calc_status = polling_loop(exctr, task, sim_id)
 
-    if check_for_man_kills:
-        calc_status = check_for_kill_recv(sim_specs, libE_info)
+``polling_loop()`` resembles the following::
 
-The contents of ``check_for_kill_recv()`` resemble::
+    def polling_loop(exctr, task, sim_id):
+        calc_status = UNSET_TAG
+        poll_interval = 0.01
 
-    exctr = Executor.executor
-    start_time = time.time()
-    while time.time() - start_time < timeout_time:
-        time.sleep(poll_interval)
-        exctr.manager_poll()
-        if exctr.manager_signal == 'kill':
-            exctr.kill(task)
-            calc_status = MAN_SIGNAL_KILL
-            break
+        # Poll task for finish and poll manager for kill signals
+        while(not task.finished):
+            exctr.manager_poll()
+            if exctr.manager_signal == 'kill':
+                task.kill()
+                calc_status = MAN_SIGNAL_KILL
+                break
+            else:
+                task.poll()
+                time.sleep(poll_interval)
 
-    return calc_status
+        if task.state == 'FAILED':
+            calc_status = TASK_FAILED
 
-The loop periodically sleeps, then polls for signals from the Manager using
-the :ref:`executor.manager_poll()<manager_poll_label>` function. Note that
-immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
-task launched by the Executor is killed and the function returns with the
+        return calc_status
+
+While the launched task isn't finished, the simulator function periodically polls
+both the task's statuses and for signals from the manager via
+the :ref:`executor.manager_poll()<manager_poll_label>` function.
+Immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
+task is killed and the function returns with the
 ``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
 This status will be logged in ``libE_stats.txt``.
 
