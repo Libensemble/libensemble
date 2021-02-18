@@ -22,8 +22,8 @@ The generator function featured in this tutorial can be found in
 ``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for it's
 calibration surrogate model interface.
 
-Given "observed values" at a given set of points called "x"s, the simple regression
-generator seeks to fit a regression model to these points using a function parameterized
+Given "observed values" at a given set of points called "x"s, the
+generator seeks to fit a model to these points using a function parameterized
 with "Thetas". The purpose is to find a set of Thetas that closely matches observed
 values, given the uncertainty in observations. Specifically, the purpose is to sample
 from the posterior distribution of Thetas.
@@ -40,7 +40,7 @@ there is a lack of information, e.g. where predictive variance is high:
     Y = \begin{pmatrix}    f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T    \end{pmatrix} = \begin{pmatrix} f(\theta_1, x_1) & \ldots & f(\theta_1, x_m) \\ \vdots & \ddots & \vdots \\ f(\theta_n, x_1) & \ldots & f(\theta_n, x_m) \end{pmatrix}
 
 In the above matrix, ``Y`` is a matrix of ``sim_f`` evaluations of ``(Theta, x)``
-pairs, and forms the basis for building the regression model within the ``gen_f``.
+pairs, and forms the basis for building the model within the ``gen_f``.
 Such evaluations are performed until some error threshold is reached, at which
 point the generator exits and returns, initiating the shutdown of the libEnsemble routine.
 
@@ -82,7 +82,7 @@ cancelled ("obviated"). If so, the generator then calls``cancel_columns()``::
         if len(c_obviate) > 0:
             cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
 
-``pre_count`` is a scalar of the number of ``sim_id``s, ``c_obviate`` is a selection
+``pre_count`` is a scalar of the number of ``sim_id``'s, ``c_obviate`` is a selection
 of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` and ``complete``
 contain pending and simulated points, respectively. ``comm`` is a communicator object from
 :doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
@@ -165,7 +165,7 @@ Simulator - Receiving Kill Signal and Cancelling Tasks
 ------------------------------------------------------
 
 Within the Simulation Function, the :doc:`Executor<../executor/overview>`
-is used to launch simulations based on points from the simple regression generator,
+is used to launch simulations based on points from the generator,
 and then enters a routine to loop and check for signals from the Manager::
 
     def subproc_borehole_func(H, subp_opts, libE_info):
@@ -232,7 +232,7 @@ successfully obviated:
   :alt: cwp_sample_graph
 
 Please see the ``test_cwp_calib.py`` regression test for an example
-routine using the simple regression calibration generator.
+routine using the surmise calibration generator.
 The associated simulation function and allocation function are included in
 ``sim_funcs/cwp_test_function.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
 
