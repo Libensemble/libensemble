@@ -3,12 +3,20 @@ This module detects and returns system resources
 
 """
 
+# SH TODO: Do we need custom_info options in libE_specs for resources, and another as argument
+#          to MPIExecutor for MPIExecutor configuration?
+#          E.g. mpi_runner_type, runner_name, subgroup_launch
+#          Alternative - do Executor same way as this (init in libE), and then can uses combined custom_info again!
+#          Also will need to update docs/tests with new custom_info options.
+#          Remove debugging comments/commented out code + check/update docstrings
+#          Deal with unbalanced cases, and if not, return meaningful error message
+
 import os
 import socket
 import logging
 import itertools
 import subprocess
-# from collections import OrderedDict
+from collections import OrderedDict
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
 
@@ -39,13 +47,54 @@ class Resources:
     :ivar WorkerResources worker_resources: An object that can contain worker specific resources
     """
 
+    resources = None
+
     DEFAULT_NODEFILE = 'node_list'
+
+    @staticmethod
+    def init_resources(libE_specs):
+        """Initiate resource management"""
+        from libensemble.resources.mpi_resources import MPIResources
+
+        # If auto_resources is False, then Resources.resources will remain None.
+        auto_resources = libE_specs.get('auto_resources', True)
+
+        if auto_resources:
+            custom_info = libE_specs.get('custom_info', {})
+            cores_on_node = custom_info.get('cores_on_node', None)
+            node_file = custom_info.get('node_file', None)
+            # SH TODO: Should these be in custom_info
+            nodelist_env_slurm = custom_info.get('nodelist_env_slurm', None)
+            nodelist_env_cobalt = custom_info.get('nodelist_env_cobalt', None)
+            nodelist_env_lsf = custom_info.get('nodelist_env_lsf', None)
+            nodelist_env_lsf_shortform = custom_info.get('nodelist_env_lsf_shortform', None)
+
+            central_mode = libE_specs.get('central_mode', False)
+            allow_oversubscribe = libE_specs.get('allow_oversubscribe', True)  # SH TODO: re-name to clarify on-node?
+            zero_resource_workers = libE_specs.get('zero_resource_workers', [])
+            top_level_dir = os.getcwd()  # SH TODO: Do we want libE_specs option - in case want to run somewhere else.
+
+            # SH TODO: MPIResources always - should be some option - related to Executor.
+            #          Though everything in init is not MPI specific (could also be a TCP resources version)
+            #          Remember, in this initialization, resources is stored in class attribute.
+            Resources.resources = \
+                MPIResources(top_level_dir=top_level_dir,
+                             central_mode=central_mode,
+                             zero_resource_workers=zero_resource_workers,
+                             allow_oversubscribe=allow_oversubscribe,
+                             # launcher=self.mpi_runner.run_command  # SH TODO: re-check replacement code
+                             cores_on_node=cores_on_node,
+                             node_file=node_file,
+                             nodelist_env_slurm=nodelist_env_slurm,
+                             nodelist_env_cobalt=nodelist_env_cobalt,
+                             nodelist_env_lsf=nodelist_env_lsf,
+                             nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
     def __init__(self, top_level_dir=None,
                  central_mode=False,
                  zero_resource_workers=[],
                  allow_oversubscribe=False,
-                 launcher=None,
+                 #launcher=None,
                  cores_on_node=None,
                  node_file=None,
                  nodelist_env_slurm=None,
@@ -135,7 +184,8 @@ class Resources:
         else:
             self.local_host = socket.gethostname()
 
-        self.launcher = launcher
+        #self.launcher = launcher
+        self.launcher = Resources.get_MPI_runner()
         remote_detect = False
         if self.local_host not in self.global_nodelist:
             remote_detect = True
@@ -150,6 +200,9 @@ class Resources:
         self.libE_nodes = None
         self.worker_resources = None
         self.zero_resource_workers = zero_resource_workers
+
+        # Let caller decide whether to set Resources.resources
+        # Resources.resources = self
 
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
@@ -169,6 +222,17 @@ class Resources:
 
     def set_worker_resources(self, workerid, comm):
         self.worker_resources = WorkerResources(workerid, comm, self)
+
+    def set_managerworker_resources(self, num_workers):
+        self.managerworker_resources = ManagerWorkerResources(num_workers, self)
+
+    @staticmethod
+    def get_MPI_runner():
+        var = Resources.get_MPI_variant()
+        if var in ['mpich', 'openmpi']:
+            return 'mpirun'
+        else:
+            return var
 
     @staticmethod
     def get_MPI_variant():
@@ -273,6 +337,39 @@ class Resources:
         raise ResourcesException("Error. global_nodelist is empty")
 
 
+# SH TODO Resources to have a restructure
+#         May include a base class shared by man/worker variants for fixed mapping (e.g. split_list)
+#         Shorten names... e.g. WorkerResources and LocalResources?
+#         Add class docstring
+class ManagerWorkerResources:
+
+    def __init__(self, num_workers, resources):
+        """Initializes a new WorkerResources instance
+
+        Determines the compute resources available for current worker, including
+        node list and cores/hardware threads available within nodes.
+
+        Parameters
+        ----------
+
+        workerID: int
+            workerID of current process
+
+        comm: Comm
+            The Comm object for manager/worker communications
+
+        resources: Resources
+            A Resources object containing global nodelist and intranode information
+
+        """
+        self.num_workers = num_workers
+        # SH TODO: Called worker_nodes here - but its split_list - consider naming
+        self.index_list, self.group_list, self.worker_nodes = \
+            WorkerResources.get_partitioned_nodelist(self.num_workers, resources)
+        self.num_workers_2assign2 = WorkerResources.get_workers2assign2(self.num_workers, resources)
+        self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers_2assign2, resources)
+
+
 class WorkerResources:
     """Provide system resources per worker to libEnsemble and executor.
 
@@ -308,10 +405,81 @@ class WorkerResources:
         """
         self.num_workers = comm.get_num_workers()
         self.workerID = workerID
-        self.local_nodelist = WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
-        self.local_node_count = len(self.local_nodelist)
+        self.worker_team = [workerID]
+        self.slots = None
+        self.even_slots = None
+        self.slot_count = 1
+
+        # SH TODO: In next resources restructure - should not need duplicate of zero_resource_workers (so can use
+        #          in set_worker_team without passing resources again.
+        #          Consider naming of workers_per_node - given that is is the fixed mapping (and having excluded zrw)
+        #          - possibly fixed_workers_per_node or maybe resource_sets or rsets_per_node...
+        self.zero_resource_workers = resources.zero_resource_workers
+        self.index_list, self.group_list, self.split_list = \
+            WorkerResources.get_partitioned_nodelist(self.num_workers, resources)
+
         self.num_workers_2assign2 = WorkerResources.get_workers2assign2(self.num_workers, resources)
         self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers_2assign2, resources)
+
+        if workerID in self.zero_resource_workers:
+            self.local_nodelist = []
+            logger.debug("Worker {} is a zero-resource worker".format(workerID))
+        else:
+            # SH TODO: Should probably change from a staticmethod - theres a limit to the functional approach.
+            #          Also get_local_nodelist setting slots also is a bit confusing - though it is efficient.
+            self.local_nodelist, self.slots = \
+                WorkerResources.get_local_nodelist(self.workerID, self.index_list, self.worker_team,
+                                                   self.split_list, self.workers_per_node)
+        self.local_node_count = len(self.local_nodelist)
+        self.set_slot_count()
+
+    def set_worker_team(self, worker_team):
+        """Update worker team and local attributes
+
+        Updates: worker_team
+                 local_nodelist
+                 slots (dictionary with list of partitions for each node)
+                 slot_count - number of slots on each node # SH TODO: Make a list if uneven?
+                 local_node_count
+        """
+        if self.workerID in self.zero_resource_workers:
+            return
+
+        # if set(worker_team) != set(self.worker_team): # No order
+        if worker_team != self.worker_team:  # Order matters
+            self.worker_team = worker_team
+            self.local_nodelist, self.slots = \
+                WorkerResources.get_local_nodelist(self.workerID, self.index_list, self.worker_team,
+                                                   self.split_list, self.workers_per_node)
+            self.set_slot_count()
+            self.local_node_count = len(self.local_nodelist)
+
+    # SH TODO: Same count, but I want same list...
+    #          This needs checking... what is slot_count/slots_on_node when uneven
+    #          May be more efficient to do when create slot list.
+    def set_slot_count(self):
+        if self.slots is not None:
+            # Check if even distribution
+            # lens = set(map(len, self.slots.values()))
+            # lens = set(map(len, self.slots.values()))
+            # self.even_slots = True if len(lens) == 1 else False
+
+            # Check if same slots on each node (not just lengths)
+            # SH TODO: Maybe even_slots v equal_slots?
+            first_node_slots = list(self.slots.values())[0]
+            all_match = True
+            for node_list in self.slots.values():
+                if node_list != first_node_slots:
+                    all_match = False
+                    break
+
+            self.even_slots = True if all_match else False
+            if self.even_slots:
+                self.slots_on_node = first_node_slots
+                self.slot_count = len(self.slots_on_node)
+            else:
+                self.slots_on_node = None  # SH TODO: What should this be
+                self.slot_count = None  # SH TODO: Could be list of lengths
 
     @staticmethod
     def get_workers_on_a_node(num_workers, resources):
@@ -323,6 +491,39 @@ class WorkerResources:
         # Round up if theres a remainder
         workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)
         return workers_per_node
+
+    @staticmethod
+    def get_group_list(split_list, index_list):
+        group = 1
+        group_list = []
+        node = split_list[0]
+        for i in range(len(index_list)):
+            index = index_list[i]
+            if index is None:
+                # group_list.append(None)
+                # SH TODO: Setting zero_resource_workers to -1 (need an integer). Review
+                group_list.append(-1)
+            else:
+                if split_list[index] == node:
+                    group_list.append(group)
+                else:
+                    node = split_list[index]
+                    group += 1
+                    group_list.append(group)
+        return group_list
+
+    @staticmethod
+    def get_index_list(num_workers, zero_resource_list):
+        """Map WorkerID to index into a nodelist"""
+        index = 0
+        index_list = []
+        for i in range(1, num_workers+1):
+            if i in zero_resource_list:
+                index_list.append(None)
+            else:
+                index_list.append(index)
+                index += 1
+        return index_list
 
     @staticmethod
     def map_workerid_to_index(num_workers, workerID, zero_resource_list):
@@ -344,15 +545,13 @@ class WorkerResources:
         return num_workers - len(zero_resource_list)
 
     @staticmethod
-    def get_local_nodelist(num_workers, workerID, resources):
-        """Returns the list of nodes available to the current worker
+    def get_split_list(num_workers, resources):
+        """Returns a list of lists for each worker
 
         Assumes that self.global_nodelist has been calculated (in __init__).
-        Also self.global_nodelist will have already removed non-application nodes
         """
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
-        zero_resource_list = resources.zero_resource_workers
         num_workers_2assign2 = WorkerResources.get_workers2assign2(num_workers, resources)
 
         # Check if current host in nodelist - if it is then in distributed mode.
@@ -378,16 +577,64 @@ class WorkerResources:
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers_2assign2))
         logger.debug("split_list is {}".format(split_list))
+        return split_list
 
+    @staticmethod
+    def get_partitioned_nodelist(num_workers, resources):
+        """Returns lists of nodes available to all workers
+
+        Assumes that self.global_nodelist has been calculated (in __init__).
+        Also self.global_nodelist will have already removed non-application nodes
+        """
+        zero_resource_list = resources.zero_resource_workers
+        split_list = WorkerResources.get_split_list(num_workers, resources)
+
+        # Actually want num_workers - not num_workers_2assign2
+        index_list = WorkerResources.get_index_list(num_workers, zero_resource_list)
+        # print('split list', split_list, flush=True)  # SH TODO: Remove when done testing
+        # print('index_list', index_list, flush=True)  # SH TODO: Remove when done testing
+        group_list = WorkerResources.get_group_list(split_list, index_list)
+        # print('group list', group_list, flush=True)  # SH TODO: Remove when done testing
+        return index_list, group_list, split_list
+
+    @staticmethod
+    def get_local_nodelist(workerID, index_list, worker_team, split_list, wrks_per_node):
+        """Returns the list of nodes available to the current worker"""
+
+        # SH TODO: Update docstring - or split function (also returns slots dictionary)
+        #          Remove print comments when done testing
         if workerID is None:
             raise ResourcesException("Worker has no workerID - aborting")
 
-        if workerID in zero_resource_list:
-            local_nodelist = []
-            logger.debug("Worker is a zero-resource worker")
-        else:
-            index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
-            local_nodelist = split_list[index]
-            logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
+        # Index list has already mapped workers to indexes into split_list.
+        indexes = []
+        for i, worker in enumerate(worker_team):
+            indexes.append(index_list[worker - 1])
 
-        return local_nodelist
+        # print('Worker {}. indexes{}'.format(workerID, indexes),flush=True)
+        team_list = []
+        for index in indexes:
+            team_list += split_list[index]
+
+        # print('Worker {} team_list {}'.format(workerID, team_list),flush=True)  # SH TODO: Remove
+
+        local_nodelist = list(OrderedDict.fromkeys(team_list))  # Maintain order of nodes
+
+        # print("Worker {} Worker's local_nodelist is {}".format(workerID, local_nodelist),flush=True) # SH TODO:Remove
+        logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
+
+        # Maybe can essentailly do this at mapping stage with group list or create a structure to reference.
+        if len(split_list[0]) > 1:
+            slots = None  # Not needed if not at sub-node # SH TODO: Review this
+        else:
+            slots = {}
+            for node in local_nodelist:
+                slots[node] = []
+
+            for index in indexes:
+                mynode = split_list[index][0]
+                pos_in_node = index % wrks_per_node  # SH TODO: check/test this
+                slots[mynode].append(pos_in_node)
+                # SH TODO: Can potentially create a machinefile from slots if/when support uneven lists
+
+        return local_nodelist, slots

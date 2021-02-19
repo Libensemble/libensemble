@@ -3,14 +3,14 @@
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_with_different_resources.py
+#    mpiexec -np 4 python3 test_persistent_sampling_CUDA_variable_resources.py
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi, local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import sys
 import numpy as np
@@ -18,54 +18,52 @@ import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_resources as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample_with_different_resources as gen_f
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel_CUDA_variable_resources as sim_f
+from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_different_resources as gen_f
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+
+#from libensemble.gen_funcs.sampling import uniform_random_sample_with_different_resources as gen_f
+#from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+libE_specs['zero_resource_workers'] = [1]
 libE_specs['sim_dirs_make'] = True
-libE_specs['ensemble_dir_path'] = './ensemble_diff_nodes_w' + str(nworkers)
+libE_specs['ensemble_dir_path'] = './ensemble_CUDA_variable_w' + str(nworkers)
 
 if libE_specs['comms'] == 'tcp':
     sys.exit("This test only runs with MPI or local -- aborting...")
 
 # Get paths for applications to run
-hello_world_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
 six_hump_camel_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'six_hump_camel.py')
-
-# Sim can run either helloworld or six_hump_camel
 exctr = MPIExecutor()
-exctr.register_calc(full_path=hello_world_app, app_name='helloworld')
 exctr.register_calc(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
 n = 2
 sim_specs = {'sim_f': sim_f,
-             'in': ['x', 'resource_sets'],
+             'in': ['x'],
              'out': [('f', float)],
-             'user': {'app': 'helloworld'}  # helloworld or six_hump_camel
+             'user': {}
              }
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
-             'out': [('priority', float),
+             'out': [('priority', float),  # SH TODO: Not yet in start_only_persistent (will be merged in).
                      ('resource_sets', int),
-                     ('x', float, n),
-                     ('x_on_cube', float, n)],
-             'user': {'initial_batch_size': 5,
-                      'give_all_with_same_priority': True,  # SH TODO: Really an alloc option
-                      'max_resource_sets': nworkers,
+                     ('x', float, n)],
+             'user': {'initial_batch_size': nworkers-1,
+                      'give_all_with_same_priority': False,  # SH TODO: Really an alloc option
+                      'async': False,                        # SH TODO: Really an alloc option
+                      'max_resource_sets': nworkers-1,  # Any sim created can req. 1 worker up to all.
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': give_sim_work_first,
-               'out': [('allocated', bool)],
-               'user': {'batch_mode': False,
-                        'num_active_gens': 1}
-               }
+alloc_specs = {'alloc_f': alloc_f,
+               'out': [('given_back', bool)]}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}

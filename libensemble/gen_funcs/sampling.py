@@ -5,13 +5,15 @@ function.
 """
 import numpy as np
 
-__all__ = ['uniform_random_sample_with_different_nodes_and_ranks',
+__all__ = ['uniform_random_sample_with_different_resources',
            'uniform_random_sample_obj_components',
            'latin_hypercube_sample',
            'uniform_random_sample']
 
 
-def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_specs, _):
+# SH TODO: Consider name of function (maybe adaptive_resources?)
+#          and check/update docstring
+def uniform_random_sample_with_different_resources(H, persis_info, gen_specs, _):
     """
     Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
     ``gen_specs['user']['lb']``. Also randomly requests a different ``number_of_nodes``
@@ -29,18 +31,20 @@ def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_spe
 
         H_o = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0, b):
+            # x= i*np.ones(n)
             x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
             H_o['x'][i] = x
-            H_o['num_nodes'][i] = 1
-            H_o['ranks_per_node'][i] = 16
+            H_o['resource_sets'][i] = 1
             H_o['priority'] = 1
 
     else:
         H_o = np.zeros(1, dtype=gen_specs['out'])
-        H_o['x'] = len(H)*np.ones(n)
-        H_o['num_nodes'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_num_nodes']+1)
-        H_o['ranks_per_node'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_ranks_per_node']+1)
-        H_o['priority'] = 10*H_o['num_nodes']
+        # SH TODO: x values - either random or a basic count
+        # H_o['x'] = len(H)*np.ones(n)
+        H_o['x'] = persis_info['rand_stream'].uniform(lb, ub)
+        H_o['resource_sets'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_resource_sets']+1)
+        H_o['priority'] = 10*H_o['resource_sets']
+        # print('Created sim for {} workers'.format(H_o['resource_sets']), flush=True)
 
     return H_o, persis_info
 

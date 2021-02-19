@@ -67,31 +67,38 @@ class MPIResources(Resources):
         raised if these are infeasible.
         """
         node_list = self.worker_resources.local_nodelist
+        rassert(node_list, "Node list is empty - aborting")
         local_node_count = self.worker_resources.local_node_count
 
         cores_avail_per_node = \
             (self.logical_cores_avail_per_node if hyperthreads else
              self.physical_cores_avail_per_node)
         workers_per_node = self.worker_resources.workers_per_node
+
+        # Note: cores_avail_per_node_per_worker refers to base worker resources - then multiply by my slots.
         cores_avail_per_node_per_worker = cores_avail_per_node//workers_per_node
 
-        rassert(node_list, "Node list is empty - aborting")
+        # SH TODO:This is when slots could be used to create a machinefile
+        #         constrained by any options (num_nodes etc) they have entered.
+        rassert(self.worker_resources.even_slots,
+                "Uneven distribution of node resources not yet supported. Nodes and slots are: {}"
+                .format(self.worker_resources.slots))
 
         # If no decomposition supplied - use all available cores/nodes
         if not num_procs and not num_nodes and not ranks_per_node:
             num_nodes = local_node_count
-            ranks_per_node = cores_avail_per_node_per_worker
+            ranks_per_node = cores_avail_per_node_per_worker * self.worker_resources.slot_count
             logger.debug("No decomposition supplied - "
                          "using all available resource. "
                          "Nodes: {}  ranks_per_node {}".
                          format(num_nodes, ranks_per_node))
         elif not num_nodes and not ranks_per_node:
-            if num_procs <= cores_avail_per_node_per_worker:
+            if num_procs <= cores_avail_per_node_per_worker * self.worker_resources.slot_count:
                 num_nodes = 1
             else:
                 num_nodes = local_node_count
         elif not num_procs and not ranks_per_node:
-            ranks_per_node = cores_avail_per_node_per_worker
+            ranks_per_node = cores_avail_per_node_per_worker * self.worker_resources.slot_count
         elif not num_procs and not num_nodes:
             num_nodes = local_node_count
 
@@ -111,7 +118,7 @@ class MPIResources(Resources):
                     "Requested {}. Only {} available".
                     format(ranks_per_node, cores_avail_per_node))
 
-            rassert(ranks_per_node <= cores_avail_per_node_per_worker,
+            rassert(ranks_per_node <= cores_avail_per_node_per_worker * self.worker_resources.slot_count,
                     "Not enough processors per worker to honor arguments. "
                     "Requested {}. Only {} available".
                     format(ranks_per_node, cores_avail_per_node_per_worker))

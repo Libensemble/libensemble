@@ -1,8 +1,11 @@
 import numpy as np
+# SH TODO:  Consider importing a class and using as object functions
+from libensemble.tools.alloc_support import (sim_work, gen_work, count_gens,
+                                             get_avail_workers_by_group, assign_workers)
 
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
 
-
+# SH TODO: Either replace give_sim_work_first or add a different alloc func (or file?)
+#          Check/update docstring
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     Decide what should be given to workers. This allocation function gives any
@@ -26,15 +29,14 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     Work = {}
     gen_count = count_gens(W)
-    avail_set = set(W['worker_id'][np.logical_and(~W['blocked'],
-                                                  W['active'] == 0)])
 
-    for i in avail_worker_ids(W):
+    # Dictionary of workers by group (node).
+    avail_workers = get_avail_workers_by_group(W)
+    # print('avail_workers is', avail_workers)
 
-        if i not in avail_set:
-            pass
+    while any(avail_workers.values()):
 
-        elif not np.all(H['allocated']):
+        if not np.all(H['allocated']):
 
             # Pick all high priority, oldest high priority, or just oldest point
             if 'priority' in H.dtype.fields:
@@ -49,21 +51,23 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Get sim ids and check resources needed
             sim_ids_to_send = np.nonzero(~H['allocated'])[0][q_inds]
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
-            nodes_needed = (np.max(H[sim_ids_to_send]['num_nodes'])
-                            if 'num_nodes' in H.dtype.names else 1)
-            if nodes_needed > len(avail_set):
-                break
 
-            # Assign resources and mark tasks as allocated to workers
-            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info[i])
-            H['allocated'][sim_ids_to_send] = True
+            nworkers_req = (np.max(H[sim_ids_to_send]['resource_sets'])
+                            if 'resource_sets' in H.dtype.names else 1)
 
-            # Update resource records
-            avail_set.remove(i)
-            if nodes_needed > 1:
-                workers_to_block = list(avail_set)[:nodes_needed-1]
-                avail_set.difference_update(workers_to_block)
-                Work[i]['libE_info']['blocking'] = workers_to_block
+            # If more than one group (node) required, allocates whole nodes - also removes from avail_workers
+            worker_team = assign_workers(avail_workers, nworkers_req)
+            # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(worker_team,avail_workers),flush=True)
+
+            if not worker_team:
+                break  # No slot found - insufficient available resources for this work unit
+            worker = worker_team[0]
+
+            sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info[worker])
+            H['allocated'][sim_ids_to_send] = True  # SH TODO: can do this locally and remove allocated field
+
+            if len(worker_team) > 1:
+                Work[worker]['libE_info']['blocking'] = worker_team[1:]  # SH TODO: Maybe do in sim_work?
 
         else:
 
@@ -78,9 +82,16 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             # Give gen work
             gen_count += 1
+
+            worker_team = assign_workers(avail_workers, 1)  # Returns a list even though one element
+            if not worker_team:
+                break
+            worker = worker_team[0]
+            # print('AFTER ASSIGN gen ({}): avail_workers: {}'.format(worker,avail_workers),flush=True)
+
             if 'in' in gen_specs and len(gen_specs['in']):
-                gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
+                gen_work(Work, worker, gen_specs['in'], range(len(H)), persis_info[worker])
             else:
-                gen_work(Work, i, [], [], persis_info[i])
+                gen_work(Work, worker, [], [], persis_info[worker])
 
     return Work, persis_info

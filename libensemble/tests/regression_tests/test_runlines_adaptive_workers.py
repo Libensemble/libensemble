@@ -1,18 +1,21 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Runs libEnsemble run-lines for adaptive workers in non-persistent case.
 #
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_with_different_resources.py
+# Default setup is designed to run on 4*N workers - to modify, change total_nodes.
+
+# Execute via one of the following commands (e.g. 8 workers):
+#    mpiexec -np 9 python3 test_runlines_adaptive_workers.py
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# This is a dry run test, mocking up the nodes available. To test the run-lines
+# requires running a fixed, rather than random number of resource sets for a given sim_id.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi, local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_COMMS: mpi local
+# TESTSUITE_NPROCS: 5
 
-import sys
+# SH TODO: Still to automate checking of actual run-lines
+
 import numpy as np
 import pkg_resources
 
@@ -23,29 +26,23 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_with_different_
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tests.regression_tests.common import create_node_file
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs['sim_dirs_make'] = True
-libE_specs['ensemble_dir_path'] = './ensemble_diff_nodes_w' + str(nworkers)
+# For varying size test - relate node count to nworkers
+total_nodes = nworkers//4  # 4 workers per node - run on 4N workers
 
-if libE_specs['comms'] == 'tcp':
-    sys.exit("This test only runs with MPI or local -- aborting...")
-
-# Get paths for applications to run
-hello_world_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
-six_hump_camel_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'six_hump_camel.py')
-
-# Sim can run either helloworld or six_hump_camel
+sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
 exctr = MPIExecutor()
-exctr.register_calc(full_path=hello_world_app, app_name='helloworld')
-exctr.register_calc(full_path=six_hump_camel_app, app_name='six_hump_camel')
+exctr.register_calc(full_path=sim_app, app_name='helloworld')
 
 n = 2
 sim_specs = {'sim_f': sim_f,
-             'in': ['x', 'resource_sets'],
+             # 'in': ['x', 'resource_sets'], # Dont need if letting it just use all resources available
+             'in': ['x'],
              'out': [('f', float)],
-             'user': {'app': 'helloworld'}  # helloworld or six_hump_camel
+             'user': {'dry_run': True}
              }
 
 gen_specs = {'gen_f': gen_f,
@@ -56,7 +53,7 @@ gen_specs = {'gen_f': gen_f,
                      ('x_on_cube', float, n)],
              'user': {'initial_batch_size': 5,
                       'give_all_with_same_priority': True,  # SH TODO: Really an alloc option
-                      'max_resource_sets': nworkers,
+                      'max_resource_sets': 4,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
@@ -66,6 +63,20 @@ alloc_specs = {'alloc_f': give_sim_work_first,
                'user': {'batch_mode': False,
                         'num_active_gens': 1}
                }
+
+# comms = libE_specs['auto_resources'] = False # SH - for TCP testing
+
+comms = libE_specs['comms']
+node_file = 'nodelist_adaptive_workers_comms_' + str(comms) + '_wrks_' + str(nworkers)
+if is_manager:
+    create_node_file(num_nodes=total_nodes, name=node_file)
+
+if comms == 'mpi':
+    libE_specs['mpi_comm'].Barrier()
+
+# Mock up system
+libE_specs['custom_info'] = {'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
+                             'node_file': node_file}     # Name of file containing a node-list
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}

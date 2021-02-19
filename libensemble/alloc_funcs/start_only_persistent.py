@@ -1,8 +1,13 @@
 import numpy as np
+from libensemble.tools.alloc_support import (avail_worker_ids,
+                                             sim_work, gen_work,
+                                             count_persis_gens,
+                                             get_avail_workers_by_group,
+                                             assign_workers)
 
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
-
+# SH TODO: Either replace only_persistent_gens or add a different alloc func (or file?)
+#          Check/update docstring
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
@@ -50,19 +55,55 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
                 H['given_back'][inds_to_give] = True
 
-    task_avail = ~H['given']
-    for i in avail_worker_ids(W, persistent=False):
-        if np.any(task_avail):
-            # perform sim evaluations (if they exist in History).
-            sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
-            task_avail[sim_ids_to_send] = False
+    task_avail = ~H['given']  # SH TODO: Unchanged - but what if allocated space in array that is not genned?
 
-        elif gen_count == 0:
-            # Finally, call a persistent generator as there is nothing else to do.
-            gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
-                     persistent=True)
-            persis_info['gen_started'] = True
+    # SH TODO: Now the give_sim_work_first bit - should merge to avoid duplicating functionality
+    avail_workers = get_avail_workers_by_group(W, persistent=False, zero_resource_workers=False)
+    # print('avail_workers for sim',avail_workers)
+
+    while any(avail_workers.values()):
+
+        if not np.any(task_avail):
+            break
+
+        # Perform sim evaluations (if they exist in History).
+        sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
+
+        nworkers_req = (np.max(H[sim_ids_to_send]['resource_sets'])
+                        if 'resource_sets' in H.dtype.names else 1)
+
+        # If more than one group (node) required, allocates whole nodes - also removes from avail_workers
+        worker_team = assign_workers(avail_workers, nworkers_req)
+        # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(worker_team,avail_workers), flush=True)
+
+        if not worker_team:
+            break  # No slot found - insufficient available resources for this work unit
+
+        worker = worker_team[0]
+        sim_work(Work, worker, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[worker])
+
+        task_avail[sim_ids_to_send] = False
+        if len(worker_team) > 1:
+            Work[worker]['libE_info']['blocking'] = worker_team[1:]  # SH TODO: Maybe do in sim_work?
+
+    # A separate loop/section as now need zero_resource_workers for gen.
+    if not np.any(task_avail):
+        avail_workers = get_avail_workers_by_group(W, persistent=False, zero_resource_workers=True)
+        # print('avail_workers for gen',avail_workers)
+
+        while any(avail_workers.values()):
+            # SH TODO: So we don't really need a loop here for this, but general case would allow multiple gens
+            if gen_count == 0:
+                # Finally, call a persistent generator as there is nothing else to do.
+                gen_count += 1
+
+                worker_team = assign_workers(avail_workers, 1)  # Returns a list even though one element
+                if not worker_team:
+                    break
+                worker = worker_team[0]
+                # print('AFTER ASSIGN gen ({}): avail_workers: {}'.format(worker,avail_workers), flush=True)
+                gen_work(Work, worker, gen_specs['in'], range(len(H)), persis_info[worker],
+                         persistent=True)
+                persis_info['gen_started'] = True
 
     return Work, persis_info, 0

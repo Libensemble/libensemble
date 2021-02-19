@@ -74,7 +74,7 @@ class MPIRunner:
     def get_mpi_specs(self, task, num_procs, num_nodes,
                       ranks_per_node, machinefile,
                       hyperthreads, extra_args,
-                      auto_resources, resources, workerID):
+                      resources, workerID):
         "Form the mpi_specs dictionary."
 
         # Return auto_resource variables inc. extra_args additions
@@ -88,25 +88,29 @@ class MPIRunner:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
 
-        if machinefile is None and auto_resources:
+        if machinefile is None and resources is not None:
             num_procs, num_nodes, ranks_per_node = \
                 resources.get_resources(num_procs, num_nodes,
                                         ranks_per_node, hyperthreads)
 
             # Use hostlist if full nodes, otherwise machinefile
             full_node = resources.worker_resources.workers_per_node == 1
-            if full_node or not self.mfile_support:
-                hostlist = resources.get_hostlist(num_nodes)
-            else:
-                machinefile = "machinefile_autogen"
-                if workerID is not None:
-                    machinefile += "_for_worker_{}".format(workerID)
-                machinefile += "_task_{}".format(task.id)
-                mfile_created, num_procs, num_nodes, ranks_per_node = \
-                    resources.create_machinefile(
-                        machinefile, num_procs, num_nodes,
-                        ranks_per_node, hyperthreads)
-                jassert(mfile_created, "Auto-creation of machinefile failed")
+
+            # Always use host lists (SH TODO: unless uneven mapping)
+            hostlist = resources.get_hostlist(num_nodes)
+
+            #if full_node or not self.mfile_support:
+                #hostlist = resources.get_hostlist(num_nodes)
+            #else:
+                #machinefile = "machinefile_autogen"
+                #if workerID is not None:
+                    #machinefile += "_for_worker_{}".format(workerID)
+                #machinefile += "_task_{}".format(task.id)
+                #mfile_created, num_procs, num_nodes, ranks_per_node = \
+                    #resources.create_machinefile(
+                        #machinefile, num_procs, num_nodes,
+                        #ranks_per_node, hyperthreads)
+                #jassert(mfile_created, "Auto-creation of machinefile failed")
 
         else:
             num_procs, num_nodes, ranks_per_node = \
@@ -204,7 +208,7 @@ class JSRUN_MPIRunner(MPIRunner):
     def get_mpi_specs(self, task, num_procs, num_nodes,
                       ranks_per_node, machinefile,
                       hyperthreads, extra_args,
-                      auto_resources, resources, workerID):
+                      resources, workerID):
 
         # Return auto_resource variables inc. extra_args additions
         if extra_args:
@@ -218,7 +222,7 @@ class JSRUN_MPIRunner(MPIRunner):
         if machinefile and not self.mfile_support:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
-        if machinefile is None and auto_resources:
+        if machinefile is None and resources is not None:
             num_procs, num_nodes, ranks_per_node = \
                 resources.get_resources(num_procs, num_nodes,
                                         ranks_per_node, hyperthreads)
