@@ -101,7 +101,7 @@ def polling_loop(exctr, task, sim_id):
         if exctr.manager_signal == 'kill':
             task.kill()
             calc_status = MAN_SIGNAL_KILL
-            print('Manager killed sim_id {} task.state {}'.format(sim_id,task.state),flush=True)
+            print('Manager killed sim_id {} task.state {}'.format(sim_id, task.state), flush=True)
             break
         else:
             task.poll()
@@ -124,7 +124,7 @@ def add_delay(subp_opts, sim_id):
     if sim_id > subp_opts['delay_start']:
         if (sim_id + 1) % subp_opts['num_x'] == 0:
             delay = 3 + np.random.normal(scale=0.5)
-            print('sim_id {} delay {}'.format(sim_id,delay),flush=True)
+            print('sim_id {} delay {}'.format(sim_id, delay), flush=True)
     return delay
 
 
@@ -160,7 +160,6 @@ def subproc_borehole_func(H, subp_opts, libE_info):
             assert np.isclose(f, ftest), \
                 "Subprocess f {} does not match in-line function {}".format(f, ftest)
     return f, calc_status
-
 
 
 def borehole(H, persis_info, sim_specs, libE_info):

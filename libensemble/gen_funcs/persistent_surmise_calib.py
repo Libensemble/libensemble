@@ -9,7 +9,6 @@ from surmise.emulation import emulator
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
 import concurrent.futures
-
 import time
 
 def build_emulator(theta, x, fevals):
@@ -170,7 +169,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             emu = build_emulator(theta, x, fevals)
             cal = calibrator(emu, obs, x, thetaprior, obsvar, method='directbayes')
 
-            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
             update_model = False
         else:
             # Update fevals, failures, data_status from calc_in
@@ -183,22 +182,22 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     break
 
         if update_model:
-            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete),4),
-                                                    np.sum(1-pending-complete),
-                                                    np.prod(pending.shape)))
-            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending),4),
+            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete), 4),
+                                                              np.sum(1-pending-complete),
+                                                              np.prod(pending.shape)))
+            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending), 4),
                                                             np.sum(pending),
                                                             np.prod(pending.shape)))
-            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete),4),
-                                                            np.sum(complete),
-                                                            np.prod(pending.shape)))
+            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete), 4),
+                                                             np.sum(complete),
+                                                             np.prod(pending.shape)))
 
             emu.update(theta=theta, f=fevals)
             cal.fit()
 
-            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
 
-            # step_add_theta += 2
+            step_add_theta += 2
             prev_pending = pending.copy()
             update_model = False
 

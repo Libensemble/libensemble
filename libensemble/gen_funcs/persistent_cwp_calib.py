@@ -168,7 +168,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         else:
             # Update fevals, failures, data_status from calc_in
             update_arrays(fevals, failures, data_status, calc_in,
-                           pre_count, n_x, obs, errstd, ignore_cancelled)
+                          pre_count, n_x, obs, errstd, ignore_cancelled)
 
             build_new_model = rebuild_condition(data_status)
             if not build_new_model:

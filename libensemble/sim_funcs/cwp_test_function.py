@@ -4,15 +4,12 @@ Created on Tue Feb  9 10:27:23 2021
 @author: mosesyhc
 """
 import numpy as np
-import time
 
 
 def borehole(H, persis_info, sim_specs, libE_info):
     """
     Wraps the borehole function
     """
-
-    time.sleep(np.random.uniform())
 
     H_o = np.zeros(H['x'].shape[0], dtype=sim_specs['out'])
 

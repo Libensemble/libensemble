@@ -177,7 +177,7 @@ class History:
             self.H[field][update_inds] = D[field]
 
         t = time.time()
-        first_gen_inds = update_inds[self.H['gen_time'][update_inds]==0]
+        first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
         self.H['first_gen_time'][first_gen_inds] = t
         self.H['gen_time'][update_inds] = t
 

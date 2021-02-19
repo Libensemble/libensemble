@@ -95,8 +95,6 @@ def testmseerror(H, persis_info, gen_specs, libE_info):
         theta = persis_info['thetas']
         fevals = np.reshape(H['f'], (n_thetas, n_x))
 
-
-
         # MC: Goal - Call builder in initialization,
         # Call updater in subsequent loops
         model = emulation_builder(theta, x, fevals, failures)

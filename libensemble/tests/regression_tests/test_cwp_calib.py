@@ -28,16 +28,13 @@ import os
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 
-#from libensemble.gen_funcs.persistent_cwp_calib import testcalib as gen_f
+# from libensemble.gen_funcs.persistent_cwp_calib import testcalib as gen_f
 from libensemble.gen_funcs.persistent_surmise_calib import testcalib as gen_f
-
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 
-
-#from libensemble.sim_funcs.cwpsim import borehole as sim_f
+# from libensemble.sim_funcs.cwpsim import borehole as sim_f
 from libensemble.sim_funcs.cwp_test_function import borehole as sim_f
-
 
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
@@ -103,7 +100,7 @@ if __name__ == '__main__':
                  }
 
     gen_out = [('x', float, ndims), ('thetas', float, nparams),
-               ('priority', int), ('obs', float, n_x), ('gen_time_in_gen',float), ('obsvar', float, n_x)]
+               ('priority', int), ('obs', float, n_x), ('gen_time_in_gen', float), ('obsvar', float, n_x)]
 
     gen_specs = {'gen_f': gen_f,
                  'in': [o[0] for o in gen_out]+['f', 'returned'],
