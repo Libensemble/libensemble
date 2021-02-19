@@ -3,7 +3,7 @@ Below are the fields used within libEnsemble
 """
 
 libE_fields = [('sim_id', int),            # Unique id of entry in H that was generated
-               ('gen_worker', int),        # Worker that generated the entry
+               ('gen_worker', int),        # Worker that (first) generated the entry
                ('gen_time', float),        # Time (since epoch) entry (first) was entered into H
                ('given', bool),            # True if entry has been given for sim eval
                ('given_time', float),      # Time (since epoch) that the entry was (last) given to be evaluated

@@ -112,6 +112,7 @@ class History:
                         self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
             self.H['returned'][ind] = True
+            self.H['returned_time'][ind] = time.time()
             self.sim_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
@@ -180,8 +181,9 @@ class History:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
-        self.H['gen_time'][update_inds] = time.time()
-        self.H['gen_worker'][update_inds] = gen_worker
+        first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
+        self.H['gen_time'][first_gen_inds] = time.time()
+        self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 
     def grow_H(self, k):
