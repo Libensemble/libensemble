@@ -18,7 +18,7 @@ protected_libE_fields = ['gen_worker',
                          'given',
                          'given_time',
                          'returned',
-                         'returned_time_time',
+                         'returned_time',
                          'sim_worker']
 
 allowed_sim_spec_keys = ['sim_f',  #
