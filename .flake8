@@ -47,4 +47,3 @@ per-file-ignores =
 
         # Allow undefined name '__version__'
         setup.py:F821
-
