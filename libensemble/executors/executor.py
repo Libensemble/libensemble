@@ -15,7 +15,12 @@ import logging
 import itertools
 import time
 
-from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+# from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+
+from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
+                                         MAN_SIGNAL_FINISH, WORKER_DONE,
+                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
+
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
 
@@ -223,6 +228,71 @@ class Task:
             return
 
         self._set_complete()
+
+    def manager_poll(self, comm):
+        """ Polls for a manager signal
+
+        The task manager_signal attribute will be updated.
+
+        """
+        self.manager_signal = 'none'  # Reset
+
+        # Check for messages; disregard anything but a stop signal
+        if not comm.mail_flag():
+            return
+        mtag, man_signal = comm.recv()
+        if mtag != STOP_TAG:
+            return
+
+        # Process the signal and push back on comm (for now)
+        logger.info('Manager probe hit true')
+        if man_signal == MAN_SIGNAL_FINISH:
+            self.manager_signal = 'finish'
+        elif man_signal == MAN_SIGNAL_KILL:
+            self.manager_signal = 'kill'
+        else:
+            logger.warning("Received unrecognized manager signal {} - "
+                           "ignoring".format(man_signal))
+        comm.push_to_buffer(mtag, man_signal)
+
+    def polling_loop(self, timeout_seconds=0, delay=1, poll_manager=False, comm=None):
+        """Generic, optional task status polling loop"""
+
+        calc_status = UNSET_TAG
+        if timeout_seconds > 0:
+            continue_condition = lambda: self.runtime < timeout_seconds
+        else:
+            continue_condition = lambda: not self.finished
+
+        while continue_condition():
+            time.sleep(delay)
+
+            if poll_manager and comm:
+                self.manager_poll(comm)
+                if self.manager_signal == 'finish':
+                    self.kill()
+                    calc_status = MAN_SIGNAL_FINISH
+                    break
+            time.sleep(delay)
+            self.poll()
+            if self.finished:
+                break
+
+        if self.finished:
+            if calc_status == UNSET_TAG:
+                if self.state == 'FINISHED':
+                    calc_status = WORKER_DONE
+                elif self.state == 'FAILED':
+                    calc_status = TASK_FAILED
+                elif self.state == 'USER_KILLED':
+                    calc_status = WORKER_KILL
+
+        else:
+            self.kill()
+            if self.finished:
+                calc_status = WORKER_KILL_ON_TIMEOUT
+
+        return calc_status
 
     def wait(self, timeout=None):
         """Waits on completion of the task or raises TimeoutExpired exception
