@@ -323,8 +323,8 @@ class Task:
             elif self.state == 'USER_KILLED':
                 calc_status = WORKER_KILL
             else:
-                logger.warning("Warning: Task {} in unknown state {}. Error code {}" \
-                    .format(task.name, task.state, task.errcode))
+                logger.warning("Warning: Task {} in unknown state {}. Error code {}"
+                               .format(self.name, self.state, self.errcode))
 
         return calc_status
 
