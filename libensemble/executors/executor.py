@@ -15,12 +15,10 @@ import logging
 import itertools
 import time
 
-# from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
-
-from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
-                                         MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL,
-                                         WORKER_DONE, TASK_FAILED,
-                                         WORKER_KILL_ON_TIMEOUT)
+from libensemble.message_numbers import (UNSET_TAG, MAN_SIGNAL_FINISH,
+                                         MAN_SIGNAL_KILL, WORKER_DONE,
+                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT,
+                                         WORKER_KILL, STOP_TAG)
 
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
@@ -257,18 +255,12 @@ class Task:
         comm.push_to_buffer(mtag, man_signal)
         return man_signal
 
-    def polling_loop(self, timeout_seconds=0, delay=1, poll_manager=False, comm=None):
+    def polling_loop(self, time_limit=0, delay=1, poll_manager=False, comm=None):
         """Generic, optional task status polling loop"""
 
         calc_status = UNSET_TAG
 
-        # Task can be killed on timeout if provided. Otherwise continues until finished
-        if timeout_seconds > 0:
-            continue_condition = lambda: (self.runtime < timeout_seconds) and (not self.finished)
-        else:
-            continue_condition = lambda: not self.finished
-
-        while continue_condition():
+        while not self.finished:
             time.sleep(delay)
             self.poll()
 
@@ -279,6 +271,9 @@ class Task:
                     self.kill()
                     calc_status = man_signal
                     break
+
+            if timeout_seconds > 0 and self.runtime > time_limit:
+                break
 
         if self.finished:
             if calc_status == UNSET_TAG:
