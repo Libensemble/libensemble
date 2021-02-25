@@ -233,6 +233,17 @@ class Task:
 
         The task manager_signal attribute will be updated.
 
+        Parameters
+        ----------
+
+        comm: Communicator object
+            Communicator object from ``libE_info['comm']``
+
+        Returns
+        -------
+        man_signal: int
+            Exact signal received from manager
+
         """
         self.manager_signal = 'none'  # Reset
 
@@ -256,8 +267,35 @@ class Task:
         return man_signal
 
     def polling_loop(self, time_limit=0, delay=1, poll_manager=False, comm=None):
-        """Generic, optional task status polling loop"""
+        """ Optional, generic task status polling loop. Operates until the task
+        either finishes or times out. Periodically polls the task
+        and optionally the manager for signals. On completion, returns a
+        :ref:`calc_status<datastruct-calc-status>` integer.
 
+        Parameters
+        ----------
+
+        time_limit: int
+            Maximum number of seconds for the polling loop to run. Tasks that run
+            longer than this limit are killed.
+
+        delay: int
+            Sleep duration between polling loop iterations
+
+        poll_manager: bool
+            Whether to also poll the manager for 'finish' or 'kill' signals.
+            If detected, the task is killed. Requires the user to also provide
+            a communicator object from ``libE_info``.
+
+        comm: Communicator object
+            Communicator object from ``libE_info['comm']``
+
+        Returns
+        -------
+        calc_status: int
+            integer attribute describing the status of a launched task
+
+        """
         calc_status = UNSET_TAG
 
         while not self.finished:
