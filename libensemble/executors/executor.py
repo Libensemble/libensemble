@@ -18,8 +18,9 @@ import time
 # from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 
 from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
-                                         MAN_SIGNAL_FINISH, WORKER_DONE,
-                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
+                                         MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL,
+                                         WORKER_DONE, TASK_FAILED,
+                                         WORKER_KILL_ON_TIMEOUT)
 
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
@@ -254,29 +255,30 @@ class Task:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
         comm.push_to_buffer(mtag, man_signal)
+        return man_signal
 
     def polling_loop(self, timeout_seconds=0, delay=1, poll_manager=False, comm=None):
         """Generic, optional task status polling loop"""
 
         calc_status = UNSET_TAG
+
+        # Task can be killed on timeout if provided. Otherwise continues until finished
         if timeout_seconds > 0:
-            continue_condition = lambda: self.runtime < timeout_seconds
+            continue_condition = lambda: (self.runtime < timeout_seconds) and (not self.finished)
         else:
             continue_condition = lambda: not self.finished
 
         while continue_condition():
             time.sleep(delay)
+            self.poll()
 
             if poll_manager and comm:
-                self.manager_poll(comm)
-                if self.manager_signal == 'finish':
+                # this way manager_poll can still be used independently
+                man_signal = self.manager_poll(comm)
+                if self.manager_signal != 'none':
                     self.kill()
-                    calc_status = MAN_SIGNAL_FINISH
+                    calc_status = man_signal
                     break
-            time.sleep(delay)
-            self.poll()
-            if self.finished:
-                break
 
         if self.finished:
             if calc_status == UNSET_TAG:
@@ -289,8 +291,7 @@ class Task:
 
         else:
             self.kill()
-            if self.finished:
-                calc_status = WORKER_KILL_ON_TIMEOUT
+            calc_status = WORKER_KILL_ON_TIMEOUT
 
         return calc_status
 
