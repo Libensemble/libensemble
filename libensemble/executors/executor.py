@@ -261,32 +261,32 @@ class Task:
         calc_status = UNSET_TAG
 
         while not self.finished:
-            time.sleep(delay)
             self.poll()
 
             if poll_manager and comm:
-                # this way manager_poll can still be used independently
                 man_signal = self.manager_poll(comm)
                 if self.manager_signal != 'none':
                     self.kill()
                     calc_status = man_signal
                     break
 
-            if timeout_seconds > 0 and self.runtime > time_limit:
+            if time_limit > 0 and self.runtime > time_limit:
+                self.kill()
+                calc_status = WORKER_KILL_ON_TIMEOUT
                 break
 
-        if self.finished:
-            if calc_status == UNSET_TAG:
-                if self.state == 'FINISHED':
-                    calc_status = WORKER_DONE
-                elif self.state == 'FAILED':
-                    calc_status = TASK_FAILED
-                elif self.state == 'USER_KILLED':
-                    calc_status = WORKER_KILL
+            time.sleep(delay)
 
-        else:
-            self.kill()
-            calc_status = WORKER_KILL_ON_TIMEOUT
+        if calc_status == UNSET_TAG:
+            if self.state == 'FINISHED':
+                calc_status = WORKER_DONE
+            elif self.state == 'FAILED':
+                calc_status = TASK_FAILED
+            elif self.state == 'USER_KILLED':
+                calc_status = WORKER_KILL
+            else:
+                logger.warning("Warning: Task {} in unknown state {}. Error code {}" \
+                    .format(task.name, task.state, task.errcode))
 
         return calc_status
 
