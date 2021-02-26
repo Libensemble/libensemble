@@ -241,4 +241,9 @@ routine using the surmise calibration generator.
 The associated simulation function and allocation function are included in
 ``sim_funcs/cwp_test_function.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
 
+While ``test_cwp_calib.py`` primarily demonstrates cancellation of pending simulations
+, the ``NEW_TEST_HERE.py`` test more thoroughly demonstrates libEnsemble's
+capability to also kill simulations that have been marked as cancelled, if
+those simulations have been launched via the :doc:`Executor<../executor/overview>`.
+
 .. _surmise: https://github.com/mosesyhc/surmise
