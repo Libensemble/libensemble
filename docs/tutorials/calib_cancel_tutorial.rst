@@ -15,12 +15,14 @@ we'll emphasize the settings, functions, and data fields within the calling scri
 :ref:`persistent generator<persistent-gens>`, Manager, and :ref:`sim_f<api_sim_f>`
 that make this capability possible, rather than outlining a step-by-step process.
 
-Generator - Overview of the Calibration Problem
------------------------------------------------
+Overview of the Calibration Problem
+-----------------------------------
 
 The generator function featured in this tutorial can be found in
 ``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for it's
-calibration surrogate model interface.
+calibration surrogate model interface. Note that this repository is a fork of
+the main surmise repository, but it retains support for the "PCGPwM" emulation
+method used in the generator. surmise is under active development.
 
 Given "observed values" at a given set of points called "x"s, the
 generator seeks to fit a model to these points using a function parameterized
@@ -67,12 +69,12 @@ workflow logic or persistent generator helper functions like ``send`` or ``recei
     15           libE: mark points with cancel request
     16               send: points with cancel request
 
-Generator - Point Cancellation Requests and Dedicated Fields
-------------------------------------------------------------
+Point Cancellation Requests and Dedicated Fields
+------------------------------------------------
 
 While the generator loops and updates the model based on returned
 points from simulations, it detects conditionally if any new Thetas should be generated
-from the model, simultaneously evaluating if any pending simulations ought to be
+from the model, simultaneously evaluating if any *pending* simulations ought to be
 cancelled ("obviated"). If so, the generator then calls``cancel_columns()``::
 
     if select_condition(pending):
@@ -114,6 +116,11 @@ The entire ``cancel_columns()`` routine is listed below::
         H_o['cancel'] = True
         send_mgr_worker_msg(comm, H_o)
 
+In future calls to the allocation function by the manager, points that would have
+been distributed for simulation work but are now marked with "cancel" will not
+be processed. In a separate routine, the manager will still attempt to send kill
+signals to workers that are processing cancelled points.
+
 Most Workers, including those running other persistent generators, are only
 allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`.
 However, since this generator must asynchronously update its model and
@@ -125,94 +132,93 @@ receiving of data.
 Note that this ``gen_f`` is swappable with any other ``gen_f`` that can instruct
 cancellation based on received evaluations.
 
-Manager - Cancellation, History Updates, and Allocation
--------------------------------------------------------
+.. Manager - Cancellation, History Updates, and Allocation
+.. -------------------------------------------------------
+..
+.. Between routines to call the allocation function and distribute allocated work
+.. to each Worker, the Manager selects points from the History array that are:
+..
+..     1) Marked as ``'given'`` by the allocation function
+..     2) Marked with ``'cancel'`` by the generator
+..     3) *Not* been marked as ``'returned'`` by the Manager
+..     4) *Not* been marked with ``'kill_sent'`` by the Manager
+..
+.. If any points match these characteristics, the Workers that are processing these
+.. points are sent ``STOP`` tags and a kill signal. ``'kill_sent'``
+.. is set to ``True`` for each of these points in the Manager's History array. During
+.. the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
+.. function calls, any points in the Manager's History array that have ``'cancel'``
+.. as ``True`` are not allocated::
+..
+..     task_avail = ~H['given'] & ~H['cancel']
+..
+.. This ``alloc_f`` also can prioritize allocating points that have
+.. higher ``'priority'`` values from the ``gen_f`` values in the local History array::
+..
+..     # Loop through available simulation workers
+..     for i in avail_worker_ids(W, persistent=False):
+..
+..         if np.any(task_avail):
+..             if 'priority' in H.dtype.fields:
+..                 priorities = H['priority'][task_avail]
+..                 if gen_specs['user'].get('give_all_with_same_priority'):
+..                     indexes = (priorities == np.max(priorities))
+..                 else:
+..                     indexes = np.argmax(priorities)
+..             else:
+..                 indexes = 0
 
-Between routines to call the allocation function and distribute allocated work
-to each Worker, the Manager selects points from the History array that are:
-
-    1) Marked as ``'given'`` by the allocation function
-    2) Marked with ``'cancel'`` by the generator
-    3) *Not* been marked as ``'returned'`` by the Manager
-    4) *Not* been marked with ``'kill_sent'`` by the Manager
-
-If any points match these characteristics, the Workers that are processing these
-points are sent ``STOP`` tags and a kill signal. ``'kill_sent'``
-is set to ``True`` for each of these points in the Manager's History array. During
-the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
-function calls, any points in the Manager's History array that have ``'cancel'``
-as ``True`` are not allocated::
-
-    task_avail = ~H['given'] & ~H['cancel']
-
-This ``alloc_f`` also can prioritize allocating points that have
-higher ``'priority'`` values from the ``gen_f`` values in the local History array::
-
-    # Loop through available simulation workers
-    for i in avail_worker_ids(W, persistent=False):
-
-        if np.any(task_avail):
-            if 'priority' in H.dtype.fields:
-                priorities = H['priority'][task_avail]
-                if gen_specs['user'].get('give_all_with_same_priority'):
-                    indexes = (priorities == np.max(priorities))
-                else:
-                    indexes = np.argmax(priorities)
-            else:
-                indexes = 0
-
-Simulator - Receiving Kill Signal and Cancelling Tasks
-------------------------------------------------------
-
-Within the Simulation Function, the :doc:`Executor<../executor/overview>`
-is used to launch simulations based on points from the generator,
-and then enters a routine to loop and check for signals from the Manager::
-
-    def subproc_borehole_func(H, subp_opts, libE_info):
-        sim_id = libE_info['H_rows'][0]
-        H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
-        ...
-        exctr = Executor.executor
-        task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
-        calc_status = polling_loop(exctr, task, sim_id)
-
-``polling_loop()`` resembles the following::
-
-    def polling_loop(exctr, task, sim_id):
-        calc_status = UNSET_TAG
-        poll_interval = 0.01
-
-        # Poll task for finish and poll manager for kill signals
-        while(not task.finished):
-            exctr.manager_poll()
-            if exctr.manager_signal == 'kill':
-                task.kill()
-                calc_status = MAN_SIGNAL_KILL
-                break
-            else:
-                task.poll()
-                time.sleep(poll_interval)
-
-        if task.state == 'FAILED':
-            calc_status = TASK_FAILED
-
-        return calc_status
-
-While the launched task isn't finished, the simulator function periodically polls
-both the task's statuses and for signals from the manager via
-the :ref:`executor.manager_poll()<manager_poll_label>` function.
-Immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
-task is killed and the function returns with the
-``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
-This status will be logged in ``libE_stats.txt``.
+.. Simulator - Receiving Kill Signal and Cancelling Tasks
+.. ------------------------------------------------------
+..
+.. Within the Simulation Function, the :doc:`Executor<../executor/overview>`
+.. is used to launch simulations based on points from the generator,
+.. and then enters a routine to loop and check for signals from the Manager::
+..
+..     def subproc_borehole_func(H, subp_opts, libE_info):
+..         sim_id = libE_info['H_rows'][0]
+..         H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
+..         ...
+..         exctr = Executor.executor
+..         task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
+..         calc_status = polling_loop(exctr, task, sim_id)
+..
+.. asdf ``polling_loop()`` resembles the following::
+..
+..     def polling_loop(exctr, task, sim_id):
+..         calc_status = UNSET_TAG
+..         poll_interval = 0.01
+..
+..         # Poll task for finish and poll manager for kill signals
+..         while(not task.finished):
+..             exctr.manager_poll()
+..             if exctr.manager_signal == 'kill':
+..                 task.kill()
+..                 calc_status = MAN_SIGNAL_KILL
+..                 break
+..             else:
+..                 task.poll()
+..                 time.sleep(poll_interval)
+..
+..         if task.state == 'FAILED':
+..             calc_status = TASK_FAILED
+..
+..         return calc_status
+..
+.. While the launched task isn't finished, the simulator function periodically polls
+.. both the task's statuses and for signals from the manager via
+.. the :ref:`executor.manager_poll()<manager_poll_label>` function.
+.. Immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
+.. task is killed and the function returns with the
+.. ``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
+.. This status will be logged in ``libE_stats.txt``.
 
 Calling Script - Reading Results
 --------------------------------
 
 Within the libEnsemble calling script, once the main :doc:`libE()<../libe_module>`
 function call has returned, it's a simple enough process to view the History rows
-that were either marked as cancelled and/or had a kill signal sent to their
-associated simulation instances during the run::
+that were marked as cancelled::
 
     H, persis_info, flag = libE(sim_specs, gen_specs,
                                 exit_criteria, persis_info,
@@ -221,7 +227,6 @@ associated simulation instances during the run::
 
     if is_master:
         print('Cancelled sims', H[H['cancel']])
-        print('Killed sims', H[H['kill_sent']])
 
 Here's an example graph showing the relationship between scheduled, cancelled (obviated),
 failed, and completed simulations requested by the ``gen_f``. Notice that for each
@@ -236,4 +241,4 @@ routine using the surmise calibration generator.
 The associated simulation function and allocation function are included in
 ``sim_funcs/cwp_test_function.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
 
-.. _surmise: https://github.com/surmising/surmise
+.. _surmise: https://github.com/mosesyhc/surmise
