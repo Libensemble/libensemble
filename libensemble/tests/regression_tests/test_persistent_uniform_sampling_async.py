@@ -33,7 +33,7 @@ n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float)],
-             'user': {'uniform_random_pause_ub': 0.1}
+             'user': {'uniform_random_pause_ub': 0.5}
              }
 
 gen_specs = {'gen_f': gen_f,
@@ -57,6 +57,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 
 if is_manager:
     [_, counts] = np.unique(H['gen_time'], return_counts=True)
+    print(counts)
     assert counts[0] == nworkers - 1, "The first gen_time should be common among gen_batch_size number of points"
     assert len(np.unique(counts)) > 1, "There is no variablitiy in the gen_times but there should be for the async case"
 

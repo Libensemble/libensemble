@@ -352,7 +352,7 @@ Read the documentation for Balsam here_.
 
 .. _ALCF: https://www.alcf.anl.gov/
 .. _Theta: https://www.alcf.anl.gov/theta
-.. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
+.. _Balsam: https://balsam.readthedocs.io
 .. _Cobalt: https://www.alcf.anl.gov/support-center/theta/submit-job-theta
 .. _`Support Center`: https://www.alcf.anl.gov/support-center/theta
 .. _here: https://balsam.readthedocs.io/en/latest/

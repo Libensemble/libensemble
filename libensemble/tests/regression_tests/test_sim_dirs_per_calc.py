@@ -31,7 +31,7 @@ c_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('com
 print('creating ensemble dir: ', c_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
-    if is_manager and not os.path.isdir(dir):
+    if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True
@@ -60,7 +60,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
 
 if is_manager:
     assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
-    dir_sum = sum(['worker' in i for i in os.listdir(c_ensemble)])
+    dir_sum = sum(['sim' in i for i in os.listdir(c_ensemble)])
     assert dir_sum == exit_criteria['sim_max'], \
         'Number of sim directories ({}) does not match sim_max ({}).'\
         .format(dir_sum, exit_criteria['sim_max'])

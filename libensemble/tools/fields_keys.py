@@ -14,6 +14,13 @@ libE_fields = [('sim_id', int),        # Unique id of entry in H that was genera
                ]
 # end_libE_fields_rst_tag
 
+protected_libE_fields = ['gen_worker',
+                         'gen_time',
+                         'given',
+                         'returned',
+                         'given_time',
+                         'sim_worker']
+
 allowed_sim_spec_keys = ['sim_f',  #
                          'in',     #
                          'out',    #
@@ -49,13 +56,14 @@ libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + \
 
 allowed_libE_spec_keys = ['abort_on_exception',     #
                           'authkey',                #
-                          'comm',                   #
                           'comms',                  #
                           'disable_log_files',      #
                           'ip',                     #
+                          'mpi_comm',               #
                           'nworkers',               #
                           'port',                   #
-                          'profile_worker',         #
+                          'profile',                #
+                          'safe_mode',              #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #
                           'save_H_and_persis_on_abort',        #

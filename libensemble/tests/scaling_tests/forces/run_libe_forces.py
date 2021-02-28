@@ -5,7 +5,7 @@ from forces_simf import run_forces  # Sim func from current dir
 
 # Import libEnsemble modules
 from libensemble.libE import libE
-from libensemble.libE_manager import ManagerException
+from libensemble.manager import ManagerException
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import libE_logger
 from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception
@@ -84,7 +84,7 @@ else:
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
 libE_specs['sim_dirs_make'] = True      # Separate each sim into a separate directory
-libE_specs['profile_worker'] = False    # Whether to have libE profile on (default False)
+libE_specs['profile'] = False    # Whether to have libE profile on (default False)
 
 # Maximum number of simulations
 sim_max = 8

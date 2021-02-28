@@ -38,8 +38,8 @@ def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_spe
     else:
         H_o = np.zeros(1, dtype=gen_specs['out'])
         H_o['x'] = len(H)*np.ones(n)
-        H_o['num_nodes'] = np.random.randint(1, gen_specs['user']['max_num_nodes']+1)
-        H_o['ranks_per_node'] = np.random.randint(1, gen_specs['user']['max_ranks_per_node']+1)
+        H_o['num_nodes'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_num_nodes']+1)
+        H_o['ranks_per_node'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_ranks_per_node']+1)
         H_o['priority'] = 10*H_o['num_nodes']
 
     return H_o, persis_info
@@ -113,18 +113,18 @@ def latin_hypercube_sample(H, persis_info, gen_specs, _):
 
     H_o = np.zeros(b, dtype=gen_specs['out'])
 
-    A = lhs_sample(n, b)
+    A = lhs_sample(n, b, persis_info['rand_stream'])
 
     H_o['x'] = A*(ub-lb)+lb
 
     return H_o, persis_info
 
 
-def lhs_sample(n, k):
+def lhs_sample(n, k, stream):
 
     # Generate the intervals and random values
     intervals = np.linspace(0, 1, k+1)
-    rand_source = np.random.uniform(0, 1, (k, n))
+    rand_source = stream.uniform(0, 1, (k, n))
     rand_pts = np.zeros((k, n))
     sample = np.zeros((k, n))
 
@@ -136,6 +136,6 @@ def lhs_sample(n, k):
 
     # Randomly perturb
     for j in range(n):
-        sample[:, j] = rand_pts[np.random.permutation(k), j]
+        sample[:, j] = rand_pts[stream.permutation(k), j]
 
     return sample

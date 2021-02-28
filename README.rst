@@ -10,6 +10,9 @@
 .. image:: https://travis-ci.org/Libensemble/libensemble.svg?branch=master
    :target: https://travis-ci.org/Libensemble/libensemble
 
+.. image:: https://github.com/Libensemble/libensemble/workflows/init-libEnsemble-CI/badge.svg?branch=develop
+   :target: https://github.com/Libensemble/libensemble/actions
+
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=master
    :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
 
@@ -62,7 +65,7 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.5 or above
+* Python_ 3.6 or above
 * NumPy_
 * psutil_
 
@@ -83,7 +86,9 @@ libEnsemble can also be run on launch nodes using multiprocessing.
 The example simulation and generation functions and tests require the following:
 
 * SciPy_
+* mpmath_
 * petsc4py_
+* DEAP_
 * DFO-LS_
 * Tasmanian_
 * NLopt_
@@ -131,8 +136,9 @@ Testing
 ~~~~~~~
 
 The provided test suite includes both unit and regression tests and is run
-regularly on
+regularly on:
 
+* `GitHub Actions`_
 * `Travis CI`_
 
 The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
@@ -156,8 +162,8 @@ Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors
 is taken. Furthermore, a combined coverage report is created at the top level,
 which can be viewed at ``libensemble/tests/cov_merge/index.html``
-after ``run_tests.sh`` is completed. The Travis CI coverage results are
-available online at Coveralls_.
+after ``run_tests.sh`` is completed. The coverage results are available
+online at Coveralls_.
 
 .. note::
     The executor tests can be run by using the direct-launch or
@@ -224,13 +230,16 @@ Resources
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
+.. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
 .. _MPICH: http://www.mpich.org/
+.. _mpmath: http://mpmath.org/
 .. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
 .. _NumPy: http://www.numpy.org

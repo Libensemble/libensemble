@@ -28,6 +28,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i))
 
     return Work, persis_info
