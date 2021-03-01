@@ -7,6 +7,8 @@
 #    python3 test_cwp_calib.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
+
+# Add test summary (inc. that test takes first theta as stand-in for 'observations'.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -48,57 +50,25 @@ if __name__ == '__main__':
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    subprocess_borehole = False     # Whether to subprocess borehole function
     n_init_thetas = 15              # Initial batch of thetas
     n_x = 25                        # No. of x values
     nparams = 4                     # No. of theta params
     ndims = 3                       # No. of x co-ordinates.
-    max_add_thetas = 50            # Max no. of thetas added for evaluation
+    max_add_thetas = 50             # Max no. of thetas added for evaluation
     step_add_theta = 10             # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 200           # No. of thetas to explore while selecting the next theta
     obsvar = 10 ** (-1)             # Constant for generating noise in obs
 
-    # Stop after max_emul_runs runs of the emulator
-    max_evals = (n_init_thetas + 1) * n_x + max_add_thetas*n_x
-
-    # batch mode until after batch_sim_id
+    # Batch mode until after batch_sim_id (add one theta to batch for observations)
     batch_sim_id = (n_init_thetas + 1) * n_x
 
-    if subprocess_borehole:
-        from libensemble.tests.regression_tests.common import build_borehole  # current location
-        from libensemble.executors.executor import Executor
-
-        sim_app = os.path.join(os.getcwd(), "borehole.x")
-        if not os.path.isfile(sim_app):
-            build_borehole()
-
-        exctr = Executor()  # Run serial sub-process in place
-        exctr.register_calc(full_path=sim_app, app_name='borehole')
-
-        # Subprocess variant creates input and output files for each sim
-        # libE_specs['sim_dirs_make'] = True  # To keep all - make sim dirs
-
-        libE_specs['use_worker_dirs'] = True  # To overwrite - make worker dirs only
-        libE_specs['sim_dirs_make'] = False   # Need this line also for worker dirs only
-
-        # Rename ensemble dir for non-inteference with other regression tests
-        libE_specs['ensemble_dir_path'] = 'ensemble_calib'
-
-        # Subprocess options. These are only required for testing
-        subp_opts = {'delay': True,     # Whether to add sim delay to one point per row
-                     'check': False,    # Check against in-line borehole
-                     'num_x': n_x,      # Delay is added every n_x sims (one point per row)
-                     'delay_start': batch_sim_id,  # Add delay starting from sim_id
-                     }
-    else:
-        subp_opts = {'num_x': n_x}
+    # Stop after max_emul_runs runs of the emulator
+    max_evals = batch_sim_id + max_add_thetas*n_x
 
     sim_specs = {'sim_f': sim_f,
                  'in': ['x', 'thetas'],
                  'out': [('f', float)],
-                 'user': {'subprocess_borehole': subprocess_borehole,
-                          'subp_opts': subp_opts
-                          }
+                 'user': {'num_obs': n_x}
                  }
 
     gen_out = [('x', float, ndims), ('thetas', float, nparams),
@@ -128,8 +98,9 @@ if __name__ == '__main__':
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     # Currently just allow gen to exit if mse goes below threshold value
-    exit_criteria = {'sim_max': max_evals}
     # exit_criteria = {'sim_max': max_evals, 'stop_val': ('mse', mse_exit)}
+
+    exit_criteria = {'sim_max': max_evals}  # Now just a set number of sims.
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs,
@@ -139,7 +110,7 @@ if __name__ == '__main__':
 
     if is_manager:
         print('Cancelled sims', H['sim_id'][H['cancel']])
-        print('Killed sims', H['sim_id'][H['kill_sent']])
+        #print('Killed sims', H['sim_id'][H['kill_sent']])
         # MC: Clean up of unreturned
         # assert np.all(H['returned'])
         save_libE_output(H, persis_info, __file__, nworkers)
