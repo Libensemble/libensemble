@@ -20,31 +20,41 @@ Overview of the Calibration Problem
 
 The generator function featured in this tutorial can be found in
 ``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for it's
-calibration surrogate model interface. Note that this repository is a fork of
-the main surmise repository, but it retains support for the "PCGPwM" emulation
-method used in the generator. surmise is under active development.
+calibration surrogate model interface.
 
-Given "observed values" at a given set of points called "x"s, the
-generator seeks to fit a model to these points using a function parameterized
-with "Thetas". The purpose is to find a set of Thetas that closely matches observed
-values, given the uncertainty in observations. Specifically, the purpose is to sample
-from the posterior distribution of Thetas.
+.. note::
+    Note that this repository is a fork of
+    the main surmise repository, but it retains support for the "PCGPwM" emulation
+    method used in the generator. surmise is under active development.
 
-After an initial batch of randomly sampled values, the model generates
-new Thetas, such that by performing ``sim_f`` evaluations at these new Thetas the model gains
-information about how the model function behaves and if certain Thetas are more likely to be
-sampled from the posterior or not. Intuitively, the model generates Thetas at parameters where
-there is a lack of information, e.g. where predictive variance is high:
+Say there is a computer model :math:`f(\theta, x)` to be calibrated.  To calibrate
+is to find some parameter :math:`\theta_0` such that :math:`f(\theta_0, x)` closely
+resembles data collected from a physical experiment.  For example, a (simple)
+physical experiment may involve dropping a ball at different heights to study the
+gravitational constant, and the corresponding computer model could be the set of
+differential equations that governs the drop.  In a case where the computer model
+is relatively expensive in computation, we employ a fast surrogate model to approximate
+the model and to inform good parameters to test next.  Here the computer model
+:math:`f(\theta, x)` is accessible only through performing ``sim_f`` evaluations.
 
+The generator function ``gen_f`` first samples an initial batch of parameters
+:math:`(\theta_0, \ldots, \theta_n)` and constructs a surrogate model.
+
+For illustration, the initial batch of evaluations are arranged in the following sense:
 .. math::
-
     \newcommand{\T}{\mathsf{T}}
-    Y = \begin{pmatrix}    f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T    \end{pmatrix} = \begin{pmatrix} f(\theta_1, x_1) & \ldots & f(\theta_1, x_m) \\ \vdots & \ddots & \vdots \\ f(\theta_n, x_1) & \ldots & f(\theta_n, x_m) \end{pmatrix}
+    \bm \mathrm{f} = \begin{pmatrix} f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T \end{pmatrix}
+    = \begin{pmatrix} f(\theta_1, x_1) & \ldots & f(\theta_1, x_m) \\ \vdots & \ddots & \vdots
+    \\ f(\theta_n, x_1) & \ldots & f(\theta_n, x_m) \end{pmatrix}.
 
-In the above matrix, ``Y`` is a matrix of ``sim_f`` evaluations of ``(Theta, x)``
-pairs, and forms the basis for building the model within the ``gen_f``.
-Such evaluations are performed until some error threshold is reached, at which
-point the generator exits and returns, initiating the shutdown of the libEnsemble routine.
+The surrogate then generates (suggests) new parameters for ``sim_f`` evaluations,
+so the number of parameters $n$ grows as more evaluations are scheduled and performed.
+As more evaluations are performed and received by ``gen_f``, the surrogate evolves and
+suggests parameters closer to :math:`\theta_0` with uncertainty estimates.
+The calibration can be terminated when either ``gen_f`` determines it has found
+:math:`\theta_0` with some tolerance in the surrounding uncertainty, or computational
+resource runs out.  At termination, the generator exits and returns, initiating the
+shutdown of the libEnsemble routine.
 
 The following is a pseudocode overview of the generator. Functions directly from
 the calibration library used within the generator function have the ``calib:`` prefix.
