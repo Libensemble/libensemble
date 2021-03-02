@@ -45,7 +45,7 @@ For illustration, the initial batch of evaluations are arranged in the following
 .. math::
 
     \newcommand{\T}{\mathsf{T}}
-    \bm \mathrm{f} = \begin{pmatrix} f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T \end{pmatrix}
+    \bm f = \begin{pmatrix} f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T \end{pmatrix}
     = \begin{pmatrix} f(\theta_1, x_1) & \ldots & f(\theta_1, x_m) \\ \vdots & \ddots & \vdots
     \\ f(\theta_n, x_1) & \ldots & f(\theta_n, x_m) \end{pmatrix}.
 
