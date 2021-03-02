@@ -41,6 +41,7 @@ The generator function ``gen_f`` first samples an initial batch of parameters
 :math:`(\theta_0, \ldots, \theta_n)` and constructs a surrogate model.
 
 For illustration, the initial batch of evaluations are arranged in the following sense:
+
 .. math::
     \newcommand{\T}{\mathsf{T}}
     \bm \mathrm{f} = \begin{pmatrix} f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T \end{pmatrix}
