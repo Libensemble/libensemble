@@ -195,7 +195,7 @@ class Worker:
         # SH from output_directory.py
         if calc_type == EVAL_SIM_TAG:
             enum_desc = 'sim_id'
-            calc_id = EnsembleDirectory._extract_H_ranges(Work)
+            calc_id = EnsembleDirectory.extract_H_ranges(Work)
         else:
             enum_desc = 'Gen no'
             calc_id = str(self.calc_iter[calc_type])

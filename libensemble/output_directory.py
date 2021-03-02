@@ -88,7 +88,7 @@ class EnsembleDirectory:
         return any([setting in self.specs for setting in dir_type_keys])
 
     @staticmethod
-    def _extract_H_ranges(Work):
+    def extract_H_ranges(Work):
         """Convert received H_rows into ranges for labeling """
         work_H_rows = Work['libE_info']['H_rows']
         if len(work_H_rows) == 1:
@@ -176,7 +176,7 @@ class EnsembleDirectory:
             self.loc_stack = LocationStack()
 
         if calc_type == EVAL_SIM_TAG:
-            H_rows = self._extract_H_ranges(Work)
+            H_rows = self.extract_H_ranges(Work)
         else:
             H_rows = str(calc_iter[calc_type])
 
