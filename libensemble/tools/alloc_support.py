@@ -68,6 +68,14 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
 
     :returns: None
     """
+
+    # Count total gens
+    try:
+        gen_work.gen_counter += 1
+    except AttributeError:
+        gen_work.gen_counter = 1
+    libE_info['gen_count'] = gen_work.gen_counter
+
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,

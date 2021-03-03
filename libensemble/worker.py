@@ -198,7 +198,11 @@ class Worker:
             calc_id = EnsembleDirectory.extract_H_ranges(Work)
         else:
             enum_desc = 'Gen no'
-            calc_id = str(self.calc_iter[calc_type])
+            # Use global gen count if available
+            if Work['libE_info'].get('gen_count'):
+                calc_id = str(Work['libE_info']['gen_count'])
+            else:
+                calc_id = str(self.calc_iter[calc_type])
         # Add a right adjust (mininum width).
         calc_id = calc_id.rjust(5, ' ')
 
