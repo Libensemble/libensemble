@@ -15,7 +15,7 @@ def borehole(H, persis_info, sim_specs, libE_info):
 
     # If observation do not use failure model
     sim_id = libE_info['H_rows'][0]
-    if sim_id > sim_specs['user']['subp_opts']['num_x']:
+    if sim_id > sim_specs['user']['num_obs']:
         H_o['f'] = borehole_failmodel(H['x'], H['thetas'])
     else:
         H_o['f'] = borehole_model(H['x'], H['thetas'])
@@ -27,7 +27,6 @@ def borehole_failmodel(x, theta):
     f = borehole_model(x, theta)
     wheretoobig = np.where((f / borehole_true(x)) > 1.25)
     f[wheretoobig[0], wheretoobig[1]] = np.inf
-
     return f
 
 
