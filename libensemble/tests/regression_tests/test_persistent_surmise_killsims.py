@@ -1,10 +1,10 @@
 # """
-# Runs libEnsemble with cwp calibration test.
+# Runs libEnsemble with Surmise calibration test.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-test_cwp_calib.py
-#    python3 test_cwp_calib.py --nworkers 3 --comms local
-#    python3 test_cwp_calib.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_persistent_surmise_killsims.py
+#    python3 test_persistent_surmise_killsims.py --nworkers 3 --comms local
+#    python3 test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
@@ -14,34 +14,23 @@
 # TESTSUITE_NPROCS: 3 4
 
 # Requires:
-#   Clone cwpcalibration repo
-#   pip install functionbase package.
+#   Install Surmise package
+
 
 # NOTE (REMOVE WHEN FIXED. **********************************************
 # TODO for step 1:
 #    Rename files/vars as required.
 #    Determine pass condition for test (assertions at end).
 
-# import numpy as np
 import os
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-
-#from libensemble.gen_funcs.persistent_cwp_calib import testcalib as gen_f
 from libensemble.gen_funcs.persistent_surmise_calib import testcalib as gen_f
-
-
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-
-
-#from libensemble.sim_funcs.cwpsim import borehole as sim_f
-#from libensemble.sim_funcs.cwp_test_function import borehole as sim_f
 from libensemble.sim_funcs.borehole_kills import borehole as sim_f
-
 from libensemble.tests.regression_tests.common import build_borehole  # current location
 from libensemble.executors.executor import Executor
-
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import libE_logger
