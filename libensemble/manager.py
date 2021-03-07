@@ -395,6 +395,7 @@ class Manager:
     def _kill_cancelled_sims(self):
         kill_sim = self.hist.H['given'] & self.hist.H['cancel'] & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
         if np.any(kill_sim):
+            logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
             kill_ids = self.hist.H['sim_id'][kill_sim]
             kill_on_workers = self.hist.H['sim_worker'][kill_sim]
             for w in kill_on_workers:

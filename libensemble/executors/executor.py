@@ -421,7 +421,7 @@ class Executor:
             return
 
         # Process the signal and push back on comm (for now)
-        logger.info('Manager probe hit true')
+        logger.info('Worker received kill signal {} from manager'.format(man_signal))
         if man_signal == MAN_SIGNAL_FINISH:
             self.manager_signal = 'finish'
         elif man_signal == MAN_SIGNAL_KILL:
