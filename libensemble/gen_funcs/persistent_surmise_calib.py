@@ -197,6 +197,8 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             emu.update(theta=theta, f=fevals)
             cal.fit()
 
+            samples = cal.theta.rnd(2500)
+            print(np.mean(np.sum((samples - np.array([0.5]*4))**2, 1)))
             print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
 
             step_add_theta += 2
