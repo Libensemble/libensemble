@@ -14,46 +14,26 @@ double borehole_func(char *filename){
   FILE* fh;
   int i,j;
   double x[3];
-  double theta[6];
-  double bounds[8][2];
-  double Tu, Tl, Hu, Hl, r, Kw;
-  double rw, L;
+  double theta[4];
+  double Hu, Ld_Kw, Treff, powparam, rw, Hl, L;
   double numer, denom1, denom2, f;
 
   //Maybe open outside function
   fh = fopen(filename, "rb");
-  fread( theta, sizeof( double ), 6, fh );
+  fread( theta, sizeof( double ), 4, fh );
   fread( x, sizeof( double ), 3, fh );
-  fread( bounds, sizeof( double ), 16, fh );
 
-  // Check bounds
-  for (i=0;i < 6;i++) {
-    assert(theta[i] >= bounds[i][0]);
-    assert(theta[i] <= bounds[i][1]);
-  }
-  for (i=0;i < 2;i++) {
-    assert(x[i] >= bounds[i+6][0]);
-    assert(x[i] <= bounds[i+6][1]);
-  }
-
-  Tu = theta[0];
-  Tl = theta[1];
-  Hu = theta[2];
-  Hl = theta[3];
-  r = theta[4];
-  Kw = theta[5];
+  Hu = theta[0];
+  Ld_Kw = theta[1];
+  Treff = theta[2];
+  powparam = theta[3];
   rw = x[0];
-  L = x[1];
+  Hl = x[1];
 
-  numer = 2.0 * M_PI * Tu * (Hu - Hl);
-  denom1 = 2.0 * L * Tu / (log(r/rw) * pow(rw,2) * Kw);
-  denom2 = Tu / Tl;
-  f = (numer / (log(r/rw) * (1.0 + denom1 + denom2)));
-
-  // Equivalent to f[xs[:, -1] == 1] = f[xs[:, -1].astype(bool)] ** (1.5)
-  if ((int)x[2] == 1) {
-    f = pow(f, 1.5);
-  }
+  numer = 2.0 * M_PI * (Hu - Hl);
+  denom1 = 2.0 * Ld_Kw / pow(rw,2);
+  denom2 = Treff;
+  f = numer / (denom1 + denom2) * exp(powparam * rw);
 
   fclose(fh);
   return f;

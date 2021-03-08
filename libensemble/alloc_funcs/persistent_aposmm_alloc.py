@@ -51,22 +51,22 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 inds_to_give = np.where(returned_but_not_given)[0]
 
                 gen_work(Work, i, persis_info['fields_to_give_back'],
-                         np.atleast_1d(inds_to_give), persis_info[i], persistent=True)
+                         np.atleast_1d(inds_to_give), persis_info.get(i), persistent=True)
 
                 H['given_back'][inds_to_give] = True
 
     for i in avail_worker_ids(W, persistent=False):
         if persis_info['next_to_give'] < len(H):
             # perform sim evaluations (if they exist in History).
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(persis_info['next_to_give']), persis_info[i])
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(persis_info['next_to_give']), persis_info.get(i))
             persis_info['next_to_give'] += 1
 
         elif persis_info.get('gen_started') is None:
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info['gen_started'] = True
-            persis_info[i]['nworkers'] = len(W)
+            persis_info.get(i)['nworkers'] = len(W)
 
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
 
     return Work, persis_info

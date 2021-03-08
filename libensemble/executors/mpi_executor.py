@@ -152,10 +152,11 @@ class MPIExecutor(Executor):
                 logger.info("Launching task {}{}: {}".
                             format(task.name, retry_string, " ".join(runline)))
                 task.run_attempts += 1
-                task.process = launcher.launch(runline, cwd='./',
-                                               stdout=open(task.stdout, 'w'),
-                                               stderr=open(task.stderr, 'w'),
-                                               start_new_session=subgroup_launch)
+                with open(task.stdout, 'w') as out, open(task.stderr, 'w') as err:
+                    task.process = launcher.launch(runline, cwd='./',
+                                                   stdout=out,
+                                                   stderr=err,
+                                                   start_new_session=subgroup_launch)
             except Exception as e:
                 logger.warning('task {} submit command failed on '
                                'try {} with error {}'

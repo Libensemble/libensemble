@@ -19,11 +19,13 @@ from libensemble.message_numbers import \
     TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
-from libensemble.libE_worker import WorkerErrMsg
+from libensemble.worker import WorkerErrMsg
+from libensemble.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
-from libensemble.tools.fields_keys import libE_spec_calc_dir_combined
+from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile
 import pstats
+import copy
 
 if tuple(np.__version__.split('.')) >= ('1', '15'):
     from numpy.lib.recfunctions import repack_fields
@@ -68,7 +70,7 @@ def manager_main(hist, libE_specs, alloc_specs,
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -86,7 +88,7 @@ def manager_main(hist, libE_specs, alloc_specs,
                   sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
 
-    if sim_specs.get('profile'):
+    if libE_specs.get('profile'):
         pr.disable()
         profile_stats_fname = 'manager.prof'
 
@@ -131,6 +133,7 @@ class Manager:
         timer = Timer()
         timer.start()
         self.date_start = timer.date_start.replace(' ', '_')
+        self.safe_mode = libE_specs.get('safe_mode', True)
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -149,27 +152,12 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_combined]):
-            self.check_ensemble_dir(libE_specs)
-            if libE_specs.get('ensemble_copy_back', False):
-                Manager.make_copyback_dir(libE_specs)
+        temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
-    @staticmethod
-    def make_copyback_dir(libE_specs):
-        ensemble_dir_path = libE_specs.get('ensemble_dir_path', './ensemble')
-        copybackdir = os.path.basename(ensemble_dir_path)  # Current directory, same basename
-        if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
-            copybackdir += '_back'
-        os.makedirs(copybackdir)
-
-    def check_ensemble_dir(self, libE_specs):
-        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         try:
-            os.rmdir(prefix)
-        except FileNotFoundError:  # Ensemble dir doesn't exist.
-            pass
+            temp_EnsembleDirectory.make_copyback_check()
         except OSError as e:  # Ensemble dir exists and isn't empty.
-            logger.manager_warning(_USER_CALC_DIR_WARNING.format(prefix))
+            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.prefix))
             self._kill_workers()
             raise ManagerException('Manager errored on initialization',
                                    'Ensemble directory already existed and wasn\'t empty.', e)
@@ -267,8 +255,13 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
-            if 'repack_fields' in dir():
-                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
+            if 'repack_fields' in globals():
+                new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work['H_fields']]
+                H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
+                for i, row in enumerate(work_rows):
+                    H_to_be_sent[i] = repack_fields(self.hist.H[Work['H_fields']][row])
+                # H_to_be_sent = repack_fields(self.hist.H[Work['H_fields']])[work_rows]
+                self.wcomms[w-1].send(0, H_to_be_sent)
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
@@ -359,9 +352,9 @@ class Manager:
                 self.W[w-1]['active'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv)
+                self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv['calc_out'])
+                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode)
                 assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
                     "Gen must return work when is is the only thing active and not persistent."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
@@ -450,9 +443,21 @@ class Manager:
     # --- Main loop
 
     def _alloc_work(self, H, persis_info):
-        "Calls work allocation function from alloc_specs"
+        """
+        Calls work allocation function from alloc_specs. Copies protected libE
+        fields before the alloc_f call and ensures they weren't modified
+        """
+        if self.safe_mode:
+            if 'repack_fields' in globals():
+                saveH = repack_fields(H[protected_libE_fields], recurse=True)
+            else:
+                saveH = copy.deepcopy(H[protected_libE_fields])
+
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+
+        if self.safe_mode:
+            assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
 
         if len(output) == 2:
             output = output + ((0,))

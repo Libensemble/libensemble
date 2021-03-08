@@ -24,7 +24,7 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs['profile_worker'] = True
+libE_specs['profile'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
@@ -57,8 +57,8 @@ if is_manager:
         assert file in os.listdir(), 'Expected profile {} not found after run'.format(file)
         with open(file, 'r') as f:
             data = f.read().split()
-            num_worker_funcs_profiled = sum(['libE_worker' in i for i in data])
+            num_worker_funcs_profiled = sum(['worker' in i for i in data])
         assert num_worker_funcs_profiled >= 8, 'Insufficient number of ' + \
-            'libE_worker functions profiled: ' + str(num_worker_funcs_profiled)
+            'worker functions profiled: ' + str(num_worker_funcs_profiled)
 
         os.remove(file)

@@ -6,15 +6,15 @@ alloc_specs
 Allocation function specifications to be set in the user calling script and passed
 to main ``libE()`` routine::
 
-    alloc_specs: [dict, optional] :
+    alloc_specs: [dict, optional]:
 
-        'alloc_f' [func] :
+        'alloc_f' [func]:
             Default: give_sim_work_first
-        'in' [list of strings] :
+        'in' [list of strings]:
             Default: None
-        'out' [list of tuples] :
+        'out' [list of tuples]:
             Default: [('allocated',bool)]
-        'user' [dict] :
+        'user' [dict]:
             Default: {'batch_mode': True}
 
 .. note::

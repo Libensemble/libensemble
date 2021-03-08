@@ -57,7 +57,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         if np.array_equiv(x, H['x']):
             if gen_specs['user']['localopt_method'] in ['LD_MMA']:
                 grad[:] = H['grad']
-            return np.float(H['f'])
+            return float(H['f'])
 
         # Send back x to the manager, then receive info or stop tag
         H_o = add_to_Out(np.zeros(1, dtype=gen_specs['out']), x, 0,

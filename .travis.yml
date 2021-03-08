@@ -1,7 +1,6 @@
 language: python
 dist: xenial
 python:
-  - 3.5
   - 3.6
   - 3.7
   - 3.8
@@ -12,20 +11,11 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
-  jobs:
     - MPI=mpich
-  matrix:
-    - COMMS_TYPE=m  # mpi
     - COMMS_TYPE=l  # local
-    - COMMS_TYPE=t  # tcp
 
 jobs:
   include:
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.7 COMMS_TYPE=m  # mpi
-      language: generic
-      python: 3.7
     - os: osx
       osx_image: xcode11.3
       env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
@@ -33,33 +23,10 @@ jobs:
       python: 3.7
     - os: osx
       osx_image: xcode11.3
-      env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
-      language: generic
-      python: 3.7
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
-      language: generic
-      python: 3.8
-    - os: osx
-      osx_image: xcode11.3
       env: MPI=mpich PY=3.8 COMMS_TYPE=l  # local
       language: generic
       python: 3.8
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.8 COMMS_TYPE=t  # tcp
-      language: generic
-      python: 3.8
   fast_finish: true
-  allow_failures:
-      - python: 3.8
-      - os: osx
-        env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
-      - os: osx
-        env: MPI=mpich PY=3.8 COMMS_TYPE=l  # mpi
-      - os: osx
-        env: MPI=mpich PY=3.8 COMMS_TYPE=t  # mpi
 
 services:
     - postgresql
@@ -102,7 +69,7 @@ install:
   - conda install $COMPILERS
   - conda install libblas libopenblas # Prevent 'File exists' error
 
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] || [[ "$PY" == "3.8" ]]; then
       conda install nlopt mpi4py scipy mpich;
       export PETSC_CONFIGURE_OPTIONS='--with-batch';
       conda install petsc4py;
@@ -136,13 +103,13 @@ install:
 
 before_script:
   - flake8 libensemble
-  - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
-  - source setbalsampath.sh # Imperfect method for env var persist after setup
+  # - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
+  # - source setbalsampath.sh # Imperfect method for env var persist after setup
   - ulimit -Sn 10000   # More concurrent file descriptors (for persis aposmm)
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -A "-W error" -z -$COMMS_TYPE
+  - ./libensemble/tests/run-tests.sh -y 'test_balsam*' -A "-W error" -z -$COMMS_TYPE
 
 # Track code coverage
 after_success:
