@@ -157,7 +157,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-    theta = gen_thetas(n_thetas)
+    theta = gen_thetas(prior, n_thetas)
     load_H(H_o, x, theta, set_priorities=True)
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------

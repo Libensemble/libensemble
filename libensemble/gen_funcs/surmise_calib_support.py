@@ -30,9 +30,9 @@ def gen_true_theta():
     return theta0
 
 
-def gen_thetas(n):
+def gen_thetas(prior, n):
     """Generate and return n parameters for the test function."""
-    thetas = thetaprior.rnd(n)
+    thetas = prior.rnd(n)
     return thetas
 
 
