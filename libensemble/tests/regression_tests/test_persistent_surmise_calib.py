@@ -73,6 +73,8 @@ if __name__ == '__main__':
                           'obsvar': obsvar,                      # Variance for generating noise in obs
                           'batch_to_sim_id': batch_sim_id,       # Up to this sim_id, wait for all results to return.
                           'ignore_cancelled': True,              # Do not use returned results that have been cancelled
+                          'priorloc': 1,                         # Prior location in the unit cube.
+                          'priorscale': 0.5,                     # Standard deviation of prior
                           }
                  }
 
