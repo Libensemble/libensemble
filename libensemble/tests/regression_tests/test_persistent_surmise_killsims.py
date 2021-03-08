@@ -22,6 +22,7 @@
 #    Rename files/vars as required.
 #    Determine pass condition for test (assertions at end).
 
+import numpy as np
 import os
 
 # Import libEnsemble items for this test
@@ -118,5 +119,6 @@ if __name__ == '__main__':
         print('Cancelled sims', H['sim_id'][H['cancel']])
         print('Killed sims', H['sim_id'][H['kill_sent']])
         # MC: Clean up of unreturned
-        # assert np.all(H['returned'])  #SH Could be all either returned or cancelled.
         save_libE_output(H, persis_info, __file__, nworkers)
+        assert sims_done == max_evals, \
+            'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
