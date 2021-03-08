@@ -137,6 +137,10 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     obsvar_const = gen_specs['user']['obsvar']  # Constant for generator
     ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status
 
+    priorloc = gen_specs['user']['priorloc']
+    priorscale = gen_specs['user']['priorscale']
+    prior = thetaprior(priorloc, priorscale)
+
     # Create points at which to evaluate the sim
     x, persis_info = gen_xs(n_x, persis_info)
 
@@ -165,7 +169,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         if fevals is None:  # initial batch
             fevals, pending, prev_pending, complete = create_arrays(calc_in, n_thetas, n_x)
             emu = build_emulator(theta, x, fevals)
-            cal = calibrator(emu, obs, x, thetaprior, obsvar, method='directbayes')
+            cal = calibrator(emu, obs, x, prior, obsvar, method='directbayes')
 
             print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
             update_model = False
