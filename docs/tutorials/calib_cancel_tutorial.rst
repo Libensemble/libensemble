@@ -45,12 +45,12 @@ For illustration, the initial batch of evaluations are arranged in the following
 .. math::
 
     \newcommand{\T}{\mathsf{T}}
-    \bm f = \begin{pmatrix} f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T \end{pmatrix}
+    \mathbf{f} = \begin{pmatrix} f(\theta_1)^\T \\ \vdots \\ f(\theta_n)^\T \end{pmatrix}
     = \begin{pmatrix} f(\theta_1, x_1) & \ldots & f(\theta_1, x_m) \\ \vdots & \ddots & \vdots
     \\ f(\theta_n, x_1) & \ldots & f(\theta_n, x_m) \end{pmatrix}.
 
 The surrogate then generates (suggests) new parameters for ``sim_f`` evaluations,
-so the number of parameters $n$ grows as more evaluations are scheduled and performed.
+so the number of parameters :math:`n` grows as more evaluations are scheduled and performed.
 As more evaluations are performed and received by ``gen_f``, the surrogate evolves and
 suggests parameters closer to :math:`\theta_0` with uncertainty estimates.
 The calibration can be terminated when either ``gen_f`` determines it has found
@@ -87,7 +87,7 @@ Point Cancellation Requests and Dedicated Fields
 While the generator loops and updates the model based on returned
 points from simulations, it detects conditionally if any new Thetas should be generated
 from the model, simultaneously evaluating if any *pending* simulations ought to be
-cancelled ("obviated"). If so, the generator then calls``cancel_columns()``::
+cancelled ("obviated"). If so, the generator then calls ``cancel_columns()``::
 
     if select_condition(pending):
         new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
