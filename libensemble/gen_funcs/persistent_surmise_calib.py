@@ -60,7 +60,7 @@ def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
     return theta, fevals, pending, prev_pending, complete
 
 
-def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_cancelled):
+def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x):
     """Unpack from calc_in into 2D (point * rows) fevals, failures, data_status"""
     sim_id = calc_in['sim_id']
     c, r = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
@@ -135,8 +135,6 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
     obsvar_const = gen_specs['user']['obsvar']  # Constant for generator
-    ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status
-
     priorloc = gen_specs['user']['priorloc']
     priorscale = gen_specs['user']['priorscale']
     prior = thetaprior(priorloc, priorscale)
@@ -176,7 +174,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         else:
             # Update fevals, failures, data_status from calc_in
             update_arrays(fevals, pending, complete, calc_in,
-                          pre_count, n_x, ignore_cancelled)
+                          pre_count, n_x)
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
