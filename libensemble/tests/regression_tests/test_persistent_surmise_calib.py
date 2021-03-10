@@ -7,8 +7,16 @@
 #    python3 test_persistent_surmise_calib.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
-
-# Add test summary (inc. that test takes first theta as stand-in for 'observations'.
+#
+# This test uses the Surmise package to perform a Borehole Calibration with
+# selective simulation cancellation. Initial observations are modeled using
+# a theta at the center of a unit hypercube. The initial function values for
+# these are run first. As the model is updated, the generator selects previously
+# issued evaluations to cancel.
+#
+# See more information, see tutorial:
+# "Borehole Calibration with Selective Simulation Cancellation"
+# in the libEnsemble documentation.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -17,11 +25,6 @@
 
 # Requires:
 #   Install Surmise package
-
-# NOTE (REMOVE WHEN FIXED. **********************************************
-# TODO for step 1:
-#    Rename files/vars as required.
-#    Determine pass condition for test (assertions at end).
 
 import numpy as np
 import os
