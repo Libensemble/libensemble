@@ -27,7 +27,6 @@
 #   Install Surmise package
 
 import numpy as np
-import os
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -52,11 +51,11 @@ if __name__ == '__main__':
     n_explore_theta = 200           # No. of thetas to explore while selecting the next theta
     obsvar = 10 ** (-1)             # Constant for generating noise in obs
 
-    # Batch mode until after batch_sim_id (add one theta to batch for observations)
-    batch_sim_id = (n_init_thetas + 1) * n_x
+    # Batch mode until after init_sample_size (add one theta to batch for observations)
+    init_sample_size = (n_init_thetas + 1) * n_x
 
     # Stop after max_emul_runs runs of the emulator
-    max_evals = batch_sim_id + max_add_thetas*n_x
+    max_evals = init_sample_size + max_add_thetas*n_x
 
     sim_specs = {'sim_f': sim_f,
                  'in': ['x', 'thetas'],
@@ -75,17 +74,17 @@ if __name__ == '__main__':
                           'step_add_theta': step_add_theta,      # No. of thetas to generate per step
                           'n_explore_theta': n_explore_theta,    # No. of thetas to explore each step
                           'obsvar': obsvar,                      # Variance for generating noise in obs
-                          'batch_to_sim_id': batch_sim_id,       # Up to this sim_id, wait for all results to return.
-                          'priorloc': 1,                         # Prior location in the unit cube.
+                          'init_sample_size': init_sample_size,  # Initial batch size inc. observations
+                          'priorloc': 1,                         # Prior location in the unit cube
                           'priorscale': 0.5,                     # Standard deviation of prior
                           }
                  }
 
-    # alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
     alloc_specs = {'alloc_f': alloc_f,
                    'out': [('given_back', bool)],
-                   'user': {'batch_to_sim_id': batch_sim_id,
-                            'batch_mode': False  # set batch mode (alloc behavior after batch_sim_id)
+                   'user': {'init_sample_size': init_sample_size,
+                            'async_return': True,    # True = Return results to gen as they come in (after sample)
+                            'active_recv_gen': True  # Persistent gen can handle irregular communications
                             }
                    }
 
@@ -105,7 +104,6 @@ if __name__ == '__main__':
     if is_manager:
         print('Cancelled sims', H['sim_id'][H['cancel']])
         sims_done = np.count_nonzero(H['returned'])
-        # MC: Clean up of unreturned
         save_libE_output(H, persis_info, __file__, nworkers)
         assert sims_done == max_evals, \
             'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
