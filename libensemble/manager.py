@@ -272,7 +272,7 @@ class Manager:
         if 'libE_info' in Work:
             if 'persistent' in Work['libE_info']:
                 self.W[w-1]['persis_state'] = Work['tag']
-                if 'active_recv' in Work['libE_info']:
+                if Work['libE_info'].get('active_recv', False):
                     self.W[w-1]['active_recv'] = Work['tag']
             else:
                 assert 'active_recv' not in Work['libE_info'], \
@@ -340,7 +340,6 @@ class Manager:
         Manager._check_received_calc(D_recv)
         if w not in self.persis_pending and not self.W[w-1]['active_recv']:
             self.W[w-1]['active'] = 0
-
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             self.W[w-1]['persis_state'] = 0
