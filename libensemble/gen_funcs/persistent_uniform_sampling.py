@@ -27,7 +27,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
         H_o = np.zeros(b, dtype=gen_specs['out'])
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-        if calc_in is not None:
+        if hasattr(calc_in, '__len__'):
             b = len(calc_in)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
