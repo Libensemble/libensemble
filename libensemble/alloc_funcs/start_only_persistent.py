@@ -37,17 +37,17 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     for i in avail_worker_ids(W, persistent=True, active_recv=active_recv_gen):
         gen_inds = (H['gen_worker'] == i)
         returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
+        if np.any(returned_but_not_given):
+            inds_since_last_gen = np.where(returned_but_not_given)[0]
 
-        inds_since_last_gen = np.where(returned_but_not_given)[0]
-
-        if inds_since_last_gen.size > 0:
+            #if inds_since_last_gen.size > 0:
             if async_return or np.all(H['returned'][gen_inds]):
                 gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
                          np.atleast_1d(inds_since_last_gen), persis_info[i], persistent=True,
                          active_recv=active_recv_gen)
 
-            H['given_back'][inds_since_last_gen] = True
+                H['given_back'][inds_since_last_gen] = True
 
     task_avail = ~H['given'] & ~H['cancel']
     for i in avail_worker_ids(W, persistent=False):
