@@ -115,7 +115,7 @@ if __name__ == '__main__':
                                 libE_specs=libE_specs)
 
     if is_manager:
-        print('Cancelled sims', H['sim_id'][H['cancel']])
+        print('Cancelled sims', H['sim_id'][H['cancel_requested']])
         print('Killed sims', H['sim_id'][H['kill_sent']])
         sims_done = np.count_nonzero(H['returned'])
         save_libE_output(H, persis_info, __file__, nworkers)

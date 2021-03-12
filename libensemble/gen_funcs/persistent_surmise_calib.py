@@ -84,9 +84,9 @@ def cancel_columns(pre_count, c, n_x, pending, complete, comm):
                 pending[i, c] = 0
 
     # Send only these fields to existing H row and it will slot in change.
-    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
     H_o['sim_id'] = sim_ids_to_cancel
-    H_o['cancel'] = True
+    H_o['cancel_requested'] = True
     send_mgr_worker_msg(comm, H_o)
 
 
