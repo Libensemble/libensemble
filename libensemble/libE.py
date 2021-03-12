@@ -144,7 +144,7 @@ def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
             on_abort=None, on_cleanup=None):
     "Generic manager routine run."
 
-    logger.info('Logger initializing: [workerID] precedes each line. [0] = Manger')
+    logger.info('Logger initializing: [workerID] precedes each line. [0] = Manager')
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
         logger.manager_warning(_USER_SIM_ID_WARNING)
