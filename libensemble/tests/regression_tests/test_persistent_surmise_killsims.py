@@ -41,6 +41,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 # from libensemble import libE_logger
 # libE_logger.set_level('DEBUG')  # To get debug logging in ensemble.log
 
+
 if __name__ == '__main__':
 
     nworkers, is_manager, libE_specs, _ = parse_args()
@@ -101,7 +102,8 @@ if __name__ == '__main__':
     alloc_specs = {'alloc_f': alloc_f,
                    'out': [('given_back', bool)],
                    'user': {'init_sample_size': init_sample_size,
-                            'async_return': True  # True = Return results to gen as they come in (after sample)
+                            'async_return': True,    # True = Return results to gen as they come in (after sample)
+                            'active_recv_gen': True  # Persistent gen can handle irregular communications
                             }
                    }
 
