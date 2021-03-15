@@ -105,7 +105,7 @@ Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and 
 point is ``pending`` and thus has not yet been evaluated by a simulation,
 its ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
 A new, separate local :doc:`History array<../history_output>` is defined with the
-selected ``'sim_id'`` s and the ``'cancel'`` field set to ``True``. This array is
+selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
 The entire ``cancel_columns()`` routine is listed below::
@@ -123,13 +123,13 @@ The entire ``cancel_columns()`` routine is listed below::
                     pending[i, c] = 0
 
         # Send only these fields to existing H row and it will slot in change.
-        H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
+        H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
         H_o['sim_id'] = sim_ids_to_cancel
-        H_o['cancel'] = True
+        H_o['cancel_requested'] = True
         send_mgr_worker_msg(comm, H_o)
 
 In future calls to the allocation function by the manager, points that would have
-been distributed for simulation work but are now marked with "cancel" will not
+been distributed for simulation work but are now marked with "cancel_requested" will not
 be processed. In a separate routine, the manager will still attempt to send kill
 signals to workers that are processing cancelled points.
 
@@ -151,7 +151,7 @@ cancellation based on received evaluations.
 .. to each Worker, the Manager selects points from the History array that are:
 ..
 ..     1) Marked as ``'given'`` by the allocation function
-..     2) Marked with ``'cancel'`` by the generator
+..     2) Marked with ``'cancel_requested'`` by the generator
 ..     3) *Not* been marked as ``'returned'`` by the Manager
 ..     4) *Not* been marked with ``'kill_sent'`` by the Manager
 ..
@@ -159,10 +159,10 @@ cancellation based on received evaluations.
 .. points are sent ``STOP`` tags and a kill signal. ``'kill_sent'``
 .. is set to ``True`` for each of these points in the Manager's History array. During
 .. the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
-.. function calls, any points in the Manager's History array that have ``'cancel'``
+.. function calls, any points in the Manager's History array that have ``'cancel_requested'``
 .. as ``True`` are not allocated::
 ..
-..     task_avail = ~H['given'] & ~H['cancel']
+..     task_avail = ~H['given'] & ~H['cancel_requested']
 ..
 .. This ``alloc_f`` also can prioritize allocating points that have
 .. higher ``'priority'`` values from the ``gen_f`` values in the local History array::
@@ -238,7 +238,7 @@ that were marked as cancelled::
                                 libE_specs=libE_specs)
 
     if is_master:
-        print('Cancelled sims', H[H['cancel']])
+        print('Cancelled sims', H['cancel_requested'])
 
 Here's an example graph showing the relationship between scheduled, cancelled (obviated),
 failed, and completed simulations requested by the ``gen_f``. Notice that for each
