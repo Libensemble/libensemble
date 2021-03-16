@@ -35,7 +35,8 @@ gravitational constant, and the corresponding computer model could be the set of
 differential equations that governs the drop.  In a case where the computer model
 is relatively expensive in computation, we employ a fast surrogate model to approximate
 the model and to inform good parameters to test next.  Here the computer model
-:math:`f(\theta, x)` is accessible only through performing ``sim_f`` evaluations.
+:math:`f(\theta, x)` is accessible only through performing :ref:`sim_f<api_sim_f>`
+evaluations.
 
 The generator function ``gen_f`` first samples an initial batch of parameters
 :math:`(\theta_0, \ldots, \theta_n)` and constructs a surrogate model.
@@ -72,11 +73,11 @@ workflow logic or persistent generator helper functions like ``send`` or ``recei
     6            calib: construct new model
     7        else:
     8            wait to receive more points
-    9        if data_status condition:
-    10           calib: generate new rows of points from model
+    9        if some condition:
+    10           calib: generate new thetas from model
     11           calib: if error threshold reached:
     12               exit loop - done
-    13           send: new rows of points to be evaluated
+    13           send: new points to be evaluated
     14       if any sent points must be obviated:
     15           libE: mark points with cancel request
     16               send: points with cancel request
@@ -94,12 +95,14 @@ cancelled ("obviated"). If so, the generator then calls ``cancel_columns()``::
         ...
         c_obviate = info['obviatesugg']  # suggested
         if len(c_obviate) > 0:
-            cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
+            cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
 
-``pre_count`` is a scalar of the number of ``sim_id``'s, ``c_obviate`` is a selection
-of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` and ``complete``
-contain pending and simulated points, respectively. ``comm`` is a communicator object from
-:doc:`libE_info<../data_structures/work_dict>` used to send and receive messages from the Manager.
+``obs_offset`` is an offset that excludes the observations when mapping points in surmise
+data structures to ``sim_id``'s, ``c_obviate`` is a selection
+of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` is used
+to check that points marked for cancellation have not already returned. ``comm`` is a
+communicator object from :doc:`libE_info<../data_structures/work_dict>` used to send
+and receive messages from the Manager.
 
 Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
 point is ``pending`` and thus has not yet been evaluated by a simulation,
@@ -110,19 +113,19 @@ then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
 The entire ``cancel_columns()`` routine is listed below::
 
-    def cancel_columns(pre_count, c, n_x, pending, complete, comm):
+    def cancel_columns(obs_offset, c, n_x, pending, comm):
         """Cancel columns"""
         sim_ids_to_cancel = []
         columns = np.unique(c)
         for c in columns:
             col_offset = c*n_x
             for i in range(n_x):
-                sim_id_cancl = pre_count + col_offset + i
+                sim_id_cancl = obs_offset + col_offset + i
                 if pending[i, c]:
                     sim_ids_to_cancel.append(sim_id_cancl)
                     pending[i, c] = 0
 
-        # Send only these fields to existing H row and it will slot in change.
+        # Send only these fields to existing H rows and libEnsemble will slot in the change.
         H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
         H_o['sim_id'] = sim_ids_to_cancel
         H_o['cancel_requested'] = True
@@ -130,8 +133,9 @@ The entire ``cancel_columns()`` routine is listed below::
 
 In future calls to the allocation function by the manager, points that would have
 been distributed for simulation work but are now marked with "cancel_requested" will not
-be processed. In a separate routine, the manager will still attempt to send kill
-signals to workers that are processing cancelled points.
+be processed. The manager will send kill signals to workers that are already processing
+cancelled points. These signals can be caught and acted on by the user ``sim_f``; otherwise
+they will be ignored.
 
 Most Workers, including those running other persistent generators, are only
 allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`.
