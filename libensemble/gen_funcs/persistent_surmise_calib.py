@@ -35,7 +35,7 @@ def rebuild_condition(pending, prev_pending, n_theta=5):  # needs changes
 
 
 def create_arrays(calc_in, n_thetas, n_x):
-    """Create 2D (point * rows) arrays fevals, failures and data_status from calc_in"""
+    """Create 2D (point * rows) arrays fevals, pending and complete"""
     fevals = np.reshape(calc_in['f'], (n_x, n_thetas))
     pending = np.full(fevals.shape, False)
     prev_pending = pending.copy()
@@ -59,10 +59,10 @@ def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
     return theta, fevals, pending, prev_pending, complete
 
 
-def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x):
-    """Unpack from calc_in into 2D (point * rows) fevals, failures, data_status"""
+def update_arrays(fevals, pending, complete, calc_in, obs_offset, n_x):
+    """Unpack from calc_in into 2D (point * rows) fevals"""
     sim_id = calc_in['sim_id']
-    c, r = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
+    c, r = divmod(sim_id - obs_offset, n_x)  # r, c are arrays if sim_id is an array
 
     fevals[r, c] = calc_in['f']
     pending[r, c] = False
@@ -70,19 +70,19 @@ def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x):
     return
 
 
-def cancel_columns(pre_count, c, n_x, pending, complete, comm):
+def cancel_columns(obs_offset, c, n_x, pending, comm):
     """Cancel columns"""
     sim_ids_to_cancel = []
     columns = np.unique(c)
     for c in columns:
         col_offset = c*n_x
         for i in range(n_x):
-            sim_id_cancl = pre_count + col_offset + i
+            sim_id_cancl = obs_offset + col_offset + i
             if pending[i, c]:
                 sim_ids_to_cancel.append(sim_id_cancl)
                 pending[i, c] = 0
 
-    # Send only these fields to existing H row and it will slot in change.
+    # Send only these fields to existing H rows and libEnsemble will slot in the change.
     H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
     H_o['sim_id'] = sim_ids_to_cancel
     H_o['cancel_requested'] = True
@@ -142,7 +142,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     x = gen_xs(n_x, rand_stream)
 
     H_o = gen_truevals(x, gen_specs)
-    pre_count = len(H_o)
+    obs_offset = len(H_o)
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
@@ -171,9 +171,9 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
             update_model = False
         else:
-            # Update fevals, failures, data_status from calc_in
+            # Update fevals from calc_in
             update_arrays(fevals, pending, complete, calc_in,
-                          pre_count, n_x)
+                          obs_offset, n_x)
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
@@ -219,7 +219,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             c_obviate = info['obviatesugg']
             if len(c_obviate) > 0:
                 print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
-                cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
+                cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
             pending[:, c_obviate] = False
 
     return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
