@@ -3,12 +3,11 @@ This module contains a simple calibration example of using libEnsemble with gemu
 """
 import numpy as np
 from libensemble.gen_funcs.surmise_calib_support import gen_xs, gen_thetas, gen_observations, gen_true_theta, \
-    thetaprior, select_next_theta, obviate_pend_theta
+    thetaprior, select_next_theta
 from surmise.calibration import calibrator
 from surmise.emulation import emulator
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
-import concurrent.futures
 
 
 def build_emulator(theta, x, fevals):
@@ -129,7 +128,7 @@ def gen_truevals(x, gen_specs):
 def testcalib(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
     comm = libE_info['comm']
-    randstream = persis_info['rand_stream']
+    rand_stream = persis_info['rand_stream']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
@@ -140,7 +139,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
     prior = thetaprior(priorloc, priorscale)
 
     # Create points at which to evaluate the sim
-    x, persis_info = gen_xs(n_x, persis_info)
+    x = gen_xs(n_x, rand_stream)
 
     H_o = gen_truevals(x, gen_specs)
     pre_count = len(H_o)
@@ -151,7 +150,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     returned_fevals = np.reshape(calc_in['f'], (1, n_x))
     true_fevals = returned_fevals
-    obs, obsvar = gen_observations(true_fevals, obsvar_const, persis_info)
+    obs, obsvar = gen_observations(true_fevals, obsvar_const, rand_stream)
 
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
@@ -169,7 +168,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             emu = build_emulator(theta, x, fevals)
             cal = calibrator(emu, obs, x, prior, obsvar, method='directbayes')
 
-            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
             update_model = False
         else:
             # Update fevals, failures, data_status from calc_in
@@ -182,22 +181,22 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     break
 
         if update_model:
-            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete),4),
-                                                    np.sum(1-pending-complete),
-                                                    np.prod(pending.shape)))
-            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending),4),
+            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete), 4),
+                                                              np.sum(1-pending-complete),
+                                                              np.prod(pending.shape)))
+            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending), 4),
                                                             np.sum(pending),
                                                             np.prod(pending.shape)))
-            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete),4),
-                                                            np.sum(complete),
-                                                            np.prod(pending.shape)))
+            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete), 4),
+                                                             np.sum(complete),
+                                                             np.prod(pending.shape)))
 
             emu.update(theta=theta, f=fevals)
             cal.fit()
 
             samples = cal.theta.rnd(2500)
             print(np.mean(np.sum((samples - np.array([0.5]*4))**2, 1)))
-            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
 
             step_add_theta += 2
             prev_pending = pending.copy()

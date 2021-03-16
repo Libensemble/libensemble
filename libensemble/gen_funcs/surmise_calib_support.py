@@ -36,19 +36,16 @@ def gen_thetas(prior, n):
     return thetas
 
 
-def gen_xs(nx, persis_info):
+def gen_xs(nx, randstream):
     """Generate and returns n inputs for the modified Borehole function."""
-    randstream = persis_info['rand_stream']
-
     xs = randstream.uniform(0, 1, (nx, 3))
     xs[:, 2] = xs[:, 2] > 0.5
 
-    return xs, persis_info
+    return xs
 
 
-def gen_observations(fevals, obsvar_const, persis_info):
+def gen_observations(fevals, obsvar_const, randstream):
     """Generate observations."""
-    randstream = persis_info['rand_stream']
     n_x = len(np.squeeze(fevals))
     obsvar = np.maximum(obsvar_const*fevals, 5)
     obsvar = np.squeeze(obsvar)

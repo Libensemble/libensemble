@@ -52,11 +52,10 @@ def teardown_module(module):
 
 def build_simfuncs():
     import subprocess
-    #import pdb;pdb.set_trace()
     for sim in build_sims:
-        app_name = '.'.join([sim.split('.')[0],'x'])
+        app_name = '.'.join([sim.split('.')[0], 'x'])
         if not os.path.isfile(app_name):
-            buildstring = 'mpicc -o ' + os.path.join('simdir',app_name) + ' ' + os.path.join('simdir',sim)
+            buildstring = 'mpicc -o ' + os.path.join('simdir', app_name) + ' ' + os.path.join('simdir', sim)
             subprocess.check_call(buildstring.split())
 
 

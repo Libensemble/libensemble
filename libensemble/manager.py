@@ -392,7 +392,9 @@ class Manager:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
-        kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+        kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
+            & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+
         if np.any(kill_sim):
             logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
             kill_ids = self.hist.H['sim_id'][kill_sim]
