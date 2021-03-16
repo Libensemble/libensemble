@@ -41,7 +41,7 @@ evaluations.
 As a convenience for testing, the ``observed`` data values are modelled by calling the ``sim_f``
 for the known true theta, which in this case is the center of a unit hypercube. These values
 are therefore stored at the start of libEnsemble's
-main :doc:`History array<../history_output>` array, and have associated ``sim_id``s.
+main :doc:`History array<../history_output>` array, and have associated ``sim_id``'s.
 
 The generator function ``gen_f`` then samples an initial batch of parameters
 :math:`(\theta_0, \ldots, \theta_n)` and constructs a surrogate model.
@@ -103,7 +103,7 @@ cancelled ("obviated"). If so, the generator then calls ``cancel_columns()``::
             cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
 
 ``obs_offset`` is an offset that excludes the observations when mapping points in surmise
-data structures to ``sim_id``s, ``c_obviate`` is a selection
+data structures to ``sim_id``'s, ``c_obviate`` is a selection
 of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` is used
 to check that points marked for cancellation have not already returned. ``comm`` is a
 communicator object from :doc:`libE_info<../data_structures/work_dict>` used to send
