@@ -44,3 +44,6 @@ per-file-ignores =
         libensemble/gen_funcs/persistent_aposmm.py:E402, E501
         libensemble/tests/regression_tests/test_persistent_aposmm*:E402
         libensemble/tests/deprecated_tests/test_old_aposmm*:E402
+
+        # Allow undefined name '__version__'
+        setup.py:F821
