@@ -38,7 +38,12 @@ the model and to inform good parameters to test next.  Here the computer model
 :math:`f(\theta, x)` is accessible only through performing :ref:`sim_f<api_sim_f>`
 evaluations.
 
-The generator function ``gen_f`` first samples an initial batch of parameters
+As a convenience for testing, the ``observed`` data values are modelled by calling the ``sim_f``
+for the known true theta, which in this case is the center of a unit hypercube. These values
+are therefore stored at the start of libEnsemble's
+main :doc:`History array<../history_output>` array, and have associated ``sim_id``s.
+
+The generator function ``gen_f`` then samples an initial batch of parameters
 :math:`(\theta_0, \ldots, \theta_n)` and constructs a surrogate model.
 
 For illustration, the initial batch of evaluations are arranged in the following sense:
@@ -65,7 +70,7 @@ Helper functions defined to improve the data received by the calibration library
 interfacing with libEnsemble have the ``libE:`` prefix. All other statements are
 workflow logic or persistent generator helper functions like ``send`` or ``receive``::
 
-    1    libE: calculate test values and first batch
+    1    libE: calculate observation values and first batch
     2    while STOP_signal not received:
     3        receive: evaluated points
     4        unpack points into 2D Theta x Point structures
@@ -98,7 +103,7 @@ cancelled ("obviated"). If so, the generator then calls ``cancel_columns()``::
             cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
 
 ``obs_offset`` is an offset that excludes the observations when mapping points in surmise
-data structures to ``sim_id``'s, ``c_obviate`` is a selection
+data structures to ``sim_id``s, ``c_obviate`` is a selection
 of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` is used
 to check that points marked for cancellation have not already returned. ``comm`` is a
 communicator object from :doc:`libE_info<../data_structures/work_dict>` used to send
