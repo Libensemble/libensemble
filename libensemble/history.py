@@ -128,11 +128,12 @@ class History:
         sim_worker: integer
             Worker ID
         """
+        q_inds = np.atleast_1d(q_inds)
         self.H['given'][q_inds] = True
 
-        first_given_inds = ~H['given'][q_inds]
+        first_given_inds = ~self.H['given'][q_inds]
         t = time.time()
-        self.H['given_time'][first_given_inds] = t
+        self.H['given_time'][q_inds[first_given_inds]] = t
         self.H['last_given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
@@ -206,6 +207,7 @@ class History:
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
+        H_1['last_given_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...
