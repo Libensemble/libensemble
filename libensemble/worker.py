@@ -134,7 +134,7 @@ class Worker:
         self.libE_specs = libE_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
-        self._calc_id_counter = count()
+        # self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
@@ -190,7 +190,22 @@ class Worker:
         self.calc_iter[calc_type] += 1
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
-        calc_id = next(self._calc_id_counter)
+        # calc_id = next(self._calc_id_counter)
+
+        # SH from output_directory.py
+        if calc_type == EVAL_SIM_TAG:
+            enum_desc = 'sim_id'
+            calc_id = EnsembleDirectory.extract_H_ranges(Work)
+        else:
+            enum_desc = 'Gen no'
+            # Use global gen count if available
+            if Work['libE_info'].get('gen_count'):
+                calc_id = str(Work['libE_info']['gen_count'])
+            else:
+                calc_id = str(self.calc_iter[calc_type])
+        # Add a right adjust (mininum width).
+        calc_id = calc_id.rjust(5, ' ')
+
         timer = Timer()
 
         try:
@@ -216,6 +231,9 @@ class Worker:
 
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
 
+            if calc_status is None:
+                calc_status = UNSET_TAG
+
             # Check for buffered receive
             if self.comm.recv_buffer:
                 tag, message = self.comm.recv()
@@ -233,15 +251,17 @@ class Worker:
             if task_timing and Executor.executor.list_of_tasks:
                 # Initially supporting one per calc. One line output.
                 task = Executor.executor.list_of_tasks[-1]
-                calc_msg = "Calc {:5d}: {} {} {} Status: {}".\
-                    format(calc_id,
+                calc_msg = "{} {}: {} {} {} Status: {}".\
+                    format(enum_desc,
+                           calc_id,
                            calc_type_strings[calc_type],
                            timer,
                            task.timer,
                            calc_status_strings.get(calc_status, "Not set"))
             else:
-                calc_msg = "Calc {:5d}: {} {} Status: {}".\
-                    format(calc_id,
+                calc_msg = "{} {}: {} {} Status: {}".\
+                    format(enum_desc,
+                           calc_id,
                            calc_type_strings[calc_type],
                            timer,
                            calc_status_strings.get(calc_status, "Not set"))
