@@ -216,6 +216,9 @@ class Worker:
 
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
 
+            if calc_status is None:
+                calc_status = UNSET_TAG
+
             # Check for buffered receive
             if self.comm.recv_buffer:
                 tag, message = self.comm.recv()

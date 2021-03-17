@@ -17,13 +17,14 @@ def polling_loop(exctr, task):
         if exctr.manager_signal == 'kill':
             task.kill()
             calc_status = MAN_SIGNAL_KILL
-            #print('Manager killed sim_id {} task.state {}'.format(sim_id,task.state),flush=True)  # test
             break
         else:
             task.poll()
             time.sleep(poll_interval)
 
-    if task.state == 'FAILED':
+    if task.state == 'FINISHED':
+        calc_status = WORKER_DONE
+    elif task.state == 'FAILED':
         calc_status = TASK_FAILED  # If run actually fails for some reason
 
     return calc_status
@@ -51,7 +52,7 @@ def subproc_borehole(H, delay):
     if calc_status in [MAN_SIGNAL_KILL, TASK_FAILED]:
         f = np.inf
     else:
-        f = float(task.read_stdout())  #returns scalar.
+        f = float(task.read_stdout())
     return f, calc_status
 
 
@@ -66,17 +67,17 @@ def borehole(H, persis_info, sim_specs, libE_info):
     # Add a delay so subprocessed borehole takes longer
     sim_id = libE_info['H_rows'][0]
     delay = 0
-    if sim_id > sim_specs['user']['batch_to_sim_id']:
+    if sim_id > sim_specs['user']['init_sample_size']:
         delay = 2 + np.random.normal(scale=0.5)
 
     f, calc_status = subproc_borehole(H, delay)
 
-    # Failure model
+    # Failure model (excluding observations)
     if sim_id > sim_specs['user']['num_obs']:
         if (f / borehole_true(H['x'])) > 1.25:
             f = np.inf
             calc_status = TASK_FAILED
-            print('Failure',flush=True)
+            print('Failure of sim_id {}'.format(sim_id), flush=True)
 
     H_o['f'] = f
     return H_o, persis_info, calc_status

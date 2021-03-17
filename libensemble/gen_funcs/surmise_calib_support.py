@@ -6,14 +6,21 @@ import scipy.stats as sps
 
 class thetaprior:
     """Define the class instance of priors provided to the methods."""
+    def __init__(self, loc, scale):
+        self._loc = loc
+        self._scale = scale
 
-    def lpdf(theta):
+    def lpdf(self, theta):
         """Return log prior density."""
-        return (np.sum(sps.norm.logpdf(theta, 1, 0.5), 1)).reshape((len(theta), 1))
+        loc = self._loc
+        scale = self._scale
+        return (np.sum(sps.norm.logpdf(theta, loc, scale), 1)).reshape((len(theta), 1))
 
-    def rnd(n):
+    def rnd(self, n):
         """Return random draws from prior."""
-        return np.vstack((sps.norm.rvs(1, 0.5, size=(n, 4))))
+        loc = self._loc
+        scale = self._scale
+        return np.vstack((sps.norm.rvs(loc, scale, size=(n, 4))))
 
 
 def gen_true_theta():
@@ -23,25 +30,22 @@ def gen_true_theta():
     return theta0
 
 
-def gen_thetas(n):
+def gen_thetas(prior, n):
     """Generate and return n parameters for the test function."""
-    thetas = thetaprior.rnd(n)
+    thetas = prior.rnd(n)
     return thetas
 
 
-def gen_xs(nx, persis_info):
+def gen_xs(nx, randstream):
     """Generate and returns n inputs for the modified Borehole function."""
-    randstream = persis_info['rand_stream']
-
     xs = randstream.uniform(0, 1, (nx, 3))
     xs[:, 2] = xs[:, 2] > 0.5
 
-    return xs, persis_info
+    return xs
 
 
-def gen_observations(fevals, obsvar_const, persis_info):
+def gen_observations(fevals, obsvar_const, randstream):
     """Generate observations."""
-    randstream = persis_info['rand_stream']
     n_x = len(np.squeeze(fevals))
     obsvar = np.maximum(obsvar_const*fevals, 5)
     obsvar = np.squeeze(obsvar)

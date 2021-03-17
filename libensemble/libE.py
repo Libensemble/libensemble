@@ -144,6 +144,8 @@ def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
             on_abort=None, on_cleanup=None):
     "Generic manager routine run."
 
+    logger.info('Logger initializing: [workerID] precedes each line. [0] = Manager')
+
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
         logger.manager_warning(_USER_SIM_ID_WARNING)
 
@@ -153,7 +155,7 @@ def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         persis_info, exit_flag, elapsed_time = \
             manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
                          exit_criteria, persis_info, wcomms)
-        logger.info("manager total time: {}".format(elapsed_time))
+        logger.info("Manager total time: {}".format(elapsed_time))
 
     except ManagerException as e:
         _report_manager_exception(hist, persis_info, e, save_H=save_H)

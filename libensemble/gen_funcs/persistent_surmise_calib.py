@@ -3,12 +3,11 @@ This module contains a simple calibration example of using libEnsemble with gemu
 """
 import numpy as np
 from libensemble.gen_funcs.surmise_calib_support import gen_xs, gen_thetas, gen_observations, gen_true_theta, \
-    thetaprior, select_next_theta, obviate_pend_theta
+    thetaprior, select_next_theta
 from surmise.calibration import calibrator
 from surmise.emulation import emulator
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
-import concurrent.futures
 
 
 def build_emulator(theta, x, fevals):
@@ -36,7 +35,7 @@ def rebuild_condition(pending, prev_pending, n_theta=5):  # needs changes
 
 
 def create_arrays(calc_in, n_thetas, n_x):
-    """Create 2D (point * rows) arrays fevals, failures and data_status from calc_in"""
+    """Create 2D (point * rows) arrays fevals, pending and complete"""
     fevals = np.reshape(calc_in['f'], (n_x, n_thetas))
     pending = np.full(fevals.shape, False)
     prev_pending = pending.copy()
@@ -60,10 +59,10 @@ def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
     return theta, fevals, pending, prev_pending, complete
 
 
-def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_cancelled):
-    """Unpack from calc_in into 2D (point * rows) fevals, failures, data_status"""
+def update_arrays(fevals, pending, complete, calc_in, obs_offset, n_x):
+    """Unpack from calc_in into 2D (point * rows) fevals"""
     sim_id = calc_in['sim_id']
-    c, r = divmod(sim_id - pre_count, n_x)  # r, c are arrays if sim_id is an array
+    c, r = divmod(sim_id - obs_offset, n_x)  # r, c are arrays if sim_id is an array
 
     fevals[r, c] = calc_in['f']
     pending[r, c] = False
@@ -71,22 +70,22 @@ def update_arrays(fevals, pending, complete, calc_in, pre_count, n_x, ignore_can
     return
 
 
-def cancel_columns(pre_count, c, n_x, pending, complete, comm):
+def cancel_columns(obs_offset, c, n_x, pending, comm):
     """Cancel columns"""
     sim_ids_to_cancel = []
     columns = np.unique(c)
     for c in columns:
         col_offset = c*n_x
         for i in range(n_x):
-            sim_id_cancl = pre_count + col_offset + i
+            sim_id_cancl = obs_offset + col_offset + i
             if pending[i, c]:
                 sim_ids_to_cancel.append(sim_id_cancl)
                 pending[i, c] = 0
 
-    # Send only these fields to existing H row and it will slot in change.
-    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel', bool)])
+    # Send only these fields to existing H rows and libEnsemble will slot in the change.
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
     H_o['sim_id'] = sim_ids_to_cancel
-    H_o['cancel'] = True
+    H_o['cancel_requested'] = True
     send_mgr_worker_msg(comm, H_o)
 
 
@@ -129,19 +128,21 @@ def gen_truevals(x, gen_specs):
 def testcalib(H, persis_info, gen_specs, libE_info):
     """Gen to implement trainmseerror."""
     comm = libE_info['comm']
-    randstream = persis_info['rand_stream']
+    rand_stream = persis_info['rand_stream']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
     step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
     n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
     obsvar_const = gen_specs['user']['obsvar']  # Constant for generator
-    ignore_cancelled = gen_specs['user']['ignore_cancelled']  # Ignore cancelled in data_status
+    priorloc = gen_specs['user']['priorloc']
+    priorscale = gen_specs['user']['priorscale']
+    prior = thetaprior(priorloc, priorscale)
 
     # Create points at which to evaluate the sim
-    x, persis_info = gen_xs(n_x, persis_info)
+    x = gen_xs(n_x, rand_stream)
 
     H_o = gen_truevals(x, gen_specs)
-    pre_count = len(H_o)
+    obs_offset = len(H_o)
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
@@ -149,11 +150,11 @@ def testcalib(H, persis_info, gen_specs, libE_info):
 
     returned_fevals = np.reshape(calc_in['f'], (1, n_x))
     true_fevals = returned_fevals
-    obs, obsvar = gen_observations(true_fevals, obsvar_const, persis_info)
+    obs, obsvar = gen_observations(true_fevals, obsvar_const, rand_stream)
 
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
-    theta = gen_thetas(n_thetas)
+    theta = gen_thetas(prior, n_thetas)
     load_H(H_o, x, theta, set_priorities=True)
     tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
     # -------------------------------------------------------------------------
@@ -165,14 +166,14 @@ def testcalib(H, persis_info, gen_specs, libE_info):
         if fevals is None:  # initial batch
             fevals, pending, prev_pending, complete = create_arrays(calc_in, n_thetas, n_x)
             emu = build_emulator(theta, x, fevals)
-            cal = calibrator(emu, obs, x, thetaprior, obsvar, method='directbayes')
+            cal = calibrator(emu, obs, x, prior, obsvar, method='directbayes')
 
-            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
             update_model = False
         else:
-            # Update fevals, failures, data_status from calc_in
+            # Update fevals from calc_in
             update_arrays(fevals, pending, complete, calc_in,
-                          pre_count, n_x, ignore_cancelled)
+                          obs_offset, n_x)
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
@@ -180,20 +181,22 @@ def testcalib(H, persis_info, gen_specs, libE_info):
                     break
 
         if update_model:
-            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete),4),
-                                                    np.sum(1-pending-complete),
-                                                    np.prod(pending.shape)))
-            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending),4),
+            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete), 4),
+                                                              np.sum(1-pending-complete),
+                                                              np.prod(pending.shape)))
+            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending), 4),
                                                             np.sum(pending),
                                                             np.prod(pending.shape)))
-            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete),4),
-                                                            np.sum(complete),
-                                                            np.prod(pending.shape)))
+            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete), 4),
+                                                             np.sum(complete),
+                                                             np.prod(pending.shape)))
 
             emu.update(theta=theta, f=fevals)
             cal.fit()
 
-            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis = 0),3))
+            samples = cal.theta.rnd(2500)
+            print(np.mean(np.sum((samples - np.array([0.5]*4))**2, 1)))
+            print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
 
             step_add_theta += 2
             prev_pending = pending.copy()
@@ -216,7 +219,7 @@ def testcalib(H, persis_info, gen_specs, libE_info):
             c_obviate = info['obviatesugg']
             if len(c_obviate) > 0:
                 print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
-                cancel_columns(pre_count, c_obviate, n_x, pending, complete, comm)
+                cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
             pending[:, c_obviate] = False
 
     return H, persis_info, FINISHED_PERSISTENT_GEN_TAG

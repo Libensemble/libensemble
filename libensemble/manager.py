@@ -272,7 +272,7 @@ class Manager:
         if 'libE_info' in Work:
             if 'persistent' in Work['libE_info']:
                 self.W[w-1]['persis_state'] = Work['tag']
-                if 'active_recv' in Work['libE_info']:
+                if Work['libE_info'].get('active_recv', False):
                     self.W[w-1]['active_recv'] = Work['tag']
             else:
                 assert 'active_recv' not in Work['libE_info'], \
@@ -340,7 +340,6 @@ class Manager:
         Manager._check_received_calc(D_recv)
         if w not in self.persis_pending and not self.W[w-1]['active_recv']:
             self.W[w-1]['active'] = 0
-
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             self.W[w-1]['persis_state'] = 0
@@ -393,8 +392,11 @@ class Manager:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
-        kill_sim = self.hist.H['given'] & self.hist.H['cancel'] & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+        kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
+            & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+
         if np.any(kill_sim):
+            logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
             kill_ids = self.hist.H['sim_id'][kill_sim]
             kill_on_workers = self.hist.H['sim_worker'][kill_sim]
             for w in kill_on_workers:

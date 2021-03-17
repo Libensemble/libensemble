@@ -1,5 +1,5 @@
 # """
-# Runs libEnsemble with Surmise calibration test.
+# Tests killing of cancelled simulation that are in progress..
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_surmise_killsims.py
@@ -7,6 +7,16 @@
 #    python3 test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
+#
+# This test is a smaller variant of test_persistent_surmise_calib.py, but which
+# subprocesses a compiled version of the borehole simulation. A delay is
+# added to simulations after the initial batch, so that the killing of running
+# simulations can be tested. This will only affect simulations that have already
+# been issued to a worker when the cancel request is registesred by the manger.
+#
+# See more information, see tutorial:
+# "Borehole Calibration with Selective Simulation Cancellation"
+# in the libEnsemble documentation.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -16,13 +26,8 @@
 # Requires:
 #   Install Surmise package
 
-
-# NOTE (REMOVE WHEN FIXED. **********************************************
-# TODO for step 1:
-#    Rename files/vars as required.
-#    Determine pass condition for test (assertions at end).
-
 import os
+import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -35,6 +40,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 # from libensemble import libE_logger
 # libE_logger.set_level('DEBUG')  # To get debug logging in ensemble.log
+
 
 if __name__ == '__main__':
 
@@ -49,11 +55,11 @@ if __name__ == '__main__':
     n_explore_theta = 200           # No. of thetas to explore while selecting the next theta
     obsvar = 10 ** (-1)             # Constant for generating noise in obs
 
-    # Batch mode until after batch_sim_id (add one theta to batch for observations)
-    batch_sim_id = (n_init_thetas + 1) * n_x
+    # Batch mode until after init_sample_size (add one theta to batch for observations)
+    init_sample_size = (n_init_thetas + 1) * n_x
 
     # Stop after max_emul_runs runs of the emulator
-    max_evals = batch_sim_id + max_add_thetas*n_x
+    max_evals = init_sample_size + max_add_thetas*n_x
 
     sim_app = os.path.join(os.getcwd(), "borehole.x")
     if not os.path.isfile(sim_app):
@@ -73,7 +79,7 @@ if __name__ == '__main__':
                  'in': ['x', 'thetas'],
                  'out': [('f', float)],
                  'user': {'num_obs': n_x,
-                          'batch_to_sim_id': batch_sim_id} #SH change name batch_to_sim_id...
+                          'init_sample_size': init_sample_size}
                  }
 
     gen_out = [('x', float, ndims), ('thetas', float, nparams),
@@ -87,24 +93,22 @@ if __name__ == '__main__':
                           'step_add_theta': step_add_theta,      # No. of thetas to generate per step
                           'n_explore_theta': n_explore_theta,    # No. of thetas to explore each step
                           'obsvar': obsvar,                      # Variance for generating noise in obs
-                          'batch_to_sim_id': batch_sim_id,       # Up to this sim_id, wait for all results to return.
-                          'ignore_cancelled': True,              # Do not use returned results that have been cancelled
+                          'init_sample_size': init_sample_size,  # Initial batch size inc. observations
+                          'priorloc': 1,                         # Prior location in the unit cube.
+                          'priorscale': 0.2,                     # Standard deviation of prior
                           }
                  }
 
-    # alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True}}
     alloc_specs = {'alloc_f': alloc_f,
                    'out': [('given_back', bool)],
-                   'user': {'batch_to_sim_id': batch_sim_id,
-                            'batch_mode': False  # set batch mode (alloc behavior after batch_sim_id)
+                   'user': {'init_sample_size': init_sample_size,
+                            'async_return': True,    # True = Return results to gen as they come in (after sample)
+                            'active_recv_gen': True  # Persistent gen can handle irregular communications
                             }
                    }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
-
-    # Currently just allow gen to exit if mse goes below threshold value
     exit_criteria = {'sim_max': max_evals}
-    # exit_criteria = {'sim_max': max_evals, 'stop_val': ('mse', mse_exit)}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs,
@@ -113,8 +117,9 @@ if __name__ == '__main__':
                                 libE_specs=libE_specs)
 
     if is_manager:
-        print('Cancelled sims', H['sim_id'][H['cancel']])
+        print('Cancelled sims', H['sim_id'][H['cancel_requested']])
         print('Killed sims', H['sim_id'][H['kill_sent']])
-        # MC: Clean up of unreturned
-        # assert np.all(H['returned'])  #SH Could be all either returned or cancelled.
+        sims_done = np.count_nonzero(H['returned'])
         save_libE_output(H, persis_info, __file__, nworkers)
+        assert sims_done == max_evals, \
+            'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
