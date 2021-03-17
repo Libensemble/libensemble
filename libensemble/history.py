@@ -76,6 +76,7 @@ class History:
 
         H['sim_id'][-L:] = -1
         H['given_time'][-L:] = np.inf
+        H['last_given_time'][-L:] = np.inf
 
         self.H = H
         # self.offset = 0
@@ -128,7 +129,11 @@ class History:
             Worker ID
         """
         self.H['given'][q_inds] = True
-        self.H['given_time'][q_inds] = time.time()
+
+        first_given_inds = ~H['given'][q_inds]
+        t = time.time()
+        self.H['given_time'][first_given_inds] = t
+        self.H['last_given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
         if np.isscalar(q_inds):
@@ -182,7 +187,9 @@ class History:
             self.H[field][update_inds] = D[field]
 
         first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
-        self.H['gen_time'][first_gen_inds] = time.time()
+        t = time.time()
+        self.H['gen_time'][first_gen_inds] = t
+        self.H['last_gen_time'][update_inds] = t
         self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 
