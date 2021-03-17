@@ -19,7 +19,7 @@ the final history from libEnsemble will include the following:
 * ``given_time`` [float]: At what time (since the epoch) was this ``gen_f``
   output was first given to a worker?
 
-* ``latest_given_time`` [float]: At what time (since the epoch) was this ``gen_f``
+* ``last_given_time`` [float]: At what time (since the epoch) was this ``gen_f``
   output was last given to a worker?
 
 * ``sim_worker`` [int]: libEnsemble worker that output was given to for evaluation
@@ -29,7 +29,7 @@ the final history from libEnsemble will include the following:
 * ``gen_time`` [float]: At what time (since the epoch) was this entry (or
   collection of entries) was first put into ``H`` by the manager
 
-* ``latest_gen_time`` [float]: At what time (since the epoch) was this entry (or
+* ``last_gen_time`` [float]: At what time (since the epoch) was this entry (or
   collection of entries) was first put into ``H`` by the manager
 
 * ``returned`` [bool]: Has this worker completed the evaluation of this unit of
