@@ -137,10 +137,7 @@ class History:
         self.H['last_given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
-        if np.isscalar(q_inds):
-            self.given_count += 1
-        else:
-            self.given_count += len(q_inds)
+        self.given_count += len(q_inds)
 
     def update_history_x_in(self, gen_worker, D, safe_mode):
         """
