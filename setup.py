@@ -8,6 +8,7 @@ from setuptools.command.test import test as TestCommand
 
 exec(open('libensemble/version.py').read())
 
+
 class Run_TestSuite(TestCommand):
     def run_tests(self):
         import os

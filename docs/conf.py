@@ -93,6 +93,9 @@ extlinks = {'duref': ('http://docutils.sourceforge.net/docs/ref/rst/'
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
+# Configure bibtex_bibfiles setting for sphinxcontrib-bibtex 2.0.0
+bibtex_bibfiles = ['references.bib']
+
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #

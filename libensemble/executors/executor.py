@@ -405,7 +405,10 @@ class Executor:
             self.default_apps[calc_type] = self.apps[app_name]
 
     def manager_poll(self):
-        """ Polls for a manager signal
+        """
+        .. _manager_poll_label:
+
+        Polls for a manager signal
 
         The executor manager_signal attribute will be updated.
 
