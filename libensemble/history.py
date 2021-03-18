@@ -129,10 +129,10 @@ class History:
             Worker ID
         """
         q_inds = np.atleast_1d(q_inds)
-        self.H['given'][q_inds] = True
-
         first_given_inds = ~self.H['given'][q_inds]
         t = time.time()
+
+        self.H['given'][q_inds] = True
         self.H['given_time'][q_inds[first_given_inds]] = t
         self.H['last_given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
