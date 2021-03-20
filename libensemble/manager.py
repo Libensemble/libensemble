@@ -78,8 +78,13 @@ def manager_main(hist, libE_specs, alloc_specs,
         gen_specs['in'] = []
 
     # Send dtypes to workers
-    dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
-              EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
+    if 'repack_fields' in globals():
+        dtypes = {EVAL_SIM_TAG: repack_fields(hist.H[sim_specs['in']]).dtype,
+                  EVAL_GEN_TAG: repack_fields(hist.H[gen_specs['in']]).dtype}
+    else:
+        dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
+                  EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
+
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
 

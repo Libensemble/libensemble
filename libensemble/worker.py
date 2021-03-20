@@ -25,9 +25,6 @@ from libensemble.comms.logs import LogConfig
 import cProfile
 import pstats
 
-if tuple(np.__version__.split('.')) >= ('1', '15'):
-    from numpy.lib.recfunctions import repack_fields
-
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
@@ -276,10 +273,7 @@ class Worker:
         if len(libE_info['H_rows']) > 0:
             _, calc_in = self.comm.recv()
         else:
-            if 'repack_fields' in globals():
-                calc_in = repack_fields(np.zeros(0, dtype=self.dtypes[calc_type]), recurse=True)
-            else:
-                calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
+            calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
 
         logger.debug("Received calc_in ({}) of len {}".
                      format(calc_type_strings[calc_type], np.size(calc_in)))
