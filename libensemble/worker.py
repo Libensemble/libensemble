@@ -206,11 +206,9 @@ class Worker:
         timer = Timer()
 
         try:
-            logger.debug("Running {}".format(calc_type_strings[calc_type]))
+            logger.debug("Starting {}: {}".format(enum_desc, calc_id))
             calc = self._run_calc[calc_type]
             with timer:
-                logger.debug("Calling calc {}".format(calc_type))
-
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
                     loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(Work, self.calc_iter,
                                                                                self.workerID, calc_type)
@@ -219,7 +217,7 @@ class Worker:
                 else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
-                logger.debug("Return from calc call")
+                logger.debug("Returned from user function for {} {}".format(enum_desc, calc_id))
 
             assert isinstance(out, tuple), \
                 "Calculation output must be a tuple."
@@ -239,8 +237,8 @@ class Worker:
                         calc_status = MAN_SIGNAL_FINISH
 
             return out[0], out[1], calc_status
-        except Exception:
-            logger.debug("Re-raising exception from calc")
+        except Exception as e:
+            logger.debug("Re-raising exception from calc {}".format(e))
             calc_status = CALC_EXCEPTION
             raise
         finally:
