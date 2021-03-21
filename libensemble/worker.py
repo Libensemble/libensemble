@@ -329,7 +329,6 @@ class Worker:
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
-            self.EnsembleDirectory.copy_back()  # Copy back current results on Exception
         else:
             self.comm.kill_pending()
         finally:
