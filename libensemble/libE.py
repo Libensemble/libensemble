@@ -169,7 +169,7 @@ def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
         _dump_on_abort(hist, persis_info, save_H=save_H)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
-        # raise
+        raise LoggedException('See specific error above and in ensemble.log') from None
     else:
         logger.debug("Manager exiting")
         logger.debug("Exiting with {} workers.".format(len(wcomms)))
