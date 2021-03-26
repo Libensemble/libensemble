@@ -18,7 +18,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import nan_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.manager import ManagerException
+from libensemble.manager import LoggedException
 from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -46,7 +46,7 @@ return_flag = 1
 try:
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                 persis_info, libE_specs=libE_specs)
-except ManagerException as e:
+except LoggedException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0
 
