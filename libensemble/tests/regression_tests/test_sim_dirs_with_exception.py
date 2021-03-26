@@ -24,7 +24,6 @@ from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.manager import LoggedException
 
 nworkers, is_manager, libE_specs, _ = parse_args()
-import pdb;pdb.set_trace()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
