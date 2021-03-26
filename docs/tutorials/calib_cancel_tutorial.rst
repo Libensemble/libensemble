@@ -44,7 +44,7 @@ are therefore stored at the start of libEnsemble's
 main :doc:`History array<../history_output>` array, and have associated ``sim_id``'s.
 
 The generator function ``gen_f`` then samples an initial batch of parameters
-:math:`(\theta_0, \ldots, \theta_n)` and constructs a surrogate model.
+:math:`(\theta_1, \ldots, \theta_n)` and constructs a surrogate model.
 
 For illustration, the initial batch of evaluations are arranged in the following sense:
 
