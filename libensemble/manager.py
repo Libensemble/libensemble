@@ -495,10 +495,10 @@ class Manager:
                     "alloc_f did not return any work, although all workers are idle."
         except WorkerException as e:
             report_worker_exc(e)
-            raise LoggedException from None
-        except Exception:
+            raise LoggedException(e.args[0], e.args[1]) from None
+        except Exception as e:
             logger.error(traceback.format_exc())
-            raise LoggedException from None
+            raise LoggedException(e.args) from None
         finally:
             # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)

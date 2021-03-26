@@ -160,16 +160,16 @@ def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
             raise
         except WorkerException as e:
             report_worker_exc(e)
-            raise
-        except Exception:
+            raise LoggedException(e.args[0], e.args[1]) from None
+        except Exception as e:
             logger.error(traceback.format_exc())
-            raise
-    except Exception:
+            raise LoggedException(e.args) from None
+    except Exception as e:
         exit_flag = 1  # Only exits if no abort/raise
         _dump_on_abort(hist, persis_info, save_H=save_H)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
-        raise LoggedException('See specific error above and in ensemble.log') from None
+        raise LoggedException(*e.args, 'See error details above and in ensemble.log') from None
     else:
         logger.debug("Manager exiting")
         logger.debug("Exiting with {} workers.".format(len(wcomms)))
