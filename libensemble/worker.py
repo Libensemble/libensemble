@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 from itertools import count
 from traceback import format_exc
+from traceback import format_exception_only as format_exc_msg
 
 import numpy as np
 
@@ -326,7 +327,7 @@ class Worker:
                 self.comm.send(0, response)
 
         except Exception as e:
-            self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
+            self.comm.send(0, WorkerErrMsg(' '.join(format_exc_msg(type(e), e)).strip(), format_exc()))
         else:
             self.comm.kill_pending()
         finally:
