@@ -26,7 +26,7 @@ import pickle  # Only used when saving output on error
 from libensemble.utils import launcher
 from libensemble.utils.timer import Timer
 from libensemble.history import History
-from libensemble.manager import manager_main, ManagerException
+from libensemble.manager import manager_main, report_worker_exc, WorkerException, LoggedException
 from libensemble.worker import worker_main
 from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
@@ -152,21 +152,26 @@ def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     save_H = libE_specs.get('save_H_and_persis_on_abort', True)
 
     try:
-        persis_info, exit_flag, elapsed_time = \
-            manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
-                         exit_criteria, persis_info, wcomms)
-        logger.info("Manager total time: {}".format(elapsed_time))
-
-    except ManagerException as e:
-        _report_manager_exception(hist, persis_info, e, save_H=save_H)
+        try:
+            persis_info, exit_flag, elapsed_time = \
+                manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs,
+                             exit_criteria, persis_info, wcomms)
+            logger.info("Manager total time: {}".format(elapsed_time))
+        except LoggedException:
+            # Exception already logged in manager
+            raise
+        except WorkerException as e:
+            report_worker_exc(e)
+            raise LoggedException(e.args[0], e.args[1]) from None
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            raise LoggedException(e.args) from None
+    except Exception as e:
+        exit_flag = 1  # Only exits if no abort/raise
+        _dump_on_abort(hist, persis_info, save_H=save_H)
         if libE_specs.get('abort_on_exception', True) and on_abort is not None:
             on_abort()
-        raise
-    except Exception:
-        _report_manager_exception(hist, persis_info, save_H=save_H)
-        if libE_specs.get('abort_on_exception', True) and on_abort is not None:
-            on_abort()
-        raise
+        raise LoggedException(*e.args, 'See error details above and in ensemble.log') from None
     else:
         logger.debug("Manager exiting")
         logger.debug("Exiting with {} workers.".format(len(wcomms)))
@@ -479,15 +484,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 # ==================== Additional Internal Functions ===========================
 
 
-def _report_manager_exception(hist, persis_info, mgr_exc=None, save_H=True):
-    "Write out exception manager exception to log."
-    if mgr_exc is not None:
-        from_line, msg, exc = mgr_exc.args
-        logger.error("---- {} ----".format(from_line))
-        logger.error("Message: {}".format(msg))
-        logger.error(exc)
-    else:
-        logger.error(traceback.format_exc())
+def _dump_on_abort(hist, persis_info, save_H=True):
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error("Dumping ensemble history with {} sims evaluated:".
                  format(hist.sim_count))

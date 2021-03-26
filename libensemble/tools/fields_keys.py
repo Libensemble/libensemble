@@ -3,22 +3,26 @@ Below are the fields used within libEnsemble
 """
 
 libE_fields = [('sim_id', int),             # Unique id of entry in H that was generated
-               ('gen_worker', int),         # Worker that generated the entry
-               ('gen_time', float),         # Time (since epoch) entry was entered into H
+               ('gen_worker', int),         # Worker that (first) generated the entry
+               ('gen_time', float),         # Time (since epoch) entry (first) was entered into H from a gen
+               ('last_gen_time', float),    # Time (since epoch) entry was last requested by a gen
                ('given', bool),             # True if entry has been given for sim eval
+               ('given_time', float),       # Time (since epoch) that the entry was (first) given to be evaluated
+               ('last_given_time', float),  # Time (since epoch) that the entry was last given to be evaluated
                ('returned', bool),          # True if entry has been returned from sim eval
-               ('given_time', float),       # Time (since epoch) that the entry was given
+               ('returned_time', float),    # Time entry was (last) returned from sim eval
                ('sim_worker', int),         # Worker that did (or is doing) the sim eval
                ('cancel_requested', bool),  # True if cancellation of this entry is requested
-               ('kill_sent', bool)          # True if a kill signal has been sent to worker
+               ('kill_sent', bool)          # True if a kill signal has been sent to worker>>>>>>> develop
                ]
 # end_libE_fields_rst_tag
 
 protected_libE_fields = ['gen_worker',
                          'gen_time',
                          'given',
-                         'returned',
                          'given_time',
+                         'returned',
+                         'returned_time',
                          'sim_worker']
 
 allowed_sim_spec_keys = ['sim_f',  #
