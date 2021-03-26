@@ -8,6 +8,7 @@ import logging
 import logging.handlers
 from itertools import count
 from traceback import format_exc
+from traceback import format_exception_only as format_exc_msg
 
 import numpy as np
 
@@ -24,9 +25,6 @@ from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 import cProfile
 import pstats
-
-if tuple(np.__version__.split('.')) >= ('1', '15'):
-    from numpy.lib.recfunctions import repack_fields
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -209,11 +207,9 @@ class Worker:
         timer = Timer()
 
         try:
-            logger.debug("Running {}".format(calc_type_strings[calc_type]))
+            logger.debug("Starting {}: {}".format(enum_desc, calc_id))
             calc = self._run_calc[calc_type]
             with timer:
-                logger.debug("Calling calc {}".format(calc_type))
-
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
                     loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(Work, self.calc_iter,
                                                                                self.workerID, calc_type)
@@ -222,7 +218,7 @@ class Worker:
                 else:
                     out = calc(calc_in, Work['persis_info'], Work['libE_info'])
 
-                logger.debug("Return from calc call")
+                logger.debug("Returned from user function for {} {}".format(enum_desc, calc_id))
 
             assert isinstance(out, tuple), \
                 "Calculation output must be a tuple."
@@ -242,8 +238,8 @@ class Worker:
                         calc_status = MAN_SIGNAL_FINISH
 
             return out[0], out[1], calc_status
-        except Exception:
-            logger.debug("Re-raising exception from calc")
+        except Exception as e:
+            logger.debug("Re-raising exception from calc {}".format(e))
             calc_status = CALC_EXCEPTION
             raise
         finally:
@@ -276,10 +272,7 @@ class Worker:
         if len(libE_info['H_rows']) > 0:
             _, calc_in = self.comm.recv()
         else:
-            if 'repack_fields' in globals():
-                calc_in = repack_fields(np.zeros(0, dtype=self.dtypes[calc_type]), recurse=True)
-            else:
-                calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
+            calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
 
         logger.debug("Received calc_in ({}) of len {}".
                      format(calc_type_strings[calc_type], np.size(calc_in)))
@@ -334,8 +327,7 @@ class Worker:
                 self.comm.send(0, response)
 
         except Exception as e:
-            self.comm.send(0, WorkerErrMsg(str(e), format_exc()))
-            self.EnsembleDirectory.copy_back()  # Copy back current results on Exception
+            self.comm.send(0, WorkerErrMsg(' '.join(format_exc_msg(type(e), e)).strip(), format_exc()))
         else:
             self.comm.kill_pending()
         finally:
