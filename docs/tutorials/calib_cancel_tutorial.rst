@@ -32,10 +32,10 @@ is to find some parameter :math:`\theta_0` such that :math:`f(\theta_0, x)` clos
 resembles data collected from a physical experiment.  For example, a (simple)
 physical experiment may involve dropping a ball at different heights to study the
 gravitational constant, and the corresponding computer model could be the set of
-differential equations that governs the drop.  In a case where the computer model
-is relatively expensive in computation, we employ a fast surrogate model to approximate
-the model and to inform good parameters to test next.  Here the computer model
-:math:`f(\theta, x)` is accessible only through performing :ref:`sim_f<api_sim_f>`
+differential equations that governs the drop. In a case where the computation of
+the computer model is relatively expensive, we employ a fast surrogate model to
+approximate the model and to inform good parameters to test next.  Here the computer
+model :math:`f(\theta, x)` is accessible only through performing :ref:`sim_f<api_sim_f>`
 evaluations.
 
 As a convenience for testing, the ``observed`` data values are modelled by calling the ``sim_f``
@@ -255,7 +255,7 @@ batch of scheduled simulations, most either complete or fail but the rest are
 successfully obviated:
 
 .. image:: ../images/gen_v_fail_or_cancel.png
-  :alt: cwp_sample_graph
+  :alt: surmise_sample_graph
 
 Please see the ``test_persistent_surmise_calib.py`` regression test for an example
 routine using the surmise calibration generator.
