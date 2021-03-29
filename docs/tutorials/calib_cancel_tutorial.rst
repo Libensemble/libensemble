@@ -15,6 +15,12 @@ we'll emphasize the settings, functions, and data fields within the calling scri
 :ref:`persistent generator<persistent-gens>`, Manager, and :ref:`sim_f<api_sim_f>`
 that make this capability possible, rather than outlining a step-by-step process.
 
+The libEnsemble regression test ``test_persistent_surmise_calib.py`` demonstrates
+cancellation of pending simulations, while the ``test_persistent_surmise_killsims.py``
+test demonstrates libEnsemble's capability to also kill running simulations that
+have been marked as cancelled.
+
+
 Overview of the Calibration Problem
 -----------------------------------
 
@@ -116,7 +122,9 @@ A new, separate local :doc:`History array<../history_output>` is defined with th
 selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
-The entire ``cancel_columns()`` routine is listed below::
+The entire ``cancel_columns()`` routine is listed below:
+
+.. code-block:: python
 
     def cancel_columns(obs_offset, c, n_x, pending, comm):
         """Cancel columns"""
@@ -142,16 +150,40 @@ be processed. The manager will send kill signals to workers that are already pro
 cancelled points. These signals can be caught and acted on by the user ``sim_f``; otherwise
 they will be ignored.
 
-Most Workers, including those running other persistent generators, are only
+
+Allocation function
+-------------------
+
+The allocation function used in this example is the *only_persistent_gens* function in the
+*start_only_persistent* module. The calling script passes the following specification:
+
+.. code-block:: python
+
+    alloc_specs = {'alloc_f': alloc_f,
+                   'out': [('given_back', bool)],
+                   'user': {'init_sample_size': init_sample_size,
+                            'async_return': True,
+                            'active_recv_gen': True
+                            }
+                   }
+
+**async_return** tells the allocation function to return results to the generator as soon
+as the come back from evaluation (once the initial sample is complete).
+
+**init_sample_size** gives the size of the initial sample that is batch returned to the gen.
+This is calculated from other parameters in the calling script.
+
+**active_recv_gen** allows the persistent generator to handle irregular communications (see below).
+
+By default, workers (including persistent workers), are only
 allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`.
 However, since this generator must asynchronously update its model and
-cancel pending evaluations, the Worker running this generator remains
+cancel pending evaluations, the worker running this generator remains
 in an *active receive* state, until it becomes non-persistent. This means
-both the Manager and persistent Worker must be prepared for irregular sending /
-receiving of data.
+both the manager and persistent worker (generator in this case) must be
+prepared for irregular sending /receiving of data.
 
-Note that this ``gen_f`` is swappable with any other ``gen_f`` that can instruct
-cancellation based on received evaluations.
+
 
 .. Manager - Cancellation, History Updates, and Allocation
 .. -------------------------------------------------------
@@ -262,9 +294,23 @@ routine using the surmise calibration generator.
 The associated simulation function and allocation function are included in
 ``sim_funcs/surmise_test_function.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
 
-While ``test_persistent_surmise_calib.py`` primarily demonstrates cancellation of pending simulations
-, the ``test_persistent_surmise_killsims.py`` test more thoroughly demonstrates libEnsemble's
-capability to also kill simulations that have been marked as cancelled, if
-those simulations have been launched via the :doc:`Executor<../executor/overview>`.
+Using cancellations to kill running simulations
+------------------------------------------------
+
+If a generated point is cancelled by the generator before it has been given to a worker for evaluation,
+then it will never be given. If it has already returned from simulation, then results can be returned,
+but the ``cancel_requested`` field remains as True. However, if the simulation is running when the manager
+recevies the cancellation request, a kill signal will be sent to the worker. This can be caught and acted upon
+by a user function, otherwise it will be ignored. To demonstrate this, the test ``test_persistent_surmise_killsims.py``
+captures and processes this signal from the manager.
+
+In order to do this, a compiled version of the borehole function is launched by ``sim_funcs/borehole_kills.py``
+via the :doc:`Executor<../executor/overview>`. As the borehole application used here is serial, we use the
+:doc:`Executor base class<../executor/executor>` rather than the commonly used :doc:`MPIExecutor<../executor/mpi_executor>`
+class. The base class simply subprocesses a serial application in-place. After the initial sample batch of evaluations has
+been processed, an artificial delay is added to the subprocessed borehole to allow time to receive the kill signal and
+terminate the application. Killed simulations will be reported at the end of the test. As this is dependent on timing,
+the number of killed simulations will vary between runs. This test is added simply to demonstrate the killing
+of running simulations and thus uses a reduced number of evaluations.
 
 .. _surmise: https://github.com/mosesyhc/surmise
