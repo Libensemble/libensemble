@@ -31,7 +31,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.gen_funcs.persistent_surmise_calib import testcalib as gen_f
+from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.sim_funcs.borehole_kills import borehole as sim_f
 from libensemble.tests.regression_tests.common import build_borehole  # current location
