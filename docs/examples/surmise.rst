@@ -5,7 +5,7 @@ Required: Surmise_
 
 Note that currently the github fork https://github.com/mosesyhc/surmise should be used::
 
-    python -m pip install --upgrade git+https://github.com:mosesyhc/surmise.git
+    python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git
 
 
 See :doc:`the tutorial<../tutorials/calib_cancel_tutorial>` for using this generator.
