@@ -4,6 +4,12 @@ Executor Module
 .. automodule:: executor
   :no-undoc-members:
 
+.. autoclass:: Executor
+  :show-inheritance:
+  :inherited-members:
+
+  .. automethod:: __init__
+
 See this :doc:`example<overview>` for usage.
 
 See the Executor APIs for optional arguments.
