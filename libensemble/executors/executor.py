@@ -513,11 +513,11 @@ class Executor:
             # Launch Task
             logger.info("Launching task {}: {}".
                         format(task.name, " ".join(runline)))
-
-            task.process = launcher.launch(runline, cwd='./',
-                                           stdout=open(task.stdout, 'w'),
-                                           stderr=open(task.stderr, 'w'),
-                                           start_new_session=False)
+            with open(task.stdout, 'w') as out, open(task.stderr, 'w') as err:
+                task.process = launcher.launch(runline, cwd='./',
+                                               stdout=out,
+                                               stderr=err,
+                                               start_new_session=False)
             if (wait_on_run):
                 self._wait_on_run(task, 0)  # No fail time as no re-starts in-place
 
