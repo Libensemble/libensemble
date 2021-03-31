@@ -1,4 +1,4 @@
-"""Contains parameter selection and obviation methods for cwpCalibration."""
+"""Contains supplemental methods for gen function in persistent_surmise_calib.py."""
 
 import numpy as np
 import scipy.stats as sps

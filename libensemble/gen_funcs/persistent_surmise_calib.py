@@ -46,8 +46,7 @@ def create_arrays(calc_in, n_thetas, n_x):
 
 
 def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
-    # print('before:', fevals.shape, theta.shape, pending.shape, complete.shape)
-
+    """Extend arrays to appropriate sizes."""
     n_thetanew = len(thetanew)
 
     theta = np.vstack((theta, thetanew))
@@ -167,7 +166,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
         if fevals is None:  # initial batch
             fevals, pending, prev_pending, complete = create_arrays(calc_in, n_thetas, n_x)
             emu = build_emulator(theta, x, fevals)
-            cal = calibrator(emu, obs, x, prior, obsvar, method='directbayes')
+            cal = calibrator(emu, obs, x, prior, obsvar, method='directbayes')  # Refer to surmise package for additional options
 
             print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
             update_model = False
