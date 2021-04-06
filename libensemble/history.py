@@ -112,6 +112,7 @@ class History:
                         self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
             self.H['returned'][ind] = True
+            self.H['returned_time'][ind] = time.time()
             self.sim_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
