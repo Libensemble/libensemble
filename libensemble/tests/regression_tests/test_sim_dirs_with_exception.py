@@ -21,28 +21,17 @@ from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_sim_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.manager import ManagerException
+from libensemble.manager import LoggedException
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_input_dir = './sim_input_dir'
-dir_to_copy = sim_input_dir + '/copy_this'
-dir_to_symlink = sim_input_dir + '/symlink_this'
-e_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
-print('attempting to use ensemble dir: ', e_ensemble, flush=True)
-print('previous dir contains ', len(os.listdir(e_ensemble)), ' items.', flush=True)
+e_ensemble = './ensemble_ex_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
-assert os.path.isdir(e_ensemble), \
-    "Previous ensemble directory doesn't exist. Can't test exception."
-assert len(os.listdir(e_ensemble)), \
-    "Previous ensemble directory doesn't have any contents. Can't catch exception."
+if not os.path.isdir(e_ensemble):
+    os.makedirs(os.path.join(e_ensemble, 'sim0_worker0'), exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True
 libE_specs['ensemble_dir_path'] = e_ensemble
-libE_specs['use_worker_dirs'] = False
-libE_specs['sim_dir_copy_files'] = [dir_to_copy]
-libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
-
 libE_specs['abort_on_exception'] = False
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
@@ -63,7 +52,7 @@ return_flag = 1
 try:
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                 persis_info, libE_specs=libE_specs)
-except ManagerException as e:
+except LoggedException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0
 

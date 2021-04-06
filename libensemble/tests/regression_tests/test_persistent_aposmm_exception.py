@@ -80,7 +80,7 @@ try:
                                 alloc_specs, libE_specs)
 except Exception as e:
     if is_manager:
-        if e.args[1] == 'NLopt roundoff-limited':
+        if e.args[1].endswith('NLopt roundoff-limited'):
             assertion(True)
         else:
             assertion(False)

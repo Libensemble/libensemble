@@ -4,6 +4,7 @@ import pytest
 import mock
 
 from libensemble.libE import check_inputs, libE
+from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from mpi4py import MPI
@@ -112,7 +113,7 @@ def test_exception_raising_manager_no_abort():
     will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
     libE_specs['abort_on_exception'] = False
     libE_specs['mpi_comm'] = fake_mpi
-    with pytest.raises(MPISendException):
+    with pytest.raises(LoggedException):
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
         libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
         pytest.fail('Expected MPISendException exception')
