@@ -1,13 +1,13 @@
 """
-This module contains an
-``executor`` and ``task``. The class ``Executor`` can be used to subprocess an application
+This module contains the classes
+``Executor`` and ``Task``. The class ``Executor`` can be used to subprocess an application
 locally. For MPI programs, or any program using non-local compute resources, one of the
 inherited classes should be used. Inherited classes include MPI and Balsam variants.
-An ``executor`` can create and manage multiple ``tasks``. The worker or user-side code
+An ``executor`` can create and manage multiple ``tasks``. The user function
 can issue and manage ``tasks`` using the submit, poll, wait, and kill functions.
 ``Task`` attributes are queried to determine status. Functions are
 also provided to access and interrogate files in the ``task``'s working directory. A
-manager_poll function can be used to poll for STOP signals from the manager.
+``manager_poll`` function can be used to poll for STOP signals from the manager.
 
 """
 
