@@ -284,13 +284,11 @@ class Executor:
 
     **Class Attributes:**
 
-    :cvar Executor: executor: The default executor.
+    :cvar Executor: executor: The executor object is stored here and can be retrieved in user functions.
 
     **Object Attributes:**
 
-    :ivar int wait_time: Timeout period for hard kill
     :ivar list list_of_tasks: A list of tasks created in this executor
-    :ivar int workerID: The workerID associated with this executor
 
     """
 
@@ -324,12 +322,9 @@ class Executor:
     def __init__(self):
         """Instantiate a new Executor instance.
 
-        A new Executor object is created with an application
-        registry and configuration attributes.
+        A new Executor object is created.
+        This is typically created in the user calling script.
 
-        This is typically created in the user calling script. If
-        auto_resources is True, an evaluation of system resources is
-        performance during this call.
         """
         self.top_level_dir = os.getcwd()
         self.manager_signal = 'none'
@@ -377,18 +372,23 @@ class Executor:
         return app
 
     def register_calc(self, full_path, app_name=None, calc_type=None, desc=None):
-        """Registers a user application to libEnsemble
+        """Registers a user application to libEnsemble.
+
+        The ``full_path`` of the application must be supplied. Either
+        ``app_name`` or ``calc_type`` can be used to identify the
+        application in user scripts (in the **submit** function).
+        ``app_name`` is recommended.
 
         Parameters
         ----------
 
-        app_name: String
-            Name to identify this application.
-
         full_path: String
             The full path of the user application to be registered
 
-        calc_type: String
+        app_name: String, optional
+            Name to identify this application.
+
+        calc_type: String, optional
             Calculation type: Set this application as the default 'sim'
             or 'gen' function.
 
@@ -454,7 +454,7 @@ class Executor:
 
     def submit(self, calc_type=None, app_name=None, app_args=None,
                stdout=None, stderr=None, dry_run=False, wait_on_run=False):
-        """Create a new task and run in place as a sub-process.
+        """Create a new task and run as a local serial subprocess.
 
         The created task object is returned.
 

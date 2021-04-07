@@ -1,5 +1,5 @@
-Balsam Executor
-===============
+Balsam MPI Executor
+===================
 
 .. automodule:: balsam_executor
   :no-undoc-members:
