@@ -236,7 +236,7 @@ prepared for irregular sending /receiving of data.
 ..         task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
 ..         calc_status = polling_loop(exctr, task, sim_id)
 ..
-.. asdf ``polling_loop()`` resembles the following::
+.. where ``polling_loop()`` resembles the following::
 ..
 ..     def polling_loop(exctr, task, sim_id):
 ..         calc_status = UNSET_TAG
