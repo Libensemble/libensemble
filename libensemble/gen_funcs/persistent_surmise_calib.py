@@ -2,6 +2,8 @@
 This module contains a simple calibration example using the Surmise package.
 """
 
+__all__ = ['surmise_calib']
+
 import numpy as np
 from libensemble.gen_funcs.surmise_calib_support import gen_xs, gen_thetas, gen_observations, gen_true_theta, \
     thetaprior, select_next_theta

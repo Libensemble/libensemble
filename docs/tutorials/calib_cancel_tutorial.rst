@@ -168,7 +168,7 @@ The allocation function used in this example is the *only_persistent_gens* funct
                    }
 
 **async_return** tells the allocation function to return results to the generator as soon
-as the come back from evaluation (once the initial sample is complete).
+as they come back from evaluation (once the initial sample is complete).
 
 **init_sample_size** gives the size of the initial sample that is batch returned to the gen.
 This is calculated from other parameters in the calling script.
@@ -307,10 +307,10 @@ captures and processes this signal from the manager.
 In order to do this, a compiled version of the borehole function is launched by ``sim_funcs/borehole_kills.py``
 via the :doc:`Executor<../executor/overview>`. As the borehole application used here is serial, we use the
 :doc:`Executor base class<../executor/executor>` rather than the commonly used :doc:`MPIExecutor<../executor/mpi_executor>`
-class. The base class simply subprocesses a serial application in-place. After the initial sample batch of evaluations has
-been processed, an artificial delay is added to the subprocessed borehole to allow time to receive the kill signal and
-terminate the application. Killed simulations will be reported at the end of the test. As this is dependent on timing,
-the number of killed simulations will vary between runs. This test is added simply to demonstrate the killing
-of running simulations and thus uses a reduced number of evaluations.
+class. The base Executor submit routine simply sub-processes a serial application in-place. After the initial
+sample batch of evaluations has been processed, an artificial delay is added to the sub-processed borehole to
+allow time to receive the kill signal and terminate the application. Killed simulations will be reported at
+the end of the test. As this is dependent on timing, the number of killed simulations will vary between runs.
+This test is added simply to demonstrate the killing of running simulations and thus uses a reduced number of evaluations.
 
 .. _surmise: https://github.com/mosesyhc/surmise

@@ -8,7 +8,7 @@ Note that currently the github fork https://github.com/mosesyhc/surmise should b
     python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git
 
 
-See :doc:`the tutorial<../tutorials/calib_cancel_tutorial>` for using this generator.
+The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` uses this generator as an example of the capability to cancel pending simulations.
 
 .. automodule:: persistent_surmise_calib
   :members:
