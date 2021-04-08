@@ -34,7 +34,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
-MOCK_MODULES = ['argparse', 'numpy', 'mpi4py' , 'dfols', 'scipy', 'numpy.lib', 'numpy.lib.recfunctions', 'math', 'petsc4py', 'PETSc', 'nlopt', 'scipy.spatial', 'scipy.spatial.distance', 'scipy.io', 'deap', 'Tasmanian', 'numpy.linalg', 'mpmath', 'psutil']
+MOCK_MODULES = ['argparse', 'numpy', 'mpi4py' , 'dfols', 'scipy', 'numpy.lib', 'numpy.lib.recfunctions', 'math', 'petsc4py', 'PETSc', 'nlopt', 'scipy.spatial', 'scipy.spatial.distance', 'scipy.io', 'scipy.stats', 'deap', 'Tasmanian', 'numpy.linalg', 'mpmath', 'psutil']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 #from libensemble import *
@@ -92,6 +92,9 @@ extlinks = {'duref': ('http://docutils.sourceforge.net/docs/ref/rst/'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+# Configure bibtex_bibfiles setting for sphinxcontrib-bibtex 2.0.0
+bibtex_bibfiles = ['references.bib']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:

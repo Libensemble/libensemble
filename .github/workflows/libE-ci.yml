@@ -83,6 +83,7 @@ jobs:
             pip install DFO-LS
             pip install mpmath
             pip install deap
+            python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git
             pip install flake8
             pip install coverage
             pip install pytest

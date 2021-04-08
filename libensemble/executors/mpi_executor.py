@@ -304,6 +304,6 @@ class MPIExecutor(Executor):
 
     def set_worker_info(self, comm, workerid=None):
         """Sets info for this executor"""
-        self.workerID = workerid
+        super().set_worker_info(comm, workerid)
         if self.workerID and self.auto_resources:
             self.resources.set_worker_resources(self.workerID, comm)

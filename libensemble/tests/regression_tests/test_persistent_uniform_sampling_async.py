@@ -40,12 +40,14 @@ gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,))],
              'user': {'gen_batch_size': nworkers - 1,
-                      'async': True,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f,
+               'out': [('given_back', bool)],
+               'user': {'async_return': True}
+               }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

@@ -49,6 +49,12 @@ def build_simfunc():
     subprocess.check_call(buildstring.split())
 
 
+def build_borehole():
+    import subprocess
+    buildstring = 'gcc -o borehole.x ../unit_tests/simdir/borehole.c -lm'
+    subprocess.check_call(buildstring.split())
+
+
 def modify_Balsam_worker():
     # Balsam is meant for HPC systems that commonly distribute jobs across many
     #   nodes. Due to the nature of testing Balsam on local or CI systems which

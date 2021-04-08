@@ -93,6 +93,7 @@ The example simulation and generation functions and tests require the following:
 * Tasmanian_
 * NLopt_
 * PETSc_ - Can optionally be installed by pip along with petsc4py
+* Surmise_
 
 PETSc and NLopt must be built with shared libraries enabled and present in
 ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
@@ -255,6 +256,7 @@ Resources
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _Spack: https://spack.readthedocs.io/en/latest
+.. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
