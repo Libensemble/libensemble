@@ -25,7 +25,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     Work = {}
     gen_count = count_persis_gens(W)
-    task_avail = ~H['given']
+    task_avail = ~H['given'] & ~H['cancel_requested']
 
     # If a persistent localopt run has just finished, use run_order to update H
     # and then remove other information from persis_info

@@ -39,7 +39,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             gen_work(Work, i, ['like'], np.atleast_1d(inds_to_send_back),
                      persis_info.get(i), persistent=True)
 
-    task_avail = ~H['given']
+    task_avail = ~H['given'] & ~H['cancel_requested']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):
 
