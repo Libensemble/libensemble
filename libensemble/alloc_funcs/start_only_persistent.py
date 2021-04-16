@@ -12,6 +12,22 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     If the single persistent generator has exited, then ensemble shutdown is triggered.
 
+    **User options**:
+
+    To be provided in calling script: E.g., ``alloc_specs['user']['async_return'] = True``
+
+    init_sample_size: int, optional
+        Initial sample size - always return in batch. Default: 0
+
+    async_return: boolean, optional
+        Return results to gen as they come in (after sample). Default: False (batch return).
+
+    active_recv_gen: boolean, optional
+        Create gen in active receive mode. If True, the manager does not need to wait
+        for a return from the generator before sending further returned points.
+        Default: False
+
+
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
         `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling_async.py>`_ # noqa
