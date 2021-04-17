@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens, all_returned
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -17,6 +17,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     their resources can be used for a different simulation evaluation.
 
     Can give points in highest priority, if ``'priority'`` is a field in ``H``.
+    If gen_specs['user']['give_all_with_same_priority'] is set and True, then
+    all points with the same priority value are given as a batch to the sim.
+
 
     This is the default allocation function if one is not defined.
 
@@ -29,16 +32,16 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     avail_set = set(W['worker_id'][np.logical_and(~W['blocked'],
                                                   W['active'] == 0)])
 
+    task_avail = ~H['given'] & ~H['cancel_requested']
     for i in avail_worker_ids(W):
 
         if i not in avail_set:
-            pass
+            continue
 
-        elif not np.all(H['allocated']):
-
+        if np.any(task_avail):
             # Pick all high priority, oldest high priority, or just oldest point
             if 'priority' in H.dtype.fields:
-                priorities = H['priority'][~H['allocated']]
+                priorities = H['priority'][task_avail]
                 if gen_specs['user'].get('give_all_with_same_priority'):
                     q_inds = (priorities == np.max(priorities))
                 else:
@@ -46,17 +49,18 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             else:
                 q_inds = 0
 
-            # Get sim ids and check resources needed
-            sim_ids_to_send = np.nonzero(~H['allocated'])[0][q_inds]
+            # Get sim ids (indices) and check resources needed
+            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
+
             nodes_needed = (np.max(H[sim_ids_to_send]['num_nodes'])
                             if 'num_nodes' in H.dtype.names else 1)
             if nodes_needed > len(avail_set):
                 break
 
-            # Assign resources and mark tasks as allocated to workers
+            # Assign points to worker and remove from task_avail list.
             sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info.get(i))
-            H['allocated'][sim_ids_to_send] = True
+            task_avail[sim_ids_to_send] = False
 
             # Update resource records
             avail_set.remove(i)
@@ -71,9 +75,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             if gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
                 break
 
-            # No gen instances in batch mode if workers still working
-            still_working = ~H['returned']
-            if alloc_specs['user'].get('batch_mode') and np.any(still_working):
+            # Do not start gen instances in batch mode if workers still working
+            if alloc_specs['user'].get('batch_mode') and not all_returned(H):
                 break
 
             # Give gen work

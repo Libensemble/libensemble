@@ -79,7 +79,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': give_sim_work_first,
-               'out': [('allocated', bool)],
+               'out': [],
                'user': {'batch_mode': False,
                         'num_active_gens': 1}}
 
