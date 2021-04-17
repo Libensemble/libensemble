@@ -1,5 +1,6 @@
 import numpy as np
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
+                                             count_persis_gens, all_returned)
 
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -55,7 +56,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
         if np.any(returned_but_not_given):
             inds_since_last_gen = np.where(returned_but_not_given)[0]
-            if async_return or np.all(H['returned'][gen_inds & ~H['cancel_requested']]):
+            if async_return or all_returned(H, gen_inds):
                 gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
                          np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True,
