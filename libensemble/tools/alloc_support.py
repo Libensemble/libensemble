@@ -87,15 +87,14 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
                'libE_info': libE_info}
 
 
-def all_returned(H, gen_filter=True):
+def all_returned(H, pt_filter=True):
     """Check if all expected points have returned from sim
 
-
     :param H: A :doc:`history array<../data_structures/history_array>`
-    :param gen_filter: Optional boolean array filtering expected returned points: Default: All True
+    :param pt_filter: Optional boolean array filtering expected returned points: Default: All True
 
     :returns: Boolean. True if all expected points have been returned
     """
     # Exclude cancelled points that were not already given out
     excluded_points = H['cancel_requested'] & ~H['given']
-    return np.all(H['returned'][gen_filter & ~excluded_points])
+    return np.all(H['returned'][pt_filter & ~excluded_points])

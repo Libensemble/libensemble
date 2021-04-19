@@ -17,9 +17,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     gen_count = count_gens(W)
 
     for i in avail_worker_ids(W):
+        # Skip any cancelled points
+        while H[persis_info['next_to_give']]['cancel_requested']:
+            persis_info['next_to_give'] += 1
+
+        # Give sim work if possible
         if persis_info['next_to_give'] < len(H):
 
-            # Give sim work if possible
             sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
             persis_info['next_to_give'] += 1
 

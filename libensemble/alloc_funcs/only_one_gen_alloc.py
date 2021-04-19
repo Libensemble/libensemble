@@ -15,6 +15,10 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     gen_flag = True
 
     for i in avail_worker_ids(W):
+        # Skip any cancelled points
+        while H[persis_info['next_to_give']]['cancel_requested']:
+            persis_info['next_to_give'] += 1
+
         if persis_info['next_to_give'] < len(H):
 
             # Give sim work if possible
