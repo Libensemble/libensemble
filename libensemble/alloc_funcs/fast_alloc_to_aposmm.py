@@ -21,7 +21,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     for i in avail_worker_ids(W):
         # Skip any cancelled points
-        while H[persis_info['next_to_give']]['cancel_requested']:
+        while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
 
         # Find indices of H that are not yet allocated
