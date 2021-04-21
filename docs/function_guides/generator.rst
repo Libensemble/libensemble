@@ -114,7 +114,7 @@ Active receive mode
 -------------------
 
 By default, a persistent worker (generator in this case) models the manager/worker
-communications of a regular worker (ie. the generator is expected to alternatively
+communications of a regular worker (ie. the generator is expected to alternately
 receive and send data in a *ping pong* fashion). To have an irregular communication
 pattern, a worker can be initiated in *active receive* mode by the allocation
 function (see :ref:`start_only_persistent<start_only_persistent_label>`).
@@ -127,14 +127,14 @@ receive is blocking.
 Cancelling simulations
 ----------------------
 
-Previously submitted simulations can be cancelled by sending a message to the manger.
+Previously submitted simulations can be cancelled by sending a message to the manager.
 To do this as a separate communication, a persistent generator should be
 in *active receive* mode. to prevent a deadlock.
 
-To be able to send out cancellations of previously submitted simulations, initiate
-a history array with just the ``sim_id`` and ``cancel_requested`` fields. Then fill in with
-the sim_id's to cancel and ``cancel_requested`` set to ``True``. In the following
-example, ``sim_ids_to_cancel`` is a list of integers.
+To be able to send out cancellations of previously submitted simulations, the generator
+should initiate a history array with just the ``sim_id`` and ``cancel_requested`` fields.
+Then fill in the ``sim_id``'s to cancel and the ``cancel_requested`` field set to ``True``.
+In the following example, ``sim_ids_to_cancel`` is a list of integers.
 
 .. code-block:: python
 
@@ -148,7 +148,7 @@ example, ``sim_ids_to_cancel`` is a list of integers.
 If a generated point is cancelled by the generator before it has been given to a
 worker for evaluation, then it will never be given. If it has already returned from
 simulation, then results can be returned, but the ``cancel_requested`` field remains
-as True. However, if the simulation is running when the manager recevies the cancellation
+as ``True``. However, if the simulation is running when the manager recevies the cancellation
 request, a kill signal will be sent to the worker. This can be caught and acted upon
 by a user function, otherwise it will be ignored.
 
