@@ -2,15 +2,25 @@
 Writing User Functions
 ======================
 
-libEnsemble coordinates ensembles of calculations performed by three main
-functions: a :ref:`Generator Function<api_gen_f>`, a :ref:`Simulator Function<api_sim_f>`,
-and an :ref:`Allocation Function<api_alloc_f>`, or ``gen_f``, ``sim_f``, and
-``alloc_f`` respectively. These are all referred to as User Functions. Although
-libEnsemble includes several ready-to-use User Functions like
-:doc:`APOSMM<../examples/aposmm>`, it's expected many users will write their own or
-adjust included functions for their own use-cases.
-These guides describe common development patterns and optional components for
-each kind of User Function.
+An early part of libEnsemble's design was the decision to divide ensemble steps into
+generator and simulator routines as an intuitive way to express problems and their inherent
+dependencies.
+
+libEnsemble was consequently developed to coordinate ensemble computations defined by
+
+• a *generator function* that produces simulation inputs,
+• a *simulator function* that performs and monitors simulations, and
+• an *allocation function* that determines when (and with what resources) the other two functions should be invoked.
+
+Since each of these functions is supplied or selected by libEnsemble's users, they are
+typically referred to as *user functions*. User functions need not be written only in
+Python: they can (and often do) depend on routines from other
+languages. The only restriction for user functions is that their inputs and outputs conform
+to the user function APIs. Therefore, the level of computation and complexity of any user function
+can vary dramatically based on the user's needs.
+
+These guides describe common development
+patterns and optional components for each kind of User Function:
 
 .. toctree::
    :maxdepth: 2
