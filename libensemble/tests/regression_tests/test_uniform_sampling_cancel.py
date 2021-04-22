@@ -24,7 +24,7 @@ import gc
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.gen_funcs.sampling import uniform_random_sample_cancel
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as gswf
@@ -68,11 +68,12 @@ sim_specs = {'sim_f': six_hump_camel,  # Function whose output is being minimize
              }
 # end_sim_specs_rst_tag
 
+
 # Note that it is unusual to specifiy cancel_requested as gen_specs['out']. It is here
 # so that cancellations are combined with regular generator outputs for testing purposes.
 # For a typical use case see test_persistent_surmise_calib.py.
-gen_specs = {'gen_f': uniform_random_sample_cancel, # Function generating sim_f input
-             'out': [('x', float, (2,)), ('cancel_requested', bool)],  # Tell libE gen_f output, type, size
+gen_specs = {'gen_f': uniform_random_sample_cancel,  # Function generating sim_f input
+             'out': [('x', float, (2,)), ('cancel_requested', bool)],
              'user': {'gen_batch_size': 50,      # Used by this specific gen_f
                       'lb': np.array([-3, -2]),  # Used by this specific gen_f
                       'ub': np.array([3, 2])     # Used by this specific gen_f
@@ -81,36 +82,35 @@ gen_specs = {'gen_f': uniform_random_sample_cancel, # Function generating sim_f 
 # end_gen_specs_rst_tag
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
-sim_max=500
+sim_max = 500
 exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 
-#do and see if can make shorter
 aspec1 = {'alloc_f': gswf,
-               'out': [],
-               'user': {'batch_mode': True, 'num_active_gens': 1}}
+          'out': [],
+          'user': {'batch_mode': True, 'num_active_gens': 1}}
 
 aspec2 = {'alloc_f': gswf,
-               'out': [],
-               'user': {'batch_mode': True, 'num_active_gens': 2}}
+          'out': [],
+          'user': {'batch_mode': True, 'num_active_gens': 2}}
 
 aspec3 = {'alloc_f': fast_gswf,
-               'out': [],
-               'user': {}}
+          'out': [],
+          'user': {}}
 
 aspec4 = {'alloc_f': ensure_one_active_gen,
-               'out': [],
-               'user': {}}
+          'out': [],
+          'user': {}}
 
 aspec5 = {'alloc_f': give_pregenerated_sim_work,
-               'out': [],
-               'user': {}}
+          'out': [],
+          'user': {}}
 
 allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
 
 if is_manager:
     print('Testing cancellations with non-persistent gen functions')
 
-for testnum in range(1,6):
+for testnum in range(1, 6):
     alloc_specs = allocs[testnum]
     if is_manager:
         print('\nRunning with alloc specs', alloc_specs, flush=True)
@@ -122,11 +122,11 @@ for testnum in range(1,6):
 
     # Reset for those that use them
     persis_info['next_to_give'] = 0
-    persis_info['total_gen_calls'] = 0 # 1
+    persis_info['total_gen_calls'] = 0  # 1
 
     # Perform the run - do not overwrite persis_info
     H, persis_out, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs=libE_specs, H0=H0)
+                               alloc_specs, libE_specs=libE_specs, H0=H0)
 
     if is_manager:
         assert flag == 0
@@ -137,6 +137,5 @@ for testnum in range(1,6):
             assert np.min(np.sum((H['x'] - m)**2, 1)) < tol
 
         print("libEnsemble found the 6 minima within a tolerance " + str(tol))
-        # save_libE_output(H, persis_info, __file__, nworkers)
         del H
-        gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.
+        gc.collect()  # Clean up memory space.
