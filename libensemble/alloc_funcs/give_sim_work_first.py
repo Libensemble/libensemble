@@ -52,7 +52,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Get sim ids (indices) and check resources needed
             sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
             sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
-
             nodes_needed = (np.max(H[sim_ids_to_send]['num_nodes'])
                             if 'num_nodes' in H.dtype.names else 1)
             if nodes_needed > len(avail_set):
@@ -81,9 +80,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             # Give gen work
             gen_count += 1
-            if 'in' in gen_specs and len(gen_specs['in']):
-                gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i))
-            else:
-                gen_work(Work, i, [], [], persis_info.get(i))
+            gen_in = gen_specs.get('in', [])
+            return_rows = range(len(H)) if gen_in else []
+            gen_work(Work, i, gen_in, return_rows, persis_info.get(i))
 
     return Work, persis_info

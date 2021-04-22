@@ -9,6 +9,11 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     is told to call the generator function, provided this wouldn't result in
     more than ``alloc_specs['user']['num_active_gen']`` active generators.
 
+    This fast_alloc variation of give_sim_work_first is useful for cases that
+    simply iterate through H, issuing evaluations in order and, in particular,
+    is likely to be faster if there will be many small evaluations, given that
+    this function contains fewer column length operations.
+
     .. seealso::
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
@@ -32,6 +37,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i))
+            gen_in = gen_specs.get('in', [])
+            return_rows = range(len(H)) if gen_in else []
+            gen_work(Work, i, gen_in, return_rows, persis_info.get(i))
 
     return Work, persis_info

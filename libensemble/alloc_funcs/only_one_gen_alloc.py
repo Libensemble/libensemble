@@ -33,6 +33,8 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_flag = False
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i))
+            gen_in = gen_specs.get('in', [])
+            return_rows = range(len(H)) if gen_in else []
+            gen_work(Work, i, gen_in, return_rows, persis_info.get(i))
 
     return Work, persis_info
