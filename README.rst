@@ -61,7 +61,7 @@ data isn't supplied.
 .. image:: docs/images/diagram_with_persis.png
  :alt: libE component diagram
  :align: center
- :scale: 40 %
+ :scale: 20
 
 .. before_dependencies_rst_tag
 
