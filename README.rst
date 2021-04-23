@@ -58,6 +58,11 @@ are portable, resilient, and flexible; it also enables automatic detection of
 the nodes and cores in a system and can split up tasks automatically if resource
 data isn't supplied.
 
+.. image:: images/diagram_with_persis.png
+ :alt: libE component diagram
+ :align: center
+ :scale: 40 %
+
 .. before_dependencies_rst_tag
 
 Dependencies
