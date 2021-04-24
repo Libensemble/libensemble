@@ -359,27 +359,13 @@ class WorkerResources:
         zero_resource_list = resources.zero_resource_workers
         num_workers_2assign2 = WorkerResources.get_workers2assign2(num_workers, resources)
 
-        # Check if current host in nodelist - if it is then in distributed mode.
-        distrib_mode = resources.local_host in global_nodelist
-
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = (num_workers_2assign2 >= num_nodes)
-
         if sub_node_workers:
             global_nodelist, local_workers_list = \
                 WorkerResources.expand_list(num_nodes, num_workers_2assign2, global_nodelist)
         else:
             local_workers_list = [1] * num_workers_2assign2
-
-        # Currently require even split for distrib mode - to match machinefile - throw away remainder
-        if distrib_mode and not sub_node_workers:
-            nodes_per_worker, remainder = divmod(num_nodes, num_workers_2assign2)
-            if remainder != 0:
-                # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
-                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. "
-                               "{} workers and {} nodes".format(num_workers_2assign2, num_nodes))
-                num_nodes = num_nodes - remainder
-                global_nodelist = global_nodelist[0:num_nodes]
 
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers_2assign2))
