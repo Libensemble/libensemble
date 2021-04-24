@@ -35,7 +35,7 @@ sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
 
 # To allow visual checking - log file not used in test
-log_file = 'ensemble_comms_subnode_uneven' + str(comms) + '_wrks_' + str(nworkers) + '.log'
+log_file = 'ensemble_mpi_runners_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 libE_logger.set_filename(log_file)
 
 nodes_per_worker = 0.5
@@ -47,7 +47,7 @@ if not (nsim_workers*nodes_per_worker).is_integer():
     sys.exit("Sim workers ({}) must divide evenly into nodes".format(nsim_workers))
 
 comms = libE_specs['comms']
-node_file = 'nodelist_mpi_runners_subnode_uneven_comms_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_mpi_runners_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = int(nsim_workers*nodes_per_worker)
 
 if is_manager:
@@ -67,10 +67,6 @@ customizer = {'mpi_runner': 'srun',    # Select runner: mpich, openmpi, aprun, s
 exctr = MPIExecutor(central_mode=True, auto_resources=True,
                     allow_oversubscribe=False, custom_info=customizer)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
-
-
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
 sim_specs = {'sim_f': sim_f,

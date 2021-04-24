@@ -7,8 +7,6 @@
 #    mpiexec -np 4 python3 test_zero_resource_workers_subnode.py
 #    python3 test_zero_resource_workers_subnode.py --nworkers 3 --comms local
 #    python3 test_zero_resource_workers_subnode.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 import sys
@@ -38,7 +36,7 @@ libE_specs['zero_resource_workers'] = [1]
 
 
 # To allow visual checking - log file not used in test
-log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
+log_file = 'ensemble_zrw_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 libE_logger.set_filename(log_file)
 
 nodes_per_worker = 0.5
