@@ -1,11 +1,11 @@
 # """
 # Runs libEnsemble testing the MPI Runners command creation with multiple and uneven nodes per worker.
 #
-# This test must be run on a  number of workers >= 2.
+# This test must be run on a number of workers >= 2.
 #
 # Execute via one of the following commands (e.g. 5 workers):
-#    mpiexec -np 3 python3 test_mpi_runners_subnode_uneven.py
-#    python3 test_mpi_runners_subnode_uneven.py --nworkers 2 --comms local
+#    mpiexec -np 6 python3 test_mpi_runners_supernode_uneven.py
+#    python3 test_mpi_runners_supernode_uneven.py --nworkers 5 --comms local
 # """
 
 import numpy as np
@@ -77,7 +77,7 @@ gen_specs = {'gen_f': gen_f,
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers)*rounds}
 
-# Each worker has 2 nodes. Basic test list for portable options
+# Each worker has either 3 or 2 nodes. Basic test list for portable options
 test_list_base = [{'testid': 'base1'},  # Give no config and no extra_args
                   ]
 

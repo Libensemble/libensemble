@@ -1,9 +1,9 @@
 # """
-# Runs libEnsemble testing the MPI Runners command creation with 2 nodes.
+# Runs libEnsemble testing the MPI Runners command creation with uneven workers per node.
 #
 # This test must be run on an even number of workers >= 4 and <= 32 (e.g. odd no. of procs when using mpi4py).
 #
-# Execute via one of the following commands (e.g. 5 workers):
+# Execute via one of the following commands (e.g. 6 workers - one is zero resource):
 #    mpiexec -np 7 python3 test_mpi_runners_zrw_subnode_uneven.py
 #    python3 test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms local
 #    python3 test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms tcp
@@ -88,16 +88,16 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers)*rounds}
 
-# Each worker has 2 nodes. Basic test list for portable options
 test_list_base = [{'testid': 'base1'},  # Give no config and no extra_args
                   ]
 
 # Example: On 5 workers, runlines should be ...
-# [w1]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
+# [w1]: Gen only
 # [w2]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
 # [w3]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
-# [w4]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1
+# [w4]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
 # [w5]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1
+# [w6]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1
 
 srun_p1 = 'srun -w '
 srun_p2 = ' --ntasks '

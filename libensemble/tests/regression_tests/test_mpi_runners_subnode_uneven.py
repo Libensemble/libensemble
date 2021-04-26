@@ -1,5 +1,5 @@
 # """
-# Runs libEnsemble testing the MPI Runners command creation with 2 workers per node.
+# Runs libEnsemble testing the MPI Runners command creation with uneven workers per node.
 #
 # This test must be run on an odd number of workers >= 3 and <= 31 (e.g. even no. of procs when using mpi4py).
 #
@@ -82,7 +82,6 @@ gen_specs = {'gen_f': gen_f,
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers)*rounds}
 
-# Each worker has 2 nodes. Basic test list for portable options
 test_list_base = [{'testid': 'base1'},  # Give no config and no extra_args
                   ]
 

@@ -1,11 +1,11 @@
 # """
 # Runs libEnsemble testing the MPI Runners command creation with multiple and uneven nodes per worker.
 #
-# This test must be run on a  number of workers >= 2.
+# This test must be run on a number of workers >= 3.
 #
-# Execute via one of the following commands (e.g. 5 workers):
-#    mpiexec -np 3 python3 test_mpi_runners_subnode_uneven.py
-#    python3 test_mpi_runners_subnode_uneven.py --nworkers 2 --comms local
+# Execute via one of the following commands (e.g. 6 workers - one is zero resource):
+#    mpiexec -np 7 python3 test_mpi_runners_zrw_supernode_uneven.py
+#    python3 test_mpi_runners_zrw_supernode_uneven.py --nworkers 6 --comms local
 # """
 
 import numpy as np
@@ -24,7 +24,7 @@ libE_logger.set_level('INFO')
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 4 5
+# TESTSUITE_NPROCS: 4 5 6
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 rounds = 1
@@ -83,14 +83,15 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers)*rounds}
 
-# Each worker has 2 nodes. Basic test list for portable options
+# Each worker has either 3 or 2 nodes. Basic test list for portable options
 test_list_base = [{'testid': 'base1'},  # Give no config and no extra_args
                   ]
 
-# Example: On 2 workers, runlines should be ...
+# Example: On 3 workers, runlines should be ...
 # (one workers has 3 nodes, the other 2 - does not split 2.5 nodes each).
-# [w1]: srun -w node-1,node-2,node-3 --ntasks 48 --nodes 3 --ntasks-per-node 16 /path/to/fakeapp.x --testid base1
-# [w2]: srun -w node-4,node-5 --ntasks 32 --nodes 2 --ntasks-per-node 16 /path/to/fakeapp.x --testid base1
+# [w1]: Gen only
+# [w2]: srun -w node-1,node-2,node-3 --ntasks 48 --nodes 3 --ntasks-per-node 16 /path/to/fakeapp.x --testid base1
+# [w3]: srun -w node-4,node-5 --ntasks 32 --nodes 2 --ntasks-per-node 16 /path/to/fakeapp.x --testid base1
 
 srun_p1 = 'srun -w '
 srun_p2 = ' --ntasks '
