@@ -331,6 +331,12 @@ class WorkerResources:
         return num_workers - len(zero_resource_list)
 
     @staticmethod
+    def even_assignment(nnodes, nworkers):
+        """Returns True if workers are divided evenly to nodes, else False"""
+        k, m = divmod(nworkers, nnodes)
+        return True if m == 0 else False
+
+    @staticmethod
     def expand_list(nnodes, nworkers, nodelist):
         """Duplicates each element of ``nodelist`` to best map workers to nodes.
 
@@ -358,6 +364,10 @@ class WorkerResources:
         num_nodes = len(global_nodelist)
         zero_resource_list = resources.zero_resource_workers
         num_workers_2assign2 = WorkerResources.get_workers2assign2(num_workers, resources)
+
+        if not WorkerResources.even_assignment(num_nodes, num_workers_2assign2):
+            logger.warning('Workers with assigned resources ({}) are not distributed evenly to available nodes ({})'
+                           .format(num_workers_2assign2, num_nodes))
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = (num_workers_2assign2 >= num_nodes)
