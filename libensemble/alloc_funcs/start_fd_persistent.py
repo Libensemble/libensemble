@@ -45,7 +45,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             H['given_back'][inds_to_send] = True
 
-    task_avail = ~H['given']
+    task_avail = ~H['given'] & ~H['cancel_requested']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):
             # perform sim evaluations (if they exist in History).

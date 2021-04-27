@@ -20,7 +20,6 @@ cancellation of pending simulations, while the ``test_persistent_surmise_killsim
 test demonstrates libEnsemble's capability to also kill running simulations that
 have been marked as cancelled.
 
-
 Overview of the Calibration Problem
 -----------------------------------
 
@@ -150,7 +149,6 @@ be processed. The manager will send kill signals to workers that are already pro
 cancelled points. These signals can be caught and acted on by the user ``sim_f``; otherwise
 they will be ignored.
 
-
 Allocation function
 -------------------
 
@@ -182,8 +180,6 @@ cancel pending evaluations, the worker running this generator remains
 in an *active receive* state, until it becomes non-persistent. This means
 both the manager and persistent worker (generator in this case) must be
 prepared for irregular sending /receiving of data.
-
-
 
 .. Manager - Cancellation, History Updates, and Allocation
 .. -------------------------------------------------------
