@@ -36,6 +36,11 @@ alongside ``persis_info``::
 
         return local_H_out, persis_info
 
+Between the output array definition and the function returning, any level and complexity
+of computation can be performed. Users are encouraged to use the :doc:`executor<../executor/overview>`
+to submit applications to parallel resources if necessary, or plug in components from
+any other libraries to serve their needs.
+
 .. note::
 
     State ``gen_f`` information like checkpointing should be
@@ -57,13 +62,15 @@ empty.
 Many users prefer persistent generators since they do not need to be
 re-initialized every time their past work is completed and evaluated by a
 simulation, and an can evaluate returned simulation results over the course of
-an entire libEnsemble routine as a single function instance.
+an entire libEnsemble routine as a single function instance. The :doc:`APOSMM<../examples/aposmm>`
+optimization generator function included with libEnsemble is persistent so it can
+maintain multiple local optimization subprocesses based on results from complete simulations.
 
 Functions for a persistent generator to communicate directly with the manager
 are available in the :ref:`libensemble.tools.gen_support<p_gen_routines>` module.
 Additional necessary resources are the status tags ``STOP_TAG``, ``PERSIS_STOP``, and
-``FINISHED_PERSISTENT_GEN_TAG`` from ``libensemble.message_numbers``, with return
-values from the ``gen_support`` functions compared to these tags to determine when
+``FINISHED_PERSISTENT_GEN_TAG`` from ``libensemble.message_numbers``. Return
+values from the ``gen_support`` functions are compared to these tags to determine when
 the generator should break its loop and return.
 
 Implementing the above functions is relatively simple:

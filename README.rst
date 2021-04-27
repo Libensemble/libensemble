@@ -10,7 +10,7 @@
 .. image:: https://travis-ci.org/Libensemble/libensemble.svg?branch=master
    :target: https://travis-ci.org/Libensemble/libensemble
 
-.. image:: https://github.com/Libensemble/libensemble/workflows/init-libEnsemble-CI/badge.svg?branch=develop
+.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=master
    :target: https://github.com/Libensemble/libensemble/actions
 
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=master
@@ -42,10 +42,10 @@ libEnsemble aims for the following:
 • Portability and flexibility
 • Exploitation of persistent data/control flow
 
-The user selects or supplies a function that generates simulation
-input as well as a function that performs and monitors the
-simulations. For example, the generation function may contain an
-optimization routine to generate new simulation parameters on the fly based on
+The user selects or supplies a *generator function* that produces simulation
+input and a *simulator function* that performs and monitors
+simulations. For example, the generator function may contain an
+optimization routine to generate new simulation parameters on-the-fly based on
 the results of previous simulations. Examples and templates of such functions are
 included in the library.
 
