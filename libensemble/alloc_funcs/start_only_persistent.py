@@ -1,5 +1,6 @@
 import numpy as np
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
+                                             count_persis_gens, all_returned)
 
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -11,6 +12,22 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     is set to True, then any returned points are given back to the generator.
 
     If the single persistent generator has exited, then ensemble shutdown is triggered.
+
+    **User options**:
+
+    To be provided in calling script: E.g., ``alloc_specs['user']['async_return'] = True``
+
+    init_sample_size: int, optional
+        Initial sample size - always return in batch. Default: 0
+
+    async_return: boolean, optional
+        Return results to gen as they come in (after sample). Default: False (batch return).
+
+    active_recv_gen: boolean, optional
+        Create gen in active receive mode. If True, the manager does not need to wait
+        for a return from the generator before sending further returned points.
+        Default: False
+
 
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
@@ -39,10 +56,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
         if np.any(returned_but_not_given):
             inds_since_last_gen = np.where(returned_but_not_given)[0]
-            if async_return or np.all(H['returned'][gen_inds]):
+            if async_return or all_returned(H, gen_inds):
                 gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
-                         np.atleast_1d(inds_since_last_gen), persis_info[i], persistent=True,
+                         np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True,
                          active_recv=active_recv_gen)
 
                 H['given_back'][inds_since_last_gen] = True
@@ -61,14 +78,14 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 q_inds = 0
 
             # perform sim evaluations (if they exist in History).
-            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info[i])
+            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i))
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i],
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True, active_recv=active_recv_gen)
             persis_info['gen_started'] = True
 

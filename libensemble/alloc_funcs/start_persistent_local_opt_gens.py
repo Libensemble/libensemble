@@ -1,7 +1,7 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens, all_returned
 
 from libensemble.gen_funcs.old_aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
@@ -25,7 +25,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     Work = {}
     gen_count = count_persis_gens(W)
-    task_avail = ~H['given']
+    task_avail = ~H['given'] & ~H['cancel_requested']
 
     # If a persistent localopt run has just finished, use run_order to update H
     # and then remove other information from persis_info
@@ -42,7 +42,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
-        if np.all(H['returned'][gen_inds]):
+        if all_returned(H, gen_inds):
             last_time_pos = np.argmax(H['given_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             gen_work(Work, i,
@@ -52,7 +52,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     for i in avail_worker_ids(W, persistent=False):
         # Find candidates to start local opt runs if a sample has been evaluated
-        if np.any(np.logical_and(~H['local_pt'], H['returned'])):
+        if np.any(np.logical_and(~H['local_pt'], H['returned'], ~H['cancel_requested'])):
             n, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
             update_history_dist(H, n, gen_specs['user'], c_flag=False)
             starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)

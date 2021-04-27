@@ -1,6 +1,7 @@
 import numpy as np
 
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
+                                             count_persis_gens, all_returned)
 
 
 def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -23,7 +24,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
         # if > 1 persistant generator, assign the correct work to it
         inds_generated_by_i = (H['gen_worker'] == i)
-        if np.all(H['returned'][inds_generated_by_i]):
+        if all_returned(H, inds_generated_by_i):
 
             # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch
@@ -39,7 +40,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             gen_work(Work, i, ['like'], np.atleast_1d(inds_to_send_back),
                      persis_info.get(i), persistent=True)
 
-    task_avail = ~H['given']
+    task_avail = ~H['given'] & ~H['cancel_requested']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):
 
