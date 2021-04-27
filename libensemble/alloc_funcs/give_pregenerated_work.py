@@ -18,7 +18,6 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
         return Work, persis_info, 1
 
     for i in avail_worker_ids(W):
-
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1

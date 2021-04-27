@@ -56,7 +56,6 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 H['given_back'][inds_to_give] = True
 
     for i in avail_worker_ids(W, persistent=False):
-
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1

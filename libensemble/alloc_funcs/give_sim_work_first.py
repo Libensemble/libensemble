@@ -17,7 +17,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     their resources can be used for a different simulation evaluation.
 
     Can give points in highest priority, if ``'priority'`` is a field in ``H``.
-    If gen_specs['user']['give_all_with_same_priority'] is set and True, then
+    If gen_specs['user']['give_all_with_same_priority'] is set to True, then
     all points with the same priority value are given as a batch to the sim.
 
 

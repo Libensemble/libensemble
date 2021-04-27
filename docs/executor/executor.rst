@@ -15,7 +15,6 @@ See the Executor APIs for optional arguments.
    mpi_executor
    balsam_executor
 
-
 Executor Class
 ---------------
 
