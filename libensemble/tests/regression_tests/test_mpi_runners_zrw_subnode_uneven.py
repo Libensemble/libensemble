@@ -26,7 +26,7 @@ libE_logger.set_level('INFO')
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 4 6
+# TESTSUITE_NPROCS: 5 7
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 rounds = 1
