@@ -16,7 +16,7 @@ Since each of these functions is supplied or selected by libEnsemble's users, th
 typically referred to as *user functions*. User functions need not be written only in
 Python: they can (and often do) depend on routines from other
 languages. The only restriction for user functions is that their inputs and outputs conform
-to the user function APIs. Therefore, the level of computation and complexity of any user function
+to the :ref:`user function APIs<user_api>`. Therefore, the level of computation and complexity of any user function
 can vary dramatically based on the user's needs.
 
 These guides describe common development

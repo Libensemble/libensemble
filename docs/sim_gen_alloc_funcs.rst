@@ -1,7 +1,8 @@
 User Function API
 -----------------
+.. _user_api:
 
-libEnsemble requires functions for generation, simulation and allocation.
+libEnsemble requires functions for generation, simulation, and allocation.
 
 While libEnsemble provides a default allocation function, the sim and gen functions
 must be specified. The required API and example arguments are given here.
