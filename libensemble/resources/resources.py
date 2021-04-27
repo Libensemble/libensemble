@@ -332,9 +332,8 @@ class WorkerResources:
 
     @staticmethod
     def even_assignment(nnodes, nworkers):
-        """Returns True if workers are divided evenly to nodes, else False"""
-        k, m = divmod(nworkers, nnodes)
-        return True if m == 0 else False
+        """Returns True if workers are evenly distributied to nodes, else False"""
+        return nnodes % nworkers == 0 or nworkers % nnodes == 0
 
     @staticmethod
     def expand_list(nnodes, nworkers, nodelist):
