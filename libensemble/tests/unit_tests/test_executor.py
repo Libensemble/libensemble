@@ -117,7 +117,7 @@ def setup_executor_fakerunner():
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
-def polling_loop(exctr, task, timeout_sec=1, delay=0.1):
+def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
     """Iterate over a loop, polling for an exit condition"""
     start = time.time()
 
