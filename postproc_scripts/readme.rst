@@ -29,6 +29,11 @@ Results analysis scripts
 
     ./print_npy.py run_libe_forces_results_History_length=1000_evals=8.npy done
 
+* ``print_fields.py``: Prints to screen from a given ``*.npy`` file containing
+  a NumPy structured array. This is a more versatile version of ``print_npy.py``
+  that allows the user to select fields to print and boolean conditions determining
+  which rows are printed (see ``./print_fields.py -h`` for usage).
+
 * ``compare_npy.py``: Compares either two provided ``*.npy`` files or one
   provided ``*.npy`` file with an expected results file (by default located at
   ../expected.npy). A tolerance is given on floating-point results, and NANs are
