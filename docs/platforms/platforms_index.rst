@@ -13,7 +13,7 @@ The first mode we refer to as **central** mode, where the libEnsemble manager an
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
 the remaining allocated nodes:
 
-.. image:: ../images/centralized_new.png
+.. image:: ../images/centralized_new_detailed.png
     :alt: centralized
     :scale: 30
     :align: center
@@ -22,7 +22,7 @@ Alternatively, in **distributed** mode, libEnsemble is launched with the process
 spread across nodes. The worker processes will share nodes with the applications
 they launch. There may be multiple nodes per worker, or multiple workers per node:
 
-.. image:: ../images/distributed_new.png
+.. image:: ../images/distributed_new_detailed.png
     :alt: distributed
     :scale: 30
     :align: center
@@ -96,7 +96,7 @@ launch nodes and launches tasks submitted by workers. Running libEnsemble on the
 nodes is potentially more scalable and will better manage ``sim_f`` and ``gen_f`` functions
 that contain considerable computational work or I/O.
 
-    .. image:: ../images/central_balsam.png
+    .. image:: ../images/centralized_new_detailed_balsam.png
         :alt: central_balsam
         :scale: 40
         :align: center
