@@ -71,6 +71,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'save_every_k_gens',      #
                           'save_every_k_sims',      #
                           'save_H_and_persis_on_abort',        #
+                          'use_persis_return',      #
                           'workerID',               #
                           'worker_timeout',         #
                           'zero_resource_workers',  #
