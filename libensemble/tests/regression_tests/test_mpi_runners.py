@@ -37,7 +37,7 @@ libE_logger.set_filename(log_file)
 nodes_per_worker = 2
 
 # For varying size test - relate node count to nworkers
-node_file = 'nodelist_mpi_runnerscomms_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_mpi_runners_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = nworkers*nodes_per_worker
 
 if is_manager:

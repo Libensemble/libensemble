@@ -225,4 +225,4 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
                 cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
             pending[:, c_obviate] = False
 
-    return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

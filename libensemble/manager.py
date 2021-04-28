@@ -23,6 +23,7 @@ from libensemble.comms.comms import CommFinishedException
 from libensemble.worker import WorkerErrMsg
 from libensemble.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
+from libensemble.tools.tools import _PERSIS_RETURN_WARNING
 from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile
 import pstats
@@ -365,6 +366,12 @@ class Manager:
             self.W[w-1]['active'] = 0
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
+            final_data = D_recv.get('calc_out', None)
+            if isinstance(final_data, np.ndarray):
+                if self.libE_specs.get('use_persis_return', False):
+                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                else:
+                    logger.info(_PERSIS_RETURN_WARNING)
             self.W[w-1]['persis_state'] = 0
             if self.W[w-1]['active_recv']:
                 self.W[w-1]['active'] = 0

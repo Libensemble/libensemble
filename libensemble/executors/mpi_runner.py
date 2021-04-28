@@ -94,7 +94,7 @@ class MPIRunner:
                                         ranks_per_node, hyperthreads)
 
             # Use hostlist if full nodes, otherwise machinefile
-            full_node = resources.worker_resources.workers_per_node == 1
+            full_node = resources.worker_resources.workers_on_node == 1
             if full_node or not self.mfile_support:
                 hostlist = resources.get_hostlist(num_nodes)
             else:

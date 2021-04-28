@@ -73,6 +73,9 @@ Specifications for libEnsemble::
         'safe_mode' [boolean]:
             Prevents user functions from overwritting protected libE fields.
             Default: True
+        'use_persis_return' [boolean]:
+            Adds persistent function H return to managers history array.
+            Default: False
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or
