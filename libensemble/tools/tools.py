@@ -53,9 +53,9 @@ _USER_CALC_DIR_WARNING = \
 _PERSIS_RETURN_WARNING = \
     ('\n' + 79*'*' + '\n' +
      "A persistent worker has returned history data on shutdown. This data is\n" +
-     "not currently added to the managers history, to avoid overwriting, but \n" +
-     "will be in a future release. If you want to overwrite/append, you can set\n" +
-     "the libE_specs option ``use_persis_return``" +
+     "not currently added to the manager's history to avoid possibly overwriting, but\n" +
+     "will be added to the manager's history in a future release. If you want to\n" +
+     "overwrite/append, you can set the libE_specs option ``use_persis_return``" +
      '\n' + 79*'*' + '\n\n')
 
 # =================== save libE output to pickle and np ========================
