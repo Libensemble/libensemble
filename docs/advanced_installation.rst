@@ -106,12 +106,12 @@ Install libEnsemble using the Spack_ distribution::
 The above command will install the latest release of libEnsemble with
 the required dependencies only. There are several other optional
 dependencies that can be specified through variants. The following
-line installs libEnsemble version 0.7.1 with some common variants
+line installs libEnsemble version 0.7.2 with some common variants
 (e.g.~ using :doc:`APOSMM<../examples/aposmm>`):
 
 .. code-block:: bash
 
-    spack install py-libensemble @0.7.1 +mpi +scipy +mpmath +petsc4py +nlopt
+    spack install py-libensemble @0.7.2 +mpi +scipy +mpmath +petsc4py +nlopt
 
 The list of variants can be found by running::
 
