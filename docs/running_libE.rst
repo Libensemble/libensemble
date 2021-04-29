@@ -90,9 +90,9 @@ systems or nodes over TCP. The necessary configuration options can be provided t
 
 The ``libE_specs`` options for TCP are::
 
-    'comms' [string] :
+    'comms' [string]:
         'tcp'
-    'nworkers' [int] :
+    'nworkers' [int]:
         Number of worker processes to spawn
     'workers' list:
         A list of worker hostnames.
