@@ -21,7 +21,7 @@ API additions:
 * A submit function is added in the base ``Executor`` class that runs a serial application locally. (#531 / #595)
 * Added libEnsemble history array protected fields: `returned_time`, `last_given_time`, and `last_gen_time`. (#590)
 * Updated libE_specs options (``mpi_comm`` and ``profile``). (#547 / #548)
-* Explicit seeding of random streams in ``add_unique_random_streams()`` is not possible. (#542 / #545)
+* Explicit seeding of random streams in ``add_unique_random_streams()`` is now possible. (#542 / #545)
 
 Updates to example functions:
 
