@@ -17,20 +17,20 @@ the final history from libEnsemble will include the following:
   worker to be evaluated yet?
 
 * ``given_time`` [float]: At what time (since the epoch) was this ``gen_f``
-  output was first given to a worker?
+  output first given to a worker?
 
 * ``last_given_time`` [float]: At what time (since the epoch) was this ``gen_f``
-  output was last given to a worker?
+  output last given to a worker?
 
 * ``sim_worker`` [int]: libEnsemble worker that output was given to for evaluation
 
 * ``gen_worker`` [int]: libEnsemble worker that generated this ``sim_id``
 
 * ``gen_time`` [float]: At what time (since the epoch) was this entry (or
-  collection of entries) was first put into ``H`` by the manager
+  collection of entries) first put into ``H`` by the manager
 
 * ``last_gen_time`` [float]: At what time (since the epoch) was this entry (or
-  collection of entries) was first put into ``H`` by the manager
+  collection of entries) first put into ``H`` by the manager
 
 * ``returned`` [bool]: Has this worker completed the evaluation of this unit of
   work?
