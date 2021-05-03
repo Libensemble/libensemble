@@ -1,7 +1,6 @@
 # This script is submitted as an app and job to Balsam. The job submission is
 #   via 'balsam launch' executed in the test_balsam_hworld.py script.
 
-import os
 import numpy as np
 import mpi4py
 from mpi4py import MPI
@@ -16,29 +15,18 @@ import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
-
-# Slighty different due to working directory not being /regression_tests
-def build_simfunc():
-    import subprocess
-    print('Balsam job launched in: {}'.format(os.getcwd()))
-    buildstring = 'mpicc -o my_simtask.x libensemble/tests/unit_tests/simdir/my_simtask.c'
-    subprocess.check_call(buildstring.split())
-
-
-libE_specs = {'comm': MPI.COMM_WORLD,
+libE_specs = {'mpi_comm': MPI.COMM_WORLD,
               'comms': 'mpi',
               'save_every_k_sims': 400,
               'save_every_k_gens': 20,
               }
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
-is_master = MPI.COMM_WORLD.Get_rank() == 0
+is_manager = MPI.COMM_WORLD.Get_rank() == 0
 
 cores_per_task = 1
 
 sim_app = './my_simtask.x'
-if not os.path.isfile(sim_app):
-    build_simfunc()
 sim_app2 = six_hump_camel.__file__
 
 exctr = BalsamMPIExecutor(auto_resources=False, central_mode=False, custom_info={'not': 'used'})
@@ -68,7 +56,7 @@ exit_criteria = {'elapsed_wallclock_time': 60}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     print('\nChecking expected task status against Workers ...\n')
     calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR,
                                       WORKER_DONE, WORKER_KILL_ON_TIMEOUT,

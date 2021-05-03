@@ -11,7 +11,9 @@ Fields in ``H`` include those specified in ``sim_specs['out']``,
 ``gen_specs['out']``, and ``alloc_specs['out']``. All values are initiated to
 0 for integers, 0.0 for floats, and False for Booleans.
 
-Below are the protected fields used in ``H``:
+Below are the protected fields used in ``H``. Other than ``'sim_id'`` and
+``cancel_requested``, these fields cannot be overwritten by user functions (unless
+``libE_spces['safe_mode']`` is set to ``False``).
 
 ..  literalinclude:: ../../libensemble/tools/fields_keys.py
     :start-at: libE_fields

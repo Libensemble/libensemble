@@ -2,9 +2,9 @@
 # Runs libEnsemble testing timeout and wait for persistent worker.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-test_persistent_aposmm_timeout.py.py
-#    python3 test_6-test_persistent_aposmm_timeout.py.py --nworkers 3 --comms local
-#    python3 test_6-test_persistent_aposmm_timeout.py.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_6-test_persistent_aposmm_timeout.py
+#    python3 test_6-test_persistent_aposmm_timeout.py --nworkers 3 --comms local
+#    python3 test_6-test_persistent_aposmm_timeout.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
@@ -23,7 +23,7 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -62,7 +62,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_master:
+if is_manager:
     assert flag == 2, "Test should have timed out"
     assert persis_info[1].get('run_order'), "Run_order should have been given back"
     min_ids = np.where(H['local_min'])

@@ -10,7 +10,7 @@ __all__ = ['executor_hworld']
 sim_count = 0
 
 
-def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
+def polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
@@ -19,7 +19,7 @@ def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
         time.sleep(delay)
 
         # print('Probing manager at time: ', task.runtime)
-        exctr.manager_poll(comm)
+        exctr.manager_poll()
         if exctr.manager_signal == 'finish':
             exctr.kill(task)
             calc_status = MAN_SIGNAL_FINISH  # Worker will pick this up and close down
@@ -69,8 +69,6 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     """ Tests launching and polling task and exiting on task finish"""
     exctr = MPIExecutor.executor
     cores = sim_specs['user']['cores']
-    comm = libE_info['comm']
-
     use_balsam = 'balsam_test' in sim_specs['user']
 
     args_for_sim = 'sleep 1'
@@ -114,7 +112,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             calc_status = TASK_FAILED
 
     else:
-        task, calc_status = polling_loop(comm, exctr, task, timeout)
+        task, calc_status = polling_loop(exctr, task, timeout)
 
     if use_balsam:
         task.read_file_in_workdir('ensemble.log')

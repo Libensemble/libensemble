@@ -14,6 +14,7 @@
 # TESTSUITE_NPROCS: 2 4
 
 import sys
+import gc
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -24,9 +25,9 @@ from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
-num_pts = 30*(nworkers - 1)
+num_pts = 30*(nworkers)
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('large', float, 1000000)], 'user': {}}
 
@@ -49,6 +50,7 @@ if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
 for time in np.append([0], np.logspace(-5, -1, 5)):
+    print("Starting for time: ", time, flush=True)
     if time == 0:
         alloc_specs = {'alloc_f': alloc_f2, 'out': []}
     else:
@@ -67,6 +69,9 @@ for time in np.append([0], np.logspace(-5, -1, 5)):
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs)
 
-        if is_master:
+        if is_manager:
             assert flag == 0
             assert len(H) == 2*num_pts
+
+        del H
+        gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.

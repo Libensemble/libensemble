@@ -103,21 +103,28 @@ Install libEnsemble using the Spack_ distribution::
 
     spack install py-libensemble
 
-The above command will install the required dependencies only. There
-are several other optional dependencies that can be specified
-through variants. The following line installs libEnsemble
-version 0.7.0 with all the variants::
+The above command will install the latest release of libEnsemble with
+the required dependencies only. There are other optional
+dependencies that can be specified through variants. The following
+line installs libEnsemble version 0.7.2 with some common variants
+(e.g.~ using :doc:`APOSMM<../examples/aposmm>`):
 
-    spack install py-libensemble @0.7.0 +mpi +scipy +petsc4py +nlopt
+.. code-block:: bash
+
+    spack install py-libensemble @0.7.2 +mpi +scipy +mpmath +petsc4py +nlopt
+
+The list of variants can be found by running::
+
+    spack info py-libensemble
 
 On some platforms you may wish to run libEnsemble without ``mpi4py``,
 using a serial PETSc build. This is often preferable if running on
 the launch nodes of a three-tier system (e.g. Theta/Summit)::
 
-    spack install py-libensemble @0.7.0 +scipy +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
+    spack install py-libensemble +scipy +mpmath +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 
 The install will create modules for libEnsemble and the dependent
-packages. These can be loaded by::
+packages. These can be loaded by running::
 
     spack load -r py-libensemble
 
@@ -139,17 +146,20 @@ For example, if you have an activated Conda environment with Python 3.7 and SciP
 
     packages:
       python:
-        paths:
-          python: $CONDA_PREFIX
+        externals:
+        - spec: "python"
+          prefix: $CONDA_PREFIX
         buildable: False
       py-numpy:
-        paths:
-          py-numpy: $CONDA_PREFIX/lib/python3.7/site-packages/numpy
+        externals:
+        - spec: "py-numpy"
+          prefix: $CONDA_PREFIX/lib/python3.7/site-packages/numpy
         buildable: False
       py-scipy:
-        paths:
-          py-scipy: $CONDA_PREFIX/lib/python3.7/site-packages/scipy
-        buildable: False
+        externals:
+        - spec: "py-scipy"
+          prefix: $CONDA_PREFIX/lib/python3.7/site-packages/scipy
+        buildable: True
 
 For more information on Spack builds and any particular considerations
 for specific systems, see the spack_libe_ repostory. In particular, this

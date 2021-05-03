@@ -36,10 +36,17 @@ alongside ``persis_info``::
 
         return local_H_out, persis_info
 
+Between the output array definition and the function returning, any level and complexity
+of computation can be performed. Users are encouraged to use the :doc:`executor<../executor/overview>`
+to submit applications to parallel resources if necessary, or plug in components from
+any other libraries to serve their needs.
+
 .. note::
 
     State ``gen_f`` information like checkpointing should be
     appended to ``persis_info``.
+
+.. _persistent-gens:
 
 Persistent Generators
 ---------------------
@@ -54,14 +61,16 @@ empty.
 
 Many users prefer persistent generators since they do not need to be
 re-initialized every time their past work is completed and evaluated by a
-simulation, and an can evaluate returned simulation results over the course of
-an entire libEnsemble routine as a single function instance.
+simulation, and can evaluate returned simulation results over the course of
+an entire libEnsemble routine as a single function instance. The :doc:`APOSMM<../examples/aposmm>`
+optimization generator function included with libEnsemble is persistent so it can
+maintain multiple local optimization subprocesses based on results from complete simulations.
 
 Functions for a persistent generator to communicate directly with the manager
 are available in the :ref:`libensemble.tools.gen_support<p_gen_routines>` module.
 Additional necessary resources are the status tags ``STOP_TAG``, ``PERSIS_STOP``, and
-``FINISHED_PERSISTENT_GEN_TAG`` from ``libensemble.message_numbers``, with return
-values from the ``gen_support`` functions compared to these tags to determine when
+``FINISHED_PERSISTENT_GEN_TAG`` from ``libensemble.message_numbers``. Return
+values from the ``gen_support`` functions are compared to these tags to determine when
 the generator should break its loop and return.
 
 Implementing the above functions is relatively simple:
@@ -107,6 +116,60 @@ the tag from the manager, it should return with an additional tag::
 
 See :doc:`calc_status<../data_structures/calc_status>` for more information about
 the message tags.
+
+Active receive mode
+-------------------
+
+By default, a persistent worker (generator in this case) models the manager/worker
+communications of a regular worker (i.e., the generator is expected to alternately
+receive and send data in a *ping pong* fashion). To have an irregular communication
+pattern, a worker can be initiated in *active receive* mode by the allocation
+function (see :ref:`start_only_persistent<start_only_persistent_label>`).
+
+The user is responsible for ensuring there are no communication deadlocks
+in this mode. Note that in manager/worker message exchanges, only the worker-side
+receive is blocking.
+
+Cancelling simulations
+----------------------
+
+Previously submitted simulations can be cancelled by sending a message to the manager.
+To do this as a separate communication, a persistent generator should be
+in *active receive* mode to prevent a deadlock.
+
+To send out cancellations of previously submitted simulations, the generator
+can initiate a history array with just the ``sim_id`` and ``cancel_requested`` fields.
+Then fill in the ``sim_id``'s to cancel and set the ``cancel_requested`` field to ``True``.
+In the following example, ``sim_ids_to_cancel`` is a list of integers.
+
+.. code-block:: python
+
+    # Send only these fields to existing H rows and libEnsemble will slot in the change.
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
+    H_o['sim_id'] = sim_ids_to_cancel
+    H_o['cancel_requested'] = True
+    send_mgr_worker_msg(comm, H_o)
+
+If a generated point is cancelled by the generator before it has been given to a
+worker for evaluation, then it will never be given. If it has already returned from the
+simulation, then results can be returned, but the ``cancel_requested`` field remains
+as ``True``. However, if the simulation is running when the manager receives the cancellation
+request, a kill signal will be sent to the worker. This can be caught and acted upon
+by a user function, otherwise it will be ignored.
+
+The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` gives an example
+of the capability to cancel pending simulations.
+
+Generator initiated shutdown
+----------------------------
+
+If using a supporting allocation function, the generator can prompt the ensemble to shutdown
+by simply exiting the function (e.g., on a test for a converged value). For example, the
+allocation function :ref:`start_only_persistent<start_only_persistent_label>` closes down
+the ensemble as soon a persistent generator returns. The usual return values should be given.
+
+Examples
+--------
 
 Examples of normal and persistent generator functions
 can be found :doc:`here<../examples/gen_funcs>`.

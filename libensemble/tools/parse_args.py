@@ -33,9 +33,9 @@ def _mpi_parse_args(args):
     "Parses arguments for MPI comms."
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
-    is_master = MPI.COMM_WORLD.Get_rank() == 0
-    libE_specs = {'comm': MPI.COMM_WORLD, 'comms': 'mpi'}
-    return nworkers, is_master, libE_specs, args.tester_args
+    is_manager = MPI.COMM_WORLD.Get_rank() == 0
+    libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+    return nworkers, is_manager, libE_specs, args.tester_args
 
 
 def _local_parse_args(args):
@@ -100,7 +100,7 @@ def parse_args():
     .. code-block:: python
 
         from libensemble.tools import parse_args
-        nworkers, is_master, libE_specs, misc_args = parse_args()
+        nworkers, is_manager, libE_specs, misc_args = parse_args()
 
     From the shell::
 
@@ -123,7 +123,7 @@ def parse_args():
     nworkers: :obj:`int`
         Number of workers libEnsemble will inititate
 
-    is_master: :obj:`boolean`
+    is_manager: :obj:`boolean`
         Indicates whether the current process is the manager process
 
     libE_specs: :obj:`dict`
@@ -140,7 +140,7 @@ def parse_args():
         'client': _client_parse_args}
     if args.pwd is not None:
         os.chdir(args.pwd)
-    nworkers, is_master, libE_specs, tester_args = front_ends[args.comms or 'mpi'](args)
-    if is_master and unknown:
+    nworkers, is_manager, libE_specs, tester_args = front_ends[args.comms or 'mpi'](args)
+    if is_manager and unknown:
         logger.warning('parse_args ignoring unrecognized arguments: {}'.format(' '.join(unknown)))
-    return nworkers, is_master, libE_specs, tester_args
+    return nworkers, is_manager, libE_specs, tester_args

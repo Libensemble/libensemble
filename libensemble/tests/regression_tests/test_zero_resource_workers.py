@@ -9,16 +9,16 @@
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
-import os
 import sys
 import numpy as np
 
-from libensemble.message_numbers import WORKER_DONE
 from libensemble.libE import libE
+from libensemble.sim_funcs.run_line_check import runline_check as sim_f
 from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tests.regression_tests.common import create_node_file
 from libensemble import libE_logger
 
 # libE_logger.set_level('DEBUG')  # For testing the test
@@ -28,66 +28,7 @@ libE_logger.set_level('INFO')
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 3 4
 
-nodes_per_worker = 2
-
-
-def exp_nodelist_for_worker(exp_list, workerID):
-    """Modify expected node-lists based on workerID"""
-    comps = exp_list.split()
-    new_line = []
-    for comp in comps:
-        if comp.startswith('node-'):
-            new_node_list = []
-            node_list = comp.split(',')
-            for node in node_list:
-                node_name, node_num = node.split('-')
-                new_num = int(node_num) + nodes_per_worker*(workerID - 2)  # For 1 persistent gen
-                new_node = '-'.join([node_name, str(new_num)])
-                new_node_list.append(new_node)
-            new_list = ','.join(new_node_list)
-            new_line.append(new_list)
-        else:
-            new_line.append(comp)
-    return ' '.join(new_line)
-
-
-def runline_check(H, persis_info, sim_specs, libE_info):
-    """Check run-lines produced by executor provided by a list"""
-    calc_status = 0
-    x = H['x'][0][0]
-    exctr = MPIExecutor.executor
-    test_list = sim_specs['user']['tests']
-    exp_list = sim_specs['user']['expect']
-
-    for i, test in enumerate(test_list):
-        task = exctr.submit(calc_type='sim',
-                            num_procs=test.get('nprocs', None),
-                            num_nodes=test.get('nnodes', None),
-                            ranks_per_node=test.get('ppn', None),
-                            extra_args=test.get('e_args', None),
-                            app_args='--testid ' + test.get('testid', None),
-                            stdout='out.txt',
-                            stderr='err.txt',
-                            hyperthreads=test.get('ht', None),
-                            dry_run=True)
-
-        outline = task.runline
-        new_exp_list = exp_nodelist_for_worker(exp_list[i], libE_info['workerID'])
-
-        if outline != new_exp_list:
-            print('outline is: {}\nexp     is: {}'.format(outline, new_exp_list), flush=True)
-
-        assert(outline == new_exp_list)
-
-    calc_status = WORKER_DONE
-    output = np.zeros(1, dtype=sim_specs['out'])
-    output['f'][0] = np.linalg.norm(x)
-    return output, persis_info, calc_status
-
-# --------------------------------------------------------------------
-
-
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
@@ -98,22 +39,23 @@ libE_specs['zero_resource_workers'] = [1]
 log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 libE_logger.set_filename(log_file)
 
+nodes_per_worker = 2
+
 # For varying size test - relate node count to nworkers
 in_place = libE_specs['zero_resource_workers']
-nsim_workers = nworkers-len(in_place)
+n_gens = len(in_place)
+nsim_workers = nworkers-n_gens
+
 comms = libE_specs['comms']
 nodes_per_worker = 2
-node_file = 'nodelist_zero_resource_workers_' + str(comms) + '_wrks_' + str(nworkers)
-if is_master:
-    if os.path.exists(node_file):
-        os.remove(node_file)
-    with open(node_file, 'w') as f:
-        for i in range(1, (nsim_workers)*nodes_per_worker + 1):
-            f.write('node-' + str(i) + '\n')
-        f.flush()
-        os.fsync(f)
+node_file = 'nodelist_zero_resource_workers_comms_' + str(comms) + '_wrks_' + str(nworkers)
+nnodes = nsim_workers*nodes_per_worker
+
+if is_manager:
+    create_node_file(num_nodes=nnodes, name=node_file)
+
 if comms == 'mpi':
-    libE_specs['comm'].Barrier()
+    libE_specs['mpi_comm'].Barrier()
 
 
 # Mock up system
@@ -123,7 +65,9 @@ customizer = {'mpi_runner': 'mpich',    # Select runner: mpich, openmpi, aprun, 
               'node_file': node_file}      # Name of file containing a node-list
 
 # Create executor and register sim to it.
-exctr = MPIExecutor(zero_resource_workers=in_place, central_mode=True, auto_resources=True, custom_info=customizer)
+exctr = MPIExecutor(zero_resource_workers=in_place, central_mode=True,
+                    auto_resources=True, allow_oversubscribe=False,
+                    custom_info=customizer)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 
@@ -131,7 +75,7 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': runline_check,
+sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float)],
              }
@@ -160,7 +104,8 @@ exp_mpich = \
 
 test_list = test_list_base
 exp_list = exp_mpich
-sim_specs['user'] = {'tests': test_list, 'expect': exp_list}
+sim_specs['user'] = {'tests': test_list, 'expect': exp_list,
+                     'nodes_per_worker': nodes_per_worker, 'persis_gens': n_gens}
 
 
 # Perform the run

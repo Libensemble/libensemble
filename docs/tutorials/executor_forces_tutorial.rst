@@ -50,7 +50,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     from libensemble.tools import parse_args, add_unique_random_streams
     from libensemble.executors.mpi_executor import MPIExecutor
 
-    nworkers, is_master, libE_specs, _ = parse_args()  # Convenience function
+    nworkers, is_manager, libE_specs, _ = parse_args()  # Convenience function
 
     # Create executor and register sim to it
     exctr = MPIExecutor()  # Use auto_resources=False to oversubscribe
@@ -66,7 +66,7 @@ generation functions and call libEnsemble. Create a Python file containing:
 On line 4 we import our not-yet-written ``sim_f``. We also import necessary
 libEnsemble components and some :doc:`convenience functions<../utilities>`.
 For example, our script can use the number of workers (``nworkers``), a boolean
-determining if the process is the master process (``is_master``), and a default
+determining if the process is the manager process (``is_manager``), and a default
 :ref:`libE_specs<datastruct-libe-specs>` with a call to the ``parse_args()``
 convenience function.
 

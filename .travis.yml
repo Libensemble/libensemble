@@ -1,7 +1,6 @@
 language: python
 dist: xenial
 python:
-  - 3.5
   - 3.6
   - 3.7
   - 3.8
@@ -12,20 +11,11 @@ env:
   global:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
-  jobs:
     - MPI=mpich
-  matrix:
-    - COMMS_TYPE=m  # mpi
     - COMMS_TYPE=l  # local
-    - COMMS_TYPE=t  # tcp
 
 jobs:
   include:
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.7 COMMS_TYPE=m  # mpi
-      language: generic
-      python: 3.7
     - os: osx
       osx_image: xcode11.3
       env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
@@ -33,33 +23,10 @@ jobs:
       python: 3.7
     - os: osx
       osx_image: xcode11.3
-      env: MPI=mpich PY=3.7 COMMS_TYPE=t  # tcp
-      language: generic
-      python: 3.7
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
-      language: generic
-      python: 3.8
-    - os: osx
-      osx_image: xcode11.3
       env: MPI=mpich PY=3.8 COMMS_TYPE=l  # local
       language: generic
       python: 3.8
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.8 COMMS_TYPE=t  # tcp
-      language: generic
-      python: 3.8
   fast_finish: true
-  allow_failures:
-      - python: 3.8
-      - os: osx
-        env: MPI=mpich PY=3.8 COMMS_TYPE=m  # mpi
-      - os: osx
-        env: MPI=mpich PY=3.8 COMMS_TYPE=l  # mpi
-      - os: osx
-        env: MPI=mpich PY=3.8 COMMS_TYPE=t  # mpi
 
 services:
     - postgresql
@@ -70,9 +37,9 @@ cache:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-MacOSX-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -94,15 +61,12 @@ install:
     else
         COMPILERS=gcc_linux-64;
         MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
-        sudo add-apt-repository -y ppa:octave/stable;
-        sudo apt-get update -qq;
-        sudo apt install -y octave;
     fi
 
   - conda install $COMPILERS
   - conda install libblas libopenblas # Prevent 'File exists' error
 
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]]; then
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] || [[ "$PY" == "3.8" ]]; then
       conda install nlopt mpi4py scipy mpich;
       export PETSC_CONFIGURE_OPTIONS='--with-batch';
       conda install petsc4py;
@@ -110,16 +74,9 @@ install:
       conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI;
     fi
 
-    # Begin: Dependencies only for regression tests
-  - pip install DFO-LS
-  - pip install deap
   - conda install psutil
   - pip install mpmath
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        pip install scikit-build packaging Tasmanian --user;
-    fi
-    # End: dependencies only for regression tests
-    #
+  - pip install DFO-LS
   - pip install flake8
   - pip install coverage==4.5.4
   - pip install pytest
@@ -130,19 +87,16 @@ install:
   - python install/find_mpi.py # Locate compilers. Confirm MPI library
   - mpiexec --version        # Show MPI library details
   - pip install -e .            # Installing libEnsemble
-  - wget https://github.com/balsam-alcf/balsam/archive/0.3.8.tar.gz
+  - wget https://github.com/argonne-lcf/balsam/archive/0.3.8.tar.gz
   - mkdir ../balsam; tar xf 0.3.8.tar.gz -C ../balsam;
   - python install/configure_balsam_install.py
 
 before_script:
   - flake8 libensemble
-  - echo "export BALSAM_DB_PATH=~/test-balsam" > setbalsampath.sh
-  - source setbalsampath.sh # Imperfect method for env var persist after setup
-  - ulimit -Sn 10000   # More concurrent file descriptors (for persis aposmm)
 
 # Run test (-z show output)
 script:
-  - ./libensemble/tests/run-tests.sh -A "-W error" -z -$COMMS_TYPE
+  - ./libensemble/tests/run-tests.sh -y 'test_balsam*' -z -$COMMS_TYPE
 
 # Track code coverage
 after_success:

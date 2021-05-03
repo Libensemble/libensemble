@@ -6,9 +6,7 @@ This module detects and returns system resources
 import os
 import socket
 import logging
-import itertools
 import subprocess
-# from collections import OrderedDict
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
 
@@ -122,13 +120,19 @@ class Resources:
                                           nodelist_env_lsf=nodelist_env_lsf,
                                           nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
-        # This is global nodelist avail to workers - may change to global_worker_nodelist
-        self.local_host = self.env_resources.shortnames([socket.gethostname()])[0]
         if node_file is None:
             node_file = Resources.DEFAULT_NODEFILE
+
         self.global_nodelist = Resources.get_global_nodelist(node_file=node_file,
                                                              rundir=self.top_level_dir,
                                                              env_resources=self.env_resources)
+
+        self.shortnames = Resources.is_nodelist_shortnames(self.global_nodelist)
+        if self.shortnames:
+            self.local_host = self.env_resources.shortnames([socket.gethostname()])[0]
+        else:
+            self.local_host = socket.gethostname()
+
         self.launcher = launcher
         remote_detect = False
         if self.local_host not in self.global_nodelist:
@@ -150,7 +154,10 @@ class Resources:
 
         Removes libEnsemble nodes from nodelist if in central_mode.
         """
-        self.libE_nodes = self.env_resources.shortnames(libE_nodes)
+        if self.shortnames:
+            self.libE_nodes = self.env_resources.shortnames(libE_nodes)
+        else:
+            self.libE_nodes = libE_nodes
         libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
         if libE_nodes_in_list:
             if self.central_mode and len(self.global_nodelist) > 1:
@@ -203,6 +210,14 @@ class Resources:
 
     # ---------------------------------------------------------------------------
 
+    @staticmethod
+    def is_nodelist_shortnames(nodelist):
+        """Returns True if any entry contains a '.', else False"""
+        for item in nodelist:
+            if '.' in item:
+                return False
+        return True
+
     # This is for central mode where libE nodes will not share with app nodes
     @staticmethod
     def remove_nodes(global_nodelist_in, remove_list):
@@ -237,8 +252,9 @@ class Resources:
             with open(node_filepath, 'r') as f:
                 for line in f:
                     global_nodelist.append(line.rstrip())
-            if env_resources:
-                global_nodelist = env_resources.shortnames(global_nodelist)
+            # Expect correct format - if anything - could have an option to truncate.
+            # if env_resources:
+                # global_nodelist = env_resources.shortnames(global_nodelist)
         else:
             logger.debug("No node_file found - searching for nodelist in environment")
             if env_resources:
@@ -247,7 +263,8 @@ class Resources:
             if not global_nodelist:
                 # Assume a standalone machine
                 logger.info("Can not find nodelist from environment. Assuming standalone")
-                global_nodelist.append(env_resources.shortnames([socket.gethostname()])[0])
+                # global_nodelist.append(env_resources.shortnames([socket.gethostname()])[0])
+                global_nodelist.append(socket.gethostname())
 
         if global_nodelist:
             return global_nodelist
@@ -289,17 +306,10 @@ class WorkerResources:
         """
         self.num_workers = comm.get_num_workers()
         self.workerID = workerID
-        self.local_nodelist = WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
+        self.local_nodelist, self.workers_on_node = \
+            WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
         self.local_node_count = len(self.local_nodelist)
-        self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers, resources)
-
-    @staticmethod
-    def get_workers_on_a_node(num_workers, resources):
-        """Returns the number of workers that can be placed on each node"""
-        num_nodes = len(resources.global_nodelist)
-        # Round up if theres a remainder
-        workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)
-        return workers_per_node
+        self.num_workers_2assign2 = WorkerResources.get_workers2assign2(self.num_workers, resources)
 
     @staticmethod
     def map_workerid_to_index(num_workers, workerID, zero_resource_list):
@@ -315,37 +325,56 @@ class WorkerResources:
         return index
 
     @staticmethod
+    def get_workers2assign2(num_workers, resources):
+        """Returns workers to assign resources to"""
+        zero_resource_list = resources.zero_resource_workers
+        return num_workers - len(zero_resource_list)
+
+    @staticmethod
+    def even_assignment(nnodes, nworkers):
+        """Returns True if workers are evenly distributied to nodes, else False"""
+        return nnodes % nworkers == 0 or nworkers % nnodes == 0
+
+    @staticmethod
+    def expand_list(nnodes, nworkers, nodelist):
+        """Duplicates each element of ``nodelist`` to best map workers to nodes.
+
+        Returns node list with duplicates, and a list of local (on-node) worker
+        counts, both indexed by worker.
+        """
+        k, m = divmod(nworkers, nnodes)
+        dup_list = []
+        local_workers_list = []
+        for i, x in enumerate(nodelist):
+            repeats = k + 1 if i < m else k
+            for j in range(repeats):
+                dup_list.append(x)
+                local_workers_list.append(repeats)
+        return dup_list, local_workers_list
+
+    @staticmethod
     def get_local_nodelist(num_workers, workerID, resources):
         """Returns the list of nodes available to the current worker
 
         Assumes that self.global_nodelist has been calculated (in __init__).
         Also self.global_nodelist will have already removed non-application nodes
         """
-
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
         zero_resource_list = resources.zero_resource_workers
-        num_workers_2assign2 = num_workers - len(zero_resource_list)
+        num_workers_2assign2 = WorkerResources.get_workers2assign2(num_workers, resources)
 
-        # Check if current host in nodelist - if it is then in distributed mode.
-        distrib_mode = resources.local_host in global_nodelist
+        if not WorkerResources.even_assignment(num_nodes, num_workers_2assign2):
+            logger.warning('Workers with assigned resources ({}) are not distributed evenly to available nodes ({})'
+                           .format(num_workers_2assign2, num_nodes))
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = (num_workers_2assign2 >= num_nodes)
         if sub_node_workers:
-            workers_per_node = num_workers_2assign2//num_nodes
-            dup_list = itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist)
-            global_nodelist = list(dup_list)
-
-        # Currently require even split for distrib mode - to match machinefile - throw away remainder
-        if distrib_mode and not sub_node_workers:
-            nodes_per_worker, remainder = divmod(num_nodes, num_workers_2assign2)
-            if remainder != 0:
-                # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
-                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. "
-                               "{} workers and {} nodes".format(num_workers_2assign2, num_nodes))
-                num_nodes = num_nodes - remainder
-                global_nodelist = global_nodelist[0:num_nodes]
+            global_nodelist, local_workers_list = \
+                WorkerResources.expand_list(num_nodes, num_workers_2assign2, global_nodelist)
+        else:
+            local_workers_list = [1] * num_workers_2assign2
 
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers_2assign2))
@@ -356,10 +385,12 @@ class WorkerResources:
 
         if workerID in zero_resource_list:
             local_nodelist = []
+            workers_on_node = 0
             logger.debug("Worker is a zero-resource worker")
         else:
             index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
             local_nodelist = split_list[index]
+            workers_on_node = local_workers_list[index]
             logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
 
-        return local_nodelist
+        return local_nodelist, workers_on_node

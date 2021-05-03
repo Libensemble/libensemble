@@ -22,7 +22,7 @@ from libensemble.tests.regression_tests.support import write_sim_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
@@ -31,7 +31,7 @@ c_ensemble = './ensemble_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('com
 print('creating ensemble dir: ', c_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
-    if is_master and not os.path.isdir(dir):
+    if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True
@@ -58,9 +58,9 @@ exit_criteria = {'sim_max': 21}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
-    dir_sum = sum(['worker' in i for i in os.listdir(c_ensemble)])
+    dir_sum = sum(['sim' in i for i in os.listdir(c_ensemble)])
     assert dir_sum == exit_criteria['sim_max'], \
         'Number of sim directories ({}) does not match sim_max ({}).'\
         .format(dir_sum, exit_criteria['sim_max'])

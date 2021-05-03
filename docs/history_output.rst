@@ -17,14 +17,20 @@ the final history from libEnsemble will include the following:
   worker to be evaluated yet?
 
 * ``given_time`` [float]: At what time (since the epoch) was this ``gen_f``
-  output given to a worker?
+  output first given to a worker?
+
+* ``last_given_time`` [float]: At what time (since the epoch) was this ``gen_f``
+  output last given to a worker?
 
 * ``sim_worker`` [int]: libEnsemble worker that output was given to for evaluation
 
 * ``gen_worker`` [int]: libEnsemble worker that generated this ``sim_id``
 
 * ``gen_time`` [float]: At what time (since the epoch) was this entry (or
-  collection of entries) put into ``H`` by the manager
+  collection of entries) first put into ``H`` by the manager
+
+* ``last_gen_time`` [float]: At what time (since the epoch) was this entry (or
+  collection of entries) first put into ``H`` by the manager
 
 * ``returned`` [bool]: Has this worker completed the evaluation of this unit of
   work?
@@ -145,12 +151,12 @@ unspecified options. Each setting will be described in detail here:
   location. Default: ``False``.
 
 * ``'sim_input_dir'``: A path to a directory to copy for simulation
-  directories. This directory and it's contents are copied to form the base
+  directories. This directory and its contents are copied to form the base
   of new simulation directories. If ``'sim_dirs_make'`` is False, this directory's
   contents are copied into the ensemble directory.
 
-* ``'sim_input_dir'``: A path to a directory to copy for generator
-  directories. This directory and it's contents are copied to form the base
+* ``'gen_input_dir'``: A path to a directory to copy for generator
+  directories. This directory and its contents are copied to form the base
   of new generator directories. If ``'gen_dirs_make'`` is False, this directory's
   contents are copied into the ensemble directory.
 

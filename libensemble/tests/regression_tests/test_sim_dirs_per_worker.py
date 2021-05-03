@@ -22,16 +22,16 @@ from libensemble.tests.regression_tests.support import write_sim_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy = sim_input_dir + '/copy_this'
 dir_to_symlink = sim_input_dir + '/symlink_this'
-w_ensemble = '../ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
+w_ensemble = './ensemble_workdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 print('creating ensemble dir: ', w_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
-    if is_master and not os.path.isdir(dir):
+    if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True
@@ -58,7 +58,7 @@ exit_criteria = {'sim_max': 21}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                             persis_info, libE_specs=libE_specs)
 
-if is_master:
+if is_manager:
     assert os.path.isdir(w_ensemble), 'Ensemble directory {} not created.'\
                                       .format(w_ensemble)
     worker_dir_sum = sum(['worker' in i for i in os.listdir(w_ensemble)])

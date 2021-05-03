@@ -6,6 +6,17 @@ import os
 import os.path
 
 
+def create_node_file(num_nodes, name='node_list'):
+    """Create a nodelist file"""
+    if os.path.exists(name):
+        os.remove(name)
+    with open(name, 'w') as f:
+        for i in range(1, num_nodes + 1):
+            f.write('node-' + str(i) + '\n')
+        f.flush()
+        os.fsync(f)
+
+
 def mpi_comm_excl(exc=[0], comm=None):
     "Exlude ranks from a communicator for MPI comms."
     from mpi4py import MPI
@@ -35,6 +46,12 @@ def build_simfunc():
     # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
     buildstring = 'mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c'
     # subprocess.run(buildstring.split(),check=True) #Python3.5+
+    subprocess.check_call(buildstring.split())
+
+
+def build_borehole():
+    import subprocess
+    buildstring = 'gcc -o borehole.x ../unit_tests/simdir/borehole.c -lm'
     subprocess.check_call(buildstring.split())
 
 
@@ -95,7 +112,7 @@ def modify_Balsam_pyCoverage():
 
 def modify_Balsam_JobEnv():
     # If Balsam detects that the system on which it is running contains the string
-    #   'cc' in it's hostname, then it thinks it's on Cooley! Travis hostnames are
+    #   'cc' in its hostname, then it thinks it's on Cooley! Travis hostnames are
     #   randomly generated and occasionally may contain that offending string. This
     #   modifies Balsam's JobEnvironment class to not check for 'cc'.
     import balsam

@@ -102,7 +102,7 @@ The most recent version of APOSMM included with libEnsemble is referred to as
 Persistent APOSMM. Unlike most other user functions that are initiated and
 completed by workers multiple times based on allocation, a single worker process
 initiates APOSMM so that it "persists" and keeps running over the course of the
-entire libEnsemble routine. APOSMM begins it's own parallel evaluations and
+entire libEnsemble routine. APOSMM begins its own parallel evaluations and
 communicates points back and forth with the manager, which are then given to
 workers and evaluated by simulation routines.
 
@@ -156,7 +156,7 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
 .. code-block:: python
     :linenos:
 
-    nworkers, is_master, libE_specs, _ = parse_args()
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
     sim_specs = {'sim_f': six_hump_camel, # Simulation function
                  'in': ['x'],             # Accepts 'x' values
@@ -204,7 +204,7 @@ Also note the following:
       simulation will likely use ``'x'`` values. (APOSMM performs handshake to
       ensure that the ``x_on_cube`` that was given to be evaluated is the same
       the one that is given back.)
-    * ``'sim_id'`` in ``gen_specs['out']``. APOSMM produces points in it's
+    * ``'sim_id'`` in ``gen_specs['out']``. APOSMM produces points in its
       local History array that it will need to update later, and can best
       reference those points (and avoid a search) if APOSMM produces the IDs
       itself, instead of libEnsemble.
@@ -230,7 +230,7 @@ check calculated minima:
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 alloc_specs, libE_specs)
-    if is_master:
+    if is_manager:
         print('Minima:', H[np.where(H['local_min'])]['x'])
 
 Final Setup, Run, and Output

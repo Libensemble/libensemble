@@ -30,7 +30,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 libE_specs['sim_dirs_make'] = True
 libE_specs['ensemble_dir_path'] = './ensemble_diff_nodes_w' + str(nworkers)
@@ -48,7 +48,7 @@ args = parser.parse_args()
 try:
     libE_machinefile = open(args.machinefile).read().splitlines()
 except (TypeError, NameError):
-    if is_master:
+    if is_manager:
         print("WARNING: No machine file provided - defaulting to local node")
     libE_machinefile = [MPI.Get_processor_name()]*MPI.COMM_WORLD.Get_size()
 
@@ -79,7 +79,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': give_sim_work_first,
-               'out': [('allocated', bool)],
+               'out': [],
                'user': {'batch_mode': False,
                         'num_active_gens': 1}}
 
@@ -91,7 +91,7 @@ exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs, alloc_specs=alloc_specs)
 
-if is_master:
+if is_manager:
     assert flag == 0
 
     save_libE_output(H, persis_info, __file__, nworkers)

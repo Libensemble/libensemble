@@ -104,6 +104,11 @@ does libEnsemble hang on certain systems when running with MPI?"
 
 For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe.
 
+**Error in `<PATH>/bin/python': break adjusted to free malloc space: 0x0000010000000000**
+
+This error has been encountered on Cori when running with an incorrect installation of ``mpi4py``.
+Make sure platform specific instructions are followed (e.g.~ :doc:`Cori<platforms/cori>`)
+
 libEnsemble Help
 ----------------
 

@@ -6,6 +6,7 @@ __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
 import psutil
+from libensemble.tools.tools import osx_set_mp_method
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
@@ -13,6 +14,9 @@ import libensemble.gen_funcs
 
 optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
+
+# Resolves multiprocessing issues with Python 3.8+ on macOS
+osx_set_mp_method()
 
 if optimizers is None:
     from petsc4py import PETSc
@@ -193,7 +197,7 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
     # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0), min(x0-lb))
-    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small for NLopt to handle"
+    assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small for NLopt to handle"
 
     if 'dist_to_bound_multiple' in user_specs:
         opt.set_initial_step(dist_to_bound*user_specs['dist_to_bound_multiple'])
@@ -349,7 +353,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
     # Care must be taken here because a too-large initial step causes DFO-LS to move the starting point!
     dist_to_bound = min(min(ub-x0), min(x0-lb))
-    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small"
+    assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small"
     assert 'bounds' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set the bounds for DFO-LS"
     assert 'rhobeg' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set rhobeg for DFO-LS"
     assert 'x0' not in user_specs.get('dfols_kwargs', {}), "APOSMM must set x0 for DFO-LS"

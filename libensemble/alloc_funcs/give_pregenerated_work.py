@@ -11,14 +11,22 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
     """
 
     Work = {}
-    if not persis_info:
-        persis_info['next_to_give'] = 0
+    # Unless already defined, initialize next_to_give to be the first point in H
+    persis_info['next_to_give'] = persis_info.get('next_to_give', 0)
 
-    assert persis_info['next_to_give'] < len(H), 'No more work to give inside give_pregenerated_sim_work.'
+    if persis_info['next_to_give'] >= len(H):
+        return Work, persis_info, 1
 
     for i in avail_worker_ids(W):
+        # Skip any cancelled points
+        while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
+            persis_info['next_to_give'] += 1
+
         # Give sim work
         sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
         persis_info['next_to_give'] += 1
+
+        if persis_info['next_to_give'] >= len(H):
+            break
 
     return Work, persis_info

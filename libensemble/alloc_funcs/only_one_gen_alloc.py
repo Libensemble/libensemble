@@ -1,4 +1,4 @@
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, test_any_gen
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, test_any_gen, all_returned
 
 
 def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -15,6 +15,10 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     gen_flag = True
 
     for i in avail_worker_ids(W):
+        # Skip any cancelled points
+        while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
+            persis_info['next_to_give'] += 1
+
         if persis_info['next_to_give'] < len(H):
 
             # Give sim work if possible
@@ -23,12 +27,14 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         elif not test_any_gen(W) and gen_flag:
 
-            if not all(H['returned']):
+            if not all_returned(H):
                 break
 
             # Give gen work
             persis_info['total_gen_calls'] += 1
             gen_flag = False
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[i])
+            gen_in = gen_specs.get('in', [])
+            return_rows = range(len(H)) if gen_in else []
+            gen_work(Work, i, gen_in, return_rows, persis_info.get(i))
 
     return Work, persis_info

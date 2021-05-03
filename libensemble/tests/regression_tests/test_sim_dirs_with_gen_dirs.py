@@ -22,7 +22,7 @@ from libensemble.tests.regression_tests.support import write_sim_func as sim_f
 from libensemble.tests.regression_tests.support import write_uniform_gen_func as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_input_dir = './sim_input_dir'
 dir_to_copy_sim = sim_input_dir + '/copy_this_sim'
@@ -37,7 +37,7 @@ print('creating ensemble dir: ', c_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy_sim, dir_to_symlink_sim,
             gen_input_dir, dir_to_copy_gen, dir_to_symlink_gen]:
-    if is_master and not os.path.isdir(dir):
+    if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
 libE_specs['sim_dirs_make'] = True
@@ -85,7 +85,7 @@ def check_copied(type):
         'All input files not copied or symlinked to each {} calc dir'.format(type)
 
 
-if is_master:
+if is_manager:
     assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
     sim_dir_sum = sum(['sim' in i for i in os.listdir(c_ensemble)])
     assert sim_dir_sum == exit_criteria['sim_max'], \

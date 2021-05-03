@@ -10,6 +10,9 @@
 .. image:: https://travis-ci.org/Libensemble/libensemble.svg?branch=master
    :target: https://travis-ci.org/Libensemble/libensemble
 
+.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=master
+   :target: https://github.com/Libensemble/libensemble/actions
+
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=master
    :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
 
@@ -39,10 +42,10 @@ libEnsemble aims for the following:
 • Portability and flexibility
 • Exploitation of persistent data/control flow
 
-The user selects or supplies a function that generates simulation
-input as well as a function that performs and monitors the
-simulations. For example, the generation function may contain an
-optimization routine to generate new simulation parameters on the fly based on
+The user selects or supplies a *generator function* that produces
+input parameters for a *simulator function* that performs and monitors
+simulations. For example, the generator function may contain an
+optimization routine to generate new simulation parameters on-the-fly based on
 the results of previous simulations. Examples and templates of such functions are
 included in the library.
 
@@ -62,7 +65,7 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.5 or above
+* Python_ 3.6 or above
 * NumPy_
 * psutil_
 
@@ -83,11 +86,14 @@ libEnsemble can also be run on launch nodes using multiprocessing.
 The example simulation and generation functions and tests require the following:
 
 * SciPy_
+* mpmath_
 * petsc4py_
+* DEAP_
 * DFO-LS_
 * Tasmanian_
 * NLopt_
 * PETSc_ - Can optionally be installed by pip along with petsc4py
+* Surmise_
 
 PETSc and NLopt must be built with shared libraries enabled and present in
 ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
@@ -131,8 +137,9 @@ Testing
 ~~~~~~~
 
 The provided test suite includes both unit and regression tests and is run
-regularly on
+regularly on:
 
+* `GitHub Actions`_
 * `Travis CI`_
 
 The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
@@ -156,8 +163,8 @@ Coverage reports are produced separately for unit tests and regression tests
 under the relevant directories. For parallel tests, the union of all processors
 is taken. Furthermore, a combined coverage report is created at the top level,
 which can be viewed at ``libensemble/tests/cov_merge/index.html``
-after ``run_tests.sh`` is completed. The Travis CI coverage results are
-available online at Coveralls_.
+after ``run_tests.sh`` is completed. The coverage results are available
+online at Coveralls_.
 
 .. note::
     The executor tests can be run by using the direct-launch or
@@ -214,8 +221,8 @@ Resources
                    David Bindel and John-Luke Navarro},
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
-    number      = {Revision 0.7.1},
-    year        = {2020},
+    number      = {Revision 0.7.2},
+    year        = {2021},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
@@ -224,13 +231,16 @@ Resources
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _GitHub: https://github.com/Libensemble/libensemble
+.. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
 .. _MPICH: http://www.mpich.org/
+.. _mpmath: http://mpmath.org/
 .. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
 .. _NumPy: http://www.numpy.org
@@ -246,6 +256,7 @@ Resources
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _Spack: https://spack.readthedocs.io/en/latest
+.. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/

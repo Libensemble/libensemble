@@ -2,7 +2,7 @@ import numpy as np
 import time
 import logging
 
-from libensemble.tools.fields_keys import libE_fields
+from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +51,10 @@ class History:
 
         # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
         dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
-        H = np.zeros(L + len(H0), dtype=dtype_list)
+        H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
 
         if len(H0):
+            # Prepend H with H0
             fields = H0.dtype.names
 
             for field in fields:
@@ -61,27 +62,32 @@ class History:
                 # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
                 #     H[field][ind] = val
 
-        # Prepend H with H0
-        H['sim_id'][:len(H0)] = np.arange(0, len(H0))
-        H['given'][:len(H0)] = 1
-        H['returned'][:len(H0)] = 1
+            if 'given' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'given' and 'returned'")
+                H['given'][:len(H0)] = 1
+                H['returned'][:len(H0)] = 1
+            elif 'returned' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'returned' if 'given'")
+                H['returned'][:len(H0)] = H0['given']
+
+            if 'sim_id' not in fields:
+                logger.manager_warning("Assigning sim_ids to entries in H0")
+                H['sim_id'][:len(H0)] = np.arange(0, len(H0))
 
         H['sim_id'][-L:] = -1
         H['given_time'][-L:] = np.inf
+        H['last_given_time'][-L:] = np.inf
 
         self.H = H
         # self.offset = 0
         self.offset = len(H0)
         self.index = self.offset
 
-        # libE.check_inputs also checks that all points in H0 are 'returned', so gen and sim have been run.
-        # assert np.all(H0['given']), "H0 contains unreturned points. Exiting"
-        self.given_count = self.offset
+        self.given_count = np.sum(H['given'])
 
-        # assert np.all(H0['returned']), "H0 contains unreturned points. Exiting"
-        self.sim_count = self.offset
+        self.sim_count = np.sum(H['returned'])
 
-    def update_history_f(self, D):
+    def update_history_f(self, D, safe_mode):
         """
         Updates the history after points have been evaluated
         """
@@ -91,7 +97,8 @@ class History:
 
         for j, ind in enumerate(new_inds):
             for field in returned_H.dtype.names:
-
+                if safe_mode:
+                    assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]):
                     self.H[field][ind] = returned_H[field][j]
                 else:
@@ -106,6 +113,7 @@ class History:
                         self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
             self.H['returned'][ind] = True
+            self.H['returned_time'][ind] = time.time()
             self.sim_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
@@ -120,16 +128,18 @@ class History:
         sim_worker: integer
             Worker ID
         """
+        q_inds = np.atleast_1d(q_inds)
+        first_given_inds = ~self.H['given'][q_inds]
+        t = time.time()
+
         self.H['given'][q_inds] = True
-        self.H['given_time'][q_inds] = time.time()
+        self.H['given_time'][q_inds[first_given_inds]] = t
+        self.H['last_given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
-        if np.isscalar(q_inds):
-            self.given_count += 1
-        else:
-            self.given_count += len(q_inds)
+        self.given_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, D):
+    def update_history_x_in(self, gen_worker, D, safe_mode):
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -170,10 +180,15 @@ class History:
             update_inds = D['sim_id']
 
         for field in D.dtype.names:
+            if safe_mode:
+                assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
-        self.H['gen_time'][update_inds] = time.time()
-        self.H['gen_worker'][update_inds] = gen_worker
+        first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
+        t = time.time()
+        self.H['gen_time'][first_gen_inds] = t
+        self.H['last_gen_time'][update_inds] = t
+        self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 
     def grow_H(self, k):
@@ -189,6 +204,7 @@ class History:
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
+        H_1['last_given_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

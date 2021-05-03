@@ -10,7 +10,10 @@ since pytest slurps up everything (including all the modules) in one go.
 
 import time
 import signal
+from libensemble.tools.tools import osx_set_mp_method
 import libensemble.comms.comms as comms
+
+osx_set_mp_method()
 
 
 def test_qcomm_proc_terminate1():
