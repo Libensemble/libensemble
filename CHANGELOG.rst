@@ -8,7 +8,6 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
-
 Release 0.7.2
 -------------
 

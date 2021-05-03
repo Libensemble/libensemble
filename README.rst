@@ -42,7 +42,7 @@ libEnsemble aims for the following:
 • Portability and flexibility
 • Exploitation of persistent data/control flow
 
-The user selects or supplies a *generator function* that produces 
+The user selects or supplies a *generator function* that produces
 input parameters for a *simulator function* that performs and monitors
 simulations. For example, the generator function may contain an
 optimization routine to generate new simulation parameters on-the-fly based on
