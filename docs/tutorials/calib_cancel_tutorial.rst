@@ -24,7 +24,7 @@ Overview of the Calibration Problem
 -----------------------------------
 
 The generator function featured in this tutorial can be found in
-``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for it's
+``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for its
 calibration surrogate model interface.
 
 .. note::

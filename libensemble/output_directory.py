@@ -21,8 +21,8 @@ class EnsembleDirectory:
     on other filesystems or directories (like scratch spaces).
 
     When libEnsemble is initialized in a Distributed fashion, each worker can
-    initiate it's own ensemble directory on the local node, and copy
-    back it's results on completion or exception into the directory that libEnsemble
+    initiate its own ensemble directory on the local node, and copy
+    back its results on completion or exception into the directory that libEnsemble
     was originally launched from.
 
     Ensemble directory behavior can be configured via separate libE_specs
