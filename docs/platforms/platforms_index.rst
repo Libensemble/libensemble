@@ -69,7 +69,7 @@ For example::
 
     mpirun -np 5 -ppn 1 python myscript.py
 
-would launch libEnsemble with 5 processes across 5 nodes. However, the manager would have it's
+would launch libEnsemble with 5 processes across 5 nodes. However, the manager would have its
 own node, which is likely wasteful. More often, a machinefile is used to add the manager to
 the first node. In the :doc:`examples<example_scripts>` directory, you can find an example submission
 script, configured to run libensemble distributed, with multiple workers per node or multiple nodes

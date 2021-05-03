@@ -112,7 +112,7 @@ def modify_Balsam_pyCoverage():
 
 def modify_Balsam_JobEnv():
     # If Balsam detects that the system on which it is running contains the string
-    #   'cc' in it's hostname, then it thinks it's on Cooley! Travis hostnames are
+    #   'cc' in its hostname, then it thinks it's on Cooley! Travis hostnames are
     #   randomly generated and occasionally may contain that offending string. This
     #   modifies Balsam's JobEnvironment class to not check for 'cc'.
     import balsam
