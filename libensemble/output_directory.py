@@ -13,12 +13,12 @@ from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
 class EnsembleDirectory:
     """
     The EnsembleDirectory class provides methods for workers to initialize and
-    manipulate the optional output directory structure that workers perform
-    calculations within.
+    manipulate the optional output directories where workers can change to before
+    calling user functions.
 
-    The ensemble directory typically serves for storing results
-    during every libEnsemble user fun  ction call, or serves as a separate location
-    for workers on other filesystems or directories (like scratch spaces).
+    The top-level ensemble directory typically stores unique sub-directories containing results
+    for each libEnsemble user function call. This can be a separate location
+    on other filesystems or directories (like scratch spaces).
 
     When libEnsemble is initialized in a Distributed fashion, each worker can
     initiate it's own ensemble directory on the local node, and copy
