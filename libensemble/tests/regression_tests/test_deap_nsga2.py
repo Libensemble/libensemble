@@ -60,6 +60,7 @@ gen_specs = {'gen_f': gen_f,
                       'weights': w,
                       'pop_size': pop_size,
                       'indiv_size': ind_size,
+                      'give_all_with_same_priority': True,
                       'cxpb': 0.8,  # probability two individuals are crossed
                       'eta': 20.0,  # large eta = low variation in children
                       'indpb': 0.8/ind_size}  # end user
