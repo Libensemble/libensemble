@@ -120,7 +120,7 @@ def test_exception_raising_manager_no_abort():
 
 
 # So it's a key error rather than assertion error as does not test if 'in' is
-# missing, only that its a list - needs updating in future.
+# missing, only that it's a list - needs updating in future.
 def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
     with pytest.raises(KeyError):

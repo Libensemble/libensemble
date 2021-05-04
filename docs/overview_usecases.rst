@@ -81,7 +81,7 @@ Glossary
 Here we define some terms used throughout libEnsemble's code and documentation.
 Although many of these terms seem straight-forward, defining such terms assists
 with keeping confusion to a minimum when communicating about libEnsemble and
-it's capabilities.
+its capabilities.
 
 * **Manager**: Single libEnsemble process facilitating communication between
   other processes. Within libEnsemble, the *Manager* process configures and

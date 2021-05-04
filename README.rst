@@ -42,8 +42,8 @@ libEnsemble aims for the following:
 • Portability and flexibility
 • Exploitation of persistent data/control flow
 
-The user selects or supplies a *generator function* that produces simulation
-input and a *simulator function* that performs and monitors
+The user selects or supplies a *generator function* that produces
+input parameters for a *simulator function* that performs and monitors
 simulations. For example, the generator function may contain an
 optimization routine to generate new simulation parameters on-the-fly based on
 the results of previous simulations. Examples and templates of such functions are
@@ -221,8 +221,8 @@ Resources
                    David Bindel and John-Luke Navarro},
     title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
-    number      = {Revision 0.7.1+dev},
-    year        = {2020},
+    number      = {Revision 0.7.2},
+    year        = {2021},
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 

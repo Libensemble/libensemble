@@ -61,7 +61,7 @@ empty.
 
 Many users prefer persistent generators since they do not need to be
 re-initialized every time their past work is completed and evaluated by a
-simulation, and an can evaluate returned simulation results over the course of
+simulation, and can evaluate returned simulation results over the course of
 an entire libEnsemble routine as a single function instance. The :doc:`APOSMM<../examples/aposmm>`
 optimization generator function included with libEnsemble is persistent so it can
 maintain multiple local optimization subprocesses based on results from complete simulations.
@@ -135,11 +135,11 @@ Cancelling simulations
 
 Previously submitted simulations can be cancelled by sending a message to the manager.
 To do this as a separate communication, a persistent generator should be
-in *active receive* mode. to prevent a deadlock.
+in *active receive* mode to prevent a deadlock.
 
-To be able to send out cancellations of previously submitted simulations, the generator
+To send out cancellations of previously submitted simulations, the generator
 can initiate a history array with just the ``sim_id`` and ``cancel_requested`` fields.
-Then fill in the ``sim_id``'s to cancel and the ``cancel_requested`` field set to ``True``.
+Then fill in the ``sim_id``'s to cancel and set the ``cancel_requested`` field to ``True``.
 In the following example, ``sim_ids_to_cancel`` is a list of integers.
 
 .. code-block:: python
@@ -153,7 +153,7 @@ In the following example, ``sim_ids_to_cancel`` is a list of integers.
 If a generated point is cancelled by the generator before it has been given to a
 worker for evaluation, then it will never be given. If it has already returned from the
 simulation, then results can be returned, but the ``cancel_requested`` field remains
-as ``True``. However, if the simulation is running when the manager recevies the cancellation
+as ``True``. However, if the simulation is running when the manager receives the cancellation
 request, a kill signal will be sent to the worker. This can be caught and acted upon
 by a user function, otherwise it will be ignored.
 
