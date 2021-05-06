@@ -105,8 +105,8 @@ def test_set_stderr_level():
     assert stderr_level == 40, "Log level should be 40. Found: " + str(stderr_level)
 
     logger.set_level('ERROR')
-    logger = logging.getLogger('libensemble')
-    logger.manager_warning('This test message should not log')
+    logger_test = logging.getLogger('libensemble')
+    logger_test.manager_warning('This test message should not log')
 
 
 # Need setup/teardown here to kill loggers if running file without pytest
