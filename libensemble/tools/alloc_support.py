@@ -2,7 +2,7 @@ import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
 
-def avail_worker_ids(W, persistent=None):
+def avail_worker_ids(W, persistent=None, active_recv=False):
     """Returns available workers (``active == 0``), as an array, filtered by ``persis_state``.
 
     :param W: :doc:`Worker array<../data_structures/worker_array>`
@@ -11,8 +11,12 @@ def avail_worker_ids(W, persistent=None):
     if persistent is None:
         return W['worker_id'][W['active'] == 0]
     if persistent:
-        return W['worker_id'][np.logical_and(W['active'] == 0,
-                                             W['persis_state'] != 0)]
+        if active_recv:
+            return W['worker_id'][np.logical_and(W['persis_state'] != 0,
+                                                 W['active_recv'] != 0)]
+        else:
+            return W['worker_id'][np.logical_and(W['active'] == 0,
+                                                 W['persis_state'] != 0)]
     return W['worker_id'][np.logical_and(W['active'] == 0,
                                          W['persis_state'] == 0)]
 
@@ -81,3 +85,16 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
                'persis_info': persis_info,
                'tag': EVAL_GEN_TAG,
                'libE_info': libE_info}
+
+
+def all_returned(H, pt_filter=True):
+    """Check if all expected points have returned from sim
+
+    :param H: A :doc:`history array<../data_structures/history_array>`
+    :param pt_filter: Optional boolean array filtering expected returned points: Default: All True
+
+    :returns: Boolean. True if all expected points have been returned
+    """
+    # Exclude cancelled points that were not already given out
+    excluded_points = H['cancel_requested'] & ~H['given']
+    return np.all(H['returned'][pt_filter & ~excluded_points])

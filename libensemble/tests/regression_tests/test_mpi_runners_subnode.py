@@ -1,14 +1,14 @@
 # """
-# Runs libEnsemble testing the zero_resource_workers argument with 2 workers per node.
+# Runs libEnsemble testing the MPI Runners command creation with 2 workers per node.
 #
 # This test must be run on an even number of workers >= 2 (e.g. odd no. of procs when using mpi4py).
 #
-# Execute via one of the following commands (e.g. 2 workers):
-#    mpiexec -np 3 python3 test_mpi_runners_subnode.py.py
-#    python3 test_mpi_runners_subnode.py.py --nworkers 2 --comms local
-#    python3 test_mpi_runners_subnode.py.py --nworkers 2 --comms tcp
+# Execute via one of the following commands (e.g. 4 workers):
+#    mpiexec -np 5 python3 test_mpi_runners_subnode.py
+#    python3 test_mpi_runners_subnode.py --nworkers 4 --comms local
+#    python3 test_mpi_runners_subnode.py --nworkers 4 --comms tcp
 #
-# The number of concurrent evaluations of the objective function will be 3-1=2.
+# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 import sys
@@ -16,8 +16,7 @@ import numpy as np
 
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
-from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
@@ -36,7 +35,7 @@ sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
 
 # To allow visual checking - log file not used in test
-log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
+log_file = 'ensemble_mpi_runners_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 libE_logger.set_filename(log_file)
 
 nodes_per_worker = 0.5
@@ -69,10 +68,6 @@ exctr = MPIExecutor(central_mode=True, auto_resources=True,
                     allow_oversubscribe=False, custom_info=customizer)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
-
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
-
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
@@ -87,7 +82,6 @@ gen_specs = {'gen_f': gen_f,
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers)*rounds}
 
@@ -112,7 +106,6 @@ sim_specs['user'] = {'tests': test_list, 'expect': exp_list,
 
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 # All asserts are in sim func

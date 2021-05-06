@@ -6,9 +6,7 @@ This module detects and returns system resources
 import os
 import socket
 import logging
-import itertools
 import subprocess
-# from collections import OrderedDict
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
 
@@ -308,21 +306,10 @@ class WorkerResources:
         """
         self.num_workers = comm.get_num_workers()
         self.workerID = workerID
-        self.local_nodelist = WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
+        self.local_nodelist, self.workers_on_node = \
+            WorkerResources.get_local_nodelist(self.num_workers, self.workerID, resources)
         self.local_node_count = len(self.local_nodelist)
         self.num_workers_2assign2 = WorkerResources.get_workers2assign2(self.num_workers, resources)
-        self.workers_per_node = WorkerResources.get_workers_on_a_node(self.num_workers_2assign2, resources)
-
-    @staticmethod
-    def get_workers_on_a_node(num_workers, resources):
-        """Returns the number of workers that can be placed on each node
-
-        If there are more nodes than workers, returns 1.
-        """
-        num_nodes = len(resources.global_nodelist)
-        # Round up if theres a remainder
-        workers_per_node = num_workers//num_nodes + (num_workers % num_nodes > 0)
-        return workers_per_node
 
     @staticmethod
     def map_workerid_to_index(num_workers, workerID, zero_resource_list):
@@ -344,6 +331,28 @@ class WorkerResources:
         return num_workers - len(zero_resource_list)
 
     @staticmethod
+    def even_assignment(nnodes, nworkers):
+        """Returns True if workers are evenly distributied to nodes, else False"""
+        return nnodes % nworkers == 0 or nworkers % nnodes == 0
+
+    @staticmethod
+    def expand_list(nnodes, nworkers, nodelist):
+        """Duplicates each element of ``nodelist`` to best map workers to nodes.
+
+        Returns node list with duplicates, and a list of local (on-node) worker
+        counts, both indexed by worker.
+        """
+        k, m = divmod(nworkers, nnodes)
+        dup_list = []
+        local_workers_list = []
+        for i, x in enumerate(nodelist):
+            repeats = k + 1 if i < m else k
+            for j in range(repeats):
+                dup_list.append(x)
+                local_workers_list.append(repeats)
+        return dup_list, local_workers_list
+
+    @staticmethod
     def get_local_nodelist(num_workers, workerID, resources):
         """Returns the list of nodes available to the current worker
 
@@ -355,25 +364,17 @@ class WorkerResources:
         zero_resource_list = resources.zero_resource_workers
         num_workers_2assign2 = WorkerResources.get_workers2assign2(num_workers, resources)
 
-        # Check if current host in nodelist - if it is then in distributed mode.
-        distrib_mode = resources.local_host in global_nodelist
+        if not WorkerResources.even_assignment(num_nodes, num_workers_2assign2):
+            logger.warning('Workers with assigned resources ({}) are not distributed evenly to available nodes ({})'
+                           .format(num_workers_2assign2, num_nodes))
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = (num_workers_2assign2 >= num_nodes)
         if sub_node_workers:
-            workers_per_node = num_workers_2assign2//num_nodes
-            dup_list = itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist)
-            global_nodelist = list(dup_list)
-
-        # Currently require even split for distrib mode - to match machinefile - throw away remainder
-        if distrib_mode and not sub_node_workers:
-            nodes_per_worker, remainder = divmod(num_nodes, num_workers_2assign2)
-            if remainder != 0:
-                # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
-                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. "
-                               "{} workers and {} nodes".format(num_workers_2assign2, num_nodes))
-                num_nodes = num_nodes - remainder
-                global_nodelist = global_nodelist[0:num_nodes]
+            global_nodelist, local_workers_list = \
+                WorkerResources.expand_list(num_nodes, num_workers_2assign2, global_nodelist)
+        else:
+            local_workers_list = [1] * num_workers_2assign2
 
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_workers_2assign2))
@@ -384,10 +385,12 @@ class WorkerResources:
 
         if workerID in zero_resource_list:
             local_nodelist = []
+            workers_on_node = 0
             logger.debug("Worker is a zero-resource worker")
         else:
             index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
             local_nodelist = split_list[index]
+            workers_on_node = local_workers_list[index]
             logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
 
-        return local_nodelist
+        return local_nodelist, workers_on_node

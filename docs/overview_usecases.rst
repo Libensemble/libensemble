@@ -24,6 +24,11 @@ The default ``alloc_f`` tells each available worker to call ``sim_f`` with the
 highest priority unit of work from ``gen_f``. If a worker is idle and there is
 no ``gen_f`` output to give, the worker is told to call ``gen_f``.
 
+.. image:: images/diagram_with_persis.png
+ :alt: libE component diagram
+ :align: center
+ :scale: 40
+
 Example Use Cases
 ~~~~~~~~~~~~~~~~~
 .. begin_usecases_rst_tag
@@ -76,7 +81,7 @@ Glossary
 Here we define some terms used throughout libEnsemble's code and documentation.
 Although many of these terms seem straight-forward, defining such terms assists
 with keeping confusion to a minimum when communicating about libEnsemble and
-it's capabilities.
+its capabilities.
 
 * **Manager**: Single libEnsemble process facilitating communication between
   other processes. Within libEnsemble, the *Manager* process configures and

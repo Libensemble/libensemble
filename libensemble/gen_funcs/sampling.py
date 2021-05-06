@@ -95,6 +95,28 @@ def uniform_random_sample(H, persis_info, gen_specs, _):
     return H_o, persis_info
 
 
+def uniform_random_sample_cancel(H, persis_info, gen_specs, _):
+    """
+    Similar to uniform_random_sample but with immediate cancellation of
+    selected points for testing.
+
+    """
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
+
+    n = len(lb)
+    b = gen_specs['user']['gen_batch_size']
+
+    H_o = np.zeros(b, dtype=gen_specs['out'])
+    for i in range(b):
+        if i % 10 == 0:
+            H_o[i]['cancel_requested'] = True
+
+    H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+
+    return H_o, persis_info
+
+
 def latin_hypercube_sample(H, persis_info, gen_specs, _):
     """
     Generates ``gen_specs['user']['gen_batch_size']`` points in a Latin

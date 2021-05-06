@@ -1,11 +1,13 @@
 """
-This module contains an
-``executor`` and ``task``. The class ``Executor`` is a base class and not
-intended for direct use. Instead one of the inherited classes should be used. Inherited
-classes include MPI and Balsam variants. A ``executor`` can create and manage
-multiple ``tasks``. The worker or user-side code can issue and manage ``tasks`` using the submit,
-poll and kill functions. ``Task`` attributes are queried to determine status. Functions are
-also provided to access and interrogate files in the ``task``'s working directory.
+This module contains the classes
+``Executor`` and ``Task``. The class ``Executor`` can be used to subprocess an application
+locally. For MPI programs, or any program using non-local compute resources, one of the
+inherited classes should be used. Inherited classes include MPI and Balsam variants.
+An ``executor`` can create and manage multiple ``tasks``. The user function
+can issue and manage ``tasks`` using the submit, poll, wait, and kill functions.
+``Task`` attributes are queried to determine status. Functions are
+also provided to access and interrogate files in the ``task``'s working directory. A
+``manager_poll`` function can be used to poll for STOP signals from the manager.
 
 """
 
@@ -386,13 +388,11 @@ class Executor:
 
     **Class Attributes:**
 
-    :cvar Executor: executor: The default executor.
+    :cvar Executor: executor: The executor object is stored here and can be retrieved in user functions.
 
     **Object Attributes:**
 
-    :ivar int wait_time: Timeout period for hard kill
     :ivar list list_of_tasks: A list of tasks created in this executor
-    :ivar int workerID: The workerID associated with this executor
 
     """
 
@@ -409,7 +409,7 @@ class Executor:
         task.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
         task.submit_time = task.timer.tstart
         while task.state in NOT_STARTED_STATES:
-            time.sleep(0.2)
+            time.sleep(0.02)
             task.poll()
         logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time()-start))
         if not task.finished:
@@ -418,7 +418,7 @@ class Executor:
             if fail_time:
                 remaining = fail_time - task.timer.elapsed
                 while task.state not in END_STATES and remaining > 0:
-                    time.sleep(min(1.0, remaining))
+                    time.sleep(min(0.2, remaining))
                     task.poll()
                     remaining = fail_time - task.timer.elapsed
                 logger.debug("After {} seconds: task {} polled as {}".format(task.timer.elapsed, task.name, task.state))
@@ -426,12 +426,9 @@ class Executor:
     def __init__(self):
         """Instantiate a new Executor instance.
 
-        A new Executor object is created with an application
-        registry and configuration attributes.
+        A new Executor object is created.
+        This is typically created in the user calling script.
 
-        This is typically created in the user calling script. If
-        auto_resources is True, an evaluation of system resources is
-        performance during this call.
         """
         self.top_level_dir = os.getcwd()
         self.manager_signal = 'none'
@@ -441,9 +438,13 @@ class Executor:
         self.wait_time = 60
         self.list_of_tasks = []
         self.workerID = None
+        self.comm = None
         Executor.executor = self
 
     def _serial_setup(self):
+        pass  # To be overloaded
+
+    def add_comm_info(self, libE_nodes, serial_setup):
         pass  # To be overloaded
 
     @property
@@ -475,18 +476,23 @@ class Executor:
         return app
 
     def register_calc(self, full_path, app_name=None, calc_type=None, desc=None):
-        """Registers a user application to libEnsemble
+        """Registers a user application to libEnsemble.
+
+        The ``full_path`` of the application must be supplied. Either
+        ``app_name`` or ``calc_type`` can be used to identify the
+        application in user scripts (in the **submit** function).
+        ``app_name`` is recommended.
 
         Parameters
         ----------
 
-        app_name: String
-            Name to identify this application.
-
         full_path: String
             The full path of the user application to be registered
 
-        calc_type: String
+        app_name: String, optional
+            Name to identify this application.
+
+        calc_type: String, optional
             Calculation type: Set this application as the default 'sim'
             or 'gen' function.
 
@@ -504,23 +510,27 @@ class Executor:
                     "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
-    def manager_poll(self, comm):
-        """ Polls for a manager signal
+    def manager_poll(self):
+        """
+        .. _manager_poll_label:
+
+        Polls for a manager signal
 
         The executor manager_signal attribute will be updated.
 
         """
+
         self.manager_signal = 'none'  # Reset
 
         # Check for messages; disregard anything but a stop signal
-        if not comm.mail_flag():
+        if not self.comm.mail_flag():
             return
-        mtag, man_signal = comm.recv()
+        mtag, man_signal = self.comm.recv()
         if mtag != STOP_TAG:
             return
 
         # Process the signal and push back on comm (for now)
-        logger.info('Manager probe hit true')
+        logger.info('Worker received kill signal {} from manager'.format(man_signal))
         if man_signal == MAN_SIGNAL_FINISH:
             self.manager_signal = 'finish'
         elif man_signal == MAN_SIGNAL_KILL:
@@ -528,7 +538,7 @@ class Executor:
         else:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
-        comm.push_to_buffer(mtag, man_signal)
+        self.comm.push_to_buffer(mtag, man_signal)
 
     def get_task(self, taskid):
         """ Returns the task object for the supplied task ID """
@@ -541,9 +551,86 @@ class Executor:
         """Sets the worker ID for this executor"""
         self.workerID = workerid
 
-    def set_worker_info(self, workerid=None):
+    def set_worker_info(self, comm, workerid=None):
         """Sets info for this executor"""
         self.workerID = workerid
+        self.comm = comm
+
+    def submit(self, calc_type=None, app_name=None, app_args=None,
+               stdout=None, stderr=None, dry_run=False, wait_on_run=False):
+        """Create a new task and run as a local serial subprocess.
+
+        The created task object is returned.
+
+        Parameters
+        ----------
+
+        calc_type: String, optional
+            The calculation type: 'sim' or 'gen'
+            Only used if app_name is not supplied. Uses default sim or gen application.
+
+        app_name: String, optional
+            The application name. Must be supplied if calc_type is not.
+
+        app_args: string, optional
+            A string of the application arguments to be added to task
+            submit command line
+
+        stdout: string, optional
+            A standard output filename
+
+        stderr: string, optional
+            A standard error filename
+
+        dry_run: boolean, optional
+            Whether this is a dry_run - no task will be launched; instead
+            runline is printed to logger (at INFO level)
+
+        wait_on_run: boolean, optional
+            Whether to wait for task to be polled as RUNNING (or other
+            active/end state) before continuing
+
+        Returns
+        -------
+
+        task: obj: Task
+            The lauched task object
+
+        """
+
+        if app_name is not None:
+            app = self.get_app(app_name)
+        elif calc_type is not None:
+            app = self.default_app(calc_type)
+        else:
+            raise ExecutorException("Either app_name or calc_type must be set")
+
+        default_workdir = os.getcwd()
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        runline = task.app.full_path.split()
+        if task.app_args is not None:
+            runline.extend(task.app_args.split())
+
+        if dry_run:
+            logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+        else:
+            # Launch Task
+            logger.info("Launching task {}: {}".
+                        format(task.name, " ".join(runline)))
+            with open(task.stdout, 'w') as out, open(task.stderr, 'w') as err:
+                task.process = launcher.launch(runline, cwd='./',
+                                               stdout=out,
+                                               stderr=err,
+                                               start_new_session=False)
+            if (wait_on_run):
+                self._wait_on_run(task, 0)  # No fail time as no re-starts in-place
+
+            if not task.timer.timing:
+                task.timer.start()
+                task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
+
+            self.list_of_tasks.append(task)
+        return task
 
     def poll(self, task):
         "Polls a task"
