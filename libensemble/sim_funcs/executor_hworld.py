@@ -113,11 +113,10 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     else:
         if sim_count <= 2:
-            task, calc_status = polling_loop(comm, exctr, task, timeout)
+            task, calc_status = polling_loop(exctr, task, timeout)
         else:
             calc_status = task.polling_loop(time_limit=timeout,
-                                            poll_manager=True,
-                                            comm=comm)
+                                            poll_manager=True)
 
     if use_balsam:
         task.read_file_in_workdir('ensemble.log')
