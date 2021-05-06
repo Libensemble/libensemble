@@ -19,10 +19,10 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble import libE_logger
+from libensemble import logger
 
-# libE_logger.set_level('DEBUG')  # For testing the test
-libE_logger.set_level('INFO')
+# logger.set_level('DEBUG')  # For testing the test
+logger.set_level('INFO')
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -37,7 +37,7 @@ libE_specs['zero_resource_workers'] = [1]
 
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
-libE_logger.set_filename(log_file)
+logger.set_filename(log_file)
 
 nodes_per_worker = 2
 

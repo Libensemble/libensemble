@@ -8,5 +8,5 @@ from .version import __version__
 __author__ = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro'
 __credits__ = 'Argonne National Laboratory'
 
-from libensemble import libE_logger
+from libensemble import logger
 from .libE import libE, comms_abort

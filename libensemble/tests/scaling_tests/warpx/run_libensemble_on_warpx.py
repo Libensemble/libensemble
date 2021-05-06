@@ -42,7 +42,7 @@ else:
 
 from libensemble.tools import parse_args, save_libE_output, \
     add_unique_random_streams
-from libensemble import libE_logger
+from libensemble import logger
 from libensemble.executors.mpi_executor import MPIExecutor
 
 import all_machine_specs
@@ -56,7 +56,7 @@ else:
     print("you shouldn' hit that")
     sys.exit()
 
-libE_logger.set_level('INFO')
+logger.set_level('INFO')
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
