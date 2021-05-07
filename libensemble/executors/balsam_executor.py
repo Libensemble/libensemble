@@ -39,7 +39,7 @@ class BalsamTask(Task):
     """
 
     def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None):
+                 stdout=None, stderr=None, workerid=None, comm=None):
         """Instantiate a new BalsamTask instance.
 
         A new BalsamTask object is created with an id, status and
@@ -47,7 +47,7 @@ class BalsamTask(Task):
         executor on a submission.
         """
         # May want to override workdir with Balsam value when it exists
-        Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
+        Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid, comm)
 
     def read_file_in_workdir(self, filename):
         return self.process.read_file_in_workdir(filename)
