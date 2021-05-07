@@ -264,11 +264,11 @@ class Task:
         return man_signal
 
     def polling_loop(self, time_limit=0, delay=1, poll_manager=False):
-        """ Optional, generic task status polling loop. Operates until the task
+        """ Optional, blocking, generic task status polling loop. Operates until the task
         either finishes, times out, or is killed via a manager signal. On completion, returns a
-        :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
+        presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
         for users who simply want to run an application via the Executor until
-        it stops without evaluating it's output throughout runtime.
+        it stops without monitoring its intermediate output.
 
         Parameters
         ----------
