@@ -252,7 +252,7 @@ class Task:
             return
 
         # Process the signal and push back on comm (for now)
-        logger.info('Worker received kill signal {} from manager'.format(man_signal))
+        logger.info('Worker received kill signal {} from manager. Killing Task {}.'.format(man_signal, self.id))
         if man_signal == MAN_SIGNAL_FINISH:
             self.manager_signal = 'finish'
         elif man_signal == MAN_SIGNAL_KILL:
@@ -265,9 +265,10 @@ class Task:
 
     def polling_loop(self, time_limit=0, delay=1, poll_manager=False):
         """ Optional, generic task status polling loop. Operates until the task
-        either finishes or times out. Periodically polls the task
-        and optionally the manager for signals. On completion, returns a
-        :ref:`calc_status<datastruct-calc-status>` integer.
+        either finishes, times out, or is killed via a manager signal. On completion, returns a
+        :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
+        for users who simply want to run an application via the Executor until
+        it stops without evaluating it's output throughout runtime.
 
         Parameters
         ----------
@@ -283,9 +284,6 @@ class Task:
             Whether to also poll the manager for 'finish' or 'kill' signals.
             If detected, the task is killed. Requires the user to also provide
             a communicator object from ``libE_info``.
-
-        comm: Communicator object
-            Communicator object from ``libE_info['comm']``
 
         Returns
         -------
