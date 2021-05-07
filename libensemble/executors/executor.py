@@ -599,7 +599,7 @@ class Executor:
             raise ExecutorException("Either app_name or calc_type must be set")
 
         default_workdir = os.getcwd()
-        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, self.comm)
         runline = task.app.full_path.split()
         if task.app_args is not None:
             runline.extend(task.app_args.split())

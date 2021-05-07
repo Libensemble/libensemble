@@ -316,7 +316,7 @@ class BalsamMPIExecutor(MPIExecutor):
         # (or can have option to let Balsam assign)
         default_workdir = os.getcwd()
         task = BalsamTask(app, app_args, default_workdir,
-                          stdout, stderr, self.workerID)
+                          stdout, stderr, self.workerID, self.comm)
 
         add_task_args = {'name': task.name,
                          'workflow': self.workflow_name,
