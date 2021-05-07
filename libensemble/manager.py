@@ -369,7 +369,10 @@ class Manager:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
                 if self.libE_specs.get('use_persis_return', False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    if calc_status is FINISHED_PERSISTENT_GEN_TAG:
+                        self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    else:
+                        self.hist.update_history_f(D_recv, self.safe_mode)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w-1]['persis_state'] = 0
