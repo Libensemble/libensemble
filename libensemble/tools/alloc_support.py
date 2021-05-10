@@ -2,6 +2,9 @@ import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
 
+# SH I would like to use the persistent arg to say if sim or gen - but I would rather gen is default
+# As we have a sim as 1, then persistent=True would default to a persistent sim!!!
+# Why is gen not 1 anyway?
 def avail_worker_ids(W, persistent=None, active_recv=False):
     """Returns available workers (``active == 0``), as an array, filtered by ``persis_state``.
 
@@ -12,13 +15,13 @@ def avail_worker_ids(W, persistent=None, active_recv=False):
         return W['worker_id'][W['active'] == 0]
     if persistent:
         if active_recv:
-            return W['worker_id'][np.logical_and(W['persis_state'] != 0,
+            return W['worker_id'][np.logical_and(W['persis_state'] == persistent,
                                                  W['active_recv'] != 0)]
         else:
             return W['worker_id'][np.logical_and(W['active'] == 0,
-                                                 W['persis_state'] != 0)]
+                                                 W['persis_state'] == persistent)]
     return W['worker_id'][np.logical_and(W['active'] == 0,
-                                         W['persis_state'] == 0)]
+                                         W['persis_state'] == persistent)]
 
 
 def count_gens(W):

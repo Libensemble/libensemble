@@ -10,6 +10,10 @@ import numpy as np
 import time
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
+
+# SH should not just be "gen"_support
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg
 
 
 def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, libE_info):
@@ -111,6 +115,42 @@ def six_hump_camel(H, persis_info, sim_specs, _):
             time.sleep(sim_specs['user']['pause_time'])
 
     return H_o, persis_info
+
+
+def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
+    """
+    SH: TODO - Need to update docstring...
+    Similar to ``six_hump_camel``, but runs in persistent mode
+    SH: Consider extracting the for loop as common function
+    """
+
+    # SH - Could start with a work item to process - or just start and wait for data
+    if H.size > 0:
+        tag = None
+    else:
+        tag, Work, H = get_mgr_worker_msg(comm)
+
+    comm = libE_info['comm']
+    wid = libE_info['workerID']
+
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        batch = len(H['x'])
+        H_o = np.zeros(batch, dtype=sim_specs['out'])
+
+        for i, x in enumerate(H['x']):
+            H_o['f'][i] = six_hump_camel_func(x)
+
+            if 'grad' in H_o.dtype.names:
+                H_o['grad'][i] = six_hump_camel_grad(x)
+
+            if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
+                time.sleep(sim_specs['user']['pause_time'])
+
+        tag, Work, H = sendrecv_mgr_worker_msg(comm, H_o, libE_info=libE_info, calc_status=WORKER_DONE, calc_type=EVAL_SIM_TAG)
+
+    # SH - Need to test returning something to H at end...
+    # return H_o, persis_info, FINISHED_PERSISTENT_SIM_TAG
+    return None, persis_info, FINISHED_PERSISTENT_SIM_TAG
 
 
 def six_hump_camel_simple(x, persis_info, sim_specs, _):

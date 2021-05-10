@@ -1,18 +1,24 @@
+# import persistent_userfunc_support as puf  # SH testing - this may be way to go - sim/gen_support wrapper
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG
 
+info_default = {'persistent': True}
 
-def sendrecv_mgr_worker_msg(comm, output):
+# def sendrecv_mgr_worker_msg(comm, output):
+def sendrecv_mgr_worker_msg(comm, output, libE_info=info_default, calc_status=UNSET_TAG, calc_type=EVAL_GEN_TAG):
     """Send message from worker to manager and receive response.
 
     :param comm: libEnsemble communicator object
     :param output: Output array to be sent to manager
     :returns: message tag, Work dictionary, calc_in array
     """
+    # return puf.sendrecv_mgr_worker_msg(comm, output)  # testing
     send_mgr_worker_msg(comm, output)
     return get_mgr_worker_msg(comm)
 
 
-def send_mgr_worker_msg(comm, output):
+# def send_mgr_worker_msg(comm, output, ):
+def send_mgr_worker_msg(comm, output, libE_info=info_default, calc_status=UNSET_TAG, calc_type=EVAL_GEN_TAG):
+
     """Send message from worker to manager.
 
     :param comm: libEnsemble communicator object
@@ -20,11 +26,11 @@ def send_mgr_worker_msg(comm, output):
     :returns: None
     """
     D = {'calc_out': output,
-         'libE_info': {'persistent': True},
-         'calc_status': UNSET_TAG,
-         'calc_type': EVAL_GEN_TAG
+         'libE_info': libE_info,
+         'calc_status': calc_status,
+         'calc_type': calc_type
          }
-    comm.send(EVAL_GEN_TAG, D)
+    comm.send(calc_type, D)
 
 
 def get_mgr_worker_msg(comm):
