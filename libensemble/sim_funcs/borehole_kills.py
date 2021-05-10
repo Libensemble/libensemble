@@ -47,7 +47,8 @@ def subproc_borehole(H, delay):
     args = 'input' + ' ' + str(delay)
 
     task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
-    calc_status = polling_loop(exctr, task)
+    # calc_status = polling_loop(exctr, task)
+    calc_status = task.polling_loop(delay=0.01, poll_manager=True)
 
     if calc_status in [MAN_SIGNAL_KILL, TASK_FAILED]:
         f = np.inf
