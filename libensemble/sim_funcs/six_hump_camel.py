@@ -124,16 +124,23 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
     SH: Consider extracting the for loop as common function
     """
 
+    comm = libE_info['comm']
+
     # SH - Could start with a work item to process - or just start and wait for data
     if H.size > 0:
         tag = None
+        Work = None
     else:
         tag, Work, H = get_mgr_worker_msg(comm)
 
-    comm = libE_info['comm']
-    wid = libE_info['workerID']
-
     while tag not in [STOP_TAG, PERSIS_STOP]:
+
+        # SH: This should either be a function (unpack_work ?) or included/unpacked in sendrecv_mgr_worker_msg.
+        # but if include in recv, then changes interface...
+        if Work is not None:
+            persis_info = Work.get('persis_info', persis_info)
+            libE_info = Work.get('libE_info', libE_info)
+
         batch = len(H['x'])
         H_o = np.zeros(batch, dtype=sim_specs['out'])
 
@@ -146,7 +153,9 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
             if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
                 time.sleep(sim_specs['user']['pause_time'])
 
-        tag, Work, H = sendrecv_mgr_worker_msg(comm, H_o, libE_info=libE_info, calc_status=WORKER_DONE, calc_type=EVAL_SIM_TAG)
+        # SH Note calc_status will not currently print in libE_stats as this is persistent
+        tag, Work, H = sendrecv_mgr_worker_msg(comm, H_o, libE_info=libE_info,
+                                               calc_status=WORKER_DONE, calc_type=EVAL_SIM_TAG)
 
     # SH - Need to test returning something to H at end...
     # return H_o, persis_info, FINISHED_PERSISTENT_SIM_TAG

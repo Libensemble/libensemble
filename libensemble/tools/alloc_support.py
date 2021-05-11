@@ -1,5 +1,11 @@
 import numpy as np
+import logging
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+from libensemble.output_directory import EnsembleDirectory
+
+logger = logging.getLogger(__name__)
+# For debug messages - uncomment
+# logger.setLevel(logging.DEBUG)
 
 
 # SH I would like to use the persistent arg to say if sim or gen - but I would rather gen is default
@@ -58,11 +64,20 @@ def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
 
     :returns: None
     """
+    # SH - these parameters in docstring are out of date - check more recent code
+
+    if isinstance(H_rows, range):
+        H_rows = np.fromiter(H_rows, int)
+
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
                'tag': EVAL_SIM_TAG,
                'libE_info': libE_info}
+
+    # SH make debug - testing at info
+    logger.info("Alloc func packing simulator work request for worker {}. Packing sim_ids: {}".
+                format(i, EnsembleDirectory.extract_H_ranges(Work[i]) or None))
 
 
 def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
@@ -76,6 +91,9 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
     :returns: None
     """
 
+    # SH - these parameters in docstring are out of date - check more recent code
+    # SH - may want to merge much of sim_work/gen_work
+
     # Count total gens
     try:
         gen_work.gen_counter += 1
@@ -83,11 +101,18 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
         gen_work.gen_counter = 1
     libE_info['gen_count'] = gen_work.gen_counter
 
+    if isinstance(H_rows, range):
+        H_rows = np.fromiter(H_rows, int)
+
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
                'tag': EVAL_GEN_TAG,
                'libE_info': libE_info}
+
+    # SH make debug - testing at info
+    logger.info("Alloc func packing generator work request for worker {}. Packing sim_ids: {}".
+                format(i, EnsembleDirectory.extract_H_ranges(Work[i]) or None))
 
 
 def all_returned(H, pt_filter=True):

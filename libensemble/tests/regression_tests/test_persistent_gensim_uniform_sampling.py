@@ -19,6 +19,9 @@
 
 # SH TODO: Regarding a persistent sim test
 # Naming of this test!
+# sims receive H_rows in libE_info - but this will change so need to receive libE_info from message
+#   - not just in function call!
+#   - and this should probably apply to persis_info !!!!!  I means even in gen?
 # Should it insist on sending sims to particular workers (why is it persistent....)
 # - Or use active_recv mode to send back intermediate data.
 # Need to sort out gen_support module and how this should be modified for sim and gen support.
@@ -29,6 +32,9 @@
 #  - Whether need to specify in alloc: eg. give me a list of persistent sims
 #    - (then all persis allocs need updating to ask for persis gen only)
 # Determine test pass condition
+# sendrecv_mgr_worker_msg for sim - needs more args inc. libE_info... (in which case could get rid of
+#    separate comm arg - also it needs to remove comm from libE_info anyway as cant pickle a comm
+#    (and make sure send a copy with comm removed so dont affect original structure).
 
 import sys
 import numpy as np
@@ -55,7 +61,9 @@ gen_specs = {'gen_f': gen_f,
              'out': [('x', float, (n,))],
              'user': {'gen_batch_size': 20,
                       'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
+                      'ub': np.array([3, 2]),
+                      # 'give_all_with_same_priority': True
+                      }
              }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
@@ -69,9 +77,5 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_manager:
-    #assert len(np.unique(H['gen_time'])) == 2
-    np.set_printoptions(precision=32)
-
-    print(H['gen_time'])
-
+    assert len(np.unique(H['gen_time'])) == 2
     save_libE_output(H, persis_info, __file__, nworkers)

@@ -12,7 +12,7 @@ def sendrecv_mgr_worker_msg(comm, output, libE_info=info_default, calc_status=UN
     :returns: message tag, Work dictionary, calc_in array
     """
     # return puf.sendrecv_mgr_worker_msg(comm, output)  # testing
-    send_mgr_worker_msg(comm, output)
+    send_mgr_worker_msg(comm, output, libE_info, calc_status, calc_type)
     return get_mgr_worker_msg(comm)
 
 
@@ -25,6 +25,12 @@ def send_mgr_worker_msg(comm, output, libE_info=info_default, calc_status=UNSET_
     :param output: Output array to be sent to manager
     :returns: None
     """
+
+    if 'comm' in libE_info:
+        # Cannot pickle a comm and should not need for return
+        libE_info = dict(libE_info)
+        libE_info.pop('comm')
+
     D = {'calc_out': output,
          'libE_info': libE_info,
          'calc_status': calc_status,
