@@ -102,7 +102,7 @@ jobs:
             python install/find_mpi.py
             mpiexec --version
             pip install -e .
-            flake8 libensemble
+            #flake8 libensemble
             ulimit -Sn 10000
 
         - name: Run tests, Ubuntu
