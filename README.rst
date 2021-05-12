@@ -232,23 +232,23 @@ libEnsemble generation capabilities include:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
-  - DFO-LS_ Derivative-free solver for (bound constrained) nonlinear least-squares minimization   
+  - DFO-LS_ Derivative-free solver for (bound constrained) nonlinear least-squares minimization
   - NLopt_ Library for nonlinear optimization, providing a common interface for various methods
   - scipy.optimize_ Open-source solvers for nonlinear problems, linear programming,
     constrained and nonlinear least-squares, root finding, and curve fitting.
-  - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications 
+  - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications
 
-- DEAP_ Distributed evolutionary algorithms 
-- ECNoise_ Estimating Computational Noise in Numerical Simulations 
+- DEAP_ Distributed evolutionary algorithms
+- ECNoise_ Estimating Computational Noise in Numerical Simulations
 - Surmise_ Modular Bayesian calibration/inference framework
 - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
-- VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization 
+- VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization
 
 libEnsemble has also been used to coordinate many computational expensive
 simulations. Select examples include:
 
 - OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
-- WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.) 
+- WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.)
 
 See a complete list of `example user scripts`_.
 
