@@ -8,6 +8,27 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+class AllocException(Exception):
+    "Raised for any exception in the alloc support"
+
+
+def check_H_rows(H_rows):
+    """Ensure H_rows is a numpy array.  If it is not, then convert if possible,
+    else raise an error.
+
+   :returns: ndarray. H_rows
+
+    """
+    if isinstance(H_rows, np.ndarray):
+        return H_rows
+    try:
+        H_rows = np.fromiter(H_rows, int)
+    except Exception:
+        raise AllocException("H_rows could not be converted to a numpy array. Type {}".
+                             format(type(H_rows)))
+    return H_rows
+
+
 # SH I would like to use the persistent arg to say if sim or gen - but I would rather gen is default
 # As we have a sim as 1, then persistent=True would default to a persistent sim!!!
 # Why is gen not 1 anyway?
@@ -66,9 +87,7 @@ def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
     """
     # SH - these parameters in docstring are out of date - check more recent code
 
-    if isinstance(H_rows, range):
-        H_rows = np.fromiter(H_rows, int)
-
+    H_rows = check_H_rows(H_rows)
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
@@ -76,7 +95,7 @@ def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
                'libE_info': libE_info}
 
     # SH make debug - testing at info
-    logger.info("Alloc func packing simulator work request for worker {}. Packing sim_ids: {}".
+    logger.info("Alloc func packing SIM work for worker {}. Packing sim_ids: {}".
                 format(i, EnsembleDirectory.extract_H_ranges(Work[i]) or None))
 
 
@@ -101,9 +120,7 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
         gen_work.gen_counter = 1
     libE_info['gen_count'] = gen_work.gen_counter
 
-    if isinstance(H_rows, range):
-        H_rows = np.fromiter(H_rows, int)
-
+    H_rows = check_H_rows(H_rows)
     libE_info['H_rows'] = H_rows
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
@@ -111,7 +128,7 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
                'libE_info': libE_info}
 
     # SH make debug - testing at info
-    logger.info("Alloc func packing generator work request for worker {}. Packing sim_ids: {}".
+    logger.info("Alloc func packing GEN work for worker {}. Packing sim_ids: {}".
                 format(i, EnsembleDirectory.extract_H_ranges(Work[i]) or None))
 
 
