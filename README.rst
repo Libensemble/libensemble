@@ -244,12 +244,13 @@ libEnsemble generation capabilites include:
 - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
 - VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization 
 
-libEnsemble has also coordinate many computational expensive simulations. Select examples include:
+libEnsemble has also been used to coordinate many computational expensive
+simulations. Select examples include:
 
 - OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
 - WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.) 
 
-See a complete list of `example user scripts`.
+See a complete list of `example user scripts`_.
 
 .. after_resources_rst_tag
 
