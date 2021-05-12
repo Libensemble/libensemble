@@ -3,6 +3,7 @@ Common plumbing for regression tests
 """
 
 import os
+import json
 import os.path
 
 
@@ -82,11 +83,12 @@ def modify_Balsam_worker():
             f.write(line)
 
 
-def modify_Balsam_pyCoverage():
+def modify_Balsam_pyCoverage_and_settings():
     # Tracking line coverage through our tests requires running the Python module
     #   'coverage' directly. Balsam explicitely configures Python runs with
     #   'python [script].py args' with no current capability for specifying
     #   modules. This hack specifies the coverage module and some options.
+    #   v0.4 - modify settings file so Balsam doesn't assume running on Theta
     import balsam
 
     old_line = "            path = ' '.join((exe, script_path, args))\n"
@@ -108,6 +110,17 @@ def modify_Balsam_pyCoverage():
     with open(balsam_commands_path, 'w') as f:
         for line in lines:
             f.write(line)
+
+    # Modify $HOME/.balsam/settings.json
+    settingsfile = os.path.join(os.environ.get('HOME'), '.balsam/settings.json')
+    with open(settingsfile, 'r') as f:
+        lines = json.load(f)
+
+    lines['MPI_RUN_TEMPLATE'] = "MPICHCommand"
+    lines['WORKER_DETECTION_TYPE'] = "DEFAULT"
+
+    with open(settingsfile, 'w') as f:
+        json.dump(lines, f)
 
 
 def modify_Balsam_JobEnv():
