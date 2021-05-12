@@ -92,7 +92,7 @@ The example simulation and generation functions and tests require the following:
 * DFO-LS_
 * Tasmanian_
 * NLopt_
-* PETSc_ - Can optionally be installed by pip along with petsc4py
+* `PETSc/TAO`_ - Can optionally be installed by pip along with petsc4py
 * Surmise_
 
 PETSc and NLopt must be built with shared libraries enabled and present in
@@ -208,7 +208,7 @@ Resources
 **Further Information:**
 
 - Documentation is provided by ReadtheDocs_.
-- A visual overview of libEnsemble is given in this poster_.
+- An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_
 
 **Citation:**
 
@@ -226,17 +226,39 @@ Resources
     url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
+**Capabilities:**
+
+libEnsemble generation capabilites include:
+
+- APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
+
+  - DFO-LS_ Derivative-free solver for (bound constrained) nonlinear least-squares minimization   
+  - NLopt_ Library for nonlinear optimization, providing a common interface for various methods
+  - scipy.optimize_ Open-source solvers for nonlinear problems, linear programing,
+    constrained and nonlinear least-squares, root finding, and curve fitting.
+  - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications 
+
+- DEAP_ Distributed evoluationary algorithms 
+- ECNoise_ Estimating Computational Noise in Numerical Simulations 
+- Surmise_ Modular Bayesian calibration/inference framework
+- Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
+- VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization 
+
+
 .. after_resources_rst_tag
 
+.. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
+.. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
+.. _manuscript: https://arxiv.org/abs/2104.08322
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
 .. _MPICH: http://www.mpich.org/
@@ -245,7 +267,7 @@ Resources
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
 .. _NumPy: http://www.numpy.org
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
-.. _PETSc: http://www.mcs.anl.gov/petsc
+.. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
 .. _psutil: https://pypi.org/project/psutil/
 .. _PyPI: https://pypi.org
@@ -255,6 +277,7 @@ Resources
 .. _Python: http://www.python.org
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
+.. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
@@ -262,4 +285,5 @@ Resources
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
+.. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
