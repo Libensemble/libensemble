@@ -244,18 +244,27 @@ libEnsemble generation capabilites include:
 - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
 - VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization 
 
+libEnsemble has also coordinate many computational expensive simulations. Select examples include:
+
+- OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
+- WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.) 
+
+See a complete list of `example user scripts`.
 
 .. after_resources_rst_tag
 
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
+.. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
+.. _example user scripts: https://libensemble.readthedocs.io/en/docs-capabilities_section/examples/examples_index.html
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
+.. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _manuscript: https://arxiv.org/abs/2104.08322
@@ -266,6 +275,7 @@ libEnsemble generation capabilites include:
 .. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
 .. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
 .. _NumPy: http://www.numpy.org
+.. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
@@ -286,4 +296,6 @@ libEnsemble generation capabilites include:
 .. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
+.. _WarpX: https://warpx.readthedocs.io/en/latest/
+.. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
 .. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
