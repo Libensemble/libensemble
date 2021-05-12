@@ -1,5 +1,5 @@
 import numpy as np
-
+from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
 
 
@@ -24,7 +24,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     # If i is in persistent mode, and all of its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in avail_worker_ids(W, persistent=True):
+    for i in avail_worker_ids(W, persistent=EVAL_GEN_TAG):
 
         # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
         # values complete.

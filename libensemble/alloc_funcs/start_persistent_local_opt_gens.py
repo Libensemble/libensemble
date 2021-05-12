@@ -1,5 +1,4 @@
 import numpy as np
-
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens, all_returned
 
@@ -40,7 +39,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     # If i is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to i
-    for i in avail_worker_ids(W, persistent=True):
+    for i in avail_worker_ids(W, persistent=EVAL_GEN_TAG):
         gen_inds = (H['gen_worker'] == i)
         if all_returned(H, gen_inds):
             last_time_pos = np.argmax(H['given_time'][gen_inds])
