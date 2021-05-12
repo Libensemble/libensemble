@@ -228,17 +228,17 @@ Resources
 
 **Capabilities:**
 
-libEnsemble generation capabilites include:
+libEnsemble generation capabilities include:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
   - DFO-LS_ Derivative-free solver for (bound constrained) nonlinear least-squares minimization   
   - NLopt_ Library for nonlinear optimization, providing a common interface for various methods
-  - scipy.optimize_ Open-source solvers for nonlinear problems, linear programing,
+  - scipy.optimize_ Open-source solvers for nonlinear problems, linear programming,
     constrained and nonlinear least-squares, root finding, and curve fitting.
   - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications 
 
-- DEAP_ Distributed evoluationary algorithms 
+- DEAP_ Distributed evolutionary algorithms 
 - ECNoise_ Estimating Computational Noise in Numerical Simulations 
 - Surmise_ Modular Bayesian calibration/inference framework
 - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
