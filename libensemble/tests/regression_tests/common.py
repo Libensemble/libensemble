@@ -83,12 +83,11 @@ def modify_Balsam_worker():
             f.write(line)
 
 
-def modify_Balsam_pyCoverage_and_settings():
+def modify_Balsam_pyCoverage():
     # Tracking line coverage through our tests requires running the Python module
     #   'coverage' directly. Balsam explicitely configures Python runs with
     #   'python [script].py args' with no current capability for specifying
     #   modules. This hack specifies the coverage module and some options.
-    #   v0.4 - modify settings file so Balsam doesn't assume running on Theta
     import balsam
 
     old_line = "            path = ' '.join((exe, script_path, args))\n"
@@ -111,7 +110,9 @@ def modify_Balsam_pyCoverage_and_settings():
         for line in lines:
             f.write(line)
 
-    # Modify $HOME/.balsam/settings.json
+
+def modify_Balsam_settings():
+    # Set $HOME/.balsam/settings.json to DEFAULT instead of Theta worker setup
     settingsfile = os.path.join(os.environ.get('HOME'), '.balsam/settings.json')
     with open(settingsfile, 'r') as f:
         lines = json.load(f)
