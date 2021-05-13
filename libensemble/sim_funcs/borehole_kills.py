@@ -1,9 +1,8 @@
 import numpy as np
-import time
+# import time
 from libensemble.executors.executor import Executor
 from libensemble.sim_funcs.surmise_test_function import borehole_true
-from libensemble.message_numbers import (UNSET_TAG, TASK_FAILED,
-                                         MAN_SIGNAL_KILL, WORKER_DONE)
+from libensemble.message_numbers import TASK_FAILED, MAN_SIGNAL_KILL, UNSET_TAG
 
 
 # def polling_loop(exctr, task):
