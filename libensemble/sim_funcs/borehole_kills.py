@@ -6,28 +6,28 @@ from libensemble.message_numbers import (UNSET_TAG, TASK_FAILED,
                                          MAN_SIGNAL_KILL, WORKER_DONE)
 
 
-def polling_loop(exctr, task):
-    """ Poll task for complettion and for manager kill signal"""
-    calc_status = UNSET_TAG
-    poll_interval = 0.01
-
-    # Poll task for finish and poll manager for kill signals
-    while(not task.finished):
-        exctr.manager_poll()
-        if exctr.manager_signal == 'kill':
-            task.kill()
-            calc_status = MAN_SIGNAL_KILL
-            break
-        else:
-            task.poll()
-            time.sleep(poll_interval)
-
-    if task.state == 'FINISHED':
-        calc_status = WORKER_DONE
-    elif task.state == 'FAILED':
-        calc_status = TASK_FAILED  # If run actually fails for some reason
-
-    return calc_status
+# def polling_loop(exctr, task):
+#     """ Poll task for complettion and for manager kill signal"""
+#     calc_status = UNSET_TAG
+#     poll_interval = 0.01
+#
+#     # Poll task for finish and poll manager for kill signals
+#     while(not task.finished):
+#         exctr.manager_poll()
+#         if exctr.manager_signal == 'kill':
+#             task.kill()
+#             calc_status = MAN_SIGNAL_KILL
+#             break
+#         else:
+#             task.poll()
+#             time.sleep(poll_interval)
+#
+#     if task.state == 'FINISHED':
+#         calc_status = WORKER_DONE
+#     elif task.state == 'FAILED':
+#         calc_status = TASK_FAILED  # If run actually fails for some reason
+#
+#     return calc_status
 
 
 def subproc_borehole(H, delay):
