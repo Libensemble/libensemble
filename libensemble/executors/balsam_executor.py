@@ -39,7 +39,7 @@ class BalsamTask(Task):
     """
 
     def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None, comm=None):
+                 stdout=None, stderr=None, workerid=None):
         """Instantiate a new BalsamTask instance.
 
         A new BalsamTask object is created with an id, status and
@@ -47,7 +47,7 @@ class BalsamTask(Task):
         executor on a submission.
         """
         # May want to override workdir with Balsam value when it exists
-        Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid, comm)
+        Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
     def read_file_in_workdir(self, filename):
         return self.process.read_file_in_workdir(filename)
@@ -316,7 +316,7 @@ class BalsamMPIExecutor(MPIExecutor):
         # (or can have option to let Balsam assign)
         default_workdir = os.getcwd()
         task = BalsamTask(app, app_args, default_workdir,
-                          stdout, stderr, self.workerID, self.comm)
+                          stdout, stderr, self.workerID)
 
         add_task_args = {'name': task.name,
                          'workflow': self.workflow_name,

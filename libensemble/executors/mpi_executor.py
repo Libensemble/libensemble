@@ -265,7 +265,7 @@ class MPIExecutor(Executor):
             raise ExecutorException("Either app_name or calc_type must be set")
 
         default_workdir = os.getcwd()
-        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, self.comm)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this "

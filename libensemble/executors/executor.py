@@ -100,7 +100,7 @@ class Task:
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None, comm=None, dry_run=False):
+                 stdout=None, stderr=None, workerid=None, dry_run=False):
         """Instantiate a new Task instance.
 
         A new task object is created with an id, status and configuration
@@ -114,7 +114,6 @@ class Task:
 
         # Run attributes
         self.app = app
-        self.comm = comm
         self.app_args = app_args
         self.workerID = workerid
 
@@ -230,98 +229,6 @@ class Task:
             return
 
         self._set_complete()
-
-    def manager_poll(self):
-        """ Polls for a manager signal
-
-        The task manager_signal attribute will be updated.
-
-        Returns
-        -------
-        man_signal: int
-            Exact signal received from manager
-
-        """
-        self.manager_signal = 'none'  # Reset
-
-        # Check for messages; disregard anything but a stop signal
-        if not self.comm.mail_flag():
-            return
-        mtag, man_signal = self.comm.recv()
-        if mtag != STOP_TAG:
-            return
-
-        # Process the signal and push back on comm (for now)
-        logger.info('Worker received kill signal {} from manager. Killing Task {}.'.format(man_signal, self.id))
-        if man_signal == MAN_SIGNAL_FINISH:
-            self.manager_signal = 'finish'
-        elif man_signal == MAN_SIGNAL_KILL:
-            self.manager_signal = 'kill'
-        else:
-            logger.warning("Received unrecognized manager signal {} - "
-                           "ignoring".format(man_signal))
-        self.comm.push_to_buffer(mtag, man_signal)
-        return man_signal
-
-    def polling_loop(self, time_limit=0, delay=1, poll_manager=False):
-        """ Optional, blocking, generic task status polling loop. Operates until the task
-        either finishes, times out, or is killed via a manager signal. On completion, returns a
-        presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
-        for users who simply want to run an application via the Executor until
-        it stops without monitoring its intermediate output.
-
-        Parameters
-        ----------
-
-        time_limit: int
-            Maximum number of seconds for the polling loop to run. Tasks that run
-            longer than this limit are killed.
-
-        delay: int
-            Sleep duration between polling loop iterations
-
-        poll_manager: bool
-            Whether to also poll the manager for 'finish' or 'kill' signals.
-            If detected, the task is killed. Requires the user to also provide
-            a communicator object from ``libE_info``.
-
-        Returns
-        -------
-        calc_status: int
-            integer attribute describing the status of a launched task
-
-        """
-        calc_status = UNSET_TAG
-
-        while not self.finished:
-            self.poll()
-
-            if poll_manager:
-                man_signal = self.manager_poll()
-                if self.manager_signal != 'none':
-                    self.kill()
-                    calc_status = man_signal
-                    break
-
-            if time_limit > 0 and self.runtime > time_limit:
-                self.kill()
-                calc_status = WORKER_KILL_ON_TIMEOUT
-                break
-
-            time.sleep(delay)
-
-        if calc_status == UNSET_TAG:
-            if self.state == 'FINISHED':
-                calc_status = WORKER_DONE
-            elif self.state == 'FAILED':
-                calc_status = TASK_FAILED
-            elif self.state == 'USER_KILLED':
-                calc_status = WORKER_KILL
-            else:
-                logger.warning("Warning: Task {} in unknown state {}. Error code {}"
-                               .format(self.name, self.state, self.errcode))
-
-        return calc_status
 
     def wait(self, timeout=None):
         """Waits on completion of the task or raises TimeoutExpired exception
@@ -532,6 +439,70 @@ class Executor:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
         self.comm.push_to_buffer(mtag, man_signal)
+        return man_signal
+
+    def polling_loop(self, task, time_limit=0, delay=1, poll_manager=False):
+        """ Optional, blocking, generic task status polling loop. Operates until the task(s)
+        either finishes, times out, or is killed via a manager signal. On completion, returns a
+        presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
+        for users who simply want to run an application via the Executor until
+        it stops without monitoring its intermediate output.
+
+        Parameters
+        ----------
+
+        task: object
+            a Task object returned by the executor on submission
+
+        time_limit: int, optional
+            Maximum number of seconds for the polling loop to run. Tasks that run
+            longer than this limit are killed.
+
+        delay: int
+            Sleep duration between polling loop iterations. Default: 1 second
+
+        poll_manager: bool
+            Whether to also poll the manager for 'finish' or 'kill' signals.
+            If detected, the task is killed. Default: False.
+
+        Returns
+        -------
+        calc_status: int
+            integer attribute describing the status of a launched task
+
+        """
+
+        calc_status = UNSET_TAG
+
+        while not task.finished:
+            task.poll()
+
+            if poll_manager:
+                man_signal = self.manager_poll()
+                if self.manager_signal != 'none':
+                    task.kill()
+                    calc_status = man_signal
+                    break
+
+            if time_limit > 0 and task.runtime > time_limit:
+                task.kill()
+                calc_status = WORKER_KILL_ON_TIMEOUT
+                break
+
+            time.sleep(delay)
+
+        if calc_status == UNSET_TAG:
+            if task.state == 'FINISHED':
+                calc_status = WORKER_DONE
+            elif task.state == 'FAILED':
+                calc_status = TASK_FAILED
+            elif task.state == 'USER_KILLED':
+                calc_status = WORKER_KILL
+            else:
+                logger.warning("Warning: Task {} in unknown state {}. Error code {}"
+                               .format(self.name, self.state, self.errcode))
+
+        return calc_status
 
     def get_task(self, taskid):
         """ Returns the task object for the supplied task ID """
@@ -599,7 +570,7 @@ class Executor:
             raise ExecutorException("Either app_name or calc_type must be set")
 
         default_workdir = os.getcwd()
-        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, self.comm)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
         runline = task.app.full_path.split()
         if task.app_args is not None:
             runline.extend(task.app_args.split())

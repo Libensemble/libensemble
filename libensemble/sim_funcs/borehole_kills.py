@@ -5,30 +5,6 @@ from libensemble.sim_funcs.surmise_test_function import borehole_true
 from libensemble.message_numbers import TASK_FAILED, MAN_SIGNAL_KILL, UNSET_TAG
 
 
-# def polling_loop(exctr, task):
-#     """ Poll task for complettion and for manager kill signal"""
-#     calc_status = UNSET_TAG
-#     poll_interval = 0.01
-#
-#     # Poll task for finish and poll manager for kill signals
-#     while(not task.finished):
-#         exctr.manager_poll()
-#         if exctr.manager_signal == 'kill':
-#             task.kill()
-#             calc_status = MAN_SIGNAL_KILL
-#             break
-#         else:
-#             task.poll()
-#             time.sleep(poll_interval)
-#
-#     if task.state == 'FINISHED':
-#         calc_status = WORKER_DONE
-#     elif task.state == 'FAILED':
-#         calc_status = TASK_FAILED  # If run actually fails for some reason
-#
-#     return calc_status
-
-
 def subproc_borehole(H, delay):
     """This evaluates the Borehole function using a subprocess
     running compiled code.
@@ -46,8 +22,7 @@ def subproc_borehole(H, delay):
     args = 'input' + ' ' + str(delay)
 
     task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
-    # calc_status = polling_loop(exctr, task)
-    calc_status = task.polling_loop(delay=0.01, poll_manager=True)
+    calc_status = exctr.polling_loop(task, delay=0.01, poll_manager=True)
 
     if calc_status in [MAN_SIGNAL_KILL, TASK_FAILED]:
         f = np.inf
