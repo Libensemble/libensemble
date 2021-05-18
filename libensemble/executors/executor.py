@@ -441,7 +441,7 @@ class Executor:
         self.comm.push_to_buffer(mtag, man_signal)
         return man_signal
 
-    def polling_loop(self, task, time_limit=0, delay=1, poll_manager=False):
+    def polling_loop(self, task, time_limit=0, delay=0.1, poll_manager=False):
         """ Optional, blocking, generic task status polling loop. Operates until the task(s)
         either finishes, times out, or is killed via a manager signal. On completion, returns a
         presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
