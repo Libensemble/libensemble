@@ -272,15 +272,15 @@ def test_kill_on_timeout():
 
 
 def test_kill_on_timeout_polling_loop_method():
-        print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
-        setup_executor()
-        exctr = Executor.executor
-        cores = NCORES
-        args_for_sim = 'sleep 10'
-        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-        exctr.polling_loop(task, time_limit=1)
-        assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-        assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 10'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    exctr.polling_loop(task, time_limit=1)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_launch_and_poll_multitasks():
