@@ -105,8 +105,8 @@ for run in range(2):
             objs = deap_six_hump(H_dummy, {}, sim_specs, {})
             H0['fitness_values'][i] = objs[0]
 
-        # Testing use_persis_return capabilities 
-        libE_specs['use_persis_return'] = True   
+        # Testing use_persis_return capabilities
+        libE_specs['use_persis_return'] = True
     else:
         H0 = None
 
@@ -114,10 +114,12 @@ for run in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
     if is_manager:
-        if run == 0: 
-            assert np.sum(H['last_points']) == 0, "The last_points shouldn't be marked (even though they were marked in the gen) as 'use_persis_return' was false"
+        if run == 0:
+            assert np.sum(H['last_points']) == 0, ("The last_points shouldn't be marked (even though "
+                                                   "they were marked in the gen) as 'use_persis_return' was false.")
         elif run == 1:
-            assert np.sum(H['last_points']) == pop_size, "The last_points should be marked as true because they were marked in the manager and 'use_persis_return' is true"
+            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they "
+                                                          "were marked in the manager and 'use_persis_return' is true.")
 
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"

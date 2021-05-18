@@ -68,7 +68,7 @@ def evaluate_pop(g, deap_object, Out, comm):
         Out['generation'][index] = g
     # Sending work to sim_f, which is defined in main call script
     # A fitness value will be returned in calc_in
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, Out[['individual','generation']])
+    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, Out[['individual', 'generation']])
 
     if tag not in [STOP_TAG, PERSIS_STOP]:
         for i, ind in enumerate(deap_object):
