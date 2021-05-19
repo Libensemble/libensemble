@@ -140,6 +140,7 @@ def stop_persis_worker(Work, i, H_fields, H_rows, persis_info, **libE_info):
                'tag': PERSIS_STOP,
                'libE_info': libE_info}
 
+
 def all_returned(H, pt_filter=True):
     """Check if all expected points have returned from sim
 

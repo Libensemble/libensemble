@@ -3,6 +3,7 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_G
 
 info_default = {'persistent': True}
 
+
 # def sendrecv_mgr_worker_msg(comm, output):
 def sendrecv_mgr_worker_msg(comm, output, libE_info=info_default, calc_status=UNSET_TAG, calc_type=EVAL_GEN_TAG):
     """Send message from worker to manager and receive response.

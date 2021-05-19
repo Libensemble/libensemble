@@ -1,7 +1,7 @@
 import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
-                                             count_persis_gens, all_returned)
+                                             count_persis_gens, all_returned, stop_persis_worker)
 
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -183,8 +183,13 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 # perform sim evaluations (if they exist in History).
                 sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
 
-                # SH - not specifying which sim to send to - but might be worker_id required in H field.
-                sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i),persistent=True)
+                # JL - I want to stop all persistent sims periodically.
+                if np.sum(H['returned']) >= persis_info.get('last_stop',0) + alloc_specs['user'].get('stop_frequency',np.inf):
+                    persis_info['last_stop'] = np.sum(H['returned'])
+                    stop_persis_worker(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i), persistent=True)
+                else:
+                    # SH - not specifying which sim to send to - but might be worker_id required in H field.
+                    sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i), persistent=True)
 
                 task_avail[sim_ids_to_send] = False
 
