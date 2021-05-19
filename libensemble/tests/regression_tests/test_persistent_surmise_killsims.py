@@ -38,8 +38,8 @@ from libensemble.tests.regression_tests.common import build_borehole  # current 
 from libensemble.executors.executor import Executor
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-# from libensemble import libE_logger
-# libE_logger.set_level('DEBUG')  # To get debug logging in ensemble.log
+# from libensemble import logger
+# logger.set_level('DEBUG')  # To get debug logging in ensemble.log
 
 
 if __name__ == '__main__':
