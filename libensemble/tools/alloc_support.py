@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.output_directory import EnsembleDirectory
 
 logger = logging.getLogger(__name__)
@@ -131,6 +131,14 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
     logger.info("Alloc func packing GEN work for worker {}. Packing sim_ids: {}".
                 format(i, EnsembleDirectory.extract_H_ranges(Work[i]) or None))
 
+
+def stop_persis_worker(Work, i, H_fields, H_rows, persis_info, **libE_info):
+
+    libE_info['H_rows'] = H_rows
+    Work[i] = {'H_fields': H_fields,
+               'persis_info': persis_info,
+               'tag': PERSIS_STOP,
+               'libE_info': libE_info}
 
 def all_returned(H, pt_filter=True):
     """Check if all expected points have returned from sim
