@@ -24,6 +24,9 @@ sudo chown -R postgres:postgres /var/run/postgresql
 sudo chmod a+w /var/run/postgresql
 balsam init $HOME/test-balsam
 sudo chmod -R 700 $HOME/test-balsam/balsamdb
+
+python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_settings; modify_Balsam_settings()'
+
 source balsamactivate test-balsam
 
 # Refresh DB

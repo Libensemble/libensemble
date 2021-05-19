@@ -3,6 +3,7 @@ Common plumbing for regression tests
 """
 
 import os
+import json
 import os.path
 
 
@@ -108,6 +109,19 @@ def modify_Balsam_pyCoverage():
     with open(balsam_commands_path, 'w') as f:
         for line in lines:
             f.write(line)
+
+
+def modify_Balsam_settings():
+    # Set $HOME/.balsam/settings.json to DEFAULT instead of Theta worker setup
+    settingsfile = os.path.join(os.environ.get('HOME'), '.balsam/settings.json')
+    with open(settingsfile, 'r') as f:
+        lines = json.load(f)
+
+    lines['MPI_RUN_TEMPLATE'] = "MPICHCommand"
+    lines['WORKER_DETECTION_TYPE'] = "DEFAULT"
+
+    with open(settingsfile, 'w') as f:
+        json.dump(lines, f)
 
 
 def modify_Balsam_JobEnv():
