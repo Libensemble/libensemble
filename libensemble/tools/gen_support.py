@@ -48,11 +48,14 @@ def get_mgr_worker_msg(comm):
     """
     tag, Work = comm.recv()
     if tag in [STOP_TAG, PERSIS_STOP]:
-        comm.push_to_buffer(tag, Work)
-        return tag, Work, None
+        if not isinstance(Work, dict):
+            comm.push_to_buffer(tag, Work)
+            return tag, Work, None
     data_tag, calc_in = comm.recv()
     # Check for unexpected STOP (e.g. error between sending Work info and rows)
     if data_tag in [STOP_TAG, PERSIS_STOP]:
         comm.push_to_buffer(data_tag, calc_in)
         return data_tag, calc_in, None  # calc_in is signal identifier
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        comm.push_to_buffer(tag, Work)
     return tag, Work, calc_in
