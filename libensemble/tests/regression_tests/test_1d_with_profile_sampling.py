@@ -48,6 +48,9 @@ if is_manager:
     assert len(H) >= 501
     print("\nlibEnsemble with random sampling has generated enough points")
 
+    assert 'manager.prof' in os.listdir(), 'Expected manager profile not found after run'
+    os.remove('manager.prof')
+
     prof_files = ['worker_{}.prof'.format(i+1) for i in range(nworkers)]
 
     # Ensure profile writes complete before checking
