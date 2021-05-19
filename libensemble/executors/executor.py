@@ -20,7 +20,7 @@ import time
 from libensemble.message_numbers import (UNSET_TAG, MAN_SIGNAL_FINISH,
                                          MAN_SIGNAL_KILL, WORKER_DONE,
                                          TASK_FAILED, WORKER_KILL_ON_TIMEOUT,
-                                         WORKER_KILL, STOP_TAG)
+                                         STOP_TAG)
 
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
