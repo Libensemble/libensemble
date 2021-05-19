@@ -496,8 +496,6 @@ class Executor:
                 calc_status = WORKER_DONE
             elif task.state == 'FAILED':
                 calc_status = TASK_FAILED
-            elif task.state == 'USER_KILLED':
-                calc_status = WORKER_KILL
             else:
                 logger.warning("Warning: Task {} in unknown state {}. Error code {}"
                                .format(self.name, self.state, self.errcode))
