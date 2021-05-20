@@ -442,11 +442,11 @@ class Executor:
         return man_signal
 
     def polling_loop(self, task, timeout=0, delay=0.1, poll_manager=False):
-        """ Optional, blocking, generic task status polling loop. Operates until the task(s)
-        either finishes, times out, or is killed via a manager signal. On completion, returns a
+        """ Optional, blocking, generic task status polling loop. Operates until the task
+        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
         presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
-        for users who simply want to run an application via the Executor until
-        it stops without monitoring its intermediate output.
+        for running an application via the Executor until it stops without monitoring
+        its intermediate output.
 
         Parameters
         ----------
@@ -456,19 +456,19 @@ class Executor:
 
         timeout: int, optional
             Maximum number of seconds for the polling loop to run. Tasks that run
-            longer than this limit are killed.
+            longer than this limit are killed. Default: No timeout
 
-        delay: int
-            Sleep duration between polling loop iterations. Default: 1 second
+        delay: int, optional
+            Sleep duration between polling loop iterations. Default: 0.1 seconds
 
-        poll_manager: bool
+        poll_manager: bool, optional
             Whether to also poll the manager for 'finish' or 'kill' signals.
             If detected, the task is killed. Default: False.
 
         Returns
         -------
         calc_status: int
-            integer attribute describing the status of a launched task
+            presumptive integer attribute describing the final status of a launched task
 
         """
 
