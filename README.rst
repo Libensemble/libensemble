@@ -212,27 +212,18 @@ Resources
 
 **Citation:**
 
-- Please use the following to cite libEnsemble:
+- Please use the following to cite libEnsemble in a publication:
 
 .. code-block:: bibtex
 
   @techreport{libEnsemble,
-    title   = {{libEnsemble} Users Manual},
-    author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
-               David Bindel and John-Luke Navarro},
+    author      = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
+                   David Bindel and John-Luke Navarro},
+    title       = {{libEnsemble} Users Manual},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.7.2+dev},
-    year    = {2021},
-    url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
-  }
-
-  @article{Hudson2021,
-    title   = {{libEnsemble}: A Library to Coordinate the Concurrent
-               Evaluation of Dynamic Ensembles of Calculations},
-    author  = {Stephen Hudson and Jeffrey Larson and John-Luke Navarro and Stefan Wild},
-    journal = {{IEEE} Transactions on Parallel and Distributed Systems},
-    year    = {2021},
-    doi     = {10.1109/tpds.2021.3082815}
+    number      = {Revision 0.7.2+dev},
+    year        = {2021},
+    url         = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
 **Capabilities:**
