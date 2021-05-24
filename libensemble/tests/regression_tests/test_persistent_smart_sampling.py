@@ -42,7 +42,7 @@ sim_specs = {'sim_f': sim_f,
              }
 
 # gen_out = [('x', float, (n,))]
-gen_out = [('x', float, (n,)), ('f_i_done', bool), ('obj_component', int), ('pt_id', int)]
+gen_out = [('x', float, (n,)), ('f_i_done', bool, m)]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
@@ -59,7 +59,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # __NOTE__: Remove time limit
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 50, 'stop_val': ('f', 3000)}
+exit_criteria = {'sim_max': 50}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
