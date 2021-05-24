@@ -48,7 +48,7 @@ gen_out = [('x', float, (n,)), ('f_i_done', bool, m)]
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
-             'user': {'gen_batch_size': 20,
+             'user': {'gen_batch_size': 3,
                       'lb': (-2-np.pi/10)*np.ones(n),
                       'ub': 2*np.ones(n)}
              }
