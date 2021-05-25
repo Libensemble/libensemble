@@ -17,6 +17,7 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
+    m = gen_specs['user']['m']
     n = len(lb)
     b = gen_specs['user']['gen_batch_size']
 

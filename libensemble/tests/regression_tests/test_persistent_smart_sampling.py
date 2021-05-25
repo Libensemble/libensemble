@@ -50,6 +50,7 @@ gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
              'user': {'gen_batch_size': 3,
+                      'm': m,
                       'lb': (-2-np.pi/10)*np.ones(n),
                       'ub': 2*np.ones(n)}
              }
