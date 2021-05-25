@@ -269,6 +269,7 @@ def chwirut_eval(H, persis_info, sim_specs, _):
         for an example where one component of fvec is computed per call
     """
 
+    import ipdb; ipdb.set_trace()
     batch = len(H['x'])
     O = np.zeros(batch, dtype=sim_specs['out'])
 
@@ -283,6 +284,7 @@ def chwirut_eval(H, persis_info, sim_specs, _):
             O['fvec'][i] = EvaluateFunction(x)
             O['f'][i] = sim_specs['user']['combine_component_func'](O['fvec'][i])
 
+    print("here", flush=True)
     return O, persis_info
 
 # if __name__ == '__main__':

@@ -37,8 +37,9 @@ n = 3
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              # 'out': [('f', float), ('fvec', float, m)],
-             'out': [('f', float), ('f_i', float, m)],
-             'user': {'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             # 'out': [('fvec', float, m), ('f_i_done', float, m)],
+             'out': [('fvec', float, m)],
+             # 'user': {'combine_component_func': lambda x: np.sum(np.power(x, 2))}
              }
 
 # gen_out = [('x', float, (n,))]
@@ -57,7 +58,6 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# __NOTE__: Remove time limit
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
 exit_criteria = {'sim_max': 50}
 

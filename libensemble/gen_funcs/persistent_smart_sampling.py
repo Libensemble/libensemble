@@ -18,9 +18,7 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
     n = len(lb)
-    m = 214
     b = gen_specs['user']['gen_batch_size']
-    b = 1
 
     # Send batches until manager sends stop tag
     # tag = None
@@ -40,18 +38,12 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
         # if hasattr(calc_in, '__len__'):
         #     b = len(calc_in)
 
-    H_o = np.zeros(b*m, dtype=gen_specs['out'])
+    # TODO: better way to pass @m 
+
+    m = H['fvec'].shape[1]
+    H_o = np.zeros(b, dtype=gen_specs['out'])
     H_o['f_i_done'][:] = False
-    for i in range(0, b):
-        x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
 
-        H_o['x'][i*m:(i+1)*m, :] = np.tile(x, (m, 1))
-        # H_o['priority'][i*m:(i+1)*m] = persis_info['rand_stream'].uniform(0, 1, m)
-        H_o['obj_component'][i*m:(i+1)*m] = np.arange(0, m)
-
-        # TODO: What does len(H) and m correpsond to?
-        # m :: # samples. len(H) :: ?
-        # So this is like the 2D array of {num_f_i s} x {# samples}
-        H_o['pt_id'][i*m:(i+1)*m] = len(H)//m+i
+    H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
