@@ -20,31 +20,21 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
     m = gen_specs['user']['m']
     n = len(lb)
     b = gen_specs['user']['gen_batch_size']
+    # import ipdb; ipdb.set_trace()
+    H_o = np.zeros(b, dtype=gen_specs['out'])
+    m = len(H_o['f_i_done'][0])
 
     # Send batches until manager sends stop tag
-    # tag = None
-    # while tag not in [STOP_TAG, PERSIS_STOP]:
-        # H_o = np.zeros(b, dtype=gen_specs['out'])
-        # NOTE: This is where the history data type is written
+    tag = None
+    import ipdb; ipdb.set_trace()
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+
+        H_o = np.zeros(b, dtype=gen_specs['out'])
         # H_o = np.zeros(m, dtype=gen_specs['out'])
-        # H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        # H_o['obj_component'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        # H_o['obj_component'] = range(m)
+        H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
 
-        # print(H_o['x'].shape,"\n", H_o['x'],"\n------------------------")
-        # print(H_o['obj_component'])
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        if hasattr(calc_in, '__len__'):
+            b = len(calc_in)
 
-        # TEMP: What if do not get sendrecv?
-        # tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-        # if hasattr(calc_in, '__len__'):
-        #     b = len(calc_in)
-
-    # TODO: better way to pass @m 
-
-    m = H['fvec'].shape[1]
-    H_o = np.zeros(b, dtype=gen_specs['out'])
-    H_o['f_i_done'][:] = False
-
-    H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
