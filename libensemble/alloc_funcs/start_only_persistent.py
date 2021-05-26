@@ -117,7 +117,7 @@ def only_persistent_adv(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if np.any(returned_but_not_given):
             inds_since_last_gen = np.where(returned_but_not_given)[0]
             if all_returned(H, gen_inds):
-                gen_work(Work, i, ['x', 'f'], np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True)
+                gen_work(Work, i, ['x', 'f'], inds_since_last_gen, persis_info.get(i), persistent=True)
                 # Now mark these points as having been given back
                 H['given_back'][inds_since_last_gen] = True
 
@@ -127,7 +127,7 @@ def only_persistent_adv(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if np.any(task_avail):
             # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point(s)
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i))
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info.get(i))
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
