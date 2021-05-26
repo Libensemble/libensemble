@@ -1,0 +1,24 @@
+experiment_directory: SET_BY_SIMF
+stage_idx: 0
+task_idx: 0
+output_path: SET_BY_SIMF
+node_local_path: null
+pdb_file: SET_BY_SIMF/1FME-unfolded.pdb
+initial_pdb_dir: SET_BY_SIMF/initial_pdb_dir
+solvent_type: implicit
+top_suffix: null
+simulation_length_ns: 1.0
+report_interval_ps: 1.0
+dt_ps: 0.002
+temperature_kelvin: SET_BY_SIMF
+heat_bath_friction_coef: 1.0
+wrap: false
+reference_pdb_file: SET_BY_SIMF/initial_pdb_dir/sys1/1FME-folded.pdb
+openmm_selection:
+- CA
+mda_selection: protein and name CA
+threshold: 8.0
+contact_map: true
+point_cloud: true
+fraction_of_contacts: true
+in_memory: true
