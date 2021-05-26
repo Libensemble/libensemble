@@ -121,6 +121,9 @@ def only_persistent_adv(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 # Now mark these points as having been given back
                 H['given_back'][inds_since_last_gen] = True
 
+    if len(H) >10 and H[10]['given'] and ~H[10]['returned']:
+        H[10]['cancel_requested'] = True
+
     task_avail = ~H['given'] & ~H['cancel_requested']
     for i in avail_worker_ids(W, persistent=False):
 
