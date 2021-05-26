@@ -206,6 +206,16 @@ class Manager:
         H = self.hist.H
         return np.any(filter_nans(H[key][H['returned']]) <= val)
 
+    def work_giving_term_test(self, logged=True):
+        b = self.term_test()
+        if b:
+            return b
+        elif 'sim_max' in self.exit_criteria and self.hist.given_count >= self.exit_criteria['sim_max']:
+            # To avoid starting more sims if sim_max is an exit criteria
+            return 1
+        else:
+            return 0
+
     def term_test(self, logged=True):
         """Checks termination criteria"""
         for retval, key, testf in self.term_tests:
@@ -521,7 +531,7 @@ class Manager:
                         break
 
                     for w in Work:
-                        if self.term_test():
+                        if self.work_giving_term_test():
                             break
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
