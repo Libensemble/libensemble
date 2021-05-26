@@ -41,7 +41,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if len(inds_to_send):
             gen_work(Work, i,
                      list(set(gen_specs['in'] + sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')])),
-                     np.atleast_1d(inds_to_send), persis_info.get(i), persistent=True)
+                     inds_to_send, persis_info.get(i), persistent=True)
 
             H['given_back'][inds_to_send] = True
 
@@ -50,7 +50,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if np.any(task_avail):
             # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i))
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info.get(i))
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:
