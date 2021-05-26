@@ -45,11 +45,11 @@ gen_specs = {'gen_f': gen_f,
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
-
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 40}
+
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'exit_criteria': exit_criteria}}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
