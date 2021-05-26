@@ -34,9 +34,16 @@ def get_mgr_worker_msg(comm):
     :returns: message tag, Work dictionary, calc_in array
     """
     tag, Work = comm.recv()
-    if tag in [STOP_TAG, PERSIS_STOP]:
+    if tag in [STOP_TAG]:
         comm.push_to_buffer(tag, Work)
         return tag, Work, None
+    if tag in [PERSIS_STOP]:
+        # JL: What does this push_to_buffer do on a persis_stop? On
+        # PERSIS_STOP, can we assume that Work will contain the last History
+        # (for the gen_func to use as it wants)
+        comm.push_to_buffer(tag, Work)
+        return tag, None, Work
+
     data_tag, calc_in = comm.recv()
     # Check for unexpected STOP (e.g. error between sending Work info and rows)
     if data_tag in [STOP_TAG, PERSIS_STOP]:

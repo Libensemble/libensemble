@@ -30,4 +30,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, '__len__'):
             b = len(calc_in)
 
-    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    H_o = calc_in
+    H_o['x'] = 0
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG

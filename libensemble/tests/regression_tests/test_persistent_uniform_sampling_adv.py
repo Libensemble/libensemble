@@ -34,7 +34,7 @@ n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('grad', float, n)],
-             'user': {'pause_time': 1}
+             'user': {'pause_time': 0.001}
              }
 
 gen_specs = {'gen_f': gen_f,
@@ -47,7 +47,7 @@ gen_specs = {'gen_f': gen_f,
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 20}
+exit_criteria = {'sim_max': 40}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'exit_criteria': exit_criteria}}
 
@@ -56,8 +56,8 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_manager:
-    assert len(np.unique(H['gen_time'])) == 1
+    assert len(np.unique(H['gen_time'])) == 2
 
-    print(H[10][['f', 'cancel_requested', 'returned']])
+    print(H[0]['x'])
 
     save_libE_output(H, persis_info, __file__, nworkers)

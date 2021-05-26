@@ -452,7 +452,7 @@ class Manager:
         if any(self.W['persis_state']):
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
-                self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                self.wcomms[w-1].send(PERSIS_STOP, self.hist.H)
                 if not self.W[w-1]['active']:
                     # Re-activate if necessary
                     self.W[w-1]['active'] = self.W[w-1]['persis_state']
