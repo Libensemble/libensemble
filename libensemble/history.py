@@ -31,10 +31,10 @@ class History:
     :ivar int given_count:
         Number of points given to sim fuctions (according to H)
 
-    :ivar int sim_count:
+    :ivar int returned_count:
         Number of points evaluated  (according to H)
 
-    Note that index, given_count and sim_count reflect the total number of points
+    Note that index, given_count and returned_count reflect the total number of points
     in H and therefore include those prepended to H in addition to the current run.
 
     """
@@ -85,7 +85,7 @@ class History:
 
         self.given_count = np.sum(H['given'])
 
-        self.sim_count = np.sum(H['returned'])
+        self.returned_count = np.sum(H['returned'])
 
     def update_history_f(self, D, safe_mode):
         """
@@ -114,7 +114,7 @@ class History:
 
             self.H['returned'][ind] = True
             self.H['returned_time'][ind] = time.time()
-            self.sim_count += 1
+            self.returned_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
         """

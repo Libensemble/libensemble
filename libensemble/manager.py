@@ -237,7 +237,7 @@ class Manager:
     def _save_every_k_sims(self):
         "Saves history every kth sim step"
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
-                           self.hist.sim_count,
+                           self.hist.returned_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
