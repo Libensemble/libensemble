@@ -26,9 +26,9 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
 
     # Send batches until manager sends stop tag
     tag = None
-    import ipdb; ipdb.set_trace()
     while tag not in [STOP_TAG, PERSIS_STOP]:
 
+        # import ipdb; ipdb.set_trace()
         H_o = np.zeros(b, dtype=gen_specs['out'])
         # H_o = np.zeros(m, dtype=gen_specs['out'])
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))

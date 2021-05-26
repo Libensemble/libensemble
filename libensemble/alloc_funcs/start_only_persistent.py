@@ -64,27 +64,24 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
                 H['given_back'][inds_since_last_gen] = True
 
-    task_avail = ~H['given'] & ~H['cancel_requested']
+    max_eval = 10
     for i in avail_worker_ids(W, persistent=False):
 
-        if np.any(task_avail):
-            if 'priority' in H.dtype.fields:
-                priorities = H['priority'][task_avail]
-                if gen_specs['user'].get('give_all_with_same_priority'):
-                    q_inds = (priorities == np.max(priorities))
-                else:
-                    q_inds = np.argmax(priorities)
-            else:
-                q_inds = 0
+        row,col = np.where(H['f_i_done'] == 0)
 
-            # perform sim evaluations (if they exist in History).
-            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
-            persis_info[i]['f_i_s_to_do'] = [1,3,67]
-            H[sim_ids_to_send]['f_i_done'][[1,3,67]] = True
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i))
-            task_avail[sim_ids_to_send] = False
+        if len(row) > 0:
+            idx = 0 # FCFS
+
+            # To evalute multiple f_i(x_j) by single gen, must be done for same func f_i
+            num_f_i_evals = np.min([ np.argmax(row != row[0]), max_eval ])
+
+            # perform sim evaluations 
+            persis_info[i]['f_i_todo'] = [col[idx:idx+num_f_i_evals]]
+            H[row[idx]]['f_i_done'][col[idx:idx+num_f_i_evals]] = True
+            sim_work(Work, i, sim_specs['in'], np.atleast_1d(row[idx]), persis_info.get(i))
 
         elif gen_count == 0:
+
             # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),

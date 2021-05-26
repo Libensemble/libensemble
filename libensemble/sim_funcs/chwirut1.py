@@ -1,5 +1,6 @@
 __all__ = ['chwirut_eval']
 import numpy as np
+import time
 
 NOBSERVATIONS = 214
 
@@ -269,22 +270,24 @@ def chwirut_eval(H, persis_info, sim_specs, _):
         for an example where one component of fvec is computed per call
     """
 
-    import ipdb; ipdb.set_trace()
-    batch = len(H['x'])
-    O = np.zeros(batch, dtype=sim_specs['out'])
+    b = len(H['x'])
+    O = np.zeros(b, dtype=sim_specs['out'])
+    # m = len(O['fvec'][0])
+    max_f = -1
 
-    for i, x in enumerate(H['x']):
-        if 'obj_component' in H.dtype.names:
-            if 'user' in sim_specs and 'component_nan_frequency' in sim_specs['user'] and np.random.uniform(0, 1) < sim_specs['user']['component_nan_frequency']:
-                O['f_i'][i] = np.nan
-            else:
-                O['f_i'][i] = EvaluateFunction(x, H['obj_component'][i])
+    first_idx = True
 
-        else:
-            O['fvec'][i] = EvaluateFunction(x)
-            O['f'][i] = sim_specs['user']['combine_component_func'](O['fvec'][i])
+    for x in H['x']:
 
-    print("here", flush=True)
+        for i in persis_info['f_i_todo'][0]:
+            O['fvec'][0][i] = EvaluateFunction(x,i)
+            max_f = max( max_f, O['fvec'][0][i] )
+            # import ipdb; ipdb.set_trace()
+            # print("[{}]: {:.2f}".format(i, O['fvec'][0][i]), flush=True)
+
+        print(persis_info['f_i_todo'][0])
+        print("max_f: {:.2f}".format(max_f))
+
     return O, persis_info
 
 # if __name__ == '__main__':

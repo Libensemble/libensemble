@@ -36,20 +36,16 @@ n = 3
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             # 'out': [('f', float), ('fvec', float, m)],
-             # 'out': [('fvec', float, m), ('f_i_done', float, m)],
              'out': [('fvec', float, m)],
-             # 'user': {'combine_component_func': lambda x: np.sum(np.power(x, 2))}
              }
 
-# gen_out = [('x', float, (n,))]
 gen_out = [('x', float, (n,)), ('f_i_done', bool, m)]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
-             'user': {'gen_batch_size': 3,
+             'user': {'gen_batch_size': 5,
                       'm': m,
                       'lb': (-2-np.pi/10)*np.ones(n),
                       'ub': 2*np.ones(n)}
@@ -60,7 +56,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 50}
+exit_criteria = {'sim_max': 1000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
