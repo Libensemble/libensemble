@@ -34,7 +34,7 @@ n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
              'out': [('f', float), ('grad', float, n)],
-             'user': {'pause_time': 1}
+             'user': {'pause_time': 0.0001}
              }
 
 gen_specs = {'gen_f': gen_f,
