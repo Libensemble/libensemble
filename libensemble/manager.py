@@ -212,6 +212,7 @@ class Manager:
             return b
         elif 'sim_max' in self.exit_criteria and self.hist.given_count >= self.exit_criteria['sim_max']:
             # To avoid starting more sims if sim_max is an exit criteria
+            logger.info("Ignoring the alloc_f request for more sims than sim_max.")
             return 1
         else:
             return 0
