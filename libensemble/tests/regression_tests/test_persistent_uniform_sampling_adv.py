@@ -58,6 +58,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_manager:
     assert len(np.unique(H['gen_time'])) == 1
 
-    print(H[10][['f','cancel_requested','returned']])
+    print(H[10][['f', 'cancel_requested', 'returned']])
 
     save_libE_output(H, persis_info, __file__, nworkers)

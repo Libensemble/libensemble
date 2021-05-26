@@ -117,11 +117,11 @@ def only_persistent_adv(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if np.any(returned_but_not_given):
             inds_since_last_gen = np.where(returned_but_not_given)[0]
             if all_returned(H, gen_inds):
-                gen_work(Work, i, ['x','f'], np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True)
+                gen_work(Work, i, ['x', 'f'], np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True)
                 # Now mark these points as having been given back
                 H['given_back'][inds_since_last_gen] = True
 
-    if len(H) >10 and H[10]['given'] and ~H[10]['returned']:
+    if len(H) > 10 and H[10]['given'] and ~H[10]['returned']:
         H[10]['cancel_requested'] = True
 
     task_avail = ~H['given'] & ~H['cancel_requested']
