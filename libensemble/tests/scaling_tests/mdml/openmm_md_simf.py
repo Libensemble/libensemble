@@ -7,6 +7,7 @@ import numpy as np
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
+
 def update_config_file(temperature, here):
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
@@ -19,7 +20,7 @@ def update_config_file(temperature, here):
     config['temperature_kelvin'] = temperature
 
     with open('config.yaml', 'w') as f:
-        yaml.dump(config, file)
+        yaml.dump(config, f)
 
 
 def polling_loop(task, sim_specs):
@@ -48,7 +49,7 @@ def polling_loop(task, sim_specs):
     return calc_status
 
 
-def run_openmm(H, persis_info, sim_specs, libE_info):
+def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0  # Returns to worker
     temperature = H['tk']
@@ -68,7 +69,7 @@ def run_openmm(H, persis_info, sim_specs, libE_info):
         time.sleep(0.2)
         output_file = glob.glob('*.h5')
         assert len(output_file), \
-            'MD Simulation did not write final output to .h5 file.''
+            'MD Simulation did not write final output to .h5 file.'
 
     else:
         output_file = ['test.txt']
