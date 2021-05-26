@@ -111,13 +111,13 @@ def only_persistent_adv(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         return Work, persis_info, 1
 
     # Give evaluated results back to a running persistent gen
-    for i in avail_worker_ids(W, persistent=True, active_recv=active_recv_gen):
+    for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
         returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
         if np.any(returned_but_not_given):
             inds_since_last_gen = np.where(returned_but_not_given)[0]
-            if async_return or all_returned(H, gen_inds):
-                gen_work(Work, i, gen_specs['in'], np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True)
+            if all_returned(H, gen_inds):
+                gen_work(Work, i, ['x','f'], np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True)
                 # Now mark these points as having been given back
                 H['given_back'][inds_since_last_gen] = True
 
@@ -133,7 +133,7 @@ def only_persistent_adv(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i), persistent=True)
+            gen_work(Work, i, ['x', 'f'], range(len(H)), persis_info.get(i), persistent=True)
             persis_info['gen_started'] = True
 
     return Work, persis_info, 0

@@ -33,7 +33,7 @@ if nworkers < 2:
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             'out': [('f', float), ('grad', float, n)]
+             'out': [('f', float), ('grad', float, n)],
              'user': {'pause_time': 1}
              }
 
