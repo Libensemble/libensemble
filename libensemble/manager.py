@@ -194,7 +194,7 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.sim_count >= sim_max + self.hist.offset
+        return self.hist.given_count >= sim_max + self.hist.offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
