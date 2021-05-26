@@ -1,6 +1,5 @@
 # """
 # Tests the ability of libEnsemble to
-#  - cancel sim evals after sim_max evals have started (but not ended)
 #  - give back all of the history to a persistent gen at shutdown
 
 # Execute via one of the following commands (e.g. 3 workers):
@@ -27,37 +26,39 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+libE_specs['use_persis_return'] = True
+
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             'out': [('f', float), ('grad', float, n)],
-             'user': {'pause_time': 0.001}
+             'out': [('f', float), ('grad', float, n)]
              }
 
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,))],
-             'user': {'gen_batch_size': 20,
+             'user': {'gen_batch_size': 100,
+                      'final_fields': ['x', 'f', 'sim_id'],
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
+sim_max = 40
 exit_criteria = {'sim_max': 40}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'exit_criteria': exit_criteria}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_manager:
-    assert len(np.unique(H['gen_time'])) == 2
-
-    print(H[0]['x'])
+    assert len(np.unique(H['gen_time'])) == 1, "Everything should have been generated in one batch"
+    assert np.all(H['x'][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
 
     save_libE_output(H, persis_info, __file__, nworkers)
