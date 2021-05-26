@@ -316,8 +316,7 @@ def test_update_history_f():
 
     # First update a single point
     size = 1
-    sim_ids = 0  # First row to be filled
-    sim_ids = np.atleast_1d(sim_ids)
+    sim_ids = [0]  # First row to be filled
     calc_out = np.zeros(size, dtype=sim_specs['out'])
     a = np.arange(9) - 4
     calc_out['g'] = sim_specs['sim_f'](a)  # np.linalg.norm
@@ -339,7 +338,6 @@ def test_update_history_f():
     # Update two further consecutive points
     size = 2
     sim_ids = [1, 2]  # First row to be filled
-    sim_ids = np.atleast_1d(sim_ids)
     calc_out = np.zeros(size, dtype=sim_specs['out'])
     a = np.arange(9) - 3
     calc_out['g'][0] = sim_specs['sim_f'](a)  # np.linalg.norm
@@ -369,8 +367,7 @@ def test_update_history_f_vec():
 
     # First update a single point
     size = 1
-    sim_ids = 0  # First row to be filled
-    sim_ids = np.atleast_1d(sim_ids)
+    sim_ids = [0]  # First row to be filled
     calc_out = np.zeros(size, dtype=sim_specs['out'])
     a = np.array([[1, 2, 3], [-1, 1, 4]])
     calc_out['f'] = sim_specs['sim_f'](a)  # np.linalg.norm
@@ -396,7 +393,6 @@ def test_update_history_f_vec():
     # Update two further consecutive points
     size = 2
     sim_ids = [1, 2]  # First row to be filled
-    sim_ids = np.atleast_1d(sim_ids)
     calc_out = np.zeros(size, dtype=sim_specs['out'])
 
     a = np.array([[1, 3, 4], [-1, 2, 4]])
@@ -430,7 +426,6 @@ def test_update_history_f_vec():
     # Update two further consecutive points but with sub_array fvec componenets
     size = 2
     sim_ids = [3, 4]  # First row to be filled
-    sim_ids = np.atleast_1d(sim_ids)
     calc_out = np.zeros(size, dtype=[('f', float), ('fvec', float, 2)])  # Only two values
 
     a = np.array([[1, 3, 4], [-1, 2, 4]])

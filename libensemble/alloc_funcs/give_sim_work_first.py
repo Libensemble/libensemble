@@ -51,7 +51,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             # Get sim ids (indices) and check resources needed
             sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
-            sim_ids_to_send = np.atleast_1d(sim_ids_to_send)
             nodes_needed = (np.max(H[sim_ids_to_send]['num_nodes'])
                             if 'num_nodes' in H.dtype.names else 1)
             if nodes_needed > len(avail_set):
