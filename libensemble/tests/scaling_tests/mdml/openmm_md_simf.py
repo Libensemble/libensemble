@@ -17,7 +17,7 @@ def update_config_file(temperature, here):
     config['pdb_file'] = os.path.join(here, '1FME-unfolded.pdb')
     config['initial_pdb_dir'] = here
     config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
-    config['temperature_kelvin'] = temperature
+    config['temperature_kelvin'] = float(temperature)
 
     with open('config.yaml', 'w') as f:
         yaml.dump(config, f)
@@ -27,7 +27,7 @@ def polling_loop(task, sim_specs):
     while(not task.finished):
         time.sleep(sim_specs['user']['poll_interval'])
         task.poll()
-        if task.runtime > sim_specs['user']['sim_kill_minutes']:
+        if task.runtime > sim_specs['user']['sim_kill_minutes']*60:
             task.kill()  # Timeout
 
     # Set calc_status with optional prints.
@@ -51,14 +51,14 @@ def polling_loop(task, sim_specs):
 
 def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
-    calc_status = 0  # Returns to worker
-    temperature = H['tk']
+    calc_status = 0
+    temperature = H['tk'][0]
     config_file = sim_specs['user']['config_file']
     dry_run = sim_specs['user']['dry_run']
 
     here = os.getcwd()
     update_config_file(temperature, here)
-    args = os.path.join(here, config_file)
+    args = '-c ' + os.path.join(here, config_file)
 
     exctr = Executor.executor  # Get Executor
     task = exctr.submit(app_name='run_openmm', app_args=args, wait_on_run=True,
