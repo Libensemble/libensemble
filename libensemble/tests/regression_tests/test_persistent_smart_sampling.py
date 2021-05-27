@@ -20,7 +20,7 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 # from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
+from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
 # from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 from libensemble.gen_funcs.persistent_smart_sampling import persistent_smart as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
@@ -36,17 +36,19 @@ n = 3
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             'out': [('fvec', float, m)],
+             'out': [('f_i', float)],
              }
 
-gen_out = [('x', float, (n,)), ('f_i_done', bool, m)]
+# pd_id :: which f_i component to evaluate
+gen_out = [('x', float, (n,)), ('pt_id', int)]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': gen_out,
-             'user': {'gen_batch_size': 5,
+             'user': {'gen_batch_size': 3,
                       'm': m,
+                      'combine_component_func': lambda x : np.sum(x), 
                       'lb': (-2-np.pi/10)*np.ones(n),
                       'ub': 2*np.ones(n)}
              }
@@ -56,7 +58,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {'sim_max': 2000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
