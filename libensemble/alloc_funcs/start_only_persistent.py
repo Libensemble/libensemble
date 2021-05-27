@@ -95,7 +95,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 def only_persistent_adv(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
-    otherwise start up to one persistent generator. 
+    otherwise start up to one persistent generator.
 
     If the single persistent generator has exited, then ensemble shutdown is triggered.
 
