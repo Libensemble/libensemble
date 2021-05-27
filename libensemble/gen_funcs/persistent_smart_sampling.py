@@ -17,21 +17,25 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
-    m = gen_specs['user']['m']
+    m = gen_specs['user']['m']  
     n = len(lb)
     b = gen_specs['user']['gen_batch_size']
-    # import ipdb; ipdb.set_trace()
-    H_o = np.zeros(b, dtype=gen_specs['out'])
-    m = len(H_o['f_i_done'][0])
+    
 
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
 
-        # import ipdb; ipdb.set_trace()
-        H_o = np.zeros(b, dtype=gen_specs['out'])
-        # H_o = np.zeros(m, dtype=gen_specs['out'])
-        H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+        H_o = np.zeros(b*m, dtype=gen_specs['out'])
+
+        for i in range(b):
+            x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
+
+            H_o['x'][i*m:(i+1)*m, :] = np.tile(x, (m, 1)) # duplicate `x` @m times
+                                                          # TODO: If `x` is large, can we ref it
+            H_o['priority'][i*m:(i+1)*m] = persis_info['rand_stream'].uniform(0, 1, m)
+            H_o['pt_id'][i*m:(i+1)*m] = len(H)//m + i  # every @m evals is for a single x_i
+            H_o['obj_component'][i*m:(i+1)*m] = np.arange(0,m)
 
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
         if hasattr(calc_in, '__len__'):

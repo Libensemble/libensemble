@@ -35,17 +35,17 @@ m = 214
 n = 3
 
 sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
+             'in': ['x', 'obj_component'],
              'out': [('f_i', float)],
              }
-
-# pd_id :: which f_i component to evaluate
-gen_out = [('x', float, (n,)), ('pt_id', int)]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
              'in': [],
-             'out': gen_out,
+             'out': [('x', float, (n,)), 
+                     ('priority', float),
+                     ('pt_id', int),          # which {x_j} to eval
+                     ('obj_component', int)], # which {f_i} to eval
              'user': {'gen_batch_size': 3,
                       'm': m,
                       'combine_component_func': lambda x : np.sum(x), 

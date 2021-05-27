@@ -270,27 +270,13 @@ def chwirut_eval(H, persis_info, sim_specs, _):
         for an example where one component of fvec is computed per call
     """
 
-    b = len(H['x'])
+    import ipdb; ipdb.set_trace(context=5)
+    b = len(H['x']) # b==1 always?
     O = np.zeros(b, dtype=sim_specs['out'])
-    # m = len(O['fvec'][0])
-    max_f = -1
 
-    first_idx = True
-
-    for x in H['x']:
-
-        for i in persis_info['f_i_todo'][0]:
-            O['fvec'][0][i] = EvaluateFunction(x,i)
-            max_f = max( max_f, O['fvec'][0][i] )
-            print("[{}]: {:.2f}".format(i, O['fvec'][0][i]), flush=True)
-
-        # if(len(persis_info['f_i_todo'][0]) > 0):
-        if(max_f == -1):
-            # import ipdb; ipdb.set_trace()
-            pass
-        if 1:
-            print(persis_info['f_i_todo'][0])
-            print("max_f: {:.2f}".format(max_f))
+    for i, x in enumerate(H['x']):
+        obj_component_idx = H['obj_component'][i]
+        O['f_i'][i] = EvaluateFunction(x, obj_component_idx)
 
     return O, persis_info
 
