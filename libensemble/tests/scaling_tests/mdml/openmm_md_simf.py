@@ -15,8 +15,8 @@ def update_config_file(temperature, here):
     config['experiment_directory'] = here
     config['output_path'] = here
     config['pdb_file'] = os.path.join(here, '1FME-unfolded.pdb')
-    config['initial_pdb_dir'] = os.path.join(here, 'initial_pdb_dir')
-    config['reference_pdb_file'] = os.path.join(here, 'initial_pdb_dir/sys1/1FME-folded.pdb')
+    config['initial_pdb_dir'] = here
+    config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
     config['temperature_kelvin'] = temperature
 
     with open('config.yaml', 'w') as f:
@@ -78,6 +78,6 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     H_o = np.zeros(1, dtype=sim_specs['out'])
     H_o['cstat'] = calc_status
-    H_o['model_file'] = os.path.join(current_dir, output_file[0])  # only sim_dir/output_file
+    H_o['file_path'] = os.path.join(current_dir, output_file[0])  # only sim_dir/output_file
 
     return H_o, persis_info, calc_status

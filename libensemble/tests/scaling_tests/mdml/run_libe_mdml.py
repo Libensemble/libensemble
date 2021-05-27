@@ -36,14 +36,15 @@ gen_specs = {}
 sim_max = 4
 exit_criteria = {'sim_max': sim_max}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('tk', float, sim_max)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('tk', float)]}
 
 libE_specs['sim_dirs_make'] = True
 libE_specs['sim_input_dir'] = './sim'
-libE_specs['sim_dir_symlink_files'] = [os.path.abspath('1FME-unfolded.pdb')]
+libE_specs['sim_dir_symlink_files'] = [os.path.abspath('./1FME-folded.pdb'),
+                                       os.path.abspath('./1FME-unfolded.pdb')]
 libE_specs['ensemble_dir_path'] = './ensemble_' + str(datetime.datetime.today()).replace(' ', '_')
 
-H0 = np.zeros(sim_max, dtype=[('tk', float, 1), ('sim_id', int), ('given', bool)])
+H0 = np.zeros(sim_max, dtype=[('tk', float), ('sim_id', int), ('given', bool)])
 H0['tk'] = [310.0, 309.0, 308.0, 307.0]
 H0['sim_id'] = range(sim_max)
 H0['given'] = False

@@ -20,7 +20,7 @@ export EXE=run_libe_mdml.py
 export COMMS="--comms local"
 
 # Number of workers.
-export NWORKERS="--nworkers 128"
+export NWORKERS="--nworkers 2"
 
 # Name of Conda environment
 export CONDA_ENV_NAME=<conda_env_name>
