@@ -210,7 +210,8 @@ class Manager:
         b = self.term_test()
         if b:
             return b
-        elif 'sim_max' in self.exit_criteria and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset:
+        elif ('sim_max' in self.exit_criteria
+              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset):
             # To avoid starting more sims if sim_max is an exit criteria
             logger.info("Ignoring the alloc_f request for more sims than sim_max.")
             return 1
@@ -537,7 +538,7 @@ class Manager:
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
-                assert self.work_giving_term_test() or any(self.W['active'] != 0), \
+                assert self.term_test() or any(self.W['active'] != 0), \
                     "alloc_f did not return any work, although all workers are idle."
         except WorkerException as e:
             report_worker_exc(e)
