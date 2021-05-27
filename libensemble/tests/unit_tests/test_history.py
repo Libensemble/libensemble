@@ -90,7 +90,7 @@ def test_hist_init_1():
     assert np.array_equal(hist.H, wrs), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
 
 def test_hist_init_1A_H0():
@@ -104,7 +104,7 @@ def test_hist_init_1A_H0():
     # assert np.array_equal(hist.H, exp_H0_H), "Array does not match expected"
     assert hist.given_count == 3
     assert hist.index == 3
-    assert hist.sim_count == 3
+    assert hist.returned_count == 3
     assert len(hist.H) == 5
 
 
@@ -113,7 +113,7 @@ def test_hist_init_2():
     assert np.array_equal(hist.H, wrs2), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
 
 def test_grow_H():
@@ -123,7 +123,7 @@ def test_grow_H():
     assert np.array_equal(hist.H, wrs), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
 
 def test_trim_H():
@@ -133,7 +133,7 @@ def test_trim_H():
     assert np.array_equal(H, wrs), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 10
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
 
 def test_update_history_x_in_Oempty():
@@ -144,7 +144,7 @@ def test_update_history_x_in_Oempty():
     assert np.array_equal(hist.H, wrs2), "H Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
 
 def test_update_history_x_in():
@@ -165,7 +165,7 @@ def test_update_history_x_in():
     assert isclose(single_rand, hist.H['x'][0])
     assert hist.given_count == 0
     assert hist.index == 1
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
     size = 6
     gen_worker = 3
@@ -180,7 +180,7 @@ def test_update_history_x_in():
 
     assert hist.given_count == 0
     assert hist.index == 7
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
     # Force H to grow when add points
     size = 3
@@ -196,7 +196,7 @@ def test_update_history_x_in():
 
     assert hist.given_count == 0
     assert hist.index == 10
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
     # Test libE errors when a protected field appears in output from a gen_worker
     H_o = np.zeros(size, dtype=gen_specs['out'] + [('given', bool)])
@@ -227,7 +227,7 @@ def test_update_history_x_in_sim_ids():
     assert isclose(single_rand, hist.H['x'][0])
     assert hist.given_count == 0
     assert hist.index == 1
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
     size = 6
     gen_worker = 3
@@ -243,7 +243,7 @@ def test_update_history_x_in_sim_ids():
 
     assert hist.given_count == 0
     assert hist.index == 7
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
     # Force H to grow when add points
     size = 3
@@ -260,7 +260,7 @@ def test_update_history_x_in_sim_ids():
 
     assert hist.given_count == 0
     assert hist.index == 10
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
 
 # Note - Ideally have more setup here (so hist.index reflects generated points)
@@ -277,7 +277,7 @@ def test_update_history_x_out():
 
     # Check some unchanged values for point and counts
     assert hist.index == 0
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
     hist.H['returned'][0] = False
     hist.H['allocated'][0] = False
     hist.H['f'][0] == 0.0
@@ -307,7 +307,7 @@ def test_update_history_x_out():
     # Check counts
     assert hist.given_count == 6
     assert hist.index == 0  # In real case this would be ahead.....
-    assert hist.sim_count == 0
+    assert hist.returned_count == 0
 
 
 def test_update_history_f():
@@ -331,7 +331,7 @@ def test_update_history_f():
     assert isclose(exp_vals[0], hist.H['g'][0])
     assert np.all(hist.H['returned'][0:1])
     assert np.all(~hist.H['returned'][1:10])  # Check the rest
-    assert hist.sim_count == 1
+    assert hist.returned_count == 1
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
@@ -355,7 +355,7 @@ def test_update_history_f():
     assert np.allclose(exp_vals, hist.H['g'])
     assert np.all(hist.H['returned'][0:3])
     assert np.all(~hist.H['returned'][3:10])  # Check the rest
-    assert hist.sim_count == 3
+    assert hist.returned_count == 3
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
@@ -386,7 +386,7 @@ def test_update_history_f_vec():
     assert np.allclose(exp_fvecs[0], hist.H['fvec'][0])
     assert np.all(hist.H['returned'][0:1])
     assert np.all(~hist.H['returned'][1:10])  # Check the rest
-    assert hist.sim_count == 1
+    assert hist.returned_count == 1
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
@@ -419,7 +419,7 @@ def test_update_history_f_vec():
     assert np.allclose(exp_fvecs, hist.H['fvec'])
     assert np.all(hist.H['returned'][0:3])
     assert np.all(~hist.H['returned'][3:10])  # Check the rest
-    assert hist.sim_count == 3
+    assert hist.returned_count == 3
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
@@ -454,7 +454,7 @@ def test_update_history_f_vec():
     assert np.allclose(exp_fvecs, hist.H['fvec'])
     assert np.all(hist.H['returned'][0:5])
     assert np.all(~hist.H['returned'][5:10])  # Check the rest
-    assert hist.sim_count == 5
+    assert hist.returned_count == 5
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
