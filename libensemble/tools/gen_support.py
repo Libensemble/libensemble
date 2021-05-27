@@ -34,10 +34,7 @@ def get_mgr_worker_msg(comm):
     :returns: message tag, Work dictionary, calc_in array
     """
     tag, Work = comm.recv()
-    if tag in [STOP_TAG]:
-        comm.push_to_buffer(tag, Work)
-        return tag, Work, None
-    if tag in [PERSIS_STOP]:
+    if tag in [STOP_TAG, PERSIS_STOP]:
         comm.push_to_buffer(tag, Work)
         return tag, Work, None
 
