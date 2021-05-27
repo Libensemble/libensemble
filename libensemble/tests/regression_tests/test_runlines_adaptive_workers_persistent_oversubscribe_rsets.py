@@ -1,11 +1,11 @@
 # """
 # Runs libEnsemble run-lines for adaptive workers with persistent gen.
 #
-# Default setup is designed to run on 4*N + 1 workers - to modify, change total_nodes.
+# Default setup is designed to run on 2*N + 1 workers - to modify, change total_nodes.
 # where one worker is a zero-resource persistent gen.
 #
-# Execute via one of the following commands (e.g. 9 workers):
-#    mpiexec -np 10 python3 test_runlines_adaptive_workers_persistent.py
+# Execute via one of the following commands (e.g. 5 workers):
+#    mpiexec -np 6 python3 test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py
 #
 # This is a dry run test, mocking up the nodes available. To test the run-lines
 # requires running a fixed, rather than random number of resource sets for a given sim_id.
@@ -13,7 +13,7 @@
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 10
+# TESTSUITE_NPROCS: 6
 
 # SH TODO: Still to automate checking of actual run-lines
 
@@ -24,6 +24,7 @@ import pkg_resources
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_resources as sim_f
 
+
 from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_different_resources as gen_f
 # from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 
@@ -33,10 +34,17 @@ from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
 
 nworkers, is_manager, libE_specs, _ = parse_args()
+nsim_workers = nworkers - 1
 
 libE_specs['zero_resource_workers'] = [1]
+rsets = nsim_workers * 2
+libE_specs['num_resource_sets'] = rsets
+
 num_gens = len(libE_specs['zero_resource_workers'])
-total_nodes = (nworkers - num_gens) // 4  # 4 resourced workers per node.
+total_nodes = (nworkers - num_gens) // 2  # 2 resourced workers per node.
+
+print('sim_workers: {}.  rsets: {}.  Nodes: {}'.format(nsim_workers, rsets, total_nodes), flush=True)
+
 
 if total_nodes == 1:
     max_rsets = 4  # Up to one node
@@ -75,7 +83,7 @@ alloc_specs = {'alloc_f': alloc_f,
 # comms = libE_specs['auto_resources'] = False #SH TCP testing
 
 comms = libE_specs['comms']
-node_file = 'nodelist_adaptive_workers_persistent_comms_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_adaptive_workers_persistent_ovsub_rsets_comms_' + str(comms) + '_wrks_' + str(nworkers)
 if is_manager:
     create_node_file(num_nodes=total_nodes, name=node_file)
 

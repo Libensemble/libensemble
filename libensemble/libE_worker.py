@@ -237,10 +237,10 @@ class Worker:
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
-    def _set_worker_team(worker_team):
+    def _set_rset_team(rset_team):
         resources = Resources.resources
         if isinstance(resources, Resources):
-            resources.worker_resources.set_worker_team(worker_team)
+            resources.worker_resources.set_rset_team(rset_team)
             return True
         else:
             return False
@@ -460,8 +460,8 @@ class Worker:
         # Call user function
         libE_info['comm'] = self.comm
         libE_info['workerID'] = self.workerID
-        libE_info['worker_team'] = [self.workerID] + libE_info.get('blocking', [])
-        Worker._set_worker_team(libE_info['worker_team'])
+        libE_info['rset_team'] = libE_info.get('rset_team', [])
+        Worker._set_rset_team(libE_info['rset_team'])
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
         del libE_info['comm']

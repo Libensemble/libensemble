@@ -19,7 +19,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
     n = len(lb)
-    b = gen_specs['user']['gen_batch_size']
+    b = gen_specs['user']['initial_batch_size']
 
     # Send batches until manager sends stop tag
     tag = None
@@ -71,7 +71,7 @@ def uniform_random_sample_with_different_resources(H, persis_info, gen_specs, li
         # SH TODO: Should we use persis_info['rand_stream'] for this also?
         H_o['resource_sets'] = np.random.randint(1, gen_specs['user']['max_resource_sets']+1, b)
         H_o['priority'] = 10*H_o['resource_sets']
-        # print('Created {} sims, with worker_teams req. of size(s) {}'.format(b, H_o['resource_sets']), flush=True)
+        print('Created {} sims, with worker_teams req. of size(s) {}'.format(b, H_o['resource_sets']), flush=True)
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
         if calc_in is not None:

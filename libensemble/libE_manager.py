@@ -124,9 +124,9 @@ class Manager:
     worker_dtype = [('worker_id', int),
                     ('active', int),
                     ('persis_state', int),
-                    ('worker_group', int),
+                    ('worker_group', int),  # SH TODO: to be removed - now an rset attribute.
                     ('zero_resource_worker', bool),
-                    ('blocked', bool)]
+                    ('blocked', bool)]  # SH TODO: to be removed - when all alloc funcs updated.
 
     def __init__(self, hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria,
@@ -159,11 +159,13 @@ class Manager:
             if libE_specs.get('ensemble_copy_back', False):
                 Manager.make_copyback_dir(libE_specs)
 
-        resources = Resources.resources
-        if resources is not None:
-            self.W['worker_group'] = resources.managerworker_resources.group_list
+        self.resources = Resources.resources
+        if self.resources is not None:
+            # self.W['worker_group'] = self.resources.managerworker_resources.group_list
+            self.W['worker_group'] = False  # SH TODO: Remove when all alloc funcs updated.
+
             for wrk in self.W:
-                if wrk['worker_id'] in resources.zero_resource_workers:
+                if wrk['worker_id'] in self.resources.zero_resource_workers:
                     wrk['zero_resource_worker'] = True
 
     @staticmethod
@@ -267,11 +269,42 @@ class Manager:
                 "Allocation function requested invalid fields {}" \
                 "be sent to worker={}.".format(diff_fields, w)
 
+    def _check_resources(self, Work, w):
+        """Check rsets given in Work match rsets assigned in resources.
+
+        If rsets are not assigned, then assign using default mapping
+        """
+        man_resources = self.resources.managerworker_resources
+        rset_workers = man_resources.rsets['assigned']
+        rset_req = Work['libE_info'].get('rset_team')
+
+        if rset_req is None:
+            rset_team = []
+            default_rset = man_resources.index_list[w-1]
+            if default_rset is not None:
+                rset_team.append(default_rset)
+            Work['libE_info']['rset_team'] = rset_team
+            rset_workers[default_rset] = w
+        else:
+            for index in Work['libE_info']['rset_team']:
+                if rset_workers[index] != w:
+                    raise ManagerException("Managers resource list does not match that in Worker request.")
+                    # or handle
+                    # logger.warning("Managers resource list does not match that in Worker request. Setting...")
+                    # set_workers[index] = w
+                    # Maybe handle/set if the workers are currently zero
+        # print('Manager sending to worker {} assigned  {}'.format(w, rset_workers),flush=True)  # SH TODO: Remove
+
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker
         """
         logger.debug("Manager sending work unit to worker {}".format(w))
+
+        if self.resources:
+            self._check_resources(Work, w)
+
         self.wcomms[w-1].send(Work['tag'], Work)
+
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
@@ -341,12 +374,28 @@ class Manager:
             self._save_every_k_gens()
         return persis_info
 
+    def _freeup_resources(self, w):
+        """Free up resources assigned to the worker"""
+
+        rset_workers = self.resources.managerworker_resources.rsets['assigned']
+        # print('Manager received from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
+
+        for rset, worker in enumerate(rset_workers):
+            if worker == w:
+                rset_workers[rset] = 0
+
+        # print('Manager freed from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
+
     def _update_state_on_worker_msg(self, persis_info, D_recv, w):
         """Updates history and worker info on worker message
         """
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
+
+        # Free up resource sets
+        if self.resources:
+            self._freeup_resources(w)
 
         if w not in self.persis_pending:
             self.W[w-1]['active'] = 0

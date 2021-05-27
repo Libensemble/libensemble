@@ -5,6 +5,7 @@ from libensemble.resources.resources import Resources
 # SH TODO: May be move the more advanced functions below sim_work/gen_work?
 #          Should add check that req. resource sets not larger than whole allocation.
 
+
 class AllocException(Exception):
     "Raised for any exception in the alloc support"
 
@@ -17,10 +18,41 @@ def get_groupsize_from_resources():
     resources = Resources.resources
     if resources is None:
         return None
-    group_size = resources.managerworker_resources.workers_per_node
+    group_size = resources.managerworker_resources.rsets_per_node
+    # print('groupsize is', group_size, flush=True)  # SH TODO:Remove
     return group_size
 
 
+# SH TODO: An alt. could be to return an object
+#          When merge CWP branch - will need option to use active receive worker
+def get_avail_rsets_by_group():
+    """Return a dictionary of resource set IDs for each group (e.g. node)
+
+    If groups are not set they will all be in one group (group 0)
+
+    E.g: Say 8 resource sets / 2 nodes
+    GROUP  1: [1,2,3,4]
+    GROUP  2: [5,6,7,8]
+    """
+
+    resources = Resources.resources.managerworker_resources
+    rsets = resources.rsets
+
+    # SH TODO: Constructing rsets_by_group every call - look at storing in this format.
+    groups = np.unique(rsets['group'])
+    rsets_by_group = {}
+    for g in groups:
+        rsets_by_group[g] = []
+
+    for ind, rset in enumerate(rsets):
+        if not rset['assigned']:
+            g = rset['group']
+            rsets_by_group[g].append(ind)
+    return rsets_by_group
+
+
+# SH TODO UPDATE: This is now defunct with resource sets but need to
+#                 update all alloc funcs before remove
 # SH TODO: An alt. could be to return an object
 #          When merge CWP branch - will need option to use active receive worker
 def get_avail_workers_by_group(W, persistent=None, zero_resource_workers=None):
@@ -78,6 +110,8 @@ def get_avail_workers_by_group(W, persistent=None, zero_resource_workers=None):
     return wrks_by_group
 
 
+# SH TODO UPDATE: This is now defunct with resource sets but need to
+#                 update all alloc funcs before remove
 def update_avail_workers_by_group(wrks_by_group, worker_team, group_list=None):
     """Removes members of worker_team from wrks_by_group"""
     if group_list is None:
@@ -94,13 +128,14 @@ def update_avail_workers_by_group(wrks_by_group, worker_team, group_list=None):
         "Error removing workers from available workers by group list"
 
 
-# SH TODO: Naming - assign_workers?/schedule_workers?
+# SH TODO: Naming - assign_resources?/assign_rsets?
 #          There may be various scheduling options.
 #          Terminology - E.g: What do we call the H row/s we are sending to the worker? work_item?
-def assign_workers(wrks_by_group, nworkers_req):
-    """Schedule worker resources to a work item.
+def assign_resources(rsets_req, worker_id):
+    """Schedule resource sets to a work item if possible and assign to worker
 
-    This routine assigns the resources of {nworkers_req} workers.
+    This routine assigns the resources given by {rsets_req} and gives to
+    worker {worker_id}.
 
     If the resources required are less than one node, they will be
     allocated to the smallest available sufficient slot.
@@ -108,72 +143,144 @@ def assign_workers(wrks_by_group, nworkers_req):
     If the resources required are more than one node, then enough
     full nodes will be allocated to cover the requirement.
 
-    The assigned resources are removed from wrks_by_group list.
+    The assigned resources are marked directly in the resources module.
 
-    Returns a list of worker ids. An empty list
-    implies insufficient resources.
-
+    Returns a list of resource sets ids. A return of None implies
+    insufficient resources.
     """
+
+    rsets_by_group = get_avail_rsets_by_group()
+
+    # print('Requested rsets_by_group:', rsets_by_group)  # SH TODO: Remove
+
     gsize = get_groupsize_from_resources()
     if gsize is not None:
         upper_bound = gsize + 1
     else:
         # All in group zero
         # Will still block workers, but treats all as one group
-        if len(wrks_by_group) > 1:
+        if len(rsets_by_group) > 1:
             raise AllocException("There should only be one group if resources is not set")
-        upper_bound = len(wrks_by_group[0]) + 1
+        upper_bound = len(rsets_by_group[0]) + 1
 
     # SH TODO: Review scheduling > 1 node strategy
     # If using more than one node - round up to full nodes
     # alternative, could be to allow the allocation function to do this.
     # also alt. could be to round up to next even split (e.g. 5 workers beccomes 6 - and get 2 groups of 3).
-    num_groups = nworkers_req//gsize + (nworkers_req % gsize > 0)  # Divide with roundup.
-    nworkers_per_group = nworkers_req
+    num_groups = rsets_req//gsize + (rsets_req % gsize > 0)  # Divide with roundup.
+    rsets_per_group = rsets_req
     if num_groups > 1:
-        nworkers_req = num_groups * gsize
-        nworkers_per_group = gsize
+        rsets_req = num_groups * gsize
+        rsets_per_group = gsize
 
     # Now find slots on as many nodes as need
-    worker_team = []
     accum_team = []
     group_list = []
     for ng in range(num_groups):
         cand_team = []
         cand_group = None
-        for g in wrks_by_group:
+        for g in rsets_by_group:
             if g in group_list:
                 continue
-            nslots = len(wrks_by_group[g])
-            if nslots == nworkers_per_group:  # Exact fit.
-                cand_team = wrks_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
+            nslots = len(rsets_by_group[g])
+            if nslots == rsets_per_group:  # Exact fit.
+                cand_team = rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
                 cand_group = g
                 break  # break out inner loop...
-            elif nworkers_per_group < nslots < upper_bound:
-                cand_team = wrks_by_group[g][:nworkers_per_group]
+            elif rsets_per_group < nslots < upper_bound:
+                cand_team = rsets_by_group[g][:rsets_per_group]
                 cand_group = g
                 upper_bound = nslots
         if cand_group is not None:
             accum_team.extend(cand_team)
             group_list.append(cand_group)
 
-    if len(accum_team) == nworkers_req:
+    if len(accum_team) == rsets_req:
         # A successful team found
-        worker_team = accum_team
+        rset_team = accum_team
+    else:
+        rset_team = None  # Insufficient resources to honor
 
-    # SH TODO: Remove when done testing
-    #if len(worker_team) > 4:
-        #print('Worker team', worker_team)
+    # print('Assigned rset team {} to worker {}'.format(rset_team,worker_id))  # SH TODO: Remove
 
-    update_avail_workers_by_group(wrks_by_group, worker_team, group_list=group_list)
-    return worker_team
+    resources = Resources.resources.managerworker_resources
+    resources.assign_rsets(rset_team, worker_id)
 
-
-def get_worker_group(W, workerID):
-    return W['worker_group'][W['worker_id'] == workerID]  # Should be unique
+    return rset_team
 
 
-def avail_worker_ids(W, persistent=None):
+# SH TODO UPDATE: This is now defunct with resource sets but need to
+#                 update all alloc funcs before remove
+def assign_workers(rsets_by_group, rsets_req):
+    """Schedule worker resources to a work item.
+
+    This routine assigns the resources of {rsets_req} workers.
+
+    If the resources required are less than one node, they will be
+    allocated to the smallest available sufficient slot.
+
+    If the resources required are more than one node, then enough
+    full nodes will be allocated to cover the requirement.
+
+    The assigned resources are removed from rsets_by_group list.
+
+    Returns a list of worker ids. An empty list
+    implies insufficient resources.
+
+    """
+
+    gsize = get_groupsize_from_resources()
+
+    if gsize is not None:
+        upper_bound = gsize + 1
+    else:
+        # All in group zero
+        # Will still block workers, but treats all as one group
+        if len(rsets_by_group) > 1:
+            raise AllocException("There should only be one group if resources is not set")
+        upper_bound = len(rsets_by_group[0]) + 1
+
+    # SH TODO: Review scheduling > 1 node strategy
+    # If using more than one node - round up to full nodes
+    # alternative, could be to allow the allocation function to do this.
+    # also alt. could be to round up to next even split (e.g. 5 workers beccomes 6 - and get 2 groups of 3).
+    num_groups = rsets_req//gsize + (rsets_req % gsize > 0)  # Divide with roundup.
+    rsets_per_group = rsets_req
+    if num_groups > 1:
+        rsets_req = num_groups * gsize
+        rsets_per_group = gsize
+
+    # Now find slots on as many nodes as need
+    accum_team = []
+    group_list = []
+    for ng in range(num_groups):
+        cand_team = []
+        cand_group = None
+        for g in rsets_by_group:
+            if g in group_list:
+                continue
+            nslots = len(rsets_by_group[g])
+            if nslots == rsets_per_group:  # Exact fit.
+                cand_team = rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
+                cand_group = g
+                break  # break out inner loop...
+            elif rsets_per_group < nslots < upper_bound:
+                cand_team = rsets_by_group[g][:rsets_per_group]
+                cand_group = g
+                upper_bound = nslots
+        if cand_group is not None:
+            accum_team.extend(cand_team)
+            group_list.append(cand_group)
+
+    if len(accum_team) == rsets_req:
+        # A successful team found
+        rset_team = accum_team
+
+    update_avail_workers_by_group(rsets_by_group, rset_team, group_list=group_list)
+    return rset_team
+
+
+def avail_worker_ids(W, persistent=None, zero_resource_workers=None):
     """Returns available workers (``active == 0``), as an array, filtered by ``persis_state``.
 
     :param W: :doc:`Worker array<../data_structures/worker_array>`
@@ -181,14 +288,28 @@ def avail_worker_ids(W, persistent=None):
     """
     # SH TODO: update docstring
 
-    if persistent is None:
-        return W['worker_id'][W['active'] == 0]
-    if persistent:
-        return W['worker_id'][np.logical_and(W['active'] == 0,
-                                             W['persis_state'] != 0)]
+    def fltr(wrk, field, option):
+        """Filter by condition if supplied"""
+        if option is None:
+            return True
+        return wrk[field] == option
 
-    return W['worker_id'][np.logical_and(W['active'] == 0,
-                                         W['persis_state'] == 0)]
+    # For abbrev.
+    def fltr_persis():
+        if persistent is None:
+            return True
+        return wrk['persis_state'] == persistent
+
+    def fltr_zrw():
+        if zero_resource_workers is None:
+            return True
+        return wrk['zero_resource_worker'] == zero_resource_workers
+
+    wrks = []
+    for wrk in W:
+        if not wrk['blocked'] and not wrk['active'] and fltr_persis() and fltr_zrw():
+            wrks.append(wrk['worker_id'])
+    return wrks
 
 
 def count_gens(W):
@@ -232,6 +353,7 @@ def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
                'libE_info': libE_info}
 
 
+# SH TODO: Need to update for resource sets
 # SH TODO: Variant accepting worker_team - need to test
 #          This may replace sim work as is does the blocking
 def sim_work_with_blocking(Work, worker_team, H_fields, H_rows, persis_info, **libE_info):
