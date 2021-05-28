@@ -76,6 +76,10 @@ Specifications for libEnsemble::
         'use_persis_return' [boolean]:
             Adds persistent function H return to managers history array.
             Default: False
+        'final_fields' [list]:
+            List of fields in H that the manager will return to persistent
+            workers along with the PERSIS_STOP tag at the end of the libE run.
+            Default: None
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or

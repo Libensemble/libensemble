@@ -62,6 +62,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'authkey',                #
                           'comms',                  #
                           'disable_log_files',      #
+                          'final_fields',           #
                           'ip',                     #
                           'mpi_comm',               #
                           'nworkers',               #
