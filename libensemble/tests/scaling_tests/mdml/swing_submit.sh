@@ -5,7 +5,8 @@
 #SBATCH --gres=gpu:2
 #SBATCH --time=00:30:00
 
-module load anaconda
+# Make sure conda and your environment are loaded and activated before sbatch
+
 module load gcc
 module load cuda/11.0.2-4szlv2t
 
@@ -13,21 +14,13 @@ unset I_MPI_FABRICS
 export I_MPI_FABRICS_LIST=tmi,tcp
 export I_MPI_FALLBACK=1
 
-# Name of calling script
 export EXE=run_libe_mdml.py
-
-# Communication Method
-export COMMS="--comms local"
-
-# Number of workers.
-export NWORKERS="--nworkers 2"
-
-# Name of Conda environment
-export CONDA_ENV_NAME=<conda_env_name>
+export NUM_WORKERS=2
+export MANAGER_NODE=false # true = Manager has a dedicated node (assign one extra)
+export USE_NODE_LIST=true # If false, allow libE to determine node_list from environment.
 
 # Activate conda environment
 export PYTHONNOUSERSITE=1
-conda activate $CONDA_ENV_NAME
 
 #-----------------------------------------------------------------------------
 # Work out distribution
