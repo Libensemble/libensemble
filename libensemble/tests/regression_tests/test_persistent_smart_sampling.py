@@ -23,7 +23,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
 # from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 from libensemble.gen_funcs.persistent_smart_sampling import persistent_smart as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_smart_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -53,12 +53,17 @@ gen_specs = {'gen_f': gen_f,
                       'ub': 2*np.ones(n)}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 
+               'out'    : [('given_back', bool)],
+               'user'   : {'stop_partial_eval' : True,
+                           'num_gens'          : 2    # number of persistent gens
+                           },
+               }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 2000}
+exit_criteria = {'sim_max': 200}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
@@ -66,6 +71,8 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 
 if is_manager:
     pass
+    # print and save data (don't do that for now)
+
     # assert len(np.unique(H['gen_time'])) == 10
 
     # save_libE_output(H, persis_info, __file__, nworkers)
