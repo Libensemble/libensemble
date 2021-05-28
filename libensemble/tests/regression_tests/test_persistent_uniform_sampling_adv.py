@@ -41,7 +41,7 @@ gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,))],
              'user': {'gen_batch_size': 100,
-                      'final_fields': ['x', 'f', 'sim_id'],
+                      'replace_final_fields': True,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
@@ -53,6 +53,7 @@ exit_criteria = {'sim_max': 40}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
+libE_specs['final_fields'] = ['x', 'f', 'sim_id']
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
