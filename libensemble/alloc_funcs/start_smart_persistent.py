@@ -13,22 +13,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     If the single persistent generator has exited, then ensemble shutdown is triggered.
 
-    **User options**:
-
-    To be provided in calling script: E.g., ``alloc_specs['user']['async_return'] = True``
-
-    init_sample_size: int, optional
-        Initial sample size - always return in batch. Default: 0
-
-    async_return: boolean, optional
-        Return results to gen as they come in (after sample). Default: False (batch return).
-
-    active_recv_gen: boolean, optional
-        Create gen in active receive mode. If True, the manager does not need to wait
-        for a return from the generator before sending further returned points.
-        Default: False
-
-
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
         `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling_async.py>`_ # noqa
@@ -38,10 +22,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     Work = {}
     gen_count = count_persis_gens(W)
 
-    import ipdb; ipdb.set_trace(context=5)
-
-    # Setup for first call
+    # Step I: Setup for first call
     if persis_info.get('first_call', True):
+        # TODO: Can build onto nested dictionary
         assert np.all(H['given']), "Initial points in H have never been given."
         assert np.all(H['given_back']), "Initial points in H have never been given_back."
         assert all_returned(H), "Initial points in H have never been returned."
@@ -51,57 +34,105 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         persis_info['next_to_give'] = len(H)  #
         persis_info['first_call'] = False
 
+    # Exit if all persistent gens are done
     elif gen_count == 0:
-        # Exit once all persistent gens are done
         return Work, persis_info, 1
 
-    # Initialize alloc_specs['user'] as user.
-    user = alloc_specs.get('user', {})
-    active_recv_gen = user.get('active_recv_gen', False) # Persistent gen can handle irregular communications
-    init_sample_size = user.get('init_sample_size', 0)   # Always batch return until this many evals complete
+    # Step Ia: check for new points
+    if len(H) != persis_info['H_len']:
+        # Something new is in the history.
+        persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())
+        persis_info['H_len'] = len(H)
+        persis_info['pt_ids'] = set(np.unique(H['pt_id']))
+        for pt_id in persis_info['pt_ids']:
+            persis_info['inds_of_pt_ids'][pt_id] = H['pt_id'] == pt_id
 
-    # Asynchronous return to generator
-    async_return = user.get('async_return', False) and sum(H['returned']) >= init_sample_size
+    # Step II: When need to assign new points , prune out bad ones, e.g.
+    # f_1(x_j) > prev_min
+    pt_ids_to_pause = set() 
+    if len(persis_info['need_to_give']) > 0 and \
+        alloc_specs['user'].get('stop_partial_eval'):
 
-    # Give evaluated results back to a running persistent gen
-    # for i in avail_worker_ids(W, persistent=True):
-    # TODO: Figure out what active_recv_gen is
-    # NOTE: Also check alloc_func/persistent_aposmm_alloc.py
-    for i in avail_worker_ids(W, persistent=True, active_recv=active_recv_gen):
+        pt_ids = set(persis_info['pt_ids']) - persis_info['complete']     # set difference
+        pt_ids = np.array(list(pt_ids))
+        partial_fvals = np.zeros(len(pt_ids))
+
+        for j, pt_id in enumerate(pt_ids):
+
+            # TODO: can we track which sim worker was responsible w/o this massive array?
+            a1 = persis_info['inds_of_pt_ids'][pt_id]
+    
+            # TODO: Store f(x) = \sum\limits_i f_i(x)
+            if np.all(H['returned'][a1]): 
+                persis_info['complete'].add(pt_id)
+                values = gen_specs['user']['combine_component_func'](H['f_i'][a1])
+                persis_info['best_complete_val'] = min(persis_info['best_complete_val'], values)
+            else:
+                partial_fvals[j] = gen_specs['user']['combine_component_func'](H['f_i'][a1])
+    
+        if len(persis_info['complete']) and len(pt_ids) > 1:
+            worse_flag = np.zeros(len(pt_ids), dtype=bool)
+
+            for j, pt_id in enumerate((pt_ids)):
+
+                if (pt_id not in persis_info['complete']) and \
+                    (partial_fvals[j] > 0.1*persis_info['best_complete_val']):
+
+                    print("found better!!", flush=True)
+
+                    pt_ids_to_pause.update({pt_id})
+
+        new_pts_to_remove = not pt_ids_to_pause.issubset(persis_info['already_paused'])
+        if new_pts_to_remove:
+            persis_info['already_paused'].update(pt_ids_to_pause)
+
+            sim_ids_to_remove = np.in1d(H['pt_id'], list(pt_ids_to_pause)) 
+            H['paused'][sim_ids_to_remove] = True
+
+            persis_info['need_to_give'] = persis_info['need_to_give'] - set(np.where(sim_ids_to_remove)[0])  
+
+    # Step III: Give complete pts back to gen
+    active_recv_gen = False # TEMP
+    for i in avail_worker_ids(W, persistent=True):
+        # NOTE: Also check alloc_func/persistent_aposmm_alloc.py
+
         gen_inds = (H['gen_worker'] == i)
         returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
-        if np.any(returned_but_not_given):
+        # TODO: allow return of incomplete partial evalutions
+
+        # If all pts returned by sim but not given back to gen, then give back to gen
+        if np.all(returned_but_not_given):
             inds_since_last_gen = np.where(returned_but_not_given)[0]
-            # TODO: Check to make it worthwhile to send to gen
             gen_work(Work, i,
-                     ['f','f_i','obj_component','sim_id'], # what components to send back
+                     ['f','f_i','obj_component','sim_id'], # components to send back
                      np.atleast_1d(inds_since_last_gen), persis_info.get(i), persistent=True,
                      active_recv=active_recv_gen)
 
-    # TODO: Prune out points that are prematurely bad
-
     task_avail = ~H['given'] & ~H['cancel_requested']
-    num_req_gens = alloc_specs['user']['num_gens']
+
+    # Step IV: Generate sim/gen work
     for i in avail_worker_ids(W, persistent=False):
 
         # Start up number of requested gens
-        if gen_count < num_req_gens:
+        if gen_count < alloc_specs['user']['num_gens']:
 
             # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True, active_recv=active_recv_gen)
 
-        # Once all gens running, give sim work when task available (i.e. data is given and read-to-go)
+        # Once all gens running, give sim work when task available (i.e. data is given and ready-to-go)
         elif np.any(task_avail):
-            if 'priority' in H.dtype.fields:
-                priorities = H['priority'][task_avail]
-                if gen_specs['user'].get('give_all_with_same_priority'):
-                    q_inds = (priorities == np.max(priorities))
-                else:
-                    q_inds = np.argmax(priorities)
-            else:
-                q_inds = 0
+            # Ignore priority for now
+            # if 'priority' in H.dtype.fields:
+            #     priorities = H['priority'][task_avail]
+            #     if gen_specs['user'].get('give_all_with_same_priority'):
+            #         q_inds = (priorities == np.max(priorities))
+            #    else:
+            #        q_inds = np.argmax(priorities)
+            # else:
+            #     q_inds = 0
+            q_inds = 0
 
             # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)

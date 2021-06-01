@@ -276,7 +276,7 @@ def chwirut_eval(H, persis_info, sim_specs, _):
     for i, x in enumerate(H['x']):
         obj_component_idx = H['obj_component'][i]
         O['f_i'][i] = EvaluateFunction(x, obj_component_idx)
-        print("[{}]: {:.2f}".format(obj_component_idx, O['f_i'][i]), flush=True)
+        # print("[{}]: {:.2f}".format(obj_component_idx, O['f_i'][i]), flush=True)
 
     return O, persis_info
 

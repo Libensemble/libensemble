@@ -25,6 +25,7 @@ from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
 from libensemble.gen_funcs.persistent_smart_sampling import persistent_smart as gen_f
 from libensemble.alloc_funcs.start_smart_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -44,6 +45,7 @@ gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,)), 
                      ('priority', float),
+                     ('paused', bool),    
                      ('pt_id', int),          # which {x_j} to eval
                      ('obj_component', int)], # which {f_i} to eval
              'user': {'gen_batch_size': 3,
@@ -60,10 +62,10 @@ alloc_specs = {'alloc_f': alloc_f,
                            },
                }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 200}
+exit_criteria = {'sim_max': 5000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
