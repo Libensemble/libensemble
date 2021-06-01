@@ -27,7 +27,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
              'out': [('file_path', "<U70", (1,)), ('cstat', int, (1,))],
              'user': {'sim_kill_minutes': 15,
                       'poll_interval': 1,
-                      'dry_run': True,
+                      'dry_run': False,
                       'config_file': 'config.yaml'}
              }
 
