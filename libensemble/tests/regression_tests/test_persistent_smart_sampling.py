@@ -17,11 +17,8 @@
 import sys
 import numpy as np
 
-# Import libEnsemble items for this test
 from libensemble.libE import libE
-# from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
-# from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 from libensemble.gen_funcs.persistent_smart_sampling import persistent_smart as gen_f
 from libensemble.alloc_funcs.start_smart_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
@@ -32,7 +29,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 214
+m = 3
 n = 3
 
 sim_specs = {'sim_f': sim_f,
@@ -44,10 +41,9 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,)), 
-                     ('priority', float),
-                     ('paused', bool),    
                      ('pt_id', int),          # which {x_j} to eval
-                     ('obj_component', int)], # which {f_i} to eval
+                     ('obj_component', int),  # which {f_i} to eval
+                     ],
              'user': {'gen_batch_size': 3,
                       'm': m,
                       'combine_component_func': lambda x : np.sum(x), 
@@ -56,12 +52,14 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': alloc_f, 
-               'out'    : [('given_back', bool)],
-               'user'   : {'stop_partial_eval' : True,
-                           'num_gens'          : 2    # number of persistent gens
+               'out'    : [('ret_to_gen', bool)], # whether point has been returned to gen
+               'user'   : {'num_gens' : 2    # number of persistent gens
                            },
                }
 
+persis_info = {}
+persis_info['H_len'] = 0
+persis_info['num_pts'] = 0
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
