@@ -3,8 +3,8 @@ stage_idx: 0
 task_idx: 0
 output_path: SET_BY_SIMF
 node_local_path: null
-pdb_file: SET_BY_SIMF/1FME-unfolded.pdb
-initial_pdb_dir: SET_BY_SIMF/initial_pdb_dir
+pdb_file: SET_BY_SIMF
+initial_pdb_dir: SET_BY_SIMF
 solvent_type: implicit
 top_suffix: null
 simulation_length_ns: 1.0
@@ -13,7 +13,7 @@ dt_ps: 0.002
 temperature_kelvin: SET_BY_SIMF
 heat_bath_friction_coef: 1.0
 wrap: false
-reference_pdb_file: SET_BY_SIMF/initial_pdb_dir/sys1/1FME-folded.pdb
+reference_pdb_file: SET_BY_SIMF
 openmm_selection:
 - CA
 mda_selection: protein and name CA

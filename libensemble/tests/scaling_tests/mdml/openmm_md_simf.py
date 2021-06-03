@@ -9,7 +9,7 @@ from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 
 def update_config_file(temperature, here):
-    with open('config.yaml', 'r') as f:
+    with open('md_config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
     config['experiment_directory'] = here
