@@ -39,8 +39,6 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
 
             ct += 1
 
-        print("sending ...")
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-        print("received ...")
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

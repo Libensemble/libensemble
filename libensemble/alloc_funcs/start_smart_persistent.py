@@ -31,15 +31,11 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     m = gen_specs['user']['m']
 
-    if np.all(H['returned']):
-        # import ipdb; ipdb.set_trace(context=5)
-        pass
-
     for i in avail_worker_ids(W, persistent=True):
 
         ret_sim_idxs_from_gen_i = np.where( 
                 np.logical_and(H['returned'], 
-                    np.logical_and(~H['ret_to_gen'], H['gen_worker']==i )[0])
+                    np.logical_and(~H['ret_to_gen'], H['gen_worker']==i ))
                 )[0]
 
         pt_ids_from_gen_i = set(H[ret_sim_idxs_from_gen_i]['pt_id'])
@@ -76,10 +72,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True
                 # H[ ret_sim_idxs_with_pt_id ]['ret_to_gen'] = True # this does not actually set
 
-                print("Finished gen_id={}, pt_id={}".format(i, pt_id))
+                print("Finished gen_id={}, pt_id={}".format(i, pt_id), flush=True)
 
         if len(root_idxs) > 0:
-            # import ipdb; ipdb.set_trace(context=5)
             gen_work(Work, i, ['x', 'f_i'], np.array(root_idxs), persis_info.get(i), persistent=True)
 
     task_avail = ~H['given'] # & ~H['cancel_requested']

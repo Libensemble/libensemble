@@ -29,7 +29,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 3
+m = 100
 n = 3
 
 sim_specs = {'sim_f': sim_f,
