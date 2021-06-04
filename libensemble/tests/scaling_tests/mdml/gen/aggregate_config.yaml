@@ -8,4 +8,4 @@ fnc: false
 contact_map: false
 point_cloud: true
 verbose: true
-last_n_h5_files: null
+last_n_h5_files: SET_BY_GENF

@@ -8,18 +8,21 @@ from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 
-def update_config_file(temperature, here):
-    with open('md_config.yaml', 'r') as f:
+def update_config_file(sim_specs, sample_parameter_value):
+    here = os.getcwd()
+
+    config_file = sim_specs['user']['config_file']
+    with open(config_file, 'r') as f:
         config = yaml.safe_load(f)
 
-    config['experiment_directory'] = here
+    config['experiment_directory'] = sim_specs['user']['experiment_directory']
     config['output_path'] = here
     config['pdb_file'] = os.path.join(here, '1FME-unfolded.pdb')
     config['initial_pdb_dir'] = here
     config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
-    config['temperature_kelvin'] = float(temperature)
+    config[sim_specs['user']['sample_parameter_name']] = float(round(sample_parameter_value))
 
-    with open('config.yaml', 'w') as f:
+    with open(config_file, 'w') as f:
         yaml.dump(config, f)
 
 
@@ -52,15 +55,14 @@ def polling_loop(task, sim_specs):
 def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0
-    temperature = H['tk'][0]
-    config_file = sim_specs['user']['config_file']
+    sample_parameter_value = H[sample_parameter_name][0]
     dry_run = sim_specs['user']['dry_run']
+    update_config_file(sim_specs, sample_parameter_value)
 
-    here = os.getcwd()
-    update_config_file(temperature, here)
-    args = '-c ' + os.path.join(here, config_file)
+    config_file = sim_specs['user']['config_file']
+    args = '-c ' + os.path.join(os.getcwd(), config_file)
 
-    exctr = Executor.executor  # Get Executor
+    exctr = Executor.executor
 
     # Only one process needed since bulk work presumably done on GPU. If not,
     #  then OpenMM app can take advantage of cores itself.
