@@ -2,6 +2,7 @@ import os
 import glob
 import yaml
 import time
+import shutil
 import numpy as np
 
 from libensemble.executors.executor import Executor
@@ -21,6 +22,7 @@ def update_config_file(sim_specs, sample_parameter_value):
     config['initial_pdb_dir'] = here
     config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
     config[sim_specs['user']['sample_parameter_name']] = float(round(sample_parameter_value))
+    config['simulation_length_ns'] = sim_specs['user']['sim_length_ns']
 
     with open(config_file, 'w') as f:
         yaml.dump(config, f)

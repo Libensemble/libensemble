@@ -7,7 +7,7 @@ import glob
 import time
 import yaml
 import numpy as np
-from libensembl.executors.executor import Executor
+from libensemble.executors.executor import Executor
 from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG,
                                          WORKER_DONE, WORKER_KILL, TASK_FAILED)
 from libensemble.tools.gen_support import get_mgr_worker_msg, send_mgr_worker_msg
@@ -44,10 +44,10 @@ def update_agg_config_file(user, config_file):
         config = yaml.safe_load(f)
 
     config['experiment_directory'] = user['experiment_directory']
-    config['output_path'] = os.getcwd()
+    config['output_path'] = os.path.join(os.getcwd(), 'output_sims{}-{}.yaml'.format()
     config['last_n_h5_files'] = user['initial_sample_size']
 
-    with open('config_file', 'w') as f:
+    with open(config_file, 'w') as f:
         yaml.dump(config, f)
 
 
@@ -76,7 +76,7 @@ def produce_initial_parameter_sample(gen_specs, persis_info):
 
     init_H = np.zeros(initial_sample_size, dtype=gen_specs['out'])
     sampled_points = persis_info['rand_stream'].uniform(pr[0], pr[1], initial_sample_size)
-    init_H['sample_parameter_value'] = sampled_points
+    init_H[user['sample_parameter_name']] = sampled_points
     init_H['sim_id'] = np.arange(initial_sample_size)
     return init_H
 
@@ -94,8 +94,10 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
             initial_complete = True
         else:
             tag, Work, calc_in = get_mgr_worker_msg(comm)
-            if tag in [STOP_TAG, PERSIS_STOP]:
-                break
+            print('Work: ', Work)
+            print('calc_in: ', calc_in)
+            # if tag in [STOP_TAG, PERSIS_STOP]:
+            #     break
 
             sim_agg_out, cstat = submit_aggregation(user, exctr)
             if not len(sim_agg_out):

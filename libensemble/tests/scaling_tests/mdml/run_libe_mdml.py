@@ -35,6 +35,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
              'in': [init_sample_parameter_name],
              'out': [('file_path', "<U70", (1,)), ('cstat', int, (1,))],
              'user': {'sim_kill_minutes': 15,
+                      'sim_length_ns': 0.01, # 1.0
                       'experiment_directory': experiment_directory,
                       'poll_interval': 1,
                       'dry_run': False,
@@ -44,9 +45,10 @@ sim_specs = {'sim_f': run_openmm_sim_f,
 
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
-             'out': [('sample_parameter_value', float), ('sim_id', int), ('agg_cstat', int)],
+             'out': [(init_sample_parameter_name, float), ('sim_id', int), ('agg_cstat', int)],
              'user': {'agg_kill_minutes': 15,
                       'ml_kill_minutes': 30,
+                      'sample_parameter_name': init_sample_parameter_name,
                       'experiment_directory': experiment_directory,
                       'poll_interval': 1,
                       'agg_config_file': 'aggregate_config.yaml',
@@ -59,7 +61,7 @@ gen_specs = {'gen_f': run_agg_ml_gen_f,
 
 exit_criteria = {'sim_max': sim_max}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'init_sample_size': 4}}
 
 libE_specs['sim_dirs_make'] = True
 libE_specs['sim_input_dir'] = './sim'
