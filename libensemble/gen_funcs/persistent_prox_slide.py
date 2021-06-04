@@ -1,10 +1,11 @@
 import numpy as np
+import numpy.linalg as la
 import scipy.sparse as spp
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
-def persistent_smart(H, persis_info, gen_specs, libE_info):
+def opt_slide(H, persis_info, gen_specs, libE_info):
     """
     This generation function always enters into persistent mode and returns
     ``gen_specs['gen_batch_size']`` uniformly sampled points the first time it
@@ -43,20 +44,18 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
     M2 = c*(n**0.5)*C_1*M
     sigma_sq = 4 * p_star**2 * (C*n*M**2 + (n*Delta/r)**2)
 
-    diagonals = [-np.ones(n-1), np.append(1, np.append(2*np.ones(n-2), 1)), np.ones(n-1)]
+    diagonals = [-np.ones(n-1), np.append(1, np.append(2*np.ones(n-2), 1)), -np.ones(n-1)]
     Wbar = spp.diags(diagonals, [-1,0,1])
     W = spp.kron(Wbar, spp.eye(m)) 
     lam_min = eps
     R_y = ( M**2/(m*lam_min) )**0.5
 
-    N = 100      # number of iterations to reach desired accuracy, just pick some random number for now
-
-    import ipdb; ipdb.set_trace(context=5)
+    N = 10      # number of iterations to reach desired accuracy, just pick some random number for now
 
     while 1:
         # start with random x0
         x0 = persis_info['rand_stream'].uniform(lb, ub, (n,))
-        x0 = x0/np.sum(x0)           # project to 1-simplex
+        # x0 = x0/np.sum(x0)           # project to 1-simplex
         x0 = np.kron(np.ones(m), x0) # @m separate problems
 
         post_x = x0
@@ -67,6 +66,8 @@ def persistent_smart(H, persis_info, gen_specs, libE_info):
             g_k = 2.0/(k+1)
             D2  = 0.75 * D_XV**2
             T_k = int( N*(M2**2 + sigma_sq)*k**2 / (D2*L**2) )
+
+            print("num iters:", T_k, flush=True)
 
             pre_x = (1-g_k) * post_x + (g_k * x)
             x, x2, ct = PS(pre_x, x, b_k, T_k, eps, R_y, W, ct, m, gen_specs, libE_info)
@@ -88,6 +89,7 @@ def PS(x_center, x, beta, T, eps, R_y, W, ct, m, gen_specs, libE_info):
 
     # chain graph (use scipy later)
     Wx_center = W.dot(x_center) # one communication round
+    print(">> ||Wx|| = {:.4f}".format(la.norm(Wx_center)))
 
     for t in range(1,T+1):
         # request gradient
@@ -104,17 +106,19 @@ def PS(x_center, x, beta, T, eps, R_y, W, ct, m, gen_specs, libE_info):
         p_t = t/2
         theta_t = 2*(t+1)/(t * (t+3))
         const = 1.0/(1+p_t) * (np.log(x) + (1+p_t) * np.ones(n*m, dtype=float)) \
-                - (2*R_y**2)/(beta * (1-p_t) * eps)*Wx_center
+                - (2*R_y**2)/(beta * (1+p_t) * eps)*Wx_center
 
-        grad_f = calc_in['f_i']
-        # grad_f = calc_in['gradf']
+        grad_f = calc_in['gradf_i']
+        grad_f = np.reshape(grad_f, newshape=(-1,))
+        assert len(grad_f) == len(u), print("len(grad_f)={}, expected {}".format(len(grad_f), len(u)))
 
-        dyn = p_t/(1+p_t) * np.log(u) + 1.0/( beta * (1+p_t) ) * grad_f
+        dyn = p_t/(1+p_t) * np.log(u) - 1.0/( beta * (1+p_t) ) * grad_f
 
         u_next = np.exp( const + dyn )
 
         # this is last line for argmin computation (returns vector in 1-simplex)
-        u = u_next/np.sum(u_next) 
+        # u = u_next/np.sum(u_next) 
+        u = u_next
 
         u2 = (1-theta_t) * u2 + (theta_t * u)
 

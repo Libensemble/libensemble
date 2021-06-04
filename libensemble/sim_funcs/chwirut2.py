@@ -238,18 +238,40 @@ def EvaluateFunction(x, component=np.nan):
     return f
 
 
-def EvaluateJacobian(x):
+def EvaluateJacobian(x, component=np.nan):
     """
     Evaluates the chwirut Jacobian
     """
-    j = np.zeros((NOBSERVATIONS, 3))
+    if np.isnan(component):
+        j = np.zeros((NOBSERVATIONS, 3))
 
-    for i in range(NOBSERVATIONS):
+        for i in range(NOBSERVATIONS):
+            base = np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
+
+            j[i][0] = t[i]*base
+            j[i][1] = base/(x[1] + x[2]*t[i])
+            j[i][2] = base*t[i]/(x[1] + x[2]*t[i])
+
+    elif component < 0:
+        j = np.zeros((NOBSERVATIONS, 3))
+
+        for i in range(NOBSERVATIONS):
+            base = np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
+
+            j[i][0] = t[i]*base
+            j[i][1] = base/(x[1] + x[2]*t[i])
+            j[i][2] = base*t[i]/(x[1] + x[2]*t[i])
+
+        j = np.sum(j, axis=0) # should be length 3 after
+
+    else:
+        i = component
+        j = np.zeros(3)
         base = np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
 
-        j[i][0] = t[i]*base
-        j[i][1] = base/(x[1] + x[2]*t[i])
-        j[i][2] = base*t[i]/(x[1] + x[2]*t[i])
+        j[0] = t[i]*base
+        j[1] = base/(x[1] + x[2]*t[i])
+        j[2] = base*t[i]/(x[1] + x[2]*t[i])
 
     return j
 
@@ -275,8 +297,12 @@ def chwirut_eval(H, persis_info, sim_specs, _):
 
     for i, x in enumerate(H['x']):
         obj_component_idx = H['obj_component'][i]
-        O['f_i'][i] = EvaluateFunction(x, obj_component_idx)
-        # print("[{}]: {:.2f}".format(obj_component_idx, O['f_i'][i]), flush=True)
+
+        if 'f_i' in O.dtype.names:
+            O['f_i'][i] = EvaluateFunction(x, obj_component_idx)
+
+        if 'gradf_i' in O.dtype.names:
+            O['gradf_i'][i] = EvaluateJacobian(x, obj_component_idx)
 
     return O, persis_info
 

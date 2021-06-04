@@ -3,7 +3,7 @@ from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_wor
                                              count_persis_gens, all_returned)
 
 
-def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start up to one persistent generator. By default, evaluation
@@ -43,7 +43,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if len(pt_ids_from_gen_i)==0:
             continue
 
-        root_idxs = [] # which history idxs have sum_i f_i
+        root_idxs = np.array([], dtype=int) # which history idxs have sum_i f_i
 
         for pt_id in pt_ids_from_gen_i:
 
@@ -51,31 +51,31 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             subset_sim_idxs = np.where( H[ret_sim_idxs_from_gen_i]['pt_id'] == pt_id )[0]
             ret_sim_idxs_with_pt_id = ret_sim_idxs_from_gen_i[ subset_sim_idxs ]
 
-            # print("Finished gen_id={}, pt_id={} has done {} evals".format(i, pt_id, len(ret_sim_idxs_with_pt_id)))
-
             assert len(ret_sim_idxs_with_pt_id) <= m, \
                     "{} incorrect number of sim data pts, expected {}".format( 
                         len(returned_pt_id_sim_idxs), m)
 
             if len(ret_sim_idxs_with_pt_id) == m:
 
-                root_idx = ret_sim_idxs_with_pt_id[0]
+                # root_idx = ret_sim_idxs_with_pt_id[0]
 
                 # store the sum of {f_i}'s into the first idx (to reduce comm)
-                returned_fvals = H[ ret_sim_idxs_with_pt_id ]['f_i']
+                # returned_fvals = H[ ret_sim_idxs_with_pt_id ]['f_i']
+                # H[ root_idx ]['f_i'] = gen_specs['user']['combine_component_func'](returned_fvals)
 
-                H[ root_idx ]['f_i'] = gen_specs['user']['combine_component_func'](returned_fvals)
+                returned_fvals = H[ ret_sim_idxs_with_pt_id ]['gradf_i']
 
-                # TODO: Send back multiple gens at once
-                root_idxs.append(root_idx)
+                # H[ root_idx ]['gradf_i'] = gen_specs['user']['combine_component_func'](returned_fvals)
+                # root_idxs.append(root_idx)
 
-                H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True
-                # H[ ret_sim_idxs_with_pt_id ]['ret_to_gen'] = True # this does not actually set
+                grad_f = gen_specs['user']['combine_component_func'](returned_fvals)
+                print("Gradient: {}".format(grad_f), flush=True)
 
-                print("Finished gen_id={}, pt_id={}".format(i, pt_id), flush=True)
+                root_idxs = np.append(root_idxs, ret_sim_idxs_with_pt_id )
+                H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True # accessing ['ret_to_gen'] is to ensure we do not write to cpy
 
         if len(root_idxs) > 0:
-            gen_work(Work, i, ['x', 'f_i'], np.array(root_idxs), persis_info.get(i), persistent=True)
+            gen_work(Work, i, ['x', 'gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
 
     task_avail = ~H['given'] # & ~H['cancel_requested']
 
