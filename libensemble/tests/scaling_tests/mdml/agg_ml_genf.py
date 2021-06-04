@@ -8,9 +8,9 @@ import time
 import yaml
 import numpy as np
 from libensembl.executors.executor import Executor
-from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG,\
+from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG,
                                          WORKER_DONE, WORKER_KILL, TASK_FAILED)
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
+from libensemble.tools.gen_support import get_mgr_worker_msg, send_mgr_worker_msg
 
 
 def polling_loop(task, poll_interval, kill_minutes):
@@ -64,9 +64,9 @@ def submit_aggregation(user, exctr):
     if not dry_run:
         calc_status = polling_loop(task, user['poll_interval'], user['agg_kill_minutes'])
         time.sleep(0.2)
-        return glob.glob('*.h5')
+        return glob.glob('*.h5'), calc_status
     else:
-        return 0
+        return 0, 0
 
 
 def produce_initial_parameter_sample(gen_specs, persis_info):
@@ -89,16 +89,19 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
 
     while True:
         if not initial_complete:  # initial batch
-            init_H = produce_initial_parameter_sample(gen_specs, persis_info)
-            send_mgr_worker_msg(comm, init_H)
+            local_H = produce_initial_parameter_sample(gen_specs, persis_info)
+            send_mgr_worker_msg(comm, local_H)
             initial_complete = True
         else:
             tag, Work, calc_in = get_mgr_worker_msg(comm)
             if tag in [STOP_TAG, PERSIS_STOP]:
                 break
 
-            sim_agg_out = submit_aggregation(user, exctr)
-            if not len(sig_agg_out):
+            sim_agg_out, cstat = submit_aggregation(user, exctr)
+            if not len(sim_agg_out):
                 return None, persis_info, TASK_FAILED
+            else:
+                local_H['agg_cstat'][:user['initial_sample_size']] = cstat
+                return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

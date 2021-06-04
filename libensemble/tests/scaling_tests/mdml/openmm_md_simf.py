@@ -55,6 +55,7 @@ def polling_loop(task, sim_specs):
 def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0
+    sample_parameter_name = sim_specs['user']['sample_parameter_name']
     sample_parameter_value = H[sample_parameter_name][0]
     dry_run = sim_specs['user']['dry_run']
     update_config_file(sim_specs, sample_parameter_value)
@@ -79,7 +80,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
     else:
         output_file = ['test.txt']
 
-    current_dir = here.split('/')[-1]  # sim_dir
+    current_dir = os.getcwd().split('/')[-1]  # sim_dir
 
     H_o = np.zeros(1, dtype=sim_specs['out'])
     H_o['cstat'] = calc_status

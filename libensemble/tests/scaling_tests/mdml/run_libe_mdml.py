@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import datetime
-import numpy as np
 
 from deepdrivemd.sim.openmm import run_openmm
 from deepdrivemd.aggregation.basic import aggregate
@@ -25,7 +24,7 @@ agg_gen_app = aggregate.__file__
 
 exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, app_name='run_openmm')
-exctr.register_calc(full_path=app_gen_app, app_name='run_aggregate')
+exctr.register_calc(full_path=agg_gen_app, app_name='run_aggregate')
 experiment_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_'))
 
 sim_max = 4
@@ -45,8 +44,8 @@ sim_specs = {'sim_f': run_openmm_sim_f,
 
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
-             'out': [('sample_parameter_value', float), ('sim_id', int)],
-             'user': {'agg_kill_minutes:' 15,
+             'out': [('sample_parameter_value', float), ('sim_id', int), ('agg_cstat', int)],
+             'user': {'agg_kill_minutes': 15,
                       'ml_kill_minutes': 30,
                       'experiment_directory': experiment_directory,
                       'poll_interval': 1,
