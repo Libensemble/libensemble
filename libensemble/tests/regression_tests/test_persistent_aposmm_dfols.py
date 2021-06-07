@@ -66,7 +66,11 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000}
+# Tell libEnsemble when to stop (stop_val key must be in H)
+exit_criteria = {'sim_max': 1000,
+                 'elapsed_wallclock_time': 100,
+                 'stop_val': ('f', 3000)}
+# end_exit_criteria_rst_tag
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
@@ -75,16 +79,15 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_manager:
     assert persis_info[1].get('run_order'), "Run_order should have been given back"
     assert flag == 0
-    assert len(H) >= budget
+    assert np.min(H['f'][H['returned']]) <= 3000, "Didn't find a value below 3000"
 
     save_libE_output(H, persis_info, __file__, nworkers)
 
     # # Calculating the Jacobian at local_minima (though this information was not used by DFO-LS)
-    # from libensemble.sim_funcs.chwirut1 import EvaluateFunction, EvaluateJacobian
-    # for i in np.where(H['local_min'])[0]:
-
-    #     F = EvaluateFunction(H['x'][i])
-    #     J = EvaluateJacobian(H['x'][i])
+    from libensemble.sim_funcs.chwirut1 import EvaluateFunction, EvaluateJacobian
+    for i in np.where(H['local_min'])[0]:
+        F = EvaluateFunction(H['x'][i])
+        J = EvaluateJacobian(H['x'][i])
     #     u = gen_specs['user']['ub']-H['x'][i]
     #     l = H['x'][i]-gen_specs['user']['lb']
     #     if np.any(u <= 1e-7) or np.any(l <= 1e-7):

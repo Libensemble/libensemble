@@ -274,7 +274,7 @@ class BalsamMPIExecutor(MPIExecutor):
                num_nodes=None, ranks_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, dry_run=False, wait_on_run=False,
-               extra_args=None):
+               extra_args=''):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 

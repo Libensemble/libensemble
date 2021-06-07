@@ -170,7 +170,6 @@ user application. libEnsemble could be run on more than one node, but here the
 
 Example submission scripts are also given in the :doc:`examples<example_scripts>`.
 
-
 Cori FAQ
 --------
 
@@ -178,7 +177,6 @@ Cori FAQ
 
 This error has been encountered on Cori when running with an incorrect
 installation of ``mpi4py``. See instructions above.
-
 
 Additional Information
 ----------------------

@@ -2,7 +2,7 @@ Allocation Functions
 ====================
 
 Although the included allocation functions, or ``alloc_f``'s are sufficient for
-most users, those who want to fine-tune how data is passed to their ``gen_f``
+most users, those who want to fine-tune how data or resources are allocated to their ``gen_f``
 and ``sim_f`` can write their own. The ``alloc_f`` is unique since it is called
 by the libEnsemble's manager instead of a worker.
 
@@ -94,8 +94,15 @@ In practice, the structure of many allocation functions resemble::
 
     return Work, persis_info
 
-The Work dictionary is returned to the manager with ``persis_info``. If ``1``
+The Work dictionary is returned to the manager alongside ``persis_info``. If ``1``
 is returned as third value, this instructs the run to stop.
+
+For allocation functions, as with the user functions, the level of complexity can
+vary widely. Various scheduling and work distribution features are available in
+the existing allocation functions, including prioritization of simulations,
+returning evaluation outputs to the generator immediately or in batch, assigning
+varying resource sets to evaluations, and other methods of fine-tuned control over
+the data available to other user functions.
 
 .. note:: An error occurs when the ``alloc_f`` returns nothing while
           all workers are idle

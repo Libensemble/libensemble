@@ -1,7 +1,7 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens, all_returned
 
 from libensemble.gen_funcs.old_aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
@@ -25,7 +25,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     Work = {}
     gen_count = count_persis_gens(W)
-    task_avail = ~H['given']
+    task_avail = ~H['given'] & ~H['cancel_requested']
 
     # If a persistent localopt run has just finished, use run_order to update H
     # and then remove other information from persis_info
@@ -42,17 +42,17 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     # returned, give them back to i. Otherwise, give nothing to i
     for i in avail_worker_ids(W, persistent=True):
         gen_inds = (H['gen_worker'] == i)
-        if np.all(H['returned'][gen_inds]):
+        if all_returned(H, gen_inds):
             last_time_pos = np.argmax(H['given_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
-                     np.atleast_1d(last_ind), persis_info[i], persistent=True)
+                     last_ind, persis_info[i], persistent=True)
             persis_info[i]['run_order'].append(last_ind)
 
     for i in avail_worker_ids(W, persistent=False):
         # Find candidates to start local opt runs if a sample has been evaluated
-        if np.any(np.logical_and(~H['local_pt'], H['returned'])):
+        if np.any(np.logical_and(~H['local_pt'], H['returned'], ~H['cancel_requested'])):
             n, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
             update_history_dist(H, n, gen_specs['user'], c_flag=False)
             starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
@@ -65,7 +65,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
-                     np.atleast_1d(ind), persis_info[i], persistent=True)
+                     ind, persis_info[i], persistent=True)
 
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
@@ -80,7 +80,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             if not np.any(q_inds_logical):
                 q_inds_logical = task_avail
             sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]  # oldest point
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), [])
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, [])
             task_avail[sim_ids_to_send] = False
 
         elif (gen_count == 0

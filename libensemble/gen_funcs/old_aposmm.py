@@ -631,7 +631,7 @@ def set_up_and_run_nlopt(Run_H, user_specs):
 
     # Care must be taken here because a too-large initial step causes nlopt to move the starting point!
     dist_to_bound = min(min(ub-x0), min(x0-lb))
-    assert dist_to_bound > np.finfo(np.float32).eps, "The distance to the boundary is too small for NLopt to handle"
+    assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small for NLopt to handle"
 
     if 'dist_to_bound_multiple' in user_specs:
         opt.set_initial_step(dist_to_bound*user_specs['dist_to_bound_multiple'])

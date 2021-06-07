@@ -7,10 +7,10 @@ import numpy as np
 __all__ = ['executor_hworld']
 
 # Alt send values through X
-sim_count = 0
+returned_count = 0
 
 
-def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
+def polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
@@ -19,7 +19,7 @@ def polling_loop(comm, exctr, task, timeout_sec=3.0, delay=0.3):
         time.sleep(delay)
 
         # print('Probing manager at time: ', task.runtime)
-        exctr.manager_poll(comm)
+        exctr.manager_poll()
         if exctr.manager_signal == 'finish':
             exctr.kill(task)
             calc_status = MAN_SIGNAL_FINISH  # Worker will pick this up and close down
@@ -69,31 +69,29 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     """ Tests launching and polling task and exiting on task finish"""
     exctr = MPIExecutor.executor
     cores = sim_specs['user']['cores']
-    comm = libE_info['comm']
-
     use_balsam = 'balsam_test' in sim_specs['user']
 
     args_for_sim = 'sleep 1'
     # pref send this in X as a sim_in from calling script
-    global sim_count
-    sim_count += 1
+    global returned_count
+    returned_count += 1
     timeout = 6.0
     wait = False
     launch_shc = False
-    if sim_count == 1:
+    if returned_count == 1:
         args_for_sim = 'sleep 1'  # Should finish
-    elif sim_count == 2:
+    elif returned_count == 2:
         args_for_sim = 'sleep 1 Error'  # Worker kill on error
-    if sim_count == 3:
+    if returned_count == 3:
         wait = True
         args_for_sim = 'sleep 1'  # Should finish
         launch_shc = True
-    elif sim_count == 4:
+    elif returned_count == 4:
         args_for_sim = 'sleep 3'  # Worker kill on timeout
         timeout = 1.0
-    elif sim_count == 5:
+    elif returned_count == 5:
         args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
-    elif sim_count == 6:
+    elif returned_count == 6:
         args_for_sim = 'sleep 60'  # Manager kill - if signal received else completes
         timeout = 65.0
 
@@ -114,7 +112,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             calc_status = TASK_FAILED
 
     else:
-        task, calc_status = polling_loop(comm, exctr, task, timeout)
+        task, calc_status = polling_loop(exctr, task, timeout)
 
     if use_balsam:
         task.read_file_in_workdir('ensemble.log')

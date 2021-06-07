@@ -42,7 +42,7 @@ Limitations of MPI mode
 If you are launching MPI applications from workers, then MPI is being nested. This is not
 supported with Open MPI. This can be overcome by using a proxy launcher
 (see :doc:`Balsam<executor/balsam_executor>`). This nesting does work, however,
-with MPICH and it's derivative MPI implementations.
+with MPICH and its derivative MPI implementations.
 
 It is also unsuitable to use this mode when running on the **launch** nodes of three-tier
 systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
@@ -90,9 +90,9 @@ systems or nodes over TCP. The necessary configuration options can be provided t
 
 The ``libE_specs`` options for TCP are::
 
-    'comms' [string] :
+    'comms' [string]:
         'tcp'
-    'nworkers' [int] :
+    'nworkers' [int]:
         Number of worker processes to spawn
     'workers' list:
         A list of worker hostnames.

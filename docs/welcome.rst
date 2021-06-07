@@ -10,6 +10,9 @@
   .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
     :target: https://travis-ci.org/Libensemble/libensemble
 
+  .. image:: https://github.com/Libensemble/libensemble/workflows/init-libEnsemble-CI/badge.svg?branch=develop
+    :target: https://github.com/Libensemble/libensemble/actions
+
   .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=master
     :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
 

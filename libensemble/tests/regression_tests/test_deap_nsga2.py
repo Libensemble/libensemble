@@ -35,15 +35,15 @@ if is_manager:
 assert nworkers >= 2, "Cannot run with a persistent gen_f if only one worker."
 
 # Number of generations, population size, indiviual size, and objectives
-ngen = 100
-pop_size = 80
+ngen = 125
+pop_size = 100
 ind_size = 2
 num_obj = 2
 
 # Variable Bounds (deap requires lists, not arrays!!!)
 lb = [-3.0, -2.0]
 ub = [3.0, 2.0]
-w = (-1.0,)  # Must be a tuple
+w = (-1.0, -1.0)  # Must be a tuple
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
 sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is being minimized
@@ -54,12 +54,13 @@ sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is bei
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
-             'out': [('individual', float, ind_size), ('generation', int)],
+             'out': [('individual', float, ind_size), ('generation', int), ('last_points', bool)],
              'user': {'lb': lb,
                       'ub': ub,
                       'weights': w,
                       'pop_size': pop_size,
                       'indiv_size': ind_size,
+                      'give_all_with_same_priority': True,
                       'cxpb': 0.8,  # probability two individuals are crossed
                       'eta': 20.0,  # large eta = low variation in children
                       'indpb': 0.8/ind_size}  # end user
@@ -103,6 +104,9 @@ for run in range(2):
             H_dummy['individual'] = x
             objs = deap_six_hump(H_dummy, {}, sim_specs, {})
             H0['fitness_values'][i] = objs[0]
+
+        # Testing use_persis_return capabilities
+        libE_specs['use_persis_return'] = True
     else:
         H0 = None
 
@@ -110,8 +114,15 @@ for run in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
     if is_manager:
+        if run == 0:
+            assert np.sum(H['last_points']) == 0, ("The last_points shouldn't be marked (even though "
+                                                   "they were marked in the gen) as 'use_persis_return' was false.")
+        elif run == 1:
+            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they "
+                                                          "were marked in the manager and 'use_persis_return' is true.")
+
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"
         assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."
-        assert min(H['fitness_values'][:, 0]) <= 1e-3, script_name + " didn't find the minimum for objective 0."
+        assert min(H['fitness_values'][:, 0]) <= 4e-3, script_name + " didn't find the minimum for objective 0."
         assert min(H['fitness_values'][:, 1]) <= -1.0, script_name + " didn't find the minimum for objective 1."

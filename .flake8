@@ -23,7 +23,7 @@ per-file-ignores =
         libensemble/libensemble/__init__.py:F401
 
         # worker uses regex with chars that resemble escape sequences
-        libensemble/libE_worker.py:W605
+        libensemble/worker.py:W605
 
         # Need to turn of matching probes (before other imports) on some
         # systems/versions of MPI:
@@ -43,4 +43,10 @@ per-file-ignores =
         examples/calling_scripts/run_libensemble_on_warpx.py:E402
         libensemble/gen_funcs/persistent_aposmm.py:E402, E501
         libensemble/tests/regression_tests/test_persistent_aposmm*:E402
-        libensemble/tests/regression_tests/test_old_aposmm*:E402
+        libensemble/tests/deprecated_tests/test_old_aposmm*:E402
+
+        # Ignoring linelength in test_history.py
+        libensemble/tests/unit_tests/test_history.py:E501
+
+        # Allow undefined name '__version__'
+        setup.py:F821

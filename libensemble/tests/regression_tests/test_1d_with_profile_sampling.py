@@ -48,6 +48,9 @@ if is_manager:
     assert len(H) >= 501
     print("\nlibEnsemble with random sampling has generated enough points")
 
+    assert 'manager.prof' in os.listdir(), 'Expected manager profile not found after run'
+    os.remove('manager.prof')
+
     prof_files = ['worker_{}.prof'.format(i+1) for i in range(nworkers)]
 
     # Ensure profile writes complete before checking
@@ -57,8 +60,8 @@ if is_manager:
         assert file in os.listdir(), 'Expected profile {} not found after run'.format(file)
         with open(file, 'r') as f:
             data = f.read().split()
-            num_worker_funcs_profiled = sum(['libE_worker' in i for i in data])
+            num_worker_funcs_profiled = sum(['worker' in i for i in data])
         assert num_worker_funcs_profiled >= 8, 'Insufficient number of ' + \
-            'libE_worker functions profiled: ' + str(num_worker_funcs_profiled)
+            'worker functions profiled: ' + str(num_worker_funcs_profiled)
 
         os.remove(file)

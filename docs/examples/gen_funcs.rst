@@ -17,3 +17,4 @@ Below are example generation functions available in libEnsemble.
    tasmanian
    fd_param_finder
    vtmop
+   surmise

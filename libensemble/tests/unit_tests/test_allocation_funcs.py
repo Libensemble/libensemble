@@ -1,6 +1,6 @@
 from mpi4py import MPI
 
-import libensemble.libE_manager as man
+import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.history import History

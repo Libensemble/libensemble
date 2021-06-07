@@ -11,6 +11,8 @@ worker array
             Is the worker active or not
         'persis_state' [int]:
             Is the worker in a persis_state
+        'active_recv' [int]:
+            Is the worker in an active receive state
         'blocked' [int]:
             Is the worker's resources blocked by another calculation
 
@@ -35,7 +37,7 @@ worker blocked by some other calculation       1          0           1
 
 .. note::
   * libE receives only from workers with a nonzero 'active' state
-  * libE calls the alloc_f only if some worker has an 'active' state of zero
+  * libE calls the alloc_f only if some worker has an 'active' state of zero, or is in an *active receive* state.
 
 .. seealso::
   For an example allocation function that queries the worker array, see

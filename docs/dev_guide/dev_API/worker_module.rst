@@ -1,6 +1,6 @@
 Worker Module
 =============
-.. automodule:: libE_worker
+.. automodule:: worker
   :members: worker_main
 
 .. autoclass:: Worker

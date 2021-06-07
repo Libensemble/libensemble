@@ -280,13 +280,17 @@ def assign_workers(rsets_by_group, rsets_req):
     return rset_team
 
 
-def avail_worker_ids(W, persistent=None, zero_resource_workers=None):
-    """Returns available workers (``active == 0``), as an array, filtered by ``persis_state``.
+def avail_worker_ids(W, persistent=None, active_recv=False, zero_resource_workers=None):
+    """Returns available workers as a list, filtered by the given options`.
 
     :param W: :doc:`Worker array<../data_structures/worker_array>`
-    :param persistent: Optional Boolean. If specified, also return workers with given persis_state.
+    :param persistent: Optional int. If specified, only return workers with given persis_state.
+    :param active_recv: Optional Boolean. Only return workers with given active_recv. Default False.
+    :param zero_resource_workers: Optional Boolean. If specified, only return workers with given zrw value.
+
+    If there are no zero resource workers defined, then the zero_resource_workers argument will
+    be ignored.
     """
-    # SH TODO: update docstring
 
     def fltr(wrk, field, option):
         """Filter by condition if supplied"""
@@ -301,13 +305,26 @@ def avail_worker_ids(W, persistent=None, zero_resource_workers=None):
         return wrk['persis_state'] == persistent
 
     def fltr_zrw():
-        if zero_resource_workers is None:
+        # If none exist or you did not ask for zrw then return True
+        if no_zrw or zero_resource_workers is None:
             return True
         return wrk['zero_resource_worker'] == zero_resource_workers
 
+    def fltr_recving():
+        if active_recv:
+            return wrk['active_recv']  # SH TODO: must be persistent - could check here
+        else:
+            return not wrk['active']
+
+    if active_recv and not persistent:
+        raise AllocException("Cannot ask for non-persistent active receive workers")
+
+    # SH if there are no zero resource workers - then ignore zrw (i.e. use only if they exist)
+    no_zrw = not any(W['zero_resource_worker'])
     wrks = []
     for wrk in W:
-        if not wrk['blocked'] and not wrk['active'] and fltr_persis() and fltr_zrw():
+        # SH TODO 'blocked' condition to be removed.
+        if not wrk['blocked'] and fltr_recving() and fltr_persis() and fltr_zrw():
             wrks.append(wrk['worker_id'])
     return wrks
 
@@ -346,7 +363,7 @@ def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
 
     :returns: None
     """
-    libE_info['H_rows'] = H_rows
+    libE_info['H_rows'] = np.atleast_1d(H_rows)
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
                'tag': EVAL_SIM_TAG,
@@ -390,8 +407,29 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
 
     :returns: None
     """
-    libE_info['H_rows'] = H_rows
+
+    # Count total gens
+    try:
+        gen_work.gen_counter += 1
+    except AttributeError:
+        gen_work.gen_counter = 1
+    libE_info['gen_count'] = gen_work.gen_counter
+
+    libE_info['H_rows'] = np.atleast_1d(H_rows)
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
                'tag': EVAL_GEN_TAG,
                'libE_info': libE_info}
+
+
+def all_returned(H, pt_filter=True):
+    """Check if all expected points have returned from sim
+
+    :param H: A :doc:`history array<../data_structures/history_array>`
+    :param pt_filter: Optional boolean array filtering expected returned points: Default: All True
+
+    :returns: Boolean. True if all expected points have been returned
+    """
+    # Exclude cancelled points that were not already given out
+    excluded_points = H['cancel_requested'] & ~H['given']
+    return np.all(H['returned'][pt_filter & ~excluded_points])

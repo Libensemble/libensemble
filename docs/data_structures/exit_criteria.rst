@@ -19,10 +19,10 @@ Exit criteria for libEnsemble::
             Stop when H[str] < float for the given (str, float pair)
 
 .. seealso::
-  From `test_sim_dirs.py`_.
+  From `test_persistent_aposmm_dfols.py`_.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_old_aposmm_sim_dirs.py
+  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_persistent_aposmm_dfols.py
       :start-at: exit_criteria
       :end-before: end_exit_criteria_rst_tag
 
-.. _test_sim_dirs.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_sim_dirs.py
+.. _test_persistent_aposmm_dfols.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_dfols.py

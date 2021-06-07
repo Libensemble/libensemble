@@ -4,6 +4,57 @@ Release Notes
 
 Below are the notes from all libEnsemble releases.
 
+GitHub issues are referenced, and can be viewed with hyperlinks on the `github releases page`_.
+
+.. _`github releases page`: https://github.com/Libensemble/libensemble/releases
+
+Release 0.7.2
+-------------
+
+:Date: May 03, 2021
+
+API additions:
+
+* Active receive option added that allows irregular manager/worker communication patterns. (#527 / #595)
+* A mechanism is added for the cancellation/killing of previously issued evaluations. (#528 / #595 / #596)
+* A submit function is added in the base ``Executor`` class that runs a serial application locally. (#531 / #595)
+* Added libEnsemble history array protected fields: `returned_time`, `last_given_time`, and `last_gen_time`. (#590)
+* Updated libE_specs options (``mpi_comm`` and ``profile``). (#547 / #548)
+* Explicit seeding of random streams in ``add_unique_random_streams()`` is now possible. (#542 / #545)
+
+Updates to example functions:
+
+* Added Surmise calibration generator function and two examples (regression tests). (#595)
+
+Other changes:
+
+* Better support for uneven worker to node distribution (including at sub-node level). (#591 / #600)
+* Fixed crash when running on Windows. (#534)
+* Fixed crash when running with empty `persis_info`. (#571 / #578)
+* Error handling has been made more robust. (#592)
+* Improve ``H0`` processing (esp. for pre-generated, but not evaluated points). (#536 / #537)
+* A global ``sim_id`` is now given, rather than a local count, in _libE_stats.txt_. Also a global gen count is given. (#587, #588)
+* Added support for Python 3.9. (#532 / Removed support for Python 3.5. (#562)
+* Improve SLURM nodelist detection (more robust). (#560)
+* Add check that user does not change protected history fields (Disable via ``libE_specs['safe_mode'] = False``). (#541)
+* Added ``print_fields.py`` script for better interrogating the output history files. (#558)
+* In examples, ``is_master`` changed to ``is_manager`` to be consistent with manager/worker nomenclature. (#524)
+
+Documentation:
+
+* Added tutorial **Borehole Calibration with Selective Simulation Cancellation**. (#581 / #595)
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm).
+* Tested Python versions: (Cpython) 3.6, 3.7, 3.8, 3.9.
+
+:Known issues:
+
+* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode, since it does not support nested MPI launches
+  (Either use local mode or Balsam Executor).
+* See known issues section in the documentation for more issues.
+
 Release 0.7.1
 -------------
 
@@ -17,9 +68,9 @@ API additions:
 
 * Executor updates:
 
- * Addition of a zero-resource worker option for persistent gens (does not allocate nodes to gen). (#500)
- * Multiple applications can be registered to the Executor (and submitted) by name. (#498)
- * Wait function added to Tasks. (#499)
+  * Addition of a zero-resource worker option for persistent gens (does not allocate nodes to gen). (#500)
+  * Multiple applications can be registered to the Executor (and submitted) by name. (#498)
+  * Wait function added to Tasks. (#499)
 
 * Gen directories can now be created with options analogous to those for sim dirs. (#349 / #489)
 
@@ -47,9 +98,9 @@ Documentation:
 
 :Known issues:
 
-* We currently recommended running in Central mode on Bridges as distributed runs are experiencing hangs.
+* We currently recommend running in Central mode on Bridges, as distributed runs are experiencing hangs.
 * OpenMPI does not work with direct MPI job launches in mpi4py comms mode, since it does not support nested MPI launches
-  (Either use local mode or Balsam job controller).
+  (Either use local mode or Balsam Executor).
 * See known issues section in the documentation for more issues.
 
 Release 0.7.0

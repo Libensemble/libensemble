@@ -1,7 +1,8 @@
 User Function API
 -----------------
+.. _user_api:
 
-libEnsemble requires functions for generation, simulation and allocation.
+libEnsemble requires functions for generation, simulation, and allocation.
 
 While libEnsemble provides a default allocation function, the sim and gen functions
 must be specified. The required API and example arguments are given here.
@@ -120,7 +121,7 @@ alloc_f API
 
 The alloc_f calculations will be called by libEnsemble with the following API::
 
-  Work, persis_info = alloc_f(W, H, sim_specs, gen_specs, alloc_specs, persis_info)
+  Work, persis_info, stop_flag = alloc_f(W, H, sim_specs, gen_specs, alloc_specs, persis_info)
 
 Parameters:
 ***********

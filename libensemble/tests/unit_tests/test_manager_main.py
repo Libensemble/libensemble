@@ -3,7 +3,7 @@ import numpy as np
 import numpy.lib.recfunctions
 from mpi4py import MPI
 
-import libensemble.libE_manager as man
+import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
 
 libE_specs = {'mpi_comm': MPI.COMM_WORLD}
@@ -50,7 +50,6 @@ def test_term_test_3():
     time.sleep(0.5)
     hist.given_count = 4
     assert mgr.term_test()
-    #
 
 
 if __name__ == "__main__":

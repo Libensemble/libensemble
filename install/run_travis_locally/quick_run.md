@@ -12,7 +12,7 @@ Window 2: Will create and run container.
 
 Windows 1 and 2 - name container. E.g:
 
-    export CONTAINER=travis-debug-2020-07-20-py3.5
+    export CONTAINER=travis-debug-2020-07-20-py3.6
 
 Window 2:
 
@@ -28,11 +28,11 @@ Window 1 Optional - user scripts to help navigate:
     docker cp ~/.bashrc  $CONTAINER:/home/travis
     docker cp ~/.alias   $CONTAINER:/home/travis
 
-WWindow 2 (Example: Do not run tests python 3.5 - git branch feature/register_apps):
+WWindow 2 (Example: Do not run tests python 3.6 - git branch feature/register_apps):
 
     chown travis:travis /home/travis/build_mpich_libE.sh
     su - travis
-    . ./build_mpich_libE.sh -p 3.5 -b feature/register_apps -i
+    . ./build_mpich_libE.sh -p 3.6 -b feature/register_apps -i
 
 Window 2 Optional - user scripts to help navigate:
 

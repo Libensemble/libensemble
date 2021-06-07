@@ -16,10 +16,10 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble import libE_logger
+from libensemble import logger
 
-# libE_logger.set_level('DEBUG')  # For testing the test
-libE_logger.set_level('INFO')
+# logger.set_level('DEBUG')  # For testing the test
+logger.set_level('INFO')
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -32,12 +32,14 @@ comms = libE_specs['comms']
 
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_mpi_runners_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
-libE_logger.set_filename(log_file)
+logger.set_filename(log_file)
+
+nodes_per_worker = 2
 
 nodes_per_worker = 2
 
 # For varying size test - relate node count to nworkers
-node_file = 'nodelist_mpi_runnerscomms_' + str(comms) + '_wrks_' + str(nworkers)
+node_file = 'nodelist_mpi_runners_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = nworkers*nodes_per_worker
 
 if is_manager:

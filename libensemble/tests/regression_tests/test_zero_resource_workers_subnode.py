@@ -7,8 +7,6 @@
 #    mpiexec -np 4 python3 test_zero_resource_workers_subnode.py
 #    python3 test_zero_resource_workers_subnode.py --nworkers 3 --comms local
 #    python3 test_zero_resource_workers_subnode.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
 
 import sys
@@ -21,10 +19,10 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble import libE_logger
+from libensemble import logger
 
-# libE_logger.set_level('DEBUG')  # For testing the test
-libE_logger.set_level('INFO')
+# logger.set_level('DEBUG')  # For testing the test
+logger.set_level('INFO')
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -38,8 +36,8 @@ libE_specs['zero_resource_workers'] = [1]
 
 
 # To allow visual checking - log file not used in test
-log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
-libE_logger.set_filename(log_file)
+log_file = 'ensemble_zrw_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
+logger.set_filename(log_file)
 
 nodes_per_worker = 0.5
 

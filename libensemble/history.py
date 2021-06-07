@@ -31,10 +31,10 @@ class History:
     :ivar int given_count:
         Number of points given to sim fuctions (according to H)
 
-    :ivar int sim_count:
+    :ivar int returned_count:
         Number of points evaluated  (according to H)
 
-    Note that index, given_count and sim_count reflect the total number of points
+    Note that index, given_count and returned_count reflect the total number of points
     in H and therefore include those prepended to H in addition to the current run.
 
     """
@@ -76,6 +76,7 @@ class History:
 
         H['sim_id'][-L:] = -1
         H['given_time'][-L:] = np.inf
+        H['last_given_time'][-L:] = np.inf
 
         self.H = H
         # self.offset = 0
@@ -84,7 +85,7 @@ class History:
 
         self.given_count = np.sum(H['given'])
 
-        self.sim_count = np.sum(H['returned'])
+        self.returned_count = np.sum(H['returned'])
 
     def update_history_f(self, D, safe_mode):
         """
@@ -113,7 +114,7 @@ class History:
 
             self.H['returned'][ind] = True
             self.H['returned_time'][ind] = time.time()
-            self.sim_count += 1
+            self.returned_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
         """
@@ -127,14 +128,16 @@ class History:
         sim_worker: integer
             Worker ID
         """
+        q_inds = np.atleast_1d(q_inds)
+        first_given_inds = ~self.H['given'][q_inds]
+        t = time.time()
+
         self.H['given'][q_inds] = True
-        self.H['given_time'][q_inds] = time.time()
+        self.H['given_time'][q_inds[first_given_inds]] = t
+        self.H['last_given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
-        if np.isscalar(q_inds):
-            self.given_count += 1
-        else:
-            self.given_count += len(q_inds)
+        self.given_count += len(q_inds)
 
     def update_history_x_in(self, gen_worker, D, safe_mode):
         """
@@ -181,8 +184,11 @@ class History:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
-        self.H['gen_time'][update_inds] = time.time()
-        self.H['gen_worker'][update_inds] = gen_worker
+        first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
+        t = time.time()
+        self.H['gen_time'][first_gen_inds] = t
+        self.H['last_gen_time'][update_inds] = t
+        self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 
     def grow_H(self, k):
@@ -198,6 +204,7 @@ class History:
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
+        H_1['last_given_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

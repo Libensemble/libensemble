@@ -25,7 +25,7 @@ def exp_nodelist_for_worker(exp_list, workerID, nodes_per_worker, persis_gens):
 
 
 def runline_check(H, persis_info, sim_specs, libE_info):
-    """Check run-lines produced by executor provided by a list"""
+    """Check run-lines produced by executor provided by a list of tests"""
     calc_status = 0
     x = H['x'][0][0]
     exctr = Executor.executor
@@ -53,6 +53,41 @@ def runline_check(H, persis_info, sim_specs, libE_info):
             print('outline is: {}\nexp     is: {}'.format(outline, new_exp_list), flush=True)
 
         assert(outline == new_exp_list)
+
+    calc_status = WORKER_DONE
+    output = np.zeros(1, dtype=sim_specs['out'])
+    output['f'][0] = np.linalg.norm(x)
+    return output, persis_info, calc_status
+
+
+def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
+    """Check run-lines produced by executor provided by a list of lines per worker"""
+    calc_status = 0
+    x = H['x'][0][0]
+    exctr = Executor.executor
+    test = sim_specs['user']['tests'][0]
+    exp_list = sim_specs['user']['expect']
+    p_gens = sim_specs['user'].get('persis_gens', 0)
+
+    task = exctr.submit(calc_type='sim',
+                        num_procs=test.get('nprocs', None),
+                        num_nodes=test.get('nnodes', None),
+                        ranks_per_node=test.get('ppn', None),
+                        extra_args=test.get('e_args', None),
+                        app_args='--testid ' + test.get('testid', None),
+                        stdout='out.txt',
+                        stderr='err.txt',
+                        hyperthreads=test.get('ht', None),
+                        dry_run=True)
+
+    outline = task.runline
+    wid = libE_info['workerID']
+    new_exp_list = exp_list[wid-1-p_gens]
+
+    if outline != new_exp_list:
+        print('Worker {}:\n outline is: {}\n exp     is: {}'.format(wid, outline, new_exp_list), flush=True)
+
+    assert(outline == new_exp_list)
 
     calc_status = WORKER_DONE
     output = np.zeros(1, dtype=sim_specs['out'])

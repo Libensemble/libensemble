@@ -12,7 +12,7 @@ import subprocess
 
 def install_balsam():
     here = os.getcwd()
-    os.chdir('../balsam/balsam-0.3.8')
+    os.chdir('../balsam/balsam-0.4')
     subprocess.check_call('pip install -e .'.split())
     os.chdir(here)
 
@@ -41,4 +41,3 @@ if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
     install_balsam()
     move_test_balsam('test_balsam_hworld.py')
     configure_coverage()
-    subprocess.run('./install/configure-balsam-test.sh'.split())

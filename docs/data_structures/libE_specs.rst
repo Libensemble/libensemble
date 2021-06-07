@@ -23,13 +23,13 @@ Specifications for libEnsemble::
         'sim_dirs_make' [boolean]:
             Whether to make simulation-specific calculation directories for each sim call.
             This will create a directory for each simulation, even if no sim_input_dir is
-            specified. If False, all workers operate within the ensemble directory 
+            specified. If False, all workers operate within the ensemble directory
             described below.
             Default: True
         'gen_dirs_make' [boolean]:
-            Whether to make generator-instance specific calculation directories for each 
-            gen call. This will create a directory for each generator call, even if no 
-            gen_input_dir is specified. If False, all workers operate within the ensemble 
+            Whether to make generator-instance specific calculation directories for each
+            gen call. This will create a directory for each generator call, even if no
+            gen_input_dir is specified. If False, all workers operate within the ensemble
             directory.
             Default: True
         'ensemble_dir_path' [string]:
@@ -73,6 +73,13 @@ Specifications for libEnsemble::
         'safe_mode' [boolean]:
             Prevents user functions from overwritting protected libE fields.
             Default: True
+        'use_persis_return' [boolean]:
+            Adds persistent function H return to managers history array.
+            Default: False
+        'final_fields' [list]:
+            List of fields in H that the manager will return to persistent
+            workers along with the PERSIS_STOP tag at the end of the libE run.
+            Default: None
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or

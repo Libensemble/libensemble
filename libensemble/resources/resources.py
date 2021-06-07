@@ -14,7 +14,6 @@ This module detects and returns system resources
 import os
 import socket
 import logging
-import itertools
 import subprocess
 from collections import OrderedDict
 import numpy as np
@@ -382,7 +381,7 @@ class ManagerWorkerResources:
         self.num_workers = num_workers
         self.num_workers_2assign2 = WorkerResources.get_workers2assign2(self.num_workers, resources)
         self.num_rsets = resources.num_resource_sets or self.num_workers_2assign2
-        self.split_list = WorkerResources.get_partitioned_nodelist(self.num_rsets, resources)
+        self.split_list, self.local_rsets_list = WorkerResources.get_partitioned_nodelist(self.num_rsets, resources)
 
         # SH May change name from index_list - something like "default_mapping"
         # SH Should default mapping use 1 resource set each or divide up?
@@ -390,6 +389,8 @@ class ManagerWorkerResources:
         print('index list:', self.index_list)  # SH TODO: Remove when done testing
 
         # SH Assumes all groups same size - for uneven distribution, best_split (or equiv.) should determine.
+
+        #SH TODO: Need to update to make uneven distribution of rsets to nodes work as does on develop
         self.rsets_per_node = WorkerResources.get_rsets_on_a_node(self.num_rsets, resources)
         self.rsets = np.zeros(self.num_rsets, dtype=ManagerWorkerResources.rset_dtype)
         self.rsets['assigned'] = 0
@@ -447,6 +448,8 @@ class WorkerResources:
         self.slots_on_node = None
 
         self.num_workers_2assign2 = WorkerResources.get_workers2assign2(self.num_workers, resources)
+
+        #SH TODO: Maybe call total_num_rsets or global_num_rsets - as its not rsets for this worker.
         self.num_rsets = resources.num_resource_sets or self.num_workers_2assign2
 
         # SH TODO: In next resources restructure - should not need duplicate of zero_resource_workers (so can use
@@ -454,7 +457,7 @@ class WorkerResources:
         #          Consider naming of workers_per_node - given that is is the fixed mapping (and having excluded zrw)
         #          - possibly fixed_workers_per_node or maybe resource_sets or rsets_per_node...
         self.zero_resource_workers = resources.zero_resource_workers
-        self.split_list = WorkerResources.get_partitioned_nodelist(self.num_rsets, resources)
+        self.split_list, self.local_rsets_list = WorkerResources.get_partitioned_nodelist(self.num_rsets, resources)
         self.rsets_per_node = WorkerResources.get_rsets_on_a_node(self.num_rsets, resources)
         self.local_nodelist = []
         self.local_node_count = len(self.local_nodelist)
@@ -534,6 +537,22 @@ class WorkerResources:
                 group_list.append(group)
         return group_list
 
+    # Will work out rset siblings - not just yet - or mayb can use get_rsets_by_group
+    #@staticmethod
+    #def get_num_siblings_by_rset(split_list):
+        #group = 1
+        #num_siblings_by_rset = []
+        #node = split_list[0]
+
+        #for i in range(len(split_list)):
+            #if split_list[i] == node:
+                #group_list.append(group)
+            #else:
+                #node = split_list[i]
+                #group += 1
+                #group_list.append(group)
+        #return group_list
+
     @staticmethod
     def get_rsets_by_group(split_list):
         """Returns a dictionary where key is groupID and values
@@ -592,30 +611,44 @@ class WorkerResources:
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
 
-        # Check if current host in nodelist - if it is then in distributed mode.
-        distrib_mode = resources.local_host in global_nodelist
+        if not WorkerResources.even_assignment(num_nodes, num_rsets):
+            logger.warning('Resource sets ({}) are not distributed evenly to available nodes ({})'
+                           .format(num_rsets, num_nodes))
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
         sub_node_workers = (num_rsets >= num_nodes)
         if sub_node_workers:
-            workers_per_node = num_rsets//num_nodes
-            dup_list = itertools.chain.from_iterable(itertools.repeat(x, workers_per_node) for x in global_nodelist)
-            global_nodelist = list(dup_list)
-
-        # Currently require even split for distrib mode - to match machinefile - throw away remainder
-        if distrib_mode and not sub_node_workers:
-            nodes_per_worker, remainder = divmod(num_nodes, num_rsets)
-            if remainder != 0:
-                # Worker node may not be at head of list after truncation - should perhaps be warning or enforced
-                logger.warning("Nodes to workers not evenly distributed. Wasted nodes. "
-                               "{} workers and {} nodes".format(num_rsets, num_nodes))
-                num_nodes = num_nodes - remainder
-                global_nodelist = global_nodelist[0:num_nodes]
+            global_nodelist, local_rsets_list = \
+                WorkerResources.expand_list(num_nodes, num_rsets, global_nodelist)
+        else:
+            local_rsets_list = [1] * num_rsets
 
         # Divide global list between workers
         split_list = list(Resources.best_split(global_nodelist, num_rsets))
         logger.debug("split_list is {}".format(split_list))
-        return split_list
+        return split_list, local_rsets_list
+
+    @staticmethod
+    def even_assignment(nnodes, nworkers):
+        """Returns True if workers are evenly distributied to nodes, else False"""
+        return nnodes % nworkers == 0 or nworkers % nnodes == 0
+
+    @staticmethod
+    def expand_list(nnodes, nworkers, nodelist):
+        """Duplicates each element of ``nodelist`` to best map workers to nodes.
+
+        Returns node list with duplicates, and a list of local (on-node) worker
+        counts, both indexed by worker.
+        """
+        k, m = divmod(nworkers, nnodes)
+        dup_list = []
+        local_rsets_list = []
+        for i, x in enumerate(nodelist):
+            repeats = k + 1 if i < m else k
+            for j in range(repeats):
+                dup_list.append(x)
+                local_rsets_list.append(repeats)
+        return dup_list, local_rsets_list
 
     # SH TODO This has become redundant wrapper - if stays that way can remove
     @staticmethod
@@ -625,8 +658,8 @@ class WorkerResources:
         Assumes that self.global_nodelist has been calculated (in __init__).
         Also self.global_nodelist will have already removed non-application nodes
         """
-        split_list = WorkerResources.get_split_list(num_rsets, resources)
-        return split_list
+        split_list, local_rsets_list = WorkerResources.get_split_list(num_rsets, resources)
+        return split_list, local_rsets_list
 
     @staticmethod
     def get_local_nodelist(workerID, rset_team, split_list, rsets_per_node):

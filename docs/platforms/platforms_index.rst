@@ -13,22 +13,25 @@ The first mode we refer to as **central** mode, where the libEnsemble manager an
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
 the remaining allocated nodes:
 
-.. image:: ../images/centralized_new.png
+.. image:: ../images/centralized_new_detailed.png
     :alt: centralized
     :scale: 30
     :align: center
 
-Alternatively, in **distributed** mode, libEnsemble is launched with the processes
-spread across nodes. The worker processes will share nodes with the applications
-they launch. There may be multiple nodes per worker, or multiple workers per node:
+Alternatively, in **distributed** mode, the libEnsemble (manager/worker) processes
+will share nodes with submitted tasks. This enables libEnsemble, using the *mpi4py*
+communicator, to be run with the workers spread across nodes so as to be co-located
+with their tasks.
 
-.. image:: ../images/distributed_new.png
+.. image:: ../images/distributed_new_detailed.png
     :alt: distributed
     :scale: 30
     :align: center
 
-The distributed approach allows the libEnsemble worker to read files produced by the
-application on local node storage.
+Configurations with multiple nodes per worker or multiple workers per node are both
+common use cases. The distributed approach allows the libEnsemble worker to read files
+produced by the application on local node storage. HPC systems that allow only one
+application to be launched to a node at any one time prevent distributed configuration.
 
 Configuring the Run
 -------------------
@@ -66,7 +69,7 @@ For example::
 
     mpirun -np 5 -ppn 1 python myscript.py
 
-would launch libEnsemble with 5 processes across 5 nodes. However, the manager would have it's
+would launch libEnsemble with 5 processes across 5 nodes. However, the manager would have its
 own node, which is likely wasteful. More often, a machinefile is used to add the manager to
 the first node. In the :doc:`examples<example_scripts>` directory, you can find an example submission
 script, configured to run libensemble distributed, with multiple workers per node or multiple nodes
@@ -96,7 +99,7 @@ launch nodes and launches tasks submitted by workers. Running libEnsemble on the
 nodes is potentially more scalable and will better manage ``sim_f`` and ``gen_f`` functions
 that contain considerable computational work or I/O.
 
-    .. image:: ../images/central_balsam.png
+    .. image:: ../images/centralized_new_detailed_balsam.png
         :alt: central_balsam
         :scale: 40
         :align: center

@@ -8,6 +8,7 @@ import os
 import glob
 import logging
 import socket
+import traceback
 import numpy as np
 
 from libensemble.utils.timer import Timer
@@ -19,10 +20,12 @@ from libensemble.message_numbers import \
     TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.comms.comms import CommFinishedException
-from libensemble.libE_worker import WorkerErrMsg
+from libensemble.worker import WorkerErrMsg
+from libensemble.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.resources.resources import Resources
-from libensemble.tools.fields_keys import libE_spec_calc_dir_combined, protected_libE_fields
+from libensemble.tools.tools import _PERSIS_RETURN_WARNING
+from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile
 import pstats
 import copy
@@ -36,7 +39,24 @@ logger = logging.getLogger(__name__)
 
 
 class ManagerException(Exception):
-    "Exception at manager, raised on abort signal from worker"
+    """Exception raised by the Manager"""
+
+
+class WorkerException(Exception):
+    """Exception raised on abort signal from worker"""
+
+
+class LoggedException(Exception):
+    """Raise exception for handling without re-logging"""
+
+
+def report_worker_exc(wrk_exc=None):
+    """Write worker exception to log"""
+    if wrk_exc is not None:
+        from_line, msg, exc = wrk_exc.args
+        logger.error("---- {} ----".format(from_line))
+        logger.error("Message: {}".format(msg))
+        logger.error(exc)
 
 
 def manager_main(hist, libE_specs, alloc_specs,
@@ -78,8 +98,13 @@ def manager_main(hist, libE_specs, alloc_specs,
         gen_specs['in'] = []
 
     # Send dtypes to workers
-    dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
-              EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
+    if 'repack_fields' in globals():
+        dtypes = {EVAL_SIM_TAG: repack_fields(hist.H[sim_specs['in']]).dtype,
+                  EVAL_GEN_TAG: repack_fields(hist.H[gen_specs['in']]).dtype}
+    else:
+        dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
+                  EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype}
+
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
 
@@ -125,6 +150,7 @@ class Manager:
                     ('active', int),
                     ('persis_state', int),
                     ('worker_group', int),  # SH TODO: to be removed - now an rset attribute.
+                    ('active_recv', int),
                     ('zero_resource_worker', bool),
                     ('blocked', bool)]  # SH TODO: to be removed - when all alloc funcs updated.
 
@@ -154,11 +180,7 @@ class Manager:
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
 
-        if any([setting in self.libE_specs for setting in libE_spec_calc_dir_combined]):
-            self.check_ensemble_dir(libE_specs)
-            if libE_specs.get('ensemble_copy_back', False):
-                Manager.make_copyback_dir(libE_specs)
-
+        temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         if self.resources is not None:
             # self.W['worker_group'] = self.resources.managerworker_resources.group_list
@@ -168,22 +190,10 @@ class Manager:
                 if wrk['worker_id'] in self.resources.zero_resource_workers:
                     wrk['zero_resource_worker'] = True
 
-    @staticmethod
-    def make_copyback_dir(libE_specs):
-        ensemble_dir_path = libE_specs.get('ensemble_dir_path', './ensemble')
-        copybackdir = os.path.basename(ensemble_dir_path)  # Current directory, same basename
-        if os.path.relpath(ensemble_dir_path) == os.path.relpath(copybackdir):
-            copybackdir += '_back'
-        os.makedirs(copybackdir)
-
-    def check_ensemble_dir(self, libE_specs):
-        prefix = libE_specs.get('ensemble_dir_path', './ensemble')
         try:
-            os.rmdir(prefix)
-        except FileNotFoundError:  # Ensemble dir doesn't exist.
-            pass
+            temp_EnsembleDirectory.make_copyback_check()
         except OSError as e:  # Ensemble dir exists and isn't empty.
-            logger.manager_warning(_USER_CALC_DIR_WARNING.format(prefix))
+            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.prefix))
             self._kill_workers()
             raise ManagerException('Manager errored on initialization',
                                    'Ensemble directory already existed and wasn\'t empty.', e)
@@ -196,7 +206,7 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.given_count >= sim_max + self.hist.offset
+        return self.hist.returned_count >= sim_max + self.hist.offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
@@ -207,6 +217,18 @@ class Manager:
         key, val = stop_val
         H = self.hist.H
         return np.any(filter_nans(H[key][H['returned']]) <= val)
+
+    def work_giving_term_test(self, logged=True):
+        b = self.term_test()
+        if b:
+            return b
+        elif ('sim_max' in self.exit_criteria
+              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset):
+            # To avoid starting more sims if sim_max is an exit criteria
+            logger.info("Ignoring the alloc_f request for more sims than sim_max.")
+            return 1
+        else:
+            return 0
 
     def term_test(self, logged=True):
         """Checks termination criteria"""
@@ -239,7 +261,7 @@ class Manager:
     def _save_every_k_sims(self):
         "Saves history every kth sim step"
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
-                           self.hist.sim_count,
+                           self.hist.returned_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
@@ -254,9 +276,14 @@ class Manager:
         """Checks validity of an allocation function order
         """
         assert w != 0, "Can't send to worker 0; this is the manager."
-        assert self.W[w-1]['active'] == 0, \
-            "Allocation function requested work be sent to to worker %d, an "\
-            "already active worker." % w
+        if self.W[w-1]['active_recv']:
+            assert 'active_recv' in Work['libE_info'], \
+                "Messages to a worker in active_recv mode should have active_recv"\
+                "set to True in libE_info. Work['libE_info'] is {}".format(Work['libE_info'])
+        else:
+            assert self.W[w-1]['active'] == 0, \
+                "Allocation function requested work be sent to worker %d, an "\
+                "already active worker." % w
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             work_fields = set(Work['H_fields'])
@@ -308,7 +335,12 @@ class Manager:
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
-                self.wcomms[w-1].send(0, repack_fields(self.hist.H[Work['H_fields']][work_rows]))
+                new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work['H_fields']]
+                H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
+                for i, row in enumerate(work_rows):
+                    H_to_be_sent[i] = repack_fields(self.hist.H[Work['H_fields']][row])
+                # H_to_be_sent = repack_fields(self.hist.H[Work['H_fields']])[work_rows]
+                self.wcomms[w-1].send(0, H_to_be_sent)
             else:
                 self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
@@ -316,9 +348,14 @@ class Manager:
         """Updates a workers' active/idle status following an allocation order"""
 
         self.W[w-1]['active'] = Work['tag']
-        if 'libE_info' in Work and 'persistent' in Work['libE_info']:
-            self.W[w-1]['persis_state'] = Work['tag']
-
+        if 'libE_info' in Work:
+            if 'persistent' in Work['libE_info']:
+                self.W[w-1]['persis_state'] = Work['tag']
+                if Work['libE_info'].get('active_recv', False):
+                    self.W[w-1]['active_recv'] = Work['tag']
+            else:
+                assert 'active_recv' not in Work['libE_info'], \
+                    "active_recv worker must also be persistent"
         if 'blocking' in Work['libE_info']:
             for w_i in Work['libE_info']['blocking']:
                 assert self.W[w_i-1]['active'] == 0, \
@@ -397,12 +434,24 @@ class Manager:
         if self.resources:
             self._freeup_resources(w)
 
-        if w not in self.persis_pending:
+        if w not in self.persis_pending and not self.W[w-1]['active_recv']:
             self.W[w-1]['active'] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
+            final_data = D_recv.get('calc_out', None)
+            if isinstance(final_data, np.ndarray):
+                if self.libE_specs.get('use_persis_return', False):
+                    if calc_status is FINISHED_PERSISTENT_GEN_TAG:
+                        self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    else:
+                        self.hist.update_history_f(D_recv, self.safe_mode)
+                else:
+                    logger.info(_PERSIS_RETURN_WARNING)
             self.W[w-1]['persis_state'] = 0
+            if self.W[w-1]['active_recv']:
+                self.W[w-1]['active'] = 0
+                self.W[w-1]['active_recv'] = 0
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
                 self.W[w-1]['active'] = 0
@@ -436,18 +485,30 @@ class Manager:
         except CommFinishedException:
             logger.debug("Finalizing message from Worker {}".format(w))
             return
-
         if isinstance(D_recv, WorkerErrMsg):
             self.W[w-1]['active'] = 0
             if not self.WorkerExc:
                 self.WorkerExc = True
                 self._kill_workers()
-                raise ManagerException('Received error message from {}'.format(w),
-                                       D_recv.msg, D_recv.exc)
+                raise WorkerException('Received error message from worker {}'.format(w),
+                                      D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
+
+    def _kill_cancelled_sims(self):
+        kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
+            & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+
+        if np.any(kill_sim):
+            logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
+            kill_ids = self.hist.H['sim_id'][kill_sim]
+            kill_on_workers = self.hist.H['sim_worker'][kill_sim]
+            for w in kill_on_workers:
+                self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
+                self.hist.H['kill_sent'][kill_ids] = True
+                # SH*** Still expecting return? Currrently yes.... else set returned and inactive sim here.
 
     # --- Handle termination
 
@@ -464,7 +525,13 @@ class Manager:
         if any(self.W['persis_state']):
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
-                self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if 'final_fields' in self.libE_specs:
+                    rows_to_send = np.logical_and(self.hist.trim_H()['returned'], ~self.hist.trim_H()['given_back'])
+                    fields_to_send = self.libE_specs['final_fields']
+                    H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
+                    self.wcomms[w-1].send(PERSIS_STOP, H_to_send)
+                else:
+                    self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 if not self.W[w-1]['active']:
                     # Re-activate if necessary
                     self.W[w-1]['active'] = self.W[w-1]['persis_state']
@@ -495,10 +562,16 @@ class Manager:
         fields before the alloc_f call and ensures they weren't modified
         """
         if self.safe_mode:
-            saveH = copy.deepcopy(H[protected_libE_fields])
+            if 'repack_fields' in globals():
+                saveH = repack_fields(H[protected_libE_fields], recurse=True)
+            else:
+                saveH = copy.deepcopy(H[protected_libE_fields])
 
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
+
+        if self.safe_mode:
+            assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
 
         if self.safe_mode:
             assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
@@ -521,6 +594,7 @@ class Manager:
         # Continue receiving and giving until termination test is satisfied
         try:
             while not self.term_test():
+                self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
                 if any(self.W['active'] == 0):
                     Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
@@ -529,14 +603,19 @@ class Manager:
                         break
 
                     for w in Work:
-                        if self.term_test():
+                        if self.work_giving_term_test():
                             break
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(self.W['active'] != 0), \
                     "alloc_f did not return any work, although all workers are idle."
-
+        except WorkerException as e:
+            report_worker_exc(e)
+            raise LoggedException(e.args[0], e.args[1]) from None
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            raise LoggedException(e.args) from None
         finally:
             # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)

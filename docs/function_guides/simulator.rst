@@ -25,6 +25,11 @@ with ``persis_info`` should be familiar::
 
     return local_H_out, persis_info
 
+Between the output array definition and the function returning, any level and complexity
+of computation can be performed. Users are encouraged to use the :doc:`executor<../executor/overview>`
+to submit applications to parallel resources if necessary, or plug in components from
+other libraries to serve their needs.
+
 Simulator functions can also return a :doc:`calc_status<../data_structures/calc_status>`
 integer attribute from the ``libensemble.message_numbers`` module to be logged.
 
