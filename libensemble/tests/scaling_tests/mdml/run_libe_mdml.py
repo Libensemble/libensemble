@@ -27,7 +27,8 @@ exctr.register_calc(full_path=sim_app, app_name='run_openmm')
 exctr.register_calc(full_path=agg_gen_app, app_name='run_aggregate')
 experiment_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_'))
 
-sim_max = 4
+gen_max = 8
+initial_md_runs = 4
 init_sample_parameter_name = 'temperature_kelvin'
 init_sample_parameter_range = [280, 320]
 
@@ -35,7 +36,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
              'in': [init_sample_parameter_name],
              'out': [('file_path', "<U70", (1,)), ('cstat', int, (1,))],
              'user': {'sim_kill_minutes': 15,
-                      'sim_length_ns': 0.01, # 1.0
+                      'sim_length_ns': 0.01,  # 1.0
                       'experiment_directory': experiment_directory,
                       'poll_interval': 1,
                       'dry_run': False,
@@ -55,13 +56,14 @@ gen_specs = {'gen_f': run_agg_ml_gen_f,
                       'agg_dry_run': False,
                       'ml_dry_run': False,
                       'ml_config_file': 'ml_config.yaml',
-                      'initial_sample_size': sim_max,
+                      'initial_sample_size': initial_md_runs,
                       'parameter_range': init_sample_parameter_range}
              }
 
-exit_criteria = {'sim_max': sim_max}
+alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)],
+               'user': {'init_sample_size': initial_md_runs}}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'init_sample_size': 4}}
+exit_criteria = {'gen_max': gen_max}
 
 libE_specs['sim_dirs_make'] = True
 libE_specs['sim_input_dir'] = './sim'

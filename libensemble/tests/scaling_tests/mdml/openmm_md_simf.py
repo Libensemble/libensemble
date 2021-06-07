@@ -2,7 +2,6 @@ import os
 import glob
 import yaml
 import time
-import shutil
 import numpy as np
 
 from libensemble.executors.executor import Executor
