@@ -7,52 +7,47 @@ model_tag: SET_BY_GENF
 init_weights_path: null
 last_n_h5_files: 4
 k_random_old_h5_files: 0
-dataset_name: point_cloud
-rmsd_name: rmsd
-fnc_name: fnc
-num_points: 3375
-num_features: 0
+dataset_name: contact_map
+initial_shape:
+- 28
+- 28
+- 1
+final_shape:
+- 28
+- 28
+- 1
 initial_epochs: 10
 epochs: 10
 batch_size: 32
-optimizer_name: Adam
-optimizer_lr: 0.0001
-latent_dim: 64
-encoder_filters:
+split_pct: 0.8
+shuffle: true
+latent_dim: 10
+conv_layers: 4
+conv_filters:
 - 64
-- 128
-- 256
-- 256
-- 512
-encoder_kernel_sizes:
-- 5
-- 5
-- 3
-- 1
-- 1
-generator_filters:
 - 64
-- 128
-- 512
-- 1024
-discriminator_filters:
-- 512
-- 512
-- 128
 - 64
-encoder_relu_slope: 0.0
-generator_relu_slope: 0.0
-discriminator_relu_slope: 0.0
-use_encoder_bias: true
-use_generator_bias: true
-use_discriminator_bias: true
-noise_mu: 0.0
-noise_std: 1.0
-lambda_rec: 0.5
-lambda_gp: 10.0
-embed_interval: 1
-tsne_interval: 5
-sample_interval: 20
-num_data_workers: 0
-dataset_location: storage
-wandb_project_name: null
+- 64
+conv_filter_shapes:
+-   - 3
+    - 3
+-   - 3
+    - 3
+-   - 3
+    - 3
+-   - 3
+    - 3
+conv_strides:
+-   - 1
+    - 1
+-   - 2
+    - 2
+-   - 1
+    - 1
+-   - 1
+    - 1
+dense_layers: 1
+dense_neurons:
+- 128
+dense_dropouts:
+- 0.25

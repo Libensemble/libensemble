@@ -4,7 +4,7 @@ import datetime
 
 from deepdrivemd.sim.openmm import run_openmm
 from deepdrivemd.aggregation.basic import aggregate
-from deepdrivemd.models.aae import train
+from deepdrivemd.models.keras_cvae import train
 
 from openmm_md_simf import run_openmm_sim_f
 from agg_ml_genf import run_agg_ml_gen_f
