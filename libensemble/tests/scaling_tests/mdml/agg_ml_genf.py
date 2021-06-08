@@ -21,9 +21,8 @@ def polling_loop(task, poll_interval, kill_minutes):
         time.sleep(poll_interval)
         task.poll()
         if task.runtime > kill_minutes*60:
-            task.kill()  # Timeout
+            task.kill()
 
-    # Set calc_status with optional prints.
     if task.finished:
         if task.state == 'FINISHED':
             calc_status = WORKER_DONE
@@ -42,7 +41,7 @@ def polling_loop(task, poll_interval, kill_minutes):
     return calc_status
 
 
-def update_agg_config_file(user, md_dir):
+def update_agg_config_file(user):
     with open(user['agg_config_file'], 'r') as f:
         config = yaml.safe_load(f)
 
@@ -51,6 +50,18 @@ def update_agg_config_file(user, md_dir):
     config['last_n_h5_files'] = user['initial_sample_size']
 
     with open(user['agg_config_file'], 'w') as f:
+        yaml.dump(config, f)
+
+
+def update_ml_config_file(user):
+    with open(user['ml_config_file'], 'r') as f:
+        config = yaml.safe_load(f)
+
+    config['experiment_directory'] = os.getcwd()
+    config['output_path'] = os.getcwd() + '/aae_model' + str(agg_count).zfill(4)
+    config['model_tag'] = 'aae_model' + str(agg_count).zfill(4)
+
+    with open(user['ml_config_file'], 'w') as f:
         yaml.dump(config, f)
 
 
@@ -64,9 +75,27 @@ def submit_aggregation_app(user, exctr):
     if not dry_run:
         calc_status = polling_loop(task, user['poll_interval'], user['agg_kill_minutes'])
         time.sleep(0.2)
-        return glob.glob('aggregation*'), calc_status
+        assert len(glob.glob('aggregation*')), \
+            "Aggregation task didn't produce an output file"
+        return calc_status
     else:
-        return 0, 0
+        return TASK_FAILED
+
+
+def submit_aae_training_app(user, exctr):
+    dry_run = user['ml_dry_run']
+    args = '-c ' + os.path.join(os.getcwd(), user['ml_config_file'])
+    task = exctr.submit(app_name='run_aae_train', app_args=args, wait_on_run=True,
+                        dry_run=dry_run, num_procs=1, num_nodes=1, ranks_per_node=1)
+
+    if not dry_run:
+        calc_status = polling_loop(task, user['poll_interval'], user['ml_kill_minutes'])
+        time.sleep(0.2)
+        assert len(glob.glob('aggregation*')), \
+            "Aggregation task didn't produce an output file"
+        return calc_status
+    else:
+        return TASK_FAILED
 
 
 def preprocess_md_dirs(calc_in):
@@ -76,8 +105,6 @@ def preprocess_md_dirs(calc_in):
         agg_task_dir = os.path.join(agg_expected_md_dir, base_task_dir)
         h5file = calc_in['file_path'][sim_id][0]
         shutil.copytree('../' + h5file.split('/')[-2], agg_task_dir)
-
-    return agg_expected_md_dir
 
 
 def produce_initial_parameter_sample(gen_specs, persis_info):
@@ -100,7 +127,7 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
     tag = None
 
     while True:
-        if not initial_complete:  # initial batch
+        if not initial_complete:
             local_H = produce_initial_parameter_sample(gen_specs, persis_info)
             send_mgr_worker_msg(comm, local_H)
             initial_complete = True
@@ -108,13 +135,15 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
             while tag not in [STOP_TAG, PERSIS_STOP]:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
 
-                md_dir = preprocess_md_dirs(calc_in)
-                update_agg_config_file(user, md_dir)
-                sim_agg_out, cstat = submit_aggregation_app(user, exctr)
+                preprocess_md_dirs(calc_in)
+                update_agg_config_file(user)
+                agg_cstat = submit_aggregation_app(user, exctr)
 
-                if not len(sim_agg_out):
-                    return None, persis_info, TASK_FAILED
-                else:
-                    local_H['agg_cstat'][Work['libE_info']['H_rows']] = cstat
+                local_H['agg_cstat'][Work['libE_info']['H_rows']] = agg_cstat
+
+                update_ml_config_file(user)
+                ml_cstat = submit_aae_training_app(user, exctr)
+
+                local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstat
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG

@@ -84,7 +84,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
     current_dir = os.getcwd().split('/')[-1]  # sim_dir
 
     H_o = np.zeros(1, dtype=sim_specs['out'])
-    H_o['cstat'] = calc_status
+    H_o['sim_cstat'] = calc_status
     H_o['file_path'] = os.path.join(current_dir, output_file[0])  # only sim_dir/output_file
 
     return H_o, persis_info, calc_status

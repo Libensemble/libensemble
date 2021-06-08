@@ -4,6 +4,7 @@ import datetime
 
 from deepdrivemd.sim.openmm import run_openmm
 from deepdrivemd.aggregation.basic import aggregate
+from deepdrivemd.models.aae import train
 
 from openmm_md_simf import run_openmm_sim_f
 from agg_ml_genf import run_agg_ml_gen_f
@@ -21,10 +22,13 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_app = run_openmm.__file__
 agg_gen_app = aggregate.__file__
+ml_gen_app = train.__file__
 
 exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, app_name='run_openmm')
 exctr.register_calc(full_path=agg_gen_app, app_name='run_aggregate')
+exctr.register_calc(full_path=ml_gen_app, app_name='run_aae_train')
+
 experiment_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_'))
 
 gen_max = 8
@@ -34,7 +38,7 @@ init_sample_parameter_range = [280, 320]
 
 sim_specs = {'sim_f': run_openmm_sim_f,
              'in': [init_sample_parameter_name],
-             'out': [('file_path', "<U70", (1,)), ('cstat', int, (1,))],
+             'out': [('file_path', "<U70", (1,)), ('sim_cstat', int, (1,))],
              'user': {'sim_kill_minutes': 15,
                       'sim_length_ns': 0.01,  # 1.0
                       'experiment_directory': experiment_directory,
@@ -54,8 +58,8 @@ gen_specs = {'gen_f': run_agg_ml_gen_f,
                       'poll_interval': 1,
                       'agg_config_file': 'aggregate_config.yaml',
                       'agg_dry_run': False,
-                      'ml_dry_run': False,
                       'ml_config_file': 'ml_config.yaml',
+                      'ml_dry_run': False,
                       'initial_sample_size': initial_md_runs,
                       'parameter_range': init_sample_parameter_range}
              }
