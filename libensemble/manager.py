@@ -438,7 +438,7 @@ class Manager:
             logger.debug("Manager received a log message from worker {}".format(w))
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
-            logger.debug("Manager received data message from from worker {}".format(w))
+            logger.debug("Manager received data message from worker {}".format(w))
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
