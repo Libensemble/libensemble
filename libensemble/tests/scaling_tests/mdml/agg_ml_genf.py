@@ -164,6 +164,12 @@ def preprocess_md_dirs(calc_in):
         shutil.copytree('../' + h5file.split('/')[-2], agg_task_dir)
 
 
+def postprocess_ml_dir(ml_output_dir):
+    sel_expected_ml_dir = './machine_learning_runs/stage' + \
+        str(agg_count).zfill(4) + '/task0000'
+    shutil.copytree(ml_output_dir, sel_expected_ml_dir)
+
+
 def produce_initial_parameter_sample(gen_specs, persis_info):
     user = gen_specs['user']
     initial_sample_size = user['initial_sample_size']
@@ -200,6 +206,7 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
 
                 ml_output_dir = update_ml_config_file(user)
                 ml_cstat = submit_ml_training_app(user, exctr)
+                postprocess_ml_dir(ml_output_dir)
                 local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstat
 
                 update_selection_config_file(user, ml_output_dir)
