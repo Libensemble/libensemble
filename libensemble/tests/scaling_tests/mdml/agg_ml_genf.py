@@ -136,14 +136,25 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
 
                 preprocess_md_dirs(calc_in)
+
                 update_agg_config_file(user)
                 agg_cstat = submit_aggregation_app(user, exctr)
-
                 local_H['agg_cstat'][Work['libE_info']['H_rows']] = agg_cstat
 
-                update_ml_config_file(user)
-                ml_cstat = submit_aae_training_app(user, exctr)
-
+                ml_cstats = []
+                for i in range(user['ml_num_tasks']):
+                    update_ml_config_file(user)
+                    ml_cstats.append(submit_aae_training_app(user, exctr))
                 local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstat
+
+                update_selection_config_file(user)
+                sel_cstat = submit_selection_app(user, exctr)
+                local_H['sel_cstat'][Work['libE_info']['H_rows']] = sel_cstat
+
+                update_agent_config_file(user)
+                agent_cstat = submit_agent_app(user, exctr)
+                local_H['agent_cstat'][Work['libE_info']['H_rows']] = agent_cstat
+
+
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG

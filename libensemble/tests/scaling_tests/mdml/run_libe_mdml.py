@@ -33,6 +33,7 @@ experiment_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.tod
 
 gen_max = 8
 initial_md_runs = 4
+ml_num_tasks = 1
 init_sample_parameter_name = 'temperature_kelvin'
 init_sample_parameter_range = [280, 320]
 
@@ -51,7 +52,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
              'out': [(init_sample_parameter_name, float), ('sim_id', int), ('agg_cstat', int),
-                     ('ml_cstat', int)],
+                     ('ml_cstat', int, ml_num_tasks)],
 
              'user': {'agg_kill_minutes': 15,
                       'ml_kill_minutes': 30,
@@ -61,6 +62,7 @@ gen_specs = {'gen_f': run_agg_ml_gen_f,
                       'agg_config_file': 'aggregate_config.yaml',
                       'agg_dry_run': False,
                       'ml_config_file': 'ml_config.yaml',
+                      'ml_num_tasks': ml_num_tasks,
                       'ml_dry_run': False,
                       'initial_sample_size': initial_md_runs,
                       'parameter_range': init_sample_parameter_range}
