@@ -91,8 +91,8 @@ def submit_aae_training_app(user, exctr):
     if not dry_run:
         calc_status = polling_loop(task, user['poll_interval'], user['ml_kill_minutes'])
         time.sleep(0.2)
-        assert len(glob.glob('aggregation*')), \
-            "Aggregation task didn't produce an output file"
+        assert len(glob.glob('aae_model*')), \
+            "Machine learning task didn't produce an output directory"
         return calc_status
     else:
         return TASK_FAILED

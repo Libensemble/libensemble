@@ -6,18 +6,17 @@ node_local_path: null
 model_tag: SET_BY_GENF
 init_weights_path: null
 last_n_h5_files: 4
-k_random_old_h5_files: 0
+k_random_old_h5_files: 4
 dataset_name: contact_map
 initial_shape:
 - 28
 - 28
-- 1
 final_shape:
 - 28
 - 28
 - 1
-initial_epochs: 10
-epochs: 10
+initial_epochs: 5
+epochs: 5
 batch_size: 32
 split_pct: 0.8
 shuffle: true

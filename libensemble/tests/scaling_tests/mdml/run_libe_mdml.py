@@ -50,7 +50,9 @@ sim_specs = {'sim_f': run_openmm_sim_f,
 
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
-             'out': [(init_sample_parameter_name, float), ('sim_id', int), ('agg_cstat', int)],
+             'out': [(init_sample_parameter_name, float), ('sim_id', int), ('agg_cstat', int),
+                     ('ml_cstat', int)],
+
              'user': {'agg_kill_minutes': 15,
                       'ml_kill_minutes': 30,
                       'sample_parameter_name': init_sample_parameter_name,
