@@ -58,10 +58,32 @@ def update_ml_config_file(user):
         config = yaml.safe_load(f)
 
     config['experiment_directory'] = os.getcwd()
-    config['output_path'] = os.getcwd() + '/aae_model' + str(agg_count).zfill(4)
-    config['model_tag'] = 'aae_model' + str(agg_count).zfill(4)
+    config['output_path'] = os.getcwd() + '/keras_cvae_model' + str(agg_count).zfill(4)
+    config['model_tag'] = 'keras_cvae_model' + str(agg_count).zfill(4)
 
     with open(user['ml_config_file'], 'w') as f:
+        yaml.dump(config, f)
+
+
+def update_selection_config_file(user):
+    with open(user['sel_config_file'], 'r') as f:
+        config = yaml.safe_load(f)
+
+    config['experiment_directory'] = os.getcwd()
+    config['output_path'] = os.getcwd() + '/model_selection' + str(agg_count).zfill(4)
+
+    with open(user['sel_config_file'], 'w') as f:
+        yaml.dump(config, f)
+
+
+def update_agent_config_file(user):
+    with open(user['agent_config_file'], 'r') as f:
+        config = yaml.safe_load(f)
+
+    config['experiment_directory'] = os.getcwd()
+    config['output_path'] = os.getcwd() + '/agent' + str(agg_count).zfill(4)
+
+    with open(user['agent_config_file'], 'w') as f:
         yaml.dump(config, f)
 
 
@@ -82,10 +104,10 @@ def submit_aggregation_app(user, exctr):
         return TASK_FAILED
 
 
-def submit_aae_training_app(user, exctr):
+def submit_ml_training_app(user, exctr):
     dry_run = user['ml_dry_run']
     args = '-c ' + os.path.join(os.getcwd(), user['ml_config_file'])
-    task = exctr.submit(app_name='run_aae_train', app_args=args, wait_on_run=True,
+    task = exctr.submit(app_name='run_ml_train', app_args=args, wait_on_run=True,
                         dry_run=dry_run, num_procs=1, num_nodes=1, ranks_per_node=1)
 
     if not dry_run:
@@ -93,6 +115,38 @@ def submit_aae_training_app(user, exctr):
         time.sleep(0.2)
         assert len(glob.glob('aae_model*')), \
             "Machine learning task didn't produce an output directory"
+        return calc_status
+    else:
+        return TASK_FAILED
+
+
+def submit_selection_app(user, exctr):
+    dry_run = user['sel_dry_run']
+    args = '-c ' + os.path.join(os.getcwd(), user['sel_config_file'])
+    task = exctr.submit(app_name='run_model_select', app_args=args, wait_on_run=True,
+                        dry_run=dry_run, num_procs=1, num_nodes=1, ranks_per_node=1)
+
+    if not dry_run:
+        calc_status = polling_loop(task, user['poll_interval'], user['sel_kill_minutes'])
+        time.sleep(0.2)
+        assert len(glob.glob('model_selection*')), \
+            "Model selection task didn't produce detectable output"
+        return calc_status
+    else:
+        return TASK_FAILED
+
+
+def submit_agent_app(user, exctr):
+    dry_run = user['agent_dry_run']
+    args = '-c ' + os.path.join(os.getcwd(), user['agent_config_file'])
+    task = exctr.submit(app_name='run_outlier_agent', app_args=args, wait_on_run=True,
+                        dry_run=dry_run, num_procs=1, num_nodes=1, ranks_per_node=1)
+
+    if not dry_run:
+        calc_status = polling_loop(task, user['poll_interval'], user['agent_kill_minutes'])
+        time.sleep(0.2)
+        assert len(glob.glob('agent*')), \
+            "Outlier agent task didn't produce detectable output"
         return calc_status
     else:
         return TASK_FAILED
@@ -144,8 +198,8 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
                 ml_cstats = []
                 for i in range(user['ml_num_tasks']):
                     update_ml_config_file(user)
-                    ml_cstats.append(submit_aae_training_app(user, exctr))
-                local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstat
+                    ml_cstats.append(submit_ml_training_app(user, exctr))
+                local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstats
 
                 update_selection_config_file(user)
                 sel_cstat = submit_selection_app(user, exctr)
@@ -154,7 +208,5 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
                 update_agent_config_file(user)
                 agent_cstat = submit_agent_app(user, exctr)
                 local_H['agent_cstat'][Work['libE_info']['H_rows']] = agent_cstat
-
-
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
