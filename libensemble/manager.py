@@ -465,7 +465,7 @@ class Manager:
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
                 if 'final_fields' in self.libE_specs:
-                    rows_to_send = np.logical_and(self.hist.trim_H()['returned'], ~self.hist.trim_H()['given_back'])
+                    rows_to_send = self.hist.trim_H()['returned']
                     fields_to_send = self.libE_specs['final_fields']
                     H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
                     self.wcomms[w-1].send(PERSIS_STOP, H_to_send)
