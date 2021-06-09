@@ -28,7 +28,7 @@ class LogConfig:
         self.stats_name = name + ".calc stats"
         self.filename = "ensemble.log"
         self.stat_filename = 'libE_stats.txt'
-        self.fmt = '[%(worker)s] %(name)s (%(levelname)s): %(message)s'
+        self.fmt = '[%(worker)s]  %(asctime)s %(name)s (%(levelname)s): %(message)s'
         self.stderr_level = logging.MANAGER_WARNING
 
     def set_level(self, level):
