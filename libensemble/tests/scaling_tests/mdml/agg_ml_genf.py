@@ -85,6 +85,7 @@ def update_agent_config_file(user):
 
     config['experiment_directory'] = os.getcwd()
     config['output_path'] = os.getcwd() + '/agent' + str(agg_count).zfill(4)
+    os.makedirs(config['output_path'], exist_ok=True)
 
     with open(user['agent_config_file'], 'w') as f:
         yaml.dump(config, f)
@@ -168,6 +169,7 @@ def postprocess_ml_dir(ml_output_dir):
     sel_expected_ml_dir = './machine_learning_runs/stage' + \
         str(agg_count).zfill(4) + '/task0000'
     shutil.copytree(ml_output_dir, sel_expected_ml_dir)
+    os.makedirs('./model_selection_runs/stage' + str(agg_count).zfill(4) + '/task0000')
 
 
 def produce_initial_parameter_sample(gen_specs, persis_info):

@@ -57,7 +57,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
              'out': [(init_sample_parameter_name, float), ('sim_id', int), ('agg_cstat', int),
-                     ('ml_cstat', int)],
+                     ('ml_cstat', int), ('sel_cstat', int), ('agent_cstat', int)],
 
              'user': {'initial_sample_size': initial_md_runs,
                       'parameter_range': init_sample_parameter_range,
