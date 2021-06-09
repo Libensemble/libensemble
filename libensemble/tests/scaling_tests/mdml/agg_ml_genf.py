@@ -64,13 +64,16 @@ def update_ml_config_file(user):
     with open(user['ml_config_file'], 'w') as f:
         yaml.dump(config, f)
 
+    return config['output_path']
 
-def update_selection_config_file(user):
+
+def update_selection_config_file(user, ml_output_dir):
     with open(user['sel_config_file'], 'r') as f:
         config = yaml.safe_load(f)
 
     config['experiment_directory'] = os.getcwd()
     config['output_path'] = os.getcwd() + '/model_selection' + str(agg_count).zfill(4)
+    config['checkpoint_dir'] = ml_output_dir + '/checkpoint'
 
     with open(user['sel_config_file'], 'w') as f:
         yaml.dump(config, f)
@@ -113,7 +116,7 @@ def submit_ml_training_app(user, exctr):
     if not dry_run:
         calc_status = polling_loop(task, user['poll_interval'], user['ml_kill_minutes'])
         time.sleep(0.2)
-        assert len(glob.glob('aae_model*')), \
+        assert len(glob.glob('keras_cvae_model*')), \
             "Machine learning task didn't produce an output directory"
         return calc_status
     else:
@@ -195,13 +198,11 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
                 agg_cstat = submit_aggregation_app(user, exctr)
                 local_H['agg_cstat'][Work['libE_info']['H_rows']] = agg_cstat
 
-                ml_cstats = []
-                for i in range(user['ml_num_tasks']):
-                    update_ml_config_file(user)
-                    ml_cstats.append(submit_ml_training_app(user, exctr))
-                local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstats
+                ml_output_dir = update_ml_config_file(user)
+                ml_cstat = submit_ml_training_app(user, exctr)
+                local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstat
 
-                update_selection_config_file(user)
+                update_selection_config_file(user, ml_output_dir)
                 sel_cstat = submit_selection_app(user, exctr)
                 local_H['sel_cstat'][Work['libE_info']['H_rows']] = sel_cstat
 
