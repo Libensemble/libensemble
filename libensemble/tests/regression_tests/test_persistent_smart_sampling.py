@@ -18,23 +18,27 @@ import sys
 import numpy as np
 
 from libensemble.libE import libE
-from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
-from libensemble.gen_funcs.persistent_smart_sampling import persistent_smart as gen_f
-from libensemble.alloc_funcs.start_smart_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
+# from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
+from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
+# from libensemble.gen_funcs.persistent_smart_sampling import persistent_smart as gen_f
+# from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
+from libensemble.gen_funcs.simple_optimizer import simple_optimize as gen_f
+from libensemble.alloc_funcs.start_smart_persistent import start_smart_persistent_gens as alloc_f
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams 
+# from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 100
-n = 3
+m = 5
+n = 10
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component'],
-             'out': [('f_i', float)],
+             'out': [('f_i', float), ('gradf_i', float),
+                     ],
              }
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
@@ -43,12 +47,17 @@ gen_specs = {'gen_f': gen_f,
              'out': [('x', float, (n,)), 
                      ('pt_id', int),          # which {x_j} to eval
                      ('obj_component', int),  # which {f_i} to eval
+                     ('num_sims_req', int),   # number of sim evals requested in this batch
                      ],
              'user': {'gen_batch_size': 3,
                       'm': m,
-                      'combine_component_func': lambda x : np.sum(x), 
-                      'lb': (-2-np.pi/10)*np.ones(n),
-                      'ub': 2*np.ones(n)}
+                      'lb' : np.array([-1.2,1]*(n//2)),
+                      'ub' : np.array([-1.2,1]*(n//2)),
+                      # 'lb' : np.ones(n),
+                      # 'ub' : np.ones(n),
+                      # 'lb' : 1e-10*np.ones(n),
+                      # 'ub': 2*np.ones(n)
+                      }
              }
 
 alloc_specs = {'alloc_f': alloc_f, 
@@ -63,7 +72,7 @@ persis_info['num_pts'] = 0
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 5000}
+exit_criteria = {'sim_max': 2000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

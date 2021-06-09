@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as la
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
                                              count_persis_gens, all_returned)
 
@@ -34,9 +35,10 @@ def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_
     for i in avail_worker_ids(W, persistent=True):
 
         ret_sim_idxs_from_gen_i = np.where( 
-                np.logical_and(H['returned'], 
-                    np.logical_and(~H['ret_to_gen'], H['gen_worker']==i ))
-                )[0]
+                np.logical_and(
+                    H['returned'], np.logical_and(
+                    ~H['ret_to_gen'], H['gen_worker']==i )
+                ))[0]
 
         pt_ids_from_gen_i = set(H[ret_sim_idxs_from_gen_i]['pt_id'])
 
@@ -44,50 +46,66 @@ def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_
             continue
 
         root_idxs = np.array([], dtype=int) # which history idxs have sum_i f_i
+        f_i_idxs = persis_info[i].get('f_i_idxs')
 
         for pt_id in pt_ids_from_gen_i:
 
-            # TODO: Can we do consecutive accesses, e.g. tuple (10,44) vs arr [10,11,...,44]?
             subset_sim_idxs = np.where( H[ret_sim_idxs_from_gen_i]['pt_id'] == pt_id )[0]
             ret_sim_idxs_with_pt_id = ret_sim_idxs_from_gen_i[ subset_sim_idxs ]
+            num_sims_req = H[ret_sim_idxs_with_pt_id][0]['num_sims_req']
 
-            assert len(ret_sim_idxs_with_pt_id) <= m, \
-                    "{} incorrect number of sim data pts, expected {}".format( 
-                        len(returned_pt_id_sim_idxs), m)
+            # if len(ret_sim_idxs_with_pt_id) > num_sims_req:
+            #     import ipdb; ipdb.set_trace()
+            #     uuu = 1
 
-            if len(ret_sim_idxs_with_pt_id) == m:
+            assert len(ret_sim_idxs_with_pt_id) <= num_sims_req, \
+                    "{} incorrect number of sim data pts, expected <={}".format( 
+                        len(ret_sim_idxs_with_pt_id), num_sims_req)
 
-                # root_idx = ret_sim_idxs_with_pt_id[0]
+            # TODO: Find another away to determine when the work is all done 
+            if len(ret_sim_idxs_with_pt_id) == num_sims_req:
+                # No summation since distributed optimization solves each f_i with own x_i
 
-                # store the sum of {f_i}'s into the first idx (to reduce comm)
-                # returned_fvals = H[ ret_sim_idxs_with_pt_id ]['f_i']
-                # H[ root_idx ]['f_i'] = gen_specs['user']['combine_component_func'](returned_fvals)
+                # returned_fvals = H[ ret_sim_idxs_with_pt_id ]['gradf_i']
+                # grad_f = np.sum( returned_fvals, axis=0 )
+                # print("Norm: {:.4f} [{}]".format(la.norm(grad_f), len(grad_f)), flush=True)
 
-                returned_fvals = H[ ret_sim_idxs_with_pt_id ]['gradf_i']
-
-                # H[ root_idx ]['gradf_i'] = gen_specs['user']['combine_component_func'](returned_fvals)
-                # root_idxs.append(root_idx)
-
-                grad_f = gen_specs['user']['combine_component_func'](returned_fvals)
-                print("Gradient: {}".format(grad_f), flush=True)
+                assert f_i_idxs is not None, print("gen worker does not have the required `f_i_idxs`")
 
                 root_idxs = np.append(root_idxs, ret_sim_idxs_with_pt_id )
-                H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True # accessing ['ret_to_gen'] is to ensure we do not write to cpy
+                H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True # index by ['ret_to_gen'] first to avoid cpy
 
         if len(root_idxs) > 0:
-            gen_work(Work, i, ['x', 'gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
+            gen_work(Work, i, ['x', 'f_i', 'gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
 
     task_avail = ~H['given'] # & ~H['cancel_requested']
+
+    num_gen_workers = alloc_specs['user']['num_gens']
+
+    # partition sum of convex functions evenly (only do at beginning)
+    if not persis_info.get('init_gens', False) and len( avail_worker_ids(W, persistent=False) ):
+
+        num_funcs_arr = (m//num_gen_workers) * np.ones(num_gen_workers, dtype=int)
+        num_leftover_funcs = m % num_gen_workers
+        num_funcs_arr[:num_leftover_funcs] += 1
+        # builds starting and ending function indices for each gen e.g. if 7
+        # functions split up amongst 3 gens, then num_funcs__arr = [0, 3, 5, 7]
+        num_funcs_arr = np.append(0, np.cumsum(num_funcs_arr))
 
     for i in avail_worker_ids(W, persistent=False):
 
         # start up gens
-        if gen_count < alloc_specs['user']['num_gens']:
+        if not persis_info.get('init_gens', False) and gen_count < num_gen_workers:
 
-            # Finally, call a persistent generator as there is nothing else to do.
             gen_count += 1
+            l_idx, r_idx = num_funcs_arr[gen_count-1], num_funcs_arr[gen_count]
+            persis_info[i].update( {'f_i_idxs': range(l_idx, r_idx)} )
+
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
+
+            if gen_count == num_gen_workers:
+                persis_info['init_gens'] = True
 
         # give sim work when task available 
         elif np.any(task_avail):
