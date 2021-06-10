@@ -32,8 +32,11 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 5
-n = 10
+m = 16
+n = 32
+
+
+assert n==2*m, print("@n must be double of @m")
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component'],
@@ -48,6 +51,9 @@ gen_specs = {'gen_f': gen_f,
                      ('pt_id', int),          # which {x_j} to eval
                      ('obj_component', int),  # which {f_i} to eval
                      ('num_sims_req', int),   # number of sim evals requested in this batch
+                     ('converged', bool),
+                     ('num_f_evals', int),
+                     ('num_gradf_evals', int),
                      ],
              'user': {'gen_batch_size': 3,
                       'm': m,
@@ -62,7 +68,7 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 
                'out'    : [('ret_to_gen', bool)], # whether point has been returned to gen
-               'user'   : {'num_gens' : 2    # number of persistent gens
+               'user'   : {'num_gens' : 4    # number of persistent gens
                            },
                }
 
@@ -72,7 +78,8 @@ persis_info['num_pts'] = 0
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 2000}
+# exit_criteria = {'sim_max': 2000}
+exit_criteria = {'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

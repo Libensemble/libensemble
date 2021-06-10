@@ -3,6 +3,12 @@ import numpy.linalg as la
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
                                              count_persis_gens, all_returned)
 
+# TODO: Place this in support file
+def double_extend(arr):
+    out = np.zeros(len(arr)*2, dtype=type(arr[0]))
+    out[0::2] = 2*np.array(arr)
+    out[1::2] = 2*np.array(arr)+1
+    return out
 
 def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
@@ -34,6 +40,40 @@ def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_
 
     for i in avail_worker_ids(W, persistent=True):
 
+        # first check if gen has converged to a solution
+        convg_sim_idxs_from_gen_i = np.where( 
+                np.logical_and( H['converged'], H['gen_worker']==i )
+                )[0]
+
+        if len(convg_sim_idxs_from_gen_i):
+
+            # assert i in persis_info['gen_list']
+
+            # we should have only one convergence result, so access 0th elem
+            idx = convg_sim_idxs_from_gen_i[0]
+            convg_res = H[idx]
+            persis_info[i]['num_f_evals'] = convg_res['num_f_evals']
+            persis_info[i]['num_gradf_evals'] = convg_res['num_gradf_evals']
+            if 'x_star' not in persis_info:
+                persis_info['x_star'] = np.copy(convg_res['x'])
+            else:
+                x_i_idxs = double_extend(persis_info[i]['f_i_idxs'])
+                persis_info['x_star'][x_i_idxs] = convg_res['x'][x_i_idxs]
+            persis_info['num_convg_gens'] = 1 + persis_info.get('num_convg_gens', 0)
+            H[idx]['converged'] = False
+
+            if persis_info['num_convg_gens'] == len(persis_info['gen_list']):
+                print('#########################')
+                print('# FINAL RESULT ')
+                print('#\n# x={}\n#'.format(persis_info['x_star']))
+                for j in persis_info['gen_list']:
+                    print('# gen {} had {} function and {} (full) gradient evals'.format(j, persis_info[j]['num_f_evals'], persis_info[j]['num_gradf_evals']))
+                print('#')
+                print('#########################')
+
+                # TODO: can we return since immediately since everything has converged?
+                # return Work, persis_info, 0
+
         ret_sim_idxs_from_gen_i = np.where( 
                 np.logical_and(
                     H['returned'], np.logical_and(
@@ -53,10 +93,6 @@ def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_
             subset_sim_idxs = np.where( H[ret_sim_idxs_from_gen_i]['pt_id'] == pt_id )[0]
             ret_sim_idxs_with_pt_id = ret_sim_idxs_from_gen_i[ subset_sim_idxs ]
             num_sims_req = H[ret_sim_idxs_with_pt_id][0]['num_sims_req']
-
-            # if len(ret_sim_idxs_with_pt_id) > num_sims_req:
-            #     import ipdb; ipdb.set_trace()
-            #     uuu = 1
 
             assert len(ret_sim_idxs_with_pt_id) <= num_sims_req, \
                     "{} incorrect number of sim data pts, expected <={}".format( 
@@ -88,6 +124,7 @@ def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_
         num_funcs_arr = (m//num_gen_workers) * np.ones(num_gen_workers, dtype=int)
         num_leftover_funcs = m % num_gen_workers
         num_funcs_arr[:num_leftover_funcs] += 1
+
         # builds starting and ending function indices for each gen e.g. if 7
         # functions split up amongst 3 gens, then num_funcs__arr = [0, 3, 5, 7]
         num_funcs_arr = np.append(0, np.cumsum(num_funcs_arr))
@@ -100,6 +137,12 @@ def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_
             gen_count += 1
             l_idx, r_idx = num_funcs_arr[gen_count-1], num_funcs_arr[gen_count]
             persis_info[i].update( {'f_i_idxs': range(l_idx, r_idx)} )
+
+            # save gen ids to later access convergence results
+            if 'gen_list' not in persis_info:
+                persis_info['gen_list'] = [i]
+            else:
+                persis_info['gen_list'].append(i)
 
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
