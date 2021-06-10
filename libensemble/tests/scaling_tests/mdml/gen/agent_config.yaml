@@ -3,8 +3,8 @@ stage_idx: 0
 task_idx: 0
 output_path: SET_BY_GENF
 node_local_path: null
-num_intrinsic_outliers: 100
-num_extrinsic_outliers: 100
+num_intrinsic_outliers: 38
+num_extrinsic_outliers: 38
 intrinsic_score: lof
 extrinsic_score: null
 n_traj_frames: 200
