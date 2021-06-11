@@ -10,7 +10,7 @@ def double_extend(arr):
     out[1::2] = 2*np.array(arr)+1
     return out
 
-def start_smart_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start up to one persistent generator. By default, evaluation
