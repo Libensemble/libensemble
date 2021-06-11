@@ -20,7 +20,7 @@ def double_extend(arr):
     out[1::2] = 2*np.array(arr)+1
     return out
 
-def simple_optimize(H, persis_info, gen_specs, libE_info):
+def independent_optimize(H, persis_info, gen_specs, libE_info):
     """ Uses scipy.optimize to solve objective function
     """
     f_i_idxs = persis_info.get('f_i_idxs')
