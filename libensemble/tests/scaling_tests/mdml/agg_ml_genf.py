@@ -5,7 +5,6 @@ __all__ = ['run_agg_ml_gen_f']
 import os
 import glob
 import time
-import json
 import yaml
 import shutil
 import numpy as np
@@ -42,66 +41,37 @@ def polling_loop(task, poll_interval, kill_minutes):
     return calc_status
 
 
-def update_agg_config_file(user):
-    with open(user['agg_config_file'], 'r') as f:
+def update_config_file(user, app_type, optional_path=None):
+    with open(user[app_type + '_config'], 'r') as f:
         config = yaml.safe_load(f)
 
     config['experiment_directory'] = os.getcwd()
-    config['output_path'] = os.getcwd() + '/aggregation_runs/stage' + str(agg_count).zfill(4) + '/task0000'
-    config['last_n_h5_files'] = user['initial_sample_size']
+    config['output_path'] = os.getcwd() + '/{}_runs/stage'.format(app_type) + str(agg_count).zfill(4) + '/task0000'
 
-    with open(user['agg_config_file'], 'w') as f:
-        yaml.dump(config, f)
+    if app_type == 'aggregation':
+        config['last_n_h5_files'] = user['initial_sample_size']
+    elif app_type == 'machine_learning':
+        config['model_tag'] = 'keras_cvae_model' + str(agg_count).zfill(4)
+    elif app_type == 'model_selection':
+        config['checkpoint_dir'] = optional_path + '/checkpoint'
+    elif app_type == 'agent':
+        os.makedirs(config['output_path'], exist_ok=True)
 
-
-def update_ml_config_file(user):
-    with open(user['ml_config_file'], 'r') as f:
-        config = yaml.safe_load(f)
-
-    config['experiment_directory'] = os.getcwd()
-    config['output_path'] = os.getcwd() + '/keras_cvae_model' + str(agg_count).zfill(4)
-    config['model_tag'] = 'keras_cvae_model' + str(agg_count).zfill(4)
-
-    with open(user['ml_config_file'], 'w') as f:
+    with open(user[app_type + '_config'], 'w') as f:
         yaml.dump(config, f)
 
     return config['output_path']
 
 
-def update_selection_config_file(user, ml_output_dir):
-    with open(user['sel_config_file'], 'r') as f:
-        config = yaml.safe_load(f)
-
-    config['experiment_directory'] = os.getcwd()
-    config['output_path'] = os.getcwd() + '/model_selection' + str(agg_count).zfill(4)
-    config['checkpoint_dir'] = ml_output_dir + '/checkpoint'
-
-    with open(user['sel_config_file'], 'w') as f:
-        yaml.dump(config, f)
-
-
-def update_agent_config_file(user):
-    with open(user['agent_config_file'], 'r') as f:
-        config = yaml.safe_load(f)
-
-    config['experiment_directory'] = os.getcwd()
-    config['output_path'] = os.getcwd() + '/agent_runs/stage' + str(agg_count).zfill(4) + '/task0000'
-
-    os.makedirs(config['output_path'], exist_ok=True)
-
-    with open(user['agent_config_file'], 'w') as f:
-        yaml.dump(config, f)
-
-
-def submit_application(exctr, exctr_app_name, app_type, output_name, user):
-    args = '-c ' + os.path.join(os.getcwd(), user[app_type + '_config_file'])
-    task = exctr.submit(app_name=exctr_app_name, app_args=args, wait_on_run=True,
+def submit_application(exctr, user, app_type):
+    args = '-c ' + os.path.join(os.getcwd(), user[app_type + '_config'])
+    task = exctr.submit(app_name=app_type, app_args=args, wait_on_run=True,
                         num_procs=1, num_nodes=1, ranks_per_node=1)
 
-    calc_status = polling_loop(task, user['poll_interval'], user['agg_kill_minutes'])
+    calc_status = polling_loop(task, user['poll_interval'], user[app_type + '_kill_minutes'])
     time.sleep(0.2)
-    assert len(glob.glob(output_name + '*')), \
-        output_name + " task didn't produce detectable output"
+    assert len(glob.glob(app_name + '_runs*')), \
+        app_name + " task didn't produce detectable output"
     return calc_status
 
 
@@ -114,13 +84,13 @@ def preprocess_md_dirs(calc_in):
         shutil.copytree('../' + h5file.split('/')[-2], agg_task_dir)
 
 
-def postprocess_ml_dir(user, ml_output_dir):
-    sel_expected_ml_dir = './machine_learning_runs/stage' + \
-        str(agg_count).zfill(4) + '/task0000'
-    shutil.copytree(ml_output_dir, sel_expected_ml_dir)
-    shutil.copy(user['ml_config_file'], os.path.join(sel_expected_ml_dir, 'stage' + str(agg_count).zfill(4) + '_task0000.yaml'))
-    os.makedirs('./model_selection_runs/stage' + str(agg_count).zfill(4) + '/task0000')
-    os.makedirs('./agent_runs/stage' + str(agg_count).zfill(4) + '/task0000')
+# def postprocess_ml_dir(user, ml_output_dir):
+#     sel_expected_ml_dir = './machine_learning_runs/stage' + \
+#         str(agg_count).zfill(4) + '/task0000'
+#     shutil.copytree(ml_output_dir, sel_expected_ml_dir)
+#     shutil.copy(user['ml_config_file'], os.path.join(sel_expected_ml_dir,
+#                                                      'stage' + str(agg_count).zfill(4) + '_task0000.yaml'))
+#     os.makedirs('./model_selection_runs/stage' + str(agg_count).zfill(4) + '/task0000')
 
 
 def produce_initial_parameter_sample(gen_specs, persis_info):
@@ -139,7 +109,6 @@ def produce_initial_parameter_sample(gen_specs, persis_info):
 
 def produce_subsequent_md_runs(local_H, gen_specs, persis_info):
     pass
-
 
 
 def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
@@ -161,23 +130,23 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
                 preprocess_md_dirs(calc_in)
 
                 if not user['skip_aggregation']:
-                    update_agg_config_file(user)
-                    agg_cstat = submit_application(exctr, 'run_aggregate', 'agg', 'aggregation', user)
-                    local_H['agg_cstat'][Work['libE_info']['H_rows']] = agg_cstat
+                    update_config_file(user, 'aggregation')
+                    agg_cstat = submit_application(exctr, user, 'aggregation')
+                    local_H['aggregation_cstat'][Work['libE_info']['H_rows']] = agg_cstat
                 else:
                     local_H['agg_cstat'][Work['libE_info']['H_rows']] = 0
 
-                ml_output_dir = update_ml_config_file(user)
-                ml_cstat = submit_application(exctr, 'run_ml_train', 'ml', 'keras_cvae_model', user)
-                postprocess_ml_dir(user, ml_output_dir)
-                local_H['ml_cstat'][Work['libE_info']['H_rows']] = ml_cstat
+                ml_output_dir = update_config_file(user, 'machine_learning')
+                ml_cstat = submit_application(exctr, user, 'machine_learning')
+                # postprocess_ml_dir(user, ml_output_dir)
+                local_H['machine_learning_cstat'][Work['libE_info']['H_rows']] = ml_cstat
 
-                update_selection_config_file(user, ml_output_dir)
-                sel_cstat = submit_application(exctr, 'run_model_select', 'sel', 'model_selection', user)
-                local_H['sel_cstat'][Work['libE_info']['H_rows']] = sel_cstat
+                update_config_file(user, 'model_selection')
+                sel_cstat = submit_application(exctr, user, 'model_selection')
+                local_H['model_selection_cstat'][Work['libE_info']['H_rows']] = sel_cstat
 
-                update_agent_config_file(user)
-                agent_cstat = submit_application(exctr, 'run_outlier_agent', 'agent', 'agent', user)
+                update_agent_config_file(user, 'agent')
+                agent_cstat = submit_application(exctr, user, 'agent'
                 local_H['agent_cstat'][Work['libE_info']['H_rows']] = agent_cstat
 
                 print('all done!')

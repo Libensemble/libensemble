@@ -28,11 +28,11 @@ ml_gen_app = train.__file__
 sel_gen_app = select_model.__file__
 agent_gen_app = lof.__file__
 
-ddmd_apps = {'run_openmm': sim_app,
-             'run_aggregate': agg_gen_app,
-             'run_ml_train': ml_gen_app,
-             'run_model_select': sel_gen_app,
-             'run_outlier_agent': agent_gen_app}
+ddmd_apps = {'molecular_dynamics': sim_app,
+             'aggregation': agg_gen_app,
+             'machine_learning': ml_gen_app,
+             'model_selection': sel_gen_app,
+             'agent': agent_gen_app}
 
 exctr = MPIExecutor()
 
@@ -55,30 +55,29 @@ sim_specs = {'sim_f': run_openmm_sim_f,
                       'poll_interval': 1,
                       'dry_run': False,
                       'sample_parameter_name': init_sample_parameter_name,
-                      'config_file': 'md_config.yaml'}
+                      'config_file': 'molecular_dynamics.yaml'}
              }
 
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
-             'out': [(init_sample_parameter_name, float), ('sim_id', int), ('do_initial', bool),
-                     ('agg_cstat', int), ('ml_cstat', int), ('sel_cstat', int), ('agent_cstat', int)],
-
+             'out': [(init_sample_parameter_name, float), ('sim_id', int),
+                     ('do_initial', bool)],
              'user': {'initial_sample_size': initial_md_runs,
                       'parameter_range': init_sample_parameter_range,
                       'sample_parameter_name': init_sample_parameter_name,
                       'experiment_directory': experiment_directory,
                       'poll_interval': 1,
                       'skip_aggregation': True,
-                      'agg_kill_minutes': 15,
-                      'agg_config_file': 'aggregate_config.yaml',
-                      'ml_kill_minutes': 30,
-                      'ml_config_file': 'ml_config.yaml',
-                      'sel_kill_minutes': 15,
-                      'sel_config_file': 'selection_config.yaml',
+                      'aggregation_kill_minutes': 15,
+                      'machine_learning_kill_minutes': 30,
+                      'model_selection_kill_minutes': 15,
                       'agent_kill_minutes': 15,
-                      'agent_config_file': 'agent_config.yaml'
                       }
              }
+
+for app in ddmd_apps:
+    gen_specs['user'][app + '_config'] = app + '.yaml'
+    gen_specs['out'].append((app + '_cstat', int))
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)],
                'user': {'init_sample_size': initial_md_runs}}
