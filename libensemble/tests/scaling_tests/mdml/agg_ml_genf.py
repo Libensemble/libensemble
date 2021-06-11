@@ -116,6 +116,7 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
     user = gen_specs['user']
     exctr = Executor.executor
     initial_complete = False
+    apps = ['aggregation', 'machine_learning', 'model_selection', 'agent']
     tag = None
 
     while True:
@@ -129,25 +130,13 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
 
                 preprocess_md_dirs(calc_in)
 
-                if not user['skip_aggregation']:
-                    update_config_file(user, 'aggregation')
-                    agg_cstat = submit_application(exctr, user, 'aggregation')
-                    local_H['aggregation_cstat'][Work['libE_info']['H_rows']] = agg_cstat
-                else:
-                    local_H['agg_cstat'][Work['libE_info']['H_rows']] = 0
-
-                ml_output_dir = update_config_file(user, 'machine_learning')
-                ml_cstat = submit_application(exctr, user, 'machine_learning')
-                # postprocess_ml_dir(user, ml_output_dir)
-                local_H['machine_learning_cstat'][Work['libE_info']['H_rows']] = ml_cstat
-
-                update_config_file(user, 'model_selection')
-                sel_cstat = submit_application(exctr, user, 'model_selection')
-                local_H['model_selection_cstat'][Work['libE_info']['H_rows']] = sel_cstat
-
-                update_agent_config_file(user, 'agent')
-                agent_cstat = submit_application(exctr, user, 'agent'
-                local_H['agent_cstat'][Work['libE_info']['H_rows']] = agent_cstat
+                for app in apps:
+                    if 'skip_' + app in gen_specs['user']:
+                        if gen_specs['user']['skip_' + app]:
+                            continue
+                    update_config_file(user, app)
+                    calc_status = submit_application(exctr, user, app)
+                    local_H[app + '_cstat'][Work['libE_info']['H_rows']] = calc_status
 
                 print('all done!')
                 # local_H, persis_info = produce_subsequent_md_runs(local_H, gen_specs, persis_info)
