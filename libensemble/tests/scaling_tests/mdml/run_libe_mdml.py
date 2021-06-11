@@ -28,12 +28,16 @@ ml_gen_app = train.__file__
 sel_gen_app = select_model.__file__
 agent_gen_app = lof.__file__
 
+ddmd_apps = {'run_openmm': sim_app,
+             'run_aggregate': agg_gen_app,
+             'run_ml_train': ml_gen_app,
+             'run_model_select': sel_gen_app,
+             'run_outlier_agent': agent_gen_app}
+
 exctr = MPIExecutor()
-exctr.register_calc(full_path=sim_app, app_name='run_openmm')
-exctr.register_calc(full_path=agg_gen_app, app_name='run_aggregate')
-exctr.register_calc(full_path=ml_gen_app, app_name='run_ml_train')
-exctr.register_calc(full_path=sel_gen_app, app_name='run_model_select')
-exctr.register_calc(full_path=agent_gen_app, app_name='run_outlier_agent')
+
+for app in ddmd_apps:
+    exctr.register_calc(full_path=ddmd_apps[app], app_name=app)
 
 experiment_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_'))
 
@@ -43,7 +47,7 @@ init_sample_parameter_name = 'temperature_kelvin'
 init_sample_parameter_range = [280, 320]
 
 sim_specs = {'sim_f': run_openmm_sim_f,
-             'in': [init_sample_parameter_name],
+             'in': [init_sample_parameter_name, 'do_initial'],
              'out': [('file_path', "<U70", (1,)), ('sim_cstat', int, (1,))],
              'user': {'sim_kill_minutes': 15,
                       'sim_length_ns': 0.01,  # 1.0
@@ -56,26 +60,24 @@ sim_specs = {'sim_f': run_openmm_sim_f,
 
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
-             'out': [(init_sample_parameter_name, float), ('sim_id', int), ('agg_cstat', int),
-                     ('ml_cstat', int), ('sel_cstat', int), ('agent_cstat', int)],
+             'out': [(init_sample_parameter_name, float), ('sim_id', int), ('do_initial', bool),
+                     ('agg_cstat', int), ('ml_cstat', int), ('sel_cstat', int), ('agent_cstat', int)],
 
              'user': {'initial_sample_size': initial_md_runs,
                       'parameter_range': init_sample_parameter_range,
                       'sample_parameter_name': init_sample_parameter_name,
                       'experiment_directory': experiment_directory,
                       'poll_interval': 1,
+                      'skip_aggregation': True,
                       'agg_kill_minutes': 15,
                       'agg_config_file': 'aggregate_config.yaml',
-                      'agg_dry_run': False,
                       'ml_kill_minutes': 30,
                       'ml_config_file': 'ml_config.yaml',
-                      'ml_dry_run': False,
                       'sel_kill_minutes': 15,
                       'sel_config_file': 'selection_config.yaml',
-                      'sel_dry_run': False,
                       'agent_kill_minutes': 15,
-                      'agent_config_file': 'agent_config.yaml',
-                      'agent_dry_run': False}
+                      'agent_config_file': 'agent_config.yaml'
+                      }
              }
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)],

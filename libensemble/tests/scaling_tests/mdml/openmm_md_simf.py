@@ -8,7 +8,7 @@ from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 
-def update_config_file(sim_specs, sample_parameter_value):
+def update_config_file(H, sim_specs, sample_parameter_value):
     here = os.getcwd()
 
     config_file = sim_specs['user']['config_file']
@@ -17,11 +17,16 @@ def update_config_file(sim_specs, sample_parameter_value):
 
     config['experiment_directory'] = sim_specs['user']['experiment_directory']
     config['output_path'] = here
-    config['pdb_file'] = os.path.join(here, '1FME-unfolded.pdb')
-    config['initial_pdb_dir'] = here
     config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
     config[sim_specs['user']['sample_parameter_name']] = float(round(sample_parameter_value))
     config['simulation_length_ns'] = sim_specs['user']['sim_length_ns']
+
+    if H['do_initial']:
+        config['pdb_file'] = os.path.join(here, '1FME-unfolded.pdb')
+        config['initial_pdb_dir'] = here
+    else:
+        config['pdb_file'] = None
+        config['initial_pdb_dir'] = None
 
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
@@ -59,7 +64,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
     sample_parameter_name = sim_specs['user']['sample_parameter_name']
     sample_parameter_value = H[sample_parameter_name][0]
     dry_run = sim_specs['user']['dry_run']
-    update_config_file(sim_specs, sample_parameter_value)
+    update_config_file(H, sim_specs, sample_parameter_value)
 
     config_file = sim_specs['user']['config_file']
     args = '-c ' + os.path.join(os.getcwd(), config_file)
