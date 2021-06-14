@@ -45,7 +45,7 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     gen_count = count_persis_gens(W)
 
     if persis_info.get('first_call', True):
-        alg_vars = define_alg_vars(gen_specs, persis_info)
+        alg_vars = define_alg_vars(alloc_specs, gen_specs, persis_info)
         persis_info['first_call'] = False
         persis_info['alg_vars'] = alg_vars  # parameters needed for optimization alg
         persis_info['iter_ct'] = 1          # number of outer iterations
@@ -68,7 +68,7 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # if no more prox steps, gen is waiting for gradient of consensus
         # (requires all gens to be fininshed) and the gen does need sims yet
-        if persis_info[i]['num_prox_steps_left'] > 0:
+        if persis_info[i]['num_prox_steps_left'] == 0:
             num_gens_done_with_ps += 1
             continue
         else:
@@ -103,7 +103,7 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True 
 
         if len(root_idxs) > 0:
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             gen_work(Work, i, ['gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
 
     all_gens_done_with_ps = num_gens_done_with_ps == alloc_specs['user']['num_gens']
@@ -136,17 +136,20 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # construct array that has each gen's last index in History array, 
         # which corresponds to where {x_k underscore} is stored
-        gen_last_H_idx = np.zeros(num_gens_done_with_ps)
+        gen_last_H_idx = np.zeros(num_gens_done_with_ps, dtype=int)
 
         for i, gen_id in enumerate(avail_persis_worker_ids):
-            idxs_todo_from_gen = H[ ~H['given'] ][ H['gen_id'] == gen_id ]
+            # TODO: Error here
+            idxs_todo_from_gen = np.where(
+                np.logical_and( ~H['given'],  H['gen_worker'] == gen_id)
+                )[0]
             assert len(idxs_todo_from_gen), print("gen did not send {x_k underscore}")
             last_idx_from_gen_i = idxs_todo_from_gen[-1]
             gen_last_H_idx[i] = last_idx_from_gen_i
             H[last_idx_from_gen_i]['given'] = True
 
+        k = persis_info['iter_ct'] 
         A = persis_info['alg_vars']['A']
-        k = persis_info['alg_vars']['iter_ct'] 
         L = persis_info['alg_vars']['L']
         N = persis_info['alg_vars']['N']
         M2 = persis_info['alg_vars']['M2']
@@ -168,9 +171,9 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             persis_info[gen_id]['beta_k'] = b_k
             persis_info[gen_id]['gamma_k'] = g_k
 
-            neighrbo_gens = A.indices[ A.indptr[i]:A.indptr[i+1] ]
-            assert i not in neighbor_gens_last_H_idx, print("adjacency matrix @A must cannot have nonzero on diagonal")
-            neighbor_gens_last_H_idx = neighbor_last_H_idx[ incident_gens ]
+            incident_gens = A.indices[ A.indptr[i]:A.indptr[i+1] ]
+            assert i not in incident_gens, print("adjacency matrix @A must cannot have nonzero on diagonal")
+            neighbor_gens_last_H_idx = gen_last_H_idx[ incident_gens ]
 
             import ipdb; ipdb.set_trace()
             gen_work(Work, gen_id, ['x'], np.atleast_1d(neighbor_gens_last_H_idx), 
@@ -212,7 +215,7 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 'eps': persis_info['alg_vars']['eps'], 
                 'N':persis_info['alg_vars']['N'],
                 })
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
 
@@ -230,7 +233,7 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     return Work, persis_info, 0
 
-def define_alg_vars(gen_specs, persis_info):
+def define_alg_vars(alloc_specs, gen_specs, persis_info):
     """ Variables for prox-slide algorithm 
     """
     ub = gen_specs['user']['ub']
@@ -264,7 +267,8 @@ def define_alg_vars(gen_specs, persis_info):
 
     # chain matrix
     # TODO: Define different types of matrices
-    diagonals = [np.ones(m-1), np.ones(m-1)]
+    num_gens = alloc_specs['user']['num_gens']
+    diagonals = [np.ones(num_gens-1), np.ones(num_gens-1)]
     A = spp.csr_matrix( spp.diags(diagonals, [-1,1]) )
     # W = spp.kron(Wbar, spp.eye(n)) 
     lam_min = eps
