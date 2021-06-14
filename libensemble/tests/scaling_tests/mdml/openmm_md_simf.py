@@ -73,7 +73,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     # Only one process needed since bulk work presumably done on GPU. If not,
     #  then OpenMM app can take advantage of cores itself.
-    task = exctr.submit(app_name='run_openmm', app_args=args, wait_on_run=True,
+    task = exctr.submit(app_name='molecular_dynamics', app_args=args, wait_on_run=True,
                         dry_run=dry_run, num_procs=1, num_nodes=1, ranks_per_node=1)
 
     if not dry_run:

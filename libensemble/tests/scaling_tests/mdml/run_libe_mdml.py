@@ -2,6 +2,12 @@
 import os
 import datetime
 
+from libensemble.libE import libE
+from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble import libE_logger
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+
 from deepdrivemd.sim.openmm import run_openmm
 from deepdrivemd.aggregation.basic import aggregate
 from deepdrivemd.models.keras_cvae import train
@@ -10,13 +16,6 @@ from deepdrivemd.agents.lof import lof
 
 from openmm_md_simf import run_openmm_sim_f
 from agg_ml_genf import run_agg_ml_gen_f
-
-from libensemble.libE import libE
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble import libE_logger
-
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 
 libE_logger.set_level('INFO')  # INFO is now default
 
@@ -65,7 +64,6 @@ gen_specs = {'gen_f': run_agg_ml_gen_f,
              'user': {'initial_sample_size': initial_md_runs,
                       'parameter_range': init_sample_parameter_range,
                       'sample_parameter_name': init_sample_parameter_name,
-                      'experiment_directory': experiment_directory,
                       'poll_interval': 1,
                       'skip_aggregation': True,
                       'aggregation_kill_minutes': 15,
