@@ -3,8 +3,10 @@
 __all__ = ['run_agg_ml_gen_f']
 
 import os
+import glob
 import time
 import yaml
+import json
 import shutil
 import numpy as np
 from libensemble.executors.executor import Executor
@@ -12,7 +14,7 @@ from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSIST
                                          WORKER_DONE, WORKER_KILL, TASK_FAILED)
 from libensemble.tools.gen_support import get_mgr_worker_msg, send_mgr_worker_msg
 
-agg_count = 0
+stage_count = 0
 
 
 def polling_loop(task, poll_interval, kill_minutes):
@@ -44,19 +46,19 @@ def update_config_file(user, app_type):
     with open(user[app_type + '_config'], 'r') as f:
         config = yaml.safe_load(f)
 
-    output_path = os.getcwd() + '/{}_runs/stage'.format(app_type) + str(agg_count).zfill(4) + '/task0000'
+    output_path = os.getcwd() + '/{}_runs/stage'.format(app_type) + str(stage_count).zfill(4) + '/task0000'
     config['experiment_directory'] = os.getcwd()
     config['output_path'] = output_path
 
     if app_type == 'aggregation':
         config['last_n_h5_files'] = user['initial_sample_size']
     elif app_type == 'machine_learning':
-        config['model_tag'] = 'keras_cvae_model' + str(agg_count).zfill(4)
+        config['model_tag'] = 'keras_cvae_model' + str(stage_count).zfill(4)
     elif app_type == 'model_selection':
         config['checkpoint_dir'] = output_path.replace(app_type, 'machine_learning') + '/checkpoint'
 
     os.makedirs(output_path, exist_ok=True)
-    task_config = os.path.join(output_path, 'stage' + str(agg_count).zfill(4) + '_task0000.yaml')
+    task_config = os.path.join(output_path, 'stage' + str(stage_count).zfill(4) + '_task0000.yaml')
 
     with open(task_config, 'w') as f:
         yaml.dump(config, f)
@@ -78,11 +80,11 @@ def submit_application(exctr, user, app_type, output_path, task_config):
 
 
 def preprocess_md_dirs(calc_in):
-    agg_expected_md_dir = './molecular_dynamics_runs/stage' + str(agg_count).zfill(4)
+    agg_expected_md_dir = './molecular_dynamics_runs/stage' + str(stage_count).zfill(4)
     for sim_id in calc_in['sim_id']:
         base_task_dir = 'task' + str(sim_id).zfill(4)
         agg_task_dir = os.path.join(agg_expected_md_dir, base_task_dir)
-        h5file = calc_in['file_path'][sim_id][0]
+        h5file = calc_in['file_path'][sim_id]
         shutil.copytree('../' + h5file.split('/')[-2], agg_task_dir)
 
 
@@ -95,13 +97,27 @@ def produce_initial_parameter_sample(gen_specs, persis_info):
     sampled_points = persis_info['rand_stream'].uniform(pr[0], pr[1], initial_sample_size)
     init_H[user['sample_parameter_name']] = sampled_points
     init_H['sim_id'] = np.arange(initial_sample_size)
-    init_H['do_initial'] = [True for i in range(initial_sample_size)]
+    init_H['stage_id'] = [0 for i in range(initial_sample_size)]
+    init_H['initial'] = [True for i in range(initial_sample_size)]
+    init_H['gen_dir_loc'] = [os.getcwd().split('/')[-1] for i in range(initial_sample_size)]
     persis_info['last_sim_id'] = init_H['sim_id'][-1]
     return init_H, persis_info
 
 
-def produce_subsequent_md_runs(local_H, gen_specs, persis_info):
-    pass
+def produce_subsequent_md_runs(gen_specs, persis_info, output_path):
+    stage_count += 1
+
+    with open(os.path.join(output_path, glob.glob(output_path + '/stage*_task*.json')[0]), 'r') as f:
+        agent_output = json.load(f)
+
+    subseq_H = np.zeros(len(agent_output), dtype=gen_specs['out'])
+    subseq_H['sim_id'] = np.arange(persis_info['last_sim_id'], persis_info['last_sim_id'] + len(agent_output))
+    subseq_H['stage_id'] = [stage_count for i in range(len(agent_output))]
+    subseq_H['initial'] = [False for i in range(initial_sample_size)]
+    subseq_H['gen_dir_loc'] = [os.getcwd().split('/')[-1] for i in range(len(agent_output))]
+    persis_info['last_sim_id'] = subseq_H['sim_id'][-1]
+
+    return subseq_H, persis_info
 
 
 def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
@@ -118,8 +134,10 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
             send_mgr_worker_msg(comm, local_H)
             initial_complete = True
         else:
-            while tag not in [STOP_TAG, PERSIS_STOP]:
+            while True:
                 tag, Work, calc_in = get_mgr_worker_msg(comm)
+                if tag in [STOP_TAG, PERSIS_STOP]:
+                    break
 
                 preprocess_md_dirs(calc_in)
 
@@ -131,8 +149,7 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
                     calc_status = submit_application(exctr, user, app, output_path, task_config)
                     local_H[app + '_cstat'][Work['libE_info']['H_rows']] = calc_status
 
-                print('all done!')
-                # local_H, persis_info = produce_subsequent_md_runs(local_H, gen_specs, persis_info)
-                # send_mgr_worker_msg(comm, local_H)
+                local_H, persis_info = produce_subsequent_md_runs(gen_specs, persis_info, output_path)
+                send_mgr_worker_msg(comm, local_H)
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG

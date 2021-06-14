@@ -1,6 +1,6 @@
 experiment_directory: SET_BY_SIMF
-stage_idx: 0
-task_idx: 0
+stage_idx: SET_BY_SIMF
+task_idx: SET_BY_SIMF
 output_path: SET_BY_SIMF
 node_local_path: null
 pdb_file: SET_BY_SIMF

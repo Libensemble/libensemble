@@ -15,18 +15,19 @@ def update_config_file(H, sim_specs, sample_parameter_value):
     with open(config_file, 'r') as f:
         config = yaml.safe_load(f)
 
-    config['experiment_directory'] = sim_specs['user']['experiment_directory']
+    config['experiment_directory'] = os.path.abspath('../' + H['gen_dir_loc'][0])
     config['output_path'] = here
+    config['initial_pdb_dir'] = here
     config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
     config[sim_specs['user']['sample_parameter_name']] = float(round(sample_parameter_value))
     config['simulation_length_ns'] = sim_specs['user']['sim_length_ns']
+    config['task_idx'] = int(H['sim_id'])
+    config['stage_idx'] = int(H['stage_id'])
 
-    if H['do_initial']:
+    if H['initial']:
         config['pdb_file'] = os.path.join(here, '1FME-unfolded.pdb')
-        config['initial_pdb_dir'] = here
     else:
         config['pdb_file'] = None
-        config['initial_pdb_dir'] = None
 
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
