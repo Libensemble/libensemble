@@ -29,14 +29,9 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
     Work = {}
     gen_count = count_persis_gens(W)
 
-    if persis_info.get('first_call', True):
-        persis_info['first_call'] = False
-
     # Exit if all persistent gens are done
-    elif gen_count == 0:
+    if (not persis_info.get('first_call', True)) and gen_count == 0:
         return Work, persis_info, 1
-
-    m = gen_specs['user']['m']
 
     for i in avail_worker_ids(W, persistent=True):
 
@@ -100,11 +95,6 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
 
             # TODO: Find another away to determine when the work is all done 
             if len(ret_sim_idxs_with_pt_id) == num_sims_req:
-                # No summation since distributed optimization solves each f_i with own x_i
-
-                # returned_fvals = H[ ret_sim_idxs_with_pt_id ]['gradf_i']
-                # grad_f = np.sum( returned_fvals, axis=0 )
-                # print("Norm: {:.4f} [{}]".format(la.norm(grad_f), len(grad_f)), flush=True)
 
                 assert f_i_idxs is not None, print("gen worker does not have the required `f_i_idxs`")
 
@@ -112,27 +102,21 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                 H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True # index by ['ret_to_gen'] first to avoid cpy
 
         if len(root_idxs) > 0:
+            persis_info[i]['random']={'msg': 'dancing'}
             gen_work(Work, i, ['x', 'f_i', 'gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
 
-    task_avail = ~H['given'] # & ~H['cancel_requested']
-
-    num_gen_workers = alloc_specs['user']['num_gens']
+    num_req_gens = alloc_specs['user']['num_gens']
 
     # partition sum of convex functions evenly (only do at beginning)
-    if not persis_info.get('init_gens', False) and len( avail_worker_ids(W, persistent=False) ):
+    if persis_info.get('first_call', True) and len( avail_worker_ids(W, persistent=False) ):
+        num_funcs_arr = partition_funcs_evenly_as_arr(alloc_specs['user']['num_gens'], num_req_gens)
 
-        num_funcs_arr = (m//num_gen_workers) * np.ones(num_gen_workers, dtype=int)
-        num_leftover_funcs = m % num_gen_workers
-        num_funcs_arr[:num_leftover_funcs] += 1
-
-        # builds starting and ending function indices for each gen e.g. if 7
-        # functions split up amongst 3 gens, then num_funcs__arr = [0, 3, 5, 7]
-        num_funcs_arr = np.append(0, np.cumsum(num_funcs_arr))
+    task_avail = ~H['given'] # & ~H['cancel_requested']
 
     for i in avail_worker_ids(W, persistent=False):
 
         # start up gens
-        if not persis_info.get('init_gens', False) and gen_count < num_gen_workers:
+        if persis_info.get('first_call', True) and gen_count < num_req_gens:
 
             gen_count += 1
             l_idx, r_idx = num_funcs_arr[gen_count-1], num_funcs_arr[gen_count]
@@ -147,9 +131,6 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
 
-            if gen_count == num_gen_workers:
-                persis_info['init_gens'] = True
-
         # give sim work when task available 
         elif np.any(task_avail):
             q_inds = 0 # start with oldest point in queue
@@ -159,7 +140,22 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
 
             task_avail[sim_ids_to_send] = False
 
+        # this is awkward... no work todo... ¯\_(ツ)_/¯ ... yet!
         else:
             break
 
+    if persis_info.get('first_call', True):
+        persis_info['first_call'] = False
+
     return Work, persis_info, 0
+
+def partition_funcs_evenly_as_arr(num_funcs, num_gens):
+    num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)
+    num_leftover_funcs = num_funcs % num_gens
+    num_funcs_arr[:num_leftover_funcs] += 1
+
+    # builds starting and ending function indices for each gen e.g. if 7
+    # functions split up amongst 3 gens, then num_funcs__arr = [0, 3, 5, 7]
+    num_funcs_arr = np.append(0, np.cumsum(num_funcs_arr))
+
+    return num_funcs_arr
