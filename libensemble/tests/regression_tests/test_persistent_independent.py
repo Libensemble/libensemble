@@ -18,14 +18,10 @@ import sys
 import numpy as np
 
 from libensemble.libE import libE
-# from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-# from libensemble.gen_funcs.persistent_smart_sampling import persistent_smart as gen_f
-# from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
-from libensemble.gen_funcs.simple_optimizer import simple_optimize as gen_f
-from libensemble.alloc_funcs.start_smart_persistent import start_smart_persistent_gens as alloc_f
+from libensemble.gen_funcs.persistent_independent_optimize import independent_optimize as gen_f
+from libensemble.alloc_funcs.start_persistent_independent import start_persistent_independent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams 
-# from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -68,7 +64,7 @@ gen_specs = {'gen_f': gen_f,
 
 alloc_specs = {'alloc_f': alloc_f, 
                'out'    : [('ret_to_gen', bool)], # whether point has been returned to gen
-               'user'   : {'num_gens' : 4    # number of persistent gens
+               'user'   : {'num_gens' : 2    # number of persistent gens
                            },
                }
 
@@ -78,8 +74,8 @@ persis_info['num_pts'] = 0
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-# exit_criteria = {'sim_max': 2000}
-exit_criteria = {'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2000}
+# exit_criteria = {'elapsed_wallclock_time': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
