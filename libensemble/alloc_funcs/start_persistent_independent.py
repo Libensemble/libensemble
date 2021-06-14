@@ -106,10 +106,11 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             gen_work(Work, i, ['x', 'f_i', 'gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
 
     num_req_gens = alloc_specs['user']['num_gens']
+    m = gen_specs['user']['m']
 
     # partition sum of convex functions evenly (only do at beginning)
     if persis_info.get('first_call', True) and len( avail_worker_ids(W, persistent=False) ):
-        num_funcs_arr = partition_funcs_evenly_as_arr(alloc_specs['user']['num_gens'], num_req_gens)
+        num_funcs_arr = partition_funcs_evenly_as_arr(m, num_req_gens)
 
     task_avail = ~H['given'] # & ~H['cancel_requested']
 
