@@ -8,7 +8,7 @@ from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 
-def update_config_file(H, sim_specs, sample_parameter_value):
+def update_config_file(H, sim_specs):
     here = os.getcwd()
 
     config_file = sim_specs['user']['config_file']
@@ -19,9 +19,8 @@ def update_config_file(H, sim_specs, sample_parameter_value):
     config['output_path'] = here
     config['initial_pdb_dir'] = here
     config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
-    config[sim_specs['user']['sample_parameter_name']] = float(round(sample_parameter_value))
     config['simulation_length_ns'] = sim_specs['user']['sim_length_ns']
-    config['task_idx'] = int(H['sim_id'])
+    config['task_idx'] = int(H['task_id'])
     config['stage_idx'] = int(H['stage_id'])
 
     if H['initial']:
@@ -62,10 +61,8 @@ def polling_loop(task, sim_specs):
 def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0
-    sample_parameter_name = sim_specs['user']['sample_parameter_name']
-    sample_parameter_value = H[sample_parameter_name][0]
     dry_run = sim_specs['user']['dry_run']
-    update_config_file(H, sim_specs, sample_parameter_value)
+    update_config_file(H, sim_specs)
 
     config_file = sim_specs['user']['config_file']
     args = '-c ' + os.path.join(os.getcwd(), config_file)
@@ -83,7 +80,6 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
         output_file = glob.glob('*.h5')
         assert len(output_file), \
             'MD Simulation did not write final output to .h5 file.'
-
     else:
         output_file = ['test.txt']
 

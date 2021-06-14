@@ -40,30 +40,24 @@ for app in ddmd_apps:
 
 experiment_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_'))
 
-gen_max = 8
 initial_md_runs = 4
-init_sample_parameter_name = 'temperature_kelvin'
-init_sample_parameter_range = [280, 320]
 
 sim_specs = {'sim_f': run_openmm_sim_f,
-             'in': [init_sample_parameter_name, 'stage_id',
-                    'gen_dir_loc', 'initial', 'sim_id'],
+             'in': ['stage_id', 'gen_dir_loc', 'initial', 'task_id'],
              'out': [('file_path', "<U70"), ('sim_cstat', int)],
              'user': {'sim_kill_minutes': 15,
                       'sim_length_ns': 0.01,  # 1.0
                       'poll_interval': 1,
                       'dry_run': False,
-                      'sample_parameter_name': init_sample_parameter_name,
                       'config_file': 'molecular_dynamics.yaml'}
              }
 
 gen_specs = {'gen_f': run_agg_ml_gen_f,
              'in': [],
-             'out': [(init_sample_parameter_name, float), ('sim_id', int),
-                     ('stage_id', int), ('initial', bool), ('gen_dir_loc', "<U70")],
+             'out': [('sim_id', int), ('stage_id', int), ('task_id', int),
+                     ('initial', bool), ('gen_dir_loc', "<U70")],
              'user': {'initial_sample_size': initial_md_runs,
-                      'parameter_range': init_sample_parameter_range,
-                      'sample_parameter_name': init_sample_parameter_name,
+                      'outliers': 10,  # 38
                       'poll_interval': 1,
                       'skip_aggregation': True,
                       'aggregation_kill_minutes': 15,

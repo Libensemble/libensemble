@@ -51,6 +51,7 @@ def update_config_file(user, app_type, pinfo):
     output_path = os.getcwd() + '/{}_runs/stage'.format(app_type) + get_stage(pinfo) + '/task0000'
     config['experiment_directory'] = os.getcwd()
     config['output_path'] = output_path
+    config['stage_idx'] = pinfo['stage_count']
 
     if app_type == 'aggregation':
         config['last_n_h5_files'] = user['initial_sample_size']
@@ -58,6 +59,9 @@ def update_config_file(user, app_type, pinfo):
         config['model_tag'] = 'keras_cvae_model' + get_stage(pinfo)
     elif app_type == 'model_selection':
         config['checkpoint_dir'] = output_path.replace(app_type, 'machine_learning') + '/checkpoint'
+    elif app_type == 'agent':
+        config['num_intrinsic_outliers'] = user['outliers']
+        config['num_extrinsic_outliers'] = user['outliers']
 
     os.makedirs(output_path, exist_ok=True)
     task_config = os.path.join(output_path, 'stage' + get_stage(pinfo) + '_task0000.yaml')
@@ -90,36 +94,41 @@ def preprocess_md_dirs(calc_in, pinfo):
         shutil.copytree('../' + h5file.split('/')[-2], agg_task_dir)
 
 
-def produce_initial_parameter_sample(gen_specs, persis_info):
-    user = gen_specs['user']
-    initial_sample_size = user['initial_sample_size']
-    pr = user['parameter_range']
-
-    init_H = np.zeros(initial_sample_size, dtype=gen_specs['out'])
-    sampled_points = persis_info['rand_stream'].uniform(pr[0], pr[1], initial_sample_size)
-    init_H[user['sample_parameter_name']] = sampled_points
-    init_H['sim_id'] = np.arange(initial_sample_size)
-    init_H['stage_id'] = [0 for i in range(initial_sample_size)]
-    init_H['initial'] = [True for i in range(initial_sample_size)]
-    init_H['gen_dir_loc'] = [os.getcwd().split('/')[-1] for i in range(initial_sample_size)]
-    persis_info['last_sim_id'] = init_H['sim_id'][-1]
-    return init_H, persis_info
-
-
-def produce_subsequent_md_runs(gen_specs, persis_info, output_path):
+def generate_md_runs(gen_specs, persis_info, output_path=None, initial=False):
     persis_info['stage_count'] += 1
 
-    with open(os.path.join(output_path, glob.glob(output_path + '/stage*_task*.json')[0]), 'r') as f:
-        agent_output = json.load(f)
+    if initial:
+        sample_size = gen_specs['user']['initial_sample_size']
+    else:
+        assert output_path is not None, \
+            "Subsequent MD runs require undetected Agent output."
+        presumed_agent_output = glob.glob(output_path + '/stage*_task*.json')[0]
+        with open(os.path.join(output_path, presumed_agent_output), 'r') as f:
+            sample_size = len(json.load(f))
 
-    subseq_H = np.zeros(len(agent_output), dtype=gen_specs['out'])
-    subseq_H['sim_id'] = np.arange(persis_info['last_sim_id'], persis_info['last_sim_id'] + len(agent_output))
-    subseq_H['stage_id'] = [persis_info['stage_count'] for i in range(len(agent_output))]
-    subseq_H['initial'] = [False for i in range(len(agent_output))]
-    subseq_H['gen_dir_loc'] = [os.getcwd().split('/')[-1] for i in range(len(agent_output))]
-    persis_info['last_sim_id'] = subseq_H['sim_id'][-1]
+    local_H = np.zeros(sample_size, dtype=gen_specs['out'])
+    local_H['task_id'] = np.arange(sample_size)
+    local_H['initial'] = initial
+    local_H['gen_dir_loc'] = os.getcwd().split('/')[-1]
 
-    return subseq_H, persis_info
+    if initial:
+        local_H['sim_id'] = np.arange(sample_size)
+        local_H['stage_id'] = 0
+    else:
+        subs_sim_id = persis_info['last_sim_id'] + 1
+        local_H['sim_id'] = np.arange(subs_sim_id, subs_sim_id + sample_size)
+        local_H['stage_id'] = persis_info['stage_count']
+
+    persis_info['last_sim_id'] = local_H['sim_id'][-1]
+
+    return local_H, persis_info
+
+
+def skip_app(gen_specs, app):
+    if 'skip_' + app in gen_specs['user']:
+        if gen_specs['user']['skip_' + app]:
+            return True
+    return False
 
 
 def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
@@ -128,12 +137,12 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
     exctr = Executor.executor
     initial_complete = False
     apps = ['aggregation', 'machine_learning', 'model_selection', 'agent']
-    persis_info['stage_count'] = 0
+    persis_info['stage_count'] = -1
     tag = None
 
     while True:
         if not initial_complete:
-            local_H, persis_info = produce_initial_parameter_sample(gen_specs, persis_info)
+            local_H, persis_info = generate_md_runs(gen_specs, persis_info, initial=True)
             send_mgr_worker_msg(comm, local_H)
             initial_complete = True
         else:
@@ -145,14 +154,13 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
                 preprocess_md_dirs(calc_in, persis_info)
 
                 for app in apps:
-                    if 'skip_' + app in gen_specs['user']:
-                        if gen_specs['user']['skip_' + app]:
-                            continue
+                    if skip_app(gen_specs, app):
+                        continue
                     output_path, task_config = update_config_file(user, app, persis_info)
                     calc_status = submit_application(exctr, user, app, output_path, task_config)
                     local_H[app + '_cstat'][Work['libE_info']['H_rows']] = calc_status
 
-                local_H, persis_info = produce_subsequent_md_runs(gen_specs, persis_info, output_path)
+                local_H, persis_info = generate_md_runs(gen_specs, persis_info, output_path=output_path)
                 send_mgr_worker_msg(comm, local_H)
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG

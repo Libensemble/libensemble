@@ -1,5 +1,5 @@
 experiment_directory: SET_BY_GENF
-stage_idx: 0
+stage_idx: SET_BY_GENF
 task_idx: 0
 output_path: SET_BY_GENF
 node_local_path: null

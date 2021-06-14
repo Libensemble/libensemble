@@ -10,7 +10,7 @@ top_suffix: null
 simulation_length_ns: SET_BY_SIMF
 report_interval_ps: 1.0
 dt_ps: 0.002
-temperature_kelvin: SET_BY_SIMF
+temperature_kelvin: 310.0
 heat_bath_friction_coef: 1.0
 wrap: false
 reference_pdb_file: SET_BY_SIMF
