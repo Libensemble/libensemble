@@ -60,7 +60,11 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             if persis_info['num_convg_gens'] == len(persis_info['gen_list']):
                 print('#########################')
                 print('# FINAL RESULT ')
-                print('#\n# x={}\n#'.format(persis_info['x_star']))
+                x_star = persis_info['x_star']
+                print('#\n# x={}'.format(x_star))
+                n = len(x_star)
+                print('#|x_final - 1_n|_2/|1_n|_2 = {:.4f}\n'.format(
+                    la.norm(np.ones(n) - x_star)/n**0.5))
                 for j in persis_info['gen_list']:
                     print('# gen {} had {} function and {} (full) gradient evals'.format(j, persis_info[j]['num_f_evals'], persis_info[j]['num_gradf_evals']))
                 print('#')
