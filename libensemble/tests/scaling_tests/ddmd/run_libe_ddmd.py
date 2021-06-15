@@ -19,7 +19,7 @@ from deepdrivemd.models.keras_cvae import train
 from deepdrivemd.selection.latest import select_model
 from deepdrivemd.agents.lof import lof
 
-libE_logger.set_level('INFO')  # INFO is now default
+logger.set_level('INFO')  # INFO is now default
 
 # Parse comms type, number of workers, etc. from command-line
 nworkers, is_manager, libE_specs, _ = parse_args()
