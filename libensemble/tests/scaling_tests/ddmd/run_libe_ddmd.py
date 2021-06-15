@@ -11,11 +11,6 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from openmm_md_simf import run_openmm_sim_f
 from keras_cvae_ml_genf import run_keras_cvae_ml_genf
 
-libE_logger.set_level('INFO')  # INFO is now default
-
-# Parse comms type, number of workers, etc. from command-line
-nworkers, is_manager, libE_specs, _ = parse_args()
-
 # DeepDriveMD runs these components as separate "applications" anyway. We
 #  can do the same via libEnsemble's executor.
 from deepdrivemd.sim.openmm import run_openmm
@@ -23,6 +18,11 @@ from deepdrivemd.aggregation.basic import aggregate
 from deepdrivemd.models.keras_cvae import train
 from deepdrivemd.selection.latest import select_model
 from deepdrivemd.agents.lof import lof
+
+libE_logger.set_level('INFO')  # INFO is now default
+
+# Parse comms type, number of workers, etc. from command-line
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_app = run_openmm.__file__
 agg_gen_app = aggregate.__file__
