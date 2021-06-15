@@ -30,4 +30,10 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, '__len__'):
             b = len(calc_in)
 
-    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    if gen_specs['user'].get('replace_final_fields', 0):
+        # This is only to test libE ability to accept History after a
+        # PERSIS_STOP. This history is returned in Work.
+        H_o = Work
+        H_o['x'] = -1.23
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG

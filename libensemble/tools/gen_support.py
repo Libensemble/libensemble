@@ -37,6 +37,7 @@ def get_mgr_worker_msg(comm):
     if tag in [STOP_TAG, PERSIS_STOP]:
         comm.push_to_buffer(tag, Work)
         return tag, Work, None
+
     data_tag, calc_in = comm.recv()
     # Check for unexpected STOP (e.g. error between sending Work info and rows)
     if data_tag in [STOP_TAG, PERSIS_STOP]:

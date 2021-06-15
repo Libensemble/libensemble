@@ -37,7 +37,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
                 k = H['batch'][-1]
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
 
-            gen_work(Work, i, ['like'], np.atleast_1d(inds_to_send_back),
+            gen_work(Work, i, ['like'], inds_to_send_back,
                      persis_info.get(i), persistent=True)
 
     task_avail = ~H['given'] & ~H['cancel_requested']
@@ -48,7 +48,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             sim_subbatches = H['subbatch'][task_avail]
             sim_inds = (sim_subbatches == np.min(sim_subbatches))
             sim_ids_to_send = np.nonzero(task_avail)[0][sim_inds]
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), [])
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, [])
             task_avail[sim_ids_to_send] = False
 
         elif gen_count == 0:

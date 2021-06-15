@@ -47,7 +47,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
-                     np.atleast_1d(last_ind), persis_info[i], persistent=True)
+                     last_ind, persis_info[i], persistent=True)
             persis_info[i]['run_order'].append(last_ind)
 
     for i in avail_worker_ids(W, persistent=False):
@@ -65,7 +65,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
             gen_work(Work, i,
                      sim_specs['in'] + [n[0] for n in sim_specs['out']],
-                     np.atleast_1d(ind), persis_info[i], persistent=True)
+                     ind, persis_info[i], persistent=True)
 
             H['started_run'][ind] = 1
             H['num_active_runs'][ind] += 1
@@ -80,7 +80,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             if not np.any(q_inds_logical):
                 q_inds_logical = task_avail
             sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]  # oldest point
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), [])
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, [])
             task_avail[sim_ids_to_send] = False
 
         elif (gen_count == 0
