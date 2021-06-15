@@ -15,7 +15,7 @@ from deepdrivemd.selection.latest import select_model
 from deepdrivemd.agents.lof import lof
 
 from openmm_md_simf import run_openmm_sim_f
-from agg_ml_genf import run_agg_ml_gen_f
+from keras_cvae_ml_genf import run_keras_cvae_ml_genf
 
 libE_logger.set_level('INFO')  # INFO is now default
 
@@ -52,7 +52,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
                       'config_file': 'molecular_dynamics.yaml'}
              }
 
-gen_specs = {'gen_f': run_agg_ml_gen_f,
+gen_specs = {'gen_f': run_keras_cvae_ml_genf,
              'in': [],
              'out': [('sim_id', int), ('stage_id', int), ('task_id', int),
                      ('initial', bool), ('gen_dir_loc', "<U70")],

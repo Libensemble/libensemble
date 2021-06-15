@@ -7,7 +7,7 @@ num_intrinsic_outliers: SET_BY_GENF
 num_extrinsic_outliers: SET_BY_GENF
 intrinsic_score: lof
 extrinsic_score: null
-n_traj_frames: 200
+n_traj_frames: 10
 n_most_recent_h5_files: 4
 k_random_old_h5_files: 4
 sklearn_num_jobs: -1

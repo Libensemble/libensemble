@@ -1,6 +1,6 @@
 
 
-__all__ = ['run_agg_ml_gen_f']
+__all__ = ['run_keras_cvae_ml_genf']
 
 import os
 import glob
@@ -87,37 +87,46 @@ def submit_application(exctr, user, app_type, output_path, task_config):
 
 def preprocess_md_dirs(calc_in, pinfo):
     agg_expected_md_dir = './molecular_dynamics_runs/stage' + get_stage(pinfo)
-    for sim_id in calc_in['sim_id']:
-        base_task_dir = 'task' + str(sim_id).zfill(4)
+    for entry in calc_in:
+        base_task_dir = 'task' + str(entry['task_id']).zfill(4)
         agg_task_dir = os.path.join(agg_expected_md_dir, base_task_dir)
-        h5file = calc_in['file_path'][sim_id]
+        h5file = entry['file_path']
         shutil.copytree('../' + h5file.split('/')[-2], agg_task_dir)
 
 
-def generate_md_runs(gen_specs, persis_info, output_path=None, initial=False):
+def generate_initial_md_runs(gen_specs, persis_info):
     persis_info['stage_count'] += 1
 
-    if initial:
-        sample_size = gen_specs['user']['initial_sample_size']
-    else:
-        assert output_path is not None, \
-            "Subsequent MD runs require undetected Agent output."
-        presumed_agent_output = glob.glob(output_path + '/stage*_task*.json')[0]
-        with open(os.path.join(output_path, presumed_agent_output), 'r') as f:
-            sample_size = len(json.load(f))
-
+    sample_size = gen_specs['user']['initial_sample_size']
     local_H = np.zeros(sample_size, dtype=gen_specs['out'])
-    local_H['task_id'] = np.arange(sample_size)
-    local_H['initial'] = initial
-    local_H['gen_dir_loc'] = os.getcwd().split('/')[-1]
 
-    if initial:
-        local_H['sim_id'] = np.arange(sample_size)
-        local_H['stage_id'] = 0
-    else:
-        subs_sim_id = persis_info['last_sim_id'] + 1
-        local_H['sim_id'] = np.arange(subs_sim_id, subs_sim_id + sample_size)
-        local_H['stage_id'] = persis_info['stage_count']
+    local_H['task_id'] = np.arange(sample_size)
+    local_H['initial'] = True
+    local_H['gen_dir_loc'] = os.getcwd().split('/')[-1]
+    local_H['sim_id'] = np.arange(sample_size)
+    local_H['stage_id'] = 0
+
+    persis_info['last_sim_id'] = local_H['sim_id'][-1]
+
+    return local_H, persis_info
+
+
+def generate_subsequent_md_runs(gen_specs, persis_info, local_H, output_path):
+    persis_info['stage_count'] += 1
+
+    presumed_agent_output = glob.glob(output_path + '/stage*_task*.json')[0]
+    with open(os.path.join(output_path, presumed_agent_output), 'r') as f:
+        sample_size = len(json.load(f))
+
+    local_H.resize(len(local_H) + sample_size, refcheck=False)
+
+    local_H['task_id'][-sample_size:] = np.arange(sample_size)
+    local_H['initial'][-sample_size:] = False
+    local_H['gen_dir_loc'][-sample_size:] = os.getcwd().split('/')[-1]
+
+    subs_sim_id = persis_info['last_sim_id'] + 1
+    local_H['sim_id'][-sample_size:] = np.arange(subs_sim_id, subs_sim_id + sample_size)
+    local_H['stage_id'][-sample_size:] = persis_info['stage_count']
 
     persis_info['last_sim_id'] = local_H['sim_id'][-1]
 
@@ -131,7 +140,7 @@ def skip_app(gen_specs, app):
     return False
 
 
-def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
+def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
     comm = libE_info['comm']
     user = gen_specs['user']
     exctr = Executor.executor
@@ -142,25 +151,24 @@ def run_agg_ml_gen_f(H, persis_info, gen_specs, libE_info):
 
     while True:
         if not initial_complete:
-            local_H, persis_info = generate_md_runs(gen_specs, persis_info, initial=True)
+            local_H, persis_info = generate_initial_md_runs(gen_specs, persis_info)
             send_mgr_worker_msg(comm, local_H)
             initial_complete = True
         else:
-            while True:
-                tag, Work, calc_in = get_mgr_worker_msg(comm)
-                if tag in [STOP_TAG, PERSIS_STOP]:
-                    break
+            tag, Work, calc_in = get_mgr_worker_msg(comm)
+            if tag in [STOP_TAG, PERSIS_STOP]:
+                break
 
-                preprocess_md_dirs(calc_in, persis_info)
+            preprocess_md_dirs(calc_in, persis_info)
 
-                for app in apps:
-                    if skip_app(gen_specs, app):
-                        continue
-                    output_path, task_config = update_config_file(user, app, persis_info)
-                    calc_status = submit_application(exctr, user, app, output_path, task_config)
-                    local_H[app + '_cstat'][Work['libE_info']['H_rows']] = calc_status
+            for app in apps:
+                if skip_app(gen_specs, app):
+                    continue
+                output_path, task_config = update_config_file(user, app, persis_info)
+                calc_status = submit_application(exctr, user, app, output_path, task_config)
+                local_H[app + '_cstat'][Work['libE_info']['H_rows']] = calc_status
 
-                local_H, persis_info = generate_md_runs(gen_specs, persis_info, output_path=output_path)
-                send_mgr_worker_msg(comm, local_H)
+            local_H, persis_info = generate_subsequent_md_runs(gen_specs, persis_info, local_H, output_path)
+            send_mgr_worker_msg(comm, local_H)
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
