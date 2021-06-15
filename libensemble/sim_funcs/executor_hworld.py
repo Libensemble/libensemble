@@ -10,7 +10,7 @@ __all__ = ['executor_hworld']
 returned_count = 0
 
 
-def custom_polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
+def polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
@@ -112,14 +112,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             calc_status = TASK_FAILED
 
     else:
-        if sim_count >= 2:
-            calc_status = exctr.polling_loop(task, timeout=timeout)
-            if sim_count == 2 and task.stdout_exists():
-                if 'Error' in task.read_stdout():
-                    calc_status = WORKER_KILL_ON_ERR
-
-        else:
-            task, calc_status = custom_polling_loop(exctr, task, timeout)
+        task, calc_status = polling_loop(exctr, task, timeout)
 
     if use_balsam:
         task.read_file_in_workdir('ensemble.log')
@@ -127,6 +120,9 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             task.read_stderr()
         except ValueError:
             pass
+
+    # assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    # assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
     # This is temp - return something - so doing six_hump_camel_func again...
     batch = len(H['x'])
@@ -143,6 +139,10 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     # This is just for testing at calling script level - status of each task
     H_o['cstat'] = calc_status
+
+    # v = np.random.uniform(0, 10)
+    # print('About to sleep for :' + str(v))
+    # time.sleep(v)
 
     return H_o, persis_info, calc_status
 

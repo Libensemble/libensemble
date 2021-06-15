@@ -19,7 +19,6 @@ omit =
     */unit_tests_logger/*
     */regression_tests/*
     */sim_funcs/helloworld.py
-    */sim_funcs/executor_hworld.py
     */balsam_executor.py
     */forkable_pdb.py
     */parse_args.py

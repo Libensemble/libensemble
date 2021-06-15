@@ -17,11 +17,7 @@ import logging
 import itertools
 import time
 
-from libensemble.message_numbers import (UNSET_TAG, MAN_SIGNAL_FINISH,
-                                         MAN_SIGNAL_KILL, WORKER_DONE,
-                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT,
-                                         STOP_TAG)
-
+from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
 
@@ -439,68 +435,6 @@ class Executor:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
         self.comm.push_to_buffer(mtag, man_signal)
-        return man_signal
-
-    def polling_loop(self, task, timeout=0, delay=0.1, poll_manager=False):
-        """ Optional, blocking, generic task status polling loop. Operates until the task
-        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
-        presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
-        for running an application via the Executor until it stops without monitoring
-        its intermediate output.
-
-        Parameters
-        ----------
-
-        task: object
-            a Task object returned by the executor on submission
-
-        timeout: int, optional
-            Maximum number of seconds for the polling loop to run. Tasks that run
-            longer than this limit are killed. Default: No timeout
-
-        delay: int, optional
-            Sleep duration between polling loop iterations. Default: 0.1 seconds
-
-        poll_manager: bool, optional
-            Whether to also poll the manager for 'finish' or 'kill' signals.
-            If detected, the task is killed. Default: False.
-
-        Returns
-        -------
-        calc_status: int
-            presumptive integer attribute describing the final status of a launched task
-
-        """
-
-        calc_status = UNSET_TAG
-
-        while not task.finished:
-            task.poll()
-
-            if poll_manager:
-                man_signal = self.manager_poll()
-                if self.manager_signal != 'none':
-                    task.kill()
-                    calc_status = man_signal
-                    break
-
-            if timeout > 0 and task.runtime > timeout:
-                task.kill()
-                calc_status = WORKER_KILL_ON_TIMEOUT
-                break
-
-            time.sleep(delay)
-
-        if calc_status == UNSET_TAG:
-            if task.state == 'FINISHED':
-                calc_status = WORKER_DONE
-            elif task.state == 'FAILED':
-                calc_status = TASK_FAILED
-            else:
-                logger.warning("Warning: Task {} in unknown state {}. Error code {}"
-                               .format(self.name, self.state, self.errcode))
-
-        return calc_status
 
     def get_task(self, taskid):
         """ Returns the task object for the supplied task ID """
