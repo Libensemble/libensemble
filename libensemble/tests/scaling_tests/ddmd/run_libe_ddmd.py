@@ -5,7 +5,7 @@ import datetime
 from libensemble.libE import libE
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble import libE_logger
+from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 
 from openmm_md_simf import run_openmm_sim_f
