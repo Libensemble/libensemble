@@ -1,4 +1,4 @@
-## Running test run_libe_mdml.py
+## Running test run_libe_ddmd.py
 
 This libEnsemble workflow is inspired by, and runs components of DeepDriveMD (https://deepdrivemd.github.io/),
 an adaptive machine-learning driven molecular dynamics loop. Through this test,
@@ -69,6 +69,6 @@ to submit ``run_libe_mdml.py`` to the scheduler.
 We recommend creating a new Python environment and installing each of the necessary
 components by a process similar to that listed above for Swing.
 
-Running the test locally should then be as simple as ``python run_libe_mdml.py --comms local --nworkers N``
-or ``mpiexec -n N python run_libe_mdml.py``. ``sim_specs['user']['sim_length_ns']`` may need adjusting
+Running the test locally should then be as simple as ``python run_libe_ddmd.py --comms local --nworkers N``
+or ``mpiexec -n N python run_libe_ddmd.py``. ``sim_specs['user']['sim_length_ns']`` may need adjusting
 to run much quicker.

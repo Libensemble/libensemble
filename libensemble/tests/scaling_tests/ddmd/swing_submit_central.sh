@@ -10,7 +10,7 @@
 module load gcc
 module load cuda/11.0.2-4szlv2t
 
-export EXE=run_libe_mdml.py
+export EXE=run_libe_ddmd.py
 export NUM_WORKERS=2
 
 export PYTHONNOUSERSITE=1

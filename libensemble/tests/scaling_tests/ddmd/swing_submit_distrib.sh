@@ -14,7 +14,7 @@ unset I_MPI_FABRICS
 export I_MPI_FABRICS_LIST=tmi,tcp
 export I_MPI_FALLBACK=1
 
-export EXE=run_libe_mdml.py
+export EXE=run_libe_ddmd.py
 export NUM_WORKERS=2
 export MANAGER_NODE=false # true = Manager has a dedicated node (assign one extra)
 export USE_NODE_LIST=true # If false, allow libE to determine node_list from environment.
