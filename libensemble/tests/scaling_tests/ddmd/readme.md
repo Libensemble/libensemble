@@ -3,7 +3,8 @@
 This libEnsemble workflow is inspired by, and runs components of DeepDriveMD (https://deepdrivemd.github.io/),
 an adaptive machine-learning driven molecular dynamics loop. Through this test,
 we hope to evaluate libEnsemble's effectiveness at coordinating workflows
-involving GPUs, large amounts of data, dynamic resource sets, etc.
+involving GPUs, large amounts of data, dynamic resource sets, multiple applications,
+etc.
 
 ## Getting started on Swing
 
@@ -50,3 +51,24 @@ Notes:
 2) See http://docs.openmm.org/7.1.0/userguide/library.html#other-required-software for instructions on compiling the Python API wrappers. SWIG and Doxygen will need to be downloaded and installed separately.
 3) In the event you receive an error regarding ``CUDA_CUDA_LIBRARY`` being set to ``NOTFOUND``,
 set it to ``/gpfs/fs1/soft/swing/spack-0.16.1/opt/spack/linux-ubuntu20.04-x86_64/gcc-9.2.0/cuda-11.0.2-4szlv2t/lib64/stubs``.
+
+# Executing the test
+
+OpenMM, libEnsemble, DeepDriveMD, and all other components must be installed first
+into a conda environment. See above.
+
+Feel free to adjust ``'sim_max'`` or ``sim_specs['user']['sim_length_ns']`` to customize
+the length of the routine.
+
+Currently, ``swing_submit_central.sh`` is the only batch submission script known to work.
+Adjust the account and number of workers within this file, then run ``sbatch`` on it
+to submit ``run_libe_mdml.py`` to the scheduler.
+
+## Getting started locally
+
+We recommend creating a new Python environment and installing each of the necessary
+components by a process similar to that listed above for Swing.
+
+Running the test locally should then be as simple as ``python run_libe_mdml.py --comms local --nworkers N``
+or ``mpiexec -n N python run_libe_mdml.py``. ``sim_specs['user']['sim_length_ns']`` may need adjusting
+to run much quicker.

@@ -20,6 +20,9 @@ def get_stage(persis_info):
 
 
 def polling_loop(task, poll_interval, kill_minutes):
+    """
+    Generic task status polling loop for a launched application.
+    """
     while(not task.finished):
         time.sleep(poll_interval)
         task.poll()
@@ -45,6 +48,10 @@ def polling_loop(task, poll_interval, kill_minutes):
 
 
 def update_config_file(user, app_type, pinfo):
+    """
+    Updates configuration files for each application prior to launching, and
+    produces expected output directory structure for each.
+    """
     with open(user[app_type + '_config'], 'r') as f:
         config = yaml.safe_load(f)
 
@@ -73,6 +80,10 @@ def update_config_file(user, app_type, pinfo):
 
 
 def submit_application(exctr, user, app_type, output_path, task_config):
+    """
+    Switches to an expected output directory, launches an application
+    via libEnsemble's executor, then polls its status until it finishes.
+    """
     start = os.getcwd()
     os.chdir(output_path)
     args = '-c ' + os.path.join(os.getcwd(), task_config)
@@ -86,6 +97,10 @@ def submit_application(exctr, user, app_type, output_path, task_config):
 
 
 def preprocess_md_dirs(calc_in, pinfo):
+    """
+    Copy the Molecular Dynamics results into directories that resemble
+    DeepDriveMD's output.
+    """
     agg_expected_md_dir = './molecular_dynamics_runs/stage' + get_stage(pinfo)
     for entry in calc_in:
         base_task_dir = 'task' + str(entry['task_id']).zfill(4)
@@ -95,6 +110,10 @@ def preprocess_md_dirs(calc_in, pinfo):
 
 
 def generate_initial_md_runs(gen_specs, persis_info):
+    """
+    Generate an initial local History array, and populate with an initial set
+    of parameters for an initial set of MD simulations.
+    """
     persis_info['stage_count'] += 1
 
     sample_size = gen_specs['user']['initial_sample_size']
@@ -112,6 +131,10 @@ def generate_initial_md_runs(gen_specs, persis_info):
 
 
 def generate_subsequent_md_runs(gen_specs, persis_info, local_H, output_path):
+    """
+    Generate subsequent MD simulation run parameters in the local History array,
+    based on the number of outlier points detected by the Agent application.
+    """
     persis_info['stage_count'] += 1
 
     presumed_agent_output = glob.glob(output_path + '/stage*_task*.json')[0]
@@ -134,6 +157,9 @@ def generate_subsequent_md_runs(gen_specs, persis_info, local_H, output_path):
 
 
 def skip_app(gen_specs, app):
+    """
+    Optionally skip certain apps, if specified in gen_specs['user']
+    """
     if 'skip_' + app in gen_specs['user']:
         if gen_specs['user']['skip_' + app]:
             return True
@@ -141,26 +167,46 @@ def skip_app(gen_specs, app):
 
 
 def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
-    comm = libE_info['comm']
+    """ Persistent Generator user function for processing simulation output and
+    running via the Executor each of the remaining DeepDriveMD applications concerned
+    with simulation output. This generator does not return until libEnsemble
+    concludes.
+
+    On initialization, this generator function produces an initial set of parameters
+    for an initial set of simulation function calls, then sends the local History
+    array containing these values directly to the Manager, which will distribute
+    the work accordingly.
+
+    After this, the persistent generator waits until all the results are available
+    from the Manager, preprocesses some of the output, then configures and launches
+    the other DeepDriveMD applications in a sequence. The final app's output
+    determines the number of future candidate simulations. The local History array
+    is updated, then sent directly to the Manager.
+    """
+
     user = gen_specs['user']
     exctr = Executor.executor
-    initial_complete = False
     apps = ['aggregation', 'machine_learning', 'model_selection', 'agent']
     persis_info['stage_count'] = -1
+    initial_complete = False
     tag = None
 
     while True:
         if not initial_complete:
             local_H, persis_info = generate_initial_md_runs(gen_specs, persis_info)
-            send_mgr_worker_msg(comm, local_H)
+            # Send initial MD run parameters directly to the Manager
+            send_mgr_worker_msg(libE_info['comm'], local_H)
             initial_complete = True
         else:
-            tag, Work, calc_in = get_mgr_worker_msg(comm)
-            if tag in [STOP_TAG, PERSIS_STOP]:
+            # Wait for entire set of MD results
+            tag, Work, calc_in = get_mgr_worker_msg(libE_info['comm'])
+            if tag in [STOP_TAG, PERSIS_STOP]:  # Generator instructed to stop
                 break
 
+            # Copy MD data into directory structure expected by future apps
             preprocess_md_dirs(calc_in, persis_info)
 
+            # Run each subsequent DeepDriveMD data-processing application
             for app in apps:
                 if skip_app(gen_specs, app):
                     continue
@@ -168,7 +214,9 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
                 calc_status = submit_application(exctr, user, app, output_path, task_config)
                 local_H[app + '_cstat'][Work['libE_info']['H_rows']] = calc_status
 
+            # Produce subsequent set of MD runs parameters based on the final app's results
             local_H, persis_info = generate_subsequent_md_runs(gen_specs, persis_info, local_H, output_path)
-            send_mgr_worker_msg(comm, local_H)
+            # Setn subsequent MD run parameters directly to the Manager
+            send_mgr_worker_msg(libE_info['comm'], local_H)
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
