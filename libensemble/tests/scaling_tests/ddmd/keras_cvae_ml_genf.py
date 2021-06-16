@@ -4,47 +4,17 @@ __all__ = ['run_keras_cvae_ml_genf']
 
 import os
 import glob
-import time
 import yaml
 import json
 import shutil
 import numpy as np
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG,
-                                         WORKER_DONE, WORKER_KILL, TASK_FAILED)
+from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG)
 from libensemble.tools.gen_support import get_mgr_worker_msg, send_mgr_worker_msg
 
 
 def get_stage(persis_info):
     return str(persis_info['stage_count']).zfill(4)
-
-
-def polling_loop(task, poll_interval, kill_minutes):
-    """
-    Generic task status polling loop for a launched application.
-    """
-    while(not task.finished):
-        time.sleep(poll_interval)
-        task.poll()
-        if task.runtime > kill_minutes*60:
-            task.kill()
-
-    if task.finished:
-        if task.state == 'FINISHED':
-            calc_status = WORKER_DONE
-        elif task.state == 'FAILED':
-            print("Warning: Task {} failed: Error code {}"
-                  .format(task.name, task.errcode))
-            calc_status = TASK_FAILED
-        elif task.state == 'USER_KILLED':
-            print("Warning: Task {} has been killed"
-                  .format(task.name))
-            calc_status = WORKER_KILL
-        else:
-            print("Warning: Task {} in unknown state {}. Error code {}"
-                  .format(task.name, task.state, task.errcode))
-
-    return calc_status
 
 
 def update_config_file(user, app_type, pinfo):
@@ -91,7 +61,8 @@ def submit_application(exctr, user, app_type, output_path, task_config):
     task = exctr.submit(app_name=app_type, app_args=args, wait_on_run=True,
                         num_procs=1, num_nodes=1, ranks_per_node=1)
 
-    calc_status = polling_loop(task, user['poll_interval'], user[app_type + '_kill_minutes'])
+    calc_status = exctr.polling_loop(task, delay=user['poll_interval'],
+                                     timeout=user[app_type + '_kill_minutes'])
     os.chdir(start)
     return calc_status
 

@@ -5,7 +5,6 @@ import time
 import numpy as np
 
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
 
 def update_config_file(H, sim_specs):
@@ -38,35 +37,6 @@ def update_config_file(H, sim_specs):
         yaml.dump(config, f)
 
 
-def polling_loop(task, sim_specs):
-    """
-    Generic task status polling loop for a launched application.
-    """
-    while(not task.finished):
-        time.sleep(sim_specs['user']['poll_interval'])
-        task.poll()
-        if task.runtime > sim_specs['user']['sim_kill_minutes']*60:
-            task.kill()  # Timeout
-
-    # Set calc_status with optional prints.
-    if task.finished:
-        if task.state == 'FINISHED':
-            calc_status = WORKER_DONE
-        elif task.state == 'FAILED':
-            print("Warning: Task {} failed: Error code {}"
-                  .format(task.name, task.errcode))
-            calc_status = TASK_FAILED
-        elif task.state == 'USER_KILLED':
-            print("Warning: Task {} has been killed"
-                  .format(task.name))
-            calc_status = WORKER_KILL
-        else:
-            print("Warning: Task {} in unknown state {}. Error code {}"
-                  .format(task.name, task.state, task.errcode))
-
-    return calc_status
-
-
 def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
     """ Simulation user function for running DeepDriveMD's run_openmm.py via
     the Executor. libEnsemble's worker processes call this simulation function
@@ -92,9 +62,10 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
     task = exctr.submit(app_name='molecular_dynamics', app_args=args, wait_on_run=True,
                         dry_run=dry_run, num_procs=1, num_nodes=1, ranks_per_node=1)
 
-    # Periodically poll our running task, ensure the task created the expected output.
+    # Periodically poll our running task, then ensure the task created the expected output.
     if not dry_run:
-        calc_status = polling_loop(task, sim_specs)
+        calc_status = exctr.polling_loop(task, delay=sim_specs['user']['poll_interval'],
+                                         timeout=sim_specs['user']['sim_kill_minutes'])
         time.sleep(0.2)
         output_file = glob.glob('*.h5')
         assert len(output_file), \
