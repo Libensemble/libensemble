@@ -114,9 +114,8 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     else:
         if sim_count >= 2:
             calc_status = exctr.polling_loop(task, timeout=timeout)
-            if sim_count == 2 and task.stdout_exists():
-                if 'Error' in task.read_stdout():
-                    calc_status = WORKER_KILL_ON_ERR
+            if sim_count == 2 and task.stdout_exists() and 'Error' in task.read_stdout():
+                calc_status = WORKER_KILL_ON_ERR
 
         else:
             task, calc_status = custom_polling_loop(exctr, task, timeout)
