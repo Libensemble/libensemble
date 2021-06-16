@@ -194,7 +194,7 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.given_count >= sim_max + self.hist.offset
+        return self.hist.returned_count >= sim_max + self.hist.offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
@@ -205,6 +205,18 @@ class Manager:
         key, val = stop_val
         H = self.hist.H
         return np.any(filter_nans(H[key][H['returned']]) <= val)
+
+    def work_giving_term_test(self, logged=True):
+        b = self.term_test()
+        if b:
+            return b
+        elif ('sim_max' in self.exit_criteria
+              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset):
+            # To avoid starting more sims if sim_max is an exit criteria
+            logger.info("Ignoring the alloc_f request for more sims than sim_max.")
+            return 1
+        else:
+            return 0
 
     def term_test(self, logged=True):
         """Checks termination criteria"""
@@ -237,7 +249,7 @@ class Manager:
     def _save_every_k_sims(self):
         "Saves history every kth sim step"
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
-                           self.hist.sim_count,
+                           self.hist.returned_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
@@ -369,7 +381,10 @@ class Manager:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
                 if self.libE_specs.get('use_persis_return', False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    if calc_status is FINISHED_PERSISTENT_GEN_TAG:
+                        self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    else:
+                        self.hist.update_history_f(D_recv, self.safe_mode)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w-1]['persis_state'] = 0
@@ -449,7 +464,13 @@ class Manager:
         if any(self.W['persis_state']):
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
-                self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if 'final_fields' in self.libE_specs:
+                    rows_to_send = self.hist.trim_H()['returned']
+                    fields_to_send = self.libE_specs['final_fields']
+                    H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
+                    self.wcomms[w-1].send(PERSIS_STOP, H_to_send)
+                else:
+                    self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 if not self.W[w-1]['active']:
                     # Re-activate if necessary
                     self.W[w-1]['active'] = self.W[w-1]['persis_state']
@@ -518,7 +539,7 @@ class Manager:
                         break
 
                     for w in Work:
-                        if self.term_test():
+                        if self.work_giving_term_test():
                             break
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
