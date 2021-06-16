@@ -127,9 +127,6 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         except ValueError:
             pass
 
-    # assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    # assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
-
     # This is temp - return something - so doing six_hump_camel_func again...
     batch = len(H['x'])
     H_o = np.zeros(batch, dtype=sim_specs['out'])
@@ -145,10 +142,6 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     # This is just for testing at calling script level - status of each task
     H_o['cstat'] = calc_status
-
-    # v = np.random.uniform(0, 10)
-    # print('About to sleep for :' + str(v))
-    # time.sleep(v)
 
     return H_o, persis_info, calc_status
 
