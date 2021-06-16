@@ -10,7 +10,7 @@ __all__ = ['executor_hworld']
 returned_count = 0
 
 
-def polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
+def custom_polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
@@ -112,7 +112,13 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             calc_status = TASK_FAILED
 
     else:
-        task, calc_status = polling_loop(exctr, task, timeout)
+        if returned_count >= 2:
+            calc_status = exctr.polling_loop(task, timeout=timeout)
+            if returned_count == 2 and task.stdout_exists() and 'Error' in task.read_stdout():
+                calc_status = WORKER_KILL_ON_ERR
+
+        else:
+            task, calc_status = custom_polling_loop(exctr, task, timeout)
 
     if use_balsam:
         task.read_file_in_workdir('ensemble.log')
