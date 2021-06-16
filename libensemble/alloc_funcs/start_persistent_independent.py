@@ -44,24 +44,29 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
         # Is gen waiting on work to be completed?
         if len(persis_info[i].get('curr_H_ids', [])):
 
-            curr_H_ids = persis_info[i].get('curr_H_ids')
+            [l_H_id, r_H_id] = persis_info[i].get('curr_H_ids')
+            num_sims_req_by_gen = r_H_id - l_H_id
 
-            _fin_sims_for_gen_i = np.where( 
-                    np.logical_and(
-                        H[curr_H_ids]['returned'], 
-                        ~H[curr_H_ids]['ret_to_gen']
-                    ))[0]
-            fin_sims_for_gen_i = curr_H_ids[_fin_sims_for_gen_i]
+            num_fin_sims = np.sum(H['returned'][l_H_id:r_H_id])
+            # fin_sims_for_gen_i_subarr = np.where( 
+            #         np.logical_and(
+            #             H[l_H_id:r_H_id]['returned'], 
+            #             ~H[l_H_id:r_H_id]['ret_to_gen']
+            #         ))[0]
 
-            if len(fin_sims_for_gen_i) == len(curr_H_ids):
+            # if len(fin_sims_for_gen_i_subarr) == (r_H_id - l_H_id):
+            if num_fin_sims == num_sims_req_by_gen:
+
+                sims_to_ret_to_gen = np.arange(l_H_id, r_H_id)
+
                 gen_work(Work, i, 
                          ['x', 'f_i', 'gradf_i'], 
-                         np.atleast_1d(fin_sims_for_gen_i), 
+                         sims_to_ret_to_gen,
                          persis_info.get(i), 
                          persistent=True)
 
                 # index by ['ret_to_gen'] first avoid writing to cpy
-                H['ret_to_gen'][fin_sims_for_gen_i] = True 
+                # H['ret_to_gen'][fin_sims_for_gen_i] = True 
                 persis_info[i].update({'curr_H_ids': []})
 
         else:
@@ -126,7 +131,12 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                 # re-orient
                 new_H_ids_from_gen_i += last_H_len
 
-                persis_info[i].update({'curr_H_ids': new_H_ids_from_gen_i })
+                l_H_id = new_H_ids_from_gen_i[0]
+                r_H_id = new_H_ids_from_gen_i[-1] + 1
+
+                assert len(new_H_ids_from_gen_i) == r_H_id - l_H_id, print("new gen data must be in contiguous space")
+
+                persis_info[i].update({'curr_H_ids': [l_H_id, r_H_id] })
 
     num_req_gens = alloc_specs['user']['num_gens']
     m = gen_specs['user']['m']
