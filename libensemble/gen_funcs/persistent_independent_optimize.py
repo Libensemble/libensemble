@@ -63,7 +63,7 @@ def independent_optimize(H, persis_info, gen_specs, libE_info):
             H_o[0]['converged'] = True
             H_o[0]['num_f_evals'] = metadata['num_f_evals']
             H_o[0]['num_gradf_evals'] = metadata['num_gradf_evals']
-            H_o[0]['num_sims_req'] =  1
+            # H_o[0]['num_sims_req'] =  1
             H_o[0]['pt_id'] = metadata['ct']
 
             # tell alloc we have found min. alloc will require basic work job
@@ -109,7 +109,7 @@ def _req_sims(x, f_i_idxs, x_i_idxs, ct, gen_specs, libE_info, get_f):
 
     H_o['x'][:] = x
     H_o['pt_id'][:] = ct      
-    H_o['num_sims_req'][:] = len(H_o)
+    # H_o['num_sims_req'][:] = len(H_o)
     H_o['converged'][:] = False
     ct += 1
 

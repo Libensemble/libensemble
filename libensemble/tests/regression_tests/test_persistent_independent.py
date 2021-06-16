@@ -24,7 +24,6 @@ from libensemble.alloc_funcs.start_persistent_independent import start_persisten
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams 
 
 nworkers, is_manager, libE_specs, _ = parse_args()
-
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
@@ -46,7 +45,7 @@ gen_specs = {'gen_f': gen_f,
              'out': [('x', float, (n,)), 
                      ('pt_id', int),          # which {x_j} to eval
                      ('obj_component', int),  # which {f_i} to eval
-                     ('num_sims_req', int),   # number of sim evals requested in this batch
+                     # ('num_sims_req', int),   # number of sim evals requested in this batch
                      ('converged', bool),
                      ('num_f_evals', int),
                      ('num_gradf_evals', int),
@@ -69,8 +68,9 @@ alloc_specs = {'alloc_f': alloc_f,
                }
 
 persis_info = {}
-persis_info['H_len'] = 0
 persis_info['num_pts'] = 0
+persis_info['last_H_len'] = 0
+persis_info['next_to_give'] = 0
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}

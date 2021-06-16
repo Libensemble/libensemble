@@ -12,102 +12,121 @@ def double_extend(arr):
 
 def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
-    This allocation function will give simulation work if possible, but
-    otherwise start up to one persistent generator. By default, evaluation
-    results are given back to the generator once all generated points have
-    been returned from the simulation evaluation. If alloc_specs['user']['async_return']
-    is set to True, then any returned points are given back to the generator.
+    This alloc function solves a sum of functions, specifically, one where
+    $f_i$ is indpendent from $f_j$ from $i \ne j$.
 
-    If the single persistent generator has exited, then ensemble shutdown is triggered.
+    During the development of this code, we realized indexing the entire H
+    was a signficant bottleneck on the alloc (moreso than the gen and sim).
+    Therefore, we include persis_info['last_Hlen'] so that
 
-    .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
-        `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling_async.py>`_ # noqa
-        `test_persistent_surmise_calib.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_surmise_calib.py>`_ # noqa
+        H[ persis_info['last_Hlen'] : len(H) ]
+
+    contains new inputs (queried by gens). For when a gen sent data and is
+    waiting on sim to return the results, we also include 
+    ```persis_info.get(i)['queued_H_ids']```, which are indexes of H that
+    must be completed (i.e. H['returned'] = True) for the alloc to return to
+    the gen.
     """
 
     Work = {}
-    gen_count = count_persis_gens(W)
+    curr_num_gens = count_persis_gens(W)
 
     # Exit if all persistent gens are done
-    if (not persis_info.get('first_call', True)) and gen_count == 0:
+    if (not persis_info.get('first_call', True)) and curr_num_gens == 0:
         return Work, persis_info, 1
 
     for i in avail_worker_ids(W, persistent=True):
 
-        # first check if gen has converged to a solution
-        convg_sim_idxs_from_gen_i = np.where( 
-                np.logical_and( H['converged'], H['gen_worker']==i )
-                )[0]
-
-        if len(convg_sim_idxs_from_gen_i):
-
-            # assert i in persis_info['gen_list']
-
-            # we should have only one convergence result, so access 0th elem
-            idx = convg_sim_idxs_from_gen_i[0]
-            convg_res = H[idx]
-            persis_info[i]['num_f_evals'] = convg_res['num_f_evals']
-            persis_info[i]['num_gradf_evals'] = convg_res['num_gradf_evals']
-            if 'x_star' not in persis_info:
-                persis_info['x_star'] = np.copy(convg_res['x'])
-            else:
-                x_i_idxs = double_extend(persis_info[i]['f_i_idxs'])
-                persis_info['x_star'][x_i_idxs] = convg_res['x'][x_i_idxs]
-            persis_info['num_convg_gens'] = 1 + persis_info.get('num_convg_gens', 0)
-            H[idx]['converged'] = False
-
-            if persis_info['num_convg_gens'] == len(persis_info['gen_list']):
-                print('#########################')
-                print('# FINAL RESULT ')
-                x_star = persis_info['x_star']
-                print('#\n# x={}'.format(x_star))
-                n = len(x_star)
-                print('#|x_final - 1_n|_2/|1_n|_2 = {:.4f}\n'.format(
-                    la.norm(np.ones(n) - x_star)/n**0.5))
-                for j in persis_info['gen_list']:
-                    print('# gen {} had {} function and {} (full) gradient evals'.format(j, persis_info[j]['num_f_evals'], persis_info[j]['num_gradf_evals']))
-                print('#')
-                print('#########################')
-
-                # TODO: can we return since immediately since everything has converged?
-                # return Work, persis_info, 0
-
-        ret_sim_idxs_from_gen_i = np.where( 
-                np.logical_and(
-                    H['returned'], np.logical_and(
-                    ~H['ret_to_gen'], H['gen_worker']==i )
-                ))[0]
-
-        pt_ids_from_gen_i = set(H[ret_sim_idxs_from_gen_i]['pt_id'])
-
-        if len(pt_ids_from_gen_i)==0:
+        # if has already converged, skip
+        if i in persis_info.get('convg_gens', []):
             continue
 
-        root_idxs = np.array([], dtype=int) # which history idxs have sum_i f_i
-        f_i_idxs = persis_info[i].get('f_i_idxs')
+        # Is gen waiting on work to be completed?
+        if len(persis_info[i].get('curr_H_ids', [])):
 
-        for pt_id in pt_ids_from_gen_i:
+            curr_H_ids = persis_info[i].get('curr_H_ids')
 
-            subset_sim_idxs = np.where( H[ret_sim_idxs_from_gen_i]['pt_id'] == pt_id )[0]
-            ret_sim_idxs_with_pt_id = ret_sim_idxs_from_gen_i[ subset_sim_idxs ]
-            num_sims_req = H[ret_sim_idxs_with_pt_id][0]['num_sims_req']
+            _fin_sims_for_gen_i = np.where( 
+                    np.logical_and(
+                        H[curr_H_ids]['returned'], 
+                        ~H[curr_H_ids]['ret_to_gen']
+                    ))[0]
+            fin_sims_for_gen_i = curr_H_ids[_fin_sims_for_gen_i]
 
-            assert len(ret_sim_idxs_with_pt_id) <= num_sims_req, \
-                    "{} incorrect number of sim data pts, expected <={}".format( 
-                        len(ret_sim_idxs_with_pt_id), num_sims_req)
+            if len(fin_sims_for_gen_i) == len(curr_H_ids):
+                gen_work(Work, i, 
+                         ['x', 'f_i', 'gradf_i'], 
+                         np.atleast_1d(fin_sims_for_gen_i), 
+                         persis_info.get(i), 
+                         persistent=True)
 
-            # TODO: Find another away to determine when the work is all done 
-            if len(ret_sim_idxs_with_pt_id) == num_sims_req:
+                # index by ['ret_to_gen'] first avoid writing to cpy
+                H['ret_to_gen'][fin_sims_for_gen_i] = True 
+                persis_info[i].update({'curr_H_ids': []})
 
-                assert f_i_idxs is not None, print("gen worker does not have the required `f_i_idxs`")
+        else:
+            last_H_len = persis_info['last_H_len']
 
-                root_idxs = np.append(root_idxs, ret_sim_idxs_with_pt_id )
-                H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True # index by ['ret_to_gen'] first to avoid cpy
+            # first check if gen has converged to a solution
+            convg_sim_ids = np.where( 
+                np.logical_and( 
+                    H[last_H_len:]['converged'], 
+                    H[last_H_len:]['gen_worker']==i )
+                )[0] 
 
-        if len(root_idxs) > 0:
-            persis_info[i]['random']={'msg': 'dancing'}
-            gen_work(Work, i, ['x', 'f_i', 'gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
+            if len(convg_sim_ids):
+
+                convg_sim_ids += last_H_len # re-orient
+
+                # assert i in persis_info['gen_list']
+
+                # we should have only one convergence result, so access 0th elem
+                assert len(convg_sim_ids) == 1, print('should only have one \
+                        convergence result, but received {}'.format(len(convg_sim_ids)))
+
+                convg_gens = persis_info.get('convg_gens', [])
+                convg_gens.append(i)
+                persis_info.update({'convg_gens': convg_gens})
+
+                idx = convg_sim_ids[0]
+                convg_res = H[idx]
+                persis_info[i]['num_f_evals'] = convg_res['num_f_evals']
+                persis_info[i]['num_gradf_evals'] = convg_res['num_gradf_evals']
+                if 'x_star' not in persis_info:
+                    persis_info['x_star'] = np.copy(convg_res['x'])
+                else:
+                    x_i_idxs = double_extend(persis_info[i]['f_i_idxs'])
+                    persis_info['x_star'][x_i_idxs] = convg_res['x'][x_i_idxs]
+                # TODO: relieve the gens since they are waiting for communication
+
+                if len(persis_info.get('convg_gens', [])) == len(persis_info['gen_list']):
+                    print('#########################')
+                    print('# FINAL RESULT ')
+                    x_star = persis_info['x_star']
+                    print('#\n# x={}'.format(x_star))
+                    n = len(x_star)
+                    print('#|x_final - 1_n|_2/|1_n|_2 = {:.4f}\n'.format(
+                        la.norm(np.ones(n) - x_star)/n**0.5))
+                    for j in persis_info['gen_list']:
+                        print('# gen {} had {} function and {} (full) gradient evals'.format(j, persis_info[j]['num_f_evals'], persis_info[j]['num_gradf_evals']))
+                    print('#')
+                    print('#########################')
+
+                    # TODO: can we return since immediately since everything has converged?
+                    return Work, persis_info, 1
+
+            # otherwise, if gen must have requested new sim work
+            else:
+                new_H_ids_from_gen_i = np.where( H[last_H_len:]['gen_worker'] == i )[0]
+
+                if len(new_H_ids_from_gen_i) == 0:
+                    import ipdb; ipdb.set_trace()
+                assert len(new_H_ids_from_gen_i), print("Gen must request new sim work or show convergence if avail, but neither occured")
+
+                # re-orient
+                new_H_ids_from_gen_i += last_H_len
+
+                persis_info[i].update({'curr_H_ids': new_H_ids_from_gen_i })
 
     num_req_gens = alloc_specs['user']['num_gens']
     m = gen_specs['user']['m']
@@ -116,15 +135,13 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
     if persis_info.get('first_call', True) and len( avail_worker_ids(W, persistent=False) ):
         num_funcs_arr = partition_funcs_evenly_as_arr(m, num_req_gens)
 
-    task_avail = ~H['given'] # & ~H['cancel_requested']
-
     for i in avail_worker_ids(W, persistent=False):
 
         # start up gens
-        if persis_info.get('first_call', True) and gen_count < num_req_gens:
+        if persis_info.get('first_call', True) and curr_num_gens < num_req_gens:
 
-            gen_count += 1
-            l_idx, r_idx = num_funcs_arr[gen_count-1], num_funcs_arr[gen_count]
+            curr_num_gens += 1
+            l_idx, r_idx = num_funcs_arr[curr_num_gens-1], num_funcs_arr[curr_num_gens]
             persis_info[i].update( {'f_i_idxs': range(l_idx, r_idx)} )
 
             # save gen ids to later access convergence results
@@ -137,13 +154,22 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                      persistent=True)
 
         # give sim work when task available 
-        elif np.any(task_avail):
-            q_inds = 0 # start with oldest point in queue
+        elif persis_info['next_to_give'] < len(H):
+            while persis_info['next_to_give'] < len(H) and \
+                  (H[persis_info['next_to_give']]['given'] or \
+                   H[persis_info['next_to_give']]['converged']):
 
-            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(sim_ids_to_send), persis_info.get(i))
+                persis_info['next_to_give'] += 1
 
-            task_avail[sim_ids_to_send] = False
+            if persis_info['next_to_give'] >= len(H):
+                break
+
+            sim_work(Work, i, 
+                     sim_specs['in'], 
+                     np.array([persis_info['next_to_give']]), 
+                     persis_info.get(i))
+
+            persis_info['next_to_give'] += 1
 
         # this is awkward... no work todo... ¯\_(ツ)_/¯ ... yet!
         else:
@@ -151,6 +177,8 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
 
     if persis_info.get('first_call', True):
         persis_info['first_call'] = False
+
+    persis_info.update({'last_H_len' : len(H)})
 
     return Work, persis_info, 0
 
