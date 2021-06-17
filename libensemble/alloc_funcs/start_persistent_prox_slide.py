@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.sparse as spp
+import scipy.sparse.linalg as sppla
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
                                              count_persis_gens, all_returned)
 
@@ -48,157 +49,139 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         alg_vars = define_alg_vars(alloc_specs, gen_specs, persis_info)
         persis_info['first_call'] = False
         persis_info['alg_vars'] = alg_vars  # parameters needed for optimization alg
-        persis_info['iter_ct'] = 1          # number of outer iterations
+        persis_info['outer_iter_ct'] = 1          # number of outer iterations
 
     # Exit if all persistent gens are done
     elif gen_count == 0:
         return Work, persis_info, 1
 
     # Exit once we have exceeded outer iteration count
-    if persis_info['iter_ct'] > persis_info['alg_vars']['N']:
+    if persis_info['outer_iter_ct'] > persis_info['alg_vars']['N']+1:
         # TODO: Average work? Or take the minimum of them all...
         # TODO: Send signal to shut gens down?
         return Work, persis_info, 1
 
-    m = gen_specs['user']['m']
+    m = alloc_specs['user']['m']
     num_gens_done_with_ps = 0
+    # Sort to give consistent ordering for gens
     avail_persis_worker_ids = np.sort( avail_worker_ids(W, persistent=True) )
 
-    for i in avail_persis_worker_ids:
+    # Give completed gradients back to gens
+    for gen_id in avail_persis_worker_ids:
 
-        # if no more prox steps, gen is waiting for gradient of consensus
-        # (requires all gens to be fininshed) and the gen does need sims yet
-        if persis_info[i]['num_prox_steps_left'] == 0:
+        # if no prox steps, gen is waiting for consensus gradient 
+        if persis_info[gen_id]['T_k'] == 0:
             num_gens_done_with_ps += 1
             continue
-        else:
-            persis_info[i]['num_prox_steps_left'] -= 1
 
         ret_sim_idxs_from_gen_i = np.where( 
-                np.logical_and(H['returned'], 
-                    np.logical_and(~H['ret_to_gen'], H['gen_worker']==i ))
-                )[0]
+                np.logical_and.reduce(( 
+                    H['returned'], 
+                    ~H['ret_to_gen'], 
+                    ~H['consensus_pt'], 
+                    H['gen_worker']==gen_id 
+                )))[0]
+
+        if len(ret_sim_idxs_from_gen_i) == 0: 
+            continue
 
         pt_ids_from_gen_i = set(H[ret_sim_idxs_from_gen_i]['pt_id'])
-
-        if len(pt_ids_from_gen_i) == 0: continue
-
-        root_idxs = np.array([], dtype=int) # which history idxs have sum_i f_i
+        sim_ids_to_send = np.array([], dtype=int) 
 
         for pt_id in pt_ids_from_gen_i:
 
-            # TODO: Can we do consecutive accesses, e.g. tuple (10,44) vs arr [10,11,...,44]?
-            subset_sim_idxs = np.where( H[ret_sim_idxs_from_gen_i]['pt_id'] == pt_id )[0]
-            ret_sim_idxs_with_pt_id = ret_sim_idxs_from_gen_i[ subset_sim_idxs ]
+            ret_sim_idxs_with_pt_id = ret_sim_idxs_from_gen_i[ 
+                    H[ret_sim_idxs_from_gen_i]['pt_id'] == pt_id ]
 
-            assert len(ret_sim_idxs_with_pt_id) <= m, \
-                    "{} incorrect number of sim data pts, expected {}".format( 
+            # TODO: This is a brute force fix, can we dynamically get the size
+            num_req_grad_computations = len(gen_specs['user']['lb']) * \
+                    len(persis_info[gen_id].get('f_i_idxs', []))
+
+            assert len(ret_sim_idxs_with_pt_id) <= num_req_grad_computations, \
+                    "Recieved {} sim data pts, expected at most {}".format( 
                         len(returned_pt_id_sim_idxs), m)
 
-            if len(ret_sim_idxs_with_pt_id) == m:
+            if len(ret_sim_idxs_with_pt_id) == num_req_grad_computations:
+                # if we have collected all gradient queries, marks a single prox step
+                persis_info[gen_id]['T_k'] -= 1
 
-                returned_fvals = H[ ret_sim_idxs_with_pt_id ]['gradf_i']
-                root_idxs = np.append(root_idxs, ret_sim_idxs_with_pt_id )
-                # accessing ['ret_to_gen'] is to ensure we do not write to cpy
+                sim_ids_to_send = np.append(sim_ids_to_send, ret_sim_idxs_with_pt_id )
+                # IMPORTANT: first index by ['ret_to_gen'] to avoid copy
                 H['ret_to_gen'][ ret_sim_idxs_with_pt_id ] = True 
 
-        if len(root_idxs) > 0:
-            # import ipdb; ipdb.set_trace()
-            gen_work(Work, i, ['gradf_i'], np.atleast_1d(root_idxs), persis_info.get(i), persistent=True)
+        if len(sim_ids_to_send) > 0:
+            gen_work(Work, 
+                     gen_id, 
+                     ['gradf_i_x_j'], 
+                     np.atleast_1d(sim_ids_to_send), 
+                     persis_info.get(gen_id), 
+                     persistent=True)
 
-    all_gens_done_with_ps = num_gens_done_with_ps == alloc_specs['user']['num_gens']
-    # Implicitly computes $(W \otimes I) [x_1, x_2, ..., x_m]$
-    if all_gens_done_with_ps:
+    # If all x's collected, help gens compute $(W \otimes I) [x_1, x_2, ...]$
+    if num_gens_done_with_ps == alloc_specs['user']['num_gens']:
 
-        """
-        n = len(gen_specs['user']['lb'])
-        X = np.empty(shape=(num_gens_done_with_ps, n), dtype=float)
-
-        for i, gen_id in enumerate(avail_persis_worker_ids):
-
-            # last request vector from gen is assumed to be {x_k underscore}
-            idxs_todo_from_gen = H[ ~H['given'] ][ H['gen_id'] == gen_id ]
-            assert len(idxs_todo_from_gen), print("gen did not send {x_k underscore}")
-
-            last_idx_from_gen = idxs_todo_from_gen[-1]
-            x_k = H[last_idx_from_gen]['x']
-            X[i] = x_k
-            H[last_idx_from_gen]['given'] = True
-            H[last_idxs_from_gen]['returned'] = True
-
-        R_y = persis_info['alg_vars']['R_y']
-        eps = persis_info['alg_vars']['eps']
-        W_consensus = persis_info['alg_vars']['W']
-        x = np.reshape(X, newshape=(-1,))                               # unfold 
-        consensus_grad = 2*R_y/eps * W_consesus.dot(x)
-        consensus_grad = np.reshape( consensus_grad, newshape=X.shape ) # refold
-        """
-
-        # construct array that has each gen's last index in History array, 
-        # which corresponds to where {x_k underscore} is stored
-        gen_last_H_idx = np.zeros(num_gens_done_with_ps, dtype=int)
+        consensus_idx_arr = np.zeros(num_gens_done_with_ps, dtype=int)
 
         for i, gen_id in enumerate(avail_persis_worker_ids):
-            # TODO: Error here
-            idxs_todo_from_gen = np.where(
-                np.logical_and( ~H['given'],  H['gen_worker'] == gen_id)
-                )[0]
-            assert len(idxs_todo_from_gen), print("gen did not send {x_k underscore}")
-            last_idx_from_gen_i = idxs_todo_from_gen[-1]
-            gen_last_H_idx[i] = last_idx_from_gen_i
-            H[last_idx_from_gen_i]['given'] = True
 
-        k = persis_info['iter_ct'] 
+            incomplete_consensus_idxs = np.where(
+                np.logical_and.reduce((~H['ret_to_gen'], H['consensus_pt'], H['gen_worker'] == gen_id)))[0]
+            assert len(incomplete_consensus_idxs) == 1, print(
+                'gen_id={} recieved {} incomplete consensus points, expected 1'.format(
+                        gen_id, len(incomplete_consensus_idxs) 
+                ))
+
+            consensus_idx_arr[i] = incomplete_consensus_idxs[-1] # last incomplete req
+            # H[last_idx_from_gen_i]['given'] = True
+
+        k = persis_info['outer_iter_ct'] 
         A = persis_info['alg_vars']['A']
         L = persis_info['alg_vars']['L']
         N = persis_info['alg_vars']['N']
-        M2 = persis_info['alg_vars']['M2']
-        D2 = persis_info['alg_vars']['D2']
-        R_y = persis_info['alg_vars']['R_y']
-        eps = persis_info['alg_vars']['eps']
-        sigma_sq = persis_info['alg_vars']['sigma_sq']
+        M = persis_info['alg_vars']['M']
+        D = persis_info['alg_vars']['D']
+        R = persis_info['alg_vars']['R']
+        nu = persis_info['alg_vars']['nu']
 
-        b_k = 2.0*L/k
+        b_k = 2.0*L/(nu * k)
         g_k = 2.0/(k+1)
-        T_k = int( N*(M2**2 + sigma_sq)*k**2 / (D2*L**2) )
-        T_k = min(10, max(1, T_k//10))
+        T_k = int( (N*((M*k)**2)) / (D*(L**2)) + 1 )
 
-        # send neighbors' {x_k underscore} between gens to implicitly compute
-        # $(Wbar \otimes I)[x_1,x_2,...,x_m]$ via adjacency matrix @A
+        # send neighbors' {x_k underscore} between gens and prepare for new outer iter
         for i, gen_id in enumerate(avail_persis_worker_ids):
             
-            persis_info[gen_id]['num_prox_steps_left'] = T_k
+            persis_info[gen_id]['T_k'] = T_k
             persis_info[gen_id]['beta_k'] = b_k
             persis_info[gen_id]['gamma_k'] = g_k
 
             incident_gens = A.indices[ A.indptr[i]:A.indptr[i+1] ]
-            assert i not in incident_gens, print("adjacency matrix @A must cannot have nonzero on diagonal")
-            neighbor_gens_last_H_idx = gen_last_H_idx[ incident_gens ]
+            assert i not in incident_gens, print("no self loops permiited in \
+                    adjacency matrix @A (i.e. only zeros on diagonal)")
+            neighbor_consensus_idx = consensus_idx_arr[ incident_gens ]
 
-            import ipdb; ipdb.set_trace()
-            gen_work(Work, gen_id, ['x'], np.atleast_1d(neighbor_gens_last_H_idx), 
-                     persis_info.get(i), persistent=True)
+            gen_work(Work, gen_id, ['x'], np.atleast_1d(neighbor_consensus_idx),
+                     persis_info.get(gen_id), persistent=True)
 
-            curr_gen_last_H_idx = gen_last_H_idx[i]
-            H[curr_gen_last_H_idx]['returned'] = True
+            curr_gen_consensus_idx = consensus_idx_arr[i]
+            H[curr_gen_consensus_idx]['ret_to_gen'] = True
 
-        persis_info['iter_ct'] += 1
+        persis_info['outer_iter_ct'] += 1
 
-    num_req_gens = alloc_specs['user']['num_gens']
     # partition sum of convex functions evenly (only do at beginning)
-    if persis_info['iter_ct'] == 1 and len( avail_worker_ids(W, persistent=False) ):
-        num_funcs_arr = partition_funcs_evenly_as_arr(alloc_specs['user']['num_gens'], num_req_gens)
-        k = persis_info['iter_ct'] 
+    if persis_info['outer_iter_ct'] == 1 and len( avail_worker_ids(W, persistent=False) ):
+        num_funcs_arr = partition_funcs_arr(alloc_specs['user']['m'], 
+                alloc_specs['user']['num_gens'])
+        k = persis_info['outer_iter_ct'] 
         b_k = 2.0*persis_info['alg_vars']['L']/k
         g_k = 2.0/(k+1)
 
-    # TODO: What if task is put in Work but not market given yet?
-    task_avail = ~H['given'] 
+    # TODO: What if task is put in Work but not marked given yet?
+    task_avail = np.logical_and(~H['given'], ~H['consensus_pt'])
 
     for i in avail_worker_ids(W, persistent=False):
 
         # start up gens
-        if persis_info['iter_ct'] == 1 and gen_count < alloc_specs['user']['num_gens']:
+        if persis_info['outer_iter_ct'] == 1 and gen_count < alloc_specs['user']['num_gens']:
             gen_count += 1
             l_idx = num_funcs_arr[gen_count-1]
             r_idx = num_funcs_arr[gen_count]
@@ -208,14 +191,12 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             persis_info[i].update({
                 'f_i_idxs': range(l_idx, r_idx),
-                'num_prox_steps_left': 0, 
+                'T_k': 0, 
                 'beta_k': b_k,
                 'gamma_k': g_k,
-                'R_y':  persis_info['alg_vars']['R_y'],
-                'eps': persis_info['alg_vars']['eps'], 
+                'R':  persis_info['alg_vars']['R'],
                 'N':persis_info['alg_vars']['N'],
                 })
-            # import ipdb; ipdb.set_trace()
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
 
@@ -238,67 +219,47 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
-    m = gen_specs['user']['m']  
-    n = len(lb)
     b = gen_specs['user']['gen_batch_size']
+    m = alloc_specs['user']['m']  
     f_i_idxs = persis_info.get('f_i_idxs')
 
-    C_1 = 1      # see paper
-    C_3 = n**0.5 # C_3=1 if 2-norm or sqrt(n) if 1-norm
-    Delta = 0    # bound on noise (but we have exact gradient)
+    n = len(lb)
 
-    # Potentially user defined
-    C = 1        
-    M = 100 
-    L = 1        
-    c = 1        
-    eps = 0.1
-    # end of user defined
+    # User defined
+    M   = 10    # upper bound on gradient
+    eps = 10    # error/tolerance
+    R   = 100   # consensus penalty
+    D_X = 50*n   # diameter of X
+    nu  = 2     # modulus of strong convexity of \omega
 
-    D_X = 2
-    D_XV = (2*np.log(n))**0.5  # diameter of X w.r.t. Bregman divg. V
-    D2  = 0.75 * D_XV**2
-    s = D_X                    # s <= D_X
-
-    p_star = np.log(n)/n  
-    r = 0.5 * s * C_3     
-    M2 = c*(n**0.5)*C_1*M
-    sigma_sq = 4 * p_star**2 * (C*n*M**2 + (n*Delta/r)**2)
+    D = (3*D_X)/(2*nu)
 
     # chain matrix
-    # TODO: Define different types of matrices
     num_gens = alloc_specs['user']['num_gens']
     diagonals = [np.ones(num_gens-1), np.ones(num_gens-1)]
     A = spp.csr_matrix( spp.diags(diagonals, [-1,1]) )
-    # W = spp.kron(Wbar, spp.eye(n)) 
-    lam_min = eps
-    R_y = ( M**2/(m*lam_min) )**0.5 # TODO: This might be incorrect ... replace m with number of local functions
 
-    N = 10      # number of iterations to reach desired accuracy, just pick some random number for now
+    if num_gens > 2:
+        lam_max = sppla.eigs(A, k=1)[0][0]
+    else:
+        import numpy.linalg as la
+        lam_max = np.amax( la.eigvals(A.todense()) )
+    L = 2*R*lam_max
+    N = int( ((L * D_X)/(nu * eps) )**0.5 + 1 )
 
     alg_vars = {
-                'C': C,               # = O(1) independent of ...
-                'C_1': C_1,           #
-                'C_3': C_3,           # 
-                'M': M,               # upper bound on ||f'(x)|| 
-                'L': L,               # g=2R_y/eps ||Wx|| is L-smooth
-                'c' : c,              # c = O(1) independent of n, C_1
-                'eps': eps,           # tolerance
-                'Delta': Delta,       # ? 
-                'p_star': p_star,     # (E[||e||*^4)**0.25 <= p_star ; =1 if 2-norm or O(sqrt( ln(n)/n )) for 1-norm
-                'r': r,               # smoothing paramter
-                'M2': M2,             # ?
-                'D2': D2,             # ?
-                'sigma_sq': sigma_sq, # ?
+                'M': M,               # upper bound on gradient of f
+                'L': L,               # L-smoothness of consensus
+                'D': D,               # (3 D_X^2)/(2 nu), where D_X is the diameter of X 
                 'A': A,               # Adjacency matrix (we will not explicitly form Laplacian)
-                'lam_min': lam_min,   # ?
-                'R_y': R_y,           # consensus penalty
+                'R': R,               # consensus penalty, represents R=R_y^2/eps
                 'N': N,               # number of outer iterations 
+                'nu': nu,             # modulus of strong convexity
                 }
 
     return alg_vars
 
-def partition_funcs_evenly_as_arr(num_funcs, num_gens):
+def partition_funcs_arr(num_funcs, num_gens):
     num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)
     num_leftover_funcs = num_funcs % num_gens
     num_funcs_arr[:num_leftover_funcs] += 1
