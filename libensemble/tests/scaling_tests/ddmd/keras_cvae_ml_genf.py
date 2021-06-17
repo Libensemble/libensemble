@@ -62,7 +62,7 @@ def submit_application(exctr, user, app_type, output_path, task_config):
                         num_procs=1, num_nodes=1, ranks_per_node=1)
 
     calc_status = exctr.polling_loop(task, delay=user['poll_interval'],
-                                     timeout=user[app_type + '_kill_minutes'])
+                                     timeout=user[app_type + '_kill_minutes']*60)
     os.chdir(start)
     return calc_status
 

@@ -64,8 +64,8 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     # Periodically poll our running task, then ensure the task created the expected output.
     if not dry_run:
-        calc_status = exctr.polling_loop(task, delay=sim_specs['user']['poll_interval'],
-                                         timeout=sim_specs['user']['sim_kill_minutes'])
+        calc_status = exctr.polling_loop(task, timeout=sim_specs['user']['sim_kill_minutes']*60,
+                                         delay=sim_specs['user']['poll_interval'])
         time.sleep(0.2)
         output_file = glob.glob('*.h5')
         assert len(output_file), \

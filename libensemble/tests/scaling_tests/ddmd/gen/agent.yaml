@@ -7,9 +7,9 @@ num_intrinsic_outliers: SET_BY_GENF
 num_extrinsic_outliers: SET_BY_GENF
 intrinsic_score: lof
 extrinsic_score: null
-n_traj_frames: 10
-n_most_recent_h5_files: 4
-k_random_old_h5_files: 4
+n_traj_frames: 28
+n_most_recent_h5_files: 10
+k_random_old_h5_files: 0
 sklearn_num_jobs: -1
 model_type: keras_cvae
 inference_batch_size: 128

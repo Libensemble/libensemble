@@ -47,7 +47,7 @@ for app in ddmd_apps:
 # Specify where libEnsemble's workers will call user functions
 ensemble_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_').split('.')[0])
 
-initial_md_runs = 4
+initial_md_runs = 30
 
 # Parameterize our simulator function
 sim_specs = {'sim_f': run_openmm_sim_f,
@@ -86,7 +86,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)],
 
 # Specify when libEnsemble should shut down - the persistent gen will be sent
 #  a PERSIS_STOP signal.
-exit_criteria = {'sim_max': 50}
+exit_criteria = {'sim_max': 150}
 
 # Additional libEnsemble settings for customize our ensemble directory
 libE_specs['sim_dirs_make'] = True
