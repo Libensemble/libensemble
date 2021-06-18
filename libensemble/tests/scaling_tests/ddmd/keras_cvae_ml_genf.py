@@ -33,6 +33,9 @@ def update_config_file(user, app_type, pinfo):
         config['last_n_h5_files'] = user['initial_sample_size']
     elif app_type == 'machine_learning':
         config['model_tag'] = 'keras_cvae_model' + get_stage(pinfo)
+        config['last_n_h5_files'] = user['machine_learning_last_n_h5_files']
+        config['initial_epochs'] = user['machine_learning_epochs']
+        config['epochs'] = user['machine_learning_epochs']
     elif app_type == 'model_selection':
         config['checkpoint_dir'] = output_path.replace(app_type, 'machine_learning') + '/checkpoint'
     elif app_type == 'agent':
