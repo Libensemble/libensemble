@@ -39,6 +39,8 @@ def update_config_file(user, app_type, pinfo):
     elif app_type == 'agent':
         config['num_intrinsic_outliers'] = user['outliers']
         config['num_extrinsic_outliers'] = user['outliers']
+        config['n_most_recent_h5_files'] = user['agent_n_most_recent_h5_files']
+        config['n_traj_frames'] = user['agent_n_traj_frames']
 
     os.makedirs(output_path, exist_ok=True)
     task_config = os.path.join(output_path, 'stage' + get_stage(pinfo) + '_task0000.yaml')
