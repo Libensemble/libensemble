@@ -69,17 +69,18 @@ def submit_application(exctr, user, app_type, output_path, task_config):
     return calc_status
 
 
-def preprocess_md_dirs(calc_in, pinfo):
+def postprocess_md_sim_dirs(calc_in, pinfo):
     """
-    Copy the Molecular Dynamics results into directories that resemble
+    Symlink the Molecular Dynamics results into directories that resemble
     DeepDriveMD's output.
     """
     agg_expected_md_dir = './molecular_dynamics_runs/stage' + get_stage(pinfo)
+    os.makedirs(agg_expected_md_dir)
     for entry in calc_in:
         base_task_dir = 'task' + str(entry['task_id']).zfill(4)
         agg_task_dir = os.path.join(agg_expected_md_dir, base_task_dir)
         h5file = entry['file_path']
-        shutil.copytree('../' + h5file.split('/')[-2], agg_task_dir)
+        os.symlink(os.path.abspath('../' + h5file.split('/')[-2]), os.path.abspath(agg_task_dir))
 
 
 def generate_initial_md_runs(gen_specs, persis_info):
@@ -176,8 +177,8 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
             if tag in [STOP_TAG, PERSIS_STOP]:  # Generator instructed to stop
                 break
 
-            # Copy MD data into directory structure expected by future apps
-            preprocess_md_dirs(calc_in, persis_info)
+            # Symlink MD data into directory structure expected by future apps
+            postprocess_md_sim_dirs(calc_in, persis_info)
 
             # Run each subsequent DeepDriveMD data-processing application
             for app in apps:

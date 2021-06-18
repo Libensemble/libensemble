@@ -2,7 +2,7 @@
 #SBATCH --job-name=libE-test
 #SBATCH --account=STARTUP-USERNAME
 #SBATCH --nodes=2
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --time=00:30:00
 
 # Make sure conda and environment are loaded and activated before sbatch
