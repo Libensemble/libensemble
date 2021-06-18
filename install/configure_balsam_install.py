@@ -12,7 +12,7 @@ import subprocess
 
 def install_balsam():
     here = os.getcwd()
-    os.chdir('../balsam/balsam-0.4')
+    os.chdir('../balsam/balsam-0.5.0')
     subprocess.check_call('pip install -e .'.split())
     os.chdir(here)
 
