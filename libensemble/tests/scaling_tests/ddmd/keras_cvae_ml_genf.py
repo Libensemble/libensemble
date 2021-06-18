@@ -6,7 +6,6 @@ import os
 import glob
 import yaml
 import json
-import shutil
 import numpy as np
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG)
