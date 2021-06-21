@@ -172,6 +172,11 @@ jobs:
         - name: Install Ubuntu compilers
           run: conda install gcc_linux-64
 
+        - name: Install bc
+          run: |
+            sudo apt-get update
+            sudo apt-get install bc
+
         - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil
           run: |
             conda install scipy
