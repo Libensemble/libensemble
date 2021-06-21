@@ -30,22 +30,21 @@ def EvaluateJacobian(x, component=np.nan):
     assert len(x) % 2 == 0, print("must be even lengthed input vector")
 
     n = len(x) // 2
+    df = np.zeros(len(x), dtype=float)
 
     if np.isnan(component):
-        df = np.zeros(len(x), dtype=float)
         df[::2] = 400 * np.multiply(x[::2], np.power(x[::2], 2) - x[1::2]) \
                 + 2 * ( x[::2] - np.ones(n) )
 
         df[1::2] = -200 * (np.power(x[::2], 2) - x[1::2])
+
     else:
         i = component
-        x1 = x[2*(i//2)]
-        x2 = x[2*(i//2)+1]
+        x1 = x[2*i]
+        x2 = x[2*i+1]
 
-        if i % 2 == 0:
-            df = 400 * x1 * (x1**2 - x2) + 2 * (x1 - 1)
-        else:
-            df = -200 * (x1**2 - x2)
+        df[2*i] = 400 * x1 * (x1**2 - x2) + 2 * (x1 - 1)
+        df[2*i+1] = -200 * (x1**2 - x2) 
 
     return df
 
@@ -55,14 +54,12 @@ def rosenbrock_eval(H, persis_info, sim_specs, _):
     O = np.zeros(batch, dtype=sim_specs['out'])
 
     for i, x in enumerate(H['x']):
-        obj_component_idx = H['obj_component'][i]
+        obj_component = H['obj_component'][i]  # which f_i
 
-        if 'f_i' in O.dtype.names:
-            # TODO: bandaid fix, find how to not eval f_i when we only want gradf_i
-            if obj_component_idx < len(x)//2:
-                O['f_i'][i] = EvaluateFunction(x, obj_component_idx)
-
-        if 'gradf_i' in O.dtype.names:
-            O['gradf_i'][i] = EvaluateJacobian(x, obj_component_idx)
+        if H[i]['get_grad']:
+            import ipdb; ipdb.set_trace()
+            O['gradf_i'][i] = EvaluateJacobian(x, obj_component)
+        else:
+            O['f_i'][i] = EvaluateFunction(x, obj_component)
 
     return O, persis_info
