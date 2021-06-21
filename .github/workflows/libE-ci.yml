@@ -105,12 +105,6 @@ jobs:
             flake8 libensemble
             ulimit -Sn 10000
 
-        - name: Install Balsam 0.5.0
-          run: |
-            wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
-            mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
-            python install/configure_balsam_install.py
-
         - name: Run tests, Ubuntu
           if: matrix.os == 'ubuntu-16.04'
           run: |
@@ -161,7 +155,7 @@ jobs:
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             POSTGRES_HOST: postgres
-            POSTGRES_PORT: 5432
+            POSTGRES_PORT: 58677
 
         steps:
         - uses: actions/checkout@v2
