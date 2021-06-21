@@ -48,11 +48,6 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             num_sims_req_by_gen = r_H_id - l_H_id
 
             num_fin_sims = np.sum(H['returned'][l_H_id:r_H_id])
-            # fin_sims_for_gen_i_subarr = np.where( 
-            #         np.logical_and(
-            #             H[l_H_id:r_H_id]['returned'], 
-            #             ~H[l_H_id:r_H_id]['ret_to_gen']
-            #         ))[0]
 
             # if len(fin_sims_for_gen_i_subarr) == (r_H_id - l_H_id):
             if num_fin_sims == num_sims_req_by_gen:
@@ -65,8 +60,6 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                          persis_info.get(i), 
                          persistent=True)
 
-                # index by ['ret_to_gen'] first avoid writing to cpy
-                # H['ret_to_gen'][fin_sims_for_gen_i] = True 
                 persis_info[i].update({'curr_H_ids': []})
 
         else:
