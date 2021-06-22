@@ -1,8 +1,6 @@
 language: python
 dist: xenial
 python:
-  - 3.6
-  - 3.7
   - 3.8
 
 os: linux
@@ -12,21 +10,7 @@ env:
     - HYDRA_LAUNCHER=fork
     - OMPI_MCA_rmaps_base_oversubscribe=yes
     - MPI=mpich
-    - COMMS_TYPE=l  # local
-
-jobs:
-  include:
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.7 COMMS_TYPE=l  # local
-      language: generic
-      python: 3.7
-    - os: osx
-      osx_image: xcode11.3
-      env: MPI=mpich PY=3.8 COMMS_TYPE=l  # local
-      language: generic
-      python: 3.8
-  fast_finish: true
+    - COMMS_TYPE=l
 
 services:
     - postgresql
@@ -36,44 +20,24 @@ cache:
   apt: true
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda info -a # For debugging conda issues
+  - conda info -a
   - conda config --add channels conda-forge
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      conda create --yes --name condaenv python=$PY;
-    else
-      conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION;
-    fi
+  - conda create --yes --name condaenv python=$TRAVIS_PYTHON_VERSION;
   - source activate condaenv
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        COMPILERS=clang_osx-64=9.0.1;
-        MUMPS=mumps-mpi=5.1.2=haf446c3_1007;
-    else
-        COMPILERS=gcc_linux-64;
-        MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
-    fi
-
+  - COMPILERS=gcc_linux-64;
+  - MUMPS=mumps-mpi=5.1.2=h5bebb2f_1007;
   - conda install $COMPILERS
-  - conda install libblas libopenblas # Prevent 'File exists' error
-
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" ]] || [[ "$PY" == "3.8" ]]; then
-      conda install nlopt mpi4py scipy mpich;
-      export PETSC_CONFIGURE_OPTIONS='--with-batch';
-      conda install petsc4py;
-    else
-      conda install nlopt petsc4py petsc $MUMPS mpi4py scipy $MPI;
-    fi
-
+  - conda install libblas libopenblas
+  - conda install nlopt mpi4py scipy mpich;
+  - export PETSC_CONFIGURE_OPTIONS='--with-batch';
+  - conda install petsc4py;
   - conda install psutil
   - pip install mpmath
   - pip install DFO-LS
@@ -94,11 +58,9 @@ install:
 before_script:
   - flake8 libensemble
 
-# Run test (-z show output)
 script:
   - ./libensemble/tests/run-tests.sh -y 'test_balsam*' -z -$COMMS_TYPE
 
-# Track code coverage
 after_success:
   - mv libensemble/tests/.cov* .
   - coveralls
