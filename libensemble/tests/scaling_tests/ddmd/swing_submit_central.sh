@@ -1,9 +1,9 @@
 #!/bin/bash -x
 #SBATCH --job-name=libE-test
 #SBATCH --account=STARTUP-USERNAME
-#SBATCH --nodes=2
+#SBATCH --nodes=3
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:30:00
+#SBATCH --time=00:45:00
 
 # Make sure conda and environment are loaded and activated before sbatch
 
@@ -11,7 +11,7 @@ module load gcc
 module load cuda/11.0.2-4szlv2t
 
 export EXE=run_libe_ddmd.py
-export NUM_WORKERS=2
+export NUM_WORKERS=3
 
 export PYTHONNOUSERSITE=1
 

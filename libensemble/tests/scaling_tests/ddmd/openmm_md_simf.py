@@ -55,7 +55,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     config_file = sim_specs['user']['config_file']
     args = '-c ' + os.path.join(os.getcwd(), config_file)
-    os.environ["OMP_NUM_THREADS"] = sim_specs['user']['omp_num_threads']
+    os.environ["OMP_NUM_THREADS"] = str(sim_specs['user']['omp_num_threads'])
 
     # Submit the molecular_dynamics app that was registered with the Executor.
     #  Only one process needed since bulk work presumably done on GPU. If not,

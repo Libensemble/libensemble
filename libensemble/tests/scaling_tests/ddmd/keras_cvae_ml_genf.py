@@ -60,7 +60,7 @@ def submit_application(exctr, user, app_type, output_path, task_config):
     """
     start = os.getcwd()
     os.chdir(output_path)
-    os.environ["OMP_NUM_THREADS"] = user['omp_num_threads']
+    os.environ["OMP_NUM_THREADS"] = str(user['omp_num_threads'])
 
     args = '-c ' + os.path.join(os.getcwd(), task_config)
     task = exctr.submit(app_name=app_type, app_args=args, wait_on_run=True,
