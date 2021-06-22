@@ -182,14 +182,14 @@ jobs:
             sudo apt-get update
             sudo apt-get install bc
 
-        - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil
+        - name: Install scipy, mpich, mpi4py, blas, psutil
           run: |
             conda install scipy
             conda install mpich
             conda install mpi4py
             conda install libblas libopenblas psutil
 
-        - name: Install DFO-LS, mpmath, deap, other test dependencies
+        - name: Install test dependencies
           run: |
             python -m pip install --upgrade pip
             pip install flake8
@@ -213,6 +213,10 @@ jobs:
             wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
             python install/configure_balsam_install.py
+
+        # Uncomment the following 2 lines to enable tmate debug sessions
+        - name: SSH to GitHub Actions
+          uses: P3TERX/ssh2actions@main
 
         - name: Run tests
           run: |
