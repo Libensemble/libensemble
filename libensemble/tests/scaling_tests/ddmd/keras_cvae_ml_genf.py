@@ -161,7 +161,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
     exctr = Executor.executor
     apps = ['aggregation', 'machine_learning', 'model_selection', 'agent']
     persis_info['stage_count'] = -1
-    os.environ["OMP_NUM_THREADS"] = 4
+    os.environ["OMP_NUM_THREADS"] = '4'
     initial_complete = False
     tag = None
 

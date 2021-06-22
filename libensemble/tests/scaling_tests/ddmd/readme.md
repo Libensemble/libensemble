@@ -43,6 +43,8 @@ Load the following modules:
 
 The drivers on Swing's GPUs expect CUDA 11.0. Other versions from the other modules won't work for this purpose.
 
+Obtain the source code from: https://github.com/openmm/openmm/releases/tag/7.5.1
+
 Follow the instructions from here: http://docs.openmm.org/7.1.0/userguide/library.html#compiling-openmm-from-source-code
 
 Notes:
