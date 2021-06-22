@@ -214,10 +214,6 @@ jobs:
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
             python install/configure_balsam_install.py
 
-        # Uncomment the following 2 lines to enable tmate debug sessions
-        - name: SSH to GitHub Actions
-          uses: P3TERX/ssh2actions@main
-
         - name: Run tests
           run: |
            ./libensemble/tests/run-tests.sh -r -y 'test_balsam*' -z -l
