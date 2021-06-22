@@ -162,8 +162,6 @@ jobs:
             HYDRA_LAUNCHER: 'fork'
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            POSTGRES_HOST: postgres
-            POSTGRES_PORT: 58677
 
         steps:
         - uses: actions/checkout@v2
