@@ -130,7 +130,6 @@ jobs:
 
     test-libE-with-Balsam:
         name: Test Balsam with libEnsemble
-        needs: test-libE
         if: always()
         runs-on: ${{ matrix.os }}
         strategy:
