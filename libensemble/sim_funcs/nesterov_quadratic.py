@@ -1,27 +1,18 @@
 import numpy as np
 
-const = 10
-
-def EvaluateFunction(x, component=np.nan):
+def EvaluateFunction(x):
     """
     Evaluates the chained Rosenbrock function
     """
 
-    assert len(x) % 2 == 0, print("must be even lengthed input vector")
+    f1 = 0.5 * (x[0]**2 + x[-1]**2) - x[0]
 
-    n = len(x) // 2
+    f2 = 0.5 * np.sum( np.power(x[1:]-x[:-1], 2) )
 
-    if np.isnan(component):
-        f1 = 100 * np.power( np.power(x[::2],2) - x[1::2], 2)
-        f2 = np.power(x[::2]-np.ones(n), 2)
-        f =  f1 + f2
-    else:
-        i = component
-        x1 = x[2*i]
-        x2 = x[2*i+1]
-        f = 100 * (x1**2 - x2)**2 + (x1-1)**2
+    f = f1 + f2
 
-    return 1.0/const * f
+    return f
+
 
 def EvaluateJacobian(x, component=np.nan):
     """
@@ -47,7 +38,7 @@ def EvaluateJacobian(x, component=np.nan):
         df[2*i] = 400 * x1 * (x1**2 - x2) + 2 * (x1 - 1)
         df[2*i+1] = -200 * (x1**2 - x2) 
 
-    return 1.0/const * df
+    return df
 
 def rosenbrock_eval(H, persis_info, sim_specs, _):
 
