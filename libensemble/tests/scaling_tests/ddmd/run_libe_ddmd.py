@@ -47,14 +47,15 @@ for app in ddmd_apps:
 # Specify where libEnsemble's workers will call user functions
 ensemble_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_').split('.')[0])
 
-initial_md_runs = 30
+initial_md_runs = 12
 
 # Parameterize our simulator function
 sim_specs = {'sim_f': run_openmm_sim_f,
              'in': ['stage_id', 'gen_dir_loc', 'initial', 'task_id'],
              'out': [('file_path', "<U70"), ('sim_cstat', int)],
              'user': {'sim_kill_minutes': 15,
-                      'sim_length_ns': 1.0,  # Set to 0.1 or less for local runs
+                      'sim_length_ns': 1.0,
+                      'omp_num_threads': 4,
                       'poll_interval': 1,
                       'dry_run': False,
                       'config_file': 'molecular_dynamics.yaml'}
@@ -70,7 +71,8 @@ gen_specs = {'gen_f': run_keras_cvae_ml_genf,
                       'agent_n_most_recent_h5_files': initial_md_runs,
                       'agent_n_traj_frames': int(sim_specs['user']['sim_length_ns']*1000),
                       'machine_learning_last_n_h5_files': initial_md_runs,
-                      'machine_learning_epochs': 10,
+                      'omp_num_threads': 4,
+                      'machine_learning_epochs': 5,
                       'poll_interval': 1,
                       'skip_aggregation': True,
                       'aggregation_kill_minutes': 15,
@@ -90,7 +92,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)],
 
 # Specify when libEnsemble should shut down - the persistent gen will be sent
 #  a PERSIS_STOP signal.
-exit_criteria = {'sim_max': 150}
+exit_criteria = {'sim_max': 120}
 
 # Additional libEnsemble settings for customize our ensemble directory
 libE_specs['sim_dirs_make'] = True
