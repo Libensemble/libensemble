@@ -73,7 +73,7 @@ persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
 # exit_criteria = {'sim_max': 2000}
-exit_criteria = {'elapsed_wallclock_time': 300}
+exit_criteria = {'elapsed_wallclock_time': 120}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

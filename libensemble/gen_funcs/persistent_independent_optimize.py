@@ -42,7 +42,7 @@ def independent_optimize(H, persis_info, gen_specs, libE_info):
         df_out, new_ct = _req_sims(x, f_i_idxs, x_i_idxs, ct, gen_specs, libE_info, get_f=False)
         metadata['ct'] = new_ct
         metadata['num_gradf_evals'] += 1
-        metadata['last_grad_norm'] = la.norm(df_out,2)
+        metadata['last_grad_norm'] = la.norm(df_out, np.inf)
         return df_out
 
     while 1:
