@@ -33,16 +33,14 @@ def update_config_file(user, app_type, pinfo):
         config['last_n_h5_files'] = user['initial_sample_size']
     elif app_type == 'machine_learning':
         config['model_tag'] = 'keras_cvae_model' + get_stage(pinfo)
-        config['last_n_h5_files'] = user['machine_learning_last_n_h5_files']
-        config['initial_epochs'] = user['machine_learning_epochs']
-        config['epochs'] = user['machine_learning_epochs']
+        config['last_n_h5_files'] = user['last_n_h5_files']
     elif app_type == 'model_selection':
         config['checkpoint_dir'] = output_path.replace(app_type, 'machine_learning') + '/checkpoint'
     elif app_type == 'agent':
         config['num_intrinsic_outliers'] = user['outliers']
         config['num_extrinsic_outliers'] = user['outliers']
-        config['n_most_recent_h5_files'] = user['agent_n_most_recent_h5_files']
-        config['n_traj_frames'] = user['agent_n_traj_frames']
+        config['n_most_recent_h5_files'] = user['n_most_recent_h5_files']
+        config['n_traj_frames'] = user['n_traj_frames']
 
     os.makedirs(output_path, exist_ok=True)
     task_config = os.path.join(output_path, 'stage' + get_stage(pinfo) + '_task0000.yaml')
@@ -60,14 +58,12 @@ def submit_application(exctr, user, app_type, output_path, task_config):
     """
     start = os.getcwd()
     os.chdir(output_path)
-    os.environ["OMP_NUM_THREADS"] = str(user['omp_num_threads'])
 
     args = '-c ' + os.path.join(os.getcwd(), task_config)
     task = exctr.submit(app_name=app_type, app_args=args, wait_on_run=True,
                         num_procs=1, num_nodes=1, ranks_per_node=1)
 
-    calc_status = exctr.polling_loop(task, delay=user['poll_interval'],
-                                     timeout=user[app_type + '_kill_minutes']*60)
+    calc_status = exctr.polling_loop(task, timeout=user[app_type + '_kill_minutes']*60, delay=1)
     os.chdir(start)
     return calc_status
 
@@ -82,8 +78,8 @@ def postprocess_md_sim_dirs(calc_in, pinfo):
     for entry in calc_in:
         base_task_dir = 'task' + str(entry['task_id']).zfill(4)
         agg_task_dir = os.path.join(agg_expected_md_dir, base_task_dir)
-        h5file = entry['file_path']
-        os.symlink(os.path.abspath('../' + h5file.split('/')[-2]), os.path.abspath(agg_task_dir))
+        sim_dir = entry['sim_dir_loc']
+        os.symlink(os.path.abspath('../' + sim_dir), os.path.abspath(agg_task_dir))
 
 
 def generate_initial_md_runs(gen_specs, persis_info):
@@ -165,6 +161,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
     exctr = Executor.executor
     apps = ['aggregation', 'machine_learning', 'model_selection', 'agent']
     persis_info['stage_count'] = -1
+    os.environ["OMP_NUM_THREADS"] = 4
     initial_complete = False
     tag = None
 
@@ -175,7 +172,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
             send_mgr_worker_msg(libE_info['comm'], local_H)
             initial_complete = True
         else:
-            # Wait for entire set of MD results
+            # Wait for batch of MD results
             tag, Work, calc_in = get_mgr_worker_msg(libE_info['comm'])
             if tag in [STOP_TAG, PERSIS_STOP]:  # Generator instructed to stop
                 break
@@ -183,7 +180,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
             # Symlink MD data into directory structure expected by future apps
             postprocess_md_sim_dirs(calc_in, persis_info)
 
-            # Run each subsequent DeepDriveMD data-processing application
+            # Run each subsequent DeepDriveMD app
             for app in apps:
                 if skip_app(gen_specs, app):
                     continue
@@ -193,7 +190,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
 
             # Produce subsequent set of MD runs parameters based on the final app's results
             local_H, persis_info = generate_subsequent_md_runs(gen_specs, persis_info, local_H, output_path)
-            # Setn subsequent MD run parameters directly to the Manager
+            # Send subsequent MD run parameters directly to the Manager
             send_mgr_worker_msg(libE_info['comm'], local_H)
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG

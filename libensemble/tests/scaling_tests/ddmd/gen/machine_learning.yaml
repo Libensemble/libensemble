@@ -15,8 +15,8 @@ final_shape:
 - 28
 - 28
 - 1
-initial_epochs: SET_BY_GENF
-epochs: SET_BY_GENF
+initial_epochs: 10
+epochs: 10
 batch_size: 32
 split_pct: 0.8
 shuffle: true
