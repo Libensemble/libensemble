@@ -29,6 +29,8 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
     print('[{}/{}] x={}'.format(0, num_outer_iters, x0), flush=True)
 
+    f_obj = 0
+
     for k in range(num_outer_iters):
 
         pre_x_k = (1.0 - g_k) * post_x_k + (g_k * x_k)
@@ -70,18 +72,21 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         H_o['pt_id'][:] = ct      
         H_o['consensus_pt'][:] = False
         H_o['obj_component'][:] = f_i_idxs
-        H_o['get_grad'][:] = True
+        H_o['get_grad'][:] = False
         H_o = np.reshape(H_o, newshape=(-1,))      
         ct += 1
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
         if tag in [STOP_TAG, PERSIS_STOP]:
             return None, None, ct
-        gradf_is = calc_in['gradf_i']
-        gradf    = np.sum(gradf_is, axis=0)
+        f_is = calc_in['f_i']
+        f_obj = np.sum(f_is)
+        # gradf_is = calc_in['gradf_i']
+        # gradf    = np.sum(gradf_is, axis=0)
 
-        print('[{}/{}] x={} ||gradf||={:.8f}'.format(k+1, num_outer_iters, post_x_k, la.norm(gradf, ord=2)), flush=True)
+        # print('[{}/{}] x={} ||gradf||={:.8f}'.format(k+1, num_outer_iters, post_x_k, la.norm(gradf, ord=2)), flush=True)
 
         # print('[{}/{}] x={}'.format(k+1, num_outer_iters, post_x_k), flush=True)
+        print('[{}: {}/{}] f_is={:.8f}'.format(persis_info['worker_num'], k+1, num_outer_iters, f_obj), flush=True)
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 

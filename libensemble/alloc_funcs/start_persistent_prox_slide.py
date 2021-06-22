@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as la
 import scipy.sparse as spp
 import scipy.sparse.linalg as sppla
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
@@ -149,6 +150,11 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # compile location of x locations needed for Wx ...
         consensus_ids_in_H = np.array([persis_info[i]['curr_H_ids'][0] for i in avail_persis_worker_ids], dtype=int)
+        # TEMP
+        num_gens = alloc_specs['user']['num_gens']
+        n = len(gen_specs['user']['lb'])
+        gradg = np.zeros(num_gens*n, dtype=float)
+        x     = np.zeros(num_gens*n, dtype=float)
 
         # send neighbors' {x_k underscore} between gens and prepare for new outer iter
         for i0, i in enumerate(avail_persis_worker_ids):
@@ -162,12 +168,19 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                     adjacency matrix @A (i.e. only zeros on diagonal)")
             neighbor_consensus_ids_in_H = consensus_ids_in_H[ incident_gens ]
 
+            # TEMP
+            x[i0*n:(i0+1)*n] = H[consensus_ids_in_H[i0]]['x']
+            gradg[i0*n:(i0+1)*n] = H[consensus_ids_in_H[i0]]['x'] - np.sum(H[neighbor_consensus_ids_in_H]['x'], axis=0)
+
             gen_work(Work, i, ['x'], np.atleast_1d(neighbor_consensus_ids_in_H),
                      persis_info.get(i), persistent=True)
 
             persis_info[i].update({'curr_H_ids': []})
             persis_info[i].update({'at_consensus': False})
 
+        # TEMP
+        R = persis_info['alg_vars']['R']
+        print('|gradg|={:.8f}\n'.format(R * np.dot(x,gradg)), flush=True)
         persis_info['outer_iter_ct'] += 1
 
     # partition sum of convex functions evenly (only do at beginning)

@@ -37,12 +37,11 @@ def geomedian_eval(H, persis_info, sim_specs, _):
     O = np.zeros(b, dtype=sim_specs['out'])
 
     for k, x in enumerate(H['x']):
-        i = H['obj_component'][k]   # f_i
+        i = H[k]['obj_component']   # f_i
 
-        if 'f_i' in O.dtype.names:
-            O['f_i'][k] = EvaluateFunction(x, i)
-
-        if 'gradf_i' in O.dtype.names:
+        if H[k]['get_grad']:
             O['gradf_i'][k] = EvaluateJacobian(x, i)
+        else:
+            O['f_i'][k] = EvaluateFunction(x, i)
 
     return O, persis_info
