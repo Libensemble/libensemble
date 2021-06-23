@@ -139,19 +139,6 @@ jobs:
                 python-version: [3.8]
                 comms-type: [l]
 
-        services:
-            postgres:
-                image: postgres
-                env:
-                    POSTGRES_PASSWORD: postgres
-                options: >-
-                    --health-cmd pg_isready
-                    --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 5
-                ports:
-                    - 5432:5432
-
         defaults:
             run:
                 shell: bash -l {0}
@@ -166,7 +153,6 @@ jobs:
             WORKFLOW_NAME: libe_test-balsam
             LIBE_WALLCLOCK: 3
             SCRIPT_BASENAME: script_test_balsam_hworld
-            POSTGRES_HOST: postgres
 
         steps:
         - uses: actions/checkout@v2
@@ -187,6 +173,13 @@ jobs:
           run: |
             sudo apt-get update
             sudo apt-get install bc
+
+        - name: Install PostgreSQL
+          run: |
+            sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+            wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+            sudo apt-get update
+            sudo apt-get -y install postgresql
 
         - name: Install scipy, mpich, mpi4py, blas, psutil
           run: |
@@ -219,9 +212,6 @@ jobs:
             wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
             python install/configure_balsam_install.py
-
-        - name: SSH to GitHub Actions
-          uses: P3TERX/ssh2actions@main
 
         - name: Modify Balsam for testing, create DB
           run: |
