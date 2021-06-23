@@ -123,11 +123,11 @@ if __name__ == '__main__':
     # Used by Balsam Coverage config file. Dont evaluate Balsam data dir
     libepath = os.path.dirname(libensemble.__file__)
     os.environ['LIBE_PATH'] = libepath
-    os.environ['BALSAM_DB_PATH'] = '~/test-balsam'
+    # os.environ['BALSAM_DB_PATH'] = '~/test-balsam'
 
     basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
 
-    subprocess.run('../../../install/configure-balsam-test.sh'.split())
+    # subprocess.run('../../../install/configure-balsam-test.sh'.split())
 
     if not os.path.isfile('./my_simtask.x'):
         build_simfunc()
