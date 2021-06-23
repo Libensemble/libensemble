@@ -82,6 +82,7 @@ class History:
         # self.offset = 0
         self.offset = len(H0)
         self.index = self.offset
+        self.grow_count = 0
 
         self.given_count = np.sum(H['given'])
 
@@ -161,7 +162,8 @@ class History:
             num_new = len(D)
 
             if num_new > rows_remaining:
-                self.grow_H(num_new-rows_remaining)
+                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+                self.grow_H(self.grow_count)
 
             update_inds = np.arange(self.index, self.index+num_new)
             self.H['sim_id'][self.index:self.index+num_new] = range(self.index, self.index+num_new)
@@ -175,7 +177,8 @@ class History:
             num_new = len(np.setdiff1d(D['sim_id'], self.H['sim_id']))
 
             if num_new > rows_remaining:
-                self.grow_H(num_new-rows_remaining)
+                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+                self.grow_H(self.grow_count)
 
             update_inds = D['sim_id']
 
