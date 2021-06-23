@@ -71,7 +71,12 @@ Specifications for libEnsemble::
         'authkey' [string]:
             TCP Only: Authkey
         'safe_mode' [boolean]:
-            Prevents user functions from overwritting protected libE fields.
+            Prevents user functions from overwritting protected libE fields, but requires
+            moderate overhead.
+            Default: True
+        'kill_canceled_sims' [boolean]:
+            Will libE try to kill sims that user functions mark 'cancel_requested' as True. 
+            If False, the manager avoid this moderate overhead. 
             Default: True
         'use_persis_return' [boolean]:
             Adds persistent function H return to managers history array.

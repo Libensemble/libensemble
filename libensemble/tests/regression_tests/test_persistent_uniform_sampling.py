@@ -48,6 +48,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 40, 'elapsed_wallclock_time': 300}
 
+libE_specs['kill_canceled_sims'] = False
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
