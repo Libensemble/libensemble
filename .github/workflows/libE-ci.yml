@@ -162,6 +162,11 @@ jobs:
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             BALSAM_DB_PATH: $HOME/test-balsam
+            EXE: script_test_balsam_hworld.py
+            NUM_WORKERS: 2
+            WORKFLOW_NAME: libe_test-balsam
+            LIBE_WALLCLOCK: 3
+            SCRIPT_BASENAME: script_test_balsam_hworld
 
         steps:
         - uses: actions/checkout@v2
@@ -214,9 +219,23 @@ jobs:
             wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
             python install/configure_balsam_install.py
-            source ./install/configure-balsam-test.sh
 
-        - name: Run tests
+        - name: Modify Balsam for testing, create DB
+          run: |
+            python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
+            balsam init $HOME/test-balsam
+            sudo chmod -R 700 $HOME/test-balsam/balsamdb
+            python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_settings; modify_Balsam_settings()'
+            source balsamactivate test-balsam
+
+        - name: Refresh DB, submit app and job
+          run: |
+            balsam rm apps --all --force
+            balsam rm jobs --all --force
+            balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
+            balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME --application $SCRIPT_BASENAME.app --wall-time-minutes $LIBE_WALLCLOCK --num-nodes 1 --ranks-per-node $((NUM_WORKERS+1)) --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" --url-in="local:/$THIS_DIR/*" --yes
+
+        - name: Run test
           run: |
            ./libensemble/tests/run-tests.sh -r -y 'test_balsam*' -z -l
 
