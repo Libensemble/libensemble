@@ -441,7 +441,7 @@ class WorkerResources:
         """
         self.num_workers = comm.get_num_workers()
         self.workerID = workerID
-        self.rset_team = [workerID]  # SH should always get from manager - so maybe initiate to None
+        self.rset_team = None
         self.slots = None
         self.even_slots = None
         self.slot_count = None
