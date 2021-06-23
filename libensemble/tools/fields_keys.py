@@ -60,7 +60,7 @@ libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + \
 
 allowed_libE_spec_keys = ['abort_on_exception',     #
                           'authkey',                #
-                          'check_cancel',           #
+                          'kill_canceled_sims',    #
                           'comms',                  #
                           'disable_log_files',      #
                           'final_fields',           #

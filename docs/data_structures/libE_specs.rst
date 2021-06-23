@@ -74,9 +74,9 @@ Specifications for libEnsemble::
             Prevents user functions from overwritting protected libE fields, but requires
             moderate overhead.
             Default: True
-        'check_cancel' [boolean]:
-            Will the user functions possibly request cancelling a point. If False, the manager 
-            avoid the moderate overhead of seeing what points need to be cancelled. 
+        'kill_canceled_sims' [boolean]:
+            Will libE try to kill sims that user functions mark 'cancel_requested' as True. 
+            If False, the manager avoid this moderate overhead. 
             Default: True
         'use_persis_return' [boolean]:
             Adds persistent function H return to managers history array.

@@ -158,7 +158,7 @@ class Manager:
         timer.start()
         self.date_start = timer.date_start.replace(' ', '_')
         self.safe_mode = libE_specs.get('safe_mode', True)
-        self.check_cancel = libE_specs.get('check_cancel', True)
+        self.kill_canceled_sims = libE_specs.get('kill_canceled_sims', True)
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -438,7 +438,7 @@ class Manager:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
-        if self.check_cancel:
+        if self.kill_canceled_sims:
             kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
                 & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
 
