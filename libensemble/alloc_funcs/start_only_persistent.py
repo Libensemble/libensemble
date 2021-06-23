@@ -74,6 +74,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
                          inds_since_last_gen, persis_info.get(i), persistent=True,
                          active_recv=active_recv_gen)
+                Work[i]['libE_info']['rset_team'] = []  # Already assigned
                 H['given_back'][inds_since_last_gen] = True
 
     task_avail = ~H['given'] & ~H['cancel_requested']
