@@ -224,9 +224,9 @@ jobs:
           run: |
             balsam init $HOME/test-balsam
             sudo chmod -R 700 $HOME/test-balsam/balsamdb
+            source balsamactivate test-balsam
             python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
             python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_settings; modify_Balsam_settings()'
-            source balsamactivate test-balsam
 
         - name: Refresh DB, submit app and job
           run: |
