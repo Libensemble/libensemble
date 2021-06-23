@@ -103,10 +103,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                          if 'resource_sets' in H.dtype.names else 1)
 
         # If more than one group (node) required, allocates whole nodes - also removes from avail_workers
-        print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
+        # print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
         rset_team = assign_resources(num_rsets_req, avail_workers[0])
-        print('resource team for sim', rset_team, flush=True)
+        # print('resource team for sim', rset_team, flush=True)
 
         # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(rset_team,avail_workers), flush=True)
 
@@ -141,7 +141,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 # Finally, call a persistent generator as there is nothing else to do.
                 gen_count += 1
 
-                print('\nrset_team being called for gen')
+                # print('\nrset_team being called for gen')
 
                 # SH TODO: How would you provide resources to a gen? Maybe via persis_info if variable?
                 gen_resources = persis_info.get('gen_resources', 0)
