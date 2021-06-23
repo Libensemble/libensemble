@@ -222,9 +222,9 @@ jobs:
 
         - name: Modify Balsam for testing, create DB
           run: |
-            python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
             balsam init $HOME/test-balsam
             sudo chmod -R 700 $HOME/test-balsam/balsamdb
+            python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
             python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_settings; modify_Balsam_settings()'
             source balsamactivate test-balsam
 
