@@ -62,7 +62,6 @@ We now present further information on running and testing libEnsemble.
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
-.. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
