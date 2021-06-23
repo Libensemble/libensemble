@@ -158,6 +158,7 @@ class Manager:
         timer.start()
         self.date_start = timer.date_start.replace(' ', '_')
         self.safe_mode = libE_specs.get('safe_mode', True)
+        self.check_cancel = libE_specs.get('check_cancel', True)
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -437,17 +438,18 @@ class Manager:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
-        kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
-            & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+        if self.check_cancel:
+            kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
+                & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
 
-        if np.any(kill_sim):
-            logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
-            kill_ids = self.hist.H['sim_id'][kill_sim]
-            kill_on_workers = self.hist.H['sim_worker'][kill_sim]
-            for w in kill_on_workers:
-                self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
-                self.hist.H['kill_sent'][kill_ids] = True
-                # SH*** Still expecting return? Currrently yes.... else set returned and inactive sim here.
+            if np.any(kill_sim):
+                logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
+                kill_ids = self.hist.H['sim_id'][kill_sim]
+                kill_on_workers = self.hist.H['sim_worker'][kill_sim]
+                for w in kill_on_workers:
+                    self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
+                    self.hist.H['kill_sent'][kill_ids] = True
+                    # SH*** Still expecting return? Currrently yes.... else set returned and inactive sim here.
 
     # --- Handle termination
 
