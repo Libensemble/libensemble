@@ -215,10 +215,13 @@ jobs:
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
             python install/configure_balsam_install.py
 
+        - name: SSH to GitHub Actions
+          uses: P3TERX/ssh2actions@main
+
         - name: Modify Balsam for testing, create DB
           run: |
             balsam init $HOME/test-balsam
-            sudo chmod -R 755 $HOME/test-balsam/balsamdb
+            sudo chmod -R 700 $HOME/test-balsam/balsamdb
             source balsamactivate test-balsam
             python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
             python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_settings; modify_Balsam_settings()'
