@@ -38,8 +38,13 @@ class MPIComm(Comm):
             req.Wait()
 
     def mail_flag(self):
-        return (self.recv_buffer is not None
-                or self.mpi_comm.Iprobe(source=self.remote_rank))
+        if self.recv_buffer is not None:
+            return True
+        # Loop a few times to ensure MPI progress
+        for i in range(4):
+            if self.mpi_comm.Iprobe(source=self.remote_rank):
+                return True
+        return False
 
     def kill_pending(self):
         "Make sure pending requests are cancelled if the comm is killed."
