@@ -66,6 +66,7 @@ def wait_for_job_output(jobdir):
         if os.path.isfile(output):
             break
         print(sleeptime, end=" ", flush=True)
+        print(os.listdir(jobdir), flush=True)
         time.sleep(1)
         sleeptime += 1
 
