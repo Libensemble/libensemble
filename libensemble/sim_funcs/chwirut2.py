@@ -1,6 +1,5 @@
 __all__ = ['chwirut_eval']
 import numpy as np
-import time
 
 NOBSERVATIONS = 214
 
@@ -233,31 +232,25 @@ def EvaluateFunction(x, component):
     f_i = 1.0/L_1 * ( y[i] - np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i]) )**2
     return f_i
 
-
-def EvaluateJacobian(x, component, var_component):
+def EvaluateJacobian(x, component):
     """
     Evaluates the sum of squares-variant chwirut Jacobian
     """
     assert 0 <= component <= 213
-    assert 0 <= var_component <= 2
 
     i = component
-    j = var_component
 
-    gradf_i_x_j = 0
+    gradf_i = np.zeros(3, dtype=float)
     base = np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
 
-    if j == 0:
-        gradf_i_x_j = t[i]*base
-    elif j == 1:
-        gradf_i_x_j = base/(x[1] + x[2]*t[i])
-    else:
-        gradf_i_x_j = base*t[i]/(x[1] + x[2]*t[i])
+    gradf_i[0] = t[i]*base
+    gradf_i[1] = base/(x[1] + x[2]*t[i])
+    gradf_i[1] = base*t[i]/(x[1] + x[2]*t[i])
 
     # chain rule
-    gradf_i_x_j = 2.0/L_1 * ( y[i] - base ) * gradf_i_x_j
+    gradf_i = 2.0/L_1 * ( y[i] - base ) * gradf_i
 
-    return gradf_i_x_j
+    return gradf_i
 
 def chwirut_eval(H, persis_info, sim_specs, _):
     """
@@ -280,13 +273,12 @@ def chwirut_eval(H, persis_info, sim_specs, _):
 
     for k, x in enumerate(H['x']):
         i = H['obj_component'][k]   # f_i
-        j = H['input_component'][k] # x_j
 
         if 'f_i' in O.dtype.names:
             O['f_i'][k] = EvaluateFunction(x, i)
 
-        if 'gradf_i_x_j' in O.dtype.names:
-            O['gradf_i_x_j'][k] = EvaluateJacobian(x, i, j)
+        if 'gradf_i' in O.dtype.names:
+            O['gradf_i'][k] = EvaluateJacobian(x, i)
 
     return O, persis_info
 

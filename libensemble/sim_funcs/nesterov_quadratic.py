@@ -19,7 +19,7 @@ def EvaluateJacobian(x, component=np.nan):
     Evaluates the chained Rosenbrock Jacobian
     """
 
-    assert len(x) % 2 == 0, print("must be even lengthed input vector")
+    assert len(x) % 2 == 0, "must be even lengthed input vector"
 
     n = len(x) // 2
     df = np.zeros(len(x), dtype=float)
