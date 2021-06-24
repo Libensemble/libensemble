@@ -225,6 +225,7 @@ jobs:
 
         - name: Refresh DB, submit app and job
           run: |
+            source balsamactivate test-balsam
             balsam rm apps --all --force
             balsam rm jobs --all --force
             balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
@@ -232,6 +233,7 @@ jobs:
 
         - name: Run test
           run: |
+           source balsamactivate test-balsam
            ./libensemble/tests/run-tests.sh -r -y 'test_balsam*' -z -l
 
     coveralls:
