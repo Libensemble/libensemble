@@ -104,7 +104,8 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             if len(consensus_sim_ids):
             
-                assert len(consensus_sim_ids)==1, print('Gen should only send one point for consensus step, received {}'.format(len(consensus_sim_ids)))
+                assert len(consensus_sim_ids)==1, 'Gen should only send one ' + \
+                        'point for consensus step, received {}'.format(len(consensus_sim_ids))
 
                 # re-orient
                 sim_id = consensus_sim_ids[0] + last_H_len
@@ -117,7 +118,8 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
                 new_H_ids_from_gen_i = np.where( H[last_H_len:]['gen_worker'] == i )[0]
 
-                assert len(new_H_ids_from_gen_i), print("Gen must request new sim work or show convergence if avail, but neither occured")
+                assert len(new_H_ids_from_gen_i), 'Gen must request new sim ' + \
+                        'work or show convergence if avail, but neither occured'
 
                 # re-orient (since the last_H_len has relative index 0)
                 new_H_ids_from_gen_i += last_H_len
@@ -125,16 +127,17 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 l_H_id = new_H_ids_from_gen_i[0]
                 r_H_id = new_H_ids_from_gen_i[-1] + 1
 
-                assert len(new_H_ids_from_gen_i) == r_H_id - l_H_id, print("new gen data must be in contiguous space")
+                assert len(new_H_ids_from_gen_i) == r_H_id - l_H_id, 'new gen ' + \
+                        'data must be in contiguous space'
 
                 persis_info[i].update({'curr_H_ids': [l_H_id, r_H_id] })
 
     # If all gens at consensus, help compute $(W \otimes I) [x_1, x_2, ...]$
     if num_gens_at_consensus == alloc_specs['user']['num_gens']:
 
-        assert num_gens_at_consensus == len(avail_persis_worker_ids), print(
+        assert num_gens_at_consensus == len(avail_persis_worker_ids), \
                 'All gens must be available, only {}/{} are though...'.format(
-                    len(avail_worker_ids), len(num_gens_at_consensus)))
+                    len(avail_worker_ids), len(num_gens_at_consensus))
 
         k = persis_info['outer_iter_ct'] 
         A = persis_info['alg_vars']['A']
@@ -164,8 +167,8 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             persis_info[i]['gamma_k'] = g_k
 
             incident_gens = A.indices[ A.indptr[i0]:A.indptr[i0+1] ]
-            assert i0 not in incident_gens, print("no self loops permiited in \
-                    adjacency matrix @A (i.e. only zeros on diagonal)")
+            assert i0 not in incident_gens, 'no self loops permiited in ' + \
+                    'adjacency matrix @A (i.e. only zeros on diagonal)'
             neighbor_consensus_ids_in_H = consensus_ids_in_H[ incident_gens ]
 
             # TEMP
@@ -180,7 +183,7 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # TEMP
         R = persis_info['alg_vars']['R']
-        print('|gradg|={:.8f}\n'.format(R * np.dot(x,gradg)), flush=True)
+        print('g={:.4e}\n'.format(R * np.dot(x,gradg)), flush=True)
         persis_info['outer_iter_ct'] += 1
 
     # partition sum of convex functions evenly (only do at beginning)
@@ -225,12 +228,20 @@ def start_proxslide_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             if persis_info['next_to_give'] >= len(H):
                 break
 
+            gen_id = H[persis_info['next_to_give']]['gen_worker']
+            [l_H_ids, r_H_ids] = persis_info[gen_id]['curr_H_ids']
+
+            assert l_H_ids == persis_info['next_to_give'], \
+                "@next_to_give={} does not match gen's requested work H id of {}".format(
+                    persis_info['next_to_give'], l_H_ids)
+
             sim_work(Work, i, 
                      sim_specs['in'], 
-                     np.array([persis_info['next_to_give']]),
+                     np.arange(l_H_ids, r_H_ids),
                      persis_info.get(i))
 
-            persis_info['next_to_give'] += 1
+            # we can safely assume the rows are contiguous due to !!
+            persis_info['next_to_give'] += (r_H_ids - l_H_ids)
 
         else:
             break
@@ -270,7 +281,7 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
     else:
         import numpy.linalg as la
         lam_max = np.amax( la.eigvals(A.todense()) )
-    L = L_const*R*lam_max
+    L = L_const*2*R*lam_max
     N = N_const * int( ((L * D_X)/(nu * eps) )**0.5 + 1 )
 
     alg_vars = {
