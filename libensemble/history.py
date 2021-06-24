@@ -82,6 +82,7 @@ class History:
         # self.offset = 0
         self.offset = len(H0)
         self.index = self.offset
+        self.grow_count = 0
 
         self.given_count = np.sum(H['given'])
 
@@ -161,7 +162,9 @@ class History:
             num_new = len(D)
 
             if num_new > rows_remaining:
-                self.grow_H(num_new-rows_remaining)
+                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+
+                self.grow_H(self.grow_count)
 
             update_inds = np.arange(self.index, self.index+num_new)
             self.H['sim_id'][self.index:self.index+num_new] = range(self.index, self.index+num_new)
@@ -175,7 +178,8 @@ class History:
             num_new = len(np.setdiff1d(D['sim_id'], self.H['sim_id']))
 
             if num_new > rows_remaining:
-                self.grow_H(num_new-rows_remaining)
+                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+                self.grow_H(self.grow_count)
 
             update_inds = D['sim_id']
 
@@ -201,9 +205,7 @@ class History:
         k: integer
             Number of rows to add to H
         """
-        # H_1 = np.zeros(k, dtype=self.H.dtype)
-        # TEMP
-        H_1 = np.zeros(max(len(self.H), k), dtype=self.H.dtype)
+        H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
         H_1['last_given_time'] = np.inf

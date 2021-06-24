@@ -3,13 +3,6 @@ import numpy.linalg as la
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
                                              count_persis_gens, all_returned)
 
-# TODO: Place this in support file
-def double_extend(arr):
-    out = np.zeros(len(arr)*2, dtype=type(arr[0]))
-    out[0::2] = 2*np.array(arr)
-    out[1::2] = 2*np.array(arr)+1
-    return out
-
 def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This alloc function solves a sum of functions, specifically, one where
@@ -79,8 +72,8 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                 # assert i in persis_info['gen_list']
 
                 # we should have only one convergence result, so access 0th elem
-                assert len(convg_sim_ids) == 1, print('should only have one \
-                        convergence result, but received {}'.format(len(convg_sim_ids)))
+                assert len(convg_sim_ids) == 1, 'should only have one  convergence \
+                        result, but received {}'.format(len(convg_sim_ids))
 
                 convg_gens = persis_info.get('convg_gens', [])
                 convg_gens.append(i)
@@ -117,9 +110,8 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             else:
                 new_H_ids_from_gen_i = np.where( H[last_H_len:]['gen_worker'] == i )[0]
 
-                if len(new_H_ids_from_gen_i) == 0:
-                    import ipdb; ipdb.set_trace()
-                assert len(new_H_ids_from_gen_i), print("Gen must request new sim work or show convergence if avail, but neither occured")
+                assert len(new_H_ids_from_gen_i), "Gen must request new sim work \
+                        or show convergence if avail, but neither occured"
 
                 # re-orient
                 new_H_ids_from_gen_i += last_H_len
@@ -127,7 +119,9 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                 l_H_id = new_H_ids_from_gen_i[0]
                 r_H_id = new_H_ids_from_gen_i[-1] + 1
 
-                assert len(new_H_ids_from_gen_i) == r_H_id - l_H_id, print("new gen data must be in contiguous space")
+                # !!
+                assert len(new_H_ids_from_gen_i) == r_H_id - l_H_id, "new gen data \
+                        must be in contiguous space"
 
                 persis_info[i].update({'curr_H_ids': [l_H_id, r_H_id] })
 
@@ -158,6 +152,7 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
 
         # give sim work when task available 
         elif persis_info['next_to_give'] < len(H):
+
             while persis_info['next_to_give'] < len(H) and \
                   (H[persis_info['next_to_give']]['given'] or \
                    H[persis_info['next_to_give']]['converged']):
@@ -167,12 +162,20 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             if persis_info['next_to_give'] >= len(H):
                 break
 
+            gen_id = H[persis_info['next_to_give']]['gen_worker']
+            [l_H_ids, r_H_ids] = persis_info[gen_id]['curr_H_ids']
+
+            assert l_H_ids == persis_info['next_to_give'], \
+                "@next_to_give={} does not match gen's requested work H id of {}".format(
+                    persis_info['next_to_give'], l_H_ids)
+
             sim_work(Work, i, 
                      sim_specs['in'], 
-                     np.array([persis_info['next_to_give']]), 
+                     np.arange(l_H_ids, r_H_ids),
                      persis_info.get(i))
 
-            persis_info['next_to_give'] += 1
+            # we can safely assume the rows are contiguous due to !!
+            persis_info['next_to_give'] += (r_H_ids - l_H_ids)
 
         # this is awkward... no work todo... ¯\_(ツ)_/¯ ... yet!
         else:
@@ -184,6 +187,13 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
     persis_info.update({'last_H_len' : len(H)})
 
     return Work, persis_info, 0
+
+# TODO: Place this in support file
+def double_extend(arr):
+    out = np.zeros(len(arr)*2, dtype=type(arr[0]))
+    out[0::2] = 2*np.array(arr)
+    out[1::2] = 2*np.array(arr)+1
+    return out
 
 def partition_funcs_evenly_as_arr(num_funcs, num_gens):
     num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)

@@ -27,10 +27,9 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 16
-n = 32
+m = 128
+n = 256
 num_gens = 2
-assert n==2*m, print("@n must be double of @m")
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component', 'get_grad'],
@@ -72,10 +71,13 @@ persis_info['next_to_give'] = 0
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-# exit_criteria = {'sim_max': 2000}
-exit_criteria = {'elapsed_wallclock_time': 120}
+exit_criteria = {'sim_max': 1000000}
+
+assert n==2*m, "@n must be double of @m"
 
 # Perform the run
+libE_specs['safe_mode'] = False
+libE_specs['kill_canceled_sims'] = True
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
