@@ -215,9 +215,6 @@ jobs:
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
             python install/configure_balsam_install.py
 
-        - name: Setup upterm session
-          uses: lhotari/action-upterm@v1
-
         - name: Modify Balsam for testing, create DB
           run: |
             balsam init $HOME/test-balsam
