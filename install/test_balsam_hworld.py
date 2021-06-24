@@ -57,7 +57,7 @@ def wait_for_job_dir(basedb):
 
 def wait_for_job_output(jobdir):
     sleeptime = 0
-    limit = 40
+    limit = 60
 
     output = os.path.join(jobdir, 'job_script_test_balsam_hworld.out')
     print('Checking for Balsam output file: {}'.format(output))
