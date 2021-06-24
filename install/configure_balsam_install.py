@@ -17,11 +17,11 @@ def install_balsam():
     os.chdir(here)
 
 
-def move_test_balsam(balsam_test):
-    # Moves specified test from /install to /regression_tests
-    reg_dir_with_btest = './libensemble/tests/regression_tests/' + balsam_test
+def move_test_balsam():
+    current_dir_with_btest = './libensemble/tests/regression_tests/scripts_used_by_reg_tests/test_balsam_hworld.py'
+    reg_dir_with_btest = './libensemble/tests/regression_tests/test_balsam_hworld.py'
     if not os.path.isfile(reg_dir_with_btest):
-        os.rename('./install/' + balsam_test, reg_dir_with_btest)
+        os.rename(current_dir_with_btest, reg_dir_with_btest)
 
 
 def configure_coverage():
@@ -39,5 +39,5 @@ def configure_coverage():
 
 if int(sys.version[2]) >= 6:  # Balsam only supports Python 3.6+
     install_balsam()
-    move_test_balsam('test_balsam_hworld.py')
+    move_test_balsam()
     configure_coverage()

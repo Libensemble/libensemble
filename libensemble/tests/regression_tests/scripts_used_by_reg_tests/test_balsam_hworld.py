@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
     basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
 
-    # subprocess.run('../../../install/configure-balsam-test.sh'.split())
+    subprocess.run('./scripts_used_by_reg_tests/configure-balsam-test.sh'.split())
 
     if not os.path.isfile('./my_simtask.x'):
         build_simfunc()
@@ -143,4 +143,4 @@ if __name__ == '__main__':
     move_job_coverage(jobdir)
 
     print('Test complete.')
-    subprocess.run('../../../install/cleanup-balsam-test.sh'.split())
+    subprocess.run('./scripts_used_by_reg_tests/cleanup-balsam-test.sh'.split())
