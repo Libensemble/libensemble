@@ -71,6 +71,34 @@ class MPIRunner:
             ranks_per_node = None
         return num_procs, num_nodes, ranks_per_node
 
+    def express_spec(self, task, num_procs, num_nodes,
+                     ranks_per_node, machinefile,
+                     hyperthreads, extra_args,
+                     resources, workerID):
+
+        hostlist = None
+        machinefile = None
+
+        # Use hostlist if full nodes, otherwise machinefile
+        # full_node = resources.worker_resources.workers_on_node == 1
+
+        # Always use host lists (SH TODO: unless uneven mapping)
+        hostlist = resources.get_hostlist(num_nodes)
+
+        #if full_node or not self.mfile_support:
+            #hostlist = resources.get_hostlist(num_nodes)
+        #else:
+            #machinefile = "machinefile_autogen"
+            #if workerID is not None:
+                #machinefile += "_for_worker_{}".format(workerID)
+            #machinefile += "_task_{}".format(task.id)
+            #mfile_created, num_procs, num_nodes, ranks_per_node = \
+                #resources.create_machinefile(
+                    #machinefile, num_procs, num_nodes,
+                    #ranks_per_node, hyperthreads)
+            #jassert(mfile_created, "Auto-creation of machinefile failed")
+        return hostlist, machinefile
+
     def get_mpi_specs(self, task, num_procs, num_nodes,
                       ranks_per_node, machinefile,
                       hyperthreads, extra_args,
@@ -83,7 +111,7 @@ class MPIRunner:
                 self._parse_extra_args(num_procs, num_nodes, ranks_per_node,
                                        hyperthreads, extra_args=extra_args)
 
-        hostlist = None
+        #hostlist = None
         if machinefile and not self.mfile_support:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
@@ -92,26 +120,11 @@ class MPIRunner:
             num_procs, num_nodes, ranks_per_node = \
                 resources.get_resources(num_procs, num_nodes,
                                         ranks_per_node, hyperthreads)
-
-            # Use hostlist if full nodes, otherwise machinefile
-            # full_node = resources.worker_resources.workers_on_node == 1
-
-            # Always use host lists (SH TODO: unless uneven mapping)
-            hostlist = resources.get_hostlist(num_nodes)
-
-            #if full_node or not self.mfile_support:
-                #hostlist = resources.get_hostlist(num_nodes)
-            #else:
-                #machinefile = "machinefile_autogen"
-                #if workerID is not None:
-                    #machinefile += "_for_worker_{}".format(workerID)
-                #machinefile += "_task_{}".format(task.id)
-                #mfile_created, num_procs, num_nodes, ranks_per_node = \
-                    #resources.create_machinefile(
-                        #machinefile, num_procs, num_nodes,
-                        #ranks_per_node, hyperthreads)
-                #jassert(mfile_created, "Auto-creation of machinefile failed")
-
+            hostlist, machinefile = \
+                self.express_spec(task, num_procs, num_nodes,
+                                  ranks_per_node, machinefile,
+                                  hyperthreads, extra_args,
+                                  resources, workerID)
         else:
             num_procs, num_nodes, ranks_per_node = \
                 MPIResources.task_partition(num_procs, num_nodes,
@@ -159,6 +172,28 @@ class OPENMPI_MPIRunner(MPIRunner):
                             '-machinefile {machinefile}',
                             '-host {hostlist}', '-np {num_procs}',
                             '-npernode {ranks_per_node}', '{extra_args}']
+
+    def express_spec(self, task, num_procs, num_nodes,
+                     ranks_per_node, machinefile,
+                     hyperthreads, extra_args,
+                     resources, workerID):
+
+        hostlist = None
+        machinefile = None
+        # Use machine files for OpenMPI
+        # as "-host" requires entry for every rank
+
+        machinefile = "machinefile_autogen"
+        if workerID is not None:
+            machinefile += "_for_worker_{}".format(workerID)
+        machinefile += "_task_{}".format(task.id)
+        mfile_created, num_procs, num_nodes, ranks_per_node = \
+            resources.create_machinefile(
+                machinefile, num_procs, num_nodes,
+                ranks_per_node, hyperthreads)
+        jassert(mfile_created, "Auto-creation of machinefile failed")
+
+        return hostlist, machinefile
 
 
 class APRUN_MPIRunner(MPIRunner):
