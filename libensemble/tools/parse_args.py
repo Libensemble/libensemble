@@ -13,6 +13,8 @@ parser.add_argument('--comms', type=str, nargs='?',
                     default='mpi', help='Type of communicator')
 parser.add_argument('--nworkers', type=int, nargs='?',
                     help='Number of local forked processes')
+parser.add_argument('--nresource_sets', type=int, nargs='?',
+                    help='Number of resource sets')
 parser.add_argument('--workers', type=str, nargs='+',
                     help='List of worker nodes')
 parser.add_argument('--workerID', type=int, nargs='?', help='Client worker ID')
@@ -35,6 +37,9 @@ def _mpi_parse_args(args):
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_manager = MPI.COMM_WORLD.Get_rank() == 0
     libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+    # SH TODO: Make same libE_specs option same - num or n?
+    if args.nresource_sets is not None:
+        libE_specs['num_resource_sets'] = args.nresource_sets
     return nworkers, is_manager, libE_specs, args.tester_args
 
 
@@ -42,6 +47,9 @@ def _local_parse_args(args):
     "Parses arguments for forked processes using multiprocessing."
     nworkers = args.nworkers or 4
     libE_specs = {'nworkers': nworkers, 'comms': 'local'}
+    # SH TODO: Make same libE_specs option same - num or n?
+    if args.nresource_sets is not None:
+        libE_specs['num_resource_sets'] = args.nresource_sets
     return nworkers, True, libE_specs, args.tester_args
 
 
@@ -112,6 +120,7 @@ def parse_args():
 
         usage: test_... [-h] [--comms [{local,tcp,ssh,client,mpi}]]
                         [--nworkers [NWORKERS]] [--workers WORKERS [WORKERS ...]]
+                        [--nresource_sets [NRESOURCE_SETS]]
                         [--workerID [WORKERID]] [--server SERVER SERVER SERVER]
                         [--pwd [PWD]] [--worker_pwd [WORKER_PWD]]
                         [--worker_python [WORKER_PYTHON]]
