@@ -15,23 +15,27 @@ def update_config_file(H, sim_specs):
     """
     here = os.getcwd()
 
+    updates = {
+        'experiment_directory': os.path.abspath('../' + H['gen_dir_loc'][0]),
+        'output_path': here,
+        'initial_pdb_dir': here,
+        'reference_pdb_file': os.path.join(here, '1FME-folded.pdb'),
+        'simulation_length_ns': sim_specs['user']['sim_length_ns'],
+        'task_idx': int(H['task_id']),
+        'stage_idx': int(H['stage_id'])
+    }
+
     config_file = sim_specs['user']['config_file']
     with open(config_file, 'r') as f:
         config = yaml.safe_load(f)
-
-    config['experiment_directory'] = os.path.abspath('../' + H['gen_dir_loc'][0])
-    config['output_path'] = here
-    config['initial_pdb_dir'] = here
-    config['reference_pdb_file'] = os.path.join(here, '1FME-folded.pdb')
-    config['simulation_length_ns'] = sim_specs['user']['sim_length_ns']
-    config['task_idx'] = int(H['task_id'])
-    config['stage_idx'] = int(H['stage_id'])
 
     #  Specify an unfolded pdb file if the simulation is an "initial" one
     if H['initial']:
         config['pdb_file'] = os.path.join(here, '1FME-unfolded.pdb')
     else:
         config['pdb_file'] = None
+
+    config.update(updates)
 
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
@@ -44,6 +48,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
     generator function.
     """
     calc_status = 0
+    os.environ["OMP_NUM_THREADS"] = '4'
 
     #  Specify the Executor object created in the calling script.
     exctr = Executor.executor
@@ -53,7 +58,6 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     config_file = sim_specs['user']['config_file']
     args = '-c ' + os.path.join(os.getcwd(), config_file)
-    os.environ["OMP_NUM_THREADS"] = '4'
 
     # Submit the molecular_dynamics app that was registered with the Executor.
     #  Only one process needed since bulk work presumably done on GPU.

@@ -24,26 +24,39 @@ def update_config_file(user, app_type, pinfo):
     with open(user[app_type + '_config'], 'r') as f:
         config = yaml.safe_load(f)
 
-    output_path = os.getcwd() + '/{}_runs/stage'.format(app_type) + get_stage(pinfo) + '/task0000'
-    config['experiment_directory'] = os.getcwd()
-    config['output_path'] = output_path
-    config['stage_idx'] = pinfo['stage_count']
+    output_path = os.getcwd() + '/{}_runs/stage'.format(app_type) +  \
+                                get_stage(pinfo) + '/task0000'
+
+    updates = {
+        'experiment_directory': os.getcwd(),
+        'output_path': output_path,
+        'stage_idx': pinfo['stage_count']
+    }
 
     if app_type == 'aggregation':
-        config['last_n_h5_files'] = user['initial_sample_size']
+        updates.update({'last_n_h5_files': user['initial_sample_size']})
+
     elif app_type == 'machine_learning':
-        config['model_tag'] = 'keras_cvae_model' + get_stage(pinfo)
-        config['last_n_h5_files'] = user['last_n_h5_files']
+        updates.update({
+            'model_tag': 'keras_cvae_model' + get_stage(pinfo),
+            'last_n_h5_files': user['last_n_h5_files']
+        })
+
     elif app_type == 'model_selection':
-        config['checkpoint_dir'] = output_path.replace(app_type, 'machine_learning') + '/checkpoint'
+        updates.update({'checkpoint_dir': output_path.replace(app_type, 'machine_learning') + '/checkpoint'})
+
     elif app_type == 'agent':
-        config['num_intrinsic_outliers'] = user['outliers']
-        config['num_extrinsic_outliers'] = user['outliers']
-        config['n_most_recent_h5_files'] = user['n_most_recent_h5_files']
-        config['n_traj_frames'] = user['n_traj_frames']
+        updates.update({
+            'num_intrinsic_outliers': user['outliers'],
+            'num_extrinsic_outliers': user['outliers'],
+            'n_most_recent_h5_files': user['n_most_recent_h5_files'],
+            'n_traj_frames': user['n_traj_frames']
+        })
 
     os.makedirs(output_path, exist_ok=True)
     task_config = os.path.join(output_path, 'stage' + get_stage(pinfo) + '_task0000.yaml')
+
+    config.update(updates)
 
     with open(task_config, 'w') as f:
         yaml.dump(config, f)
@@ -73,13 +86,13 @@ def postprocess_md_sim_dirs(calc_in, pinfo):
     Symlink the Molecular Dynamics results into directories that resemble
     DeepDriveMD's output.
     """
-    agg_expected_md_dir = './molecular_dynamics_runs/stage' + get_stage(pinfo)
-    os.makedirs(agg_expected_md_dir)
+    expected_md_dir = './molecular_dynamics_runs/stage' + get_stage(pinfo)
+    os.makedirs(expected_md_dir)
     for entry in calc_in:
         base_task_dir = 'task' + str(entry['task_id']).zfill(4)
-        agg_task_dir = os.path.join(agg_expected_md_dir, base_task_dir)
+        full_task_dir = os.path.join(expected_md_dir, base_task_dir)
         sim_dir = entry['sim_dir_loc']
-        os.symlink(os.path.abspath('../' + sim_dir), os.path.abspath(agg_task_dir))
+        os.symlink(os.path.abspath('../' + sim_dir), os.path.abspath(full_task_dir))
 
 
 def generate_initial_md_runs(gen_specs, persis_info):
@@ -159,7 +172,6 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
 
     user = gen_specs['user']
     exctr = Executor.executor
-    apps = ['aggregation', 'machine_learning', 'model_selection', 'agent']
     persis_info['stage_count'] = -1
     os.environ["OMP_NUM_THREADS"] = '4'
     initial_complete = False
@@ -181,7 +193,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
             postprocess_md_sim_dirs(calc_in, persis_info)
 
             # Run each subsequent DeepDriveMD app
-            for app in apps:
+            for app in ['aggregation', 'machine_learning', 'model_selection', 'agent']:
                 if skip_app(gen_specs, app):
                     continue
                 output_path, task_config = update_config_file(user, app, persis_info)
