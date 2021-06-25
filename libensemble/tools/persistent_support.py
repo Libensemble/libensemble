@@ -2,6 +2,7 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_G
 import logging
 logger = logging.getLogger(__name__)
 
+
 class PersistentSupport:
 
     def __init__(self, comm, calc_type):
@@ -11,7 +12,6 @@ class PersistentSupport:
             "User function value {} specifies neither a simulator nor generator.".format(self.calc_type)
 
         self.calc_str = calc_type_strings[self.calc_type]
-
 
     def send(self, output):
         """Send message from worker to manager.
@@ -26,7 +26,6 @@ class PersistentSupport:
              }
         logger.debug('Persistent {} function sending data message to manager'.format(self.calc_str))
         self.comm.send(self.calc_type, D)
-
 
     def receive(self):
         """Get message to worker from manager.
@@ -43,12 +42,12 @@ class PersistentSupport:
         data_tag, calc_in = self.comm.recv()
         # Check for unexpected STOP (e.g. error between sending Work info and rows)
         if data_tag in [STOP_TAG, PERSIS_STOP]:
-            logger.debug('Persistent {} received signal {} from manager while expecting work rows'.format(self.calc_str, tag))
+            logger.debug('Persistent {} received signal {} '.format(self.calc_str, tag) +
+                         'from manager while expecting work rows')
             self.comm.push_to_buffer(data_tag, calc_in)
             return data_tag, calc_in, None  # calc_in is signal identifier
         logger.debug('Persistent {} received work rows from manager'.format(self.calc_str))
         return tag, Work, calc_in
-
 
     def send_and_receive(self, output):
         """Send message from worker to manager and receive response.
