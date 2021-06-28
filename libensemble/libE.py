@@ -327,12 +327,13 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
 
     if not libE_specs.get('disable_log_files', False):
-        manager_logging_config()
+        close_logs = manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         "Handler to clean up comms team."
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
+        close_logs()
 
     # Run generic manager
     return manager(wcomms, sim_specs, gen_specs, exit_criteria,
