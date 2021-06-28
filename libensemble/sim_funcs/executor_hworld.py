@@ -127,6 +127,10 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         except ValueError:
             pass
 
+        task = exctr.submit(app_name='sim_hump_camel_dry_run', num_procs=cores, app_args=args_for_sim,
+                            hyperthreads=True, machinefile='notused', stdout='notused',
+                            wait_on_run=True, dry_run=True)
+
     # This is temp - return something - so doing six_hump_camel_func again...
     batch = len(H['x'])
     H_o = np.zeros(batch, dtype=sim_specs['out'])
