@@ -212,6 +212,13 @@ jobs:
            source balsamactivate test-balsam
            ./libensemble/tests/run-tests.sh -r -y 'test_balsam*' -z -l
 
+        - name: Merge coverage, run Coveralls
+          env:
+              COVERALLS_PARALLEL: true
+          run: |
+            mv libensemble/tests/.cov* .
+            coveralls --service=github
+
     coveralls:
         name: Notify coveralls of all jobs completing
         needs: [test-libE, test-libE-with-Balsam]
