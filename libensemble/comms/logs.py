@@ -101,6 +101,7 @@ def worker_logging_config(comm, worker_id=None):
     if logconfig.logger_set:
         for hdl in logger.handlers[:]:
             logger.removeHandler(hdl)
+            hdl.close()
     else:
         logger.propagate = False
         logger.setLevel(logconfig.log_level)
