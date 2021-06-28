@@ -19,12 +19,12 @@ import numpy as np
 
 from libensemble.libE import libE
 # from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
-from libensemble.sim_funcs.geomedian import geomedian_eval as sim_f
+# from libensemble.sim_funcs.geomedian import geomedian_eval as sim_f
 # from libensemble.sim_funcs.convex_funnel import convex_funnel_eval as sim_f
-# from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval as sim_f
+from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval as sim_f
 # from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
-from libensemble.alloc_funcs.start_persistent_prox_slide import start_proxslide_persistent_gens as alloc_f
+from libensemble.gen_funcs.persistent_grad_track import grad_track as gen_f
+from libensemble.alloc_funcs.start_persistent_grad_track import start_gradtrack_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 
@@ -33,7 +33,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 2  # must match with m in sim_f
+m = 3  # must match with m in sim_f
 n = 4
 num_gens = 2
 
@@ -46,21 +46,20 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,)), 
-                     ('pt_id', int),          # id of point's group/set 
                      ('consensus_pt', bool),  # does not require a sim
                      ('obj_component', int),  # which {f_i} to eval
                      ('get_grad', bool),
                      ],
              'user': {
                       # 'lb' : -np.ones(n),
-                      # 'ub' : np.ones(n),
+                      # 'ub' :  np.ones(n),
                       'lb' : np.array([-1.2,1]*(n//2)),
                       'ub' : np.array([-1.2,1]*(n//2)),
                       }
              }
 
 alloc_specs = {'alloc_f': alloc_f, 
-               'out'    : [('ret_to_gen', bool)], # whether point has been returned to gen
+               'out'    : [], 
                'user'   : {'m': m,
                            'num_gens': num_gens 
                            },
@@ -70,16 +69,13 @@ persis_info = {}
 persis_info['last_H_len'] = 0
 persis_info['next_to_give'] = 0
 persis_info['hyperparams'] = {
-                'M': 1,   # upper bound on gradient
-                'R': 10**2, # consensus penalty
-                'nu': 1,    # modulus of strongly convex DGF 
-                'eps': 0.1, # error / tolerance
-                'D_X': 4*n, # diameter of domain
-                'L_const': 1, # how much to scale Lipschitz constant
-                'N_const': 5, # multiplicative constant on numiters
+                'R': 10**2,     # penalty (to print ...)
+                'L': 10,       # L-smoothness of each function f_i
+                'eps': 0.1,     # error / tolerance
+                'N_const': 5000,   # multiplicative constant on numiters
+                'step_const': 1 # must be <= 1
                 }
 
-# local min? [0.50990745 0.28356471 0.09683776]
 # hypothesis: things turn awry if finds local minima 
 
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)

@@ -28,6 +28,8 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     f_i_idxs = persis_info['f_i_idxs']
     num_outer_iters = persis_info['N']
 
+    ones_arr = np.ones(len(x_k), dtype=float)
+
     print('[{}/{}] x={}'.format(0, num_outer_iters, x0), flush=True)
 
     f_obj = 0
@@ -87,7 +89,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         H_o['pt_id'][:] = ct      
         H_o['consensus_pt'][:] = False
         H_o['obj_component'][:] = f_i_idxs
-        H_o['get_grad'][:] = False
+        H_o['get_grad'][:] = True
         H_o = np.reshape(H_o, newshape=(-1,))      
         ct += 1
         tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
@@ -101,12 +103,13 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         post_x_k = _post_x_k
 
         prev_f_obj = f_obj
-        # gradf_is = calc_in['gradf_i']
-        # gradf    = np.sum(gradf_is, axis=0)
+        gradf_is = calc_in['gradf_i']
+        gradf    = np.sum(gradf_is, axis=0)
 
-        # print('[{}/{}] x={} ||gradf||={:.8f}'.format(k+1, num_outer_iters, post_x_k, la.norm(gradf, ord=2)), flush=True)
+        err = la.norm(ones_arr - post_x_k)
+        print('[{}/{}, {}] x={} ||gradf||={:.4f} abserr={:.4e}'.format(k+1, num_outer_iters, T_k, post_x_k, la.norm(gradf, ord=2), err), flush=True)
 
-        print('[{}/{} : {}] x={}'.format(k+1, num_outer_iters, T_k, post_x_k), flush=True)
+        # print('[{}/{} : {}] x={}'.format(k+1, num_outer_iters, T_k, post_x_k), flush=True)
         # print('[{}: {}/{}] f_is={:.8f}'.format(persis_info['worker_num'], k+1, num_outer_iters, f_obj), flush=True)
         # print('[{}: {}/{}] fobj={:.4e} obj={:.4e}'.format(persis_info['worker_num'], k+1, num_outer_iters, f_obj, score), flush=True)
         # print('|x_k - pre_x_k|={:4e}'.format(la.norm(x_k - pre_x_k)**2))
