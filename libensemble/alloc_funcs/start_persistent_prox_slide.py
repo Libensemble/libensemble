@@ -280,7 +280,8 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
         lam_max = sppla.eigs(A, k=1)[0][0]
     else:
         import numpy.linalg as la
-        lam_max = np.amax( la.eigvals(A.todense()) )
+        D_mat = spp.diags(np.append(1, np.append(2*np.ones(num_gens-2), 1)))
+        lam_max = np.amax( la.eigvals((D_mat-A).todense()).real )
     L = L_const*2*R*lam_max
     N = N_const * int( ((L * D_X)/(nu * eps) )**0.5 + 1 )
 

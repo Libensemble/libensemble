@@ -34,7 +34,7 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 m = 2  # must match with m in sim_f
-n = 4
+n = 2
 num_gens = 2
 
 sim_specs = {'sim_f': sim_f,
@@ -52,8 +52,10 @@ gen_specs = {'gen_f': gen_f,
                      ('get_grad', bool),
                      ],
              'user': {
-                      'lb' : -1*np.ones(n),
-                      'ub' :    np.ones(n),
+                      'lb' : -np.ones(n),
+                      'ub' : np.ones(n),
+                      # 'lb' : np.array([-1.2,1]*(n//2)),
+                      # 'ub' : np.array([-1.2,1]*(n//2)),
                       }
              }
 
@@ -70,10 +72,10 @@ persis_info['next_to_give'] = 0
 persis_info['hyperparams'] = {
                 'M': 1,   # upper bound on gradient
                 'R': 10**2, # consensus penalty
-                'nu': 2,    # modulus of strongly convex DGF 
-                'eps': 1, # error / tolerance
+                'nu': 1,    # modulus of strongly convex DGF 
+                'eps': 0.1, # error / tolerance
                 'D_X': 4*n, # diameter of domain
-                'L_const': 8, # how much to scale Lipschitz constant
+                'L_const': 1, # how much to scale Lipschitz constant
                 'N_const': 4, # multiplicative constant on numiters
                 }
 
@@ -83,10 +85,11 @@ persis_info['hyperparams'] = {
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 # exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 50000}
-# exit_criteria = {'elapsed_wallclock_time': 300}
+# exit_criteria = {'sim_max': 50000}
+exit_criteria = {'elapsed_wallclock_time': 300}
 
 # Perform the run
+libE_specs['safe_mode'] = False
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
