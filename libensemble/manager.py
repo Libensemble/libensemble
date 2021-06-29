@@ -310,8 +310,9 @@ class Manager:
             default_rset = man_resources.index_list[w-1]
             if default_rset is not None:
                 rset_team.append(default_rset)
+                rset_workers[default_rset] = w
             Work['libE_info']['rset_team'] = rset_team
-            rset_workers[default_rset] = w
+
         else:
             for index in Work['libE_info']['rset_team']:
                 if rset_workers[index] != w:
