@@ -333,7 +333,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     def cleanup():
         "Handler to clean up comms team."
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
-        close_logs()
+        if close_logs is not None:  # logger remains set between multiple libE calls
+            close_logs()
 
     # Run generic manager
     return manager(wcomms, sim_specs, gen_specs, exit_criteria,
