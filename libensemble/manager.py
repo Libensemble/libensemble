@@ -414,13 +414,13 @@ class Manager:
 
     def _freeup_resources(self, w):
         """Free up resources assigned to the worker"""
+        if self.resources:
+            rset_workers = self.resources.managerworker_resources.rsets['assigned']
+            # print('Manager received from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
 
-        rset_workers = self.resources.managerworker_resources.rsets['assigned']
-        # print('Manager received from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
-
-        for rset, worker in enumerate(rset_workers):
-            if worker == w:
-                rset_workers[rset] = 0
+            for rset, worker in enumerate(rset_workers):
+                if worker == w:
+                    rset_workers[rset] = 0
 
         # print('Manager freed from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
 
@@ -430,10 +430,6 @@ class Manager:
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
-
-        # Free up resource sets
-        if self.resources:
-            self._freeup_resources(w)
 
         if w not in self.persis_pending and not self.W[w-1]['active_recv']:
             self.W[w-1]['active'] = 0
@@ -456,6 +452,7 @@ class Manager:
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
                 self.W[w-1]['active'] = 0
+            self._freeup_resources(w)  # SH TODO - check persistent pending does not screw this up
         else:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.safe_mode)
@@ -466,6 +463,8 @@ class Manager:
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                 # Now a waiting, persistent worker
                 self.W[w-1]['persis_state'] = calc_type
+            else:
+                self._freeup_resources(w)
 
         if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
             # Now done blocking these workers
