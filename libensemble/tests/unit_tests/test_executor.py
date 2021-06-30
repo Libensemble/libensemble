@@ -65,10 +65,11 @@ def setup_executor():
     """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import BalsamMPIExecutor
-        exctr = BalsamMPIExecutor(auto_resources=False)
+        exctr = BalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
-        exctr = MPIExecutor(auto_resources=False)
+        #exctr = MPIExecutor()
+        exctr = MPIExecutor()
 
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
@@ -92,10 +93,10 @@ def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import BalsamMPIExecutor
-        exctr = BalsamMPIExecutor(auto_resources=False)
+        exctr = BalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
-        exctr = MPIExecutor(auto_resources=False)
+        exctr = MPIExecutor()
         if exctr.workerID is not None:
             sys.exit("Something went wrong in creating Executor")
 
@@ -111,7 +112,7 @@ def setup_executor_fakerunner():
                   'subgroup_launch': True}
 
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor(auto_resources=False, custom_info=customizer)
+    exctr = MPIExecutor(custom_info=customizer)
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 
