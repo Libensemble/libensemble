@@ -113,7 +113,7 @@ def move_job_coverage(jobdir):
     here = os.getcwd()
     covname = '.cov_reg_out.'
 
-    assert any[file.startswith(covname) for file in os.listdir(jobdir)], \
+    assert any([file.startswith(covname) for file in os.listdir(jobdir)]), \
         "Coverage results not detected in Balsam Job directory."
 
     for file in os.listdir(jobdir):
