@@ -109,8 +109,12 @@ def print_job_output(outscript):
 
 def move_job_coverage(jobdir):
     # Move coverage files from Balsam DB to ./regression_tests (for concatenation)
+    print('Moving job coverage results.')
     here = os.getcwd()
     covname = '.cov_reg_out.'
+
+    assert any[file.startswith(covname) for file in os.listdir(jobdir)], \
+        "Coverage results not detected in Balsam Job directory."
 
     for file in os.listdir(jobdir):
         if file.startswith(covname):
