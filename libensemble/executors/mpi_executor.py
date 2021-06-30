@@ -8,10 +8,8 @@ In order to create an MPI executor, the calling script should contain ::
 See the executor API below for optional arguments.
 """
 
-# SH TODO: Remove arguments no longer passed to Executor (now in resources)
-#          include updating add_comm_info - change name as only does serial setup (+look at set_worker_info)
-#          auto_resources would just determine if connect to resources, prob dont need option here.
-#          correct all docstrings, arg lists and comments (eg. remove auto_resources).
+# SH TODO: Update add_comm_info - change name as only does serial setup (+look at set_worker_info)
+#          Correct all docstrings, arg lists and comments (eg. remove auto_resources).
 
 import os
 import logging
@@ -31,15 +29,8 @@ class MPIExecutor(Executor):
     """The MPI executor can create, poll and kill runnable MPI tasks
     """
 
-    def __init__(self, auto_resources=True,
-                 allow_oversubscribe=True,
-                 central_mode=False,
-                 zero_resource_workers=[],
-                 nodelist_env_slurm=None,
-                 nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None,
-                 custom_info={}):
+    # SH TODO: Whether to still be custom_info or separate variables as now quite limited.
+    def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
         A new Executor MPIExecutor is created with an application
@@ -53,54 +44,13 @@ class MPIExecutor(Executor):
         Parameters
         ----------
 
-        auto_resources: boolean, optional
-            Autodetect available processor resources and assign to tasks
-            if not explicitly provided on submission.
-
-        allow_oversubscribe: boolean, optional
-            If true, the Executor will permit submission of tasks with a
-            higher processor count than the CPUs available to the worker as
-            detected by auto_resources. Larger node counts are not allowed.
-            When auto_resources is off, this argument is ignored.
-
-        central_mode: boolean, optional
-            If true, then running in central mode, otherwise in distributed
-            mode. Central mode means libE processes (manager and workers) are
-            grouped together and do not share nodes with applications.
-            Distributed mode means workers share nodes with applications.
-
-        zero_resource_workers: list of ints, optional
-            List of workers that require no resources.
-
-        nodelist_env_slurm: String, optional
-            The environment variable giving a node list in Slurm format
-            (Default: Uses SLURM_NODELIST).  Note: This is queried only if
-            a node_list file is not provided and auto_resources=True.
-
-        nodelist_env_cobalt: String, optional
-            The environment variable giving a node list in Cobalt format
-            (Default: Uses COBALT_PARTNAME) Note: This is queried only
-            if a node_list file is not provided and
-            auto_resources=True.
-
-        nodelist_env_lsf: String, optional
-            The environment variable giving a node list in LSF format
-            (Default: Uses LSB_HOSTS) Note: This is queried only
-            if a node_list file is not provided and
-            auto_resources=True.
-
-        nodelist_env_lsf_shortform: String, optional
-            The environment variable giving a node list in LSF short-form
-            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
-            if a node_list file is not provided and auto_resources=True.
-
         custom_info: dict, optional
             Provide custom overrides to selected variables that are usually
             auto-detected. See :ref:`custom_info<customizer>`
 
         """
+
         Executor.__init__(self)
-        #self.auto_resources = auto_resources
 
         # MPI launch settings
         self.max_launch_attempts = 5
@@ -111,31 +61,13 @@ class MPIExecutor(Executor):
         mpi_runner_type = custom_info.get('mpi_runner', None)
         runner_name = custom_info.get('runner_name', None)
         subgroup_launch = custom_info.get('subgroup_launch', None)
-        #cores_on_node = custom_info.get('cores_on_node', None)
-        #node_file = custom_info.get('node_file', None)
 
         if not mpi_runner_type:
             mpi_runner_type = MPIResources.get_MPI_variant()
-
         self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
-
         if subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = subgroup_launch
-
         self.resources = None
-        #if self.auto_resources:
-            #self.resources = \
-                #MPIResources(top_level_dir=self.top_level_dir,
-                             #central_mode=central_mode,
-                             #zero_resource_workers=zero_resource_workers,
-                             #allow_oversubscribe=allow_oversubscribe,
-                             #launcher=self.mpi_runner.run_command,
-                             #cores_on_node=cores_on_node,
-                             #node_file=node_file,
-                             #nodelist_env_slurm=nodelist_env_slurm,
-                             #nodelist_env_cobalt=nodelist_env_cobalt,
-                             #nodelist_env_lsf=nodelist_env_lsf,
-                             #nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
     def set_resources(self, resources):
         self.resources = resources
@@ -146,8 +78,6 @@ class MPIExecutor(Executor):
 
         Updates resources information if auto_resources is true.
         """
-        #if self.auto_resources:
-            #self.resources.add_comm_info(libE_nodes=libE_nodes)
         if serial_setup:
             self._serial_setup()
 
@@ -283,7 +213,6 @@ class MPIExecutor(Executor):
         mpi_specs = self.mpi_runner.get_mpi_specs(task, num_procs, num_nodes,
                                                   ranks_per_node, machinefile,
                                                   hyperthreads, extra_args,
-                                                  #self.auto_resources,
                                                   self.resources,
                                                   self.workerID)
 
@@ -311,10 +240,6 @@ class MPIExecutor(Executor):
         self.list_of_tasks.append(task)
         return task
 
-    # Prob add back comm when merge from CWP branch
     def set_worker_info(self, comm, workerid=None):
-    #def set_worker_info(self, workerid=None):
         """Sets info for this executor"""
         super().set_worker_info(comm, workerid)
-        #if self.workerID and self.auto_resources:
-            #self.resources.set_worker_resources(self.workerID, comm)
