@@ -32,8 +32,10 @@ def configure_coverage():
 
     newlines = [i for i in lines if i != '    */balsam_executor.py\n']
 
+    print('New libensemble/tests/.coveragerc: \n')
     with open(coveragerc, 'w') as f:
         for line in newlines:
+            print(line)
             f.write(line)
 
 
