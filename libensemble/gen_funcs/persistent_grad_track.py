@@ -44,7 +44,7 @@ def grad_track(H, persis_info, gen_specs, libE_info):
         gradf = get_grad(x_k, f_i_idxs, gen_specs, libE_info)
 
         err = la.norm(x_k - ones_arr, ord=2) 
-        print('[{}/{}] x={} |gradf|={:4e} abserr={:4e}'.format(k, num_outer_iters, x_k, la.norm(gradf,ord=2), err), flush=True)
+        print('[{}/{}] x={}...{} |gradf|={:4e} abserr={:4e}'.format(k, num_outer_iters, x_k[:3], x_k[-3:], la.norm(gradf,ord=2), err), flush=True)
 
         neighbor_gradf_is = get_neighbor_vals(gradf, local_gen_id, \
                                     S_i_gen_ids_no_local, gen_specs, libE_info)

@@ -154,7 +154,7 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 alloc_specs['user']['num_gens'])
         # k = persis_info['outer_iter_ct'] 
         A = persis_info['alg_vars']['A']
-        S = get_doubly_stochastic(A)
+        S = persis_info['alg_vars']['S']
 
     inactive_workers = np.sort(avail_worker_ids(W, persistent=False))
     for i0, i in enumerate(inactive_workers):
@@ -233,9 +233,15 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
     assert 0 < step_const <= 1, 'step scale is {:.4f} but must be in (0,1]'.format(step_const)
 
     # chain matrix
+    print('Here!', flush=True)
     num_gens = alloc_specs['user']['num_gens']
     diagonals = [np.ones(num_gens-1), np.ones(num_gens-1)]
     A = spp.csr_matrix( spp.diags(diagonals, [-1,1]) )
+    # TEMP
+    A = spp.csr_matrix(np.ones((num_gens, num_gens)))
+    A = A - spp.eye(num_gens)
+    A.eliminate_zeros()
+    # ENDTEMP
     S = get_doubly_stochastic(A)
     n = S.shape[0]
     rho = la.norm(S - (n**-1)*np.ones(S.shape), ord=2)
@@ -248,6 +254,7 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
 
     alg_vars = {
                 'A': A,               # Adjacency matrix (we will not explicitly form Laplacian)
+                'S': S,
                 'N': N,               # number of outer iterations 
                 'eta': eta,           # step size
                 }
@@ -279,18 +286,25 @@ def get_doubly_stochastic(A):
     -------
     x : scipy.sparse.csr_matrix
     """
+    np.random.seed(0)
     n = A.shape[0]
     x = np.multiply( A.toarray() != 0,  np.random.random((n,n)))
     x = x + np.diag(np.random.random(n) + 1e-4)
 
-    rsum = None
-    csum = None
+    rsum = np.zeros(n)
+    csum = np.zeros(n)
+    tol=1e-15
 
-    while (np.any(rsum != 1)) | (np.any(csum != 1)):
+    while (np.any(np.abs(rsum - 1) > tol)) | (np.any(np.abs(csum - 1) > tol)):
         x = x / x.sum(0)
         x = x / x.sum(1)[:, np.newaxis]
         rsum = x.sum(1)
         csum = x.sum(0)
+
+    print('################################', flush=True)
+    print('# Matrix', flush=True) 
+    print('# {}'.format(x), flush=True)
+    print('################################\n', flush=True)
 
     x = spp.csr_matrix(x)
 
