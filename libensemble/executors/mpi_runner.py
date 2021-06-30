@@ -111,7 +111,7 @@ class MPIRunner:
                 self._parse_extra_args(num_procs, num_nodes, ranks_per_node,
                                        hyperthreads, extra_args=extra_args)
 
-        #hostlist = None
+        hostlist = None
         if machinefile and not self.mfile_support:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
