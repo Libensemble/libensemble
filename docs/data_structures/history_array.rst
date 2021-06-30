@@ -13,7 +13,11 @@ Fields in ``H`` include those specified in ``sim_specs['out']``,
 
 Below are the protected fields used in ``H``. Other than ``'sim_id'`` and
 ``cancel_requested``, these fields cannot be overwritten by user functions (unless
-``libE_spces['safe_mode']`` is set to ``False``).
+``libE_spces['safe_mode']`` is set to ``False``). These fields are be updated
+by libEnsemble so user functions can know the current status of a run. For
+example, these fields let an allocation function know what points have been
+``'given'`` to a worker to be evaluated and what points have ``'returned'``
+from the worker doing an evaluation.
 
 ..  literalinclude:: ../../libensemble/tools/fields_keys.py
     :start-at: libE_fields
