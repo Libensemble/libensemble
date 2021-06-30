@@ -85,6 +85,75 @@ Specifications for libEnsemble::
             List of fields in H that the manager will return to persistent
             workers along with the PERSIS_STOP tag at the end of the libE run.
             Default: None
+        'auto_resources' [boolean]:
+            Autodetect available nodes and processor resources and assign to workers for
+            running tasks.
+            Default: True
+        'num_resource_sets' [int]:
+            The total number of resource sets. Resources will be divided into this number.
+            Default: None. If None, resources will be divided by workers (excluding
+            zero_resource_workers).
+        'allow_oversubscribe' [boolean]:
+            If true, the Executor will permit submission of tasks with a
+            higher processor count than the CPUs available to the worker as
+            detected by auto_resources. Larger node counts are not allowed.
+            When auto_resources is off, this argument is ignored.
+        'central_mode' [boolean]:
+            If true, then running in central mode, otherwise in distributed
+            mode. Central mode means libE processes (manager and workers) are
+            grouped together and do not share nodes with applications.
+            Distributed mode means workers share nodes with applications.
+        'zero_resource_workers' [list of ints]:
+            List of workers that require no resources.
+        'custom_info' [dict]:
+            Provide resource information which overrides information detected by 'auto_resources'.
+            The allowable fields are given below in 'Overriding Auto-detection'
+
+.. Cant put link in the codeblock as it is
+..         'custom_info' [dict]:
+..             Provide resource information which overrides information detected by 'auto_resources'.
+..             The allowable fields are given in :ref:`Overriding Auto-detection`
+
+.. See :ref:`Overriding Auto-detection`
+.. and see :ref:`resource_info<resource_info>`
+
+.. _resource_info:
+
+Overriding Auto-detection
+-------------------------
+
+The allowable fields are::
+
+    'cores_on_node' [tuple (int,int)]:
+        Tuple (physical cores, logical cores) on nodes.
+    'node_file' [string]:
+        Name of file containing a node-list. Default is 'node_list'.
+    'nodelist_env_slurm' [String]:
+            The environment variable giving a node list in Slurm format
+            (Default: Uses SLURM_NODELIST).  Note: This is queried only if
+            a node_list file is not provided and auto_resources=True.
+    'nodelist_env_cobalt' [String]:
+            The environment variable giving a node list in Cobalt format
+            (Default: Uses COBALT_PARTNAME) Note: This is queried only
+            if a node_list file is not provided and
+            auto_resources=True.
+    'nodelist_env_lsf' [String]:
+            The environment variable giving a node list in LSF format
+            (Default: Uses LSB_HOSTS) Note: This is queried only
+            if a node_list file is not provided and
+            auto_resources=True.
+    'nodelist_env_lsf_shortform' [String]:
+            The environment variable giving a node list in LSF short-form
+            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
+            if a node_list file is not provided and auto_resources=True.
+
+For example::
+
+    customizer = {cores_on_node': (16, 64),
+                  'node_file': 'libe_nodes'}
+
+    libE_specs['custom_info'] = customizer
+
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or
