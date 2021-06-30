@@ -101,6 +101,7 @@ def worker_logging_config(comm, worker_id=None):
     if logconfig.logger_set:
         for hdl in logger.handlers[:]:
             logger.removeHandler(hdl)
+            hdl.close()
     else:
         logger.propagate = False
         logger.setLevel(logconfig.log_level)
@@ -129,13 +130,13 @@ def manager_logging_config():
 
         # Stats logging
         # NB: Could add a specialized handler for immediate flushing
-        fh = logging.FileHandler(logconfig.stat_filename, mode='w')
-        fh.addFilter(wfilter)
-        fh.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
+        fhs = logging.FileHandler(logconfig.stat_filename, mode='w')
+        fhs.addFilter(wfilter)
+        fhs.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
         stat_logger = logging.getLogger(logconfig.stats_name)
         stat_logger.propagate = False
         stat_logger.setLevel(logging.DEBUG)
-        stat_logger.addHandler(fh)
+        stat_logger.addHandler(fhs)
 
         # Mirror error-logging to stderr of user-specified level
         fhe = logging.StreamHandler(stream=sys.stderr)
@@ -144,3 +145,9 @@ def manager_logging_config():
         fhe.addFilter(efilter)
         fhe.setFormatter(formatter)
         logger.addHandler(fhe)
+
+        def close_logs():
+            fh.close()
+            fhs.close()
+
+        return close_logs
