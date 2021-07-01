@@ -22,6 +22,7 @@ from deepdrivemd.agents.lof import lof
 
 logger.set_level('INFO')
 
+
 def download_data(url, file):
     if file not in os.listdir('.'):
         print('Downloading ' + file + ' ...')
@@ -29,8 +30,9 @@ def download_data(url, file):
         with open(file, 'wb') as f:
             f.write(out.content)
 
+
 folded_url = 'https://raw.githubusercontent.com/DeepDriveMD/DeepDriveMD-pipeline/main/data/bba/1FME-folded.pdb'
-unfolded_url = 'https://raw.githubusercontent.com/DeepDriveMD/DeepDriveMD-pipeline/main/data/bba/system/1FME-unfolded.pdb'
+unfolded_url = folded_url.replace('1FME-folded.pdb', 'system/1FME-unfolded.pdb')
 
 for url in [folded_url, unfolded_url]:
     download_data(url, url.split('/')[-1])
