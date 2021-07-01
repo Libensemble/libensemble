@@ -19,10 +19,10 @@ import numpy as np
 
 from libensemble.libE import libE
 # from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
-from libensemble.sim_funcs.geomedian import geomedian_eval as sim_f
+# from libensemble.sim_funcs.geomedian import geomedian_eval as sim_f
 # from libensemble.sim_funcs.convex_funnel import convex_funnel_eval as sim_f
 # from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval as sim_f
-# from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
+from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
 from libensemble.alloc_funcs.start_persistent_prox_slide import start_proxslide_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams

@@ -180,14 +180,14 @@ def PS(x, gradg, beta, T, ct, f_i_idxs, gen_specs, libE_info, pre_x_k, wid):
 def get_l2_argmin(x, u_prev, gradf, gradg, beta, p_t):
     u_next = (beta * x) + (beta * p_t * u_prev) - gradf - gradg
     u_next = u_next / (beta * (1.0+p_t))
-    return u_next
+    # return u_next
 
-    # project
+    # X={ x : |x| <= 2\sqrt{n} }
     n = len(x)
     u_norm = la.norm(u_next, ord=2)
     B = 2*(n**0.5)
     if u_norm > B:
-        u_next /= (u_norm/B)
+        u_next *= (B/u_norm)
     return u_next
 
 def get_entropy_argmin(x, u, gradf, gradg, beta, p_t):
