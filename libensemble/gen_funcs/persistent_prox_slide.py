@@ -18,7 +18,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
     # start with random x0
     x0 = persis_info['rand_stream'].uniform(low=lb, high=ub, size=(n,)) 
-    print('x0={}'.format(x0), flush=True)
+    # print('x0={}'.format(x0), flush=True)
     x_k = x0
     post_x_k = x0
 
@@ -30,7 +30,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
     ones_arr = np.ones(len(x_k), dtype=float)
 
-    print('[{}/{}] x={}'.format(0, num_outer_iters, x0), flush=True)
+    print('[{}/{}] x={}...{}'.format(0, num_outer_iters, x0[:3], x0[-3:]), flush=True)
 
     f_obj = 0
     prev_f_obj = np.inf
@@ -107,7 +107,8 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         gradf    = np.sum(gradf_is, axis=0)
 
         err = la.norm(ones_arr - post_x_k)
-        print('[{}/{}, {}] x={} ||gradf||={:.4f} abserr={:.4e}'.format(k+1, num_outer_iters, T_k, post_x_k, la.norm(gradf, ord=2), err), flush=True)
+        # UNCOMMENT ME
+        print('[{}/{}, {}] x={}...{} ||gradf||={:.4f} abserr={:.4e}'.format(k+1, num_outer_iters, T_k, post_x_k[:3], post_x_k[-3:], la.norm(gradf, ord=2), err), flush=True)
 
         # print('[{}/{} : {}] x={}'.format(k+1, num_outer_iters, T_k, post_x_k), flush=True)
         # print('[{}: {}/{}] f_is={:.8f}'.format(persis_info['worker_num'], k+1, num_outer_iters, f_obj), flush=True)
