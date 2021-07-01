@@ -234,14 +234,18 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
 
     # chain matrix
     print('Here!', flush=True)
-    num_gens = alloc_specs['user']['num_gens']
-    diagonals = [np.ones(num_gens-1), np.ones(num_gens-1)]
-    A = spp.csr_matrix( spp.diags(diagonals, [-1,1]) )
+    # num_gens = alloc_specs['user']['num_gens']
+    # diagonals = [np.ones(num_gens-1), np.ones(num_gens-1)]
+     #A = spp.csr_matrix( spp.diags(diagonals, [-1,1]) )
     # TEMP
-    A = spp.csr_matrix(np.ones((num_gens, num_gens)))
-    A = A - spp.eye(num_gens)
-    A.eliminate_zeros()
+    # A = spp.csr_matrix(np.ones((num_gens, num_gens)))
+    # A = A - spp.eye(num_gens)
+    # A.eliminate_zeros()
     # ENDTEMP
+    
+    # NEW
+    A = get_k_reach_chain_matrix(num_gens, 1)
+
     S = get_doubly_stochastic(A)
     n = S.shape[0]
     rho = la.norm(S - (n**-1)*np.ones(S.shape), ord=2)
@@ -260,6 +264,21 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
                 }
 
     return alg_vars
+
+def get_k_reach_chain_matrix(n, k):
+    """ Constructs adjacency matrix for a chain matrix where the ith vertex can
+        reach vertices that are at most @k distances from them (does not wrap around),
+        where the distance is based on the absoluate difference between vertices'
+        indexes.
+    """
+    assert 1 <= k <= n-1
+
+    half_of_diagonals = [np.ones(n-k+j) for j in range(k)]
+    half_of_indices = np.arange(1,k+1)
+    all_of_diagonals = half_of_diagonals + half_of_diagonals[::-1]
+    all_of_indices = np.append(-half_of_indices[::-1], half_of_indices)
+    A = spp.csr_matrix( spp.diags(all_of_diagonals, all_of_indices) )
+    return A
 
 def partition_funcs_arr(num_funcs, num_gens):
     num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)
