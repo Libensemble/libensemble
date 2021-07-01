@@ -51,8 +51,8 @@ class Resources:
 
     DEFAULT_NODEFILE = 'node_list'
 
-    @staticmethod
-    def init_resources(libE_specs):
+    @classmethod
+    def init_resources(cls, libE_specs):
         """Initiate resource management"""
         from libensemble.resources.mpi_resources import MPIResources
 
