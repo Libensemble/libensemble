@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import requests
 import datetime
 
 from libensemble.libE import libE
@@ -20,6 +21,19 @@ from deepdrivemd.selection.latest import select_model
 from deepdrivemd.agents.lof import lof
 
 logger.set_level('INFO')
+
+def download_data(url, file):
+    if file not in os.listdir('.'):
+        print('Downloading ' + file + ' ...')
+        out = requests.get(url)
+        with open(file, 'wb') as f:
+            f.write(out.content)
+
+folded_url = 'https://raw.githubusercontent.com/DeepDriveMD/DeepDriveMD-pipeline/main/data/bba/1FME-folded.pdb'
+unfolded_url = 'https://raw.githubusercontent.com/DeepDriveMD/DeepDriveMD-pipeline/main/data/bba/system/1FME-unfolded.pdb'
+
+for url in [folded_url, unfolded_url]:
+    download_data(url, url.split('/')[-1])
 
 # Parse comms type, number of workers, etc. from command-line
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -84,8 +98,8 @@ exit_criteria = {'sim_max': 120}
 # Additional libEnsemble settings to customize our ensemble directory
 libE_specs['sim_dirs_make'] = True
 libE_specs['sim_input_dir'] = './sim'
-libE_specs['sim_dir_symlink_files'] = [os.path.abspath('./1FME-folded.pdb'),
-                                       os.path.abspath('./1FME-unfolded.pdb')]
+libE_specs['sim_dir_symlink_files'] = [os.path.abspath(folded_url.split('/')[-1]),
+                                       os.path.abspath(unfolded_url.split('/')[-1])]
 
 libE_specs['gen_dirs_make'] = True
 libE_specs['gen_input_dir'] = './gen'

@@ -1,1 +1,1 @@
-rm -r ensemble* libE_*
+rm -r ensemble* libE_* 1FME-*
