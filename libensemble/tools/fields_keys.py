@@ -58,23 +58,28 @@ libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + \
     libE_spec_sim_dir_keys + \
     libE_spec_gen_dir_keys
 
-allowed_libE_spec_keys = ['abort_on_exception',     #
-                          'authkey',                #
-                          'kill_canceled_sims',    #
-                          'comms',                  #
-                          'disable_log_files',      #
-                          'final_fields',           #
-                          'ip',                     #
-                          'mpi_comm',               #
-                          'nworkers',               #
-                          'port',                   #
-                          'profile',                #
-                          'safe_mode',              #
-                          'save_every_k_gens',      #
-                          'save_every_k_sims',      #
-                          'save_H_and_persis_on_abort',        #
-                          'use_persis_return',      #
-                          'workerID',               #
-                          'worker_timeout',         #
-                          'zero_resource_workers',  #
+allowed_libE_spec_keys = ['abort_on_exception',             #
+                          'allow_oversubscribe',            #
+                          'authkey',                        #
+                          'auto_resources',                 #
+                          'central_mode',                   #
+                          'comms',                          #
+                          'custom_info',                    #
+                          'disable_log_files',              #
+                          'final_fields',                   #
+                          'ip',                             #
+                          'kill_canceled_sims',             #
+                          'mpi_comm',                       #
+                          'num_resource_sets',              #
+                          'nworkers',                       #
+                          'port',                           #
+                          'profile',                        #
+                          'safe_mode',                      #
+                          'save_every_k_gens',              #
+                          'save_every_k_sims',              #
+                          'save_H_and_persis_on_abort',     #
+                          'use_persis_return',              #
+                          'workerID',                       #
+                          'worker_timeout',                 #
+                          'zero_resource_workers',          #
                           'worker_cmd'] + libE_spec_calc_dir_combined

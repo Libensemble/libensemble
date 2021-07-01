@@ -229,7 +229,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
         return [], persis_info, 3  # Process not in mpi_comm
 
     # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
-    #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     with DupComm(libE_specs['mpi_comm']) as mpi_comm:
         rank = mpi_comm.Get_rank()
@@ -322,7 +322,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     nworkers = libE_specs['nworkers']
 
     # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
-    #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     resources = Resources.resources
     if resources is not None:
@@ -391,7 +391,7 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
     "Main routine for TCP multiprocessing launch of libE."
 
     # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
-    #check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     is_worker = True if 'workerID' in libE_specs else False
 
