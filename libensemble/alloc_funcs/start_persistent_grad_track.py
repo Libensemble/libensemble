@@ -234,7 +234,7 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
 
     # chain matrix
     print('Here!', flush=True)
-    # num_gens = alloc_specs['user']['num_gens']
+    num_gens = alloc_specs['user']['num_gens']
     # diagonals = [np.ones(num_gens-1), np.ones(num_gens-1)]
      #A = spp.csr_matrix( spp.diags(diagonals, [-1,1]) )
     # TEMP
