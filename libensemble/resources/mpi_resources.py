@@ -54,6 +54,16 @@ class MPIResources(Resources):
                 "num_procs does not equal num_nodes*ranks_per_node")
         return num_procs, num_nodes, ranks_per_node
 
+
+    def max_rsets_per_node(self):
+        """ Return the maximum rsets per node for any node on this worker"""
+        # SH TODO: Need to add tests that go across the uneven nodes.
+        rset_team = self.worker_resources.rset_team
+        local_rsets_list = self.worker_resources.local_rsets_list
+        rsets_on_node = [local_rsets_list[rset] for rset in rset_team]
+        return max(rsets_on_node)
+
+
     def get_resources(self, num_procs=None, num_nodes=None,
                       ranks_per_node=None, hyperthreads=False):
         """Reconciles user-supplied options with available worker
@@ -73,7 +83,9 @@ class MPIResources(Resources):
         cores_avail_per_node = \
             (self.logical_cores_avail_per_node if hyperthreads else
              self.physical_cores_avail_per_node)
-        rsets_per_node = self.worker_resources.rsets_per_node
+
+        rsets_per_node = self.max_rsets_per_node()
+
 
         # SH TODO: Consider changing cores_avail_per_node_per_rset to just cores_avail_per_rset
         #          Evaluate situation when one rset is > 1 node.
