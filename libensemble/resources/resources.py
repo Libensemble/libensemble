@@ -395,6 +395,15 @@ class ManagerWorkerResources:
         self.rsets = np.zeros(self.num_rsets, dtype=ManagerWorkerResources.rset_dtype)
         self.rsets['assigned'] = 0
         self.rsets['group'] = WorkerResources.get_group_list(self.split_list)
+        self.num_groups = self.rsets['group'][-1]
+        unique, counts = np.unique(self.rsets['group'], return_counts=True)
+        self.even_groups = True if unique.size == 1 else False
+
+        # SH TODO: Useful for scheduling tasks with different sized groups (resource sets per node).
+        # self.group_sizes = dict(zip(unique, counts))
+        # from collections import Counter  #tmp here
+        # self.ngroups_by_size = Counter(counts)
+
 
     def assign_rsets(self, rset_team, worker_id):
         """Mark the resource sets given by rset_team as assigned to worker_id"""
@@ -458,6 +467,8 @@ class WorkerResources:
         #          - possibly fixed_workers_per_node or maybe resource_sets or rsets_per_node...
         self.zero_resource_workers = resources.zero_resource_workers
         self.split_list, self.local_rsets_list = WorkerResources.get_partitioned_nodelist(self.num_rsets, resources)
+
+        # SH TODO: To fully support uneven rsets (with re-assignment) - will use local_rsets_list (above)
         self.rsets_per_node = WorkerResources.get_rsets_on_a_node(self.num_rsets, resources)
         self.local_nodelist = []
         self.local_node_count = len(self.local_nodelist)
@@ -659,6 +670,7 @@ class WorkerResources:
         Also self.global_nodelist will have already removed non-application nodes
         """
         split_list, local_rsets_list = WorkerResources.get_split_list(num_rsets, resources)
+        #print('local_rsets_list', local_rsets_list, flush=True)
         return split_list, local_rsets_list
 
     @staticmethod
@@ -694,6 +706,7 @@ class WorkerResources:
 
             for index in rset_team:
                 mynode = split_list[index][0]
+                # rsets_per_node = local_rsets_list[index]  # SH TODO Support uneven rsets per node
                 pos_in_node = index % rsets_per_node  # SH TODO: check/test this
                 slots[mynode].append(pos_in_node)
                 # SH TODO: Can potentially create a machinefile from slots if/when support uneven lists
