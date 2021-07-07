@@ -513,6 +513,7 @@ class WorkerResources:
                     all_match = False
                     break
 
+            # SH TODO: Need to update for uneven scenarios
             self.even_slots = True if all_match else False
             if self.even_slots:
                 self.slots_on_node = first_node_slots
@@ -696,15 +697,18 @@ class WorkerResources:
         # print("Worker {} Worker's local_nodelist is {}".format(workerID, local_nodelist),flush=True) # SH TODO:Remove
         logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
 
-        # Maybe can essentailly do this at mapping stage with group list or create a structure to reference.
-        if len(split_list[0]) > 1:
-            slots = None  # Not needed if not at sub-node # SH TODO: Review this
-        else:
-            slots = {}
-            for node in local_nodelist:
-                slots[node] = []
+        # SH TODO: Maybe can essentailly do this at mapping stage with group list or create a structure to reference.
+        slots = {}
+        for node in local_nodelist:
+            slots[node] = []
 
-            for index in rset_team:
+        for index in rset_team:
+            mynodes = split_list[index]
+            # If rset has > 1 node, then all nodes just have a single slot (slot 0).
+            if len(mynodes) > 1:
+                for node in  mynodes:
+                    slots[node].append(0)
+            else:
                 mynode = split_list[index][0]
                 # rsets_per_node = local_rsets_list[index]  # SH TODO Support uneven rsets per node
                 pos_in_node = index % rsets_per_node  # SH TODO: check/test this
