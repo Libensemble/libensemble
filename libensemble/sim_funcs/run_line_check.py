@@ -70,7 +70,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
 
 def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     """Check run-lines produced by executor provided by a list of lines per worker"""
-    offset_for_min_rsets_schedular = True
+    offset_for_min_rsets_scheduler = sim_specs['user'].get('offset_for_scheduler', False)
     calc_status = 0
     x = H['x'][0][0]
     exctr = Executor.executor
@@ -96,7 +96,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     # Node 1: 3 rsets (0,1,2). Node 2: 2 rsets (3,4)
     # The first sim will got to rset 3 as it finds a "smaller slot".
     # Alternative would be for splitter to use opposite splits (e.g. 2,3 rather than 3,2)
-    if offset_for_min_rsets_schedular:
+    if offset_for_min_rsets_scheduler:
         wid_mod = circ_offset(wid, len(exp_list))
     else:
         wid_mod = wid
