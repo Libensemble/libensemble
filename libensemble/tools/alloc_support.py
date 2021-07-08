@@ -184,9 +184,17 @@ def assign_resources(rsets_req, worker_id, user_resources=None):
 
     resources = user_resources or Resources.resources.managerworker_resources
 
+    # SH TODO: Also want some quick check keeping count of currently free and quickly leave if not enough
+    #          Can be check of whats assigned - but when use cache here - will check that also...
     if rsets_req > resources.num_rsets:
         # Raise error - when added errors
         raise AllocException("More resource sets requested {} than exist {}".format(rsets_req, resources.num_rsets))
+
+    # Quick check
+    #print('free', resources.rsets_free)
+    if rsets_req > resources.rsets_free:
+        return None
+
     num_groups = resources.num_groups
     max_grpsize = resources.rsets_per_node  #assumes even
 
@@ -214,7 +222,7 @@ def assign_resources(rsets_req, worker_id, user_resources=None):
     if resources.even_groups:
         rsets_req, num_groups_req, rsets_req_per_group = calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
     else:
-        print('Warning: uneven groups - but using even groups function')
+        #print('Warning: uneven groups - but using even groups function')
         rsets_req, num_groups_req, rsets_req_per_group = calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
 
     # Now find slots on as many nodes as need

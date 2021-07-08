@@ -15,6 +15,7 @@ import os
 import socket
 import logging
 import subprocess
+from collections import Counter
 from collections import OrderedDict
 import numpy as np
 from libensemble.resources import node_resources
@@ -397,12 +398,14 @@ class ManagerWorkerResources:
         self.rsets['group'] = WorkerResources.get_group_list(self.split_list)
         self.num_groups = self.rsets['group'][-1]
         unique, counts = np.unique(self.rsets['group'], return_counts=True)
-        self.even_groups = True if unique.size == 1 else False
+        self.rsets_free = self.num_rsets
 
         # SH TODO: Useful for scheduling tasks with different sized groups (resource sets per node).
-        # self.group_sizes = dict(zip(unique, counts))
-        # from collections import Counter  #tmp here
-        # self.ngroups_by_size = Counter(counts)
+        self.group_sizes = dict(zip(unique, counts))
+        self.ngroups_by_size = Counter(counts)
+        self.even_groups = True if len(self.ngroups_by_size) == 1 else False
+        print('\nrsets are {} even groups is {}\n'.format(self.rsets,self.even_groups))
+        #import pdb;pdb.set_trace()
 
 
     def assign_rsets(self, rset_team, worker_id):
@@ -410,10 +413,29 @@ class ManagerWorkerResources:
 
         if rset_team:
             self.rsets['assigned'][rset_team] = worker_id
+            #self.num_assigned += len(rset_team)  # quick count
+            self.rsets_free -= len(rset_team)  # quick count
+            # of course in pace of rsets_free could use a function that counts - but this is faster - cld double check in some cases
 
             # print('resources assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
             # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove
 
+    def free_rsets(self, worker=None):
+        """Free up assigned resource sets"""
+        if worker is None:
+            self.rsets['assigned'] = 0
+            #self.num_assigned = 0
+            self.rsets_free = self.num_rsets
+        else:
+            for rset, wid in enumerate(self.rsets['assigned']):
+                if wid == worker:
+                    self.rsets['assigned'][rset] = 0
+                    #self.num_assigned -= 1
+                    self.rsets_free += 1
+
+
+        # print('resources assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
+        # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove
 
 class WorkerResources:
     """Provide system resources per worker to libEnsemble and executor.

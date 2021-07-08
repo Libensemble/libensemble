@@ -420,13 +420,16 @@ class Manager:
 
     def _freeup_resources(self, w):
         """Free up resources assigned to the worker"""
-        if self.resources:
-            rset_workers = self.resources.managerworker_resources.rsets['assigned']
-            # print('Manager received from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
 
-            for rset, worker in enumerate(rset_workers):
-                if worker == w:
-                    rset_workers[rset] = 0
+        # SH TODO: This should be in resources (as assign_resources is).
+        if self.resources:
+            self.resources.managerworker_resources.free_rsets(w)
+            #rset_workers = self.resources.managerworker_resources.rsets['assigned']
+            ## print('Manager received from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
+
+            #for rset, worker in enumerate(rset_workers):
+                #if worker == w:
+                    #rset_workers[rset] = 0
 
         # print('Manager freed from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
 
