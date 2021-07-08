@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
@@ -197,7 +198,7 @@ def assign_resources(rsets_req, worker_id, user_resources=None):
 
     # print('Available rsets_by_group:', avail_rsets_by_group)  # SH TODO: Remove
 
-    print('max_grpsize is', max_grpsize)
+    #print('max_grpsize is', max_grpsize)
     if max_grpsize is not None:
         max_upper_bound = max_grpsize + 1
     else:
@@ -219,14 +220,14 @@ def assign_resources(rsets_req, worker_id, user_resources=None):
     # Now find slots on as many nodes as need
     accum_team = []
     group_list = []
-    print('\nLooking for {} rsets'.format(rsets_req))
+    #print('\nLooking for {} rsets'.format(rsets_req))
     for ng in range(num_groups_req):
-        print(' - Looking for group {} out of {}: Groupsize {}'.format(ng+1, num_groups_req, rsets_req_per_group))
+        #print(' - Looking for group {} out of {}: Groupsize {}'.format(ng+1, num_groups_req, rsets_req_per_group))
         cand_team = []
         cand_group = None
         upper_bound = max_upper_bound
         for g in tmp_avail_rsets_by_group:
-            print('   -- Search possible group {} in {}'.format(g, tmp_avail_rsets_by_group))
+            #print('   -- Search possible group {} in {}'.format(g, tmp_avail_rsets_by_group))
 
             if g in group_list:
                 continue
@@ -243,19 +244,19 @@ def assign_resources(rsets_req, worker_id, user_resources=None):
             accum_team.extend(cand_team)
             group_list.append(cand_group)
 
-            print('      here b4:  group {} avail {} - cand_team {}'.format(group_list, tmp_avail_rsets_by_group, cand_team))
+            #print('      here b4:  group {} avail {} - cand_team {}'.format(group_list, tmp_avail_rsets_by_group, cand_team))
             #import pdb;pdb.set_trace()
             for rset in cand_team:
                 tmp_avail_rsets_by_group[cand_group].remove(rset)
-            print('      here aft: group {} avail {}'.format(group_list, tmp_avail_rsets_by_group))
+            #print('      here aft: group {} avail {}'.format(group_list, tmp_avail_rsets_by_group))
 
-    print('Found rset team {} - group_list {}'.format(accum_team, group_list))
+    #print('Found rset team {} - group_list {}'.format(accum_team, group_list))
     #import pdb;pdb.set_trace()
 
     if len(accum_team) == rsets_req:
         # A successful team found
         rset_team = sorted(accum_team)
-        print('Setting rset team {} - group_list {}'.format(accum_team, group_list))
+        #print('Setting rset team {} - group_list {}'.format(accum_team, group_list))
         avail_rsets_by_group = tmp_avail_rsets_by_group
     else:
         rset_team = None  # Insufficient resources to honor
