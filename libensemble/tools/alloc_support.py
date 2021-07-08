@@ -10,22 +10,23 @@ class AllocException(Exception):
     "Raised for any exception in the alloc support"
 
 
-def get_groupsize_from_resources():
-    """Gets groups size from resources
+# SH TODO: Not using now - but need this to work if resources is None
+#def get_groupsize_from_resources(resources):
+    #"""Gets groups size from resources
 
-    If resources is not set, returns None
-    """
-    resources = Resources.resources
-    if resources is None:
-        return None
-    group_size = resources.managerworker_resources.rsets_per_node
-    # print('groupsize is', group_size, flush=True)  # SH TODO:Remove
-    return group_size
+    #If resources is not set, returns None
+    #"""
+    ##resources = Resources.resources
+    ##if resources is None:
+        ##return None
+    #group_size = resources.rsets_per_node
+    ## print('groupsize is', group_size, flush=True)  # SH TODO:Remove
+    #return group_size
 
 
 # SH TODO: An alt. could be to return an object
 #          When merge CWP branch - will need option to use active receive worker
-def get_avail_rsets_by_group():
+def get_avail_rsets_by_group(resources):
     """Return a dictionary of resource set IDs for each group (e.g. node)
 
     If groups are not set they will all be in one group (group 0)
@@ -35,7 +36,7 @@ def get_avail_rsets_by_group():
     GROUP  2: [5,6,7,8]
     """
 
-    resources = Resources.resources.managerworker_resources
+    #resources = Resources.resources.managerworker_resources
     rsets = resources.rsets
 
     # SH TODO: Constructing rsets_by_group every call - look at storing in this format.
@@ -128,10 +129,41 @@ def update_avail_workers_by_group(wrks_by_group, worker_team, group_list=None):
         "Error removing workers from available workers by group list"
 
 
+# This one assumes equal groups sizes
+def calc_rsets_even_grps(rsets_req, max_grpsize, max_groups):
+    """Calculate an even breakdown to best fit rsets_req input"""
+
+    num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)  # Divide with roundup.
+
+    # Up to max groups - keep trying for an even split
+    if num_groups_req > 1:
+        even_partition = False
+        tmp_num_groups = num_groups_req
+        while tmp_num_groups <= max_groups:
+            if rsets_req % tmp_num_groups == 0:
+                even_partition = True
+                break
+            tmp_num_groups += 1
+
+        if even_partition:
+            num_groups_req = tmp_num_groups
+            rsets_req_per_group = rsets_req//num_groups_req  # This should always divide perfectly.
+        else:
+            #log here
+            print('Warning: Increasing resource requirement to obtain an even partition of resource sets to nodes')
+            rsets_req_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
+            rsets_req = num_groups_req * rsets_req_per_group
+    else:
+        rsets_req_per_group = rsets_req
+
+    return rsets_req, num_groups_req, rsets_req_per_group
+
+
+
 # SH TODO: Naming - assign_resources?/assign_rsets?
 #          There may be various scheduling options.
 #          Terminology - E.g: What do we call the H row/s we are sending to the worker? work_item?
-def assign_resources(rsets_req, worker_id):
+def assign_resources(rsets_req, worker_id, user_resources=None):
     """Schedule resource sets to a work item if possible and assign to worker
 
     This routine assigns the resources given by {rsets_req} and gives to
@@ -149,61 +181,89 @@ def assign_resources(rsets_req, worker_id):
     insufficient resources.
     """
 
-    rsets_by_group = get_avail_rsets_by_group()
+    resources = user_resources or Resources.resources.managerworker_resources
 
-    # print('Requested rsets_by_group:', rsets_by_group)  # SH TODO: Remove
+    if rsets_req > resources.num_rsets:
+        # Raise error - when added errors
+        raise AllocException("More resource sets requested {} than exist {}".format(rsets_req, resources.num_rsets))
+    num_groups = resources.num_groups
+    max_grpsize = resources.rsets_per_node  #assumes even
 
-    gsize = get_groupsize_from_resources()
-    if gsize is not None:
-        upper_bound = gsize + 1
+    #when use class will do this once for an alloc call!
+    avail_rsets_by_group = get_avail_rsets_by_group(resources)
+
+    #Maybe more efficient way than making copy_back
+    tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
+
+    # print('Available rsets_by_group:', avail_rsets_by_group)  # SH TODO: Remove
+
+    print('max_grpsize is', max_grpsize)
+    if max_grpsize is not None:
+        max_upper_bound = max_grpsize + 1
     else:
         # All in group zero
         # Will still block workers, but treats all as one group
-        if len(rsets_by_group) > 1:
+        if len(tmp_avail_rsets_by_group) > 1:
             raise AllocException("There should only be one group if resources is not set")
-        upper_bound = len(rsets_by_group[0]) + 1
+        max_upper_bound = len(tmp_avail_rsets_by_group[0]) + 1
 
     # SH TODO: Review scheduling > 1 node strategy
-    # If using more than one node - round up to full nodes
-    # alternative, could be to allow the allocation function to do this.
-    # also alt. could be to round up to next even split (e.g. 5 workers beccomes 6 - and get 2 groups of 3).
-    num_groups = rsets_req//gsize + (rsets_req % gsize > 0)  # Divide with roundup.
-    rsets_per_group = rsets_req
-    if num_groups > 1:
-        rsets_req = num_groups * gsize
-        rsets_per_group = gsize
+    # Currently tries for even split and if cannot, then rounds rset up to full nodes.
+    # Log if change requested to make fit/round up - at least at debug level.
+    if resources.even_groups:
+        rsets_req, num_groups_req, rsets_req_per_group = calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
+    else:
+        print('Warning: uneven groups - but using even groups function')
+        rsets_req, num_groups_req, rsets_req_per_group = calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
 
     # Now find slots on as many nodes as need
     accum_team = []
     group_list = []
-    for ng in range(num_groups):
+    print('\nLooking for {} rsets'.format(rsets_req))
+    for ng in range(num_groups_req):
+        print(' - Looking for group {} out of {}: Groupsize {}'.format(ng+1, num_groups_req, rsets_req_per_group))
         cand_team = []
         cand_group = None
-        for g in rsets_by_group:
+        upper_bound = max_upper_bound
+        for g in tmp_avail_rsets_by_group:
+            print('   -- Search possible group {} in {}'.format(g, tmp_avail_rsets_by_group))
+
             if g in group_list:
                 continue
-            nslots = len(rsets_by_group[g])
-            if nslots == rsets_per_group:  # Exact fit.
-                cand_team = rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
+            nslots = len(tmp_avail_rsets_by_group[g])
+            if nslots == rsets_req_per_group:  # Exact fit.  # If make array - could work with different sized group requirements.
+                cand_team = tmp_avail_rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
                 cand_group = g
                 break  # break out inner loop...
-            elif rsets_per_group < nslots < upper_bound:
-                cand_team = rsets_by_group[g][:rsets_per_group]
+            elif rsets_req_per_group < nslots < upper_bound:
+                cand_team = tmp_avail_rsets_by_group[g][:rsets_req_per_group]
                 cand_group = g
                 upper_bound = nslots
         if cand_group is not None:
             accum_team.extend(cand_team)
             group_list.append(cand_group)
 
+            print('      here b4:  group {} avail {} - cand_team {}'.format(group_list, tmp_avail_rsets_by_group, cand_team))
+            #import pdb;pdb.set_trace()
+            for rset in cand_team:
+                tmp_avail_rsets_by_group[cand_group].remove(rset)
+            print('      here aft: group {} avail {}'.format(group_list, tmp_avail_rsets_by_group))
+
+    print('Found rset team {} - group_list {}'.format(accum_team, group_list))
+    #import pdb;pdb.set_trace()
+
     if len(accum_team) == rsets_req:
         # A successful team found
-        rset_team = accum_team
+        rset_team = sorted(accum_team)
+        print('Setting rset team {} - group_list {}'.format(accum_team, group_list))
+        avail_rsets_by_group = tmp_avail_rsets_by_group
     else:
         rset_team = None  # Insufficient resources to honor
 
     # print('Assigned rset team {} to worker {}'.format(rset_team,worker_id))  # SH TODO: Remove
 
-    resources = Resources.resources.managerworker_resources
+    #SH TODO: As move to class this will be packed and a temporary buffer used in the alloc so that
+    #work units can be cancelled - ie manager always assigns actual resources when sending out.
     resources.assign_rsets(rset_team, worker_id)
 
     return rset_team
