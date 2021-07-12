@@ -1,6 +1,4 @@
 import numpy as np
-
-# SH TODO:  Consider importing a class and using as object functions
 from libensemble.tools.alloc_support import AllocSupport
 
 
@@ -31,14 +29,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
 
     support = AllocSupport()  # Access alloc support functions
-
     Work = {}
     gen_count = support.count_gens(W)
 
     task_avail = ~H['given'] & ~H['cancel_requested']
-    avail_workers = support.avail_worker_ids(W)
 
-    while avail_workers:
+    for worker in support.avail_worker_ids(W):
 
         if np.any(task_avail):
             # Pick all high priority, oldest high priority, or just oldest point
@@ -57,26 +53,18 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets'])
                              if 'resource_sets' in H.dtype.names else 1)
 
-            # If more than one group (node) required, allocates whole nodes - also removes from avail_workers
+            # If more than one group (node) required, finds even split, or allocates whole nodes
             print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
-            # SH TODO: Gives worker ID so rsets can be set - but doesn't remove from avail_workers
             rset_team = support.assign_resources(num_rsets_req)
-
-            # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(worker_team,avail_workers),flush=True)
-
-            # None means insufficient available resources for this work unit
             if rset_team is None:
-                break
+                break  # None means insufficient available resources for this work unit
 
             # Assign points to worker and remove from task_avail list.
-            # SH TODO: With alloc_support - can store workers in alloc_suport and easily combine this...
-            #          - have to also combine with breaking if rset_team is None (shld rset_team be nrsets??)
-            #          - and remember we want to combine with packing rset team in sim_work - as not going to assign...
-            worker = avail_workers.pop(0)  # Give to first worker in list
             print('resource team for SIM {} assigned to worker {}'.format(rset_team, worker), flush=True)
 
-            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker), rset_team=rset_team)
+            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send,
+                             persis_info.get(worker), rset_team=rset_team)
             task_avail[sim_ids_to_send] = False
         else:
 
@@ -90,18 +78,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             # Give gen work
             gen_count += 1
-
             gen_resources = persis_info.get('gen_resources', 0)
             rset_team = support.assign_resources(gen_resources)
-
-            # None means insufficient available resources for this work unit
             if rset_team is None:
-                break
+                break  # None means insufficient available resources for this work unit
 
-            worker = avail_workers.pop(0)  # Give to first worker in list
             print('resource team for GEN {} assigned to worker {}'.format(rset_team, worker), flush=True)
-
-            # print('AFTER ASSIGN gen ({}): avail_workers: {}'.format(worker,avail_workers),flush=True)
 
             gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
