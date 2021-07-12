@@ -174,6 +174,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
     exctr = Executor.executor
     persis_info['stage_count'] = -1
     os.environ["OMP_NUM_THREADS"] = '4'
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(libE_info['workerID'])
     initial_complete = False
     tag = None
 
