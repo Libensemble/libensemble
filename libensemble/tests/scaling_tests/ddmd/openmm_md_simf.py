@@ -49,7 +49,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
     """
     calc_status = 0
     os.environ["OMP_NUM_THREADS"] = '4'
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(libE_info['workerID'])
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(libE_info['workerID'] - 1)
 
     #  Specify the Executor object created in the calling script.
     exctr = Executor.executor
