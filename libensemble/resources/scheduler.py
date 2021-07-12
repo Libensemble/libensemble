@@ -30,12 +30,10 @@ class ResourceScheduler:
         """
 
         if rsets_req > self.resources.num_rsets:
-            # Raise error - when added errors
             raise ResourceSchedulerException("More resource sets requested {} than exist {}" \
                 .format(rsets_req, self.resources.num_rsets))
 
-        # Quick check
-        #print('free', self.resources.rsets_free)
+        # Check total number rsets available
         if rsets_req > self.resources.rsets_free:
             return None
 
@@ -64,6 +62,7 @@ class ResourceScheduler:
         # SH TODO: Review scheduling > 1 node strategy
         # Currently tries for even split and if cannot, then rounds rset up to full nodes.
         # Log if change requested to make fit/round up - at least at debug level.
+        # preferable to set a calc_groups function once and can use with in a loop to try different splits.
         if self.resources.even_groups:
             rsets_req, num_groups_req, rsets_req_per_group = self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
         else:
@@ -74,25 +73,12 @@ class ResourceScheduler:
         accum_team = []
         group_list = []
         print('\nLooking for {} rsets'.format(rsets_req))
+
         for ng in range(num_groups_req):
             print(' - Looking for group {} out of {}: Groupsize {}'.format(ng+1, num_groups_req, rsets_req_per_group))
-            cand_team = []
-            cand_group = None
-            upper_bound = max_upper_bound
-            for g in tmp_avail_rsets_by_group:
-                print('   -- Search possible group {} in {}'.format(g, tmp_avail_rsets_by_group))
+            cand_team, cand_group = \
+                self.find_candidate(tmp_avail_rsets_by_group, group_list, rsets_req_per_group, max_upper_bound)
 
-                if g in group_list:
-                    continue
-                nslots = len(tmp_avail_rsets_by_group[g])
-                if nslots == rsets_req_per_group:  # Exact fit.  # If make array - could work with different sized group requirements.
-                    cand_team = tmp_avail_rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
-                    cand_group = g
-                    break  # break out inner loop...
-                elif rsets_req_per_group < nslots < upper_bound:
-                    cand_team = tmp_avail_rsets_by_group[g][:rsets_req_per_group]
-                    cand_group = g
-                    upper_bound = nslots
             if cand_group is not None:
                 accum_team.extend(cand_team)
                 group_list.append(cand_group)
@@ -122,8 +108,28 @@ class ResourceScheduler:
         #self.resources.assign_rsets(rset_team, worker_id)
 
         #print("rsets assigned",self.resources.rsets['assigned'])
-
         return rset_team
+
+
+    def find_candidate(self, rsets_by_group, group_list, rsets_req_per_group, max_upper_bound):
+       """Find a candidate slot in a group"""
+       cand_team = []
+       cand_group = None
+       upper_bound = max_upper_bound
+       for g in rsets_by_group:
+           print('   -- Search possible group {} in {}'.format(g, rsets_by_group))
+           if g in group_list:
+               continue
+           nslots = len(rsets_by_group[g])
+           if nslots == rsets_req_per_group:  # Exact fit.  # If make array - could work with different sized group requirements.
+               cand_team = rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
+               cand_group = g
+               break  # break out inner loop...
+           elif rsets_req_per_group < nslots < upper_bound:
+               cand_team = rsets_by_group[g][:rsets_req_per_group]
+               cand_group = g
+               upper_bound = nslots
+       return cand_team, cand_group
 
 
     # Also could follow my other approaches and make static and pass resources (can help with testing)
