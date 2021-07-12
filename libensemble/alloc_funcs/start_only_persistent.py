@@ -71,8 +71,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 support.gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
                          inds_since_last_gen, persis_info.get(i), persistent=True,
-                         active_recv=active_recv_gen)
-                Work[i]['libE_info']['rset_team'] = []  # Already assigned
+                         active_recv=active_recv_gen, rset_team=[])
+                #Work[i]['libE_info']['rset_team'] = []  # Already assigned
                 H['given_back'][inds_since_last_gen] = True
 
     task_avail = ~H['given'] & ~H['cancel_requested']
@@ -118,14 +118,11 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # SH TODO consider whether to do this is support.assign_resources
         worker = avail_workers.pop(0)  # Give to first worker in list
 
-        support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker))
+        support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker), rset_team=rset_team)
 
         print('Packed for worker: {}. Resource team for sim: {}\n'.format(worker, rset_team), flush=True)
 
         task_avail[sim_ids_to_send] = False
-
-        # SH TODO this could be done in support.sim_work() or maybe all combined in support.assign_resources
-        Work[worker]['libE_info']['rset_team'] = rset_team  # SH TODO: Maybe do in support.sim_work?
 
     # A separate loop/section as now need zero_resource_workers for gen.
     # SH TODO   - with rsets -  zero_resource_workers only needed if using fixed worker/resource mapping.
@@ -159,11 +156,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
                 # print('AFTER ASSIGN gen ({}): avail_workers: {}'.format(worker,avail_workers), flush=True)
 
-                support.gen_work(Work, worker, gen_specs['in'], range(len(H)), persis_info.get(worker),
-                         persistent=True, active_recv=active_recv_gen)
-
                 # Even if empty list, presence of rset_team stops manager giving default resources
-                Work[worker]['libE_info']['rset_team'] = rset_team
+                support.gen_work(Work, worker, gen_specs['in'], range(len(H)), persis_info.get(worker),
+                         persistent=True, active_recv=active_recv_gen, rset_team=rset_team)
+
 
                 print('Packed for worker: {}. Resource team for gen: {}\n'.format(worker, rset_team), flush=True)
 

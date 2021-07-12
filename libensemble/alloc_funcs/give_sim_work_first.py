@@ -76,9 +76,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             worker = avail_workers.pop(0)  # Give to first worker in list
             print('resource team for SIM {} assigned to worker {}'.format(rset_team, worker), flush=True)
 
-            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker))
+            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker), rset_team=rset_team)
             task_avail[sim_ids_to_send] = False
-            Work[worker]['libE_info']['rset_team'] = rset_team #combine in end of sim_work....!!!
         else:
 
             # Allow at most num_active_gens active generator instances
@@ -106,8 +105,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
-            support.gen_work(Work, worker, gen_in, return_rows, persis_info.get(worker))
-
-            Work[worker]['libE_info']['rset_team'] = rset_team
+            support.gen_work(Work, worker, gen_in, return_rows, persis_info.get(worker), rset_team=rset_team)
 
     return Work, persis_info
