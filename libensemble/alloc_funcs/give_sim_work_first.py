@@ -61,7 +61,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
             # SH TODO: Gives worker ID so rsets can be set - but doesn't remove from avail_workers
-            rset_team = support.assign_resources(num_rsets_req, avail_workers[0])
+            rset_team = support.assign_resources(num_rsets_req)
 
             # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(worker_team,avail_workers),flush=True)
 
@@ -78,7 +78,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker))
             task_avail[sim_ids_to_send] = False
-            Work[worker]['libE_info']['rset_team'] = rset_team
+            Work[worker]['libE_info']['rset_team'] = rset_team #combine in end of sim_work....!!!
         else:
 
             # Allow at most num_active_gens active generator instances
@@ -93,7 +93,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             gen_count += 1
 
             gen_resources = persis_info.get('gen_resources', 0)
-            rset_team = support.assign_resources(gen_resources, avail_workers[0])
+            rset_team = support.assign_resources(gen_resources)
 
             # None means insufficient available resources for this work unit
             if rset_team is None:

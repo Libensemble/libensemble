@@ -47,11 +47,8 @@ class AllocSupport:
     # SH TODO: Naming - assign_resources?/assign_rsets?
     #          There may be various scheduling options.
     #          Terminology - E.g: What do we call the H row/s we are sending to the worker? work_item?
-    def assign_resources(self, rsets_req, worker_id):
+    def assign_resources(self, rsets_req):
         """Schedule resource sets to a work item if possible and assign to worker
-
-        This routine assigns the resources given by {rsets_req} and gives to
-        worker {worker_id}.
 
         Returns a list of resource sets ids. A return of None implies
         insufficient resources.
@@ -59,7 +56,7 @@ class AllocSupport:
 
         if self.resources is not None:
             if self.sched is not None: #error handling...
-                rset_team = self.sched.assign_resources(rsets_req, worker_id)
+                rset_team = self.sched.assign_resources(rsets_req)
         return rset_team
 
 

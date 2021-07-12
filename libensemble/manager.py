@@ -315,15 +315,17 @@ class Manager:
                 rset_workers[default_rset] = w
             Work['libE_info']['rset_team'] = rset_team
 
-        else:
-            for index in Work['libE_info']['rset_team']:
-                if rset_workers[index] != w:
-                    raise ManagerException("Managers resource list does not match that in Worker request.")
-                    # or handle
-                    # logger.warning("Managers resource list does not match that in Worker request. Setting...")
-                    # set_workers[index] = w
-                    # Maybe handle/set if the workers are currently zero
-        # print('Manager sending to worker {} assigned  {}'.format(w, rset_workers),flush=True)  # SH TODO: Remove
+        man_resources.assign_rsets(Work['libE_info']['rset_team'], w)
+
+        #else:
+            #for index in Work['libE_info']['rset_team']:
+                #if rset_workers[index] != w:
+                    #raise ManagerException("Managers resource list does not match that in Worker request.")
+                    ## or handle
+                    ## logger.warning("Managers resource list does not match that in Worker request. Setting...")
+                    ## set_workers[index] = w
+                    ## Maybe handle/set if the workers are currently zero
+        ## print('Manager sending to worker {} assigned  {}'.format(w, rset_workers),flush=True)  # SH TODO: Remove
 
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker

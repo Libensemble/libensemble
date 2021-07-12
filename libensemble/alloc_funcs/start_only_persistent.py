@@ -104,7 +104,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # If more than one group (node) required, allocates whole nodes - also removes from avail_workers
         # print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
-        rset_team = support.assign_resources(num_rsets_req, avail_workers[0])
+        rset_team = support.assign_resources(num_rsets_req)
         # print('resource team for sim', rset_team, flush=True)
 
         # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(rset_team,avail_workers), flush=True)
@@ -147,7 +147,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
                 # SH TODO. Dont need to call if required resources is zero
                 # Worker is only used if resources are assigned.
-                rset_team = support.assign_resources(gen_resources, avail_workers[0])
+                rset_team = support.assign_resources(gen_resources)
 
                 print('resource team for gen', rset_team, flush=True)
 

@@ -14,11 +14,8 @@ class ResourceScheduler:
         self.resources = user_resources or Resources.resources.managerworker_resources
         self.avail_rsets_by_group = None  #could set here - but might save time not doing so if not used.
 
-    def assign_resources(self, rsets_req, worker_id):
+    def assign_resources(self, rsets_req):
         """Schedule resource sets to a work item if possible and assign to worker
-
-        This routine assigns the resources given by {rsets_req} and gives to
-        worker {worker_id}.
 
         If the resources required are less than one node, they will be
         allocated to the smallest available sufficient slot.
@@ -122,9 +119,9 @@ class ResourceScheduler:
 
         #SH TODO: As move to class this will be packed and a temporary buffer used in the alloc so that
         #work units can be cancelled - ie manager always assigns actual resources when sending out.
-        self.resources.assign_rsets(rset_team, worker_id)
+        #self.resources.assign_rsets(rset_team, worker_id)
 
-        print("rsets assigned",self.resources.rsets['assigned'])
+        #print("rsets assigned",self.resources.rsets['assigned'])
 
         return rset_team
 
