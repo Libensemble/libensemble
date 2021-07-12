@@ -1,6 +1,6 @@
 import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens, all_returned
+from libensemble.tools.alloc_support import AllocSupport
 
 
 def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -17,13 +17,15 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         `test_persistent_aposmm_with_grad.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_ # noqa
     """
 
+    support = AllocSupport()  # Access alloc support functions
+
     Work = {}
-    gen_count = count_persis_gens(W)
+    gen_count = support.count_persis_gens(W)
 
     if persis_info.get('first_call', True):
         assert np.all(H['given']), "Initial points in H have never been given."
         assert np.all(H['given_back']), "Initial points in H have never been given_back."
-        assert all_returned(H), "Initial points in H have never been returned."
+        assert support.all_returned(H), "Initial points in H have never been returned."
         persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
 
         if 'grad' in [n[0] for n in sim_specs['out']]:
@@ -40,7 +42,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         return Work, persis_info, 1
 
     # If any persistent worker's calculated values have returned, give them back.
-    for i in avail_worker_ids(W, persistent=EVAL_GEN_TAG):
+    for i in support.avail_worker_ids(W, persistent=EVAL_GEN_TAG):
         if (persis_info.get('sample_done') or
            sum(H['returned']) >= gen_specs['user']['initial_sample_size'] + persis_info['samples_in_H0']):
             # Don't return if the initial sample is not complete
@@ -50,19 +52,19 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             if np.any(returned_but_not_given):
                 inds_to_give = np.where(returned_but_not_given)[0]
 
-                gen_work(Work, i, persis_info['fields_to_give_back'],
+                support.gen_work(Work, i, persis_info['fields_to_give_back'],
                          inds_to_give, persis_info.get(i), persistent=True)
 
                 H['given_back'][inds_to_give] = True
 
-    for i in avail_worker_ids(W, persistent=False):
+    for i in support.avail_worker_ids(W, persistent=False):
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
 
         if persis_info['next_to_give'] < len(H):
             # perform sim evaluations (if they exist in History).
-            sim_work(Work, i, sim_specs['in'], persis_info['next_to_give'], persis_info.get(i))
+            support.sim_work(Work, i, sim_specs['in'], persis_info['next_to_give'], persis_info.get(i))
             persis_info['next_to_give'] += 1
 
         elif persis_info.get('gen_started') is None:
@@ -70,7 +72,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             persis_info['gen_started'] = True
             persis_info.get(i)['nworkers'] = len(W)
 
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
+            support.gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
 
     return Work, persis_info

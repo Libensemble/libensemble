@@ -1,8 +1,7 @@
 import numpy as np
 
 # SH TODO:  Consider importing a class and using as object functions
-from libensemble.tools.alloc_support import (sim_work, gen_work, count_gens, all_returned,
-                                             avail_worker_ids, assign_resources)
+from libensemble.tools.alloc_support import AllocSupport
 
 
 # SH TODO: Either replace give_sim_work_first or add a different alloc func (or file?)
@@ -31,11 +30,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
 
+    support = AllocSupport()  # Access alloc support functions
+
     Work = {}
-    gen_count = count_gens(W)
+    gen_count = support.count_gens(W)
 
     task_avail = ~H['given'] & ~H['cancel_requested']
-    avail_workers = avail_worker_ids(W)
+    avail_workers = support.avail_worker_ids(W)
 
     while avail_workers:
 
@@ -60,7 +61,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
             # SH TODO: Gives worker ID so rsets can be set - but doesn't remove from avail_workers
-            rset_team = assign_resources(num_rsets_req, avail_workers[0])
+            rset_team = support.assign_resources(num_rsets_req, avail_workers[0])
 
             # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(worker_team,avail_workers),flush=True)
 
@@ -69,10 +70,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
 
             # Assign points to worker and remove from task_avail list.
+            # SH TODO: With alloc_support - can store workers in alloc_suport and easily combine this...
+            #          - have to also combine with breaking if rset_team is None (shld rset_team be nrsets??)
+            #          - and remember we want to combine with packing rset team in sim_work - as not going to assign...
             worker = avail_workers.pop(0)  # Give to first worker in list
             print('resource team for SIM {} assigned to worker {}'.format(rset_team, worker), flush=True)
 
-            sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker))
+            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker))
             task_avail[sim_ids_to_send] = False
             Work[worker]['libE_info']['rset_team'] = rset_team
         else:
@@ -82,14 +86,14 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if alloc_specs['user'].get('batch_mode') and not all_returned(H):
+            if alloc_specs['user'].get('batch_mode') and not support.all_returned(H):
                 break
 
             # Give gen work
             gen_count += 1
 
             gen_resources = persis_info.get('gen_resources', 0)
-            rset_team = assign_resources(gen_resources, avail_workers[0])
+            rset_team = support.assign_resources(gen_resources, avail_workers[0])
 
             # None means insufficient available resources for this work unit
             if rset_team is None:
@@ -102,7 +106,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
-            gen_work(Work, worker, gen_in, return_rows, persis_info.get(worker))
+            support.gen_work(Work, worker, gen_in, return_rows, persis_info.get(worker))
 
             Work[worker]['libE_info']['rset_team'] = rset_team
 
