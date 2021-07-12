@@ -1,71 +1,39 @@
-import copy
 import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import ResourceScheduler
 
-# SH TODO: May be move the more advanced functions below sim_work/gen_work?
-#          Should add check that req. resource sets not larger than whole allocation.
 
 class AllocException(Exception):
     "Raised for any exception in the alloc support"
 
-
-# SH TODO: Not using now - but need this to work if resources is None
-#def get_groupsize_from_resources(resources):
-    #"""Gets groups size from resources
-
-    #If resources is not set, returns None
-    #"""
-    ##resources = Resources.resources
-    ##if resources is None:
-        ##return None
-    #group_size = resources.rsets_per_node
-    ## print('groupsize is', group_size, flush=True)  # SH TODO:Remove
-    #return group_size
 
 class AllocSupport:
     """A helper class to be created/destroyed each time allocation function is called."""
 
     gen_counter = 0
 
-    # SH TODO: Going to need libE_info passed through to alloc if want to have scheduling options in think
-    #          could that way pass through reosurces maybe???? - cos i dont want more class variables being
-    #          set. And if want to set scheduler options via libE_specs - have to pass through somehow.
-    #          Likely can pass scheduler options in here.
-    #          This can hold any caches you want - inc. tasks_avail / lower bounds / avail resource_sets / avail workers etc....
+    # SH TODO: Going to need libE_info passed through via alloc if want to have scheduling options.
     def __init__(self, user_resources=None, user_scheduler=None):
+        """Instantiate a new AllocSupport instance"""
         self.resources = user_resources or Resources.resources.managerworker_resources
-
-        # If resources is not being used, should spend no time in any resources routines.
         self.sched = None
-        #self.rsets_by_group = None
         if self.resources is not None:
             self.sched = user_scheduler or ResourceScheduler(user_resources=self.resources)
 
 
-    # SH TODO: Naming - assign_resources?/assign_rsets?
-    #          There may be various scheduling options.
-    #          Terminology - E.g: What do we call the H row/s we are sending to the worker? work_item?
     def assign_resources(self, rsets_req):
-        """Schedule resource sets to a work item if possible and assign to worker
+        """Schedule resource sets to a work item if possible.
 
-        Returns a list of resource sets ids. A return of None implies
+        Returns a list of resource set ids. A return of None implies
         insufficient resources.
         """
-
         if self.resources is not None:
-            if self.sched is not None: #error handling...
-                rset_team = self.sched.assign_resources(rsets_req)
+            rset_team = self.sched.assign_resources(rsets_req)
         return rset_team
 
 
-    # SH TODO: Decision - Many of these could be static - but may be
-    #          simpler to make them instance functions for consistent calling...
-    #          Alternatively - could just give it W in init and use self.W
-
-    # SH TODO: This is another cache being held within alloc - so may internalize from init and keep cache here.
-    # currently its effectively static.
+    # SH TODO: Decision on these functions - Keep as is / make static / init with W (use self.W)
     def avail_worker_ids(self, W, persistent=None, active_recv=False, zero_resource_workers=None):
         """Returns available workers as a list, filtered by the given options`.
 
@@ -151,36 +119,9 @@ class AllocSupport:
         """
         libE_info['H_rows'] = np.atleast_1d(H_rows)
         Work[i] = {'H_fields': H_fields,
-                'persis_info': persis_info,
-                'tag': EVAL_SIM_TAG,
-                'libE_info': libE_info}
-
-
-    # SH TODO: Need to update for resource sets
-    # SH TODO: Variant accepting worker_team - need to test
-    #          This may replace sim work as is does the blocking
-    def sim_work_with_blocking(self, Work, worker_team, H_fields, H_rows, persis_info, **libE_info):
-        """Add sim work record to given Work array.
-
-        :param W: :doc:`Worker array<../data_structures/worker_array>`
-        :param i: Worker ID.
-        :param H_fields: Which fields from H to send
-        :param persis_info: current persis_info dictionary
-
-        :returns: None
-        """
-        if isinstance(worker_team, list):
-            worker = worker_team[0]
-            if len(worker_team) > 1:
-                libE_info['blocking'] = worker_team[1:]
-        else:
-            worker = worker_team
-
-        libE_info['H_rows'] = H_rows
-        Work[worker] = {'H_fields': H_fields,
-                        'persis_info': persis_info,
-                        'tag': EVAL_SIM_TAG,
-                        'libE_info': libE_info}
+                   'persis_info': persis_info,
+                   'tag': EVAL_SIM_TAG,
+                   'libE_info': libE_info}
 
 
     def gen_work(self, Work, i, H_fields, H_rows, persis_info, **libE_info):
@@ -194,21 +135,14 @@ class AllocSupport:
         :returns: None
         """
 
-        # Count total gens
-        #try:
-            #gen_work.gen_counter += 1
-        #except AttributeError:
-            #gen_work.gen_counter = 1
-
-        AllocSupport.gen_counter += 1
-
+        AllocSupport.gen_counter += 1  # Count total gens
         libE_info['gen_count'] = AllocSupport.gen_counter
 
         libE_info['H_rows'] = np.atleast_1d(H_rows)
         Work[i] = {'H_fields': H_fields,
-                'persis_info': persis_info,
-                'tag': EVAL_GEN_TAG,
-                'libE_info': libE_info}
+                   'persis_info': persis_info,
+                   'tag': EVAL_GEN_TAG,
+                   'libE_info': libE_info}
 
 
     def all_returned(self, H, pt_filter=True):
