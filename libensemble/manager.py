@@ -298,7 +298,7 @@ class Manager:
                 "Allocation function requested invalid fields {}" \
                 "be sent to worker={}.".format(diff_fields, w)
 
-    def _check_resources(self, Work, w):
+    def _set_resources(self, Work, w):
         """Check rsets given in Work match rsets assigned in resources.
 
         If rsets are not assigned, then assign using default mapping
@@ -334,7 +334,7 @@ class Manager:
         logger.debug("Manager sending work unit to worker {}".format(w))
 
         if self.resources:
-            self._check_resources(Work, w)
+            self._set_resources(Work, w)
 
         self.wcomms[w-1].send(Work['tag'], Work)
 
