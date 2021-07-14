@@ -1,0 +1,52 @@
+experiment_directory: SET_BY_GENF
+stage_idx: SET_BY_GENF
+task_idx: 0
+output_path: SET_BY_GENF
+node_local_path: null
+model_tag: SET_BY_GENF
+init_weights_path: null
+last_n_h5_files: SET_BY_GENF
+k_random_old_h5_files: 0
+dataset_name: contact_map
+initial_shape:
+- 28
+- 28
+final_shape:
+- 28
+- 28
+- 1
+initial_epochs: 10
+epochs: 10
+batch_size: 32
+split_pct: 0.8
+shuffle: true
+latent_dim: 10
+conv_layers: 4
+conv_filters:
+- 64
+- 64
+- 64
+- 64
+conv_filter_shapes:
+-   - 3
+    - 3
+-   - 3
+    - 3
+-   - 3
+    - 3
+-   - 3
+    - 3
+conv_strides:
+-   - 1
+    - 1
+-   - 2
+    - 2
+-   - 1
+    - 1
+-   - 1
+    - 1
+dense_layers: 1
+dense_neurons:
+- 128
+dense_dropouts:
+- 0.25
