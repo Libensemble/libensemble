@@ -14,11 +14,14 @@ from openmm_md_simf import run_openmm_sim_f
 from keras_cvae_ml_genf import run_keras_cvae_ml_genf
 
 # Import DeepDriveMD components for registering with libEnsemble's executor
-from deepdrivemd.sim.openmm import run_openmm
-from deepdrivemd.aggregation.basic import aggregate
-from deepdrivemd.models.keras_cvae import train
-from deepdrivemd.selection.latest import select_model
-from deepdrivemd.agents.lof import lof
+try:
+    from deepdrivemd.sim.openmm import run_openmm
+    from deepdrivemd.aggregation.basic import aggregate
+    from deepdrivemd.models.keras_cvae import train
+    from deepdrivemd.selection.latest import select_model
+    from deepdrivemd.agents.lof import lof
+except ModuleNotFoundError:
+    pass
 
 logger.set_level('INFO')
 
