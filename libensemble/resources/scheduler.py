@@ -11,6 +11,7 @@ class ResourceScheduler:
 
     def __init__(self, user_resources=None, sched_opts={}):
         self.resources = user_resources or Resources.resources.managerworker_resources
+        self.rsets_free = self.resources.rsets_free
         self.avail_rsets_by_group = None  #could set here - but might save time not doing so if not used.
 
         # Process scheduler options
@@ -38,14 +39,14 @@ class ResourceScheduler:
                                              .format(rsets_req, self.resources.num_rsets))
 
         # Check total number rsets available
-        if rsets_req > self.resources.rsets_free:
+        if rsets_req > self.rsets_free:  # A local rsets_free....
             return None
 
         num_groups = self.resources.num_groups
         max_grpsize = self.resources.rsets_per_node  #assumes even
 
         avail_rsets_by_group = self.get_avail_rsets_by_group()
-        print('avail_rsets_by_group before', self.avail_rsets_by_group)
+        print('\nChecking ------ avail_rsets_by_group before {} rsets_req {} rsets free {}'.format(self.avail_rsets_by_group, rsets_req, self.rsets_free))
 
         #Maybe more efficient way than making copy_back
         tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
@@ -110,9 +111,11 @@ class ResourceScheduler:
             rset_team = sorted(accum_team)
             print('Setting rset team {} - group_list {}'.format(accum_team, group_list))
             self.avail_rsets_by_group = tmp_avail_rsets_by_group #maybe use function to update
+            self.rsets_free -= rsets_req
             print('avail_rsets_by_group after', self.avail_rsets_by_group)
         else:
             rset_team = None  # Insufficient resources to honor
+            print('------Could not find enough rsets - returning None-------')
 
         # print('Assigned rset team {} to worker {}'.format(rset_team,worker_id))  # SH TODO: Remove
         return rset_team
@@ -187,9 +190,9 @@ class ResourceScheduler:
                 rsets_req_per_group = rsets_req//num_groups_req  # This should always divide perfectly.
             else:
                 #log here
-                print('Warning: Increasing resource requirement to obtain an even partition of resource sets to nodes')
                 rsets_req_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
                 rsets_req = num_groups_req * rsets_req_per_group
+                print('Warning: Increasing resource requirement to obtain an even partition of resource sets to nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.format(rsets_req, num_groups_req, rsets_req_per_group))
         else:
             rsets_req_per_group = rsets_req
 
@@ -199,7 +202,7 @@ class ResourceScheduler:
     @staticmethod
     def get_max_len(avail_rsets, num_groups):
         """Get max length of a list value in a dictionary"""
-        # SH TODO: Requires a sort - could use this sorted list to find min slots...
+        # SH TODO: Requires a sort - could use this sorted list iteratively to find min slots...
         lengths = sorted([len(v) for v in avail_rsets.values()], reverse=True)
         return lengths[num_groups - 1]
 
