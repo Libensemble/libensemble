@@ -9,12 +9,13 @@ class ResourceSchedulerException(Exception):
 
 class ResourceScheduler:
 
-    def __init__(self, user_resources=None, split2fit=True):
+    def __init__(self, user_resources=None, sched_opts={}):
         self.resources = user_resources or Resources.resources.managerworker_resources
         self.avail_rsets_by_group = None  #could set here - but might save time not doing so if not used.
 
+        # Process scheduler options
         # Split across more nodes if space not currently avail (even though can fit when free).
-        self.split2fit = split2fit
+        self.split2fit = sched_opts.get('split2fit', True)
 
     # SH TODO: Look at dealing with this more efficently - being able to store sructures.
     def assign_resources(self, rsets_req):

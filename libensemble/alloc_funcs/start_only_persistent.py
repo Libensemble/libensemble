@@ -37,7 +37,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_persistent_surmise_calib.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_surmise_calib.py>`_ # noqa
     """
 
-    support = AllocSupport()  # Access alloc support functions
+    support = AllocSupport(alloc_specs)  # Access alloc support functions
 
     Work = {}
     gen_count = support.count_persis_gens(W)

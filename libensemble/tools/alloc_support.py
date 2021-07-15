@@ -14,12 +14,14 @@ class AllocSupport:
     gen_counter = 0
 
     # SH TODO: Going to need libE_info passed through via alloc if want to have scheduling options.
-    def __init__(self, user_resources=None, user_scheduler=None):
+    def __init__(self, alloc_specs, user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance"""
+        self.specs = alloc_specs
         self.resources = user_resources or Resources.resources.managerworker_resources
         self.sched = None
         if self.resources is not None:
-            self.sched = user_scheduler or ResourceScheduler(user_resources=self.resources)
+            sched_opts = self.specs.get('scheduler_opts', {})
+            self.sched = user_scheduler or ResourceScheduler(user_resources=self.resources, sched_opts=sched_opts)
 
 
     def assign_resources(self, rsets_req):

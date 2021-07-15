@@ -17,7 +17,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         `test_persistent_aposmm_with_grad.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_ # noqa
     """
 
-    support = AllocSupport()  # Access alloc support functions
+    support = AllocSupport(alloc_specs)  # Access alloc support functions
 
     Work = {}
     gen_count = support.count_persis_gens(W)
