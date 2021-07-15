@@ -58,8 +58,8 @@ class ResourceScheduler:
             if self.split2fit:
                 num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)
                 max_even_grpsize = ResourceScheduler.get_max_len(avail_rsets_by_group, num_groups_req)
-            if max_even_grpsize == 0 and rsets_req > 0:
-                return None
+                if max_even_grpsize == 0 and rsets_req > 0:
+                    return None
             rsets_req, num_groups_req, rsets_req_per_group = \
                 self.calc_rsets_even_grps(rsets_req, max_even_grpsize, num_groups)
         else:
