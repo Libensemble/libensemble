@@ -1,8 +1,7 @@
-#if yoyu didn't want to make alloc_support a class (and maybe you do), but if you didn'tyou could hold the reosurce cache in the schedular - if you create it each time.
-#perhaps this should go under resources directory? Out of user space - but as class they could inherit to change.
 import copy
 import numpy as np
-from libensemble.resources.resources import Resources  # SH TODO: Consider alt - passing resources via libE_info to alloc_func.
+from libensemble.resources.resources import Resources  # SH TODO: Consider pass resources via libE_info to alloc.
+
 
 class ResourceSchedulerException(Exception):
     "Raised for any exception in the alloc support"
@@ -14,6 +13,9 @@ class ResourceScheduler:
         self.resources = user_resources or Resources.resources.managerworker_resources
         self.avail_rsets_by_group = None  #could set here - but might save time not doing so if not used.
 
+        self.split2fit = True  # Split across more nodes if space not currently avail (even though can fit when free).
+
+    # SH TODO: Look at dealing with this more efficently - being able to store sructures.
     def assign_resources(self, rsets_req):
         """Schedule resource sets to a work item if possible and assign to worker
 
@@ -30,8 +32,8 @@ class ResourceScheduler:
         """
 
         if rsets_req > self.resources.num_rsets:
-            raise ResourceSchedulerException("More resource sets requested {} than exist {}" \
-                .format(rsets_req, self.resources.num_rsets))
+            raise ResourceSchedulerException("More resource sets requested {} than exist {}"
+                                             .format(rsets_req, self.resources.num_rsets))
 
         # Check total number rsets available
         if rsets_req > self.resources.rsets_free:
@@ -40,7 +42,6 @@ class ResourceScheduler:
         num_groups = self.resources.num_groups
         max_grpsize = self.resources.rsets_per_node  #assumes even
 
-        #when use class will do this once for an alloc call!
         avail_rsets_by_group = self.get_avail_rsets_by_group()
         print('avail_rsets_by_group before', self.avail_rsets_by_group)
 
@@ -49,25 +50,32 @@ class ResourceScheduler:
 
         # print('Available rsets_by_group:', avail_rsets_by_group)  # SH TODO: Remove
 
-        print('max_grpsize is', max_grpsize)
-        if max_grpsize is not None:
-            max_upper_bound = max_grpsize + 1
-        else:
-            # All in group zero
-            # Will still block workers, but treats all as one group
-            if len(tmp_avail_rsets_by_group) > 1:
-                raise AllocException("There should only be one group if resources is not set")
-            max_upper_bound = len(tmp_avail_rsets_by_group[0]) + 1
-
         # SH TODO: Review scheduling > 1 node strategy
         # Currently tries for even split and if cannot, then rounds rset up to full nodes.
         # Log if change requested to make fit/round up - at least at debug level.
-        # preferable to set a calc_groups function once and can use with in a loop to try different splits.
+        # preferable to set a calc_groups function once and can use with in a loop to try different splits
         if self.resources.even_groups:
-            rsets_req, num_groups_req, rsets_req_per_group = self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
+            if self.split2fit:
+                num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)
+            max_even_grpsize = ResourceScheduler.get_max_len(avail_rsets_by_group, num_groups_req)
+            if max_even_grpsize == 0 and rsets_req > 0:
+                return None
+            rsets_req, num_groups_req, rsets_req_per_group = \
+                self.calc_rsets_even_grps(rsets_req, max_even_grpsize, num_groups)
         else:
             print('Warning: uneven groups - but using even groups function')
-            rsets_req, num_groups_req, rsets_req_per_group = self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
+            rsets_req, num_groups_req, rsets_req_per_group = \
+                self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
+
+        print('max_grpsize is', max_grpsize)
+        if max_grpsize is not None:  #njagnyyyyyyyyyyyyyyyyy - cld'vve changed in calc_rsets_even_grps
+            max_upper_bound = max_grpsize + 1
+            print('max_upper_bound', max_upper_bound)
+        else:
+            # All in group zero
+            if len(tmp_avail_rsets_by_group) > 1:
+                raise AllocException("There should only be one group if resources is not set")
+            max_upper_bound = len(tmp_avail_rsets_by_group[0]) + 1
 
         # Now find slots on as many nodes as need
         accum_team = []
@@ -84,7 +92,6 @@ class ResourceScheduler:
                 group_list.append(cand_group)
 
                 print('      here b4:  group {} avail {} - cand_team {}'.format(group_list, tmp_avail_rsets_by_group, cand_team))
-                #import pdb;pdb.set_trace()
                 for rset in cand_team:
                     tmp_avail_rsets_by_group[cand_group].remove(rset)
                 print('      here aft: group {} avail {}'.format(group_list, tmp_avail_rsets_by_group))
@@ -102,34 +109,28 @@ class ResourceScheduler:
             rset_team = None  # Insufficient resources to honor
 
         # print('Assigned rset team {} to worker {}'.format(rset_team,worker_id))  # SH TODO: Remove
-
-        #SH TODO: As move to class this will be packed and a temporary buffer used in the alloc so that
-        #work units can be cancelled - ie manager always assigns actual resources when sending out.
-        #self.resources.assign_rsets(rset_team, worker_id)
-
-        #print("rsets assigned",self.resources.rsets['assigned'])
         return rset_team
 
 
     def find_candidate(self, rsets_by_group, group_list, rsets_req_per_group, max_upper_bound):
-       """Find a candidate slot in a group"""
-       cand_team = []
-       cand_group = None
-       upper_bound = max_upper_bound
-       for g in rsets_by_group:
-           print('   -- Search possible group {} in {}'.format(g, rsets_by_group))
-           if g in group_list:
-               continue
-           nslots = len(rsets_by_group[g])
-           if nslots == rsets_req_per_group:  # Exact fit.  # If make array - could work with different sized group requirements.
-               cand_team = rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
-               cand_group = g
-               break  # break out inner loop...
-           elif rsets_req_per_group < nslots < upper_bound:
-               cand_team = rsets_by_group[g][:rsets_req_per_group]
-               cand_group = g
-               upper_bound = nslots
-       return cand_team, cand_group
+        """Find a candidate slot in a group"""
+        cand_team = []
+        cand_group = None
+        upper_bound = max_upper_bound
+        for g in rsets_by_group:
+            print('   -- Search possible group {} in {}'.format(g, rsets_by_group))
+            if g in group_list:
+                continue
+            nslots = len(rsets_by_group[g])
+            if nslots == rsets_req_per_group:  # Exact fit.  # If make array - could work with different sized group requirements.
+                cand_team = rsets_by_group[g].copy()  # SH TODO: check do I still need copy - given extend below?
+                cand_group = g
+                break  # break out inner loop...
+            elif rsets_req_per_group < nslots < upper_bound:
+                cand_team = rsets_by_group[g][:rsets_req_per_group]
+                cand_group = g
+                upper_bound = nslots
+        return cand_team, cand_group
 
 
     # Also could follow my other approaches and make static and pass resources (can help with testing)
@@ -157,11 +158,11 @@ class ResourceScheduler:
         return self.avail_rsets_by_group
 
 
-    #This could be inherited/overidden for uneven etc.....
-    #that would be good reason not to be static (though could be class method).
-    #in which case prob just call calc_rsets_grps or something even better!!
     def calc_rsets_even_grps(self, rsets_req, max_grpsize, max_groups):
         """Calculate an even breakdown to best fit rsets_req input"""
+
+        if rsets_req == 0:
+            return 0, 0, 0
 
         num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)  # Divide with roundup.
 
@@ -189,10 +190,15 @@ class ResourceScheduler:
         return rsets_req, num_groups_req, rsets_req_per_group
 
 
+    @staticmethod
+    def get_max_len(avail_rsets, num_groups):
+        """Get max length of a list value in a dictionary"""
+        # SH TODO: Requires a sort - could use this sorted list to find min slots...
+        lengths = sorted([len(v) for v in avail_rsets.values()], reverse=True)
+        return lengths[num_groups - 1]
+
+
 class UnevenResourceScheduler(ResourceScheduler):
 
     def assign_resources(rsets_req, worker_id, user_resources=None):
         pass
-
-
-

@@ -65,6 +65,7 @@ def test_schdule_find_gaps_1node():
 
     # Simulate resources freed up on return from worker
     resources.rsets['assigned'] = [3, 3, 0, 0, 0, 4, 4, 0]
+    resources.rsets_free = 4
 
     # Create new scheduler to simulate new alloc call
     del sched
@@ -126,11 +127,53 @@ def test_across_nodes_roundup_option():
         'Even split test did not get expected result {}'.format(rset_team)
     del resources
 
-# SH TODO: Further tests for testing uneven splits - and uneven sized resource sets.
 
+def test_try1node_findon_2nodes():
+    """Tests finding gaps on two nodes as cannot fit on one due to others assigned"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(8, 2)
+    sched = ResourceScheduler(user_resources=resources)
+    resources.rsets['assigned'] = [1, 1, 0, 0, 0, 2, 2, 0]
+    resources.rsets_free = 4
+
+    rset_team = sched.assign_resources(rsets_req=4)
+    assert rset_team == [2, 3, 4, 7], 'rsets found {}'.format(rset_team)
+    del resources
+
+
+def test_try1node_findon_3nodes():
+    """Tests finding gaps on two nodes as cannot fit on one due to others assigned"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(12, 3)
+    sched = ResourceScheduler(user_resources=resources)
+    resources.rsets['assigned'] = [1, 1, 0, 0, 0, 2, 2, 0, 3, 0, 3, 3]
+    resources.rsets_free = 5
+
+    rset_team = sched.assign_resources(rsets_req=3)
+    assert rset_team == [2, 4, 9], 'rsets found {}'.format(rset_team)
+    del resources
+
+def test_try2nodes_findon_3nodes():
+    """Tests finding gaps on two nodes as cannot fit on one due to others assigned"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(18, 3)
+    sched = ResourceScheduler(user_resources=resources)
+    resources.rsets['assigned'] = ([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3])
+    resources.rsets_free = np.count_nonzero(resources.rsets['assigned']==0)
+    print('free is', resources.rsets_free)
+
+    rset_team = sched.assign_resources(rsets_req=12)
+    assert rset_team == [0, 2, 3, 4, 6, 7, 8, 9, 12, 13, 14, 15], 'rsets found {}'.format(rset_team)
+    del resources
+
+
+# SH TODO: Further tests for testing uneven splits - and uneven sized resource sets.
 
 if __name__ == "__main__":
     test_schdule_find_gaps_1node()
     test_schdule_find_gaps_2nodes()
     test_across_nodes_even_split()
     test_across_nodes_roundup_option()
+    test_try1node_findon_2nodes()
+    test_try1node_findon_3nodes()
+    test_try2nodes_findon_3nodes()
