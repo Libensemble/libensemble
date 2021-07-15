@@ -60,6 +60,8 @@ class ResourceScheduler:
                 max_even_grpsize = ResourceScheduler.get_max_len(avail_rsets_by_group, num_groups_req)
                 if max_even_grpsize == 0 and rsets_req > 0:
                     return None
+            else:
+                max_even_grpsize = max_grpsize
             rsets_req, num_groups_req, rsets_req_per_group = \
                 self.calc_rsets_even_grps(rsets_req, max_even_grpsize, num_groups)
         else:
@@ -68,7 +70,7 @@ class ResourceScheduler:
                 self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
 
         print('max_grpsize is', max_grpsize)
-        if max_grpsize is not None:  #njagnyyyyyyyyyyyyyyyyy - cld'vve changed in calc_rsets_even_grps
+        if max_grpsize is not None:
             max_upper_bound = max_grpsize + 1
             print('max_upper_bound', max_upper_bound)
         else:
