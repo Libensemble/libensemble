@@ -9,11 +9,12 @@ class ResourceSchedulerException(Exception):
 
 class ResourceScheduler:
 
-    def __init__(self, user_resources=None):
+    def __init__(self, user_resources=None, split2fit=True):
         self.resources = user_resources or Resources.resources.managerworker_resources
         self.avail_rsets_by_group = None  #could set here - but might save time not doing so if not used.
 
-        self.split2fit = True  # Split across more nodes if space not currently avail (even though can fit when free).
+        # Split across more nodes if space not currently avail (even though can fit when free).
+        self.split2fit = split2fit
 
     # SH TODO: Look at dealing with this more efficently - being able to store sructures.
     def assign_resources(self, rsets_req):
@@ -54,20 +55,22 @@ class ResourceScheduler:
         # Currently tries for even split and if cannot, then rounds rset up to full nodes.
         # Log if change requested to make fit/round up - at least at debug level.
         # preferable to set a calc_groups function once and can use with in a loop to try different splits
-        if self.resources.even_groups:
-            if self.split2fit:
-                num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)
-                max_even_grpsize = ResourceScheduler.get_max_len(avail_rsets_by_group, num_groups_req)
-                if max_even_grpsize == 0 and rsets_req > 0:
-                    return None
-            else:
-                max_even_grpsize = max_grpsize
+
+        if self.split2fit:
+            num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)
+            max_even_grpsize = ResourceScheduler.get_max_len(avail_rsets_by_group, num_groups_req)
+            if max_even_grpsize == 0 and rsets_req > 0:
+                return None
+        else:
+            max_even_grpsize = max_grpsize
+
+        if self.resources.even_groups:  # This is total group sizes even (not available sizes)
             rsets_req, num_groups_req, rsets_req_per_group = \
                 self.calc_rsets_even_grps(rsets_req, max_even_grpsize, num_groups)
         else:
             print('Warning: uneven groups - but using even groups function')
             rsets_req, num_groups_req, rsets_req_per_group = \
-                self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups)
+                self.calc_rsets_even_grps(rsets_req, max_even_grpsize, num_groups)
 
         print('max_grpsize is', max_grpsize)
         if max_grpsize is not None:

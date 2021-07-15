@@ -151,7 +151,19 @@ def test_try1node_findon_3nodes():
 
     rset_team = sched.assign_resources(rsets_req=3)
     assert rset_team == [2, 4, 9], 'rsets found {}'.format(rset_team)
+
+    # Simulate a new call to allocation function
+    del sched; sched = ResourceScheduler(user_resources=resources, split2fit=False)
+    rset_team = sched.assign_resources(rsets_req=3)
+    assert rset_team is None
+
+    # Now free up resources on 1st group and call alloc again (new sched).
+    resources.free_rsets(worker=1)
+    del sched; sched = ResourceScheduler(user_resources=resources, split2fit=False)
+    rset_team = sched.assign_resources(rsets_req=3)
+    assert rset_team == [0, 1, 2], 'rsets found {}'.format(rset_team)
     del resources
+
 
 def test_try2nodes_findon_3nodes():
     """Tests finding gaps on two nodes as cannot fit on one due to others assigned"""
@@ -160,10 +172,19 @@ def test_try2nodes_findon_3nodes():
     sched = ResourceScheduler(user_resources=resources)
     resources.rsets['assigned'] = ([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3])
     resources.rsets_free = np.count_nonzero(resources.rsets['assigned']==0)
-    print('free is', resources.rsets_free)
-
     rset_team = sched.assign_resources(rsets_req=12)
     assert rset_team == [0, 2, 3, 4, 6, 7, 8, 9, 12, 13, 14, 15], 'rsets found {}'.format(rset_team)
+
+    # Simulate a new call to allocation function
+    del sched; sched = ResourceScheduler(user_resources=resources, split2fit=False)
+    rset_team = sched.assign_resources(rsets_req=12)
+    assert rset_team is None
+
+    # Now free up resources on 3rd group and call alloc again (new sched).
+    resources.free_rsets(worker=3)
+    del sched; sched = ResourceScheduler(user_resources=resources, split2fit=False)
+    rset_team = sched.assign_resources(rsets_req=12)
+    assert rset_team == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 'rsets found {}'.format(rset_team)
     del resources
 
 
