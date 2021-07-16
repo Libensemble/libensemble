@@ -48,8 +48,6 @@ class ResourceScheduler:
         avail_rsets_by_group = self.get_avail_rsets_by_group()
         print('\nChecking ------ avail_rsets_by_group before {} rsets_req {} rsets free {}'.format(self.avail_rsets_by_group, rsets_req, self.rsets_free))
 
-        #Maybe more efficient way than making copy_back
-        tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
 
         # print('Available rsets_by_group:', avail_rsets_by_group)  # SH TODO: Remove
 
@@ -80,6 +78,8 @@ class ResourceScheduler:
         #else:
             #max_even_grpsize = max_grpsize
 
+        #Maybe more efficient way than making copy_back
+        tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
 
         print('max_grpsize is', max_grpsize)
         if max_grpsize is not None:
