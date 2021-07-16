@@ -58,21 +58,28 @@ class ResourceScheduler:
         # Log if change requested to make fit/round up - at least at debug level.
         # preferable to set a calc_groups function once and can use with in a loop to try different splits
 
+        # Work out best target fit - if all rsets were free.
+        rsets_req, num_groups_req, rsets_req_per_group = \
+            self.calc_req_split(rsets_req, max_grpsize, num_groups, extend=True)
+
         if self.split2fit:
-            num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)
-            max_even_grpsize = ResourceScheduler.get_max_len(avail_rsets_by_group, num_groups_req)
+            sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
+            max_even_grpsize = sorted_lengths[num_groups_req - 1]
             if max_even_grpsize == 0 and rsets_req > 0:
                 return None
-        else:
-            max_even_grpsize = max_grpsize
+            if max_even_grpsize < rsets_req_per_group:
+                # Cannot fit in smallest number of nodes - try to split
+                rsets_req, num_groups_req, rsets_req_per_group = \
+                    self.calc_even_split_uneven_groups(max_even_grpsize, num_groups_req, rsets_req, sorted_lengths, num_groups, extend=False)
 
-        if self.resources.even_groups:  # This is total group sizes even (not available sizes)
-            rsets_req, num_groups_req, rsets_req_per_group = \
-                self.calc_rsets_even_grps(rsets_req, max_even_grpsize, num_groups)
-        else:
-            print('Warning: uneven groups - but using even groups function')
-            rsets_req, num_groups_req, rsets_req_per_group = \
-                self.calc_rsets_even_grps(rsets_req, max_even_grpsize, num_groups)
+                # SH TODO: Maybe make this a try/except rather than return none if cant find a partition.
+                if rsets_req is None:
+                    return None
+                #rsets_req, num_groups_req, rsets_req_per_group = \
+                    #self.calc_req_split(rsets_req, max_even_grpsize, num_groups, extend=False)
+        #else:
+            #max_even_grpsize = max_grpsize
+
 
         print('max_grpsize is', max_grpsize)
         if max_grpsize is not None:
@@ -167,7 +174,19 @@ class ResourceScheduler:
         return self.avail_rsets_by_group
 
 
-    def calc_rsets_even_grps(self, rsets_req, max_grpsize, max_groups):
+    def calc_req_split(self,rsets_req, max_grpsize, num_groups, extend):
+        if self.resources.even_groups:  # This is total group sizes even (not available sizes)
+            rsets_req, num_groups_req, rsets_req_per_group = \
+                self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups, extend)
+        else:
+            print('Warning: uneven groups - but using even groups function')
+            rsets_req, num_groups_req, rsets_req_per_group = \
+                self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups, extend)
+        return rsets_req, num_groups_req, rsets_req_per_group
+
+
+    # SH TODO: This will be special case of calc_req_uneven_split
+    def calc_rsets_even_grps(self, rsets_req, max_grpsize, max_groups, extend):
         """Calculate an even breakdown to best fit rsets_req input"""
 
         if rsets_req == 0:
@@ -189,14 +208,41 @@ class ResourceScheduler:
                 num_groups_req = tmp_num_groups
                 rsets_req_per_group = rsets_req//num_groups_req  # This should always divide perfectly.
             else:
-                #log here
-                rsets_req_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
-                rsets_req = num_groups_req * rsets_req_per_group
-                print('Warning: Increasing resource requirement to obtain an even partition of resource sets to nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.format(rsets_req, num_groups_req, rsets_req_per_group))
+                if extend:
+                    rsets_req_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
+                    rsets_req = num_groups_req * rsets_req_per_group
+                    # SH TODO log here (atleast in debug)
+                    print('Warning: Increasing resource requirement to obtain an even partition of resource sets'
+                        'to nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.
+                        format(rsets_req, num_groups_req, rsets_req_per_group))
+                else:
+                    rsets_req_per_group = max_grpsize
+
         else:
             rsets_req_per_group = rsets_req
 
         return rsets_req, num_groups_req, rsets_req_per_group
+
+
+    # SH TODO: May be able to use an equivalent of this for when have uneven groups to start with.
+    def calc_even_split_uneven_groups(self, rsets_req_per_group, num_groups_req, rsets_req, sorted_lens, max_groups, extend):
+        """Calculate an even breakdown to best fit rsets_req with uneven groups"""
+        if rsets_req == 0:
+            return 0, 0, 0
+
+        ngroups = num_groups_req
+        while rsets_req_per_group * ngroups != rsets_req:
+            if rsets_req_per_group * ngroups > rsets_req:
+                rsets_req_per_group -= 1
+            else:
+                ngroups += 1
+                if ngroups > max_groups:
+                    return None, None, None  # No split found
+                rsets_req_per_group = sorted_lens[ngroups -1]
+
+        # SH TODO: Could add extend option here - then sending back rsets_req will make sense.
+        return rsets_req, ngroups, rsets_req_per_group
+
 
 
     @staticmethod
@@ -206,6 +252,11 @@ class ResourceScheduler:
         lengths = sorted([len(v) for v in avail_rsets.values()], reverse=True)
         return lengths[num_groups - 1]
 
+    @staticmethod
+    def get_sorted_lens(avail_rsets):
+        """Get max length of a list value in a dictionary"""
+        # SH TODO: Requires a sort - could use this sorted list iteratively to find min slots...
+        return sorted([len(v) for v in avail_rsets.values()], reverse=True)
 
 class UnevenResourceScheduler(ResourceScheduler):
 

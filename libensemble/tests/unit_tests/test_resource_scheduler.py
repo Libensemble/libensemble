@@ -157,6 +157,7 @@ def test_try1node_findon_3nodes():
     # Simulate a new call to allocation function
     sched_options = {'split2fit': False}
     del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+
     rset_team = sched.assign_resources(rsets_req=3)
     assert rset_team is None
 
@@ -175,6 +176,7 @@ def test_try2nodes_findon_3nodes():
     resources.fixed_assignment(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]))
     sched = ResourceScheduler(user_resources=resources)
 
+    # Cant find 2 groups of 6 so find 3 groups of 4.
     rset_team = sched.assign_resources(rsets_req=12)
     assert rset_team == [0, 2, 3, 4, 6, 7, 8, 9, 12, 13, 14, 15], 'rsets found {}'.format(rset_team)
 
