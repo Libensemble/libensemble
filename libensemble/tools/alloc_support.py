@@ -13,7 +13,6 @@ class AllocSupport:
 
     gen_counter = 0
 
-    # SH TODO: Going to need libE_info passed through via alloc if want to have scheduling options.
     def __init__(self, alloc_specs, user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance"""
         self.specs = alloc_specs
