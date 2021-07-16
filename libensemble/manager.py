@@ -317,16 +317,6 @@ class Manager:
 
         man_resources.assign_rsets(Work['libE_info']['rset_team'], w)
 
-        #else:
-            #for index in Work['libE_info']['rset_team']:
-                #if rset_workers[index] != w:
-                    #raise ManagerException("Managers resource list does not match that in Worker request.")
-                    ## or handle
-                    ## logger.warning("Managers resource list does not match that in Worker request. Setting...")
-                    ## set_workers[index] = w
-                    ## Maybe handle/set if the workers are currently zero
-        ## print('Manager sending to worker {} assigned  {}'.format(w, rset_workers),flush=True)  # SH TODO: Remove
-
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker
         """
@@ -423,17 +413,8 @@ class Manager:
     def _freeup_resources(self, w):
         """Free up resources assigned to the worker"""
 
-        # SH TODO: This should be in resources (as assign_resources is).
         if self.resources:
             self.resources.managerworker_resources.free_rsets(w)
-            #rset_workers = self.resources.managerworker_resources.rsets['assigned']
-            ## print('Manager received from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
-
-            #for rset, worker in enumerate(rset_workers):
-                #if worker == w:
-                    #rset_workers[rset] = 0
-
-        # print('Manager freed from worker {} assigned  {}'.format(w,rset_workers),flush=True)  # SH TODO: Remove
 
     def _update_state_on_worker_msg(self, persis_info, D_recv, w):
         """Updates history and worker info on worker message
