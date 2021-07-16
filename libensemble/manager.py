@@ -610,7 +610,7 @@ class Manager:
             while not self.term_test():
                 self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
-                if any(self.W['active'] == 0) and not self.term_test():
+                if any(self.W['active'] == 0) and not self.work_giving_term_test():
                     Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
                                                                persis_info)
                     if flag:
