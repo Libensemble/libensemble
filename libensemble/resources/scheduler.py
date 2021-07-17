@@ -142,7 +142,7 @@ class ResourceScheduler:
             nslots = len(rsets_by_group[g])
             if nslots == rsets_req_per_group:
                 # Exact fit
-                cand_team = rsets_by_group[g]
+                cand_team = rsets_by_group[g].copy()
                 cand_group = g
                 break
             elif rsets_req_per_group < nslots < upper_bound:
