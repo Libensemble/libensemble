@@ -412,6 +412,11 @@ class ManagerWorkerResources:
         """Mark the resource sets given by rset_team as assigned to worker_id"""
 
         if rset_team:
+            # Check for duplicate assignment
+            if any(self.rsets['assigned'][rset_team] != 0):
+                raise ResourcesException("Error: Attempting to assign rsets {} already assigned to workers: {}".
+                                         format(rset_team, self.rsets['assigned'][rset_team]))
+
             self.rsets['assigned'][rset_team] = worker_id
             #self.num_assigned += len(rset_team)  # quick count
             self.rsets_free -= len(rset_team)  # quick count
