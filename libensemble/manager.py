@@ -227,7 +227,8 @@ class Manager:
         elif ('sim_max' in self.exit_criteria
               and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset):
             # To avoid starting more sims if sim_max is an exit criteria
-            logger.info("Ignoring the alloc_f request for more sims than sim_max.")
+            if logged:
+                logger.info("Ignoring the alloc_f request for more sims than sim_max.")
             return 1
         else:
             return 0
@@ -591,7 +592,7 @@ class Manager:
             while not self.term_test():
                 self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
-                if any(self.W['active'] == 0) and not self.work_giving_term_test():
+                if any(self.W['active'] == 0) and not self.work_giving_term_test(logged=False):
                     Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
                                                                persis_info)
                     if flag:
