@@ -412,18 +412,24 @@ class ManagerWorkerResources:
         """Mark the resource sets given by rset_team as assigned to worker_id"""
 
         if rset_team:
-            # Check for duplicate assignment
-            if any(self.rsets['assigned'][rset_team] != 0):
-                raise ResourcesException("Error: Attempting to assign rsets {} already assigned to workers: {}".
-                                         format(rset_team, self.rsets['assigned'][rset_team]))
+            rteam = self.rsets['assigned'][rset_team]
+            for i, wid in enumerate(rteam):
+                if wid == 0:
+                    self.rsets['assigned'][rset_team[i]] = worker_id
+                    self.rsets_free -= 1
+                elif wid != worker_id:
+                    # Raise error if rsets are already assigned to a different worker.
+                    raise ResourcesException("Error: Attempting to assign rsets {} already assigned to workers: {}".
+                                             format(rset_team, rteam))
 
-            self.rsets['assigned'][rset_team] = worker_id
-            #self.num_assigned += len(rset_team)  # quick count
-            self.rsets_free -= len(rset_team)  # quick count
-            # of course in pace of rsets_free could use a function that counts - but this is faster - cld double check in some cases
+            #self.rsets['assigned'][rset_team] = worker_id
+            #self.rsets_free -= len(rset_team)
 
-            # print('resources assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
+            #print('rsets free', self.rsets_free)
+            #print('resource ids assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
+            #print('resource worker assignment', self.rsets['assigned'])  # SH TODO: Remove
             # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove
+
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
@@ -437,7 +443,6 @@ class ManagerWorkerResources:
                     self.rsets['assigned'][rset] = 0
                     #self.num_assigned -= 1
                     self.rsets_free += 1
-
 
         # print('resources assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
         # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove

@@ -305,7 +305,6 @@ class Manager:
         If rsets are not assigned, then assign using default mapping
         """
         man_resources = self.resources.managerworker_resources
-        rset_workers = man_resources.rsets['assigned']
         rset_req = Work['libE_info'].get('rset_team')
 
         if rset_req is None:
@@ -313,7 +312,6 @@ class Manager:
             default_rset = man_resources.index_list[w-1]
             if default_rset is not None:
                 rset_team.append(default_rset)
-                rset_workers[default_rset] = w
             Work['libE_info']['rset_team'] = rset_team
 
         man_resources.assign_rsets(Work['libE_info']['rset_team'], w)
