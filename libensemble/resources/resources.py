@@ -438,11 +438,10 @@ class ManagerWorkerResources:
             #self.num_assigned = 0
             self.rsets_free = self.num_rsets
         else:
-            for rset, wid in enumerate(self.rsets['assigned']):
-                if wid == worker:
-                    self.rsets['assigned'][rset] = 0
-                    #self.num_assigned -= 1
-                    self.rsets_free += 1
+            rsets_to_free = np.where(self.rsets['assigned'] == worker)[0]
+            self.rsets['assigned'][rsets_to_free] = 0
+            self.rsets_free += len(rsets_to_free)
+            #print('\nWorker {} returned - freed up rsets {}'.format(worker, rsets_to_free))
 
         # print('resources assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
         # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove
