@@ -16,11 +16,12 @@ class AllocSupport:
     def __init__(self, alloc_specs, user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance"""
         self.specs = alloc_specs
-        self.resources = user_resources or Resources.resources.managerworker_resources
+        self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:
+            wrk_resources = self.resources.managerworker_resources
             sched_opts = self.specs.get('scheduler_opts', {})
-            self.sched = user_scheduler or ResourceScheduler(user_resources=self.resources, sched_opts=sched_opts)
+            self.sched = user_scheduler or ResourceScheduler(user_resources=wrk_resources, sched_opts=sched_opts)
 
 
     def assign_resources(self, rsets_req):
@@ -29,6 +30,7 @@ class AllocSupport:
         Returns a list of resource set ids. A return of None implies
         insufficient resources.
         """
+        rset_team = None
         if self.resources is not None:
             rset_team = self.sched.assign_resources(rsets_req)
         return rset_team
