@@ -1,8 +1,9 @@
 import sys
 import pytest
 import numpy as np
-from libensemble.resources.scheduler import ResourceScheduler, InsufficientResourcesException
-
+from libensemble.resources.scheduler import (ResourceScheduler,
+                                             InsufficientResourcesException,
+                                             ResourceSchedulerException)
 
 class MyResources:
     """Simulate resources"""
@@ -45,6 +46,30 @@ class MyResources:
         """Set the given assignment along with other coupled information"""
         self.rsets['assigned'] = assignment
         self.rsets_free = np.count_nonzero(self.rsets['assigned']==0)
+
+
+def test_too_many_rsets():
+    """Tests request of more resource sets than exist"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(8, 2)
+    sched = ResourceScheduler(user_resources=resources)
+
+    with pytest.raises(ResourceSchedulerException):
+        rset_team = sched.assign_resources(rsets_req=10)
+        pytest.fail('Expected ResourceSchedulerException')
+
+
+def test_cannot_split_quick_return():
+    """Tests the quick return when splitting finds no free even gaps"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(6, 3)
+    resources.fixed_assignment(([1, 0, 0, 0, 3, 3]))
+    sched = ResourceScheduler(user_resources=resources)
+
+    with pytest.raises(InsufficientResourcesException):
+        rset_team = sched.assign_resources(rsets_req=3)
+        print(rset_team)
+        pytest.fail('Expected InsufficientResourcesException')
 
 
 def test_schdule_find_gaps_1node():
@@ -243,6 +268,8 @@ def test_split2fit_even_required_various():
 # SH TODO: Further tests for testing uneven splits - and uneven sized resource sets.
 
 if __name__ == "__main__":
+    test_too_many_rsets()
+    test_cannot_split_quick_return()
     test_schdule_find_gaps_1node()
     test_schdule_find_gaps_2nodes()
     test_across_nodes_even_split()

@@ -86,13 +86,7 @@ class ResourceScheduler:
                     self.calc_even_split_uneven_groups(max_even_grpsize, num_groups_req,
                                                        rsets_req, sorted_lengths, num_groups, extend=False)
         tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
-        if max_grpsize is not None:
-            max_upper_bound = max_grpsize + 1
-        else:
-            # All in group zero
-            if len(tmp_avail_rsets_by_group) > 1:
-                raise ResourceSchedulerException("There should only be one group if resources is not set")
-            max_upper_bound = len(tmp_avail_rsets_by_group[0]) + 1
+        max_upper_bound = max_grpsize + 1
 
         # Now find slots on as many nodes as need
         accum_team = []
@@ -238,18 +232,6 @@ class ResourceScheduler:
 
 
     @staticmethod
-    def get_max_len(avail_rsets, num_groups):
-        """Get max length of a list value in a dictionary"""
-        lengths = sorted([len(v) for v in avail_rsets.values()], reverse=True)
-        return lengths[num_groups - 1]
-
-    @staticmethod
     def get_sorted_lens(avail_rsets):
         """Get max length of a list value in a dictionary"""
         return sorted([len(v) for v in avail_rsets.values()], reverse=True)
-
-
-class UnevenResourceScheduler(ResourceScheduler):
-
-    def assign_resources(rsets_req):
-        pass
