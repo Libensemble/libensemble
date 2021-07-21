@@ -79,8 +79,7 @@ class AllocSupport:
         no_zrw = not any(W['zero_resource_worker'])
         wrks = []
         for wrk in W:
-            # SH TODO 'blocked' condition to be removed.
-            if not wrk['blocked'] and fltr_recving() and fltr_persis() and fltr_zrw():
+            if fltr_recving() and fltr_persis() and fltr_zrw():
                 wrks.append(wrk['worker_id'])
         return wrks
 

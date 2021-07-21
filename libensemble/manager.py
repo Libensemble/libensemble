@@ -152,8 +152,7 @@ class Manager:
                     ('persis_state', int),
                     ('worker_group', int),  # SH TODO: to be removed - now an rset attribute.
                     ('active_recv', int),
-                    ('zero_resource_worker', bool),
-                    ('blocked', bool)]  # SH TODO: to be removed - when all alloc funcs updated.
+                    ('zero_resource_worker', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria,
@@ -354,12 +353,6 @@ class Manager:
             else:
                 assert 'active_recv' not in Work['libE_info'], \
                     "active_recv worker must also be persistent"
-        if 'blocking' in Work['libE_info']:
-            for w_i in Work['libE_info']['blocking']:
-                assert self.W[w_i-1]['active'] == 0, \
-                    "Active worker being blocked; aborting"
-                self.W[w_i-1]['blocked'] = 1
-                self.W[w_i-1]['active'] = 1
 
         if Work['tag'] == EVAL_SIM_TAG:
             work_rows = Work['libE_info']['H_rows']
@@ -456,12 +449,6 @@ class Manager:
                 self.W[w-1]['persis_state'] = calc_type
             else:
                 self._freeup_resources(w)
-
-        if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
-            # Now done blocking these workers
-            for w_i in D_recv['libE_info']['blocking']:
-                self.W[w_i-1]['blocked'] = 0
-                self.W[w_i-1]['active'] = 0
 
         if 'persis_info' in D_recv and len(D_recv['persis_info']):
             persis_info[w].update(D_recv['persis_info'])
