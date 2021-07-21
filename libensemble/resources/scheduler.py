@@ -121,7 +121,7 @@ class ResourceScheduler:
             self.rsets_free -= rsets_req
             #print('avail_rsets_by_group after', self.avail_rsets_by_group)
         else:
-            rset_team = None  # Insufficient resources to honor
+            raise InsufficientResourcesException
             #print('------Could not find enough rsets - returning None-------')
 
         # print('Assigned rset team {} to worker {}'.format(rset_team,worker_id))  # SH TODO: Remove
