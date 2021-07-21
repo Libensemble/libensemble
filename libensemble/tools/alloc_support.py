@@ -1,8 +1,7 @@
 import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import ResourceScheduler
-
+from libensemble.resources.scheduler import ResourceScheduler, InsufficientResourcesException
 
 class AllocException(Exception):
     "Raised for any exception in the alloc support"

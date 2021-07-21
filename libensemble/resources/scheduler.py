@@ -6,6 +6,9 @@ from libensemble.resources.resources import Resources
 class ResourceSchedulerException(Exception):
     "Raised for any exception in the resource scheduler"
 
+class InsufficientResourcesException(Exception):
+    "Raised when the requested resources could not be provisioned"
+
 
 class ResourceScheduler:
     """Calculates and returns resource set ids from a dictionary of resource sets
@@ -59,7 +62,7 @@ class ResourceScheduler:
                                              .format(rsets_req, self.resources.num_rsets))
 
         if rsets_req > self.rsets_free:
-            return None
+            raise InsufficientResourcesException
 
         num_groups = self.resources.num_groups
         max_grpsize = self.resources.rsets_per_node  #assumes even
@@ -76,17 +79,12 @@ class ResourceScheduler:
             sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
             max_even_grpsize = sorted_lengths[num_groups_req - 1]
             if max_even_grpsize == 0 and rsets_req > 0:
-                return None
+                raise InsufficientResourcesException
             if max_even_grpsize < rsets_req_per_group:
                 # Cannot fit in smallest number of nodes - try to split
                 rsets_req, num_groups_req, rsets_req_per_group = \
                     self.calc_even_split_uneven_groups(max_even_grpsize, num_groups_req,
                                                        rsets_req, sorted_lengths, num_groups, extend=False)
-
-                # SH TODO: Maybe make this a try/except rather than return none if cant find a partition.
-                if rsets_req is None:
-                    return None
-
         tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
         if max_grpsize is not None:
             max_upper_bound = max_grpsize + 1
@@ -211,7 +209,7 @@ class ResourceScheduler:
                     rsets_req = num_groups_req * rsets_req_per_group
                     # SH TODO log here (atleast in debug)
                     print('Warning: Increasing resource requirement to obtain an even partition of resource sets'
-                          'to nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.
+                          '\nto nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.
                           format(rsets_req, num_groups_req, rsets_req_per_group))
                 else:
                     rsets_req_per_group = max_grpsize
@@ -232,7 +230,7 @@ class ResourceScheduler:
             else:
                 ngroups += 1
                 if ngroups > max_grps:
-                    return None, None, None  # No split found
+                    raise InsufficientResourcesException
                 rsets_per_grp = sorted_lens[ngroups - 1]
 
         # SH TODO: Could add extend option here - then sending back rsets_req will make sense.

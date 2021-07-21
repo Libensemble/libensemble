@@ -1,6 +1,6 @@
 import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport
+from libensemble.tools.alloc_support import AllocSupport, InsufficientResourcesException
 
 
 # SH TODO: Either replace only_persistent_gens or add a different alloc func (or file?)
@@ -38,16 +38,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
 
     support = AllocSupport(alloc_specs)  # Access alloc support functions
+    manage_resources = 'resource_sets' in H.dtype.name
 
     Work = {}
     gen_count = support.count_persis_gens(W)
-
-    # SH TODO - for testing only
-    try:
-        only_persistent_gens.counter += 1
-    except AttributeError:
-        only_persistent_gens.counter = 1
-    # print('count',only_persistent_gens.counter)
 
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
@@ -81,7 +75,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     #          May not need zero_resource_workers (unless want mapped to specific resources)
     avail_workers = support.avail_worker_ids(W, persistent=False, zero_resource_workers=False)
 
-    while avail_workers:
+    for worker in avail_workers:
 
         if not np.any(task_avail):
             break
@@ -98,27 +92,25 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # Perform sim evaluations (if they exist in History).
         sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
 
-        num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets'])
-                         if 'resource_sets' in H.dtype.names else 1)
+        if manage_resources:
+            num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets']))
 
-        # If more than one group (node) required, allocates whole nodes - also removes from avail_workers
-        # print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
+            # If more than one group (node) required, finds even split, or allocates whole nodes
+            print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
-        rset_team = support.assign_resources(num_rsets_req)
-        # print('resource team for sim', rset_team, flush=True)
+            # Instead of returning None - raise a specific exception if resources not found
+            try:
+                rset_team = support.assign_resources(num_rsets_req)
+            except InsufficientResourcesException:
+                break
 
-        # print('AFTER ASSIGN sim ({}): avail_workers: {}'.format(rset_team,avail_workers), flush=True)
+            # Assign points to worker and remove from task_avail list.
+            print('resource team {} for SIM assigned to worker {}'.format(rset_team, worker), flush=True)
+        else:
+            rset_team = None  # Now this has a consistent meaning - resources are not determined by alloc!
 
-        # SH TODO: Determine if next few lines could be combined.....
-
-        # None means insufficient available resources for this work unit
-        if rset_team is None:
-            break
-
-        # SH TODO consider whether to do this is support.assign_resources
-        worker = avail_workers.pop(0)  # Give to first worker in list
-
-        support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker), rset_team=rset_team)
+        support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send,
+                         persis_info.get(worker), rset_team=rset_team)
 
         print('Packed for worker: {}. Resource team for sim: {}\n'.format(worker, rset_team), flush=True)
 
@@ -126,42 +118,31 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     # A separate loop/section as now need zero_resource_workers for gen.
     # SH TODO   - with rsets -  zero_resource_workers only needed if using fixed worker/resource mapping.
-    #             so really then want to say use a zrw, if its set, else use any!!!!
-    #             alternatively may be sim/gen assigned workers.
+    #             If a zero resource worker is set it is used - else uses any available worker.
     if not np.any(task_avail):
         avail_workers = support.avail_worker_ids(W, persistent=False, zero_resource_workers=True)
 
-        while avail_workers:
-            # SH TODO: So we don't really need a loop here for this, but general case would allow multiple gens
+        # SH TODO: So we don't really need a loop here for this, but general case would allow multiple gens
+        for worker in avail_workers:
+
             if gen_count == 0:
                 # Finally, call a persistent generator as there is nothing else to do.
                 gen_count += 1
 
-                # print('\nrset_team being called for gen')
+                if manage_resources:
+                    # SH TODO: How would you provide resources to a gen? Maybe via persis_info if variable?
+                    gen_resources = persis_info.get('gen_resources', 0)
+                    try:
+                        rset_team = support.assign_resources(gen_resources)
+                    except InsufficientResourcesException:
+                        break
+                    print('resource team {} for GEN assigned to worker {}'.format(rset_team, worker), flush=True)
+                else:
+                    rset_team = None
 
-                # SH TODO: How would you provide resources to a gen? Maybe via persis_info if variable?
-                gen_resources = persis_info.get('gen_resources', 0)
-
-                # SH TODO. Dont need to call if required resources is zero
-                # Worker is only used if resources are assigned.
-                rset_team = support.assign_resources(gen_resources)
-
-                print('resource team for gen', rset_team, flush=True)
-
-                # None means insufficient available resources for this work unit
-                if rset_team is None:
-                    break
-
-                worker = avail_workers.pop(0)  # Give to first worker in list
-
-                # print('AFTER ASSIGN gen ({}): avail_workers: {}'.format(worker,avail_workers), flush=True)
-
-                # Even if empty list, presence of rset_team stops manager giving default resources
+                # Even if empty list, presence of non-None rset_team stops manager giving default resources
                 support.gen_work(Work, worker, gen_specs['in'], range(len(H)), persis_info.get(worker),
                          persistent=True, active_recv=active_recv_gen, rset_team=rset_team)
-
-
-                print('Packed for worker: {}. Resource team for gen: {}\n'.format(worker, rset_team), flush=True)
 
                 persis_info['gen_started'] = True
 

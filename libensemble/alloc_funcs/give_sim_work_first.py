@@ -1,5 +1,5 @@
 import numpy as np
-from libensemble.tools.alloc_support import AllocSupport
+from libensemble.tools.alloc_support import AllocSupport, InsufficientResourcesException
 
 
 # SH TODO: Either replace give_sim_work_first or add a different alloc func (or file?)
@@ -29,6 +29,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
 
     support = AllocSupport(alloc_specs)  # Access alloc support functions
+    manage_resources = 'resource_sets' in H.dtype.name
+
     Work = {}
     gen_count = support.count_gens(W)
 
@@ -50,18 +52,22 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Get sim ids (indices) and check resources needed
             sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
 
-            num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets'])
-                             if 'resource_sets' in H.dtype.names else 1)
+            if manage_resources:
+                num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets']))
 
-            # If more than one group (node) required, finds even split, or allocates whole nodes
-            print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
+                # If more than one group (node) required, finds even split, or allocates whole nodes
+                print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
-            rset_team = support.assign_resources(num_rsets_req)
-            if rset_team is None:
-                break  # None means insufficient available resources for this work unit
+                # Instead of returning None - raise a specific exception if resources not found
+                try:
+                    rset_team = support.assign_resources(num_rsets_req)
+                except InsufficientResourcesException:
+                    break
 
-            # Assign points to worker and remove from task_avail list.
-            print('resource team for SIM {} assigned to worker {}'.format(rset_team, worker), flush=True)
+                # Assign points to worker and remove from task_avail list.
+                print('resource team {} for SIM assigned to worker {}'.format(rset_team, worker), flush=True)
+            else:
+                rset_team = None  # Now this has a consistent meaning - resources are not determined by alloc!
 
             support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send,
                              persis_info.get(worker), rset_team=rset_team)
@@ -78,12 +84,16 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             # Give gen work
             gen_count += 1
-            gen_resources = persis_info.get('gen_resources', 0)
-            rset_team = support.assign_resources(gen_resources)
-            if rset_team is None:
-                break  # None means insufficient available resources for this work unit
 
-            print('resource team for GEN {} assigned to worker {}'.format(rset_team, worker), flush=True)
+            if manage_resources:
+                gen_resources = persis_info.get('gen_resources', 0)
+                try:
+                    rset_team = support.assign_resources(gen_resources)
+                except InsufficientResourcesException:
+                    break
+                print('resource team {} for GEN assigned to worker {}'.format(rset_team, worker), flush=True)
+            else:
+                rset_team = None
 
             gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
