@@ -2,15 +2,7 @@ import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
 from helper import *
-
-"""
-Change
-- Size of problem: m, n, k (Line 174)
-- Initial starting point x and xstar (Line 190)
-- df() as well as gradient Lipschitz constant L (Line 185)
-- fstar (optimal solution, if known) (Line 209)
-- f() for gap computation (Line 211)
-"""
+import sys
 
 def primaldual(x_0, df, settings):
     """ Primal-dual sliding algorithm (outer loop)
@@ -56,6 +48,7 @@ def primaldual(x_0, df, settings):
     cons = np.dot(x_0, Lap.dot(x_0))
     print('[0/N]')
     print('x={}'.format(x_0))
+    # print('g={}'.format(df(x_0)))
     print('gap={}'.format(f_eval(x_0) - fstar))
     print('consensus={}\n'.format(cons))
 
@@ -111,6 +104,7 @@ def primaldual(x_0, df, settings):
         _x = 1.0/b_k_sum * weighted_x_hk_sum
         cons = np.dot(_x, Lap.dot(_x))
         print('[{}/{}]\nx={}'.format(k, N, _x))
+        # print('g={}'.format(df(_x)))
         print('gap={}'.format(f_eval(_x) - fstar))
         print('numcomms={}'.format(T_k))
         print('consensus={}'.format(cons))
@@ -171,45 +165,78 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings):
 
     return [x_k, x_k_1, z_k, x_hk]
 
-####### PARAMETERS ####################
+if len(sys.argv) != 7:
+    print('python nagent.py --graph {1,2,3} --prob {1,2,3} --start {1,2}\n')
+    print('{1,2,3}={chain,random,complete}, {1,2,3}={rosen1,rosen2,nest}, {1,2}={random,fixed}')
+    exit(0)
+
+[graph_mode,prob_mode, x_0_mode] = [int(i) for i in sys.argv[2:7:2]]
+
+######## SETUP #################################
 n = 100
-m = n-1
-k = m-1
-# k = 1
-####### PARAMETERS ####################
+# Rosenbrock
+if prob_mode == 1:
+    m = n//2
+    def df(x): return df_r(x)
+    def f_eval(x): return f_r_long(x)
+    L = 1
+    xstar = np.ones(m*n, dtype=int)
+    fstar = 0
 
-####### FUNCTIONS ####################
-b = np.ones(m*n)
-def df(x): return df_ar(x)
-def V(x,u): return 0.5*la.norm(x-u, ord=2)**2
-####### FUNCTIONS ####################
+# Alternative Rosenbrock
+elif prob_mode == 2:
+    m = n-1
+    def df(x): return df_ar(x)
+    def f_eval(x): return f_ar_long(x)
+    L = 1
+    xstar = np.ones(m*n, dtype=int)
+    fstar = 0
 
-####### PARAMETERS ####################
-# random guess
-np.random.seed(0)
-x_0 = 2*np.random.random(m*n)-1
+# Nesterov
+elif prob_mode == 3:
+    m = n+1
+    def df(x): return df_nesterov(x)
+    def f_eval(x): return f_nesterov_long(x)
+    L = 4
+    xstar = nesterov_opt(n)
+    fstar = f_nesterov(xstar)
+    xstar = np.kron(np.ones(m), xstar)
+else:
+    print('Invalid prob {}'.format(prob_mode))
+    exit(0)
 
-if k == m-1:
+if x_0_mode == 1:
+    np.random.seed(0)
+    x = 2*np.random.random(m*n)-1
+elif x_0_mode == 2:
+    x = np.tile([-1.2,1],int(m*n//2))
+else:
+    print('Invalid start {}'.format(x_0_mode))
+    exit(0)
+
+if graph_mode==1:
+    A = spp.diags(np.append(1, np.append(2*np.ones(m-2), 1))) - get_k_reach_chain_matrix(m,k)
+elif graph_mode==2:
+    p = 0.1
+    A = get_er_graph(m, p, seed=0)
+elif graph_mode==3: 
+    k = m-1
     A = k*spp.eye(m) - get_k_reach_chain_matrix(m,k)
 else:
-    assert k==1
-    A = spp.diags(np.append(1, np.append(2*np.ones(m-2), 1))) - get_k_reach_chain_matrix(m,k)
+    print('Invalid graph {}'.format(graph_mode))
+    exit(0)
 A_norm = la.norm(A.todense(), ord=2)
 assert la.norm(A.dot(np.ones(A.shape[1]))) < 1e-15
 A = spp.kron(A, spp.eye(n))
 
-x_sol = np.ones(len(x_0), dtype=float)
 mu = 0
 L = 1
-# change constant in front ...
-Vx_0x = V(x_0, x_sol)
+Vx_0x = V(x, xstar)
 R = 1 / (4 * (Vx_0x)**0.5)
 eps = 1e-3
 N = int(4 * (L*Vx_0x/eps)**0.5 + 1)
 
-fstar = 0
-settings = { 'mu': mu, 'R': R, 'L': L, 'Lap': A, 'N': N, 'A_norm': A_norm, 'fstar': fstar, 'f': f_ar_long }
-####### PARAMETERS ####################
+settings = { 'mu': mu, 'R': R, 'L': L, 'Lap': A, 'N': N, 'A_norm': A_norm, 'fstar': fstar, 'f': f_eval }
+######## SETUP #################################
 
-xstar = primaldual(x_0, df, settings)
-print('Sol:', xstar)
+primaldual(x, df, settings)
