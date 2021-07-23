@@ -30,7 +30,9 @@ class MPIExecutor(Executor):
     """
 
     # SH TODO: Whether to still be custom_info or separate variables as now quite limited.
-    def __init__(self, custom_info={}):
+    #          only reason not to is prob that it may make people use them unnecesarily.
+    #          I think allow_oversubscribe shld stay as MPIExecutor variable - but maybe change name???
+    def __init__(self, allow_oversubscribe=True, custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
         A new Executor MPIExecutor is created with an application
@@ -43,6 +45,12 @@ class MPIExecutor(Executor):
 
         Parameters
         ----------
+
+        allow_oversubscribe: boolean, optional
+            If true, the Executor will permit submission of tasks with a
+            higher processor count than the CPUs available to the worker as
+            detected by auto_resources. Larger node counts are not allowed.
+            When auto_resources is off, this argument is ignored.
 
         custom_info: dict, optional
             Provide custom overrides to selected variables that are usually
@@ -63,6 +71,7 @@ class MPIExecutor(Executor):
         subgroup_launch = custom_info.get('subgroup_launch', None)
 
         if not mpi_runner_type:
+            # Maybe this should be in MPIResources (currently in reosurces - only says MPIResources cos its inherited).
             mpi_runner_type = MPIResources.get_MPI_variant()
         self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
         if subgroup_launch is not None:

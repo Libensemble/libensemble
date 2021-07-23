@@ -35,7 +35,7 @@ class ResourceScheduler:
             Default: True
         """
 
-        self.resources = user_resources or Resources.resources.managerworker_resources
+        self.resources = user_resources or Resources.resources.resource_manager
         self.rsets_free = self.resources.rsets_free
         self.avail_rsets_by_group = None
 

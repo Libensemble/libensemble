@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 # SH TODO: Change class name
 # Its really about rset (resource set) assignment - workers is only used as a default way to set rsets
+# possible class names: RSETResources/SplitResources
 # unlesss resource sets is set explicitly. This class maps rsets to hardware resources.
 class BaseWorkerResources():
 

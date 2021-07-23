@@ -184,7 +184,7 @@ class Manager:
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         if self.resources is not None:
-            # self.W['worker_group'] = self.resources.managerworker_resources.group_list
+            # self.W['worker_group'] = self.resources.resource_manager.group_list
             self.W['worker_group'] = False  # SH TODO: Remove when all alloc funcs updated.
 
             for wrk in self.W:
@@ -303,7 +303,7 @@ class Manager:
 
         If rsets are not assigned, then assign using default mapping
         """
-        man_resources = self.resources.managerworker_resources
+        man_resources = self.resources.resource_manager
         rset_req = Work['libE_info'].get('rset_team')
 
         if rset_req is None:
@@ -406,7 +406,7 @@ class Manager:
         """Free up resources assigned to the worker"""
 
         if self.resources:
-            self.resources.managerworker_resources.free_rsets(w)
+            self.resources.resource_manager.free_rsets(w)
 
     def _update_state_on_worker_msg(self, persis_info, D_recv, w):
         """Updates history and worker info on worker message

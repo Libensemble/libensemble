@@ -18,7 +18,7 @@ class AllocSupport:
         self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:
-            wrk_resources = self.resources.managerworker_resources
+            wrk_resources = self.resources.resource_manager
             sched_opts = self.specs.get('scheduler_opts', {})
             self.sched = user_scheduler or ResourceScheduler(user_resources=wrk_resources, sched_opts=sched_opts)
 
