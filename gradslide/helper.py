@@ -2,12 +2,17 @@ import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
 # from sklearn.linear_model import LogisticRegression
+# import cvxopt 
+import cvxpy as cp
 
 """
 Function definitions
 """
 
 # GEOMETRIC MEDIAN
+def f_gm_comb(x,b,m):
+    return f_gm(np.kron(np.ones(m),x),b,m)
+
 def f_gm(x,b,m):
     """ Geometric median """
     assert len(x)==len(b)
@@ -15,9 +20,13 @@ def f_gm(x,b,m):
     z = x-b
     Z = np.reshape(z, newshape=(m,n))
     norms_z = la.norm(Z, axis=1, ord=2)
-    return 1.0/m * np.sum(norms_z)
+    return (1/m) * np.sum(norms_z)
 
 def df_gm(x,b,m):
+    assert len(x)*m==len(b)
+    return f_gm_long(np.kron(np.ones(m),x), b)
+
+def df_gm_long(x,b,m):
     """ Geometric median """
     n = len(x)//m
     z = x-b
@@ -27,7 +36,41 @@ def df_gm(x,b,m):
     assert len(norms_z) == m
     norms_Z = np.tile(norms_z,(n,1)).T
     Z = np.divide(Z, norms_Z)
-    return 1.0/m * np.reshape(Z, newshape=(-1,))
+    return (1/m) * np.reshape(Z, newshape=(-1,))
+
+def gm_opt(b,m):
+
+    n = len(b)//m
+    assert len(b) == m*n
+
+    ones_m = np.ones((m,1))
+    def obj_fn(x,B,m):
+        X = ones_m @ x
+        return (1/m) * cp.sum( cp.norm(X-B, 2, axis=1) )
+
+    beta = cp.Variable((1,n))
+    B = np.reshape(b, newshape=(m,n))
+    problem = cp.Problem(cp.Minimize(obj_fn(beta, B, m)))
+    # print('Problem is DCP: {}'.format(problem.is_dcp()))
+    # problem.solve(verbose=True)
+    problem.solve()
+
+    print('Value: {}'.format(problem.value))
+    return np.reshape(beta.value, newshape=(-1,))
+
+    ########################################################
+
+    # TODO: Get this working ...
+    d,m = X.shape
+
+    theta = cp.Variable((d,1))
+    # loss = cp.sum([
+    reg = cp.norm(theta, 1)
+    lambd = cp.Parameter(nonneg=True)
+    prob = cp.Problem(cp.Minimize(loss/m + lambd*reg))
+    lambd.value = c
+    prob.solve()
+    return theta.value
 
 # ROSENBROCK
 const = 1000
@@ -114,29 +157,148 @@ def df_ar_comb(x):
 
 # REGULARIZED LEAST SQUARES
 c = 0.1
-def regls_opt(X, y):
+"""
+def regls_opt_old(X, y):
     A = np.dot(X,X.T)
     m = A.shape[0]
-    x = la.lstsq(A+m*c*np.eye(m), np.dot(X,y))[0]
-    ones_d = np.ones(X.shape[0])
-    # print('{} vs {}'.format(1/m*la.norm(y-X.T@x,ord=2) + c*la.norm(x,ord=2), 1/m*la.norm(y-X.T@ones_d,ord=2) + c*la.norm(ones_d,ord=2)))
-    return x
+    xstar = la.lstsq(A+m*c*np.eye(m), np.dot(X,y))[0]
+    return xstar
+"""
 
-def df_regls(theta, X, y):
+def regls_opt(X, y, reg=None):
+    assert reg=='l1' or reg=='l2' or reg is None
+    if reg=='l1': p = 1
+    elif reg=='l2': p = 2
+    elif reg is None: p = -1
+    else: assert False, 'illegal regularization "{}"'.format(reg)
+
+    def obj_fn(X,y,beta,c,p):
+        m = X.shape[0]
+        if p==1:
+            return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=1)
+        return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=2)**2
+
+    # already X.T
+    d,m = X.shape
+    beta = cp.Variable(d)
+    lambd = cp.Parameter(nonneg=True)
+    problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
+    print('Problem is DCP: {}'.format(problem.is_dcp()))
+    # problem.solve(verbose=True)
+    problem.solve()
+
+    print('Value: {}'.format(problem.value))
+    return beta.value
+
+def df_regls(theta, X, y, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
+
     d,m = X.shape
     ones_d = np.ones(d)
 
     # broadcast multiply
-    X_arr = np.reshape(X, newshape=(-1,))
-    df = -np.multiply( X_arr, np.kron(y, ones_d) )  
-    Theta = np.reshape(theta, newshape=(m,d))  # unfold
-    temp  = np.einsum("ij,ij->i", X.T, Theta)  # size m array
+    X_arr = np.reshape(X.T, newshape=(-1,))
+    Theta = np.reshape(theta, newshape=(m,d))    # unfold
+    XT_theta = np.einsum("ij,ij->i", X.T, Theta) # size m array
     # broadcast multiply
-    df += np.multiply( X_arr, np.kron( temp, ones_d ) )
-    df += c/m * theta
+    df = (2/m) * np.multiply( X_arr, np.kron(XT_theta-y, ones_d ) )
 
-    df *= 2/m
+    if reg is None:
+        pass
+    elif reg=='l2':
+        df += (2*c/m) * theta
+    else:
+        df += (c/m) * np.sign(theta)
+
     return df
+
+def df_regls_comb(theta, X, y, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
+
+    d,m = X.shape
+
+    df = (2/m)*np.dot(X, np.dot(X.T,theta)-y)
+
+    if reg is None:
+        pass
+    elif reg=='l2':
+        df += (2*c) * theta
+    else:
+        df += c * np.sign(theta)
+
+    return df
+
+def f_regls_long(theta, X, y, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
+
+    d,m = X.shape
+    ones_d = np.ones(d)
+
+    # broadcast multiply
+    Theta = np.reshape(theta, newshape=(m,d))  # unfold
+    XT_theta = np.einsum("ij,ij->i", X.T, Theta)  # size m array
+
+    f = (1/m)*la.norm(y-XT_theta,ord=2)**2
+
+    # Problem: Forgot to divide regularizer by m
+    if reg is None:
+        pass
+    elif reg=='l2':
+        f += (c/m)*np.dot(theta, theta)
+    else:
+        f += (c/m)*la.norm(theta,1)
+
+    return f
+
+"""
+def _f_regls_long(theta, X, y, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
+
+    d,m = X.shape
+
+    # broadcast multiply
+    Theta = np.reshape(theta, newshape=(m,d))  # unfold
+    XT_theta = np.einsum("ij,ij->i", X.T, Theta)  # size m array
+
+    # (X_i^Ttheta)^2
+    f = np.dot(XT_theta, XT_theta)
+
+    yT_XT_theta = np.dot(y, XT_theta)
+    # -2y_i (X_i^Ttheta)
+    f += -2*yT_XT_theta
+
+    # add y^Ty
+    f += np.dot(y,y)
+
+    # scale down 
+    f *= (1/m)
+
+    if reg is None:
+        pass
+    elif reg=='l2':
+        f += c*la.norm(theta,2)**2
+    else:
+        f += c*la.norm(theta,1)
+
+    return f
+
+def f_regls_opt(A,b,reg=None):
+    s = 1/(c**0.5)
+    U = cvxopt.matrix(s*A)
+    y = cvxopt.matrix(s*b)
+    xstar = l1regls(U, y)
+    xstar = np.array(xstar)
+    return xstar
+"""
+
+def f_regls(theta, X, y, reg=None):
+    d,m = X.shape
+    assert len(theta)==d
+    return f_regls_long(np.kron(np.ones(m), theta), X, y, reg)
+
+def f_regls2(theta, X, y, reg=None):
+    d,m = X.shape
+    return (1/m)*la.norm(y-np.dot(X.T,theta), ord=2)**2 + c*la.norm(theta,ord=2)**2
 
 # SIMPLE
 def df_silly(x_in):
@@ -148,23 +310,162 @@ def df_silly(x_in):
     return df
 
 # LOGISTIC REGRESSION
-def df_log(theta, X, y):
-    d,m = X.shape
-    XTTheta = np.einsum('ij,ij->i', X.T, np.reshape(theta, newshape=X.T.shape))
-    df_scalar = np.divide(-y, 1 + np.exp(-np.multiply(y, XTTheta)) )
-    df = np.multiply( np.reshape(X.T, newshape=(-1,)),  np.kron(df_scalar, np.ones(d)) )
-    return 1/m * df + 2*c/m*theta
+def df_log(theta, X, y, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
 
-"""
-def log_opt(X, y, reg='l2', reg_strength=0):
-    if reg_strength == 0: reg_strength = c
-    solver = 'newton-cg' if reg=='l2' or reg_strength == np.inf else 'liblinear' 
-    clf = LogisticRegression(penalty=reg, 
-                             C=1.0/reg_strength,  # regularizer strength (inverse)
-                             random_state=0, 
-                             solver=solver).fit(X, y)
-    return clf.predict(X)
-"""
+    d,m = X.shape
+    XT_theta = np.einsum('ij,ij->i', X.T, np.reshape(theta, newshape=X.T.shape))
+    base = np.exp(-np.multiply(y, XT_theta))
+    sigmoid_base = np.divide(base, 1+base)
+    df_scalar = np.multiply(-y, sigmoid_base)
+    df = np.multiply( np.reshape(X.T, newshape=(-1,)),  np.kron(df_scalar, np.ones(d)) )
+
+    if reg is None:
+        df = (1/m)*df
+    elif reg=='l2':
+        df = (1/m)*df + (2*c/m)*theta
+    else:
+        df = (1/m)*df + (c/m)*np.sign(theta)
+
+    return df
+
+def f_log_long(theta, X, y, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
+
+    d,m = X.shape
+    assert len(y)==m
+    XT_theta = np.einsum('ij,ij->i', X.T, np.reshape(theta, newshape=X.T.shape))
+    z = np.multiply(y, XT_theta)
+    summands = np.log(1 + np.exp(-z))
+    f = 1/m * np.sum(summands)
+
+    if reg is None:
+        pass
+    elif reg=='l2':
+        f += (c/m) * la.norm(theta,ord=2)**2
+    else:
+        f += (c/m) * la.norm(theta,ord=1)
+
+    return f
+
+def f_log(theta, X, y, reg=None):
+    d,m = X.shape
+    assert len(theta)==d
+    return f_log_long(np.kron(np.ones(m), theta), X, y, reg)
+
+def log_opt(X, y, reg=None):
+    """ https://www.cvxpy.org/examples/machine_learning/logistic_regression.html """
+    assert reg=='l1' or reg=='l2' or reg is None
+    if reg=='l1': p = 1
+    elif reg=='l2': p = 2
+    elif reg is None: p = 0
+    else: assert False, 'illegal regularization mode, "{}"'.format(reg)
+
+    def obj_fn(X,y,beta,c,p):
+        m = X.shape[0]
+        if p==0: reg = 0
+        if p==1: reg = c * cp.norm(beta, 1)
+        elif p==2: reg = c * cp.norm(beta, 2)**2
+        # cp.logistic(x) == log(1+e^x)
+        return (1/m) * cp.sum(cp.logistic( cp.multiply(-y, X @ beta))) + reg
+        
+    d,m = X.shape
+    beta = cp.Variable(d)
+    problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
+    # print('Problem is DCP: {}'.format(problem.is_dcp()))
+    problem.solve()
+
+    print('Value: {}'.format(problem.value))
+    return beta.value
+
+# SUPPORT VECTOR MACHINE
+def f_svm_long(theta, X, b, reg=None):
+    """ Returns SVM score where
+
+    Parameter
+    theta : np.ndarray
+        - weight (decision) vector
+    b : np.ndarray
+        - class labels
+    X : np.ndarray
+        - 2D array of feastures
+    """
+    assert reg=='l2' or reg=='l1' or reg is None
+
+    d,m = X.shape
+    assert len(b)==m    
+    Theta = np.reshape(theta, newshape=X.T.shape)
+    XT_theta = np.einsum('ij,ij->i', X.T, Theta)
+    h = np.maximum(0, 1-np.multiply(b, XT_theta))
+    
+    # S = np.hstack((b, Theta.T))
+    # S_norms = la.norm(S, ord=2, axis=1)
+    # CHANGE THE NORM
+
+    if reg is None:
+        theta_norms = 0
+    elif reg=='l2':
+        theta_norms = (c/m) * la.norm(Theta, ord=2, axis=1)**2
+    else:
+        theta_norms = (c/m) * la.norm(Theta, ord=1, axis=1)
+
+    # f = np.sum(h) + np.sum(np.divide(theta_norms, S_norms))
+    f = np.sum(h) + np.sum(theta_norms)
+
+    return f
+
+def f_svm(theta,X,b,reg=None):
+    d,m = X.shape
+    assert len(theta)==d
+    return f_svm_long(np.kron(np.ones(m), theta), X, b, reg)
+
+def df_svm(theta, X, b, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
+
+    d,m = X.shape
+    Theta = np.reshape(theta, newshape=X.T.shape)
+    XT_theta = np.einsum('ij,ij->i', X.T, Theta)
+    # will be zero if gradient is zero, else 1 
+    zero_df = np.kron((np.multiply(b, XT_theta) < 1).astype('int'), np.ones(d))
+    nonzero_df = -np.multiply(np.kron(b, np.ones(d)), np.reshape(X.T, newshape=(-1,)))
+    df = np.multiply(zero_df, nonzero_df)
+
+    # S = np.hstack((b, Theta.T))
+    # S_norms = la.norm(S, ord=2, axis=1)
+
+    if reg is None:
+        reg = 0
+    elif reg=='l2':
+        # reg = 2*np.divide(theta, np.kron(S_norms, np.ones(d)))
+        reg = (2*c/m)*theta
+    else:
+        # reg = np.divide(np.sign(theta), np.kron(S_norms, np.ones(d)))
+        reg = (c/m)*np.sign(theta)
+
+    df = df + reg
+
+    return df
+
+def svm_opt(X, b, reg='l1'):
+    if reg=='l1': p = 1
+    elif reg=='l2': p = 2
+    elif reg is None: p = 0
+    else: assert False, 'illegal regularization mode, "{}"'.format(reg)
+
+    def obj_fn(X,b,theta,c,p):
+        if p==0: reg = 0
+        if p==1: reg = c * cp.norm(theta, 1)
+        if p==2: reg = c * cp.norm(theta, 2)**2
+        return cp.sum(cp.pos(1-cp.multiply(b, X @ theta))) + reg
+
+    d,m = X.shape
+    theta = cp.Variable(d)
+    problem = cp.Problem(cp.Minimize(obj_fn(X.T, b, theta, c, p)))
+    # print('Problem is DCP: {}'.format(problem.is_dcp()))
+    problem.solve()
+
+    print('Value: {}'.format(problem.value))
+    return theta.value
 
 # NONCONVEX
 def df_noncvx(x,a,b,nu,Xi):
@@ -323,10 +624,31 @@ def get_er_graph(n,p,seed=-1):
         x = (x != 0).astype('int')
     is_connected = np.count_nonzero(x) == n
 
-    print('Graph is {}connected'.format('' if is_connected else 'dis'))
+    assert is_connected, 'Graph must be connected, increase either @m or @p'
+
+    # print('Graph is {}connected'.format('' if is_connected else 'dis'))
 
     return spp.csr_matrix(L)
 
 def V(x,u): 
     """ Bregman divergence with $\omega=\| \cdot \|_2^2$ """
     return 0.5*la.norm(x-u, ord=2)**2
+
+def readin_csv(fname):
+    fp = open(fname, 'r+')
+
+    n = 569
+    label = np.zeros(n, dtype='int')
+    datas = np.zeros((n,30))
+    i = 0
+    
+    for line in fp.readlines():
+        line = line.rsplit()[0]
+        data = line.split(',')
+        label[i] = data[1]=='M'
+        datas[i,:] = [float(val) for val in data[2:32]]
+        i += 1
+
+    assert i==n, 'Expected {} datapoints, recorded'.format(n, i)
+
+    return label, datas

@@ -6,14 +6,16 @@ from helper import *
 import sys
 
 if len(sys.argv) != 5:
-    print('python nagent.py --prob {1,2,3} --start {1,2}\n')
-    print('{1,2,3}={rosen1,rosen2,nest}, {1,2}={random,fixed}')
+    print('python nagent.py --prob {1,2,3,4} --start {1,2,3}\n')
+    print('{1,2,3,4}={rosen1,rosen2,nest,linreg}, {1,2,3}={random,fixed,zero}')
     exit(0)
 
 [prob_mode, x_0_mode] = [int(i) for i in sys.argv[2:5:2]]
 
 ######## SETUP #################################
 n = 100
+np.random.seed(0)
+
 # Rosenbrock
 if prob_mode == 1:
     def df(x): return df_r_comb(x)
@@ -37,6 +39,27 @@ elif prob_mode == 3:
     L = 4
     xstar = nesterov_opt(n)
     fstar = f_nesterov(xstar)
+
+elif prob_mode == 4:
+    reg = 'l2'
+    c = 0.1
+
+    d = 10
+    m = n
+    n = d
+    X = np.array([np.random.normal(loc=0, scale=1.0, size=d) for _ in range(m)]).T
+    y = np.dot(X.T, np.ones(d)) + np.cos(np.dot(X.T, np.ones(d))) + np.random.normal(loc=0, scale=0.25, size=m)
+
+    def df(theta): return df_regls_comb(theta, X, y, reg)
+    def f_eval(theta): return f_regls(theta, X, y, reg)
+
+    max_eig = la.eig(np.dot(X, X.T))[0][0]
+    L = (2/m)*max_eig + c
+
+    xstar = regls_opt(X, y)
+    fstar = f_regls(xstar, X, y, reg)
+    fstar = 0
+
 else:
     print('Invalid prob {}'.format(prob_mode))
     exit(0)
@@ -46,6 +69,8 @@ if x_0_mode == 1:
     x = 2*np.random.random(n)-1
 elif x_0_mode == 2:
     x = np.tile([-1.2,1],int(n//2))
+elif x_0_mode == 3:
+    x = np.zeros(n)
 else:
     print('Invalid start {}'.format(x_0_mode))
     exit(0)
@@ -79,6 +104,7 @@ for k in range(1,N+1):
     print('Iter {}/{}'.format(k, N))
     print('gap={}'.format(gap))
     # print('x={}'.format(x))
+    print('||grad_f(x)||={:.4f}'.format(la.norm(df(x), ord=2)))
     print('')
 
 # print(x[:n])
