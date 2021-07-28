@@ -47,12 +47,13 @@ def primaldual(x_0, df, settings):
 
     cons = np.dot(x_0, Lap.dot(x_0))
     print('[0/N]')
-    print('x={}'.format(x_0))
+    # print('x={}'.format(x_0))
     # print('g={}'.format(df(x_0)))
     print('gap={}'.format(f_eval(x_0) - fstar))
     print('consensus={}\n'.format(cons))
 
     for k in range(1,N+1):
+        print('[{}/{}]'.format(k, N))
         # define parameters
         tau_k = (k-1)/2
         lam_k = (k-1)/k
@@ -76,7 +77,11 @@ def primaldual(x_0, df, settings):
                     'k': k,
                     'prev_b_k': prev_b_k,
                     'prev_T_k': prev_T_k,
-                    'Lap': Lap
+                    'Lap': Lap,
+                    'f_eval': f_eval,
+                    'fstar': fstar,
+                    'curr_x_sum': weighted_x_hk_sum,
+                    'curr_b_k_sum': b_k_sum,
                     }
 
         [x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k, 
@@ -103,8 +108,8 @@ def primaldual(x_0, df, settings):
 
         _x = 1.0/b_k_sum * weighted_x_hk_sum
         cons = np.dot(_x, Lap.dot(_x))
-        print('[{}/{}]\nx={}'.format(k, N, _x))
-        # print('g={}'.format(df(_x)))
+        # print('x={}'.format(_x))
+        print('g={}'.format(la.norm(df(_x),ord=2)))
         print('gap={}'.format(f_eval(_x) - fstar))
         print('numcomms={}'.format(T_k))
         print('consensus={}'.format(cons))
@@ -128,6 +133,9 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings):
     Lap = settings['Lap']
     prev_b_k = settings['prev_b_k']
     prev_T_k = settings['prev_T_k']
+
+    f_eval = settings['f_eval']
+    fstar  = settings['fstar']
 
     x_k_1 = x_curr.copy()
     xsum = np.zeros(len(x_curr), dtype=float)
@@ -156,7 +164,12 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings):
         xsum += x_curr
         # zsum += z_t
 
-        # print(' >> {}'.format(x_curr))
+        # PRINT: Inner for loop progress
+        curr_x_in = xsum/t
+        curr_x_est = (settings['curr_x_sum'] + b_k*curr_x_in)/(settings['curr_b_k_sum'] + b_k)
+        cons = np.dot(curr_x_est, Lap.dot(curr_x_est))
+        print('in_gap={}'.format(f_eval(curr_x_est) - fstar))
+        print('in_consensus={}'.format(cons))
 
     x_k   = x_curr
     x_k_1 = x_prev
@@ -165,15 +178,23 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings):
 
     return [x_k, x_k_1, z_k, x_hk]
 
-if len(sys.argv) != 7:
-    print('python nagent.py --graph {1,2,3} --prob {1,2,3} --start {1,2}\n')
-    print('{1,2,3}={chain,random,complete}, {1,2,3}={rosen1,rosen2,nest}, {1,2}={random,fixed}')
+if len(sys.argv) < 7:
+    print('python pds.py --graph {1,2,3} --prob {1,2,3,4,5} --start {1,2,3}')
+    print('\t{1,2,3}={chain,random,complete}, {1,2,3,4,5}={rosen1,rosen2,nest,lin_reg_l2,log_reg_l2}, {1,2,3}={random,fixed,zero}')
     exit(0)
+
+seed_num = 0
+if len(sys.argv)>=9 and sys.argv[7]=='--seed':
+    seed_num = int(sys.argv[8])
 
 [graph_mode,prob_mode, x_0_mode] = [int(i) for i in sys.argv[2:7:2]]
 
 ######## SETUP #################################
+np.random.seed(seed_num)
+
+c = 0.1
 n = 100
+
 # Rosenbrock
 if prob_mode == 1:
     m = n//2
@@ -197,10 +218,58 @@ elif prob_mode == 3:
     m = n+1
     def df(x): return df_nesterov(x)
     def f_eval(x): return f_nesterov_long(x)
-    L = 4
+    L = 1
     xstar = nesterov_opt(n)
     fstar = f_nesterov(xstar)
     xstar = np.kron(np.ones(m), xstar)
+
+# Regularized LS
+elif prob_mode == 4:
+    m = n
+    d = 10
+    n = d
+    X = np.array([np.random.normal(loc=0, scale=1.0, size=d) for _ in range(m)]).T
+    assert X.shape[0] == d and X.shape[1] == m
+    y = np.dot(X.T, np.ones(d)) + np.cos(np.dot(X.T, np.ones(d))) + np.random.normal(loc=0, scale=0.25, size=m)
+    y = np.dot(X.T, np.ones(d))
+
+    def df(theta): return df_regls(theta, X, y, reg='l2')
+    def f_eval(theta): return f_regls_long(theta, X, y, reg='l2')
+
+    # eigenvalue approach
+    # eig_1 = la.eig(np.dot(X,X.T))[0][0]
+    # L = eig_1/m + 2*c
+
+    # each element approach
+    X_norms = la.norm(X, ord=2, axis=0)**2
+    L = (2/m)*(np.amax(X_norms)+c)
+
+    xstar = regls_opt(X,y, reg='l2')
+    fstar = f_regls(xstar, X, y, reg='l2')
+    xstar = np.kron(np.ones(m), xstar)
+
+# Regularized Log
+elif prob_mode == 5:
+    m = n
+    d = 10
+    n = d
+    y = np.append(2*np.ones(m//2), np.zeros(m-m//2))-1
+    X = np.array([np.random.normal(loc=y[i]*np.ones(d), scale=1.0, size=d) for i in range(m)]).T
+
+    def df(theta): return df_log(theta, X, y, reg='l2')
+    def f_eval(theta): return f_log_long(theta, X, y, reg='l2')
+
+    XXT_sum = np.outer(X[:,0], X[:,0])
+    for i in range(1,m):
+        XXT_sum += np.outer(X[:,i],X[:,i])
+    eig_max = np.amax(la.eig(XXT_sum)[0].real)
+    L = eig_max/m
+
+    reg = 'l2'
+    xstar = log_opt(X, y, reg)
+    fstar = f_log(xstar, X, y, reg)
+    xstar = np.kron(np.ones(m), xstar)
+
 else:
     print('Invalid prob {}'.format(prob_mode))
     exit(0)
@@ -210,14 +279,17 @@ if x_0_mode == 1:
     x = 2*np.random.random(m*n)-1
 elif x_0_mode == 2:
     x = np.tile([-1.2,1],int(m*n//2))
+elif x_0_mode == 3:
+    x = np.zeros(m*n)
 else:
     print('Invalid start {}'.format(x_0_mode))
     exit(0)
 
 if graph_mode==1:
+    k = 1
     A = spp.diags(np.append(1, np.append(2*np.ones(m-2), 1))) - get_k_reach_chain_matrix(m,k)
 elif graph_mode==2:
-    p = 0.1
+    p = 0.1 if prob_mode == 2 else 0.15
     A = get_er_graph(m, p, seed=0)
 elif graph_mode==3: 
     k = m-1

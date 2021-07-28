@@ -70,7 +70,13 @@ def zoSA(settings, x0=None, simple_l1=False):
 
         if not simple_l1:
             print('{}/{}: {} iters'.format(k, N, T_k))
-            [x,x_apprx] = prox_slide(df, h, l_f, h_k, dh_k, x_prev, b_k, T_k, k )
+            settings = {'f_eval': f_eval, 
+                        'fstar': fstar, 
+                        'cons': consensus, 
+                        'x_post': x_post,
+                        'g_k': g_k,
+                        'R': R}
+            [x,x_apprx] = prox_slide(df, h, l_f, h_k, dh_k, x_prev, b_k, T_k, k, settings )
 
             x_post = (1.0-g_k)*(x_post) + g_k*(x_apprx)
         else:
@@ -95,7 +101,7 @@ def zoSA(settings, x0=None, simple_l1=False):
 
     return x_post
     
-def prox_slide(df, H, l_h, h, dh, x, beta, T, k):
+def prox_slide(df, H, l_h, h, dh, x, beta, T, k, settings):
     """ Proximal sliding
 
     Parmaters
@@ -129,6 +135,13 @@ def prox_slide(df, H, l_h, h, dh, x, beta, T, k):
     P_t = 1
     A = 0
 
+    cons  = settings['cons']
+    f_eval= settings['f_eval']
+    fstar = settings['fstar']
+    R     = settings['R']
+    x_post= settings['x_post']
+    g_k   = settings['g_k']
+
     for t in range(1,T+1):
         p_t = t/2.0
         theta_t = 2*(t+1)/(t*(t+3))
@@ -146,6 +159,10 @@ def prox_slide(df, H, l_h, h, dh, x, beta, T, k):
         u_tilde = (1.0-theta_t) * u_tilde + theta_t * u_next
 
         u = u_next
+
+        u_est = (1.0-g_k)*(x_post) + g_k*(u_tilde)
+        print('in_gap={}'.format(f_eval(u_est) - fstar))
+        print('in_consensus={}'.format(cons(u_est)/R))
 
     return [u, u_tilde]
 
