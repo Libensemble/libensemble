@@ -33,14 +33,12 @@ class ExperimentalAPI:
         self.H0 = None
 
     def run(self):
-        self.H, \
-        self.persis_info.persis_info, \
-        self.flag = libE(self.sim_specs, self.gen_specs,
-                         self.exit_criteria,
-                         persis_info=self.persis_info.persis_info,
-                         alloc_specs=self.alloc_specs,
-                         libE_specs=self.libE_specs,
-                         H0=self.H0)
+        self.H, self.persis_info.persis_info, self.flag = \
+            libE(self.sim_specs, self.gen_specs, self.exit_criteria,
+                 persis_info=self.persis_info.persis_info,
+                 alloc_specs=self.alloc_specs,
+                 libE_specs=self.libE_specs,
+                 H0=self.H0)
 
     @staticmethod
     def _get_func(specs, type):
