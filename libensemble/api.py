@@ -33,8 +33,8 @@ class ExperimentalAPI:
         self.H0 = None
 
     def run(self):
-        self.H,
-        self.persis_info.persis_info,
+        self.H, \
+        self.persis_info.persis_info, \
         self.flag = libE(self.sim_specs, self.gen_specs,
                          self.exit_criteria,
                          persis_info=self.persis_info.persis_info,
