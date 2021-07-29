@@ -3,6 +3,7 @@ import numpy.linalg as la
 import scipy.sparse as spp
 from helper import *
 import sys
+from pycute_interface import Blackbox
 
 def primaldual(x_0, df, settings):
     """ Primal-dual sliding algorithm (outer loop)
@@ -49,8 +50,8 @@ def primaldual(x_0, df, settings):
     print('[0/N]')
     # print('x={}'.format(x_0))
     # print('g={}'.format(df(x_0)))
-    print('gap={}'.format(f_eval(x_0) - fstar))
-    print('consensus={}\n'.format(cons))
+    print('gap={:.3e}'.format(f_eval(x_0) - fstar))
+    print('consensus={:.3e}\n'.format(cons))
 
     for k in range(1,N+1):
         print('[{}/{}]'.format(k, N))
@@ -109,10 +110,10 @@ def primaldual(x_0, df, settings):
         _x = 1.0/b_k_sum * weighted_x_hk_sum
         cons = np.dot(_x, Lap.dot(_x))
         # print('x={}'.format(_x))
-        print('g={}'.format(la.norm(df(_x),ord=2)))
-        print('gap={}'.format(f_eval(_x) - fstar))
+        print('|g|={:3e}'.format(la.norm(df(_x),ord=2)))
+        print('gap={:.3e}'.format(f_eval(_x) - fstar))
         print('numcomms={}'.format(T_k))
-        print('consensus={}'.format(cons))
+        print('consensus={:.3e}'.format(cons))
         print('')
 
     # final solution (weighted average)
@@ -168,8 +169,8 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings):
         curr_x_in = xsum/t
         curr_x_est = (settings['curr_x_sum'] + b_k*curr_x_in)/(settings['curr_b_k_sum'] + b_k)
         cons = np.dot(curr_x_est, Lap.dot(curr_x_est))
-        print('in_gap={}'.format(f_eval(curr_x_est) - fstar))
-        print('in_consensus={}'.format(cons))
+        print('in_gap={:.3e}'.format(f_eval(curr_x_est) - fstar))
+        print('in_consensus={:.3e}'.format(cons))
 
     x_k   = x_curr
     x_k_1 = x_prev
@@ -270,6 +271,22 @@ elif prob_mode == 5:
     fstar = f_log(xstar, X, y, reg)
     xstar = np.kron(np.ones(m), xstar)
 
+# CUTEr
+elif prob_mode == 6:
+    n = 100
+    m = 20
+
+    bbox = Blackbox()
+    bbox.set_scale()
+    L = 1
+
+    def df(theta): return bbox.df_long(theta)
+    def f_eval(theta): return bbox.f_long(theta)/bbox.get_scale()
+
+    [fstar, xstar] = optimize_blackbox(bbox)
+    fstar = fstar/bbox.get_scale()
+    xstar = np.kron(np.ones(m), xstar)
+
 else:
     print('Invalid prob {}'.format(prob_mode))
     exit(0)
@@ -290,6 +307,7 @@ if graph_mode==1:
     A = spp.diags(np.append(1, np.append(2*np.ones(m-2), 1))) - get_k_reach_chain_matrix(m,k)
 elif graph_mode==2:
     p = 0.1 if prob_mode == 2 else 0.15
+    p = p if prob_mode != 6 else 0.227
     A = get_er_graph(m, p, seed=0)
 elif graph_mode==3: 
     k = m-1
