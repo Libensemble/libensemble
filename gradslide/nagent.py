@@ -102,6 +102,7 @@ elif prob_mode == 6:
     m = 20
 
     bbox = Blackbox()
+    bbox.setup_new_prob(seed_num)
     bbox.set_scale()
     L = 1
 
@@ -148,7 +149,7 @@ W = spp.kron(W, spp.eye(n)).toarray()
 Lap = spp.kron(A, spp.eye(n))
 
 eps = 0.1
-N_const = 5000
+N_const = 50000
 N = int(N_const / eps + 1)
 # TEMP
 N = min(N, 500000)
