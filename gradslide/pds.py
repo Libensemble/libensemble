@@ -5,7 +5,7 @@ from helper import *
 import sys
 from pycute_interface import Blackbox
 
-def primaldual(x_0, df, settings):
+def primaldual(x_0, df, settings,maxiter=-1):
     """ Primal-dual sliding algorithm (outer loop)
 
     Returns
@@ -52,6 +52,8 @@ def primaldual(x_0, df, settings):
     # print('g={}'.format(df(x_0)))
     print('gap={:.3e}'.format(f_eval(x_0) - fstar))
     print('consensus={:.3e}\n'.format(cons))
+
+    total_inner_iters = 0
 
     for k in range(1,N+1):
         print('[{}/{}]'.format(k, N))
@@ -115,6 +117,11 @@ def primaldual(x_0, df, settings):
         print('numcomms={}'.format(T_k))
         print('consensus={:.3e}'.format(cons))
         print('')
+
+        total_inner_iters += T_k
+        if maxiter > 0 and total_inner_iters > maxiter:
+            print('--- EXITTED DUE TO MAXITER ---')
+            break
 
     # final solution (weighted average)
     x_star = 1.0/b_k_sum * weighted_x_hk_sum
@@ -323,10 +330,10 @@ mu = 0
 L = 1
 Vx_0x = V(x, xstar)
 R = 1 / (4 * (Vx_0x)**0.5)
-eps = 1e-3
+eps = 1e-6
 N = int(4 * (L*Vx_0x/eps)**0.5 + 1)
 
 settings = { 'mu': mu, 'R': R, 'L': L, 'Lap': A, 'N': N, 'A_norm': A_norm, 'fstar': fstar, 'f': f_eval }
 ######## SETUP #################################
 
-primaldual(x, df, settings)
+primaldual(x, df, settings, maxiter=5000000)

@@ -4,7 +4,7 @@ import scipy.sparse as spp
 from helper import *
 import sys
 
-def zoSA(settings, x0=None, simple_l1=False):
+def zoSA(settings, x0=None, simple_l1=False, maxiter=-1):
     """ Zeroth-order sliding algorithm 
 
     Returns
@@ -46,8 +46,10 @@ def zoSA(settings, x0=None, simple_l1=False):
         return score1
 
     # print('x={} '.format(x_post))
-    print('gap={}'.format(f_eval(x) - fstar))
-    print('consensus={}\n'.format(consensus(x_post)/R))
+    print('gap={:.3e}'.format(f_eval(x) - fstar))
+    print('consensus={:.3e}\n'.format(consensus(x_post)/R))
+
+    total_inner_iters = 0
 
     for k in range(1,N+1):
         x_prev = x
@@ -91,12 +93,16 @@ def zoSA(settings, x0=None, simple_l1=False):
             x_post = (1.0-g_k)*(x_post) + g_k*(x)
 
         # print('x={} '.format(x_post))
-        print('gap={}'.format(f_eval(x_post) - fstar))
-        print('consensus={}\n'.format(consensus(x_post)/R))
+        print('gap={:.3e}'.format(f_eval(x_post) - fstar))
+        print('consensus={:.3e}\n'.format(consensus(x_post)/R))
         # print('||gradf||_2={:.4f}'.format(la.norm(df(x) + dh_k() + np.sign(x), ord=2)))
 
         if np.any(np.isnan(x_post)):
             print('\nExitted due to infinity\n')
+            break
+
+        total_inner_iters += T_k
+        if maxiter > 0 and total_inner_iters > maxiter:
             break
 
     return x_post
@@ -161,8 +167,8 @@ def prox_slide(df, H, l_h, h, dh, x, beta, T, k, settings):
         u = u_next
 
         u_est = (1.0-g_k)*(x_post) + g_k*(u_tilde)
-        print('in_gap={}'.format(f_eval(u_est) - fstar))
-        print('in_consensus={}'.format(cons(u_est)/R))
+        print('in_gap={:.3e}'.format(f_eval(u_est) - fstar))
+        print('in_consensus={:.3e}'.format(cons(u_est)/R))
 
     return [u, u_tilde]
 
@@ -326,4 +332,4 @@ N = const * int(((L*D/(nu*eps))**0.5 + 1))
 settings = { 'D': D, 'L': L, 'M': M, 'N': N, 'R': R, 'm': m, 'n': n, 'A': A, 'fstar': fstar, 'f': f_eval }
 ####### PARMETERS #########################
 
-xstar = zoSA(settings, x, simple_l1)
+xstar = zoSA(settings, x, simple_l1, maxiter=50000)

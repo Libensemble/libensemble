@@ -4,6 +4,7 @@ import scipy.sparse as spp
 # from sklearn.linear_model import LogisticRegression
 # import cvxopt 
 import cvxpy as cp
+import scipy.optimize as sciopt
 
 """
 Function definitions
@@ -326,6 +327,16 @@ def df_log(theta, X, y, reg=None):
         df = (1/m)*df + (2*c/m)*theta
     else:
         df = (1/m)*df + (c/m)*np.sign(theta)
+
+    return df
+
+def df_log_comb(theta, X, y, reg=None):
+    assert reg=='l2' or reg=='l1' or reg is None
+
+    d,m = X.shape
+    df_long = df_log(np.kron(np.ones(m), theta), X, y, reg)
+    DF = np.reshape(df_long, newshape=(m,d))
+    df = np.sum(DF, axis=0)
 
     return df
 
@@ -652,3 +663,18 @@ def readin_csv(fname):
     assert i==n, 'Expected {} datapoints, recorded'.format(n, i)
 
     return label, datas
+
+def optimize_blackbox(bbox):
+    """ Given a blackbox object (see ```pytest_interface.py'''), solves using
+        SciPy's optimizer 
+    """
+    eps = 1e-06
+    gtol = eps
+    n = 100
+    x0 = np.zeros(n)
+    res = sciopt.minimize(bbox.f, x0, jac=bbox.df, method="BFGS", tol=eps, options={'gtol': gtol, 'norm': 2, 'maxiter': None})
+
+    xstar = res.x
+    fstar = bbox.f(xstar)
+
+    return [fstar, xstar]

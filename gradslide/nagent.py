@@ -148,8 +148,10 @@ W = spp.kron(W, spp.eye(n)).toarray()
 Lap = spp.kron(A, spp.eye(n))
 
 eps = 0.1
-N_const = 1500
+N_const = 5000
 N = int(N_const / eps + 1)
+# TEMP
+N = min(N, 500000)
 ######## SETUP #################################
 
 s = np.zeros(len(x), dtype=float)
@@ -162,8 +164,9 @@ for k in range(1,N+1):
     x = np.dot(W, x-eta*s)
     g_prv = g
 
+    gap = f_eval(x) - fstar
     print('Iter {}/{}'.format(k, N))
-    print('gap={:.8e}'.format(f_eval(x) - fstar))
+    print('gap={:.8e}'.format(gap))
     print('consensus={:.3e}'.format(np.dot(x, Lap.dot(x))))
     # print('x={}'.format(x))
     # print('g={}\n'.format(g))
