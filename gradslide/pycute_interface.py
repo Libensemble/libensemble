@@ -115,8 +115,8 @@ class Blackbox:
 
     def setup_new_prob(self, seed_num):
         """ Setups problems (and resets scale) """
-        random.seed(seed_num)
-        self.idxs = random.choices(np.arange(self.num_probs), k=self.k)
+        np.random.seed(seed_num)
+        self.idxs = np.random.choice(np.arange(self.num_probs), size=self.k, replace=True)
         self.scale = 1
 
     def set_scale(self, scale=None):
