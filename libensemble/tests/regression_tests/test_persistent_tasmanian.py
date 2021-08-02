@@ -14,7 +14,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f, six_hump_camel_func
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_tasmanian import sparse_grid_batched as gen_f_batched
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
@@ -67,7 +67,7 @@ for run in range(2):
         gen_specs['user']['refinement'] = 'none'
 
     if run == 1:
-        # refer to the Tasmanian manual: https://ornl.github.io/TASMANIAN/stable/classTasGrid_1_1TasmanianSparseGrid.html
+        # See Tasmanian manual: https://ornl.github.io/TASMANIAN/stable/classTasGrid_1_1TasmanianSparseGrid.html
         gen_specs['user']['refinement'] = 'setAnisotropicRefinement'
         gen_specs['user']['sType'] = 'iptotal'
         gen_specs['user']['iMinGrowth'] = 10

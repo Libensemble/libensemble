@@ -4,9 +4,9 @@ A persistent generator using the uncertainty quantification capabilities in
 """
 
 import numpy as np
-import Tasmanian
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+
 
 def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     """
@@ -17,6 +17,9 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     """
     U = gen_specs['user']
     grid = U['grid']
+    allowed_refinements = ['setAnisotropicRefinement', 'setSurplusRefinement', 'none']
+    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
+        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 
     while grid.getNumNeeded() > 0:
         aPoints = grid.getNeededPoints()
@@ -52,6 +55,6 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
                 assert 'sCriteria' in U
                 grid.setSurplusRefinement(U['fTolerance'], U['iOutput'], U['sCriteria'])
             else:
-                pass # called with refinement = none (or some typo)
+                pass  # called with refinement = none (or some typo)
 
     return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG
