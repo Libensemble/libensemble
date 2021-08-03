@@ -2,7 +2,7 @@ __all__ = ['geomedian_eval']
 import numpy as np
 import numpy.linalg as la
 
-m = 2
+m = 3
 
 def EvaluateFunction(x, component):
     """
@@ -10,9 +10,9 @@ def EvaluateFunction(x, component):
     """
     assert 0 <= component <= m-1
     i = component
-    np.random.seed(i)
-    b_i = np.random.random(len(x))
-    # b_i = np.ones(len(x))
+    # np.random.seed(i)
+    # b_i = np.random.random(len(x))
+    b_i = np.zeros(len(x))
 
     f_i = 1.0/m * la.norm(x-b_i)
     return f_i
@@ -24,9 +24,9 @@ def EvaluateJacobian(x, component):
     assert 0 <= component <= m-1
     i = component
 
-    np.random.seed(i)
-    b_i = np.random.random(len(x))
-    # b_i = np.ones(len(x))
+    # np.random.seed(i)
+    # b_i = np.random.random(len(x))
+    b_i = np.zeros(len(x))
 
     df_i = 1.0/m * (x-b_i)/la.norm(x-b_i)
     return df_i

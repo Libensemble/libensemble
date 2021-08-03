@@ -16,26 +16,43 @@
 
 import sys
 import numpy as np
+import numpy.linalg as la
+import scipy.sparse as spp
 
 from libensemble.libE import libE
 # from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
-# from libensemble.sim_funcs.geomedian import geomedian_eval as sim_f
+from libensemble.sim_funcs.geomedian import geomedian_eval as sim_f
 # from libensemble.sim_funcs.convex_funnel import convex_funnel_eval as sim_f
 # from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval as sim_f
-from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
-from libensemble.alloc_funcs.start_persistent_prox_slide import start_proxslide_persistent_gens as alloc_f
+# from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
+from libensemble.gen_funcs.persistent_prox_slide2 import opt_slide as gen_f
+from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
+
+def get_k_reach_chain_matrix(n, k):
+    """ Constructs adjacency matrix for a chain matrix where the ith vertex can
+        reach vertices that are at most @k distances from them (does not wrap around),
+        where the distance is based on the absoluate difference between vertices'
+        indexes.
+    """
+    assert 1 <= k <= n-1
+
+    half_of_diagonals = [np.ones(n-k+j) for j in range(k)]
+    half_of_indices = np.arange(1,k+1)
+    all_of_diagonals = half_of_diagonals + half_of_diagonals[::-1]
+    all_of_indices = np.append(-half_of_indices[::-1], half_of_indices)
+    A = spp.csr_matrix( spp.diags(all_of_diagonals, all_of_indices) )
+    return A
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 2  # must match with m in sim_f
-n = 4
-num_gens = 2
+m = 3  # must match with m in sim_f
+n = 8
+num_gens = 3
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component', 'get_grad'],
@@ -46,41 +63,42 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,)), 
-                     ('pt_id', int),          # id of point's group/set 
+                     ('f_i', float),
+                     ('eval_pt', bool),       # eval point 
                      ('consensus_pt', bool),  # does not require a sim
                      ('obj_component', int),  # which {f_i} to eval
                      ('get_grad', bool),
                      ],
              'user': {
-                      # 'lb' : -np.ones(n),
-                      # 'ub' : np.ones(n),
-                      'lb' : np.array([-1.2,1]*(n//2)),
-                      'ub' : np.array([-1.2,1]*(n//2)),
+                      'lb' : -np.ones(n),
+                      'ub' : np.ones(n),
                       }
              }
 
+# TODO: Do we need ret_to_gen?
 alloc_specs = {'alloc_f': alloc_f, 
-               'out'    : [('ret_to_gen', bool)], # whether point has been returned to gen
+               'out'    : [], 
                'user'   : {'m': m,
                            'num_gens': num_gens 
                            },
                }
 
-persis_info = {}
-persis_info['last_H_len'] = 0
-persis_info['next_to_give'] = 0
-persis_info['hyperparams'] = {
-                'M': 1,   # upper bound on gradient
-                'R': 10**2, # consensus penalty
-                'nu': 1,    # modulus of strongly convex DGF 
-                'eps': 0.1, # error / tolerance
-                'D_X': 4*n, # diameter of domain
-                'L_const': 1, # how much to scale Lipschitz constant
-                'N_const': 5, # multiplicative constant on numiters
-                }
+k = 1
+A = spp.diags([1,2,1])  - get_k_reach_chain_matrix(m,k)
+lam_max = np.amax(la.eig(A.toarray())[0])
 
-# local min? [0.50990745 0.28356471 0.09683776]
-# hypothesis: things turn awry if finds local minima 
+persis_info = {}
+persis_info['print_progress'] = 1
+persis_info['A'] = A
+persis_info['params'] = {
+                'M': 1,       # upper bound on gradient
+                'R': 10**2,   # consensus penalty
+                'nu': 1,      # modulus of strongly convex DGF 
+                'eps': 0.1,   # error / tolerance
+                'D': 2*n,     # diameter of domain
+                'N_const': 4, # multiplicative constant on numiters
+                'lam_max': lam_max # ||A \otimes I||_2 = ||A||_2
+                }
 
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
@@ -93,10 +111,3 @@ libE_specs['safe_mode'] = False
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
-if is_manager:
-    pass
-    # print and save data (don't do that for now)
-
-    # assert len(np.unique(H['gen_time'])) == 10
-
-    # save_libE_output(H, persis_info, __file__, nworkers)
