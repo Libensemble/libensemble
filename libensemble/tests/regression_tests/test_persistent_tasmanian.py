@@ -42,13 +42,13 @@ gen_specs = {'gen_f': gen_f_batched,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
-for run in range(2):
+for run in range(3):
     # testing two cases, static construction without refinement
     # and refinement until 100 points have been computed
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     # set the stopping criteria
-    if run == 0:
+    if run != 1:
         # note that using 'setAnisotropicRefinement' without 'gen_max' will create an infinite loop
         # other stopping criteria could be used with 'setSurplusRefinement' or no refinement
         exit_criteria = {'elapsed_wallclock_time': 10}
@@ -56,7 +56,12 @@ for run in range(2):
         exit_criteria = {'gen_max': 100}  # This will test persistent_tasmanian stopping early.
 
     # create a sparse grid, will be used only in the persistent generator rank
-    grid = Tasmanian.makeGlobalGrid(num_dimensions, 1, 6, "iptotal", "clenshaw-curtis")
+    if run < 2:
+        # tests the cases of anisotropic refinement and no refinement
+        grid = Tasmanian.makeGlobalGrid(num_dimensions, 1, 6, "iptotal", "clenshaw-curtis")
+    else:
+        # tests the surplus refinement
+        grid = Tasmanian.makeLocalPolynomialGrid(num_dimensions, 1, 3)
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     gen_specs['user'] = {'grid': grid,
                          'tasmanian_checkpoint_file': 'tasmanian{0}.grid'.format(run)
@@ -71,6 +76,12 @@ for run in range(2):
         gen_specs['user']['refinement'] = 'setAnisotropicRefinement'
         gen_specs['user']['sType'] = 'iptotal'
         gen_specs['user']['iMinGrowth'] = 10
+        gen_specs['user']['iOutput'] = 0
+
+    if run == 2:
+        gen_specs['user']['refinement'] = 'setSurplusRefinement'
+        gen_specs['user']['fTolerance'] = 1.E-2
+        gen_specs['user']['sCriteria'] = 'classic'
         gen_specs['user']['iOutput'] = 0
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
@@ -93,3 +104,7 @@ for run in range(2):
         if run == 1:
             assert grid.getNumNeeded() == 0, "Correctly stopped without completing the refinement"
             assert grid.getNumLoaded() == 89, "Correctly loaded all points"
+
+        if run == 2:
+            assert grid.getNumNeeded() == 0, "Correctly stopped after completing the refinement"
+            assert grid.getNumLoaded() == 93, "Correctly loaded all points"

@@ -54,7 +54,5 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
                 assert 'iOutput' in U
                 assert 'sCriteria' in U
                 grid.setSurplusRefinement(U['fTolerance'], U['iOutput'], U['sCriteria'])
-            else:
-                pass  # called with refinement = none (or some typo)
 
     return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG
