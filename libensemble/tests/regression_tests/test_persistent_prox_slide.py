@@ -29,21 +29,7 @@ from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
 from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
-
-def get_k_reach_chain_matrix(n, k):
-    """ Constructs adjacency matrix for a chain matrix where the ith vertex can
-        reach vertices that are at most @k distances from them (does not wrap around),
-        where the distance is based on the absoluate difference between vertices'
-        indexes.
-    """
-    assert 1 <= k <= n-1
-
-    half_of_diagonals = [np.ones(n-k+j) for j in range(k)]
-    half_of_indices = np.arange(1,k+1)
-    all_of_diagonals = half_of_diagonals + half_of_diagonals[::-1]
-    all_of_indices = np.append(-half_of_indices[::-1], half_of_indices)
-    A = spp.csr_matrix( spp.diags(all_of_diagonals, all_of_indices) )
-    return A
+from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -52,7 +38,7 @@ if nworkers < 2:
 
 m = 10  # must match with m in sim_f
 n = 10
-num_gens = 3
+num_gens = 2
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component', 'get_grad'],
@@ -84,7 +70,7 @@ alloc_specs = {'alloc_f': alloc_f,
                }
 
 k = 1
-A = spp.diags([1,2,1])  - get_k_reach_chain_matrix(num_gens,k)
+A = spp.eye(2)  - get_k_reach_chain_matrix(num_gens,k)
 lam_max = np.amax(la.eig(A.toarray())[0])
 
 persis_info = {}

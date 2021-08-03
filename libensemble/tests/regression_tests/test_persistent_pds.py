@@ -25,33 +25,19 @@ from libensemble.libE import libE
 # from libensemble.sim_funcs.convex_funnel import convex_funnel_eval as sim_f
 # from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval as sim_f
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.gen_funcs.persistent_pds_slide import opt_slide as gen_f
+from libensemble.gen_funcs.persistent_pds import opt_slide as gen_f
 from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
-
-def get_k_reach_chain_matrix(n, k):
-    """ Constructs adjacency matrix for a chain matrix where the ith vertex can
-        reach vertices that are at most @k distances from them (does not wrap around),
-        where the distance is based on the absoluate difference between vertices'
-        indexes.
-    """
-    assert 1 <= k <= n-1
-
-    half_of_diagonals = [np.ones(n-k+j) for j in range(k)]
-    half_of_indices = np.arange(1,k+1)
-    all_of_diagonals = half_of_diagonals + half_of_diagonals[::-1]
-    all_of_indices = np.append(-half_of_indices[::-1], half_of_indices)
-    A = spp.csr_matrix( spp.diags(all_of_diagonals, all_of_indices) )
-    return A
+from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-m = 6  # must match with m in sim_f
-n = 12
+m = 2  # must match with m in sim_f
+n = 4
 num_gens = 2
 
 sim_specs = {'sim_f': sim_f,
@@ -94,7 +80,7 @@ persis_info['params'] = {
                 'mu': 0,      # strong convexity term
                 'L': 1,       # Lipschitz smoothness
                 'Vx_0x': 0.5*n**0.5, # Bregman divergence of x_0 and x_*
-                'eps': 1e-3,   # error / tolerance
+                'eps': 25e-5,   # error / tolerance
                 'A_norm': lam_max # ||A \otimes I||_2 = ||A||_2
                 }
 

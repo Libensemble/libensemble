@@ -3,7 +3,7 @@ import numpy.linalg as la
 import scipy.sparse as spp
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_consensus_gradient
 
 def opt_slide(H, persis_info, gen_specs, libE_info):
     """ Gradient sliding. Coordinates with alloc to do local and distributed 
@@ -18,15 +18,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     lb = gen_specs['user']['lb']
     n = len(ub)
 
-    f_i_idxs    = persis_info['f_i_idxs']
-    A_i_data    = persis_info['A_i_data']
-    A_i_gen_ids = persis_info['A_i_gen_ids']
-    # sort A_i to be increasing gen_id
-    _perm_ids = np.argsort(A_i_gen_ids)
-    A_i_weights = A_i_data[_perm_ids]
-    A_i_gen_ids = A_i_gen_ids[_perm_ids]
-    A_i_gen_ids_no_local = np.delete(A_i_gen_ids, \
-                                     np.where(A_i_gen_ids==local_gen_id)[0][0])
+    f_i_idxs = persis_info['f_i_idxs']
 
     # start with random x_0
     x_0 = persis_info['rand_stream'].uniform(low=lb, high=ub, size=(n,)) 
@@ -85,9 +77,6 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
                     'k': k,
                     'prev_b_k': prev_b_k,
                     'prev_T_k': prev_T_k,
-                    'local_gen_id': local_gen_id,
-                    'A_weights': A_i_weights,
-                    'A_gen_ids_no_local': A_i_gen_ids_no_local,
                     }
 
         [x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k, 
@@ -97,16 +86,14 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
                                                    settings,
                                                    gen_specs, libE_info)
 
-        prevprev_x_k = prev_x_k
+        prevprev_x_k  = prev_x_k
         prev_x_k      = x_k
         prev_x_hk     = x_hk
         prev_penult_k = x_k_1 # penultimate x_k^{(i)}
-        # FORGOT THIS LINE
         prev_z_k      = z_k
         prev_b_k      = b_k
         prev_T_k      = T_k
-        # NEW (this was the issue...)
-        prev_x_uk = x_uk
+        prev_x_uk     = x_uk
 
         weighted_x_hk_sum += b_k * x_hk
         b_k_sum += b_k
@@ -135,9 +122,6 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings, gen_specs, libE_info):
     k   = settings['k']
     prev_b_k = settings['prev_b_k']
     prev_T_k = settings['prev_T_k']
-    local_gen_id       = settings['local_gen_id'] 
-    A_weights          = settings['A_weights']
-    A_gen_ids_no_local = settings['A_gen_ids_no_local']
 
     x_k_1 = x_curr.copy()
     xsum = np.zeros(len(x_curr), dtype=float)
@@ -154,15 +138,11 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings, gen_specs, libE_info):
         u_t = x_curr + a_t * (x_curr - x_prev)
 
         # compute first argmin
-        U_ts = get_neighbor_vals(u_t, local_gen_id, A_gen_ids_no_local, 
-                                 gen_specs, libE_info)
-        Lu_t = np.dot(U_ts.T, A_weights)
+        Lu_t = get_consensus_gradient(u_t, gen_specs, libE_info)
         z_t = z_t + (1.0/q_t) * Lu_t
 
         # computes second argmin
-        Z_ts = get_neighbor_vals(z_t, local_gen_id, A_gen_ids_no_local, 
-                                 gen_specs, libE_info)
-        Lz_t = np.dot(Z_ts.T, A_weights)
+        Lz_t = get_consensus_gradient(z_t, gen_specs, libE_info)
         x_next = (eta_t*x_curr) + (p_k*x_k_1) - (y_k + Lz_t)
         x_next /= (eta_t + p_k)
 
@@ -179,87 +159,3 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings, gen_specs, libE_info):
 
     return [x_k, x_k_1, z_k, x_hk]
 
-def print_final_score(x, f_i_idxs, gen_specs, libE_info):
-
-   # evaluate { f_i(x) } first
-   l = len(f_i_idxs)
-   H_o = np.zeros(l, dtype=gen_specs['out'])
-   H_o['x'][:] = x
-   H_o['consensus_pt'][:] = False
-   H_o['obj_component'][:] = f_i_idxs
-   H_o['get_grad'][:] = False
-   H_o = np.reshape(H_o, newshape=(-1,))      
-
-   tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-   f_is = calc_in['f_i']
-   F_i  = np.sum(f_is)
-
-   # get alloc to print sum of f_i
-   H_o = np.zeros(1, dtype=gen_specs['out'])
-   H_o['x'][0] = x
-   H_o['f_i'][0] = F_i
-   H_o['eval_pt'][0] = True
-   H_o['consensus_pt'][0] = True
-
-   sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-
-def get_grad(x, f_i_idxs, gen_specs, libE_info):
-    l = len(f_i_idxs)
-    H_o = np.zeros(l, dtype=gen_specs['out'])
-    H_o['x'][:] = x
-    H_o['consensus_pt'][:] = False
-    H_o['obj_component'][:] = f_i_idxs
-    H_o['get_grad'][:] = True
-    H_o = np.reshape(H_o, newshape=(-1,))      # unfold into 1d array
-
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-
-    gradf_is = calc_in['gradf_i']
-    gradf    = np.sum(gradf_is, axis=0)
-
-    return gradf
-
-def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info):
-    """ Sends local gen data (@x) and retrieves neighbors local data.
-        Sorts the data so the gen ids are in increasing order
-
-    Parameters
-    ----------
-    x : np.ndarray
-        - local input variable
-
-    local_gen_id : int
-        - this gen's gen_id
-
-    A_gen_ids_local : int
-        - expected neighbor's gen ids, not including local gen id
-
-    gen_specs, libE_info : ?
-        - objects to communicate and construct mini History array
-
-    Returns
-    -------
-    X : np.ndarray 
-        - 2D array of neighbors and local x values sorted by gen_ids
-    """
-    H_o = np.zeros(1, dtype=gen_specs['out'])
-    H_o['x'][0] = x
-    H_o['consensus_pt'][0] = True
-
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-
-    neighbor_X = calc_in['x']
-    neighbor_gen_ids = calc_in['gen_worker']
-
-    assert local_gen_id not in neighbor_gen_ids, 'Local data should not be ' + \
-                                                 'sent back from manager'
-    assert np.array_equal(A_gen_ids_no_local, neighbor_gen_ids),'Expected ' + \
-                'gen_ids {}, received {}'.format(A_gen_ids, gen_ids)
-
-    X = np.vstack((neighbor_X, x))
-    gen_ids = np.append(neighbor_gen_ids, local_gen_id)
-
-    # sort data (including local) in corresponding gen_id increasing order
-    X[:] = X[np.argsort(gen_ids)]
-
-    return X

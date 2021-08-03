@@ -3,7 +3,7 @@ import numpy.linalg as la
 import scipy.sparse as spp
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_consensus_gradient
 
 def opt_slide(H, persis_info, gen_specs, libE_info):
     """ Gradient sliding. Coordinates with alloc to do local and distributed 
@@ -48,19 +48,11 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
         pre_x_k = (1.0 - g_k) * post_x_k + (g_k * x_k)
 
-        H_o = np.zeros(1, dtype=gen_specs['out'])
-        H_o['x'][0] = pre_x_k
-        H_o['consensus_pt'][0] = True
+        Lx_k = get_consensus_gradient(pre_x_k, gen_specs, libE_info)
+        gradg = 2*R*Lx_k
 
         if print_progress and gen_id==1:
             print('[{}/{}]: {} inner iters'.format(k, N, T_k), flush=True)
-
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-
-        # compute consensus step, i.e., take linear combination of neighbors
-        neighbors_pre_x_k = calc_in['x']
-        num_neighbors = len(neighbors_pre_x_k)
-        gradg = 2*R * ( num_neighbors * pre_x_k - np.sum(neighbors_pre_x_k, axis=0) )
         _x_k = x_k.copy()
         x_k, x2_k = PS(_x_k, gradg, b_k, T_k, f_i_idxs, gen_specs, libE_info, pre_x_k, persis_info['worker_num'])
 
@@ -88,28 +80,10 @@ def PS(x, gradg, beta, T, f_i_idxs, gen_specs, libE_info, pre_x_k, wid):
     l = len(f_i_idxs)
 
     for t in range(1,T+1):
-
-        # request grad_u f(u_{t-1})
-        H_o = np.zeros(l, dtype=gen_specs['out'])
-        H_o['x'][:] = u
-        H_o['consensus_pt'][:] = False
-        H_o['obj_component'][:] = f_i_idxs
-        H_o['get_grad'][:] = True
-        # unfold into 1d array
-        H_o = np.reshape(H_o, newshape=(-1,))      
-
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-
-        if tag in [STOP_TAG, PERSIS_STOP]:
-            return None, None
-
         p_t = t/2.0
         theta_t = 2.0*(t+1)/(t * (t+3))
 
-        # add gradients since we have sum of convex functions
-
-        gradf_is = calc_in['gradf_i']
-        gradf    = np.sum(gradf_is, axis=0)
+        gradf = get_grad(u, f_i_idxs, gen_specs, libE_info)
 
         u_next = get_l2_argmin(x, u, gradf, gradg, beta, p_t)
         u = u_next
@@ -123,6 +97,7 @@ def get_l2_argmin(x, u_prev, gradf, gradg, beta, p_t):
     return u_next
     
     """
+    # Projection
     # X={ x : |x| <= 2\sqrt{n} }
     n = len(x)
     u_norm = la.norm(u_next, ord=2)
@@ -143,28 +118,3 @@ def get_entropy_argmin(x, u, gradf, gradg, beta, p_t):
     u_next = np.exp( const + dyn )
 
     return u_next
-
-def print_final_score(x, f_i_idxs, gen_specs, libE_info):
-
-   # evaluate { f_i(x) } first
-   l = len(f_i_idxs)
-   H_o = np.zeros(l, dtype=gen_specs['out'])
-   H_o['x'][:] = x
-   H_o['consensus_pt'][:] = False
-   H_o['obj_component'][:] = f_i_idxs
-   H_o['get_grad'][:] = False
-   H_o = np.reshape(H_o, newshape=(-1,))      
-
-   tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-   f_is = calc_in['f_i']
-   F_i  = np.sum(f_is)
-
-   # get alloc to print sum of f_i
-   H_o = np.zeros(1, dtype=gen_specs['out'])
-   H_o['x'][0] = x
-   H_o['f_i'][0] = F_i
-   H_o['eval_pt'][0] = True
-   H_o['consensus_pt'][0] = True
-
-   tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-

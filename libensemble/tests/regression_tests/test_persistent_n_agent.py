@@ -16,6 +16,7 @@ from libensemble.gen_funcs.persistent_n_agent import n_agent as gen_f
 from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
+from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, get_doubly_stochastic
 
 """
 # Runs libEnsemble on the 6-hump camel problem. Documented here:
@@ -28,53 +29,6 @@ from libensemble.tests.regression_tests.support import persis_info_3 as persis_i
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
-
-def get_k_reach_chain_matrix(n, k):
-    """ Constructs adjacency matrix for a chain matrix where the ith vertex can
-        reach vertices that are at most @k distances from them (does not wrap around),
-        where the distance is based on the absoluate difference between vertices'
-        indexes.
-    """
-    assert 1 <= k <= n-1
-
-    half_of_diagonals = [np.ones(n-k+j) for j in range(k)]
-    half_of_indices = np.arange(1,k+1)
-    all_of_diagonals = half_of_diagonals + half_of_diagonals[::-1]
-    all_of_indices = np.append(-half_of_indices[::-1], half_of_indices)
-    A = spp.csr_matrix( spp.diags(all_of_diagonals, all_of_indices) )
-    return A
-
-def get_doubly_stochastic(A):
-    """ Generates a doubly stochastic matrix where
-    (i) S_ii > 0 for all i
-    (ii) S_ij > 0 if and only if (i,j) \in E
-
-    Parameter
-    ---------
-    A : np.ndarray
-        - adjacency matrix
-
-    Returns
-    -------
-    x : scipy.sparse.csr_matrix
-    """
-    np.random.seed(0)
-    n = A.shape[0]
-    x = np.multiply( A.toarray() != 0,  np.random.random((n,n)))
-    x = x + np.diag(np.random.random(n) + 1e-4)
-
-    rsum = np.zeros(n)
-    csum = np.zeros(n)
-    tol=1e-15
-
-    while (np.any(np.abs(rsum - 1) > tol)) | (np.any(np.abs(csum - 1) > tol)):
-        x = x / x.sum(0)
-        x = x / x.sum(1)[:, np.newaxis]
-        rsum = x.sum(1)
-        csum = x.sum(0)
-
-    X = spp.csr_matrix(x)
-    return X
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -117,7 +71,6 @@ alloc_specs = {'alloc_f': alloc_f,
 
 A = get_k_reach_chain_matrix(num_gens, 1)
 S = get_doubly_stochastic(A)
-print('Doubly stochastic matrix:\n{}'.format(S.toarray()), flush=True)
 
 rho = la.norm(S - (n**-1)*np.ones(S.shape), ord=2)
 
