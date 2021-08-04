@@ -36,10 +36,6 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     prevprev_x_k = x_0.copy()
     prev_penult_k= x_0.copy()
 
-    print_progress = True
-    if print_progress:
-        print('[{}]: x={}'.format(local_gen_id, x_0), flush=True)
-
     mu     = persis_info['params']['mu']
     L      = persis_info['params']['L']
     A_norm = persis_info['params']['A_norm']
@@ -56,6 +52,11 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
     prev_b_k = 0
     prev_T_k = 0
+
+    if local_gen_id == 1:
+        print('[{}%]: '.format(0), flush=True, end='')
+    print_final_score(prev_x_k, f_i_idxs, gen_specs, libE_info)
+    percent = 0.1
 
     for k in range(1,N+1):
         tau_k = (k-1)/2
@@ -102,15 +103,14 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         weighted_x_hk_sum += b_k * x_hk
         b_k_sum += b_k
 
-        if print_progress:
+        if k/N>=percent:
             curr_x_star = 1.0/b_k_sum * weighted_x_hk_sum
-            print('[{}]: x={}'.format(local_gen_id, curr_x_star), flush=True)
+            if local_gen_id == 1:
+                print('[{}%]: '.format(int(percent*100)), flush=True, end='')
+            percent += 0.1
+            print_final_score(curr_x_star, f_i_idxs, gen_specs, libE_info)
 
     x_star = 1.0/b_k_sum * weighted_x_hk_sum
-
-    if print_progress:
-        print('[{}]: x={}'.format(local_gen_id, x_star))
-        print_final_score(x_star, f_i_idxs, gen_specs, libE_info)
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 

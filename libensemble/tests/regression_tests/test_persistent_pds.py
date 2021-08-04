@@ -18,11 +18,10 @@ import sys
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
+import scipy.optimize as sciopt
 
 from libensemble.libE import libE
-# from libensemble.sim_funcs.chwirut2 import chwirut_eval as sim_f
 from libensemble.sim_funcs.geomedian import geomedian_eval as sim_f
-# from libensemble.sim_funcs.convex_funnel import convex_funnel_eval as sim_f
 # from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval as sim_f
 # from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 # from libensemble.sim_funcs.linear_regression import linear_regression_eval as sim_f
@@ -48,7 +47,6 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f_i', float), ('gradf_i', float, (n,))],
              }
 
-# lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,)), 
@@ -77,6 +75,7 @@ A = spp.diags([1,2,2,1]) - get_k_reach_chain_matrix(num_gens,k)
 lam_max = np.amax(la.eig(A.toarray())[0])
 np.random.seed(0)
 
+"""
 if True: # linear regression
     X = np.array([np.random.normal(loc=0, scale=1.0, size=n) for _ in range(m)]).T
     y = np.dot(X.T, np.ones(n)) + np.cos(np.dot(X.T, np.ones(n))) + np.random.normal(loc=0, scale=0.25, size=m)
@@ -94,9 +93,9 @@ if True: # logistic regression
         XXT_sum += np.outer(X[:,i],X[:,i])
     eig_max = np.amax(la.eig(XXT_sum)[0].real)
     L = eig_max/m
+"""
 if True: # geometric median
     B = np.random.random((m,n))
-    B = np.ones((m,n))
     L = 1
 
     def df(x,i):
@@ -106,26 +105,65 @@ if True: # geometric median
     def f(x,i):
         return (1/m)*la.norm(x-B[i])
 
+eps = 2e-2
 persis_info = {}
 persis_info['print_progress'] = 0
 persis_info['A'] = A
+
+# Include @f_i_eval and @df_i_eval if we want to compute gradient in gen
 persis_info['gen_params'] = {
                 'mu': 0,      # strong convexity term
                 'L': L,       # Lipschitz smoothness
-                'Vx_0x': 0.5*n**0.5, # Bregman divergence of x_0 and x_*
-                'eps': 1e-3,   # error / tolerance
+                'Vx_0x': n**0.5, # Bregman divergence of x_0 and x_*
+                'eps': eps,   # error / tolerance
                 'A_norm': lam_max, # ||A \otimes I||_2 = ||A||_2
-                'f_i_eval': f,
-                'df_i_eval': df
+                # 'f_i_eval': f,
+                # 'df_i_eval': df
                 }
 # persis_info['sim_params'] = { 'X': X, 'y': y, 'c': c }
 persis_info['sim_params'] = { 'B': B }
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 600}
+exit_criteria = {'elapsed_wallclock_time': 300}
 
 # Perform the run
 libE_specs['safe_mode'] = False
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
+if is_manager:
+    # check we have a Laplacian matrix
+    assert la.norm(A.dot(np.zeros(A.shape[1]))) < 1e-15, 'Not a Laplacian matrix'
+
+    # check we completed
+    assert flag == 0
+
+    # compoile sum of {f_i} and {x}, and check their values are bounded by O(eps)
+    eval_H = H[H['eval_pt']]
+    x = np.empty(n*num_gens, dtype=float)
+    F = 0
+
+    gen_ids = np.unique(eval_H['gen_worker'])
+    assert len(gen_ids) == num_gens
+
+    for i,gen_id in enumerate(gen_ids):
+        last_eval_idx = np.where(eval_H['gen_worker']==gen_id)[0][-1]
+
+        f_i = eval_H[last_eval_idx]['f_i']
+        x_i = eval_H[last_eval_idx]['x']
+
+        F += f_i
+        x[i*n:(i+1)*n] = x_i
+
+    A_kron_I = spp.kron(A, spp.eye(n))
+    consensus_val = np.dot(x, A_kron_I.dot(x))
+
+    # Get fstar
+    gtol = eps
+    def f_single(x):  return np.sum([f(x,i) for i in range(m)])
+    def df_single(x): return np.sum([df(x,i) for i in range(m)], axis=0)
+    res = sciopt.minimize(f_single, np.zeros(n), jac=df_single, method="BFGS", tol=eps, options={'gtol': gtol, 'norm': 2, 'maxiter': None})
+    fstar = f_single(res.x)
+
+    assert F-fstar < 10*eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(F-fstar, 10*eps, fstar)
+    assert consensus_val < eps, 'Consensus score of {:.4e}, expected {:.4e}'.format(consensus_val, eps)
