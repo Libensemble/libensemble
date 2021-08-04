@@ -1,6 +1,6 @@
 import numpy as np
 
-const = 10
+const = 1000
 
 def EvaluateFunction(x, component=np.nan):
     """
@@ -21,7 +21,7 @@ def EvaluateFunction(x, component=np.nan):
         x2 = x[2*i+1]
         f = 100 * (x1**2 - x2)**2 + (x1-1)**2
 
-    return 1.0/const * f
+    return f
 
 def EvaluateJacobian(x, component=np.nan):
     """
