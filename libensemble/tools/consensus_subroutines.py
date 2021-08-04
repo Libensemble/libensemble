@@ -43,6 +43,13 @@ def get_grad(x, f_i_idxs, gen_specs, libE_info):
 
     return gradf
 
+def get_grad_locally(x, f_i_idxs, df):
+    gradf = np.zeros(len(x), dtype=float)
+    for i in f_i_idxs:
+        gradf += df(x, i)
+
+    return gradf
+
 def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info):
     """ Sends local gen data (@x) and retrieves neighbors local data.
         Sorts the data so the gen ids are in increasing order
@@ -104,8 +111,8 @@ def get_consensus_gradient(x, gen_specs, libE_info):
 
     Returns
     -------
-    X : np.ndarray 
-        - 2D array of neighbors and local x values sorted by gen_ids
+     : np.ndarray 
+        - Returns this node's corresponding gradient of consensus 
     """
     H_o = np.zeros(1, dtype=gen_specs['out'])
     H_o['x'][0] = x
@@ -164,4 +171,40 @@ def get_doubly_stochastic(A):
 
     X = spp.csr_matrix(x)
     return X
+
+def get_er_graph(n,p,seed=-1):
+    """ Generates Erdos-Reyni random graph """
+
+    p_control = (1.05*np.log(n)/np.log(2))/n
+    if p < p_control:
+        print('{} < {:.4f}; Unlikely graph will be connected...'.format(p, p_control))
+
+    A = np.zeros((n,n), dtype=int)
+
+    if seed >= 0:
+        np.random.seed(seed)
+
+    for i in range(n):
+        for j in range(i):
+            if np.random.random() < p:
+                A[i,j] = 1
+    A = A + A.T
+    d = np.sum(A, axis=0)
+    L = np.diag(d) - A
+
+    assert la.norm(np.dot(L, np.ones(n))) < 1e-15
+
+    x = np.append(1, np.zeros(n-1))
+    niters = int(np.log(n)/np.log(2)+1)
+    # Breadth first search
+    for _ in range(niters):
+        x = x + np.dot(A, x)
+        x = (x != 0).astype('int')
+    is_connected = np.count_nonzero(x) == n
+
+    assert is_connected, 'Graph must be connected, increase either @m or @p'
+
+    # print('Graph is {}connected'.format('' if is_connected else 'dis'))
+
+    return spp.csr_matrix(L)
 

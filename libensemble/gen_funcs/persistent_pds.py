@@ -3,7 +3,7 @@ import numpy.linalg as la
 import scipy.sparse as spp
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_consensus_gradient
+from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_consensus_gradient, get_grad_locally
 
 def opt_slide(H, persis_info, gen_specs, libE_info):
     """ Gradient sliding. Coordinates with alloc to do local and distributed 
@@ -40,12 +40,13 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     if print_progress:
         print('[{}]: x={}'.format(local_gen_id, x_0), flush=True)
 
-    # TODO: define variables
     mu     = persis_info['params']['mu']
     L      = persis_info['params']['L']
     A_norm = persis_info['params']['A_norm']
     Vx_0x  = persis_info['params']['Vx_0x']
     eps    = persis_info['params']['eps']
+    f_i_eval  = persis_info['params'].get('f_i_eval', None)
+    df_i_eval = persis_info['params'].get('df_i_eval', None)
 
     R = 1.0/(4 * (Vx_0x)**0.5)
     N = int(4 * (L*Vx_0x/eps)**0.5 + 1)
@@ -66,7 +67,10 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         x_tk = prev_x_k + lam_k*(prev_x_hk - prevprev_x_k)
         x_uk = (x_tk + tau_k*prev_x_uk)/(1+tau_k)
 
-        y_k = get_grad(x_uk, f_i_idxs, gen_specs, libE_info)
+        if f_i_eval is not None:
+            y_k = get_grad_locally(x_uk, f_i_idxs, df_i_eval)
+        else:
+            y_k = get_grad(x_uk, f_i_idxs, gen_specs, libE_info)
 
         settings = {'T_k': T_k, 
                     'b_k': k, 

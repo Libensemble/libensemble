@@ -40,8 +40,8 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 m = 10
-n = 9
-num_gens = 2
+n = 100
+num_gens = 4
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component', 'get_grad'],
@@ -73,7 +73,7 @@ alloc_specs = {'alloc_f': alloc_f,
 
 # Problem definition
 k = 1
-A = spp.diags([1,1]) - get_k_reach_chain_matrix(num_gens,k)
+A = spp.diags([1,2,2,1]) - get_k_reach_chain_matrix(num_gens,k)
 lam_max = np.amax(la.eig(A.toarray())[0])
 np.random.seed(0)
 
@@ -99,6 +99,13 @@ if True: # geometric median
     B = np.ones((m,n))
     L = 1
 
+    def df(x,i):
+        b_i = B[i]
+        z = x-b_i
+        return (1/m)*z/la.norm(z)
+    def f(x,i):
+        return (1/m)*la.norm(x-B[i])
+
 persis_info = {}
 persis_info['print_progress'] = 0
 persis_info['A'] = A
@@ -107,7 +114,9 @@ persis_info['gen_params'] = {
                 'L': L,       # Lipschitz smoothness
                 'Vx_0x': 0.5*n**0.5, # Bregman divergence of x_0 and x_*
                 'eps': 1e-3,   # error / tolerance
-                'A_norm': lam_max # ||A \otimes I||_2 = ||A||_2
+                'A_norm': lam_max, # ||A \otimes I||_2 = ||A||_2
+                'f_i_eval': f,
+                'df_i_eval': df
                 }
 # persis_info['sim_params'] = { 'X': X, 'y': y, 'c': c }
 persis_info['sim_params'] = { 'B': B }
