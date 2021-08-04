@@ -37,6 +37,8 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+if nworkers < 5:
+    sys.exit('This tests requires at least 5 workers (6 MPI processes)...')
 
 m = 10
 n = 100
@@ -117,8 +119,8 @@ persis_info['gen_params'] = {
                 'Vx_0x': n**0.5, # Bregman divergence of x_0 and x_*
                 'eps': eps,   # error / tolerance
                 'A_norm': lam_max, # ||A \otimes I||_2 = ||A||_2
-                # 'f_i_eval': f,
-                # 'df_i_eval': df
+                'f_i_eval': f,
+                'df_i_eval': df
                 }
 # persis_info['sim_params'] = { 'X': X, 'y': y, 'c': c }
 persis_info['sim_params'] = { 'B': B }
