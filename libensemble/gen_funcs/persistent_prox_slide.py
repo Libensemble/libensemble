@@ -3,7 +3,7 @@ import numpy.linalg as la
 import scipy.sparse as spp
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_consensus_gradient
+from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_consensus_gradient, get_grad_locally
 
 def opt_slide(H, persis_info, gen_specs, libE_info):
     """ Gradient sliding. Coordinates with alloc to do local and distributed 
@@ -11,7 +11,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     """
     # Send batches until manager sends stop tag
     tag = None
-    gen_id = persis_info['worker_num']
+    local_gen_id = persis_info['worker_num']
     # each gen has unique interal id
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
@@ -23,10 +23,6 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     x_k = x0
     post_x_k = x0
 
-    print_progress = True
-    if print_progress:
-        print('[{}]: x={}'.format(gen_id, x_k), flush=True)
-
     # define variables
     M       = persis_info['params']['M']
     R       = persis_info['params']['R']
@@ -35,11 +31,18 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     D       = persis_info['params']['D']
     N_const = persis_info['params']['N_const']
     lam_max = persis_info['params']['lam_max']
+    f_i_eval  = persis_info['params'].get('f_i_eval', None)
+    df_i_eval = persis_info['params'].get('df_i_eval', None)
 
     L = 2*R*lam_max
     N = N_const * int( ((L * D)/(nu * eps) )**0.5 + 1 )
 
     # print('D={}, L={}, M={}, N={}'.format(D, L, M, N), flush=True)
+
+    if local_gen_id == 1:
+        print('[{}%]: '.format(0), flush=True, end='')
+    print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
+    percent = 0.1
 
     for k in range(1,N+1):
         b_k = 2.0*L/(nu * k)
@@ -51,26 +54,24 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         Lx_k = get_consensus_gradient(pre_x_k, gen_specs, libE_info)
         gradg = 2*R*Lx_k
 
-        if print_progress and gen_id==1:
-            print('[{}/{}]: {} inner iters'.format(k, N, T_k), flush=True)
         _x_k = x_k.copy()
-        x_k, x2_k = PS(_x_k, gradg, b_k, T_k, f_i_idxs, gen_specs, libE_info, pre_x_k, persis_info['worker_num'])
+        x_k, x2_k = PS(_x_k, gradg, b_k, T_k, f_i_idxs, gen_specs, libE_info, pre_x_k, df_i_eval)
 
         # If sent back nothing, must have crashed
         if x_k is None:
             return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         post_x_k = (1.0-g_k) * post_x_k + (g_k * x2_k)
-        if print_progress:
-            print('[{}]: x={}'.format(gen_id, post_x_k), flush=True)
 
-    if print_progress:
-        print('[{}]: x={}'.format(gen_id, post_x_k))
-        print_final_score(post_x_k, f_i_idxs, gen_specs, libE_info)
+        if k/N>=percent:
+            if local_gen_id == 1:
+                print('[{}%]: '.format(int(percent*100)), flush=True, end='')
+            percent += 0.1
+            print_final_score(post_x_k, f_i_idxs, gen_specs, libE_info)
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
-def PS(x, gradg, beta, T, f_i_idxs, gen_specs, libE_info, pre_x_k, wid):
+def PS(x, gradg, beta, T, f_i_idxs, gen_specs, libE_info, pre_x_k, df_i_eval):
     """ Prox-sliding procedure (see https://arxiv.org/pdf/1911.10645) with
         entropy as the distance generating function for Bregman divergence.
     """
@@ -83,7 +84,10 @@ def PS(x, gradg, beta, T, f_i_idxs, gen_specs, libE_info, pre_x_k, wid):
         p_t = t/2.0
         theta_t = 2.0*(t+1)/(t * (t+3))
 
-        gradf = get_grad(u, f_i_idxs, gen_specs, libE_info)
+        if df_i_eval is not None:
+            gradf = get_grad_locally(u, f_i_idxs, df_i_eval)
+        else:
+            gradf = get_grad(u, f_i_idxs, gen_specs, libE_info)
 
         u_next = get_l2_argmin(x, u, gradf, gradg, beta, p_t)
         u = u_next

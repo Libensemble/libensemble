@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
+import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
@@ -208,3 +209,121 @@ def get_er_graph(n,p,seed=-1):
 
     return spp.csr_matrix(L)
 
+"""
+The remaining functions below don't help with consensus, but help with the
+regression tests. One can move these functions to a different Python file
+if need be.
+"""
+def readin_csv(fname):
+    fp = open(fname, 'r+')
+
+    n = 569
+    label = np.zeros(n, dtype='int')
+    datas = np.zeros((n,30))
+    i = 0
+    
+    for line in fp.readlines():
+        line = line.rsplit()[0]
+        data = line.split(',')
+        label[i] = data[1]=='M'
+        datas[i,:] = [float(val) for val in data[2:32]]
+        i += 1
+
+    assert i==n, 'Expected {} datapoints, recorded'.format(n, i)
+
+    return label, datas
+
+def gm_opt(b,m):
+
+    n = len(b)//m
+    assert len(b) == m*n
+
+    ones_m = np.ones((m,1))
+    def obj_fn(x,B,m):
+        X = ones_m @ x
+        return (1/m) * cp.sum( cp.norm(X-B, 2, axis=1) )
+
+    beta = cp.Variable((1,n))
+    B = np.reshape(b, newshape=(m,n))
+    problem = cp.Problem(cp.Minimize(obj_fn(beta, B, m)))
+    # print('Problem is DCP: {}'.format(problem.is_dcp()))
+    # problem.solve(verbose=True)
+    problem.solve()
+
+    # print('F(x*)={:.4f}'.format(problem.value))
+    return problem.value
+    # return np.reshape(beta.value, newshape=(-1,))
+
+def regls_opt(X, y, c, reg=None):
+    assert reg=='l1' or reg=='l2' or reg is None
+    if reg=='l1': p = 1
+    elif reg=='l2': p = 2
+    elif reg is None: p = -1
+    else: assert False, 'illegal regularization "{}"'.format(reg)
+
+    def obj_fn(X,y,beta,c,p):
+        m = X.shape[0]
+        if p==1:
+            return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=1)
+        return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=2)**2
+
+    # already X.T
+    d,m = X.shape
+    beta = cp.Variable(d)
+    lambd = cp.Parameter(nonneg=True)
+    problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
+    print('Problem is DCP: {}'.format(problem.is_dcp()))
+    # problem.solve(verbose=True)
+    problem.solve()
+
+    # print('F(x*)={:.4f}'.format(problem.value))
+    return problem.value
+    return beta.value
+
+def log_opt(X, y, c, reg=None):
+    """ https://www.cvxpy.org/examples/machine_learning/logistic_regression.html """
+    assert reg=='l1' or reg=='l2' or reg is None
+    if reg=='l1': p = 1
+    elif reg=='l2': p = 2
+    elif reg is None: p = 0
+    else: assert False, 'illegal regularization mode, "{}"'.format(reg)
+
+    def obj_fn(X,y,beta,c,p):
+        m = X.shape[0]
+        if p==0: reg = 0
+        if p==1: reg = c * cp.norm(beta, 1)
+        elif p==2: reg = c * cp.norm(beta, 2)**2
+        # cp.logistic(x) == log(1+e^x)
+        return (1/m) * cp.sum(cp.logistic( cp.multiply(-y, X @ beta))) + reg
+        
+    d,m = X.shape
+    beta = cp.Variable(d)
+    problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
+    # print('Problem is DCP: {}'.format(problem.is_dcp()))
+    problem.solve()
+
+    # print('F(x*)={:.4f}'.format(problem.value))
+    return problem.value
+    return beta.value
+
+def svm_opt(X, b, c, reg='l1'):
+    if reg=='l1': p = 1
+    elif reg=='l2': p = 2
+    elif reg is None: p = 0
+    else: assert False, 'illegal regularization mode, "{}"'.format(reg)
+
+    def obj_fn(X,b,theta,c,p):
+        if p==0: reg = 0
+        if p==1: reg = c * cp.norm(theta, 1)
+        if p==2: reg = c * cp.norm(theta, 2)**2
+        return cp.sum(cp.pos(1-cp.multiply(b, X @ theta))) + reg
+
+    d,m = X.shape
+    theta = cp.Variable(d)
+    problem = cp.Problem(cp.Minimize(obj_fn(X.T, b, theta, c, p)))
+    # print('Problem is DCP: {}'.format(problem.is_dcp()))
+    problem.solve()
+
+    # print('F(x*)={:.4f}'.format(problem.value))
+    return problem.value
+    return theta.value
