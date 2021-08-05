@@ -20,7 +20,22 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from time import time
 
-import Tasmanian
+
+def tasmanian_init_global():
+    # Note: if Tasmanian has been compiled with OpenMP support (i.e., the usual way)
+    #       libEnsemble calls cannot be made after the `import Tasmanian` clause
+    #       there is a conflict between the OpenMP environment and Python threading
+    #       thus Tasmanian has to be imported inside the `tasmanian_init` method
+    import Tasmanian
+    grid = Tasmanian.makeGlobalGrid(num_dimensions, 1, 6, "iptotal", "clenshaw-curtis")
+    grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
+    return grid
+
+def tasmanian_init_localp():
+    import Tasmanian
+    grid = Tasmanian.makeLocalPolynomialGrid(num_dimensions, 1, 3)
+    grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
+    return grid
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -42,6 +57,8 @@ gen_specs = {'gen_f': gen_f_batched,
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
 
+grid_files = []
+
 for run in range(3):
     # testing two cases, static construction without refinement
     # and refinement until 100 points have been computed
@@ -55,15 +72,10 @@ for run in range(3):
     elif run == 1:
         exit_criteria = {'gen_max': 100}  # This will test persistent_tasmanian stopping early.
 
-    # create a sparse grid, will be used only in the persistent generator rank
-    if run < 2:
-        # tests the cases of anisotropic refinement and no refinement
-        grid = Tasmanian.makeGlobalGrid(num_dimensions, 1, 6, "iptotal", "clenshaw-curtis")
-    else:
-        # tests the surplus refinement
-        grid = Tasmanian.makeLocalPolynomialGrid(num_dimensions, 1, 3)
-    grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
-    gen_specs['user'] = {'grid': grid,
+    # tasmanian_init has to be a method that returns an initialized TasmanianSparseGrid object
+    # tasmanian_checkpoint_file will be overwritten between each step of the iterative refinement
+    #   the final grid will also be stored in the file
+    gen_specs['user'] = {'tasmanian_init': tasmanian_init_global if run < 2 else tasmanian_init_localp,
                          'tasmanian_checkpoint_file': 'tasmanian{0}.grid'.format(run)
                          }
 
@@ -88,23 +100,34 @@ for run in range(3):
                                 alloc_specs, libE_specs)
 
     if is_manager:
-        # run sanity check on the computed results
-        # this should probably be done on the gen_f rank
-        # right now, using the checkpoint file to read the grid from the filesystem
-        grid.read(gen_specs['user']['tasmanian_checkpoint_file'])
+        grid_files.append(gen_specs['user']['tasmanian_checkpoint_file'])
 
         if run == 0:
-            assert grid.getNumNeeded() == 0, "Correctly left no points needing data"
-            assert grid.getNumLoaded() == 49, "Correctly loaded all points"
-
             print('[Manager]: Time taken =', time() - start_time, flush=True)
 
             save_libE_output(H, persis_info, __file__, nworkers)
 
+if is_manager:
+    # run sanity check on the computed results
+    # using the checkpoint file to read the grids from the filesystem
+    # Note: cannot make any more libEnsemble calls after importing Tasmanian,
+    #       see the earlier note in tasmanian_init_global()
+    import Tasmanian
+
+    assert len(grid_files) == 3, \
+        "Failed to generate three Tasmanian grid files"
+
+    for run in range(len(grid_files)):
+        grid = Tasmanian.SparseGrid()
+        grid.read(grid_files[run])
+        if run == 0:
+            assert grid.getNumNeeded() == 0, "Failed to leave no points needing data"
+            assert grid.getNumLoaded() == 49, "Failed to load all points"
+
         if run == 1:
-            assert grid.getNumNeeded() == 0, "Correctly stopped without completing the refinement"
-            assert grid.getNumLoaded() == 89, "Correctly loaded all points"
+            assert grid.getNumNeeded() == 0, "Failed to stop after completing the refinement iteration"
+            assert grid.getNumLoaded() == 89, "Failed to load all points"
 
         if run == 2:
-            assert grid.getNumNeeded() == 0, "Correctly stopped after completing the refinement"
-            assert grid.getNumLoaded() == 93, "Correctly loaded all points"
+            assert grid.getNumNeeded() == 0, "Failed to stop after completing the refinement iteration"
+            assert grid.getNumLoaded() == 93, "Failed to load all points"

@@ -16,7 +16,7 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
 
     """
     U = gen_specs['user']
-    grid = U['grid']
+    grid = U['tasmanian_init']()  # initialize the grid
     allowed_refinements = ['setAnisotropicRefinement', 'setSurplusRefinement', 'none']
     assert 'refinement' in U and U['refinement'] in allowed_refinements, \
         "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
