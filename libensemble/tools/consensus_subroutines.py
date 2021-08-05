@@ -272,7 +272,6 @@ def regls_opt(X, y, c, reg=None):
     beta = cp.Variable(d)
     lambd = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
-    print('Problem is DCP: {}'.format(problem.is_dcp()))
     # problem.solve(verbose=True)
     problem.solve()
 

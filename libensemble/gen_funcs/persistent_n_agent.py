@@ -43,11 +43,12 @@ def n_agent(H, persis_info, gen_specs, libE_info):
     prev_s_is = np.zeros((len(A_i_data),n), dtype=float)
     prev_gradf_is = np.zeros((len(A_i_data),n), dtype=float)
 
-    print_progress = True
-    if print_progress:
-        print('[{}]: {}'.format(local_gen_id, x_k), flush=True)
+    if local_gen_id == 1:
+        print('[{}%]: '.format(0), flush=True, end='')
+    print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
+    percent = 0.1
 
-    for _ in range(N):
+    for k in range(N):
 
         gradf = get_grad(x_k, f_i_idxs, gen_specs, libE_info)
 
@@ -73,7 +74,10 @@ def n_agent(H, persis_info, gen_specs, libE_info):
         prev_s_is = neighbor_s_is
         prev_gradf_is = neighbor_gradf_is
 
-        if print_progress:
-            print('[{}]: {}'.format(local_gen_id, x_k), flush=True)
+        if k/N>=percent:
+            if local_gen_id == 1:
+                print('[{}%]: '.format(int(percent*100)), flush=True, end='')
+            percent += 0.1
+            print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

@@ -1,10 +1,11 @@
 import numpy as np
 
-def EvaluateFunction(theta, X, b, c, reg):
+def EvaluateFunction(theta, component, X, b, c, reg):
     """
     Evaluates linear regression with l2 regularization
     """
-    m = len(y)
+    i = component
+    m = len(b)
 
     b_i = b[i]
     X_i = X[:,i]
@@ -26,7 +27,7 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
     """
 
     i = component
-    m = len(y)
+    m = len(b)
 
     b_i = b[i]
     X_i = X[:,i]
@@ -36,7 +37,7 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
     if score >= 0:
         df_i = np.zeros(len(theta))
     else:
-        df_i = -b * X_i
+        df_i = -b_i * X_i
 
     if reg is None:
         reg_val = 0
@@ -64,8 +65,8 @@ def svm_eval(H, persis_info, sim_specs, _):
         obj_component = H['obj_component'][i]  # which f_i
 
         if H[i]['get_grad']:
-            O['gradf_i'][i] = EvaluateJacobian(x, obj_component, X, y, c, reg)
+            O['gradf_i'][i] = EvaluateJacobian(x, obj_component, X, b, c, reg)
         else:
-            O['f_i'][i] = EvaluateFunction(x, obj_component, X, y, c, reg)
+            O['f_i'][i] = EvaluateFunction(x, obj_component, X, b, c, reg)
 
     return O, persis_info

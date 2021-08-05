@@ -1,9 +1,10 @@
 import numpy as np
 
-def EvaluateFunction(theta, X, y, c, reg):
+def EvaluateFunction(theta, component, X, y, c, reg):
     """
     Evaluates linear regression with l2 regularization
     """
+    i = component
     m = len(y)
 
     y_i = y[i]

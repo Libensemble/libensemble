@@ -44,11 +44,11 @@ def alt_rosenbrock_eval(H, persis_info, sim_specs, _):
 
     for i, x in enumerate(H['x']):
         obj_component = H['obj_component'][i]  # which f_i
-        O['gradf_i'][i] = EvaluateJacobian(x, obj_component)
+        # O['gradf_i'][i] = EvaluateJacobian(x, obj_component)
 
-        # if H[i]['get_grad']:
-        #     O['gradf_i'][i] = EvaluateJacobian(x, obj_component)
-        # else:
-        #     O['f_i'][i] = EvaluateFunction(x, obj_component)
+        if H[i]['get_grad']:
+            O['gradf_i'][i] = EvaluateJacobian(x, obj_component)
+        else:
+            O['f_i'][i] = EvaluateFunction(x, obj_component)
 
     return O, persis_info
