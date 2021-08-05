@@ -31,11 +31,13 @@ def tasmanian_init_global():
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
 
+
 def tasmanian_init_localp():
     import Tasmanian
     grid = Tasmanian.makeLocalPolynomialGrid(num_dimensions, 1, 3)
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
+
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
