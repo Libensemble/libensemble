@@ -12,6 +12,7 @@ from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_p
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, get_doubly_stochastic, regls_opt, log_opt
+from libensemble.tools.pycute_interface import Blackbox
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -29,6 +30,7 @@ eps = 1e-1
 persis_info = {}
 persis_info['print_progress'] = 0
 persis_info['A'] = S
+N_const = 100
 
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 persis_info['gen_params'] = {}
@@ -111,6 +113,21 @@ if prob_id == 4:
     persis_info['sim_params'] = {'X': X, 'y': y, 'c': c, 'reg': 'l2'}
     fstar = log_opt(X, y, c, 'l2')
 
+elif prob_id == 5:
+    from libensemble.sim_funcs.pycute import pycute_eval as sim_f
+    n = 100
+    m = 4
+    prob_name = 'PYCUTEST function'
+
+    bbox = Blackbox(k=m)
+    bbox.setup_new_prob(seed_num=0)
+    bbox.set_scale()
+    L = 1
+    N_const = 10
+
+    err_const = 1e2
+    persis_info['sim_params'] = {'m': m}
+    [fstar, _] = bbox.get_optimal_sol()
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component', 'get_grad'],
              'out': [('f_i', float), ('gradf_i', float, (n,))],
@@ -143,7 +160,7 @@ persis_info['gen_params'].update({
                 'L': 1,       # L-smoothness of each function f_i
                 'eps': eps,     # error / tolerance
                 'rho': rho, 
-                'N_const': 100,   # multiplicative constant on numiters
+                'N_const': N_const,   # multiplicative constant on numiters
                 'step_const': 1
                 })
 

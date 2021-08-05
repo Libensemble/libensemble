@@ -26,6 +26,7 @@ from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_p
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
 from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, regls_opt, log_opt
+from libensemble.tools.pycute_interface import Blackbox
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -51,7 +52,7 @@ exit_criteria = {'elapsed_wallclock_time': 300}
 libE_specs['safe_mode'] = False
 
 # 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: CUTEr
-prob_id = 4
+prob_id = 5
 
 if prob_id == 0:
     from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
@@ -125,6 +126,21 @@ if prob_id == 4:
 
     persis_info['sim_params'] = {'X': X, 'y': y, 'c': c, 'reg': 'l2'}
     fstar = log_opt(X, y, c, 'l2')
+
+elif prob_id == 5:
+    from libensemble.sim_funcs.pycute import pycute_eval as sim_f
+    n = 100
+    m = 4
+    prob_name = 'PYCUTEST function'
+
+    bbox = Blackbox(k=m)
+    bbox.setup_new_prob(seed_num=0)
+    bbox.set_scale()
+    L = 1
+
+    err_const = 1e2
+    persis_info['sim_params'] = {'m': m}
+    [fstar, _] = bbox.get_optimal_sol()
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component', 'get_grad'],
