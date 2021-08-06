@@ -54,7 +54,7 @@ sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is bei
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
-             'out': [('individual', float, ind_size), ('generation', int)],
+             'out': [('individual', float, ind_size), ('generation', int), ('last_points', bool)],
              'user': {'lb': lb,
                       'ub': ub,
                       'weights': w,
@@ -104,6 +104,9 @@ for run in range(2):
             H_dummy['individual'] = x
             objs = deap_six_hump(H_dummy, {}, sim_specs, {})
             H0['fitness_values'][i] = objs[0]
+
+        # Testing use_persis_return capabilities
+        libE_specs['use_persis_return'] = True
     else:
         H0 = None
 
@@ -111,6 +114,13 @@ for run in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
     if is_manager:
+        if run == 0:
+            assert np.sum(H['last_points']) == 0, ("The last_points shouldn't be marked (even though "
+                                                   "they were marked in the gen) as 'use_persis_return' was false.")
+        elif run == 1:
+            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they "
+                                                          "were marked in the manager and 'use_persis_return' is true.")
+
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"
         assert sum(H['returned']) >= exit_criteria['sim_max'], script_name + " didn't evaluate the sim_max points."

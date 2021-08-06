@@ -327,12 +327,14 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
 
     if not libE_specs.get('disable_log_files', False):
-        manager_logging_config()
+        close_logs = manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         "Handler to clean up comms team."
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
+        if close_logs is not None:  # logger remains set between multiple libE calls
+            close_logs()
 
     # Run generic manager
     return manager(wcomms, sim_specs, gen_specs, exit_criteria,
@@ -487,9 +489,9 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 def _dump_on_abort(hist, persis_info, save_H=True):
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error("Dumping ensemble history with {} sims evaluated:".
-                 format(hist.sim_count))
+                 format(hist.returned_count))
 
     if save_H:
-        np.save('libE_history_at_abort_' + str(hist.sim_count) + '.npy', hist.trim_H())
-        with open('libE_persis_info_at_abort_' + str(hist.sim_count) + '.pickle', "wb") as f:
+        np.save('libE_history_at_abort_' + str(hist.returned_count) + '.npy', hist.trim_H())
+        with open('libE_persis_info_at_abort_' + str(hist.returned_count) + '.pickle', "wb") as f:
             pickle.dump(persis_info, f)

@@ -3,14 +3,15 @@ from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
                                          MAN_SIGNAL_FINISH, WORKER_DONE,
                                          TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
 import numpy as np
+import os
 
 __all__ = ['executor_hworld']
 
 # Alt send values through X
-sim_count = 0
+returned_count = 0
 
 
-def polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
+def custom_polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
@@ -73,25 +74,25 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     args_for_sim = 'sleep 1'
     # pref send this in X as a sim_in from calling script
-    global sim_count
-    sim_count += 1
+    global returned_count
+    returned_count += 1
     timeout = 6.0
     wait = False
     launch_shc = False
-    if sim_count == 1:
+    if returned_count == 1:
         args_for_sim = 'sleep 1'  # Should finish
-    elif sim_count == 2:
+    elif returned_count == 2:
         args_for_sim = 'sleep 1 Error'  # Worker kill on error
-    if sim_count == 3:
+    if returned_count == 3:
         wait = True
         args_for_sim = 'sleep 1'  # Should finish
         launch_shc = True
-    elif sim_count == 4:
+    elif returned_count == 4:
         args_for_sim = 'sleep 3'  # Worker kill on timeout
         timeout = 1.0
-    elif sim_count == 5:
+    elif returned_count == 5:
         args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
-    elif sim_count == 6:
+    elif returned_count == 6:
         args_for_sim = 'sleep 60'  # Manager kill - if signal received else completes
         timeout = 65.0
 
@@ -112,7 +113,13 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             calc_status = TASK_FAILED
 
     else:
-        task, calc_status = polling_loop(exctr, task, timeout)
+        if returned_count >= 2:
+            calc_status = exctr.polling_loop(task, timeout=timeout)
+            if returned_count == 2 and task.stdout_exists() and 'Error' in task.read_stdout():
+                calc_status = WORKER_KILL_ON_ERR
+
+        else:
+            task, calc_status = custom_polling_loop(exctr, task, timeout)
 
     if use_balsam:
         task.read_file_in_workdir('ensemble.log')
@@ -121,8 +128,12 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         except ValueError:
             pass
 
-    # assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    # assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+        task = exctr.submit(app_name='sim_hump_camel_dry_run', num_procs=cores, app_args=args_for_sim,
+                            hyperthreads=True, machinefile='notused', stdout='notused',
+                            wait_on_run=True, dry_run=True, stage_inout=os.getcwd())
+
+        task.poll()
+        task.wait()
 
     # This is temp - return something - so doing six_hump_camel_func again...
     batch = len(H['x'])
@@ -139,10 +150,6 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     # This is just for testing at calling script level - status of each task
     H_o['cstat'] = calc_status
-
-    # v = np.random.uniform(0, 10)
-    # print('About to sleep for :' + str(v))
-    # time.sleep(v)
 
     return H_o, persis_info, calc_status
 

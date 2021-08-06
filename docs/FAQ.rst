@@ -49,7 +49,7 @@ Alternatively, append some unique value to ``libE_specs['ensemble_dir']``
 
 with ``python [test with PETSc].py --comms local --nworkers 4``
 
-This error occurs on some platforms, including Travis CI, when using PETSc with libEnsemble
+This error occurs on some platforms when using PETSc with libEnsemble
 in ``local`` (multiprocessing) mode. We believe this is due to PETSc initializing MPI
 before libEnsemble forks processes using multiprocessing. The recommended solution
 is running libEnsemble in MPI mode. An alternative solution may be using a serial

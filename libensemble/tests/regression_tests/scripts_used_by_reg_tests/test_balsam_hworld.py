@@ -57,7 +57,7 @@ def wait_for_job_dir(basedb):
 
 def wait_for_job_output(jobdir):
     sleeptime = 0
-    limit = 40
+    limit = 60
 
     output = os.path.join(jobdir, 'job_script_test_balsam_hworld.out')
     print('Checking for Balsam output file: {}'.format(output))
@@ -66,6 +66,7 @@ def wait_for_job_output(jobdir):
         if os.path.isfile(output):
             break
         print(sleeptime, end=" ", flush=True)
+        print(os.listdir(jobdir), flush=True)
         time.sleep(1)
         sleeptime += 1
 
@@ -108,8 +109,12 @@ def print_job_output(outscript):
 
 def move_job_coverage(jobdir):
     # Move coverage files from Balsam DB to ./regression_tests (for concatenation)
+    print('Moving job coverage results.')
     here = os.getcwd()
     covname = '.cov_reg_out.'
+
+    assert any([file.startswith(covname) for file in os.listdir(jobdir)]), \
+        "Coverage results not detected in Balsam Job directory."
 
     for file in os.listdir(jobdir):
         if file.startswith(covname):
@@ -123,11 +128,11 @@ if __name__ == '__main__':
     # Used by Balsam Coverage config file. Dont evaluate Balsam data dir
     libepath = os.path.dirname(libensemble.__file__)
     os.environ['LIBE_PATH'] = libepath
-    os.environ['BALSAM_DB_PATH'] = '~/test-balsam'
+    # os.environ['BALSAM_DB_PATH'] = '~/test-balsam'
 
     basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
 
-    subprocess.run('../../../install/configure-balsam-test.sh'.split())
+    subprocess.run('./scripts_used_by_reg_tests/configure-balsam-test.sh'.split())
 
     if not os.path.isfile('./my_simtask.x'):
         build_simfunc()
@@ -142,4 +147,4 @@ if __name__ == '__main__':
     move_job_coverage(jobdir)
 
     print('Test complete.')
-    subprocess.run('../../../install/cleanup-balsam-test.sh'.split())
+    subprocess.run('./scripts_used_by_reg_tests/cleanup-balsam-test.sh'.split())

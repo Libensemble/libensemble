@@ -1,0 +1,24 @@
+experiment_directory: SET_BY_SIMF
+stage_idx: SET_BY_SIMF
+task_idx: SET_BY_SIMF
+output_path: SET_BY_SIMF
+node_local_path: null
+pdb_file: SET_BY_SIMF
+initial_pdb_dir: SET_BY_SIMF
+solvent_type: implicit
+top_suffix: null
+simulation_length_ns: SET_BY_SIMF
+report_interval_ps: 1.0
+dt_ps: 0.002
+temperature_kelvin: 310.0
+heat_bath_friction_coef: 1.0
+wrap: false
+reference_pdb_file: SET_BY_SIMF
+openmm_selection:
+- CA
+mda_selection: protein and name CA
+threshold: 8.0
+contact_map: true
+point_cloud: true
+fraction_of_contacts: true
+in_memory: true
