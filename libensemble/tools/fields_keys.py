@@ -63,6 +63,7 @@ allowed_libE_spec_keys = ['abort_on_exception',     #
                           'kill_canceled_sims',     #
                           'comms',                  #
                           'disable_log_files',      #
+                          'final_fields',           #
                           'ip',                     #
                           'mpi_comm',               #
                           'nworkers',               #

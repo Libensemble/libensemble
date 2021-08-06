@@ -187,6 +187,10 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
 
     # Detailed checking based on Required Keys in docs for each specs
     if libE_specs is not None:
+        for name in libE_specs.get('final_fields', []):
+            assert name in out_names, \
+                name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "\
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
         check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:

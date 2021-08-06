@@ -20,6 +20,7 @@ from libensemble.message_numbers import \
     WORKER_KILL, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, \
     TASK_FAILED, WORKER_DONE, \
     MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+from libensemble.message_numbers import calc_type_strings
 from libensemble.comms.comms import CommFinishedException
 from libensemble.worker import WorkerErrMsg
 from libensemble.output_directory import EnsembleDirectory
@@ -196,7 +197,7 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.given_count >= sim_max + self.hist.offset
+        return self.hist.returned_count >= sim_max + self.hist.offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
@@ -207,6 +208,18 @@ class Manager:
         key, val = stop_val
         H = self.hist.H
         return np.any(filter_nans(H[key][H['returned']]) <= val)
+
+    def work_giving_term_test(self, logged=True):
+        b = self.term_test()
+        if b:
+            return b
+        elif ('sim_max' in self.exit_criteria
+              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset):
+            # To avoid starting more sims if sim_max is an exit criteria
+            logger.info("Ignoring the alloc_f request for more sims than sim_max.")
+            return 1
+        else:
+            return 0
 
     def term_test(self, logged=True):
         """Checks termination criteria"""
@@ -239,7 +252,7 @@ class Manager:
     def _save_every_k_sims(self):
         "Saves history every kth sim step"
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
-                           self.hist.sim_count,
+                           self.hist.returned_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
@@ -280,6 +293,9 @@ class Manager:
         logger.debug("Manager sending work unit to worker {}".format(w))
         self.wcomms[w-1].send(Work['tag'], Work) # NOTE: metadata
         work_rows = Work['libE_info']['H_rows']
+        work_name = calc_type_strings[Work['tag']]
+        logger.debug("Manager sending {} work to worker {}. Rows {}".
+                     format(work_name, w, EnsembleDirectory.extract_H_ranges(Work) or None))
         if len(work_rows):
             if 'repack_fields' in globals():
                 new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work['H_fields']]
@@ -404,7 +420,6 @@ class Manager:
     def _handle_msg_from_worker(self, persis_info, w):
         """Handles a message from worker w
         """
-        logger.debug("Manager receiving from Worker: {}".format(w))
         try:
             msg = self.wcomms[w-1].recv()
             tag, D_recv = msg
@@ -413,29 +428,32 @@ class Manager:
             return
         if isinstance(D_recv, WorkerErrMsg):
             self.W[w-1]['active'] = 0
+            logger.debug("Manager received exception from worker {}".format(w))
             if not self.WorkerExc:
                 self.WorkerExc = True
                 self._kill_workers()
                 raise WorkerException('Received error message from worker {}'.format(w),
                                       D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
+            logger.debug("Manager received a log message from worker {}".format(w))
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
-            self._update_state_on_worker_msg(persis_info, D_recv, w) # NOTE: This seems like an important function
+            logger.debug("Manager received data message from worker {}".format(w))
+            self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
         if self.kill_canceled_sims:
-             kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
-                 & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+            kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
+                & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
 
-             if np.any(kill_sim):
-                 logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
-                 kill_ids = self.hist.H['sim_id'][kill_sim]
-                 kill_on_workers = self.hist.H['sim_worker'][kill_sim]
-                 for w in kill_on_workers:
-                     self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
-                     self.hist.H['kill_sent'][kill_ids] = True
-                     # SH*** Still expecting return? Currrently yes.... else set returned and inactive sim here.
+            if np.any(kill_sim):
+                logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
+                kill_ids = self.hist.H['sim_id'][kill_sim]
+                kill_on_workers = self.hist.H['sim_worker'][kill_sim]
+                for w in kill_on_workers:
+                    self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
+                    self.hist.H['kill_sent'][kill_ids] = True
+                    # SH*** Still expecting return? Currrently yes.... else set returned and inactive sim here.
 
     # --- Handle termination
 
@@ -452,7 +470,13 @@ class Manager:
         if any(self.W['persis_state']):
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
-                self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if 'final_fields' in self.libE_specs:
+                    rows_to_send = self.hist.trim_H()['returned']
+                    fields_to_send = self.libE_specs['final_fields']
+                    H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
+                    self.wcomms[w-1].send(PERSIS_STOP, H_to_send)
+                else:
+                    self.wcomms[w-1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 if not self.W[w-1]['active']:
                     # Re-activate if necessary
                     self.W[w-1]['active'] = self.W[w-1]['persis_state']
@@ -517,8 +541,7 @@ class Manager:
             while not self.term_test():
                 self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
-
-                if any(self.W['active'] == 0):
+                if any(self.W['active'] == 0) and not self.term_test():
                     Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
                                                                persis_info)
 
@@ -526,8 +549,7 @@ class Manager:
                         break
 
                     for w in Work:
-
-                        if self.term_test():
+                        if self.work_giving_term_test():
                             break
 
                         # work_rows = Work[w]['libE_info']['H_rows']

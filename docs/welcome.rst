@@ -7,9 +7,6 @@
   .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
     :target: https://pypi.org/project/libensemble
 
-  .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
-    :target: https://travis-ci.org/Libensemble/libensemble
-
   .. image:: https://github.com/Libensemble/libensemble/workflows/init-libEnsemble-CI/badge.svg?branch=develop
     :target: https://github.com/Libensemble/libensemble/actions
 

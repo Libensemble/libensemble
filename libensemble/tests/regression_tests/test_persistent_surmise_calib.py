@@ -35,8 +35,8 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-# from libensemble import libE_logger
-# libE_logger.set_level('DEBUG')  # To get debug logging in ensemble.log
+# from libensemble import logger
+# logger.set_level('DEBUG')  # To get debug logging in ensemble.log
 
 if __name__ == '__main__':
 

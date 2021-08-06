@@ -68,7 +68,7 @@ def evaluate_pop(g, deap_object, Out, comm):
         Out['generation'][index] = g
     # Sending work to sim_f, which is defined in main call script
     # A fitness value will be returned in calc_in
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, Out)
+    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, Out[['individual', 'generation']])
 
     if tag not in [STOP_TAG, PERSIS_STOP]:
         for i, ind in enumerate(deap_object):
@@ -165,4 +165,5 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
             print('Current fitness minimum:', np.min(fits, axis=0))
             print('Sum of fit values at end of loop', sum(fits))
 
+    Out['last_points'] = 1
     return Out, persis_info, FINISHED_PERSISTENT_GEN_TAG

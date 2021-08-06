@@ -55,7 +55,7 @@ def sim_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
 
     :returns: None
     """
-    libE_info['H_rows'] = H_rows
+    libE_info['H_rows'] = np.atleast_1d(H_rows)
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
                'tag': EVAL_SIM_TAG,
@@ -80,7 +80,7 @@ def gen_work(Work, i, H_fields, H_rows, persis_info, **libE_info):
         gen_work.gen_counter = 1
     libE_info['gen_count'] = gen_work.gen_counter
 
-    libE_info['H_rows'] = H_rows
+    libE_info['H_rows'] = np.atleast_1d(H_rows)
     Work[i] = {'H_fields': H_fields,
                'persis_info': persis_info,
                'tag': EVAL_GEN_TAG,
