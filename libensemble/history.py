@@ -163,7 +163,6 @@ class History:
 
             if num_new > rows_remaining:
                 self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
-
                 self.grow_H(self.grow_count)
 
             update_inds = np.arange(self.index, self.index+num_new)
