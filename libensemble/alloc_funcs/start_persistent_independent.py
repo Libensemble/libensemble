@@ -1,7 +1,8 @@
 import numpy as np
 import numpy.linalg as la
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
-                                             count_persis_gens, all_returned)
+                                             count_persis_gens)
+
 
 def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
@@ -12,10 +13,10 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
     was a signficant bottleneck on the alloc (moreso than the gen and sim).
     Therefore, we include persis_info['last_Hlen'] so that
 
-        H[ persis_info['last_Hlen'] : len(H) ]
+        H[ persis_info['last_Hlen']: len(H) ]
 
     contains new inputs (queried by gens). For when a gen sent data and is
-    waiting on sim to return the results, we also include 
+    waiting on sim to return the results, we also include
     ```persis_info.get(i)['queued_H_ids']```, which are indexes of H that
     must be completed (i.e. H['returned'] = True) for the alloc to return to
     the gen.
@@ -47,10 +48,10 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
 
                 sims_to_ret_to_gen = np.arange(l_H_id, r_H_id)
 
-                gen_work(Work, i, 
-                         ['x', 'f_i', 'gradf_i'], 
+                gen_work(Work, i,
+                         ['x', 'f_i', 'gradf_i'],
                          sims_to_ret_to_gen,
-                         persis_info.get(i), 
+                         persis_info.get(i),
                          persistent=True)
 
                 persis_info[i].update({'curr_H_ids': []})
@@ -59,15 +60,14 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             last_H_len = persis_info['last_H_len']
 
             # first check if gen has converged to a solution
-            convg_sim_ids = np.where( 
-                np.logical_and( 
-                    H[last_H_len:]['converged'], 
-                    H[last_H_len:]['gen_worker']==i )
-                )[0] 
+            convg_sim_ids = np.where(
+                np.logical_and(
+                    H[last_H_len:]['converged'],
+                    H[last_H_len:]['gen_worker'] == i))[0]
 
             if len(convg_sim_ids):
 
-                convg_sim_ids += last_H_len # re-orient
+                convg_sim_ids += last_H_len  # re-orient
 
                 # assert i in persis_info['gen_list']
 
@@ -99,7 +99,8 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                     print('#|x_final - 1_n|_2/|1_n|_2 = {:.4f}\n'.format(
                         la.norm(np.ones(n) - x_star)/n**0.5))
                     for j in persis_info['gen_list']:
-                        print('# gen {} had {} function and {} (full) gradient evals'.format(j, persis_info[j]['num_f_evals'], persis_info[j]['num_gradf_evals']))
+                        print('# gen {} had {} function and {} (full) gradient evals'.format
+                              (j, persis_info[j]['num_f_evals'], persis_info[j]['num_gradf_evals']))
                     print('#')
                     print('#########################')
 
@@ -108,7 +109,7 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
 
             # otherwise, if gen must have requested new sim work
             else:
-                new_H_ids_from_gen_i = np.where( H[last_H_len:]['gen_worker'] == i )[0]
+                new_H_ids_from_gen_i = np.where(H[last_H_len:]['gen_worker'] == i)[0]
 
                 assert len(new_H_ids_from_gen_i), "Gen must request new sim work \
                         or show convergence if avail, but neither occured"
@@ -123,13 +124,13 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                 assert len(new_H_ids_from_gen_i) == r_H_id - l_H_id, "new gen data \
                         must be in contiguous space"
 
-                persis_info[i].update({'curr_H_ids': [l_H_id, r_H_id] })
+                persis_info[i].update({'curr_H_ids': [l_H_id, r_H_id]})
 
     num_req_gens = alloc_specs['user']['num_gens']
     m = gen_specs['user']['m']
 
     # partition sum of convex functions evenly (only do at beginning)
-    if persis_info.get('first_call', True) and len( avail_worker_ids(W, persistent=False) ):
+    if persis_info.get('first_call', True) and len(avail_worker_ids(W, persistent=False)):
         num_funcs_arr = partition_funcs_evenly_as_arr(m, num_req_gens)
 
     for i in avail_worker_ids(W, persistent=False):
@@ -139,7 +140,7 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
 
             curr_num_gens += 1
             l_idx, r_idx = num_funcs_arr[curr_num_gens-1], num_funcs_arr[curr_num_gens]
-            persis_info[i].update( {'f_i_idxs': range(l_idx, r_idx)} )
+            persis_info[i].update({'f_i_idxs': range(l_idx, r_idx)})
 
             # save gen ids to later access convergence results
             if 'gen_list' not in persis_info:
@@ -150,12 +151,12 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
 
-        # give sim work when task available 
+        # give sim work when task available
         elif persis_info['next_to_give'] < len(H):
 
             while persis_info['next_to_give'] < len(H) and \
-                  (H[persis_info['next_to_give']]['given'] or \
-                   H[persis_info['next_to_give']]['converged']):
+                    (H[persis_info['next_to_give']]['given'] or
+                     H[persis_info['next_to_give']]['converged']):
 
                 persis_info['next_to_give'] += 1
 
@@ -169,8 +170,8 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
                 "@next_to_give={} does not match gen's requested work H id of {}".format(
                     persis_info['next_to_give'], l_H_ids)
 
-            sim_work(Work, i, 
-                     sim_specs['in'], 
+            sim_work(Work, i,
+                     sim_specs['in'],
                      np.arange(l_H_ids, r_H_ids),
                      persis_info.get(i))
 
@@ -184,9 +185,10 @@ def start_persistent_independent_gens(W, H, sim_specs, gen_specs, alloc_specs, p
     if persis_info.get('first_call', True):
         persis_info['first_call'] = False
 
-    persis_info.update({'last_H_len' : len(H)})
+    persis_info.update({'last_H_len': len(H)})
 
     return Work, persis_info, 0
+
 
 # TODO: Place this in support file
 def double_extend(arr):
@@ -194,6 +196,7 @@ def double_extend(arr):
     out[0::2] = 2*np.array(arr)
     out[1::2] = 2*np.array(arr)+1
     return out
+
 
 def partition_funcs_evenly_as_arr(num_funcs, num_gens):
     num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)

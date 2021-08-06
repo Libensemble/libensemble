@@ -31,7 +31,7 @@ def nest(seed_num):
     beta = L
     beta_inv = 1.0/beta
     eps = 1e-6
-    N = int((2*L/eps * la.norm(xstar-x,ord=2)**2)**0.5 + 1) 
+    N = int((2*L/eps * la.norm(xstar-x,ord=2)**2)**0.5 + 1)
     N = min(N, MAXITER)
     lam_prev = 0
     lam_curr = 1
@@ -67,7 +67,7 @@ def nagent(Lap, W, rho, seed_num, step_scale=1):
     bbox.set_scale()
 
     def df(theta): return bbox.df_long(theta)
-    def f_eval(theta): 
+    def f_eval(theta):
         return bbox.f_long(theta)/bbox.get_scale()
 
     [fstar, xstar] = optimize_blackbox(bbox)
@@ -95,7 +95,7 @@ def nagent_alg(settings):
     gap0 = f_eval(x) - fstar
     s = np.zeros(len(x), dtype=float)
     g_prv = s.copy()
-    
+
     for k in range(1,N+1):
         g = df(x)
 
@@ -106,10 +106,10 @@ def nagent_alg(settings):
         s = W.dot(s + g - g_prv)
         x = W.dot(x-eta*s)
         g_prv = g
-    
+
         gap = f_eval(x) - fstar
         con = np.dot(x, Lap.dot(x))/np.dot(x,x)
-        
+
         if gap/gap0 < GAP and con < CON:
             return k
 
@@ -260,7 +260,7 @@ def pds(A, A_norm, seed_num):
     R = 1 / (4 * (Vx_0x)**0.5)
     eps = 1e-3
     N = int(4 * (L*Vx_0x/eps)**0.5 + 1)
-    
+
     settings = { 'mu': mu, 'R': R, 'L': L, 'Lap': A, 'N': N, 'A_norm': A_norm, 'fstar': fstar, 'f': f_eval }
 
     return primaldual_alg(x, df, settings, maxiter=MAXITER)

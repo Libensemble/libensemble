@@ -1,9 +1,9 @@
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
-import scipy.sparse.linalg as sppla
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
-                                             count_persis_gens, all_returned)
+                                             count_persis_gens)
+
 
 def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
@@ -26,7 +26,7 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     m = alloc_specs['user']['m']
     num_gens_at_consensus = 0
     # Sort to give consistent ordering for gens
-    avail_persis_worker_ids = np.sort( avail_worker_ids(W, persistent=True) )
+    avail_persis_worker_ids = np.sort(avail_worker_ids(W, persistent=True))
 
     # Give completed gradients back to gens
     for i in avail_persis_worker_ids:
@@ -36,7 +36,7 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             num_gens_at_consensus += 1
             continue
 
-        # gen is waiting on points 
+        # gen is waiting on points
         elif len(persis_info[i].get('curr_H_ids', [])):
 
             [l_H_id, r_H_id] = persis_info[i].get('curr_H_ids')
@@ -49,10 +49,10 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
                 sims_to_ret_to_gen = np.arange(l_H_id, r_H_id)
 
-                gen_work(Work, i, 
-                         ['x', 'f_i', 'gradf_i'], 
+                gen_work(Work, i,
+                         ['x', 'f_i', 'gradf_i'],
                          sims_to_ret_to_gen,
-                         persis_info.get(i), 
+                         persis_info.get(i),
                          persistent=True)
 
                 persis_info[i].update({'curr_H_ids': []})
@@ -62,16 +62,13 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             last_H_len = persis_info['last_H_len']
 
             # first check if gen requested consensus points
-            consensus_sim_ids = np.where( 
-                np.logical_and( 
-                    H[last_H_len:]['consensus_pt'], 
-                    H[last_H_len:]['gen_worker']==i )
-                )[0] 
+            consensus_sim_ids = np.where(
+                np.logical_and(H[last_H_len:]['consensus_pt'], H[last_H_len:]['gen_worker'] == i))[0]
 
             if len(consensus_sim_ids):
-            
-                assert len(consensus_sim_ids)==1, 'Gen should only send one ' + \
-                        'point for consensus step, received {}'.format(len(consensus_sim_ids))
+
+                assert len(consensus_sim_ids) == 1, 'Gen should only send one ' + \
+                    'point for consensus step, received {}'.format(len(consensus_sim_ids))
 
                 # re-orient
                 sim_id = consensus_sim_ids[0] + last_H_len
@@ -82,10 +79,10 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             # otherwise, gen requested work for sim
             else:
 
-                new_H_ids_from_gen_i = np.where( H[last_H_len:]['gen_worker'] == i )[0]
+                new_H_ids_from_gen_i = np.where(H[last_H_len:]['gen_worker'] == i)[0]
 
                 assert len(new_H_ids_from_gen_i), 'Gen must request new sim ' + \
-                        'work or show convergence if avail, but neither occured'
+                    'work or show convergence if avail, but neither occured'
 
                 # re-orient (since the last_H_len has relative index 0)
                 new_H_ids_from_gen_i += last_H_len
@@ -94,16 +91,16 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 r_H_id = new_H_ids_from_gen_i[-1] + 1
 
                 assert len(new_H_ids_from_gen_i) == r_H_id - l_H_id, 'new gen ' + \
-                        'data must be in contiguous space'
+                    'data must be in contiguous space'
 
-                persis_info[i].update({'curr_H_ids': [l_H_id, r_H_id] })
+                persis_info[i].update({'curr_H_ids': [l_H_id, r_H_id]})
 
     # Consensus step
     if num_gens_at_consensus == alloc_specs['user']['num_gens']:
 
         assert num_gens_at_consensus == len(avail_persis_worker_ids), \
-                'All gens must be available, only {}/{} are though...'.format(
-                    len(avail_worker_ids), len(num_gens_at_consensus))
+            'All gens must be available, only {}/{} are though...'.format(
+                len(avail_worker_ids), len(num_gens_at_consensus))
 
         A = persis_info['alg_vars']['A']
 
@@ -114,24 +111,24 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # TEMP
         c_step = persis_info.get('c_step', 0)
-        if c_step % 3 ==1:
+        if c_step % 3 == 1:
             gradg = np.zeros(num_gens*n, dtype=float)
-            x     = np.zeros(num_gens*n, dtype=float)
+            x = np.zeros(num_gens*n, dtype=float)
 
         # send neighbors' {x_k underscore} between gens and prepare for new outer iter
         for i0, i in enumerate(avail_persis_worker_ids):
-            
-            incident_gens = A.indices[ A.indptr[i0]:A.indptr[i0+1] ]
+
+            incident_gens = A.indices[A.indptr[i0]:A.indptr[i0+1]]
             assert i0 not in incident_gens, 'no self loops permiited in ' + \
-                    'adjacency matrix @A (i.e. only zeros on diagonal)'
-            neighbor_consensus_ids_in_H = consensus_ids_in_H[ incident_gens ]
+                'adjacency matrix @A (i.e. only zeros on diagonal)'
+            neighbor_consensus_ids_in_H = consensus_ids_in_H[incident_gens]
 
             # TEMP
             if c_step % 3 == 1:
                 num_neighbors = len(neighbor_consensus_ids_in_H)
                 x[i0*n:(i0+1)*n] = H[consensus_ids_in_H[i0]]['x']
                 gradg[i0*n:(i0+1)*n] = num_neighbors*H[consensus_ids_in_H[i0]]['x'] \
-                                    -np.sum(H[neighbor_consensus_ids_in_H]['x'], axis=0)
+                                    - np.sum(H[neighbor_consensus_ids_in_H]['x'], axis=0)
 
             gen_work(Work, i, ['x', 'gen_worker'], neighbor_consensus_ids_in_H,
                      persis_info.get(i), persistent=True)
@@ -142,17 +139,16 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         # TEMP
         if c_step % 3 == 1:
             R = persis_info['hyperparams']['R']
-            print('g={:.4e}\n'.format(R * np.dot(x,gradg)), flush=True)
+            print('g={:.4e}\n'.format(R * np.dot(x, gradg)), flush=True)
 
-        persis_info.update({'c_step' : c_step+1})
+        persis_info.update({'c_step': c_step+1})
 
         persis_info['outer_iter_ct'] += 1
 
     # partition sum of convex functions evenly (only do at beginning)
-    if persis_info['outer_iter_ct'] == 1 and len( avail_worker_ids(W, persistent=False) ):
-        num_funcs_arr = partition_funcs_arr(alloc_specs['user']['m'], 
-                alloc_specs['user']['num_gens'])
-        # k = persis_info['outer_iter_ct'] 
+    if persis_info['outer_iter_ct'] == 1 and len(avail_worker_ids(W, persistent=False)):
+        num_funcs_arr = partition_funcs_arr(alloc_specs['user']['m'], alloc_specs['user']['num_gens'])
+        # k = persis_info['outer_iter_ct']
         A = persis_info['alg_vars']['A']
         S = persis_info['alg_vars']['S']
 
@@ -166,29 +162,28 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             r_idx = num_funcs_arr[gen_count]
 
             S_i_indices = S.indices[S.indptr[i0]:S.indptr[i0+1]]
-            S_i_gen_ids = inactive_workers[S_i_indices]     
+            S_i_gen_ids = inactive_workers[S_i_indices]
             # gen S_i_gen_ids[i] corresponds to weight S_i_data[i]
-            S_i_data = S.data[S.indptr[i0]:S.indptr[i0+1]] 
+            S_i_data = S.data[S.indptr[i0]:S.indptr[i0+1]]
 
-            persis_info[i].update({
-                'f_i_idxs': range(l_idx, r_idx),
-                'S_i_gen_ids': S_i_gen_ids,
-                'S_i_data': S_i_data,
-                'N':  persis_info['alg_vars']['N'],
-                'eta': persis_info['alg_vars']['eta'],
-                })
+            persis_info[i].update({'f_i_idxs': range(l_idx, r_idx),
+                                   'S_i_gen_ids': S_i_gen_ids,
+                                   'S_i_data': S_i_data,
+                                   'N': persis_info['alg_vars']['N'],
+                                   'eta': persis_info['alg_vars']['eta'],
+                                   })
             persis_info[i].update({'at_consensus': False, 'curr_H_ids': []})
 
             gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
                      persistent=True)
 
-        # give sim work when task available 
+        # give sim work when task available
         elif persis_info['next_to_give'] < len(H):
 
             # skip points that are not sim work or are already done
             while persis_info['next_to_give'] < len(H) and \
-                  (H[persis_info['next_to_give']]['given'] or \
-                   H[persis_info['next_to_give']]['consensus_pt']):
+                    (H[persis_info['next_to_give']]['given'] or
+                     H[persis_info['next_to_give']]['consensus_pt']):
 
                 persis_info['next_to_give'] += 1
 
@@ -202,8 +197,8 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 "@next_to_give={} does not match gen's requested work H id of {}".format(
                     persis_info['next_to_give'], l_H_ids)
 
-            sim_work(Work, i, 
-                     sim_specs['in'], 
+            sim_work(Work, i,
+                     sim_specs['in'],
                      np.arange(l_H_ids, r_H_ids),
                      persis_info.get(i))
 
@@ -213,21 +208,22 @@ def start_gradtrack_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         else:
             break
 
-    persis_info.update({'last_H_len' : len(H)})
+    persis_info.update({'last_H_len': len(H)})
 
     return Work, persis_info, 0
 
+
 def define_alg_vars(alloc_specs, gen_specs, persis_info):
-    """ Variables for prox-slide algorithm 
+    """ Variables for prox-slide algorithm
     """
     # b = gen_specs['user']['gen_batch_size']
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
-    m = alloc_specs['user']['m']  
+    m = alloc_specs['user']['m']
 
-    L          = persis_info['hyperparams']['L']
-    eps        = persis_info['hyperparams']['eps']
-    N_const    = persis_info['hyperparams'].get('N_const', 1)
+    L = persis_info['hyperparams']['L']
+    eps = persis_info['hyperparams']['eps']
+    N_const = persis_info['hyperparams'].get('N_const', 1)
     step_const = persis_info['hyperparams'].get('step_const', 1)
 
     assert 0 < step_const <= 1, 'step scale is {:.4f} but must be in (0,1]'.format(step_const)
@@ -236,13 +232,13 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
     print('Here!', flush=True)
     num_gens = alloc_specs['user']['num_gens']
     # diagonals = [np.ones(num_gens-1), np.ones(num_gens-1)]
-     #A = spp.csr_matrix( spp.diags(diagonals, [-1,1]) )
+    # A = spp.csr_matrix(spp.diags(diagonals, [-1,1]))
     # TEMP
     # A = spp.csr_matrix(np.ones((num_gens, num_gens)))
     # A = A - spp.eye(num_gens)
     # A.eliminate_zeros()
     # ENDTEMP
-    
+
     # NEW
     A = get_k_reach_chain_matrix(num_gens, 1)
 
@@ -252,18 +248,18 @@ def define_alg_vars(alloc_specs, gen_specs, persis_info):
 
     assert rho < 1, 'Norm should be < 1, but is {:.4e}'.format(rho)
 
-    eta = step_const * 1.0/L * min(1/6, (1-rho**2)**2/(4 * rho**2 * (3+4*rho**2) ))
+    eta = step_const * 1.0/L * min(1/6, (1-rho**2)**2/(4 * rho**2 * (3+4*rho**2)))
 
     N = int(N_const / eps + 1)
 
-    alg_vars = {
-                'A': A,               # Adjacency matrix (we will not explicitly form Laplacian)
+    alg_vars = {'A': A,               # Adjacency matrix (we will not explicitly form Laplacian)
                 'S': S,
-                'N': N,               # number of outer iterations 
+                'N': N,               # number of outer iterations
                 'eta': eta,           # step size
                 }
 
     return alg_vars
+
 
 def get_k_reach_chain_matrix(n, k):
     """ Constructs adjacency matrix for a chain matrix where the ith vertex can
@@ -274,11 +270,12 @@ def get_k_reach_chain_matrix(n, k):
     assert 1 <= k <= n-1
 
     half_of_diagonals = [np.ones(n-k+j) for j in range(k)]
-    half_of_indices = np.arange(1,k+1)
+    half_of_indices = np.arange(1, k+1)
     all_of_diagonals = half_of_diagonals + half_of_diagonals[::-1]
     all_of_indices = np.append(-half_of_indices[::-1], half_of_indices)
-    A = spp.csr_matrix( spp.diags(all_of_diagonals, all_of_indices) )
+    A = spp.csr_matrix(spp.diags(all_of_diagonals, all_of_indices))
     return A
+
 
 def partition_funcs_arr(num_funcs, num_gens):
     num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)
@@ -291,28 +288,29 @@ def partition_funcs_arr(num_funcs, num_gens):
 
     return num_funcs_arr
 
+
 def get_doubly_stochastic(A):
     """ Generates a doubly stochastic matrix where
     (i) S_ii > 0 for all i
-    (ii) S_ij > 0 if and only if (i,j) \in E
+    (ii) S_ij > 0 if and only if (i,j) in E
 
     Parameter
     ---------
-    A : np.ndarray
+    A: np.ndarray
         - adjacency matrix
 
     Returns
     -------
-    x : scipy.sparse.csr_matrix
+    x: scipy.sparse.csr_matrix
     """
     np.random.seed(0)
     n = A.shape[0]
-    x = np.multiply( A.toarray() != 0,  np.random.random((n,n)))
+    x = np.multiply(A.toarray() != 0, np.random.random((n, n)))
     x = x + np.diag(np.random.random(n) + 1e-4)
 
     rsum = np.zeros(n)
     csum = np.zeros(n)
-    tol=1e-15
+    tol = 1e-15
 
     while (np.any(np.abs(rsum - 1) > tol)) | (np.any(np.abs(csum - 1) > tol)):
         x = x / x.sum(0)
@@ -321,7 +319,7 @@ def get_doubly_stochastic(A):
         csum = x.sum(0)
 
     print('################################', flush=True)
-    print('# Matrix', flush=True) 
+    print('# Matrix', flush=True)
     print('# {}'.format(x), flush=True)
     print('################################\n', flush=True)
 

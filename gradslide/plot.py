@@ -86,12 +86,12 @@ def anim_agents(data, num_slow=0, outname='basic_animation'):
     line_sol, = ax.plot([1], [1], ls='', marker='*', color='red')
     global prog, N
     prog = 0
-    
+
     # initialization function: plot the background of each frame
     def init():
         line.set_data([], [])
         return line, line_sol
-    
+
     # calculates number of frames, including slowmo ones
     global slowf
     slowf = 40 # slowing factor
@@ -120,13 +120,13 @@ def anim_agents(data, num_slow=0, outname='basic_animation'):
         y = curr[1::2]
         line.set_data(x, y)
         return line, line_sol
-    
+
     # call the animator.  blit=True means only re-draw the parts that have changed.
     anim = animation.FuncAnimation(fig, animate, init_func=init,
                                    frames=tot_num_frames, interval=33, blit=True)
 
     print('Saving {} frames'.format(N))
-    
+
     # for more info, see http://matplotlib.sourceforge.net/api/animation_api.html
     anim.save('{}.mp4'.format(outname), fps=30, extra_args=['-vcodec', 'libx264'])
 
@@ -145,11 +145,11 @@ def anim_grads(data, outname='basic_animation'):
     ax = plt.axes(xlim=(0,t), ylim=(0, ytop), title="Agent i's gradient", ylabel=r'$\nabla f_i(x)$', xlabel='Iter')
     line, = ax.plot([], [], ls='', marker='.', color='black')
     prog = 0
-    
+
     def init():
         line.set_data([], [])
         return line,
-    
+
     def animate(i):
         i = i+1
         i0 = max(0, i-75)
@@ -162,16 +162,16 @@ def anim_grads(data, outname='basic_animation'):
         norm_y = la.norm(Y, axis=1)
         line.set_data(x, norm_y)
         return line,
-    
+
     # call the animator.  blit=True means only re-draw the parts that have changed.
     anim = animation.FuncAnimation(fig, animate, init_func=init,
                                    frames=len(data), interval=33, blit=True)
 
     print('Saving {} frames'.format(len(data)))
-    
+
     # for more info, see http://matplotlib.sourceforge.net/api/animation_api.html
     anim.save('{}.mp4'.format(outname), fps=30, extra_args=['-vcodec', 'libx264'])
-    
+
 def main():
     f_in = 'run.log'
     f_out = 'run'
@@ -206,9 +206,9 @@ def custom_plot():
     for i,di in enumerate(ds):
         n = min(15000, len(di))
         ax.plot(np.arange(n), di[:n], label=names[i], linestyle=lss[i], color=colors[i])
-    ax.set(yscale='log', 
-           ylabel=r'$f(x_k)-f(x_*)$', 
-           xlabel=r'Iteration ($k$)', 
+    ax.set(yscale='log',
+           ylabel=r'$f(x_k)-f(x_*)$',
+           xlabel=r'Iteration ($k$)',
            title=r"Optimality gap for solving alternative Rosenbrock function ($n=100, m=999999999999999999$)")
     ax.legend()
     plt.show()
@@ -216,5 +216,3 @@ def custom_plot():
 if __name__ == '__main__':
     # custom_plot()
     main()
-
-

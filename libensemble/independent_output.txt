@@ -1,6 +1,6 @@
 Last gradient norm: 0.005830. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[0.99976135 0.99952715 0.99798337 0.99596491 1.00197031 1.0039561
  0.99932655 0.99865774 1.00058596 1.001173   1.0012684  1.00254236
@@ -53,7 +53,7 @@ Last gradient norm: 0.005830. Expected at most: 0.010000
 Last gradient norm: 0.009194. Expected at most: 0.010000
 Last gradient norm: 0.009194. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[0.9992099  0.99841908 1.00105739 1.00213001 0.99697523 0.99393812
  0.99825294 0.9965023  0.99737506 0.99474906 0.99922429 0.99844375
@@ -109,7 +109,7 @@ Last gradient norm: 0.009405. Expected at most: 0.010000
 Last gradient norm: 0.009405. Expected at most: 0.010000
 Last gradient norm: 0.009405. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[0.99699424 0.99398825 0.99721369 0.99442361 1.00143382 1.0028858
  0.9973428  0.99467637 0.99593817 0.991874   0.9959698  0.99192668
@@ -171,7 +171,7 @@ Last gradient norm: 0.007564. Expected at most: 0.010000
 Last gradient norm: 0.007564. Expected at most: 0.010000
 Last gradient norm: 0.007564. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[1.00458767 1.00922866 0.99319154 0.98640208 0.99850706 0.99701057
  1.00100836 1.00202358 1.00090834 1.00182461 1.00455277 1.00914556
@@ -245,7 +245,7 @@ Last gradient norm: 0.005550. Expected at most: 0.010000
 Last gradient norm: 0.005550. Expected at most: 0.010000
 Last gradient norm: 0.005550. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[0.99999279 0.99998792 0.99979272 0.99958473 1.00022425 1.00046137
  1.00008673 1.00017604 1.00364809 1.00733723 0.99783806 0.99567985
@@ -343,7 +343,7 @@ Last gradient norm: 0.003908. Expected at most: 0.010000
 Last gradient norm: 0.003908. Expected at most: 0.010000
 Last gradient norm: 0.003908. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[0.99663593 0.99327196 0.99992876 0.99985642 1.003252   1.0065341
  1.00044698 1.00089386 0.99663593 0.99327196 0.99992876 0.99985642
@@ -489,7 +489,7 @@ Last gradient norm: 0.008047. Expected at most: 0.010000
 Last gradient norm: 0.008047. Expected at most: 0.010000
 Last gradient norm: 0.008047. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[1.00918767 1.01849999 0.99082152 0.98169017 1.00918767 1.01849999
  0.99082152 0.98169017 1.00918767 1.01849999 0.99082152 0.98169017
@@ -731,7 +731,7 @@ Last gradient norm: 0.006990. Expected at most: 0.010000
 Last gradient norm: 0.006990. Expected at most: 0.010000
 Last gradient norm: 0.006990. Expected at most: 0.010000
 #########################
-# FINAL RESULT 
+# FINAL RESULT
 #
 # x=[0.99764026 0.99525675 0.99764026 0.99525675 0.99764026 0.99525675
  0.99764026 0.99525675 0.99764026 0.99525675 0.99764026 0.99525675

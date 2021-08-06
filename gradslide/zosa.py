@@ -5,7 +5,7 @@ from helper import *
 import sys
 
 def zoSA(settings, x0=None, simple_l1=False, maxiter=-1):
-    """ Zeroth-order sliding algorithm 
+    """ Zeroth-order sliding algorithm
 
     Returns
     -------
@@ -28,7 +28,7 @@ def zoSA(settings, x0=None, simple_l1=False, maxiter=-1):
         x0 = 2*np.random.random(m*n)-1
     x = x0
     x_post = x0
-    
+
     np.random.seed(0)
     b = np.random.random(m*n)
     # b = np.ones(m*n)
@@ -72,9 +72,9 @@ def zoSA(settings, x0=None, simple_l1=False, maxiter=-1):
 
         if not simple_l1:
             print('{}/{}: {} iters'.format(k, N, T_k))
-            settings = {'f_eval': f_eval, 
-                        'fstar': fstar, 
-                        'cons': consensus, 
+            settings = {'f_eval': f_eval,
+                        'fstar': fstar,
+                        'cons': consensus,
                         'x_post': x_post,
                         'g_k': g_k,
                         'R': R}
@@ -106,7 +106,7 @@ def zoSA(settings, x0=None, simple_l1=False, maxiter=-1):
             break
 
     return x_post
-    
+
 def prox_slide(df, H, l_h, h, dh, x, beta, T, k, settings):
     """ Proximal sliding
 
@@ -204,7 +204,7 @@ if prob_mode == 1:
 
     M = 1
 
-# SVM 
+# SVM
 elif prob_mode == 2:
     b, X = readin_csv('wdbc.data')
     X = X.T
@@ -266,7 +266,7 @@ elif prob_mode == 4:
     y = np.append(2*np.ones(m//2), np.zeros(m-m//2))-1
     X = np.array([np.random.normal(loc=y[i]*np.ones(d), scale=1.0, size=d) for i in range(m)]).T
 
-    # TODO: Why can't we solve inner loop 
+    # TODO: Why can't we solve inner loop
     def df_smooth(theta): return df_log(theta, X, y, reg=None)
     # def df(theta): return np.sign(theta)
     def df(theta): return df_log(theta, X, y, reg=reg)
@@ -307,7 +307,7 @@ if graph_mode==1:
 elif graph_mode==2:
     p = 0.15
     A = get_er_graph(m, p, seed=0)
-elif graph_mode==3: 
+elif graph_mode==3:
     k = m-1
     A = k*spp.eye(m) - get_k_reach_chain_matrix(m,k)
 else:
@@ -323,9 +323,9 @@ R = 10**2
 eps = 0.1
 const = 10
 if prob_mode >= 3:
-    L += 2*R*lam_max 
+    L += 2*R*lam_max
 else:
-    L = 2*R*lam_max 
+    L = 2*R*lam_max
 nu = 1
 N = const * int(((L*D/(nu*eps))**0.5 + 1))
 

@@ -2,7 +2,7 @@ import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
 # from sklearn.linear_model import LogisticRegression
-# import cvxopt 
+# import cvxopt
 import cvxpy as cp
 import scipy.optimize as sciopt
 
@@ -96,7 +96,7 @@ def f_r_long(x):
     return f_r(x_cut)
 
 def df_r(x):
-    """ Rosenbrock 
+    """ Rosenbrock
 
     We assume each agent has ahold of one f_i.
     """
@@ -135,7 +135,7 @@ def f_ar_long(x):
     return f
 
 def df_ar(x):
-    """ Rosenbrock 
+    """ Rosenbrock
 
     We assume each agent has ahold of one f_i.
     """
@@ -271,7 +271,7 @@ def _f_regls_long(theta, X, y, reg=None):
     # add y^Ty
     f += np.dot(y,y)
 
-    # scale down 
+    # scale down
     f *= (1/m)
 
     if reg is None:
@@ -379,7 +379,7 @@ def log_opt(X, y, reg=None):
         elif p==2: reg = c * cp.norm(beta, 2)**2
         # cp.logistic(x) == log(1+e^x)
         return (1/m) * cp.sum(cp.logistic( cp.multiply(-y, X @ beta))) + reg
-        
+
     d,m = X.shape
     beta = cp.Variable(d)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
@@ -404,11 +404,11 @@ def f_svm_long(theta, X, b, reg=None):
     assert reg=='l2' or reg=='l1' or reg is None
 
     d,m = X.shape
-    assert len(b)==m    
+    assert len(b)==m
     Theta = np.reshape(theta, newshape=X.T.shape)
     XT_theta = np.einsum('ij,ij->i', X.T, Theta)
     h = np.maximum(0, 1-np.multiply(b, XT_theta))
-    
+
     # S = np.hstack((b, Theta.T))
     # S_norms = la.norm(S, ord=2, axis=1)
     # CHANGE THE NORM
@@ -436,7 +436,7 @@ def df_svm(theta, X, b, reg=None):
     d,m = X.shape
     Theta = np.reshape(theta, newshape=X.T.shape)
     XT_theta = np.einsum('ij,ij->i', X.T, Theta)
-    # will be zero if gradient is zero, else 1 
+    # will be zero if gradient is zero, else 1
     zero_df = np.kron((np.multiply(b, XT_theta) < 1).astype('int'), np.ones(d))
     nonzero_df = -np.multiply(np.kron(b, np.ones(d)), np.reshape(X.T, newshape=(-1,)))
     df = np.multiply(zero_df, nonzero_df)
@@ -515,7 +515,7 @@ def f_nesterov_long(x):
     return f
 
 def df_nesterov(x):
-    """ Nesterov's quadratic function. 
+    """ Nesterov's quadratic function.
 
     We assume each agent has one of the m=n+1 f_i's, where n=len(x) (before copies)
     """
@@ -641,7 +641,7 @@ def get_er_graph(n,p,seed=-1):
 
     return spp.csr_matrix(L)
 
-def V(x,u): 
+def V(x,u):
     """ Bregman divergence with $\omega=\| \cdot \|_2^2$ """
     return 0.5*la.norm(x-u, ord=2)**2
 
@@ -652,7 +652,7 @@ def readin_csv(fname):
     label = np.zeros(n, dtype='int')
     datas = np.zeros((n,30))
     i = 0
-    
+
     for line in fp.readlines():
         line = line.rsplit()[0]
         data = line.split(',')
@@ -666,7 +666,7 @@ def readin_csv(fname):
 
 def optimize_blackbox(bbox):
     """ Given a blackbox object (see ```pytest_interface.py'''), solves using
-        SciPy's optimizer 
+        SciPy's optimizer
     """
     eps = 1e-06
     gtol = eps

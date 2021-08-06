@@ -46,7 +46,7 @@ elif prob_mode == 3:
     xstar = nesterov_opt(n)
     fstar = f_nesterov(xstar)
 
-# Linear Regression with l2 
+# Linear Regression with l2
 elif prob_mode == 4:
     reg = 'l2'
 
@@ -65,7 +65,7 @@ elif prob_mode == 4:
     xstar = regls_opt(X, y)
     fstar = f_regls(xstar, X, y, reg)
 
-# Logistic Regression with l2 
+# Logistic Regression with l2
 elif prob_mode == 5:
     m = n
     d = 10
@@ -118,7 +118,7 @@ else:
 beta = L
 beta_inv = 1.0/beta
 eps = 1e-6
-N = int((2*L/eps * la.norm(xstar-x,ord=2)**2)**0.5 + 1) 
+N = int((2*L/eps * la.norm(xstar-x,ord=2)**2)**0.5 + 1)
 # TEMP
 N = min(N, 500000)
 lam_prev = 0

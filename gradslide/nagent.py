@@ -134,7 +134,7 @@ if graph_mode==1:
 elif graph_mode==2:
     p = 0.1 if prob_mode == 2 else 0.15
     A = get_er_graph(m, p, seed=0)
-elif graph_mode==3: 
+elif graph_mode==3:
     k = m-1
     A = k*spp.eye(m) - get_k_reach_chain_matrix(m,k)
 else:

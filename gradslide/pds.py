@@ -26,7 +26,7 @@ def primaldual(x_0, df, settings,maxiter=-1):
 
     # ===== NOTATION =====
     # x_hk == \hat{x}_k
-    # x_tk == \tilde{x}_k 
+    # x_tk == \tilde{x}_k
     # x_uk == \underline{x}_k
     # prev_x_k == x_{k-1}
     # prevprev_x_k = x_{k-2}
@@ -71,10 +71,10 @@ def primaldual(x_0, df, settings,maxiter=-1):
         # print('x_uk={}'.format(x_uk))
         # print('|gradf|={:.4f}'.format(la.norm(x_uk, ord=2)))
 
-        settings = {'T_k': T_k, 
-                    'b_k': k, 
-                    'p_k': 2*L/k, 
-                    'mu': mu, 
+        settings = {'T_k': T_k,
+                    'b_k': k,
+                    'p_k': 2*L/k,
+                    'mu': mu,
                     'L': L,
                     'R': R,
                     'k': k,
@@ -87,10 +87,10 @@ def primaldual(x_0, df, settings,maxiter=-1):
                     'curr_b_k_sum': b_k_sum,
                     }
 
-        [x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k, 
-                                                   prev_x_k, 
+        [x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k,
+                                                   prev_x_k,
                                                    prev_penult_k,
-                                                   prev_z_k, 
+                                                   prev_z_k,
                                                    settings)
 
 
@@ -316,7 +316,7 @@ elif graph_mode==2:
     p = 0.1 if prob_mode == 2 else 0.15
     p = p if prob_mode != 6 else 0.227
     A = get_er_graph(m, p, seed=0)
-elif graph_mode==3: 
+elif graph_mode==3:
     k = m-1
     A = k*spp.eye(m) - get_k_reach_chain_matrix(m,k)
 else:

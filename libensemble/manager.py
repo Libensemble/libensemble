@@ -361,7 +361,7 @@ class Manager:
     def _update_state_on_worker_msg(self, persis_info, D_recv, w):
         """Updates history and worker info on worker message
         """ # TODO: This seems like an important function
-        calc_type = D_recv['calc_type']     # calc_type == 1 === EVAL_SIM_TAG ? 
+        calc_type = D_recv['calc_type']     # calc_type == 1 === EVAL_SIM_TAG ?
         calc_status = D_recv['calc_status'] # calc_status == 0 == UNSET_TAG ?
         Manager._check_received_calc(D_recv)
         if w not in self.persis_pending and not self.W[w-1]['active_recv']:
@@ -371,7 +371,7 @@ class Manager:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
                 if self.libE_specs.get('use_persis_return', False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode) 
+                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w-1]['persis_state'] = 0

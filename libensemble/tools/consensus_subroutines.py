@@ -1,5 +1,5 @@
 """
-This function contains many common subroutines used in distributed optimization
+This file contains many common subroutines used in distributed optimization
 libraries, including collecting all the sum of {f_i}'s, collecting the
 gradients, and conducting the consensus step (i.e., take linear combination of
 your neighbors' $x$ values.
@@ -11,6 +11,7 @@ import scipy.sparse as spp
 import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
+
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     """ This function is called by a gen so that the alloc will collect
         all the {f_i}'s and print their sum.
@@ -21,31 +22,31 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
         Input solution vector
     - f_i_idxs : np.ndarray
         Which {f_i}'s this calling gen is responsible for
-    - gen_specs, libE_info : 
+    - gen_specs, libE_info :
         Used to communicate
     """
 
-   # evaluate { f_i(x) } first
-   l = len(f_i_idxs)
-   H_o = np.zeros(l, dtype=gen_specs['out'])
-   H_o['x'][:] = x
-   H_o['consensus_pt'][:] = False
-   H_o['obj_component'][:] = f_i_idxs
-   H_o['get_grad'][:] = False
-   H_o = np.reshape(H_o, newshape=(-1,))      
+    # evaluate { f_i(x) } first
+    H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
+    H_o['x'][:] = x
+    H_o['consensus_pt'][:] = False
+    H_o['obj_component'][:] = f_i_idxs
+    H_o['get_grad'][:] = False
+    H_o = np.reshape(H_o, newshape=(-1,))
 
-   tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-   f_is = calc_in['f_i']
-   F_i  = np.sum(f_is)
+    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    f_is = calc_in['f_i']
+    F_i = np.sum(f_is)
 
-   # get alloc to print sum of f_i
-   H_o = np.zeros(1, dtype=gen_specs['out'])
-   H_o['x'][0] = x
-   H_o['f_i'][0] = F_i
-   H_o['eval_pt'][0] = True
-   H_o['consensus_pt'][0] = True
+    # get alloc to print sum of f_i
+    H_o = np.zeros(1, dtype=gen_specs['out'])
+    H_o['x'][0] = x
+    H_o['f_i'][0] = F_i
+    H_o['eval_pt'][0] = True
+    H_o['consensus_pt'][0] = True
 
-   sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+
 
 def get_grad(x, f_i_idxs, gen_specs, libE_info):
     """ This function is called by a gen to retrieve the gradient of the
@@ -57,12 +58,11 @@ def get_grad(x, f_i_idxs, gen_specs, libE_info):
         Input solution vector
     - f_i_idxs : np.ndarray
         Which {f_i}'s this calling gen is responsible for
-    - gen_specs, libE_info : 
+    - gen_specs, libE_info :
         Used to communicate
     """
 
-    l = len(f_i_idxs)
-    H_o = np.zeros(l, dtype=gen_specs['out'])
+    H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
     H_o['x'][:] = x
     H_o['consensus_pt'][:] = False
     H_o['obj_component'][:] = f_i_idxs
@@ -72,13 +72,14 @@ def get_grad(x, f_i_idxs, gen_specs, libE_info):
     tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
     gradf_is = calc_in['gradf_i']
-    gradf    = np.sum(gradf_is, axis=0)
+    gradf = np.sum(gradf_is, axis=0)
 
     return gradf
 
+
 def get_grad_locally(x, f_i_idxs, df):
     """ This function is called by a gen to locally compute gradients of
-        the sum of {f_i}'s. Unlike `get_grad`, this function does not 
+        the sum of {f_i}'s. Unlike `get_grad`, this function does not
         use the sim, but instead evaluates the gradient using the input @df.
 
     Parameters
@@ -88,7 +89,7 @@ def get_grad_locally(x, f_i_idxs, df):
     - f_i_idxs : np.ndarray
         Which {f_i}'s this calling gen is responsible for
     - df : func
-        Function that returns gradient. Must take in as parameters input @x and 
+        Function that returns gradient. Must take in as parameters input @x and
         index @i (i.e., which f_i to take gradient of)
     """
     gradf = np.zeros(len(x), dtype=float)
@@ -96,6 +97,7 @@ def get_grad_locally(x, f_i_idxs, df):
         gradf += df(x, i)
 
     return gradf
+
 
 def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info):
     """ Sends local gen data (@x) and retrieves neighbors local data.
@@ -117,7 +119,7 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
 
     Returns
     -------
-    X : np.ndarray 
+    X : np.ndarray
         - 2D array of neighbors and local x values sorted by gen_ids
     """
     H_o = np.zeros(1, dtype=gen_specs['out'])
@@ -131,8 +133,8 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
 
     assert local_gen_id not in neighbor_gen_ids, 'Local data should not be ' + \
                                                  'sent back from manager'
-    assert np.array_equal(A_gen_ids_no_local, neighbor_gen_ids),'Expected ' + \
-                'gen_ids {}, received {}'.format(A_gen_ids, gen_ids)
+    assert np.array_equal(A_gen_ids_no_local, neighbor_gen_ids), 'Expected ' + \
+        'gen_ids {}, received {}'.format(A_gen_ids, gen_ids)
 
     X = np.vstack((neighbor_X, x))
     gen_ids = np.append(neighbor_gen_ids, local_gen_id)
@@ -142,10 +144,11 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
 
     return X
 
+
 def get_consensus_gradient(x, gen_specs, libE_info):
     """ Sends local gen data (@x) and retrieves neighbors local data,
         and takes sum of the neighbors' x's, which is equivalent to taking
-        the gradient of consensus term for this particular node/agent. 
+        the gradient of consensus term for this particular node/agent.
 
         This function is equivalent to the @get_neighbor_vals function, but is
         less general, i.e., when we need only take a sum rather than a linear
@@ -158,8 +161,8 @@ def get_consensus_gradient(x, gen_specs, libE_info):
 
     Returns
     -------
-     : np.ndarray 
-        - Returns this node's corresponding gradient of consensus 
+     : np.ndarray
+        - Returns this node's corresponding gradient of consensus
     """
     H_o = np.zeros(1, dtype=gen_specs['out'])
     H_o['x'][0] = x
@@ -172,6 +175,7 @@ def get_consensus_gradient(x, gen_specs, libE_info):
 
     return (num_neighbors*x) - np.sum(neighbor_X, axis=0)
 
+
 def get_k_reach_chain_matrix(n, k):
     """ Constructs adjacency matrix for a chain matrix where the ith vertex can
         reach vertices that are at most @k distances from them (does not wrap around),
@@ -181,16 +185,17 @@ def get_k_reach_chain_matrix(n, k):
     assert 1 <= k <= n-1
 
     half_of_diagonals = [np.ones(n-k+j) for j in range(k)]
-    half_of_indices = np.arange(1,k+1)
+    half_of_indices = np.arange(1, k+1)
     all_of_diagonals = half_of_diagonals + half_of_diagonals[::-1]
     all_of_indices = np.append(-half_of_indices[::-1], half_of_indices)
-    A = spp.csr_matrix( spp.diags(all_of_diagonals, all_of_indices) )
+    A = spp.csr_matrix(spp.diags(all_of_diagonals, all_of_indices))
     return A
+
 
 def get_doubly_stochastic(A):
     """ Generates a doubly stochastic matrix where
     (i) S_ii > 0 for all i
-    (ii) S_ij > 0 if and only if (i,j) \in E
+    (ii) S_ij > 0 if and only if (i, j) in E
 
     Parameter
     ---------
@@ -203,12 +208,12 @@ def get_doubly_stochastic(A):
     """
     np.random.seed(0)
     n = A.shape[0]
-    x = np.multiply( A.toarray() != 0,  np.random.random((n,n)))
+    x = np.multiply(A.toarray() != 0, np.random.random((n, n)))
     x = x + np.diag(np.random.random(n) + 1e-4)
 
     rsum = np.zeros(n)
     csum = np.zeros(n)
-    tol=1e-15
+    tol = 1e-15
 
     while (np.any(np.abs(rsum - 1) > tol)) | (np.any(np.abs(csum - 1) > tol)):
         x = x / x.sum(0)
@@ -219,14 +224,15 @@ def get_doubly_stochastic(A):
     X = spp.csr_matrix(x)
     return X
 
-def get_er_graph(n,p,seed=-1):
+
+def get_er_graph(n, p, seed=-1):
     """ Generates Erdos-Reyni random graph """
 
     p_control = (1.05*np.log(n)/np.log(2))/n
     if p < p_control:
         print('{} < {:.4f}; Unlikely graph will be connected...'.format(p, p_control))
 
-    A = np.zeros((n,n), dtype=int)
+    A = np.zeros((n, n), dtype=int)
 
     if seed >= 0:
         np.random.seed(seed)
@@ -234,7 +240,7 @@ def get_er_graph(n,p,seed=-1):
     for i in range(n):
         for j in range(i):
             if np.random.random() < p:
-                A[i,j] = 1
+                A[i, j] = 1
     A = A + A.T
     d = np.sum(A, axis=0)
     L = np.diag(d) - A
@@ -255,53 +261,57 @@ def get_er_graph(n,p,seed=-1):
 
     return spp.csr_matrix(L)
 
+
 """
 The remaining functions below don't help with consensus, but help with the
 regression tests. One can move these functions to a different Python file
 if need be.
 """
+
+
 def readin_csv(fname):
     """ Parses breast-cancer dataset
         (http://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28diagnostic%29)
-        for SVM. 
+        for SVM.
 
     Parameters
     ----------
     - fname : str
         file name containing data
-    
+
     Returns
     -------
     - labels : np.ndarray, (m,)
-        1D with the label of each vector   
-    - datas : np.ndarray (2D), (m,n)
+        1D with the label of each vector
+    - datas : np.ndarray (2D), (m, n)
         2D array (matrix) with the collection of dataset
     """
     fp = open(fname, 'r+')
 
     n = 569
     label = np.zeros(n, dtype='int')
-    datas = np.zeros((n,30))
+    datas = np.zeros((n, 30))
     i = 0
-    
+
     for line in fp.readlines():
         line = line.rsplit()[0]
         data = line.split(',')
-        label[i] = data[1]=='M'
-        datas[i,:] = [float(val) for val in data[2:32]]
+        label[i] = data[1] == 'M'
+        datas[i, :] = [float(val) for val in data[2:32]]
         i += 1
 
-    assert i==n, 'Expected {} datapoints, recorded'.format(n, i)
+    assert i == n, 'Expected {} datapoints, recorded {}'.format(n, i)
 
     return label, datas
 
-def gm_opt(b,m):
+
+def gm_opt(b, m):
     """ Computes optimal geometric median score
 
-    Parameters 
+    Parameters
     ----------
     - b : np.ndarray, (m*n,)
-        1D array concatenating @m vectors of size @n, i.e., [x_1,x_2,...,x_m]
+        1D array concatenating @m vectors of size @n, i.e., [x_1, x_2,..., x_m]
     - m : int
         number of vectors
     """
@@ -309,13 +319,14 @@ def gm_opt(b,m):
     n = len(b)//m
     assert len(b) == m*n
 
-    ones_m = np.ones((m,1))
-    def obj_fn(x,B,m):
-        X = ones_m @ x
-        return (1/m) * cp.sum( cp.norm(X-B, 2, axis=1) )
+    ones_m = np.ones((m, 1))
 
-    beta = cp.Variable((1,n))
-    B = np.reshape(b, newshape=(m,n))
+    def obj_fn(x, B, m):
+        X = ones_m @ x
+        return (1/m) * cp.sum(cp.norm(X-B, 2, axis=1))
+
+    beta = cp.Variable((1, n))
+    B = np.reshape(b, newshape=(m, n))
     problem = cp.Problem(cp.Minimize(obj_fn(beta, B, m)))
     # print('Problem is DCP: {}'.format(problem.is_dcp()))
     # problem.solve(verbose=True)
@@ -325,33 +336,37 @@ def gm_opt(b,m):
     return problem.value
     # return np.reshape(beta.value, newshape=(-1,))
 
+
 def regls_opt(X, y, c, reg=None):
     """ Computes optimal linear regression with l2 regularization
 
-    Parameters 
+    Parameters
     ----------
-    - X,y : np.ndarray
-        2D matrix, 1D matrix, where we want to solve optimally for theta so that 
+    - X, y : np.ndarray
+        2D matrix, 1D matrix, where we want to solve optimally for theta so that
         $y \approx X.dot(theta)$
     - c : float
         Scalar term for regularization
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    assert reg=='l1' or reg=='l2' or reg is None
-    if reg=='l1': p = 1
-    elif reg=='l2': p = 2
-    elif reg is None: p = -1
-    else: assert False, 'illegal regularization "{}"'.format(reg)
+    if reg == 'l1':
+        p = 1
+    elif reg == 'l2':
+        p = 2
+    elif reg is None:
+        p = -1
+    else:
+        assert False, 'illegal regularization "{}"'.format(reg)
 
-    def obj_fn(X,y,beta,c,p):
+    def obj_fn(X, y, beta, c, p):
         m = X.shape[0]
-        if p==1:
+        if p == 1:
             return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=1)
         return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=2)**2
 
     # already X.T
-    d,m = X.shape
+    d, m = X.shape
     beta = cp.Variable(d)
     lambd = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
@@ -362,35 +377,42 @@ def regls_opt(X, y, c, reg=None):
     return problem.value
     return beta.value
 
+
 def log_opt(X, y, c, reg=None):
     """ Computes optimal linear regression with l2 regularization. See, for
         reference,
         https://www.cvxpy.org/examples/machine_learning/logistic_regression.html
 
-    Parameters 
+    Parameters
     ----------
-    - X,y : np.ndarray
+    - X, y : np.ndarray
         2D matrix, 1D matrix, defining the logisitic regression problem
     - c : float
         Scalar term for regularization
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    assert reg=='l1' or reg=='l2' or reg is None
-    if reg=='l1': p = 1
-    elif reg=='l2': p = 2
-    elif reg is None: p = 0
-    else: assert False, 'illegal regularization mode, "{}"'.format(reg)
+    if reg == 'l1':
+        p = 1
+    elif reg == 'l2':
+        p = 2
+    elif reg is None:
+        p = 0
+    else:
+        assert False, 'illegal regularization mode, "{}"'.format(reg)
 
-    def obj_fn(X,y,beta,c,p):
+    def obj_fn(X, y, beta, c, p):
         m = X.shape[0]
-        if p==0: reg = 0
-        if p==1: reg = c * cp.norm(beta, 1)
-        elif p==2: reg = c * cp.norm(beta, 2)**2
-        # cp.logistic(x) == log(1+e^x)
-        return (1/m) * cp.sum(cp.logistic( cp.multiply(-y, X @ beta))) + reg
-        
-    d,m = X.shape
+        if p == 0:
+            reg = 0
+        if p == 1:
+            reg = c * cp.norm(beta, 1)
+        elif p == 2:
+            reg = c * cp.norm(beta, 2)**2
+            # cp.logistic(x) == log(1+e^x)
+        return (1/m) * cp.sum(cp.logistic(cp.multiply(-y, X @ beta))) + reg
+
+    d, m = X.shape
     beta = cp.Variable(d)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
     # print('Problem is DCP: {}'.format(problem.is_dcp()))
@@ -400,30 +422,38 @@ def log_opt(X, y, c, reg=None):
     return problem.value
     return beta.value
 
+
 def svm_opt(X, b, c, reg='l1'):
     """ Computes optimal support vector machine (SVM) with l1 regularization.
 
-    Parameters 
+    Parameters
     ----------
-    - X,b : np.ndarray
+    - X, b : np.ndarray
         2D matrix, 1D matrix, defining the SVM problem
     - c : float
         Scalar term for regularization
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    if reg=='l1': p = 1
-    elif reg=='l2': p = 2
-    elif reg is None: p = 0
-    else: assert False, 'illegal regularization mode, "{}"'.format(reg)
+    if reg == 'l1':
+        p = 1
+    elif reg == 'l2':
+        p = 2
+    elif reg is None:
+        p = 0
+    else:
+        assert False, 'illegal regularization mode, "{}"'.format(reg)
 
-    def obj_fn(X,b,theta,c,p):
-        if p==0: reg = 0
-        if p==1: reg = c * cp.norm(theta, 1)
-        if p==2: reg = c * cp.norm(theta, 2)**2
+    def obj_fn(X, b, theta, c, p):
+        if p == 0:
+            reg = 0
+        if p == 1:
+            reg = c * cp.norm(theta, 1)
+        if p == 2:
+            reg = c * cp.norm(theta, 2)**2
         return cp.sum(cp.pos(1-cp.multiply(b, X @ theta))) + reg
 
-    d,m = X.shape
+    d, m = X.shape
     theta = cp.Variable(d)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, b, theta, c, p)))
     # print('Problem is DCP: {}'.format(problem.is_dcp()))

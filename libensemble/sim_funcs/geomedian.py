@@ -2,6 +2,7 @@ __all__ = ['geomedian_eval']
 import numpy as np
 import numpy.linalg as la
 
+
 def EvaluateFunction(x, component, B):
     """
     Evaluates the sum of squares-variant chwirut function
@@ -14,6 +15,7 @@ def EvaluateFunction(x, component, B):
 
     f_i = 1.0/m * la.norm(x-b_i)
     return f_i
+
 
 def EvaluateJacobian(x, component, B):
     """
@@ -28,19 +30,20 @@ def EvaluateJacobian(x, component, B):
     df_i = 1.0/m * (x-b_i)/la.norm(x-b_i)
     return df_i
 
+
 def geomedian_eval(H, persis_info, sim_specs, _):
 
     B = persis_info['params']['B']
 
-    num_xs = len(H['x']) # b==1 always?
-    O = np.zeros(num_xs, dtype=sim_specs['out'])
+    num_xs = len(H['x'])  # b==1 always?
+    H_o = np.zeros(num_xs, dtype=sim_specs['out'])
 
     for k, x in enumerate(H['x']):
         i = H[k]['obj_component']   # f_i
 
         if H[k]['get_grad']:
-            O['gradf_i'][k] = EvaluateJacobian(x, i, B)
+            H_o['gradf_i'][k] = EvaluateJacobian(x, i, B)
         else:
-            O['f_i'][k] = EvaluateFunction(x, i, B)
+            H_o['f_i'][k] = EvaluateFunction(x, i, B)
 
-    return O, persis_info
+    return H_o, persis_info

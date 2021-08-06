@@ -1,8 +1,3 @@
-import pycutest, os, random
-import numpy as np
-import numpy.linalg as la
-import scipy.optimize as sciopt
-
 """
 This function provides a blackbox interface (hence, the name Blackbox seen
 in the calling scripts) for accessing gradients and function evaluations
@@ -26,6 +21,12 @@ running the script.
 Make sure you have pycutest installed. For instructions, please refer to
 https://github.com/jfowkes/pycutest.
 """
+import pycutest
+import random
+import numpy as np
+import numpy.linalg as la
+import scipy.optimize as sciopt
+
 
 def print_metadata():
     """ Imports unconstrainted problems with variable input size """
@@ -39,6 +40,7 @@ def print_metadata():
         # print(pycutest.problem_properties(prob))
         pycutest.print_available_sif_params(prob)
         print('End=')
+
 
 def gather_metadata():
     """ Parses through problems, saves only those which have input size of 100 """
@@ -56,7 +58,7 @@ def gather_metadata():
             viable = False
             setting = ''
         elif active and (('N = 100 ' in line) or ('n = 100 ' in line) or ('N = 100)' in line) or ('n = 100)' in line)):
-            viable=True
+            viable = True
             setting = line
         elif active and ('End=' in line):
             # Problem sizes for exceptions below are wrong
@@ -66,11 +68,12 @@ def gather_metadata():
                 key = setting[:idx]
                 idx2 = setting[idx + 3:].find(' ')
                 val = setting[idx+3: idx+3+idx2]
-                settings.update({prob_name: '{}:{}'.format(key,val)})
+                settings.update({prob_name: '{}:{}'.format(key, val)})
                 num_probs += 1
-            active=False
+            active = False
 
     return settings
+
 
 def import_problems(settings, silent=True):
     """ Caches problems by importing """
@@ -78,19 +81,20 @@ def import_problems(settings, silent=True):
     prob_ptr = []
     prob_ids = []
     for prob in probs:
-        key,val = settings[prob].split(':')
+        key, val = settings[prob].split(':')
         val = int(val)
-        params = {key : val}
+        params = {key: val}
         if not silent:
             print('Importing {}...'.format(prob))
         pr = pycutest.import_problem(prob, sifParams=params)
-        L = 0; n = 100
+        L = 0
+        n = 100
         for _ in range(5):
             u = np.random.random(n)
             v = np.random.random(n)
             _, dfu = pr.obj(u, gradient=True)
             _, dfv = pr.obj(v, gradient=True)
-            L = max(L, la.norm(dfu-dfv, ord=2)/la.norm(u-v,ord=2))
+            L = max(L, la.norm(dfu-dfv, ord=2)/la.norm(u-v, ord=2))
         if L < 1e5:
             prob_ptr.append(pr)
             prob_ids.append(prob)
@@ -104,11 +108,11 @@ def import_problems(settings, silent=True):
         print('Importing {} problems'.format(len(prob_ids)))
     return prob_ids, prob_ptr
 
+
 # os.system('python print_metadata.py > output.txt')
 # settings = gather_metadata()
 # prob_ids, prob_ptr = import_problems(settings)
 # num_probs = len(prob_ids)
-
 class Blackbox:
     """ Blackbox function that will return derivatives and function """
 
@@ -119,7 +123,7 @@ class Blackbox:
         - seed_num : int
             Seed number of problem since we take random {f_i}
         - k : int
-            Number of summands defining the problem, i.e. f(x)=\sum\limits_{i=1}^k f_i(x)
+            Number of summands defining the problem, i.e. f(x)= sum_{i=1}^k f_i(x)
         - scale : float
             What to scale function by (to improve smoothness, etc.)
         """
@@ -159,33 +163,33 @@ class Blackbox:
         """
         return self.scale
 
-    def f_df(self,x):
+    def f_df(self, x):
         assert len(x) == self.n, 'Input must be size {}, recieved {}'.format(self.n, len(x))
         f = 0
         df = np.zeros(self.n)
 
         for idx in self.idxs:
-            _f,_df = self.prob_ptr[idx].obj(x, gradient=True)
+            _f, _df = self.prob_ptr[idx].obj(x, gradient=True)
             f += _f
-            df+= _df
+            df += _df
 
         return [self.scale*f, self.scale*df]
 
-    def f(self,x):
+    def f(self, x):
         return self.f_df(x)[0]
 
-    def df(self,x):
+    def df(self, x):
         return self.f_df(x)[1]
 
-    def f_i(self,x,i):
-        _f,_df = self.prob_ptr[i].obj(x, gradient=True)
+    def f_i(self, x, i):
+        _f, _df = self.prob_ptr[i].obj(x, gradient=True)
         return self.scale * _f
 
-    def df_i(self,x,i):
-        _f,_df = self.prob_ptr[i].obj(x, gradient=True)
+    def df_i(self, x, i):
+        _f, _df = self.prob_ptr[i].obj(x, gradient=True)
         return self.scale * _df
 
-    def f_df_long(self,x):
+    def f_df_long(self, x):
         """ Computes gradient of all {f_i} and concatenates them to a long
             array (rather than sum). Used for distributed optimization, where
             we concatenate the solution vector.
@@ -194,18 +198,18 @@ class Blackbox:
         f = 0
         df = np.zeros(self.k*self.n)
 
-        for i,idx in enumerate(self.idxs):
+        for i, idx in enumerate(self.idxs):
             u = x[i*self.n:(i+1)*self.n]
-            _f,_df = self.prob_ptr[idx].obj(u, gradient=True)
+            _f, _df = self.prob_ptr[idx].obj(u, gradient=True)
             f += _f
             df[i*self.n:(i+1)*self.n] = _df
 
         return [self.scale*f, self.scale*df]
 
-    def f_long(self,x):
+    def f_long(self, x):
         return self.f_df_long(x)[0]
 
-    def df_long(self,x):
+    def df_long(self, x):
         return self.f_df_long(x)[1]
 
     def estimate_L(self, nsamples=10):
@@ -216,24 +220,26 @@ class Blackbox:
             v = 5*(2*np.random.random()-1)*np.random.random(self.n)
             dfu = self.df(u)
             dfv = self.df(v)
-            L = max(L, la.norm(dfu-dfv, ord=2)/la.norm(u-v,ord=2))
+            L = max(L, la.norm(dfu-dfv, ord=2)/la.norm(u-v, ord=2))
 
         return L
 
     def get_optimal_sol(self):
         """ Given a blackbox object (see ```pytest_interface.py'''), solves using
-            SciPy's optimizer 
+            SciPy's optimizer
         """
         eps = 1e-06
         gtol = eps
         n = 100
         x0 = np.zeros(n)
-        res = sciopt.minimize(self.f, x0, jac=self.df, method="BFGS", tol=eps, options={'gtol': gtol, 'norm': 2, 'maxiter': None})
+        res = sciopt.minimize(self.f, x0, jac=self.df, method="BFGS", tol=eps,
+                              options={'gtol': gtol, 'norm': 2, 'maxiter': None})
 
         xstar = res.x
         fstar = self.f(xstar)
 
         return [fstar, xstar]
+
 
 def main():
     pass
@@ -245,6 +251,7 @@ def main():
     for _ in range(10):
         print(pint.estimate_L())
     """
+
 
 if __name__ == '__main__':
     main()
