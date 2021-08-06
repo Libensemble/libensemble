@@ -4,9 +4,12 @@ import numpy.linalg as la
 import scipy.optimize as sciopt
 
 """
-This interface requires particular text file named ``output.txt'', which 
-holds metadata for all the qualified PYCUTEST functions. To create this
-function, you must run
+This function provides a blackbox interface (hence, the name Blackbox seen
+in the calling scripts) for accessing gradients and function evaluations
+for the PYCUTEst dataset.
+
+This interface requires a text file named ``output.txt'', which holds metadata
+for all the qualified PYCUTEST functions. To create this function, you must run
 
 ```
 python print_metadata.py > output.txt.
@@ -26,9 +29,10 @@ https://github.com/jfowkes/pycutest.
 
 def print_metadata():
     """ Imports unconstrainted problems with variable input size """
+    # Find unconstrained, variable-dimension problems
     probs = pycutest.find_problems(objective='LQS', constraints='U', userN=True, regular=True)
     probs = sorted(probs)
-    print('List of {} Possible problems: {}'.format(len(probs), probs))
+    # print('List of {} Possible problems: {}'.format(len(probs), probs))
 
     for prob in probs:
         print('Name={}'.format(prob))
@@ -150,6 +154,9 @@ class Blackbox:
             self.scale = scale
 
     def get_scale(self):
+        """ Scale is how much we multiplicative multiply the function and gradient. Is
+            used to improve Lipschitz smoothness of the function
+        """
         return self.scale
 
     def f_df(self,x):
@@ -179,6 +186,10 @@ class Blackbox:
         return self.scale * _df
 
     def f_df_long(self,x):
+        """ Computes gradient of all {f_i} and concatenates them to a long
+            array (rather than sum). Used for distributed optimization, where
+            we concatenate the solution vector.
+        """
         assert len(x) == self.n*self.k, 'Input must be size {}, recieved {}'.format(self.n*self.k, len(x))
         f = 0
         df = np.zeros(self.k*self.n)
@@ -223,19 +234,6 @@ class Blackbox:
         fstar = self.f(xstar)
 
         return [fstar, xstar]
-
-
-def print_metadata():
-    # Find unconstrained, variable-dimension problems
-    probs = pycutest.find_problems(objective='LQS', constraints='U', userN=True, regular=True)
-    probs = sorted(probs)
-    # print('List of {} Possible problems: {}'.format(len(probs), probs))
-
-    for prob in probs:
-        print('Name={}'.format(prob))
-        # print(pycutest.problem_properties(prob))
-        pycutest.print_available_sif_params(prob)
-        print('End=')
 
 def main():
     pass

@@ -13,28 +13,51 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     solutions. Thus, we develop a general alloc function that does both of
     these. 
 
-    From the caller function, the user must pass a square, row-stochastic
-    matrix in `persis_info['A']. Typically, this is a Laplacian matrix of a
-    connected graph or a doubly stochastic matrix. The user has two remaining
-    optional values to pass into the alloc. First, the user can set
-    `persis_info['print_progress']=1` for the alloc print the consensus value
-    and which iterations the algorithm is on. The user can optionally pass
-    parameters into the gen function via a dictionary assigned to
-    `persis_info['params']`, which will be sent to each persistent gen during
-    initalization. 
+    From the caller function, the user must pass a square matrix in
+    `persis_info['A']. Typically, this is a Laplacian matrix of a connected
+    graph or a doubly stochastic matrix. Note that the alloc will send the
+    row i's non-zero indices values to gen i when initializing the gen
+    via the persis_info object. This information is used methods such as
+    `gen_funcs/persistent_n_agent.py`, where each gen needs to take
+    a linear combination of its neighbors's `x`'s. 
+
+    The user has three remaining optional values to pass into the alloc,
+    which are all set from the calling script. 
+
+    - 1. The user can set `persis_info['print_progress']=1` 
+    This tells alloc function print the consensus value and iteration count
+    whenever a consensus step is taken
+
+    - 2. The user can set `persis_info['gen_params']={... dictionary ...}`. 
+    The dictionary contains the any parameters that the gen will utilize.
+    This can include, for example, functions that the gen can use to compute
+    gradients rather than requesting a sim to complete the work (see the
+    linear regression tests in `tests/regression_tests/test_persistent_pds.py`)
+
+    - 3. The user can set `persis_info['sim_params']={... dictionary ...}`. 
+    Similarly, the dictionary contains the any parameters that the sim will
+    utilize   
+
+                ------------------------------------------------
 
     Now, we briefly explain how to request the gradient of the consensus term
-    or the gradient of the function as the gen. For the former, the gen
-    submits a work request and must set the parameter `consensus_pt` to True,
-    while making sure to pass into the `x` variable. If the user wants the
-    alloc to sum all the {f_i}, the user must set both `consensus_pt` and
-    `eval_pt` to True while settings the `f_i` variable. (The reason for having
-    both variables set to True is to simplify the implemenation in the alloc.)
+    or the gradient of the function as the gen. 
+
+    For the former, the gen submits a work request and must set the parameter 
+    `consensus_pt` to True, while making sure to pass into the `x` variable. 
+
+    If the user wants the alloc to sum all the {f_i}, the user must set both 
+    `consensus_pt` and `eval_pt` to True while settings the `f_i` variable. (The 
+    reason for having both variables set to True is to simplify the implemenation 
+    in the alloc.)
+
     Finally, to request a gradient of f_i, `consensus_pt` must be set to False,
     `get_grad` needs to be set to True, `obj_component` (i.e., which f_i to 
-    consider) must be set, and the `x` variable must be set.  If the user wants
-    a function evaluation, then set `get_grad` to False instead. 
+    consider) must be set, and the `x` variable must be set.  
+
+    If the user wants a function evaluation, then set `get_grad` to False instead. 
     """
+
     Work = {}
     gen_count = count_persis_gens(W)
     is_first_iter = False
@@ -43,12 +66,11 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         persis_info.update({'last_H_len': 0})
         persis_info.update({'next_to_give': 0})
         persis_info.update({'first_call': False})
-        persis_info.update({'niters': 0})
         is_first_iter = True
 
         A = persis_info.get('A')
         assert A.shape[0]==A.shape[1], 'Matrix @A is not square'
-        assert la.norm(A.dot(np.ones(A.shape[1])))/la.norm(A.toarray()) < 1e-14, 'Matrix @A is not row stochastic'
+        # assert la.norm(A.dot(np.ones(A.shape[1])))/la.norm(A.toarray()) < 1e-14, 'Matrix @A is not row stochastic'
 
     # Exit if all persistent gens are done
     elif gen_count == 0:
@@ -93,7 +115,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         else:
             last_H_len = persis_info['last_H_len']
 
-            # did gen sent consensus (start @last_H_len to avoid old work)
+            # did gen sent consensus? (start @last_H_len to avoid old work)
             consensus_sim_ids = np.where( 
                 np.logical_and( 
                     H[last_H_len:]['consensus_pt'], 
@@ -143,7 +165,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # Setup for printing progress
         print_progress = persis_info.get('print_progress', False)
-        print_obj      = False
+        print_obj = H[consensus_ids_in_H[0]]['eval_pt']
+        fsum = 0
 
         if print_progress:
             num_gens = alloc_specs['user']['num_gens']
@@ -151,8 +174,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             Ax = np.empty(num_gens*n, dtype=float)
             x  = np.empty(num_gens*n, dtype=float)
             # if (1st) gen asks to gather all f_i's and print their sum
-            print_obj = H[consensus_ids_in_H[0]]['eval_pt']
-            fsum = 0
 
         A = persis_info['A']
         for i0, i in enumerate(avail_persis_worker_ids):
@@ -183,18 +204,20 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             if print_obj:
                 fsum += H[consensus_ids_in_H[i0]]['f_i']
 
-            gen_work(Work, i, ['x'], np.atleast_1d(neighbor_consensus_ids_in_H),
+            gen_work(Work, i, ['x', 'gen_worker'], 
+                     np.atleast_1d(neighbor_consensus_ids_in_H),
                      persis_info.get(i), persistent=True)
 
             persis_info[i].update({'curr_H_ids': []})
             persis_info[i].update({'at_consensus': False})
 
-        persis_info.update({'niters': persis_info.get('niters') + 1})
-
-        if print_progress:
-            msg = ''
-            if print_obj: msg += 'F(x)={:.8f}\n'.format(fsum)
-            print('{}con={:.4e}\n'.format(msg, np.dot(x,Ax)), flush=True)
+        if print_obj and print_progress:
+            msg = 'F(x)={:.8f}\n'.format(fsum)
+            print('{}con={:.4e}'.format(msg, np.dot(x,Ax)), flush=True)
+        elif print_obj:
+            print('F(x)={:.8f}'.format(fsum), flush=True)
+        elif print_progress:
+            print('con={:.4e}'.format(np.dot(x,Ax)), flush=True)
 
     # partition sum of convex functions evenly (only do at beginning)
     if is_first_iter and len( avail_worker_ids(W, persistent=False) ):
@@ -222,7 +245,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 'f_i_idxs': range(l_idx, r_idx),
                 'A_i_gen_ids': A_i_gen_ids,
                 'A_i_data': A_i_data,
-                'params': persis_info.get('params')
+                'params': persis_info.get('gen_params', {})
                 })
             persis_info[i].update({'at_consensus': False, 'curr_H_ids': []})
 
@@ -249,6 +272,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 "@next_to_give={} does not match gen's requested work H id of {}".format(
                     persis_info['next_to_give'], l_H_ids)
 
+            persis_info[i].update({'params': persis_info.get('sim_params', {}) })
             sim_work(Work, i, 
                      sim_specs['in'], 
                      np.arange(l_H_ids, r_H_ids),
@@ -264,6 +288,23 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     return Work, persis_info, 0
 
 def partition_funcs_arr(num_funcs, num_gens):
+    """ This evenly divides the functions amongst the gens. For instance,
+        when there are say 7 functions and 4 gens, this function will
+        distribute 2 contiguous functions to the first 3 gens, and then
+        function to the last gen.
+
+    Parameters
+    ----------
+    - num_funcs : int
+        How {f_i}'s there are
+    - num_gens : int
+        How many gens
+
+    Returns
+    -------
+    - num_funcs_arr : np.ndarray
+        Index pointer (i.e. gen i has functions [arr[i],arr[i+1])
+    """
     num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)
     num_leftover_funcs = num_funcs % num_gens
     num_funcs_arr[:num_leftover_funcs] += 1

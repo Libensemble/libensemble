@@ -1,3 +1,28 @@
+"""
+# Runs libEnsemble on variety of smooth convex terms, including:
+#    - Rosenbrock function
+#    - Alternative Rosenbrock function
+#    - Nesterov's quadratic function (Sec 2.1.2 in Nesterov's 's "Introductory Lectures on Convex Programming")
+#    - Linear regression with l2 regularization
+#    - Logistic regression with l2 regularization
+#    - PYCUTEst functions (https://jfowkes.github.io/pycutest/_build/html/index.html)
+#
+# You can specify which problem to test by setting @prob_id \in {0,1,2,3,4,5}. 
+#
+# This call script uses distributed gradient-tracking (https://ieeexplore.ieee.org/iel7/6509490/6730648/09199106.pdf?casa_token=7Z9O3Cf1TrwAAAAA:rSWhlWmhirmn5BLzEEbxGOQh-KCbpjrwDPHU1ugmfoY6pXsTQSNcurJjAsz4SH2azvbucJC-m1o)
+# to solve the following problems. To test, run using, for any p >= 6,
+#    mpiexec -np p python3 test_persistent_n_agent.py
+#    python3 test_persistent_n_agent.py --nworkers p --comms local
+#    python3 test_persistent_n_agent.py --nworkers p --comms tcp
+#
+# The number gens will be 4. 
+# 
+# Note that this library makes use the CVXPY library to obtain the optimal value
+# for regression testing. To test PYCUTEst, make sure to install the necessary
+# files. Refer to tools/pycute_interface on more details. To ignore this library,
+# simply comment out the import of "Blackbox" below
+# """
+
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp

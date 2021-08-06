@@ -1,3 +1,10 @@
+"""
+This function contains many common subroutines used in distributed optimization
+libraries, including collecting all the sum of {f_i}'s, collecting the
+gradients, and conducting the consensus step (i.e., take linear combination of
+your neighbors' $x$ values.
+"""
+
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
@@ -5,6 +12,18 @@ import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
+    """ This function is called by a gen so that the alloc will collect
+        all the {f_i}'s and print their sum.
+
+    Parameters
+    ----------
+    - x : np.ndarray
+        Input solution vector
+    - f_i_idxs : np.ndarray
+        Which {f_i}'s this calling gen is responsible for
+    - gen_specs, libE_info : 
+        Used to communicate
+    """
 
    # evaluate { f_i(x) } first
    l = len(f_i_idxs)
@@ -29,6 +48,19 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
    sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
 def get_grad(x, f_i_idxs, gen_specs, libE_info):
+    """ This function is called by a gen to retrieve the gradient of the
+        sum of {f_i}'s via the sim.
+
+    Parameters
+    ----------
+    - x : np.ndarray
+        Input solution vector
+    - f_i_idxs : np.ndarray
+        Which {f_i}'s this calling gen is responsible for
+    - gen_specs, libE_info : 
+        Used to communicate
+    """
+
     l = len(f_i_idxs)
     H_o = np.zeros(l, dtype=gen_specs['out'])
     H_o['x'][:] = x
@@ -45,6 +77,20 @@ def get_grad(x, f_i_idxs, gen_specs, libE_info):
     return gradf
 
 def get_grad_locally(x, f_i_idxs, df):
+    """ This function is called by a gen to locally compute gradients of
+        the sum of {f_i}'s. Unlike `get_grad`, this function does not 
+        use the sim, but instead evaluates the gradient using the input @df.
+
+    Parameters
+    ----------
+    - x : np.ndarray
+        Input solution vector
+    - f_i_idxs : np.ndarray
+        Which {f_i}'s this calling gen is responsible for
+    - df : func
+        Function that returns gradient. Must take in as parameters input @x and 
+        index @i (i.e., which f_i to take gradient of)
+    """
     gradf = np.zeros(len(x), dtype=float)
     for i in f_i_idxs:
         gradf += df(x, i)
@@ -215,6 +261,22 @@ regression tests. One can move these functions to a different Python file
 if need be.
 """
 def readin_csv(fname):
+    """ Parses breast-cancer dataset
+        (http://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28diagnostic%29)
+        for SVM. 
+
+    Parameters
+    ----------
+    - fname : str
+        file name containing data
+    
+    Returns
+    -------
+    - labels : np.ndarray, (m,)
+        1D with the label of each vector   
+    - datas : np.ndarray (2D), (m,n)
+        2D array (matrix) with the collection of dataset
+    """
     fp = open(fname, 'r+')
 
     n = 569
@@ -234,6 +296,15 @@ def readin_csv(fname):
     return label, datas
 
 def gm_opt(b,m):
+    """ Computes optimal geometric median score
+
+    Parameters 
+    ----------
+    - b : np.ndarray, (m*n,)
+        1D array concatenating @m vectors of size @n, i.e., [x_1,x_2,...,x_m]
+    - m : int
+        number of vectors
+    """
 
     n = len(b)//m
     assert len(b) == m*n
@@ -255,6 +326,18 @@ def gm_opt(b,m):
     # return np.reshape(beta.value, newshape=(-1,))
 
 def regls_opt(X, y, c, reg=None):
+    """ Computes optimal linear regression with l2 regularization
+
+    Parameters 
+    ----------
+    - X,y : np.ndarray
+        2D matrix, 1D matrix, where we want to solve optimally for theta so that 
+        $y \approx X.dot(theta)$
+    - c : float
+        Scalar term for regularization
+    - reg : str
+        Denotes which regularization to use. Either 'l1', 'l2', or None
+    """
     assert reg=='l1' or reg=='l2' or reg is None
     if reg=='l1': p = 1
     elif reg=='l2': p = 2
@@ -280,7 +363,19 @@ def regls_opt(X, y, c, reg=None):
     return beta.value
 
 def log_opt(X, y, c, reg=None):
-    """ https://www.cvxpy.org/examples/machine_learning/logistic_regression.html """
+    """ Computes optimal linear regression with l2 regularization. See, for
+        reference,
+        https://www.cvxpy.org/examples/machine_learning/logistic_regression.html
+
+    Parameters 
+    ----------
+    - X,y : np.ndarray
+        2D matrix, 1D matrix, defining the logisitic regression problem
+    - c : float
+        Scalar term for regularization
+    - reg : str
+        Denotes which regularization to use. Either 'l1', 'l2', or None
+    """
     assert reg=='l1' or reg=='l2' or reg is None
     if reg=='l1': p = 1
     elif reg=='l2': p = 2
@@ -306,6 +401,17 @@ def log_opt(X, y, c, reg=None):
     return beta.value
 
 def svm_opt(X, b, c, reg='l1'):
+    """ Computes optimal support vector machine (SVM) with l1 regularization.
+
+    Parameters 
+    ----------
+    - X,b : np.ndarray
+        2D matrix, 1D matrix, defining the SVM problem
+    - c : float
+        Scalar term for regularization
+    - reg : str
+        Denotes which regularization to use. Either 'l1', 'l2', or None
+    """
     if reg=='l1': p = 1
     elif reg=='l2': p = 2
     elif reg is None: p = 0

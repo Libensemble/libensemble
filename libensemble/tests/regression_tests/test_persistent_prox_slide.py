@@ -1,3 +1,19 @@
+"""
+# Runs libEnsemble on variety of non-smooth convex terms, including:
+#    - Geometric median
+#    - SVM with l1 regularization
+#
+# You can specify which problem to test by setting @prob_id \in {0,1}. 
+#
+# This call script uses proximal gradient sliding (https://idp.springer.com/authorize/casa?redirect_uri=https://link.springer.com/article/10.1007/s10107-015-0955-5&casa_token=ffKv1HEnGygAAAAA:DnlSXa40_f7NVTqFs_R1rnPg3IECQKoeZoduw6LAGRUVylzKkQpPclPZjXiz4azi6O1OBgOalMs3axKrPQ)
+# to solve the following problems. To test, run using, for any p >= 6,
+#    mpiexec -np p python3 test_persistent_prox_slide.py
+#    python3 test_persistent_prox_slide.py --nworkers p --comms local
+#    python3 test_persistent_prox_slide.py --nworkers p --comms tcp
+#
+# The number gens will be 4. 
+# """
+
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
