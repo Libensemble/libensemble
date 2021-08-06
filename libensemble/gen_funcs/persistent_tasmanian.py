@@ -43,16 +43,15 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
             grid.write(U['tasmanian_checkpoint_file'])
 
         # set refinement, using user['refinement'] to pick the refinement strategy
-        if 'refinement' in U:
-            if U['refinement'] == 'setAnisotropicRefinement':
-                assert 'sType' in U
-                assert 'iMinGrowth' in U
-                assert 'iOutput' in U
-                grid.setAnisotropicRefinement(U['sType'], U['iMinGrowth'], U['iOutput'])
-            elif U['refinement'] == 'setSurplusRefinement':
-                assert 'fTolerance' in U
-                assert 'iOutput' in U
-                assert 'sCriteria' in U
-                grid.setSurplusRefinement(U['fTolerance'], U['iOutput'], U['sCriteria'])
+        if U['refinement'] == 'setAnisotropicRefinement':
+            assert 'sType' in U
+            assert 'iMinGrowth' in U
+            assert 'iOutput' in U
+            grid.setAnisotropicRefinement(U['sType'], U['iMinGrowth'], U['iOutput'])
+        elif U['refinement'] == 'setSurplusRefinement':
+            assert 'fTolerance' in U
+            assert 'iOutput' in U
+            assert 'sCriteria' in U
+            grid.setSurplusRefinement(U['fTolerance'], U['iOutput'], U['sCriteria'])
 
     return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG
