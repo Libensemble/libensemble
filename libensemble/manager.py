@@ -278,9 +278,7 @@ class Manager:
         """Sends an allocation function order to a worker
         """
         logger.debug("Manager sending work unit to worker {}".format(w))
-        # if 'random' in Work['persis_info']:
-        #     import ipdb; ipdb.set_trace()
-        self.wcomms[w-1].send(Work['tag'], Work) # NOTE: metadata?
+        self.wcomms[w-1].send(Work['tag'], Work) # NOTE: metadata
         work_rows = Work['libE_info']['H_rows']
         if len(work_rows):
             if 'repack_fields' in globals():
