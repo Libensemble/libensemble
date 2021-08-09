@@ -68,6 +68,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
              'user': {'sim_kill_minutes': 15,
                       'sim_length_ns': 1.0,
                       'poll_interval': 1,
+                      'reference_pdb_file': os.path.abspath(folded_url.split('/')[-1]),
                       'config_file': 'molecular_dynamics.yaml'}
              }
 
@@ -103,8 +104,7 @@ exit_criteria = {'sim_max': 120}
 # Additional libEnsemble settings to customize our ensemble directory
 libE_specs['sim_dirs_make'] = True
 libE_specs['sim_input_dir'] = './sim'
-libE_specs['sim_dir_symlink_files'] = [os.path.abspath(folded_url.split('/')[-1]),
-                                       os.path.abspath(unfolded_url.split('/')[-1])]
+libE_specs['sim_dir_symlink_files'] = [os.path.abspath(unfolded_url.split('/')[-1])]
 
 libE_specs['gen_dirs_make'] = True
 libE_specs['gen_input_dir'] = './gen'

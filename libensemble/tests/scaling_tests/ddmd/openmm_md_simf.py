@@ -19,7 +19,7 @@ def update_config_file(H, sim_specs):
         'experiment_directory': os.path.abspath('../' + H['gen_dir_loc'][0]),
         'output_path': here,
         'initial_pdb_dir': here,
-        'reference_pdb_file': os.path.join(here, '1FME-folded.pdb'),
+        'reference_pdb_file': sim_specs['user']['reference_pdb_file'],
         'simulation_length_ns': sim_specs['user']['sim_length_ns'],
         'task_idx': int(H['task_id']),
         'stage_idx': int(H['stage_id'])
