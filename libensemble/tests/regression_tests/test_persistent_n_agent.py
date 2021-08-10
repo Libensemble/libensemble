@@ -58,14 +58,7 @@ S = get_doubly_stochastic(A)
 rho = la.norm(S - (S.shape[0]**-1)*np.ones(S.shape), ord=2)
 
 eps = 1e-1
-persis_info = {}
-persis_info['print_progress'] = 0
-persis_info['A'] = S
 N_const = 100
-
-persis_info = add_unique_random_streams(persis_info, nworkers + 1)
-persis_info['gen_params'] = {}
-exit_criteria = {'elapsed_wallclock_time': 300}
 
 # Perform the run
 libE_specs['safe_mode'] = False
@@ -74,6 +67,13 @@ libE_specs['safe_mode'] = False
 prob_id = 4
 
 for prob_id in range(6):
+    persis_info = {}
+    persis_info['print_progress'] = 0
+    persis_info['A'] = S
+    persis_info = add_unique_random_streams(persis_info, nworkers + 1)
+    persis_info['gen_params'] = {}
+    exit_criteria = {'elapsed_wallclock_time': 300}
+
     if prob_id == 0:
         sim_f = rosenbrock_eval
         m, n = 10, 20
