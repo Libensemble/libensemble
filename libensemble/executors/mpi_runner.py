@@ -1,4 +1,5 @@
-from libensemble.resources.mpi_resources import MPIResources
+#from libensemble.resources.mpi_resources import MPIResources
+from libensemble.resources import mpi_resources
 from libensemble.executors.executor import jassert
 import argparse
 import logging
@@ -80,20 +81,20 @@ class MPIRunner:
         machinefile = None
 
         # Use hostlist if full nodes, otherwise machinefile
-        # full_node = resources.worker_resources.workers_on_node == 1
+        # full_node = mpi_resources.worker_resources.workers_on_node == 1
 
         # Always use host lists (SH TODO: unless uneven mapping)
-        hostlist = resources.get_hostlist(num_nodes)
+        hostlist = mpi_resources.get_hostlist(resources, num_nodes)
 
         #if full_node or not self.mfile_support:
-            #hostlist = resources.get_hostlist(num_nodes)
+            #hostlist = mpi_resources.get_hostlist(resources, num_nodes)
         #else:
             #machinefile = "machinefile_autogen"
             #if workerID is not None:
                 #machinefile += "_for_worker_{}".format(workerID)
             #machinefile += "_task_{}".format(task.id)
             #mfile_created, num_procs, num_nodes, ranks_per_node = \
-                #resources.create_machinefile(
+                #mpi_resources.create_machinefile(resources,
                     #machinefile, num_procs, num_nodes,
                     #ranks_per_node, hyperthreads)
             #jassert(mfile_created, "Auto-creation of machinefile failed")
@@ -118,7 +119,7 @@ class MPIRunner:
 
         if machinefile is None and resources is not None:
             num_procs, num_nodes, ranks_per_node = \
-                resources.get_resources(num_procs, num_nodes,
+                mpi_resources.get_resources(resources, num_procs, num_nodes,
                                         ranks_per_node, hyperthreads)
             hostlist, machinefile = \
                 self.express_spec(task, num_procs, num_nodes,
@@ -188,9 +189,8 @@ class OPENMPI_MPIRunner(MPIRunner):
             machinefile += "_for_worker_{}".format(workerID)
         machinefile += "_task_{}".format(task.id)
         mfile_created, num_procs, num_nodes, ranks_per_node = \
-            resources.create_machinefile(
-                machinefile, num_procs, num_nodes,
-                ranks_per_node, hyperthreads)
+            mpi_resources.create_machinefile(resources, machinefile,
+            num_procs, num_nodes, ranks_per_node, hyperthreads)
         jassert(mfile_created, "Auto-creation of machinefile failed")
 
         return hostlist, machinefile
@@ -259,8 +259,8 @@ class JSRUN_MPIRunner(MPIRunner):
             machinefile = None
         if machinefile is None and resources is not None:
             num_procs, num_nodes, ranks_per_node = \
-                resources.get_resources(num_procs, num_nodes,
-                                        ranks_per_node, hyperthreads)
+                mpi_resources.get_resources(resources, num_procs, num_nodes,
+                                            ranks_per_node, hyperthreads)
 
             # TODO: Create ERF file if mapping worker to resources req.
         else:

@@ -16,7 +16,7 @@ import logging
 import time
 
 import libensemble.utils.launcher as launcher
-from libensemble.resources.mpi_resources import MPIResources
+from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.executors.executor import Executor, Task, ExecutorException
 from libensemble.executors.mpi_runner import MPIRunner
 
@@ -32,7 +32,8 @@ class MPIExecutor(Executor):
     # SH TODO: Whether to still be custom_info or separate variables as now quite limited.
     #          only reason not to is prob that it may make people use them unnecesarily.
     #          I think allow_oversubscribe shld stay as MPIExecutor variable - but maybe change name???
-    def __init__(self, allow_oversubscribe=True, custom_info={}):
+    #def __init__(self, allow_oversubscribe=True, custom_info={}):
+    def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
         A new Executor MPIExecutor is created with an application
@@ -72,7 +73,7 @@ class MPIExecutor(Executor):
 
         if not mpi_runner_type:
             # Maybe this should be in MPIResources (currently in reosurces - only says MPIResources cos its inherited).
-            mpi_runner_type = MPIResources.get_MPI_variant()
+            mpi_runner_type = get_MPI_variant()
         self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
         if subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = subgroup_launch

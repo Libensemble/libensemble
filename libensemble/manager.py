@@ -188,7 +188,8 @@ class Manager:
             self.W['worker_group'] = False  # SH TODO: Remove when all alloc funcs updated.
 
             for wrk in self.W:
-                if wrk['worker_id'] in self.resources.zero_resource_workers:
+                # SH TODO: I still don't like the extra dereference - maybe an options named tuple with zrw/central_mode etc...
+                if wrk['worker_id'] in self.resources.glob_resources.zero_resource_workers:
                     wrk['zero_resource_worker'] = True
 
         try:

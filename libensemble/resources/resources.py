@@ -14,7 +14,7 @@ This module detects and returns system resources
 
 #  Restructure  ===========================================================================================================================
 # - resources
-#    - self.hw_resources = HW_Resources() or HWResources() or AvailResources() or ResourcePool() (if have a list of such objects?)
+#    - self.hw_resources = HW_Resources() or HWResources() or AvailResources() or ResourcePool() or GlobalResources (if have a list of such objects?)
 #       - currently bulk of resources
 #    - self.worker_resources = WorkerResources()
 #    - self.resource_manager = ResourceManager() - currently ManagerWorkerResources
@@ -23,16 +23,17 @@ This module detects and returns system resources
 # Resource will no longer pass through self to worker resources.
 # WorkerResources() and ResourceManager() both inherit from an abstract class - that contains the common rset to hw_resource mapping.
 
-#  =========================================================================================================================================
+# SH TODO: Using composition for now but this is to be reviewed for best class relaitonships. =========================================================================================================================================
 
 import os
 import socket
 import logging
-import subprocess
+import numpy as np
+#import subprocess
 from collections import Counter
 from collections import OrderedDict
-import numpy as np
 from libensemble.resources import node_resources
+from libensemble.resources.mpi_resources import get_MPI_runner
 from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.worker_resources import (WorkerResources,
                                                     ResourceManager)
@@ -56,7 +57,6 @@ class Resources:
     These are set on initialization.
 
     :ivar string top_level_dir: Directory where searches for node_list file
-    :ivar boolean central_mode: If true, then running in central mode; otherwise distributed
     :ivar EnvResources env_resources: An object storing environment variables used by resources
     :ivar list global_nodelist: A list of all nodes available for running user applications
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
@@ -75,152 +75,44 @@ class Resources:
 
         # If auto_resources is False, then Resources.resources will remain None.
         auto_resources = libE_specs.get('auto_resources', True)
-
         if auto_resources:
-            custom_info = libE_specs.get('custom_info', {})
-            cores_on_node = custom_info.get('cores_on_node', None)
-            node_file = custom_info.get('node_file', None)
-
-            # SH TODO: Should these be in custom_info
-            #          Maybe - but maybe pack into a dictionary (in here) or something - so not handling separately.
-            #          Or repoack here E.g output would be nodelist_env = {'nodelist_env_slurm': nodelist_env_slurm}
-            nodelist_env_slurm = custom_info.get('nodelist_env_slurm', None)
-            nodelist_env_cobalt = custom_info.get('nodelist_env_cobalt', None)
-            nodelist_env_lsf = custom_info.get('nodelist_env_lsf', None)
-            nodelist_env_lsf_shortform = custom_info.get('nodelist_env_lsf_shortform', None)
-
-            central_mode = libE_specs.get('central_mode', False)
-            #allow_oversubscribe = libE_specs.get('allow_oversubscribe', True)  # SH TODO: re-name to clarify on-node? Moved back to MPIExecutor
-            zero_resource_workers = libE_specs.get('zero_resource_workers', [])
-            num_resource_sets = libE_specs.get('num_resource_sets', None)
             top_level_dir = os.getcwd()  # SH TODO: Do we want libE_specs option - in case want to run somewhere else.
-
             # SH TODO: MPIResources always - should be some option - related to Executor (YOU DO KNOW EXECUTOR WHEN YOU CALL)
             #          Though everything in init is not MPI specific (could also be a TCP resources version)
             #          Remember, in this initialization, resources is stored in class attribute.
-            Resources.resources = \
-                Resources(top_level_dir=top_level_dir,
-                             central_mode=central_mode,
-                             zero_resource_workers=zero_resource_workers,
-                             num_resource_sets=num_resource_sets,
-                             # allow_oversubscribe=allow_oversubscribe,
-                             # launcher=self.mpi_runner.run_command  # SH TODO: re-check replacement code
-                             cores_on_node=cores_on_node,
-                             node_file=node_file,
-                             nodelist_env_slurm=nodelist_env_slurm,
-                             nodelist_env_cobalt=nodelist_env_cobalt,
-                             nodelist_env_lsf=nodelist_env_lsf,
-                             nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
+            #          Can we pass through as *args... or libE_specs...
+            Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 
 
-    #SH - Dont have like this - unpack most stuff inside!!!!
-    def __init__(self, top_level_dir=None,
-                 central_mode=False,
-                 zero_resource_workers=[],
-                 num_resource_sets=None,
-                 #allow_oversubscribe=False,
-                 #launcher=None,
-                 cores_on_node=None,
-                 node_file=None,
-                 nodelist_env_slurm=None,
-                 nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None):
+    # SH TODO - Send through libE_specs - unpack inside.
+    #           The reason to unpack outside would be if you may want an alternative way (eg. env variables) to specify.
+    #           In that case an internal
+    def __init__(self, libE_specs, top_level_dir=None):
 
-        #SH - Prob. dont have like this - unpack most stuff inside!!!! Pass through!!! Or pack a hw_resources dict...
-
-        self.hw_resources = HWResources(top_level_dir=None,
-                                        central_mode=False,  # Assumes we will remove nodes at this level. ???? should we????
-                                        cores_on_node=None,
-                                        node_file=None,
-                                        nodelist_env_slurm=None,
-                                        nodelist_env_cobalt=None,
-                                        nodelist_env_lsf=None,
-                                        nodelist_env_lsf_shortform=None)
-
+        self.top_level_dir = top_level_dir or os.getcwd()
+        self.glob_resources = GlobalResources(libE_specs=libE_specs, top_level_dir=None)
         self.resource_manager = None  # For Manager
         self.worker_resources = None  # For Workers
-
         #self.mpi_resources = None  # May put here????
 
-
     def set_worker_resources(self, num_workers, workerid):
-        self.worker_resources = WorkerResources(num_workers, self.hw_resources ,workerid)
+        self.worker_resources = WorkerResources(num_workers, self.glob_resources ,workerid)
 
     def set_resource_manager(self, num_workers):
-        self.resource_manager = ResourceManager(num_workers, self.hw_resources )
+        self.resource_manager = ResourceManager(num_workers, self.glob_resources )
 
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
 
         Removes libEnsemble nodes from nodelist if in central_mode.
         """
-        self.hw_resources.add_comm_info(libE_nodes)
+        self.glob_resources.add_comm_info(libE_nodes)
 
-    # SH TODO: Actually should these be in HWResrouces (or maybe MPIResources - but used for cores per node probe...
-    @staticmethod
-    def get_MPI_runner():
-        var = Resources.get_MPI_variant()
-        if var in ['mpich', 'openmpi']:
-            return 'mpirun'
-        else:
-            return var
-
-    @staticmethod
-    def get_MPI_variant():
-        """Returns MPI base implementation
-
-        Returns
-        -------
-        mpi_variant: string:
-            MPI variant 'aprun' or 'jsrun' or 'mpich' or 'openmpi'
-
-        """
-
-        try:
-            subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            return 'aprun'
-        except OSError:
-            pass
-
-        try:
-            subprocess.check_call(['jsrun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            return 'jsrun'
-        except OSError:
-            pass
-
-        try:
-            # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
-            try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT)
-            stdout, _ = try_mpich.communicate()
-            if 'unrecognized argument npernode' in stdout.decode():
-                return 'mpich'
-            return 'openmpi'
-        except Exception:
-            pass
-
-        try:
-            subprocess.check_call(['srun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            return 'srun'
-        except OSError:
-            pass
-
-
-
-class HWResources:
-    def __init__(self, top_level_dir=None,
-                 central_mode=False,
-                 zero_resource_workers=[],
-                 num_resource_sets=None,
-                 #allow_oversubscribe=False,
-                 #launcher=None,
-                 cores_on_node=None,
-                 node_file=None,
-                 nodelist_env_slurm=None,
-                 nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None):
+# Maybe call GlobalResoruces if have central_mode / num_resource_sets etc... here
+# If make a reosurces sub-dictionary to libE_specs, then wont have to pass all of libE_specs...
+class GlobalResources:
+    #def __init__(self, resource_info=None, top_level_dir=None):
+    def __init__(self, libE_specs, top_level_dir=None):
 
         """Initializes a new Resources instance
 
@@ -272,12 +164,29 @@ class HWResources:
             Note: This is only queried if a node_list file is not provided and auto_resources=True.
 
         """
+        self.top_level_dir = top_level_dir
+        #should they be in a sub dictionary 'resources' or start with a prefix.
+        self.central_mode = libE_specs.get('central_mode', False)
+        self.zero_resource_workers = libE_specs.get('zero_resource_workers', [])
+        self.num_resource_sets = libE_specs.get('num_resource_sets', None)
 
-        self.top_level_dir = top_level_dir or os.getcwd()
-        self.central_mode = central_mode
+        # Moved up...and back down - as need this stuff here to pass a one nice thing to worker_resources etc...
         if self.central_mode:
             logger.debug('Running in central mode')
-        #self.allow_oversubscribe = allow_oversubscribe
+
+        #put back here for now as easier than passing via executor.
+        self.allow_oversubscribe = libE_specs.get('allow_oversubscribe', True)
+
+        # SH TODO - Try this with env resources / unit testing etc....
+        #nodelist_env = {'nodelist_env_slurm': nodelist_env_slurm}
+
+        resource_info = libE_specs.get('custom_info', {})  #resource_spec???
+        cores_on_node = resource_info.get('cores_on_node', None)
+        node_file = resource_info.get('node_file', None)
+        nodelist_env_slurm = resource_info.get('nodelist_env_slurm', None)
+        nodelist_env_cobalt = resource_info.get('nodelist_env_cobalt', None)
+        nodelist_env_lsf = resource_info.get('nodelist_env_lsf', None)
+        nodelist_env_lsf_shortform = resource_info.get('nodelist_env_lsf_shortform', None)
 
         self.env_resources = EnvResources(nodelist_env_slurm=nodelist_env_slurm,
                                           nodelist_env_cobalt=nodelist_env_cobalt,
@@ -287,11 +196,12 @@ class HWResources:
         if node_file is None:
             node_file = Resources.DEFAULT_NODEFILE
 
-        self.global_nodelist = HWResources.get_global_nodelist(node_file=node_file,
-                                                             rundir=self.top_level_dir,
-                                                             env_resources=self.env_resources)
+        self.global_nodelist = \
+            GlobalResources.get_global_nodelist(node_file=node_file,
+                                            rundir=self.top_level_dir,
+                                            env_resources=self.env_resources)
 
-        self.shortnames = HWResources.is_nodelist_shortnames(self.global_nodelist)
+        self.shortnames = GlobalResources.is_nodelist_shortnames(self.global_nodelist)
         if self.shortnames:
             self.local_host = self.env_resources.shortnames([socket.gethostname()])[0]
         else:
@@ -299,7 +209,7 @@ class HWResources:
 
         #SH TODO - this is really MPI specific - but is used here just to get cores on node etcccc - independent of whether using MPIExecutor!!!
         #self.launcher = launcher
-        self.launcher = Resources.get_MPI_runner()  # SH TODO: Move to the new separate MPIResources - okay its used for the detection of cores on node!
+        self.launcher = get_MPI_runner()  # SH TODO: Move to the new separate MPIResources - okay its used for the detection of cores on node!
         remote_detect = False
         if self.local_host not in self.global_nodelist:
             remote_detect = True
@@ -313,8 +223,10 @@ class HWResources:
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.libE_nodes = None
         #self.worker_resources = None
-        self.zero_resource_workers = zero_resource_workers  #SH TODO: I think this is only needed for worker resources.
-        self.num_resource_sets = num_resource_sets
+
+        #MAYBE NOT GlobalResources
+        #self.zero_resource_workers = zero_resource_workers  #SH TODO: I think this is only needed for worker resources.
+        #self.num_resource_sets = num_resource_sets
 
         # Let caller decide whether to set Resources.resources
         # Resources.resources = self
@@ -331,7 +243,7 @@ class HWResources:
         libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
         if libE_nodes_in_list:
             if self.central_mode and len(self.global_nodelist) > 1:
-                self.global_nodelist = HWResources.remove_nodes(self.global_nodelist, self.libE_nodes)
+                self.global_nodelist = GlobalResources.remove_nodes(self.global_nodelist, self.libE_nodes)
                 if not self.global_nodelist:
                     logger.warning("Warning. Node-list for tasks is empty. Remove central_mode or add nodes")
 

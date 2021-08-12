@@ -31,6 +31,9 @@ from libensemble.tests.regression_tests.common import build_simfunc
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+libE_specs['auto_resources'] = False
+
+
 USE_BALSAM = False
 
 cores_per_task = 1
@@ -57,10 +60,10 @@ sim_app2 = six_hump_camel.__file__
 
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
-    exctr = BalsamMPIExecutor(auto_resources=use_auto_resources)
+    exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor(auto_resources=use_auto_resources)
+    exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
 exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 
