@@ -36,14 +36,12 @@ from libensemble.gen_funcs.persistent_n_agent import n_agent as gen_f
 from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, get_doubly_stochastic, regls_opt, log_opt
-from libensemble.tools.pycute_interface import Blackbox
 
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval
 from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval
 from libensemble.sim_funcs.nesterov_quadratic import nesterov_quadratic_eval
 from libensemble.sim_funcs.linear_regression import linear_regression_eval
 from libensemble.sim_funcs.logistic_regression import logistic_regression_eval
-from libensemble.sim_funcs.pycute import pycute_eval
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -63,10 +61,8 @@ N_const = 100
 # Perform the run
 libE_specs['safe_mode'] = False
 
-# 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: CUTEr
-prob_id = 4
-
-for prob_id in range(6):
+# 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression
+for prob_id in range(5):
     persis_info = {}
     persis_info['print_progress'] = 0
     persis_info['A'] = S
@@ -145,21 +141,6 @@ for prob_id in range(6):
         persis_info['sim_params'] = {'X': X, 'y': y, 'c': c, 'reg': 'l2'}
         fstar = log_opt(X, y, c, 'l2')
 
-    elif prob_id == 5:
-        sim_f = pycute_eval
-        n = 100
-        m = 4
-        prob_name = 'PYCUTEST function'
-
-        bbox = Blackbox(k=m)
-        bbox.setup_new_prob(seed_num=0)
-        bbox.set_scale()
-        L = 1
-        N_const = 10
-
-        err_const = 1e2
-        persis_info['sim_params'] = {'m': m}
-        [fstar, _] = bbox.get_optimal_sol()
     sim_specs = {'sim_f': sim_f,
                  'in': ['x', 'obj_component', 'get_grad'],
                  'out': [('f_i', float), ('gradf_i', float, (n,))],

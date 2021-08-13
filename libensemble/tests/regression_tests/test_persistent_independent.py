@@ -16,20 +16,30 @@
 
 import sys
 import numpy as np
+import scipy.sparse as spp
 
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.gen_funcs.persistent_independent_optimize import independent_optimize as gen_f
-from libensemble.alloc_funcs.start_persistent_independent import start_persistent_independent_gens as alloc_f
+from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+if nworkers < 5:
+    sys.exit('This tests requires at least 5 workers (6 MPI processes). You can \
+             decrease the number of workers by modifying the number of gens and \
+             communication graph @A in the calling script.')
 
-m = 128
-n = 256
-num_gens = 2
+m = 16
+n = 32
+num_gens = 4
+eps = 1e-2
+
+# Even though we do not use consensus matrix, we still need to pass into alloc
+A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
 
 sim_specs = {'sim_f': sim_f,
              'in': ['x', 'obj_component', 'get_grad'],
@@ -41,50 +51,54 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,)),
-                     ('pt_id', int),          # which {x_j} to eval
+                     ('f_i', float),
+                     ('eval_pt', bool),       # eval point
+                     ('consensus_pt', bool),  # does not require a sim
                      ('obj_component', int),  # which {f_i} to eval
                      ('get_grad', bool),
-                     ('converged', bool),
-                     ('num_f_evals', int),
-                     ('num_gradf_evals', int),
                      ],
-             'user': {'gen_batch_size': 3,
-                      'm': m,
+             'user': {# 'gen_batch_size': 3,
                       'lb': np.array([-1.2, 1]*(n//2)),
                       'ub': np.array([-1.2, 1]*(n//2)),
-                      # 'lb' : np.ones(n),
-                      # 'ub' : np.ones(n),
-                      # 'lb' : 1e-10*np.ones(n),
-                      # 'ub': 2*np.ones(n)
                       }
              }
 
 alloc_specs = {'alloc_f': alloc_f,
                'out': [],
-               'user': {'num_gens': num_gens    # number of persistent gens
-                        },
+               'user': {'m': m, 'num_gens': num_gens },
                }
 
 persis_info = {}
-persis_info['last_H_len'] = 0
-persis_info['next_to_give'] = 0
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
+persis_info['gen_params'] = ({'eps': eps})
+persis_info['sim_params'] = ({'const': 1})
+persis_info['A'] = A
 
-# exit_criteria = {'gen_max': 200, 'elapsed_wallclock_time': 300, 'stop_val': ('f', 3000)}
-exit_criteria = {'sim_max': 1000000}
+exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 1000000}
 
 assert n == 2*m, "@n must be double of @m"
 
 # Perform the run
 libE_specs['safe_mode'] = False
-libE_specs['kill_canceled_sims'] = True
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_manager:
-    pass
-    # print and save data (don't do that for now)
+    # check we completed 
+    assert flag == 0
 
-    # assert len(np.unique(H['gen_time'])) == 10
+    # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
+    eval_H = H[H['eval_pt']]
 
-    # save_libE_output(H, persis_info, __file__, nworkers)
+    gen_ids = np.unique(eval_H['gen_worker'])
+    assert len(gen_ids) == num_gens, 'Gen did not submit any function eval requests'
+
+    F = 0
+    fstar = 0
+
+    for i, gen_id in enumerate(gen_ids):
+        last_eval_idx = np.where(eval_H['gen_worker'] == gen_id)[0][-1]
+        f_i = eval_H[last_eval_idx]['f_i']
+        F += f_i
+
+    assert F-fstar < eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(F-fstar, eps, fstar)

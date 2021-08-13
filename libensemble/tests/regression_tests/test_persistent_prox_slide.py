@@ -44,21 +44,19 @@ A = spp.diags([2, 3, 3, 2]) - get_k_reach_chain_matrix(num_gens, 2)
 lam_max = np.amax((la.eig(A.todense())[0]).real)
 
 eps = 1e-1
-persis_info = {}
-persis_info['print_progress'] = 0
-persis_info['A'] = A
 
-persis_info = add_unique_random_streams(persis_info, nworkers + 1)
-persis_info['gen_params'] = {}
-exit_criteria = {'elapsed_wallclock_time': 300}
+# 0: geometric median, 1: SVM prob_id = 1
+for prob_id in range(1,2):
+    persis_info = {}
+    persis_info['print_progress'] = 0
+    persis_info['A'] = A
+    
+    persis_info = add_unique_random_streams(persis_info, nworkers + 1)
+    persis_info['gen_params'] = {}
+    exit_criteria = {'elapsed_wallclock_time': 300}
+    
+    libE_specs['safe_mode'] = False
 
-# Perform the run
-libE_specs['safe_mode'] = False
-
-
-# TODO: Showcase example where we do gradients locally
-for prob_id in range(2):
-    # 0: geometric median, 1: SVM prob_id = 1
     if prob_id == 0:
         sim_f = geomedian_eval
         m, n = 10, 20
@@ -86,14 +84,13 @@ for prob_id in range(2):
         sim_f = svm_eval
         m, n = 14, 15
         prob_name = 'Support vector machine with l1 regularization'
-        L = 1
         err_const = 1e1
         N_const = 1
         b, X = readin_csv('wdbc.data')
         X = X.T
         c = 0.1
 
-        # reduce size of problem to match avaible gens
+        # reduce problem size
         b = b[:m]
         X = X[:n, :m]
         M = c*((m)**0.5)

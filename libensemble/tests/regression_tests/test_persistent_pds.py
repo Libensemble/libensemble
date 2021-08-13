@@ -37,14 +37,12 @@ from libensemble.gen_funcs.persistent_pds import opt_slide as gen_f
 from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, regls_opt, log_opt
-from libensemble.tools.pycute_interface import Blackbox
 
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval
 from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval
 from libensemble.sim_funcs.nesterov_quadratic import nesterov_quadratic_eval
 from libensemble.sim_funcs.linear_regression import linear_regression_eval
 from libensemble.sim_funcs.logistic_regression import logistic_regression_eval
-from libensemble.sim_funcs.pycute import pycute_eval
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -60,20 +58,20 @@ A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
 lam_max = np.amax(la.eig(A.toarray())[0])
 
 eps = 5e-2
-persis_info = {}
-persis_info['print_progress'] = 0
-persis_info['A'] = A
-
-persis_info = add_unique_random_streams(persis_info, nworkers + 1)
-persis_info['gen_params'] = {}
-exit_criteria = {'elapsed_wallclock_time': 300}
-
-# Perform the run
-libE_specs['safe_mode'] = False
 
 
-for prob_id in range(6):
-    # 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: CUTEr
+# 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: CUTEr
+for prob_id in range(5):
+    persis_info = {}
+    persis_info['print_progress'] = 0
+    persis_info['A'] = A
+    persis_info = add_unique_random_streams(persis_info, nworkers + 1)
+    persis_info['gen_params'] = {}
+    exit_criteria = {'elapsed_wallclock_time': 300}
+    
+    # Perform the run
+    libE_specs['safe_mode'] = False
+
     if prob_id == 0:
         sim_f = rosenbrock_eval
         m, n = 10, 20
@@ -146,21 +144,6 @@ for prob_id in range(6):
 
         persis_info['sim_params'] = {'X': X, 'y': y, 'c': c, 'reg': 'l2'}
         fstar = log_opt(X, y, c, 'l2')
-
-    elif prob_id == 5:
-        sim_f = pycute_eval
-        n = 100
-        m = 4
-        prob_name = 'PYCUTEST function'
-
-        bbox = Blackbox(k=m)
-        bbox.setup_new_prob(seed_num=0)
-        bbox.set_scale()
-        L = 1
-
-        err_const = 1e2
-        persis_info['sim_params'] = {'m': m}
-        [fstar, _] = bbox.get_optimal_sol()
 
     sim_specs = {'sim_f': sim_f,
                  'in': ['x', 'obj_component', 'get_grad'],

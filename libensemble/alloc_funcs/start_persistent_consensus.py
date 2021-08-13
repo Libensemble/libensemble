@@ -69,7 +69,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         A = persis_info.get('A')
         assert A.shape[0] == A.shape[1], 'Matrix @A is not square'
-        # assert la.norm(A.dot(np.ones(A.shape[1])))/la.norm(A.toarray()) < 1e-14, 'Matrix @A is not row stochastic'
 
     # Exit if all persistent gens are done
     elif gen_count == 0:

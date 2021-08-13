@@ -11,7 +11,6 @@ import scipy.sparse as spp
 import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
-
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     """ This function is called by a gen so that the alloc will collect
         all the {f_i}'s and print their sum.
@@ -47,10 +46,9 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
 
     sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
-
-def get_grad(x, f_i_idxs, gen_specs, libE_info):
-    """ This function is called by a gen to retrieve the gradient of the
-        sum of {f_i}'s via the sim.
+def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
+    """ This function is called by a gen to retrieve the function or gradient
+        of the sum of {f_i}'s via the sim.
 
     Parameters
     ----------
@@ -60,22 +58,33 @@ def get_grad(x, f_i_idxs, gen_specs, libE_info):
         Which {f_i}'s this calling gen is responsible for
     - gen_specs, libE_info :
         Used to communicate
+    - get_grad : bool 
+        True if we want gradient, otherwise returns function eval
     """
 
     H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
     H_o['x'][:] = x
     H_o['consensus_pt'][:] = False
     H_o['obj_component'][:] = f_i_idxs
-    H_o['get_grad'][:] = True
+    H_o['get_grad'][:] = get_grad
     H_o = np.reshape(H_o, newshape=(-1,))      # unfold into 1d array
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
-    gradf_is = calc_in['gradf_i']
-    gradf = np.sum(gradf_is, axis=0)
+    if get_grad:
+        gradf_is = calc_in['gradf_i']
+        gradf = np.sum(gradf_is, axis=0)
+        return gradf
+    else:
+        f_is = calc_in['f_i']
+        f = np.sum(f_is)
+        return f
 
-    return gradf
+def get_func(x, f_i_idxs, gen_specs, libE_info):
+    return get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad=False)
 
+def get_grad(x, f_i_idxs, gen_specs, libE_info):
+    return get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad=True)
 
 def get_grad_locally(x, f_i_idxs, df):
     """ This function is called by a gen to locally compute gradients of
@@ -97,7 +106,6 @@ def get_grad_locally(x, f_i_idxs, df):
         gradf += df(x, i)
 
     return gradf
-
 
 def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info):
     """ Sends local gen data (@x) and retrieves neighbors local data.
@@ -261,7 +269,6 @@ def get_er_graph(n, p, seed=-1):
 
     return spp.csr_matrix(L)
 
-
 """
 The remaining functions below don't help with consensus, but help with the
 regression tests. One can move these functions to a different Python file
@@ -286,9 +293,21 @@ def readin_csv(fname):
     - datas : np.ndarray (2D), (m, n)
         2D array (matrix) with the collection of dataset
     """
-    fp = open(fname, 'r+')
-
     n = 569
+    try:
+        fp = open(fname, 'r+')
+    except:
+        msg = "# Missing file 'wdbc.data' (must be placed in same directory where you run 'mpirun -np ...'). "
+        msg+= "File can be downloaded from https://tinyurl.com/3a2ttj5a. "
+        msg+= "Creating artificial dataset instead."
+        print(msg)
+
+        m = 30
+        label = 2*np.random.randint(low=0, high=1, size=m)-1
+        datas = (10*np.random.random(size=(n,m))).astype('int')
+
+        return label, datas
+
     label = np.zeros(n, dtype='int')
     datas = np.zeros((n, 30))
     i = 0
@@ -328,14 +347,9 @@ def gm_opt(b, m):
     beta = cp.Variable((1, n))
     B = np.reshape(b, newshape=(m, n))
     problem = cp.Problem(cp.Minimize(obj_fn(beta, B, m)))
-    # print('Problem is DCP: {}'.format(problem.is_dcp()))
-    # problem.solve(verbose=True)
     problem.solve()
 
-    # print('F(x*)={:.4f}'.format(problem.value))
     return problem.value
-    # return np.reshape(beta.value, newshape=(-1,))
-
 
 def regls_opt(X, y, c, reg=None):
     """ Computes optimal linear regression with l2 regularization
@@ -370,12 +384,9 @@ def regls_opt(X, y, c, reg=None):
     beta = cp.Variable(d)
     lambd = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
-    # problem.solve(verbose=True)
     problem.solve()
 
-    # print('F(x*)={:.4f}'.format(problem.value))
     return problem.value
-    return beta.value
 
 
 def log_opt(X, y, c, reg=None):
@@ -409,19 +420,15 @@ def log_opt(X, y, c, reg=None):
             reg = c * cp.norm(beta, 1)
         elif p == 2:
             reg = c * cp.norm(beta, 2)**2
-            # cp.logistic(x) == log(1+e^x)
+        # Note that, cp.logistic(x) == log(1+e^x)
         return (1/m) * cp.sum(cp.logistic(cp.multiply(-y, X @ beta))) + reg
 
     d, m = X.shape
     beta = cp.Variable(d)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
-    # print('Problem is DCP: {}'.format(problem.is_dcp()))
     problem.solve()
 
-    # print('F(x*)={:.4f}'.format(problem.value))
     return problem.value
-    return beta.value
-
 
 def svm_opt(X, b, c, reg='l1'):
     """ Computes optimal support vector machine (SVM) with l1 regularization.
@@ -456,9 +463,6 @@ def svm_opt(X, b, c, reg='l1'):
     d, m = X.shape
     theta = cp.Variable(d)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, b, theta, c, p)))
-    # print('Problem is DCP: {}'.format(problem.is_dcp()))
     problem.solve()
 
-    # print('F(x*)={:.4f}'.format(problem.value))
     return problem.value
-    return theta.value

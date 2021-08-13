@@ -7,8 +7,6 @@ def n_agent(H, persis_info, gen_specs, libE_info):
     """ Gradient sliding. Coordinates with alloc to do local and distributed
         (i.e., gradient of consensus step) calculations.
     """
-    # TODO: Allow early termination by checking tag (what do I mean here?)
-    tag = None
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
     n = len(ub)

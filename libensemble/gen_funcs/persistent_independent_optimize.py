@@ -3,127 +3,56 @@ import numpy.linalg as la
 import scipy.optimize as sciopt
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.tools.consensus_subroutines import (print_final_score, get_grad, get_func)
 
-
-class Error(Exception):
-    pass
-
-
-class StopTagError(Error):
-    # TODO: Can we remove this
-    def __init__(self):
-        pass
-
-
-# TODO: Place this in support file
+# TODO: Place this in support file or get rid fo
 def double_extend(arr):
+    """ Takes array [i_1,i_2,...i_k] and builds an extended array
+        [2i_1, 2i_1+1, 2i_2, 2i_2+1, ..., 2i_k, 2i_k+1]
+
+        For instances, given an array [0,1,2], we return 
+        [0,1, 2,3, 4,5]. This is useful for distributed sum of convex
+        functions f_i which depend on two contiguous components x
+        but not on the rest.
+    """
     out = np.zeros(len(arr)*2, dtype=type(arr[0]))
     out[0::2] = 2*np.array(arr)
     out[1::2] = 2*np.array(arr)+1
     return out
 
-
 def independent_optimize(H, persis_info, gen_specs, libE_info):
     """ Uses scipy.optimize to solve objective function
     """
-    f_i_idxs = persis_info.get('f_i_idxs')
-    x_i_idxs = double_extend(f_i_idxs)
-    ub = gen_specs['user']['ub'][x_i_idxs]
-    lb = gen_specs['user']['lb'][x_i_idxs]
-    n_i = len(lb)
-    metadata = {'ct': 0, 'num_f_evals': 0, 'num_gradf_evals': 0, 'last_grad_norm': 0}
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
+
+    eps = persis_info['params']['eps']
+    f_i_idxs = persis_info['f_i_idxs']
 
     def _f(x):
-        ct = metadata['ct']
-        f_out, new_ct = _req_sims(x, f_i_idxs, x_i_idxs, ct, gen_specs, libE_info, get_f=True)
-        metadata['ct'] = new_ct
-        metadata['num_f_evals'] += 1
-        return f_out
+        return get_func(x, f_i_idxs, gen_specs, libE_info)
 
     def _df(x):
-        ct = metadata['ct']
-        df_out, new_ct = _req_sims(x, f_i_idxs, x_i_idxs, ct, gen_specs, libE_info, get_f=False)
-        metadata['ct'] = new_ct
-        metadata['num_gradf_evals'] += 1
-        metadata['last_grad_norm'] = la.norm(df_out, np.inf)
-        return df_out
+        return get_grad(x, f_i_idxs, gen_specs, libE_info)
 
     while 1:
+       x0 = persis_info['rand_stream'].uniform(low=lb, high=ub)
 
-        # TODO: prevent solutions that are close to previous solutions
-        x0 = persis_info['rand_stream'].uniform(lb, ub, size=(n_i,))
-        gtol = 1e-02
+       res = sciopt.minimize(_f, x0, jac=_df, method="BFGS", tol=eps,
+                                  options={'gtol': eps, 'norm': np.inf, 'maxiter': None})
+       print_final_score(res.x, f_i_idxs, gen_specs, libE_info)
 
-        try:
-            res = sciopt.minimize(_f, x0, jac=_df, method="BFGS", tol=1e-2,
-                                  options={'gtol': gtol, 'norm': np.inf, 'maxiter': None})
+       start_pt, end_pt = f_i_idxs[0], f_i_idxs[-1]
+       print('[Worker {}]: x={}'.format(persis_info['worker_num'], res.x[2*start_pt:2*end_pt]), flush=True)
+       """
+       try:
+           res = sciopt.minimize(_f, x0, jac=_df, method="BFGS", tol=eps,
+                                  options={'gtol': eps, 'norm': np.inf, 'maxiter': None})
+           print_final_score(res.x, f_i_idxs, gen_specs, libE_info)
 
-        except StopTagError:
-            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
+       except:
+           print('hi', flush=True)
+           return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
+       """
 
-        if res.success:
-            # first sent @x back to alloc to remember
-            H_o = np.zeros(1, dtype=gen_specs['out'])
-
-            H_o[0]['x'][x_i_idxs] = res.x
-            H_o[0]['converged'] = True
-            H_o[0]['num_f_evals'] = metadata['num_f_evals']
-            H_o[0]['num_gradf_evals'] = metadata['num_gradf_evals']
-            # H_o[0]['num_sims_req'] =  1
-            H_o[0]['pt_id'] = metadata['ct']
-
-            print('Last gradient norm: {:.6f}. Expected at most: {:.6f}'.format(
-                  metadata['last_grad_norm'], gtol), flush=True)
-
-            # tell alloc we have found min. alloc will require basic work job
-            sendrecv_mgr_worker_msg(libE_info['comm'], output=H_o)
-
-            # print("===========================", flush=True)
-            # print("# FINISH \n", flush=True)
-            # print("# x={} ".format(res.x), flush=True)
-            # print("===========================", flush=True)
-            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
-
-
-def _req_sims(x, f_i_idxs, x_i_idxs, ct, gen_specs, libE_info, get_f):
-    """ Request evaluation of function or its gradient (@get_f)
-
-    Parmaters
-    ---------
-    x : np.ndarray(dtype=int)
-        - input to evaluaate at
-    x_i_idxs : np.ndarray(dtype=int)
-        - which x_i_indices we are responsible for
-    ct : int
-        - counter for gen (internal book keeping)
-    get_f : bool
-        - True to request function, otherwise get gradient
-
-    Returns
-    -------
-      : float or np.ndarray(dtype=float)
-        - output of sim work
-    ct : int
-        - updated counter
-
-    """
-    H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
-    H_o['obj_component'] = f_i_idxs
-    H_o['x'][:, x_i_idxs] = np.tile(x, (len(f_i_idxs), 1))  # broadcasts
-    H_o['pt_id'][:] = ct
-    H_o['get_grad'][:] = not get_f
-    H_o['converged'][:] = False
-    ct += 1
-
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-
-    if tag in [STOP_TAG, PERSIS_STOP]:
-        raise StopTagError
-
-    if get_f:
-        f_is = calc_in['f_i']
-        return np.sum(f_is), ct
-    else:
-        gradf_is = calc_in['gradf_i'][:, x_i_idxs]
-        return np.sum(gradf_is, axis=0), ct
+       return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

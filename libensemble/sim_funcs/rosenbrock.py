@@ -1,9 +1,6 @@
 import numpy as np
 
-const = 1000
-
-
-def EvaluateFunction(x, component=np.nan):
+def EvaluateFunction(x, component):
     """
     Evaluates the chained Rosenbrock function
     """
@@ -25,7 +22,7 @@ def EvaluateFunction(x, component=np.nan):
     return f
 
 
-def EvaluateJacobian(x, component=np.nan):
+def EvaluateJacobian(x, component, const):
     """
     Evaluates the chained Rosenbrock Jacobian
     """
@@ -52,6 +49,8 @@ def EvaluateJacobian(x, component=np.nan):
 
 def rosenbrock_eval(H, persis_info, sim_specs, _):
 
+    const = persis_info['params'].get('const', 1000)
+
     batch = len(H['x'])
     H_o = np.zeros(batch, dtype=sim_specs['out'])
 
@@ -59,7 +58,7 @@ def rosenbrock_eval(H, persis_info, sim_specs, _):
         obj_component = H['obj_component'][i]  # which f_i
 
         if H[i]['get_grad']:
-            H_o['gradf_i'][i] = EvaluateJacobian(x, obj_component)
+            H_o['gradf_i'][i] = EvaluateJacobian(x, obj_component, const)
         else:
             H_o['f_i'][i] = EvaluateFunction(x, obj_component)
 
