@@ -1,3 +1,4 @@
+
 """
 This module detects and returns system resources
 
@@ -23,7 +24,14 @@ This module detects and returns system resources
 # Resource will no longer pass through self to worker resources.
 # WorkerResources() and ResourceManager() both inherit from an abstract class - that contains the common rset to hw_resource mapping.
 
-# SH TODO: Using composition for now but this is to be reviewed for best class relaitonships. =========================================================================================================================================
+# SH TODO: Using composition for now but this is to be reviewed for best class relaitonships.
+
+# An alternative - Combine or base_worker_class and global_resources - or inherit first from second.
+# Then reomve sep. resource class and make resource_manager and worker_resources just inherit from that.
+# Create after the forkpoint!
+# Any downsides - one could be do we want the attributes of global resources in same space as wokrer attribtures
+#               - eg. do I want to know - these are MY worker attributes - could there be confusion with global attributes in same space.
+=========================================================================================================================================
 
 import os
 import socket
