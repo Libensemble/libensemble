@@ -2,7 +2,7 @@ import logging
 from collections import Counter
 from collections import OrderedDict
 import numpy as np
-from libensemble.resources.base_worker_class import RSetResources
+from libensemble.resources.rset_resources import RSetResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
