@@ -29,7 +29,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
 
     support = AllocSupport(alloc_specs)  # Access alloc support functions
-    manage_resources = 'resource_sets' in H.dtype.name
+    manage_resources = 'resource_sets' in H.dtype.names
 
     Work = {}
     gen_count = support.count_gens(W)

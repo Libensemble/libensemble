@@ -38,7 +38,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
 
     support = AllocSupport(alloc_specs)  # Access alloc support functions
-    manage_resources = 'resource_sets' in H.dtype.name
+    manage_resources = 'resource_sets' in H.dtype.names
 
     Work = {}
     gen_count = support.count_persis_gens(W)
@@ -62,11 +62,11 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if np.any(returned_but_not_given):
             if async_return or support.all_returned(H, gen_inds):
                 inds_since_last_gen = np.where(returned_but_not_given)[0]
+                rset_team = [] if manage_resources else None
                 support.gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
                          inds_since_last_gen, persis_info.get(i), persistent=True,
                          active_recv=active_recv_gen, rset_team=[])
-                #Work[i]['libE_info']['rset_team'] = []  # Already assigned
                 H['given_back'][inds_since_last_gen] = True
 
     task_avail = ~H['given'] & ~H['cancel_requested']
