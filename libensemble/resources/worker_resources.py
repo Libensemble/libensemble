@@ -59,8 +59,6 @@ class ResourceManager(BaseWorkerResources):
         self.ngroups_by_size = Counter(counts)
         self.even_groups = True if len(self.ngroups_by_size) == 1 else False
         print('\nrsets are {} even groups is {}\n'.format(self.rsets,self.even_groups))
-        #import pdb;pdb.set_trace()
-
 
     def assign_rsets(self, rset_team, worker_id):
         """Mark the resource sets given by rset_team as assigned to worker_id"""
@@ -76,12 +74,8 @@ class ResourceManager(BaseWorkerResources):
                     raise WorkerResourcesException("Error: Attempting to assign rsets {} already assigned to workers: {}".
                                              format(rset_team, rteam))
 
-            #self.rsets['assigned'][rset_team] = worker_id
-            #self.rsets_free -= len(rset_team)
-
-            #print('rsets free', self.rsets_free)
-            #print('resource ids assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
-            #print('resource worker assignment', self.rsets['assigned'])  # SH TODO: Remove
+            # print('resource ids assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
+            # print('resource worker assignment', self.rsets['assigned'])  # SH TODO: Remove
             # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove
 
 
@@ -128,7 +122,6 @@ class ResourceManager(BaseWorkerResources):
                 index_list.append(index)
                 index += 1
         return index_list
-
 
 
 class WorkerResources(BaseWorkerResources):

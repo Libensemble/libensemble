@@ -1,4 +1,3 @@
-
 """
 This module detects and returns system resources
 
@@ -12,32 +11,10 @@ This module detects and returns system resources
 #          Remove debugging comments/commented out code + check/update docstrings
 #          Deal with unbalanced cases, and if not, return meaningful error message
 
-
-#  Restructure  ===========================================================================================================================
-# - resources
-#    - self.hw_resources = HW_Resources() or HWResources() or AvailResources() or ResourcePool() or GlobalResources (if have a list of such objects?)
-#       - currently bulk of resources
-#    - self.worker_resources = WorkerResources()
-#    - self.resource_manager = ResourceManager() - currently ManagerWorkerResources
-# -  - MPIResources - will no longer be inherited from resources - will be initiaed by MPIExectuor so either part of executor or in this
-#                     directory - but added when needed - may not even be class - just MPI utility routines that executor can call - passing it resources...
-# Resource will no longer pass through self to worker resources.
-# WorkerResources() and ResourceManager() both inherit from an abstract class - that contains the common rset to hw_resource mapping.
-
-# SH TODO: Using composition for now but this is to be reviewed for best class relaitonships.
-
-# An alternative - Combine or base_worker_class and global_resources - or inherit first from second.
-# Then reomve sep. resource class and make resource_manager and worker_resources just inherit from that.
-# Create after the forkpoint!
-# Any downsides - one could be do we want the attributes of global resources in same space as wokrer attribtures
-#               - eg. do I want to know - these are MY worker attributes - could there be confusion with global attributes in same space.
-=========================================================================================================================================
-
 import os
 import socket
 import logging
 import numpy as np
-#import subprocess
 from collections import Counter
 from collections import OrderedDict
 from libensemble.resources import node_resources
@@ -79,29 +56,19 @@ class Resources:
     @classmethod
     def init_resources(cls, libE_specs):
         """Initiate resource management"""
-        #from libensemble.resources.mpi_resources import MPIResources
 
         # If auto_resources is False, then Resources.resources will remain None.
         auto_resources = libE_specs.get('auto_resources', True)
         if auto_resources:
-            top_level_dir = os.getcwd()  # SH TODO: Do we want libE_specs option - in case want to run somewhere else.
-            # SH TODO: MPIResources always - should be some option - related to Executor (YOU DO KNOW EXECUTOR WHEN YOU CALL)
-            #          Though everything in init is not MPI specific (could also be a TCP resources version)
-            #          Remember, in this initialization, resources is stored in class attribute.
-            #          Can we pass through as *args... or libE_specs...
+            top_level_dir = os.getcwd()  # SH TODO: Do we want as libE_specs option.
             Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 
-
-    # SH TODO - Send through libE_specs - unpack inside.
-    #           The reason to unpack outside would be if you may want an alternative way (eg. env variables) to specify.
-    #           In that case an internal
     def __init__(self, libE_specs, top_level_dir=None):
-
+        """ Initiate a new resources object """
         self.top_level_dir = top_level_dir or os.getcwd()
         self.glob_resources = GlobalResources(libE_specs=libE_specs, top_level_dir=None)
         self.resource_manager = None  # For Manager
         self.worker_resources = None  # For Workers
-        #self.mpi_resources = None  # May put here????
 
     def set_worker_resources(self, num_workers, workerid):
         self.worker_resources = WorkerResources(num_workers, self.glob_resources ,workerid)
@@ -116,16 +83,16 @@ class Resources:
         """
         self.glob_resources.add_comm_info(libE_nodes)
 
-# Maybe call GlobalResoruces if have central_mode / num_resource_sets etc... here
-# If make a reosurces sub-dictionary to libE_specs, then wont have to pass all of libE_specs...
+
 class GlobalResources:
-    #def __init__(self, resource_info=None, top_level_dir=None):
     def __init__(self, libE_specs, top_level_dir=None):
 
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including
         node list and cores/hardware threads available within nodes.
+
+        The following parameters may be extracted from libE_specs
 
         Parameters
         ----------
@@ -173,20 +140,15 @@ class GlobalResources:
 
         """
         self.top_level_dir = top_level_dir
-        #should they be in a sub dictionary 'resources' or start with a prefix.
         self.central_mode = libE_specs.get('central_mode', False)
         self.zero_resource_workers = libE_specs.get('zero_resource_workers', [])
         self.num_resource_sets = libE_specs.get('num_resource_sets', None)
 
-        # Moved up...and back down - as need this stuff here to pass a one nice thing to worker_resources etc...
-        if self.central_mode:
-            logger.debug('Running in central mode')
-
-        #put back here for now as easier than passing via executor.
+        # SH TODO: Where to set this - put back here for now as easier than passing via executor.
         self.allow_oversubscribe = libE_specs.get('allow_oversubscribe', True)
 
-        # SH TODO - Try this with env resources / unit testing etc....
-        #nodelist_env = {'nodelist_env_slurm': nodelist_env_slurm}
+        if self.central_mode:
+            logger.debug('Running in central mode')
 
         resource_info = libE_specs.get('custom_info', {})  #resource_spec???
         cores_on_node = resource_info.get('cores_on_node', None)
@@ -215,9 +177,8 @@ class GlobalResources:
         else:
             self.local_host = socket.gethostname()
 
-        #SH TODO - this is really MPI specific - but is used here just to get cores on node etcccc - independent of whether using MPIExecutor!!!
-        #self.launcher = launcher
-        self.launcher = get_MPI_runner()  # SH TODO: Move to the new separate MPIResources - okay its used for the detection of cores on node!
+        # Note: Launcher used here just to get cores on node etc - independent of whether using MPIExecutor
+        self.launcher = get_MPI_runner()
         remote_detect = False
         if self.local_host not in self.global_nodelist:
             remote_detect = True
@@ -230,14 +191,7 @@ class GlobalResources:
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.libE_nodes = None
-        #self.worker_resources = None
 
-        #MAYBE NOT GlobalResources
-        #self.zero_resource_workers = zero_resource_workers  #SH TODO: I think this is only needed for worker resources.
-        #self.num_resource_sets = num_resource_sets
-
-        # Let caller decide whether to set Resources.resources
-        # Resources.resources = self
 
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
@@ -255,8 +209,6 @@ class GlobalResources:
                 if not self.global_nodelist:
                     logger.warning("Warning. Node-list for tasks is empty. Remove central_mode or add nodes")
 
-
-    # ---------------------------------------------------------------------------
 
     @staticmethod
     def is_nodelist_shortnames(nodelist):
@@ -294,9 +246,6 @@ class GlobalResources:
             with open(node_filepath, 'r') as f:
                 for line in f:
                     global_nodelist.append(line.rstrip())
-            # Expect correct format - if anything - could have an option to truncate.
-            # if env_resources:
-                # global_nodelist = env_resources.shortnames(global_nodelist)
         else:
             logger.debug("No node_file found - searching for nodelist in environment")
             if env_resources:

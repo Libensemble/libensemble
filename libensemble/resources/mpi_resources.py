@@ -2,7 +2,7 @@
 Manages libensemble resources related to MPI tasks launched from nodes.
 """
 
-#SH TODO - if no class should be mpi_utils....
+#SH TODO - if no class - maybe call mpi_utils....
 
 import os
 import logging
@@ -105,7 +105,6 @@ def task_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
     return num_procs, num_nodes, ranks_per_node
 
 
-
 def _max_rsets_per_node(worker_resources):
     """ Return the maximum rsets per node for any node on this worker"""
     # SH TODO: Need to add tests that go across the uneven nodes.
@@ -205,6 +204,7 @@ def get_resources(resources, num_procs=None, num_nodes=None,
 
     return num_procs, num_nodes, ranks_per_node
 
+
 def create_machinefile(resources, machinefile=None, num_procs=None,
                        num_nodes=None, ranks_per_node=None,
                        hyperthreads=False):
@@ -230,9 +230,12 @@ def create_machinefile(resources, machinefile=None, num_procs=None,
                    and os.path.getsize(machinefile) > 0)
     return built_mfile, num_procs, num_nodes, ranks_per_node
 
+
 def get_hostlist(resources, num_nodes=None):
-    """Creates a hostlist based on user-supplied config options,
-    completed by detected machine resources"""
+    """Creates a hostlist based on user-supplied config options.
+
+    completed by detected machine resources
+    """
     node_list = resources.worker_resources.local_nodelist
     hostlist_str = ",".join([str(x) for x in node_list[:num_nodes]])
     return hostlist_str

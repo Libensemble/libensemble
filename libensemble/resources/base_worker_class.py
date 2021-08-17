@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 # unlesss resource sets is set explicitly. This class maps rsets to hardware resources.
 class BaseWorkerResources():
 
-
     def __init__(self, num_workers, resources):
         """Initializes a new BaseWorkerResources instance
 
