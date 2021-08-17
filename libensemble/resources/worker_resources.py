@@ -2,7 +2,7 @@ import logging
 from collections import Counter
 from collections import OrderedDict
 import numpy as np
-from libensemble.resources.base_worker_class import BaseWorkerResources
+from libensemble.resources.base_worker_class import RSetResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -13,7 +13,7 @@ class WorkerResourcesException(Exception):
     "Worker resources module exception."
 
 
-class ResourceManager(BaseWorkerResources):
+class ResourceManager(RSetResources):
 
     rset_dtype = [('assigned', int),  # Holds worker ID assigned to or zero
                   ('group', int)      # Group ID this resource set belongs to
@@ -124,7 +124,7 @@ class ResourceManager(BaseWorkerResources):
         return index_list
 
 
-class WorkerResources(BaseWorkerResources):
+class WorkerResources(RSetResources):
     """Provide system resources per worker to libEnsemble and executor.
 
     **Object Attributes:**

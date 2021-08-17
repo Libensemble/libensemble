@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 # Its really about rset (resource set) assignment - workers is only used as a default way to set rsets
 # possible class names: RSETResources/SplitResources
 # unlesss resource sets is set explicitly. This class maps rsets to hardware resources.
-class BaseWorkerResources():
+class RSetResources():
 
     def __init__(self, num_workers, resources):
-        """Initializes a new BaseWorkerResources instance
+        """Initializes a new RSetResources instance
 
         Determines the compute resources available for current worker, including
         node list and cores/hardware threads available within nodes.
@@ -28,13 +28,13 @@ class BaseWorkerResources():
 
         """
         self.num_workers = num_workers
-        self.num_workers_2assign2 = BaseWorkerResources.get_workers2assign2(self.num_workers, resources)
+        self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
         self.num_rsets = resources.num_resource_sets or self.num_workers_2assign2
-        self.split_list, self.local_rsets_list = BaseWorkerResources.get_partitioned_nodelist(self.num_rsets, resources)
+        self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.num_rsets, resources)
 
         # SH TODO: Need to update to make uneven distribution of rsets to nodes work as does on develop
         # SH TODO: To fully support uneven rsets (with re-assignment) - will use local_rsets_list (above)
-        self.rsets_per_node = BaseWorkerResources.get_rsets_on_a_node(self.num_rsets, resources)
+        self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.num_rsets, resources)
 
 
     @staticmethod
@@ -95,7 +95,7 @@ class BaseWorkerResources():
         global_nodelist = resources.global_nodelist
         num_nodes = len(global_nodelist)
 
-        if not BaseWorkerResources.even_assignment(num_nodes, num_rsets):
+        if not RSetResources.even_assignment(num_nodes, num_rsets):
             logger.warning('Resource sets ({}) are not distributed evenly to available nodes ({})'
                            .format(num_rsets, num_nodes))
 
@@ -103,12 +103,12 @@ class BaseWorkerResources():
         sub_node_workers = (num_rsets >= num_nodes)
         if sub_node_workers:
             global_nodelist, local_rsets_list = \
-                BaseWorkerResources.expand_list(num_nodes, num_rsets, global_nodelist)
+                RSetResources.expand_list(num_nodes, num_rsets, global_nodelist)
         else:
             local_rsets_list = [1] * num_rsets
 
         # Divide global list between workers
-        split_list = list(BaseWorkerResources.best_split(global_nodelist, num_rsets))
+        split_list = list(RSetResources.best_split(global_nodelist, num_rsets))
         logger.debug("split_list is {}".format(split_list))
         return split_list, local_rsets_list
 
@@ -121,6 +121,6 @@ class BaseWorkerResources():
         Assumes that self.global_nodelist has been calculated (in __init__).
         Also self.global_nodelist will have already removed non-application nodes
         """
-        split_list, local_rsets_list = BaseWorkerResources.get_split_list(num_rsets, resources)
+        split_list, local_rsets_list = RSetResources.get_split_list(num_rsets, resources)
         #print('local_rsets_list', local_rsets_list, flush=True)
         return split_list, local_rsets_list
