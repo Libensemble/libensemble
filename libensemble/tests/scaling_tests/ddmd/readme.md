@@ -22,7 +22,7 @@ for package conflicts in ``.local``.
 ## Install DeepDriveMD and other initial dependencies
 
 We'll be running components of DeepDriveMD as tasks within libEnsemble. Each component
-requires additional dependency installations.
+requires additional, separate dependency installations.
 
 ```
 $ pip install git+https://github.com/DeepDriveMD/DeepDriveMD-pipeline.git
@@ -31,13 +31,27 @@ $ pip install git+https://github.com/braceal/MD-tools.git
 ...
 $ pip install git+https://github.com/braceal/molecules.git
 ...
-$ conda install mpi4py scikit-learn pandas numpy==1.20.3
+$ pip install requests pyyaml
+...
+$ conda install mpi4py scikit-learn pandas numpy==1.20.3 h5py=2.10.0
+```
+
+See https://github.com/DeepDriveMD/DeepDriveMD-pipeline for further instructions
+on installing dependencies for DeepDriveMD.
+
+Test that each DeepDriveMD component can be imported without errors:
+```
+from deepdrivemd.sim.openmm import run_openmm
+from deepdrivemd.aggregation.basic import aggregate
+from deepdrivemd.models.keras_cvae import train
+from deepdrivemd.selection.latest import select_model
+from deepdrivemd.agents.lof import lof
 ```
 
 ## Install OpenMM
 
 The binaries of OpenMM available on conda-forge or other distribution sources
-were compiled with a version of CUDA that is not supported on Swing's GPUs. Therefore,
+were compiled with an unsupported version of CUDA on Swing's GPUs. Therefore,
 we need to build OpenMM from source with the expected CUDA version (11.0)
 
 Helpful pointers for installing OpenMM on Swing (or other systems): https://gist.github.com/lee212/4bbfe520c8003fbb91929731b8ea8a1e
@@ -49,18 +63,7 @@ Load the following modules:
 
 Obtain the source code from: https://github.com/openmm/openmm/releases/tag/7.5.1
 
-Do the following:
-
-```
-$ mkdir build_openmm
-$ mkdir install_openmm
-$ conda install cython swig doxygen
-...
-$ cd build_openmm
-$ ccmake -i ../openmm-7.5.1/
-```
-
-Follow the instructions from here: http://docs.openmm.org/7.1.0/userguide/library.html#compiling-openmm-from-source-code
+Follow the instructions from here: https://github.com/openmm/openmm/blob/master/docs-source/usersguide/library/02_compiling.rst
 
 Notes:
 
@@ -73,35 +76,41 @@ set it (under Advanced Options) to ``/gpfs/fs1/soft/swing/spack-0.16.1/opt/spack
 
 ```
 $ git clone https://github.com/Libensemble/libensemble.git
+...
+$ cd libensemble; pip install -e .
 ```
 
 ## Executing the test
 
 The test can be found in ``libensemble/libensemble/tests/scaling_tests/ddmd``,
-whereever libEnsemble was installed.
+wherever libEnsemble was installed.
 
 Feel free to adjust ``MD_BATCH_SIZE``, ``'sim_max'`` or ``sim_specs['user']['sim_length_ns']`` to customize
-the length of the routine.
+the length of the routine, in terms of number of simulations.
 
-Currently, ``swing_submit_central.sh`` is the only batch submission script known to work.
-Adjust the account and number of workers within this file, then run ``sbatch`` on it
-to submit ``run_libe_mdml.py`` to the scheduler.
+Adjust the account, number of workers, number of nodes, and runtime within ``swing_submit_central.sh``,
+then run ``sbatch`` on it to submit ``run_libe_ddmd.py`` to the scheduler.
 
 ## Submit multiple tasks to a single node.
 
-Users who wish to submit multiple MD tasks to a single node must a MPI configured for Swing.
+Users who wish to submit multiple MD tasks to a single node must have a MPI configured for Swing.
 Note that current iterations of the generator and simulator user functions set ``CUDA_VISIBLE_DEVICES``
 by ``workerID``.
 
+We've had the most success creating a cloned Python environment with a working ``mpi4py``,
+then setting some environment variables:
+
 ```
-$ conda uninstall mpi4py mpich mpi
-...
+$ conda create --name my_env --clone /home/jlow/.conda/envs/mpi4py-git
 $ export PATH=/soft/openmpi/4.1.1/swing/bin:/soft/ucx/1.10.0/swing-defaults/bin:$PATH
 $ export LD_LIBRARY_PATH=/soft/openmpi/4.1.1/swing/lib:/soft/ucx/1.10.0/swing-defaults/lib:$LD_LIBRARY_PATH
 ```
 
+The previous installation steps will need to be performed in this new environment.
+
 The ``mpirun`` used by libEnsemble's ``MPIExecutor`` should now be able to concurrently
-submit multiple tasks to a node.
+submit multiple tasks to a node. Adjust and submit ``swing_submit_central_onenode.sh`` to
+test submitting multiple tasks to a single node.
 
 # Test Explanation
 

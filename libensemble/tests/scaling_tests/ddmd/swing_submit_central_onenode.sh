@@ -3,6 +3,7 @@
 #SBATCH --account=STARTUP-USERNAME
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:4
+#SBATCH --ntasks=4
 #SBATCH --time=00:45:00
 
 # Make sure conda and environment are loaded and activated before sbatch
