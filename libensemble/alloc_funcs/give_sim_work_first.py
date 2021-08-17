@@ -54,11 +54,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             if manage_resources:
                 num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets']))
-
-                # If more than one group (node) required, finds even split, or allocates whole nodes
                 print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
-                # Instead of returning None - raise a specific exception if resources not found
+                # If more than one group (node) required, finds even split, or allocates whole nodes
                 try:
                     rset_team = support.assign_resources(num_rsets_req)
                 except InsufficientResourcesException:

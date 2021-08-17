@@ -66,7 +66,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 support.gen_work(Work, i,
                          sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
                          inds_since_last_gen, persis_info.get(i), persistent=True,
-                         active_recv=active_recv_gen, rset_team=[])
+                         active_recv=active_recv_gen, rset_team=rset_team)
                 H['given_back'][inds_since_last_gen] = True
 
     task_avail = ~H['given'] & ~H['cancel_requested']
@@ -94,11 +94,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         if manage_resources:
             num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets']))
-
-            # If more than one group (node) required, finds even split, or allocates whole nodes
             print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
 
-            # Instead of returning None - raise a specific exception if resources not found
+            # If more than one group (node) required, finds even split, or allocates whole nodes
             try:
                 rset_team = support.assign_resources(num_rsets_req)
             except InsufficientResourcesException:
