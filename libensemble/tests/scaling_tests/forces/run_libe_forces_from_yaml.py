@@ -2,7 +2,7 @@
 import os
 import numpy as np
 
-from libensemble.api import ExperimentalAPI
+from libensemble import Ensemble
 from libensemble.executors.mpi_executor import MPIExecutor
 
 ####################
@@ -16,7 +16,7 @@ if not os.path.isfile('forces.x'):
 
 ####################
 
-api = ExperimentalAPI()
+api = Ensemble()
 api.from_yaml('forces.yaml')
 
 api.logger.set_level('INFO')
