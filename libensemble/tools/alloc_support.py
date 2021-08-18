@@ -12,14 +12,28 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, alloc_specs, user_resources=None, user_scheduler=None):
+    #def __init__(self, alloc_specs, manage_resources=False, user_resources=None, user_scheduler=None):
+    #def __init__(self, alloc_specs, persis_info, =None, user_resources=None, user_scheduler=None):
+
+    # What if mirror alloc interface (plus resource/scheduler)
+    def __init__(self, W, H, sim_specs, gen_specs, alloc_specs, persis_info, user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance"""
-        self.specs = alloc_specs
+
+        #self.manage_resources = manage_resources
+        self.W = W
+        self.H = H
+        self.sim_specs = sim_specs
+        self.gen_specs = gen_specs
+        self.alloc_specs = alloc_specs
+        self.persis_info = persis_info
+
+        self.manage_resources = 'resource_sets' in H.dtype.names
+
         self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
-            sched_opts = self.specs.get('scheduler_opts', {})
+            sched_opts = self.alloc_specs.get('scheduler_opts', {})
             self.sched = user_scheduler or ResourceScheduler(user_resources=wrk_resources, sched_opts=sched_opts)
 
 
@@ -36,7 +50,7 @@ class AllocSupport:
 
 
     # SH TODO: Decision on these functions - Keep as is / make static / init with W (use self.W)
-    def avail_worker_ids(self, W, persistent=None, active_recv=False, zero_resource_workers=None):
+    def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
         """Returns available workers as a list, filtered by the given options`.
 
         :param W: :doc:`Worker array<../data_structures/worker_array>`
@@ -76,77 +90,123 @@ class AllocSupport:
             raise AllocException("Cannot ask for non-persistent active receive workers")
 
         # SH if there are no zero resource workers - then ignore zrw (i.e. use only if they exist)
-        no_zrw = not any(W['zero_resource_worker'])
+        no_zrw = not any(self.W['zero_resource_worker'])
         wrks = []
-        for wrk in W:
+        for wrk in self.W:
             if fltr_recving() and fltr_persis() and fltr_zrw():
                 wrks.append(wrk['worker_id'])
         return wrks
 
 
-    def count_gens(self, W):
+    def count_gens(self):
         """Return the number of active generators in a set of workers.
 
-        :param W: :doc:`Worker array<../data_structures/worker_array>`
+        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
         """
-        return sum(W['active'] == EVAL_GEN_TAG)
+        return sum(self.W['active'] == EVAL_GEN_TAG)
 
 
-    def test_any_gen(self, W):
+    def test_any_gen(self):
         """Return True if a generator worker is active.
 
-        :param W: :doc:`Worker array<../data_structures/worker_array>`
+        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
         """
-        return any(W['active'] == EVAL_GEN_TAG)
+        return any(self.W['active'] == EVAL_GEN_TAG)
 
 
-    def count_persis_gens(self, W):
+    def count_persis_gens(self):
         """Return the number of active persistent generators in a set of workers.
 
-        :param W: :doc:`Worker array<../data_structures/worker_array>`
+        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
         """
-        return sum(W['persis_state'] == EVAL_GEN_TAG)
+        return sum(self.W['persis_state'] == EVAL_GEN_TAG)
 
 
-    def sim_work(self, Work, i, H_fields, H_rows, persis_info, **libE_info):
+    def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given Work array.
 
-        :param W: :doc:`Worker array<../data_structures/worker_array>`
-        :param i: Worker ID.
-        :param H_fields: Which fields from H to send
+        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
+        :param wid: Worker ID.
+        :param H_fields: Which fields from  to send
         :param persis_info: current persis_info dictionary
 
         :returns: None
         """
+
+        #Should distinguish that it is persis_info for this worker (e.g. wpersis_info ?)
+        #why brackets round np.max???
+
+        # Honor rset_team if passed (do we want to check those rsets have been assigned?)
+        rset_team = libE_info.get('rset_team', None)
+
+        if self.manage_resources and rset_team is None:
+            #import pdb;pdb.set_trace()
+            if self.W[wid-1]['persis_state']:
+                # IF in persistent state - do not give more resources.
+                rset_team = []
+            else:
+                num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))
+                #print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
+
+                # If more than one group (node) required, finds even split, or allocates whole nodes
+                rset_team = self.assign_resources(num_rsets_req)
+
+                # Assign points to worker and remove from task_avail list.
+                print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
+                libE_info['rset_team'] = rset_team
+
         libE_info['H_rows'] = np.atleast_1d(H_rows)
-        Work[i] = {'H_fields': H_fields,
+        Work[wid] = {'H_fields': H_fields,
                    'persis_info': persis_info,
                    'tag': EVAL_SIM_TAG,
                    'libE_info': libE_info}
 
+        #print('Work is {}\n'.format(Work[wid]))
+        print('Packed for worker: {}. Resource team for sim: {}\n'.format(wid, rset_team), flush=True)
 
-    def gen_work(self, Work, i, H_fields, H_rows, persis_info, **libE_info):
+
+    # SH TODO: Find/extract commonaility of sim/gen_work.
+    def gen_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add gen work record to given Work array.
 
-        :param W: :doc:`Worker array<../data_structures/worker_array>`
-        :param i: Worker ID.
-        :param H_fields: Which fields from H to send
+        :param W: :doc:`Worker array<../data_structures/worker_array>` WRONG ANYWAY
+        :param wid: Worker ID.
+        :param H_fields: Which fields from  to send
         :param persis_info: current persis_info dictionary
 
         :returns: None
         """
 
+        # Honor rset_team if passed (do we want to check those rsets have been assigned?)
+        rset_team = libE_info.get('rset_team', None)
+
+        if self.manage_resources and rset_team is None:
+            if self.W[wid-1]['persis_state']:
+                # IF in persistent state - do not give more resources.
+                # persis gen/sims requset for more resources would be dealt with separately.
+                # SH TODO: This should be done with sim also - but add when adding persistent sims...
+                rset_team = []
+            else:
+                # SH TODO: How would you provide resources to a gen? Maybe via persis_info if variable?
+                #          Need test where gen_resources is not zero!
+                gen_resources = self.persis_info.get('gen_resources', 0)  # This is manager persis_info
+                rset_team = self.assign_resources(gen_resources)
+                # Even if empty list, presence of non-None rset_team stops manager giving default resources
+                libE_info['rset_team'] = rset_team
+                print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
+
+        # Must come after resources - as that may exit with InsufficientResourcesException
         AllocSupport.gen_counter += 1  # Count total gens
         libE_info['gen_count'] = AllocSupport.gen_counter
 
         libE_info['H_rows'] = np.atleast_1d(H_rows)
-        Work[i] = {'H_fields': H_fields,
+        Work[wid] = {'H_fields': H_fields,
                    'persis_info': persis_info,
                    'tag': EVAL_GEN_TAG,
                    'libE_info': libE_info}
 
 
-    def all_returned(self, H, pt_filter=True):
+    def all_returned(self, pt_filter=True):
         """Check if all expected points have returned from sim
 
         :param H: A :doc:`history array<../data_structures/history_array>`
@@ -155,5 +215,5 @@ class AllocSupport:
         :returns: Boolean. True if all expected points have been returned
         """
         # Exclude cancelled points that were not already given out
-        excluded_points = H['cancel_requested'] & ~H['given']
-        return np.all(H['returned'][pt_filter & ~excluded_points])
+        excluded_points = self.H['cancel_requested'] & ~self.H['given']
+        return np.all(self.H['returned'][pt_filter & ~excluded_points])
