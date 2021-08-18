@@ -14,14 +14,11 @@ from openmm_md_simf import run_openmm_sim_f
 from keras_cvae_ml_genf import run_keras_cvae_ml_genf
 
 # Import DeepDriveMD components for registering with libEnsemble's executor
-try:
-    from deepdrivemd.sim.openmm import run_openmm
-    from deepdrivemd.aggregation.basic import aggregate
-    from deepdrivemd.models.keras_cvae import train
-    from deepdrivemd.selection.latest import select_model
-    from deepdrivemd.agents.lof import lof
-except ModuleNotFoundError:
-    pass
+from deepdrivemd.sim.openmm import run_openmm
+from deepdrivemd.aggregation.basic import aggregate
+from deepdrivemd.models.keras_cvae import train
+from deepdrivemd.selection.latest import select_model
+from deepdrivemd.agents.lof import lof
 
 logger.set_level('INFO')
 
@@ -68,6 +65,7 @@ sim_specs = {'sim_f': run_openmm_sim_f,
              'user': {'sim_kill_minutes': 15,
                       'sim_length_ns': 1.0,
                       'poll_interval': 1,
+                      'reference_pdb_file': os.path.abspath(folded_url.split('/')[-1]),
                       'config_file': 'molecular_dynamics.yaml'}
              }
 
@@ -103,8 +101,7 @@ exit_criteria = {'sim_max': 120}
 # Additional libEnsemble settings to customize our ensemble directory
 libE_specs['sim_dirs_make'] = True
 libE_specs['sim_input_dir'] = './sim'
-libE_specs['sim_dir_symlink_files'] = [os.path.abspath(folded_url.split('/')[-1]),
-                                       os.path.abspath(unfolded_url.split('/')[-1])]
+libE_specs['sim_dir_symlink_files'] = [os.path.abspath(unfolded_url.split('/')[-1])]
 
 libE_specs['gen_dirs_make'] = True
 libE_specs['gen_input_dir'] = './gen'
