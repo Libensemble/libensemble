@@ -37,15 +37,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_persistent_surmise_calib.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_surmise_calib.py>`_ # noqa
     """
 
-    #manage_resources = 'resource_sets' in H.dtype.names # Done inside AllocSupport
-    #support = AllocSupport(alloc_specs, manage_resources=manage_resources)  # Access alloc support functions
-
-    # How much to give support. Everything passed to alloc.
-    # So can access either there or here? - H could be changed - mostly reading - persis_info can be changed
-    # so could be changed in support and in here - maybe not good!
-    # And things like alloc_specs['user'] options - being hidden in alloc_support!!!
     support = AllocSupport(W, H, sim_specs, gen_specs, alloc_specs, persis_info)  # Mirror alloc specs.
-
     Work = {}
     gen_count = support.count_persis_gens()
 
@@ -57,57 +49,47 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # Asynchronous return to generator
     async_return = user.get('async_return', False) and sum(H['returned']) >= init_sample_size
 
+    # gen_specs['persis_in']
+    gen_return_fields = sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')]
+
+    # SH TODO: Generalize this
     if persis_info.get('gen_started') and gen_count == 0:
         # The one persistent worker is done. Exiting
         return Work, persis_info, 1
 
     # Give evaluated results back to a running persistent gen
-    for i in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
-        gen_inds = (H['gen_worker'] == i)
-        returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
-        if np.any(returned_but_not_given):
-            if async_return or support.all_returned(gen_inds):
-                inds_since_last_gen = np.where(returned_but_not_given)[0]
-                support.gen_work(Work, i,
-                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
-                         inds_since_last_gen, persis_info.get(i), persistent=True,
-                         active_recv=active_recv_gen)
+    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
+        # Is points_evaluated intuitive name (as not given_back)?
+        points_evaluated = support.get_evaluated_points(gen=wid)
+        if np.any(points_evaluated):
+            if async_return or support.all_returned(gen=wid):
+                inds_since_last_gen = np.where(points_evaluated)[0]
+                support.gen_work(Work, wid, gen_return_fields, inds_since_last_gen, persis_info.get(wid),
+                                 persistent=True, active_recv=active_recv_gen)
                 H['given_back'][inds_since_last_gen] = True
 
+    # SH TODO: Now the give_sim_work_first bit
     task_avail = ~H['given'] & ~H['cancel_requested']
-
-    # SH TODO: Now the give_sim_work_first bit - should merge to avoid duplicating functionality
-    #          May not need zero_resource_workers (unless want mapped to specific resources)
     avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
 
+    # SH TODO: Change to worker_id or wid (I don't like just 'i' and 'worker' does not indicate an index)
     for worker in avail_workers:
 
         if not np.any(task_avail):
             break
 
-        if 'priority' in H.dtype.fields:
-            priorities = H['priority'][task_avail]
-            if gen_specs['user'].get('give_all_with_same_priority'):
-                q_inds = (priorities == np.max(priorities))
-            else:
-                q_inds = np.argmax(priorities)
-        else:
-            q_inds = 0
-
-        # Perform sim evaluations (if they exist in History).
-        sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
+        # If want to not hide gen_specs option (though could do inside).
+        batch_give = gen_specs['user'].get('give_all_with_same_priority', False)
+        sim_ids_to_send = support.points_by_priority(points_avail=task_avail, batch=batch_give)
 
         try:
-            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send,
-                            persis_info.get(worker))
+            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send, persis_info.get(worker))
         except InsufficientResourcesException:
             break
 
         task_avail[sim_ids_to_send] = False
 
     # A separate loop/section as now need zero_resource_workers for gen.
-    # SH TODO   - with rsets -  zero_resource_workers only needed if using fixed worker/resource mapping.
-    #             If a zero resource worker is set it is used - else uses any available worker.
     if not np.any(task_avail):
         avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True)
 
@@ -121,7 +103,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                                      persistent=True, active_recv=active_recv_gen)
                 except InsufficientResourcesException:
                     break
-
                 persis_info['gen_started'] = True
 
     return Work, persis_info, 0

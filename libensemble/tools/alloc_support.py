@@ -206,7 +206,22 @@ class AllocSupport:
                    'libE_info': libE_info}
 
 
-    def all_returned(self, pt_filter=True):
+    # SH TODO: Optimization - maybe able to cache gen_inds for gen IDs.
+    def get_evaluated_points(self, gen=None):
+        """Return points that have been evaluated (returned from sim) but not yet been given back to gen.
+        """
+        # SH TODO: Will same format as all_returned work?
+        #          For first pass keep same as was.
+        pt_filter = True
+        if gen is not None:
+            gen_inds = (self.H['gen_worker'] == gen)
+            pt_filter = gen_inds
+
+        gen_inds = (self.H['gen_worker'] == gen)
+        return np.logical_and.reduce((self.H['returned'], ~self.H['given_back'], pt_filter))
+
+
+    def all_returned(self, gen=None):
         """Check if all expected points have returned from sim
 
         :param H: A :doc:`history array<../data_structures/history_array>`
@@ -214,6 +229,37 @@ class AllocSupport:
 
         :returns: Boolean. True if all expected points have been returned
         """
+        pt_filter = True
+        if gen is not None:
+            gen_inds = (self.H['gen_worker'] == gen)
+            pt_filter = gen_inds
+
         # Exclude cancelled points that were not already given out
         excluded_points = self.H['cancel_requested'] & ~self.H['given']
         return np.all(self.H['returned'][pt_filter & ~excluded_points])
+
+
+    #def all_returned(self, pt_filter=True):
+        #"""Check if all expected points have returned from sim
+
+        #:param H: A :doc:`history array<../data_structures/history_array>`
+        #:param pt_filter: Optional boolean array filtering expected returned points: Default: All True
+
+        #:returns: Boolean. True if all expected points have been returned
+        #"""
+        ## Exclude cancelled points that were not already given out
+        #excluded_points = self.H['cancel_requested'] & ~self.H['given']
+        #return np.all(self.H['returned'][pt_filter & ~excluded_points])
+
+
+    def points_by_priority(self, points_avail, batch=False):
+        """Return indices of points to give by priority"""
+        if 'priority' in self.H.dtype.fields:
+            priorities = self.H['priority'][points_avail]
+            if batch:
+                q_inds = (priorities == np.max(priorities))
+            else:
+                q_inds = np.argmax(priorities)
+        else:
+            q_inds = 0
+        return np.nonzero(points_avail)[0][q_inds]
