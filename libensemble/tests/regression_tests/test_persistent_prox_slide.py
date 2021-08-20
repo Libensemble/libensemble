@@ -46,7 +46,7 @@ lam_max = np.amax((la.eig(A.todense())[0]).real)
 eps = 1e-1
 
 # 0: geometric median, 1: SVM prob_id = 1
-for prob_id in range(1,2):
+for prob_id in range(0,2):
     persis_info = {}
     persis_info['print_progress'] = 0
     persis_info['A'] = A
@@ -93,6 +93,7 @@ for prob_id in range(1,2):
         # reduce problem size
         b = b[:m]
         X = X[:n, :m]
+        # Chosen ad-hoc. This is only upper bound on regularizar.
         M = c*((m)**0.5)
 
         persis_info['sim_params'] = {'X': X, 'b': b, 'c': c, 'reg': 'l1'}
