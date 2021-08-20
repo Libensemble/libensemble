@@ -27,7 +27,6 @@ if api.is_manager:
 exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
-api.persis_info.add_random_streams()
 api.libE_specs['ensemble_dir_path'] = './ensemble'
 api.gen_specs['user'].update({
     'lb': np.array([0]),
