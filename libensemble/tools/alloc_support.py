@@ -7,6 +7,11 @@ class AllocException(Exception):
     "Raised for any exception in the alloc support"
 
 
+# General aim is to not allow user options (via {sim/gen/alloc}_specs) to be hidden in here.
+# One exception is scheduler_opts... (is this alloc_specs['user'] ???)
+# persis_info['gen_resources'] is here. Could move outside, but then have to pass requested rsets through to gen_work.....
+
+
 class AllocSupport:
     """A helper class to be created/destroyed each time allocation function is called."""
 
@@ -206,8 +211,6 @@ class AllocSupport:
         if gen is not None:
             gen_inds = (self.H['gen_worker'] == gen)
             pt_filter = gen_inds
-
-        gen_inds = (self.H['gen_worker'] == gen)
         return np.logical_and.reduce((self.H['returned'], ~self.H['given_back'], pt_filter))
 
 
@@ -257,5 +260,5 @@ class AllocSupport:
 
     def get_points_to_evaluate(self):
         """Return points yet to be evaluated"""
-        return ~H['given'] & ~H['cancel_requested']
+        return ~self.H['given'] & ~self.H['cancel_requested']
 
