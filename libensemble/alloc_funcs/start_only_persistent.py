@@ -42,15 +42,16 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_persistent_surmise_calib.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_surmise_calib.py>`_ # noqa
     """
 
-    support = AllocSupport(W, H, alloc_specs, persis_info)
-    gen_count = support.count_persis_gens()
-    Work = {}
-
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
     init_sample_size = user.get('init_sample_size', 0)   # Always batch return until this many evals complete
     batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: Should this be alloc_specs not gen_specs?
+
+    support = AllocSupport(W, H, persis_info, sched_opts)
+    gen_count = support.count_persis_gens()
+    Work = {}
 
     # Asynchronous return to generator
     async_return = user.get('async_return', False) and sum(H['returned']) >= init_sample_size
@@ -75,10 +76,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 # SH TODO: This should use filter like points_to_evaluate below... 'given_back' to be libE field set by manager.
                 #          Could be set in libE_info here - and manager reads that? Or manager could determine existing point.
                 #          But as read in get_evaluated_points, must be written somewhere - cant remove this till manager does it.
-                H['given_back'][point_ids] = True
-                #support.update_evaluated_points #terminology... updating points in list (will be cached list cos been packed up.
-                #maybe this means points_to_give_back is better - but no have to then say points_to_give_back_to_gen.
-                #or can I update it in support.gen_work???
+                H['given_back'][point_ids] = True  # SH TODO: Move to manager (libE field) when give to gen points with 'returned' True
+                points_evaluated[point_ids] = False  # SH TODO: May not need if each iteration is mutually exclusive points!
 
     # SH TODO: Now the give_sim_work_first bit
     points_to_evaluate = support.get_points_to_evaluate()  # SH TODO: Again an H boolean filter

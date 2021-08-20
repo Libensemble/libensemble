@@ -3,13 +3,13 @@ from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources
 
+# General aim is to not allow user options (via {sim/gen/alloc}_specs) to be hidden in here.
+# One exception is scheduler_opts... Now I'm extracting outside and passing in.
+# persis_info['gen_resources'] is here. Could move outside, but then have to pass requested rsets through to gen_work.....
+
+
 class AllocException(Exception):
     "Raised for any exception in the alloc support"
-
-
-# General aim is to not allow user options (via {sim/gen/alloc}_specs) to be hidden in here.
-# One exception is scheduler_opts... (is this alloc_specs['user'] ???)
-# persis_info['gen_resources'] is here. Could move outside, but then have to pass requested rsets through to gen_work.....
 
 
 class AllocSupport:
@@ -17,19 +17,17 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, W, H, alloc_specs, persis_info, user_resources=None, user_scheduler=None):
+    def __init__(self, W, H, persis_info={}, scheduler_opts={}, user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance"""
         self.W = W
         self.H = H
-        self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.manage_resources = 'resource_sets' in H.dtype.names
         self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
-            sched_opts = self.alloc_specs.get('scheduler_opts', {})
-            self.sched = user_scheduler or ResourceScheduler(user_resources=wrk_resources, sched_opts=sched_opts)
+            self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
 
     def assign_resources(self, rsets_req):
