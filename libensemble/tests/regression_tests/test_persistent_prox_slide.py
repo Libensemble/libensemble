@@ -83,8 +83,7 @@ for prob_id in range(1,2):
     if prob_id == 1:
         sim_f = svm_eval
         m, n = 50, 15
-        # m, n = 100, 15
-        prob_name = 'Support vector machine with l1 regularization'
+        prob_name = 'SVM with l1 regularization'
         err_const = 1e1
         N_const = 1
         b, X = readin_csv('wdbc.data')
@@ -113,8 +112,8 @@ for prob_id in range(1,2):
                          ('obj_component', int),  # which {f_i} to eval
                          ('get_grad', bool),
                          ],
-                 'user': {'lb': -np.ones(n),
-                          'ub': np.ones(n)}
+                 'user': {'lb': -np.zeros(n),
+                          'ub': np.zeros(n)}
                  }
 
     alloc_specs = {'alloc_f': alloc_f,

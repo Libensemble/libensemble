@@ -36,7 +36,7 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
 
     score = b_i*np.dot(X_i, theta)
 
-    if score >= 0:
+    if score >= 1:
         df_i = np.zeros(len(theta))
     else:
         df_i = -b_i * X_i
