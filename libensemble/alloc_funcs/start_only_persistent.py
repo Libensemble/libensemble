@@ -76,7 +76,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 # SH TODO: This should use filter like points_to_evaluate below... 'given_back' to be libE field set by manager.
                 #          Could be set in libE_info here - and manager reads that? Or manager could determine existing point.
                 #          But as read in get_evaluated_points, must be written somewhere - cant remove this till manager does it.
-                H['given_back'][point_ids] = True  # SH TODO: Move to manager (libE field) when give to gen points with 'returned' True
+                #H['given_back'][point_ids] = True  # SH TODO: Move to manager (libE field) when give to gen points with 'returned' True
                 points_evaluated[point_ids] = False  # SH TODO: May not need if each iteration is mutually exclusive points!
 
     # SH TODO: Now the give_sim_work_first bit

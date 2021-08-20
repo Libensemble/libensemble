@@ -13,7 +13,8 @@ libE_fields = [('sim_id', int),             # Unique id of entry in H that was g
                ('returned_time', float),    # Time entry was (last) returned from sim eval
                ('sim_worker', int),         # Worker that did (or is doing) the sim eval
                ('cancel_requested', bool),  # True if cancellation of this entry is requested
-               ('kill_sent', bool)          # True if a kill signal has been sent to worker
+               ('kill_sent', bool),         # True if a kill signal has been sent to worker
+               ('given_back', bool)         # True if entry has been given back to the gen after evaluation.
                ]
 # end_libE_fields_rst_tag
 
@@ -23,6 +24,7 @@ protected_libE_fields = ['gen_worker',
                          'given_time',
                          'returned',
                          'returned_time',
+                         'given_back',
                          'sim_worker']
 
 allowed_sim_spec_keys = ['sim_f',  #

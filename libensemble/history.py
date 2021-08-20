@@ -140,6 +140,23 @@ class History:
 
         self.given_count += len(q_inds)
 
+    def update_history_to_gen(self, q_inds):
+        """Updates the history (in place) when points are given back to the gen"""
+        print('q_inds', q_inds)
+        print('type q_inds', type(q_inds))
+        q_inds = np.atleast_1d(q_inds)
+        # SH TODO: Debate the names 'given_back' or 'given_back_to_gen' or 'return_to_gen' ...
+        if q_inds.size > 0:
+            # SH TODO; Question - do we need to check self.H['returned'] == True before setting given_back ??
+            #          What about H0 points...
+            #import pdb;pdb.set_trace()
+            if np.all(self.H['returned'][q_inds]):
+                self.H['given_back'][q_inds] = True
+            else:
+                #Warn? #Set 'given_back' to True if returned.
+                print('Testing if here.........................................')
+            # SH TODO: Add any count/timing etc....
+
     def update_history_x_in(self, gen_worker, D, safe_mode):
         """
         Updates the history (in place) when new points have been returned from a gen

@@ -355,9 +355,12 @@ class Manager:
                 assert 'active_recv' not in Work['libE_info'], \
                     "active_recv worker must also be persistent"
 
+        work_rows = Work['libE_info']['H_rows']
         if Work['tag'] == EVAL_SIM_TAG:
-            work_rows = Work['libE_info']['H_rows']
             self.hist.update_history_x_out(work_rows, w)
+        elif Work['tag'] == EVAL_GEN_TAG:
+            self.hist.update_history_to_gen(work_rows)
+
 
     # --- Handle incoming messages from workers
 
