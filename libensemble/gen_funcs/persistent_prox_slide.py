@@ -36,8 +36,6 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     L = 2*R*lam_max
     N = N_const * int(((L * D)/(nu * eps))**0.5 + 1)
 
-    # print('D={}, L={}, M={}, N={}'.format(D, L, M, N), flush=True)
-
     if local_gen_id == 1:
         print('[{}%]: '.format(0), flush=True, end='')
     print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
