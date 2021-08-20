@@ -37,10 +37,6 @@ ddmd_apps = {'molecular_dynamics': run_openmm.__file__,
 # Submit each component via a MPI runner. This Executor can be swapped with the Balsam
 #  executor to potentially submit specific components to separate systems.
 exctr = MPIExecutor()
-
-for app in ddmd_apps:
-    exctr.register_calc(full_path=ddmd_apps[app], app_name=app)
-
 api = Ensemble()
 
 api.from_yaml('libE_ddmd.yaml')
@@ -49,6 +45,7 @@ api.sim_specs['user']['reference_pdb_file'] = os.path.abspath(folded_url.split('
 api.gen_specs['user']['n_traj_frames'] = int(api.sim_specs['user']['sim_length_ns']*1000)
 
 for app in ddmd_apps:
+    exctr.register_calc(full_path=ddmd_apps[app], app_name=app)
     api.gen_specs['user'][app + '_config'] = app + '.yaml'
     api.gen_specs['out'].append((app + '_cstat', int))
 

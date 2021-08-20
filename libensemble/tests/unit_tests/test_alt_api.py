@@ -1,0 +1,60 @@
+import numpy as np
+from libensemble.api import Persis_Info, Ensemble
+import libensemble.tests.unit_tests.setup as setup
+
+
+def test_ensemble_init():
+    """ Only testing attrs most likely to encounter errors """
+    e = Ensemble()
+    assert all([i in e.libE_specs for i in ['comms', 'mpi_comm']]), \
+        "parse_args() didn't populate default values for the class instance's libE_specs"
+
+    assert e.logger.get_level() == 20, \
+        "Default log level should be 20."
+
+    assert e._filename == __file__, \
+        "Class instance's detected calling script not correctly set."
+
+
+def test_from_yaml():
+    """ Test that Ensemble() specs dicts resemble setup dicts """
+    e = Ensemble()
+    e.from_yaml('test_example.yaml')
+
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    # unit_test sample specs dont (but perhaps should) contain 'user' field
+    sim_specs.update({'user': {}})
+
+    assert all([e.alloc_specs[i] is not None for i in ['out', 'user']]), \
+        "class instance's alloc_specs wasn't populated."
+
+    assert e.exit_criteria == exit_criteria, \
+        "exit_criteria wasnt correctly loaded or separated from libE_specs."
+
+    assert e.sim_specs == sim_specs, \
+        "instance's sim_specs isn't equivalent to sample sim_specs"
+
+    # cant specify np arrays in yaml - have to manually update.
+    e.gen_specs['user']['ub'] = np.ones(1)
+    e.gen_specs['user']['lb'] = np.zeros(1)
+
+    assert e.gen_specs == gen_specs, \
+        "instance's gen_specs isn't equivalent to sample gen_specs"
+
+
+def test_persis_info_class():
+    """ Ensure Persis_Info can be instanted with random streams. """
+    nworkers = 4
+    perinfo = Persis_Info(nworkers)
+
+    assert len(perinfo.persis_info), \
+        "Persis_info class dict wasn\'t automatically populated."
+
+    assert all([i in perinfo.persis_info for i in range(0, nworkers+1)]), \
+        "Persis_Info class dict didn't contain entries for each worker number."
+
+
+if __name__ == '__main__':
+    test_ensemble_init()
+    test_from_yaml()
+    test_persis_info_class()

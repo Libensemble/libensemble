@@ -1,31 +1,47 @@
 import yaml
 import pprint
+import logging
 import inspect
 import importlib
 from libensemble.libE import libE
+from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.version import __version__
 from libensemble import logger
 
+ATTR_ERR_MSG = "\n********** Unable to load \"{}\"." + \
+    "Is the function or submodule correctly named? **********\n"
+
+NOTFOUND_ERR_MSG = "\n********** Unable to load \"{}\"." + \
+    "Is the package installed or the relative path correct? **********\n"
+
 
 class Persis_Info:
     """
-    ``persis_info`` persistent information dictionary management class.
-    An instance of this is created on initiation of Ensemble, since
-    ``persis_info`` is populated for most libEnsemble test-cases anyway.
+    ``persis_info`` persistent information dictionary management class. An
+    instance of this (with random streams) is created on initiation of Ensemble,
+    since ``persis_info`` is populated like so for most libEnsemble test-cases anyway.
     """
-    def __init__(self, nworkers):
-        self.persis_info = {}
+    def __init__(self, nworkers, init_random_streams=True):
         self.nworkers = nworkers
+        if init_random_streams:
+            self.persis_info = self.add_random_streams()
+        else:
+            self.persis_info = {}
 
     def add_random_streams(self, explicit_num=None, seed=''):
-        """ ``Persis_Info`` wrapper for ``add_unique_random_streams``"""
+        """
+        ``Persis_Info`` wrapper for ``add_unique_random_streams``. Attempt
+        to simplify call, since most are identical anyway.
+        """
         if explicit_num:
             num_streams = explicit_num
         else:
             num_streams = self.nworkers + 1
 
         self.persis_info = add_unique_random_streams({}, num_streams, seed='')
+        # can access immediately, or ignore return by just using as setter
+        return self.persis_info
 
 
 class Ensemble:
@@ -38,23 +54,26 @@ class Ensemble:
     with a class instance, and potentially populating it via a yaml file.
     """
     def __init__(self):
-        """ Initializes an API instance. ``parse_args() is called on instantiation """
+        """ Initializes an API instance. ``parse_args() called on instantiation """
         self.nworkers, self.is_manager, self.libE_specs, _ = parse_args()
         self.persis_info = Persis_Info(self.nworkers)
+        self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level('INFO')
-        self.sim_specs = {'sim_f': None, 'in': None, 'out': None, 'user': None, 'type': 'sim'}
-        self.gen_specs = {'gen_f': None, 'in': None, 'out': None, 'user': None, 'type': 'gen'}
-        self.alloc_specs = {'alloc_f': None, 'in': None, 'out': None, 'user': None, 'type': 'alloc'}
+        self.sim_specs = {'sim_f': None, 'in': None, 'out': None,
+                          'user': None, 'type': 'sim'}
+        self.gen_specs = {'gen_f': None, 'in': None, 'out': None,
+                          'user': None, 'type': 'gen'}
+        self.alloc_specs = {'alloc_f': None, 'in': None, 'out': None,
+                            'user': None, 'type': 'alloc'}
         self.exit_criteria = {}
-        self.H = None
         self.H0 = None
         self._filename = inspect.stack()[1].filename
 
     def __str__(self):
         """
-        Returns a pretty-printed representation of API object. Depicts libEnsemble
-        version, plus printed representations of each major specification dict.
+        Returns pretty-printed representation of Ensemble object. Depicts libEnsemble
+        version, plus representations of major specification dicts.
         """
         info = '\nlibEnsemble {}\n'.format(__version__) + 79*'*' + '\n'
         info += '\nCalling Script: ' + self._filename.split('/')[-1] + '\n'
@@ -76,7 +95,9 @@ class Ensemble:
         """
         Initializes libEnsemble, passes in all specification dictionaries.
         Sets API instance's output H, final persis_info state, and flag.
+        Spec checking (and other error handling) occurs within ``libE()``.
         """
+
         self.H, self.persis_info.persis_info, self.flag = \
             libE(self.sim_specs, self.gen_specs, self.exit_criteria,
                  persis_info=self.persis_info.persis_info,
@@ -84,11 +105,20 @@ class Ensemble:
                  libE_specs=self.libE_specs,
                  H0=self.H0)
 
-    @staticmethod
-    def _get_func(loaded, type):
+        return self.H, self.persis_info.persis_info, self.flag
+
+    def _get_func(self, loaded, type):
         """ Extracts user function specified in loaded yaml dict """
         func_path_split = loaded[type + '_specs']['function'].rsplit('.', 1)
-        return getattr(importlib.import_module(func_path_split[0]), func_path_split[-1])
+        try:
+            func_name = func_path_split[-1]
+            return getattr(importlib.import_module(func_path_split[0]), func_name)
+        except AttributeError:
+            self.util_logger.manager_warning(ATTR_ERR_MSG.format(func_name))
+            raise
+        except ModuleNotFoundError:
+            self.util_logger.manager_warning(NOTFOUND_ERR_MSG.format(func_name))
+            raise
 
     @staticmethod
     def _get_inputs(loaded, type):
@@ -136,12 +166,20 @@ class Ensemble:
 
         for spec in [self.sim_specs, self.gen_specs, self.alloc_specs]:
             for key in spec:
-                if key == 'type':
-                    spec.pop('type')
+                if key == 'type':  # should be last key. Nothing more to do
+                    spec.pop('type')  # currently not a valid input
                     break
                 # Lookup matching extractor, and set value to extractor's output
-                spec[key] = key_funcs[key](loaded, spec['type'])
+                try:
+                    spec[key] = key_funcs[key](loaded, spec['type'])
+                except KeyError as e:  # if no alloc_specs, want defaults
+                    if 'alloc_specs' in e.args:
+                        self.alloc_specs = alloc_defaults.alloc_specs
+                        continue
+                    else:
+                        raise
 
+        # exit_criteria has been included in libE_specs for space (good idea?!)
         self.exit_criteria = loaded['libE_specs']['exit_criteria']
         loaded['libE_specs'].pop('exit_criteria')
 
