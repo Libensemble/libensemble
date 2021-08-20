@@ -196,7 +196,7 @@ class AllocSupport:
                    'libE_info': libE_info}
 
 
-    # SH TODO: Optimization - maybe able to cache gen_inds for gen IDs.
+    # SH TODO: Optimization - cache gen_inds for gen IDs? and cache the output - and repeated calls round loop in the alloc.
     def get_evaluated_points(self, gen=None):
         """Return points that have been evaluated (returned from sim) but not yet been given back to gen.
         """
@@ -253,3 +253,9 @@ class AllocSupport:
         else:
             q_inds = 0
         return np.nonzero(points_avail)[0][q_inds]
+
+
+    def get_points_to_evaluate(self):
+        """Return points yet to be evaluated"""
+        return ~H['given'] & ~H['cancel_requested']
+

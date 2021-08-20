@@ -5,6 +5,11 @@ from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResour
 
 # SH TODO: Either replace only_persistent_gens or add a different alloc func (or file?)
 #          Check/update docstring
+
+# SH TODO: New support funcs terminology.
+#          H boolean filters?  e.g. [True, False, False] e.g. prefix H_filter or Hmask_
+#          e.g. mask_pts_to_eval =  support.getmask_points_to_evaluate()
+
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
@@ -45,7 +50,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     user = alloc_specs.get('user', {})
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
     init_sample_size = user.get('init_sample_size', 0)   # Always batch return until this many evals complete
-    batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: Should this be gen_specs not alloc_specs?
+    batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: Should this be alloc_specs not gen_specs?
 
     # Asynchronous return to generator
     async_return = user.get('async_return', False) and sum(H['returned']) >= init_sample_size
@@ -67,29 +72,32 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 point_ids = np.where(points_evaluated)[0]
                 support.gen_work(Work, wid, gen_return_fields, point_ids, persis_info.get(wid),
                                  persistent=True, active_recv=active_recv_gen)
+                # SH TODO: This should use filter like points_to_evaluate below... 'given_back' to be libE field set by manager.
+                #          Could be set in libE_info here - and manager reads that? Or manager could determine existing point.
+                #          But as read in get_evaluated_points, must be written somewhere - cant remove this till manager does it.
                 H['given_back'][point_ids] = True
-
-    # SH TODO - note - on way to moving all direct H operations to alloc support - do we want to do this?
-    #                  may not want to have some here and some there!
+                #support.update_evaluated_points #terminology... updating points in list (will be cached list cos been packed up.
+                #maybe this means points_to_give_back is better - but no have to then say points_to_give_back_to_gen.
+                #or can I update it in support.gen_work???
 
     # SH TODO: Now the give_sim_work_first bit
-    task_avail = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = support.get_points_to_evaluate()  # SH TODO: Again an H boolean filter
     avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
     for wid in avail_workers:
 
-        if not np.any(task_avail):
+        if not np.any(points_to_evaluate):
             break
 
-        sim_ids_to_send = support.points_by_priority(points_avail=task_avail, batch=batch_give)
+        sim_ids_to_send = support.points_by_priority(points_avail=points_to_evaluate, batch=batch_give)
         try:
             support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
         except InsufficientFreeResources:
             break
 
-        task_avail[sim_ids_to_send] = False
+        points_to_evaluate[sim_ids_to_send] = False
 
     # A separate loop/section as now need zero_resource_workers for gen.
-    if not np.any(task_avail):
+    if not np.any(points_to_evaluate):
         avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True)
 
         # SH TODO: So we don't really need a loop here for this, but general case would allow multiple gens
