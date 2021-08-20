@@ -12,23 +12,13 @@ class AllocSupport:
 
     gen_counter = 0
 
-    #def __init__(self, alloc_specs, manage_resources=False, user_resources=None, user_scheduler=None):
-    #def __init__(self, alloc_specs, persis_info, =None, user_resources=None, user_scheduler=None):
-
-    # What if mirror alloc interface (plus resource/scheduler)
-    def __init__(self, W, H, sim_specs, gen_specs, alloc_specs, persis_info, user_resources=None, user_scheduler=None):
+    def __init__(self, W, H, alloc_specs, persis_info, user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance"""
-
-        #self.manage_resources = manage_resources
         self.W = W
         self.H = H
-        self.sim_specs = sim_specs
-        self.gen_specs = gen_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
-
         self.manage_resources = 'resource_sets' in H.dtype.names
-
         self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:
