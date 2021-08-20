@@ -32,10 +32,16 @@ for execution in the ``sim_f``. Note the use of the ``parse_args()`` and
 ``save_libE_output()`` convenience functions from the :doc:`tools<../utilities>` module
 in the first calling script.
 
+Traditional Version
+~~~~~~~~~~~~~~~~~~~
+
 ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces.py
     :language: python
     :caption: tests/scaling_tests/forces/run_libe_forces.py
     :linenos:
+
+Object + yaml Version
+~~~~~~~~~~~~~~~~~~~~~
 
 ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces_from_yaml.py
     :language: python
