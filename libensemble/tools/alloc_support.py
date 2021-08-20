@@ -1,7 +1,7 @@
 import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import ResourceScheduler, InsufficientResourcesException
+from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources
 
 class AllocException(Exception):
     "Raised for any exception in the alloc support"
@@ -185,7 +185,7 @@ class AllocSupport:
                 libE_info['rset_team'] = rset_team
                 print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
 
-        # Must come after resources - as that may exit with InsufficientResourcesException
+        # Must come after resources - as that may exit with InsufficientFreeResources
         AllocSupport.gen_counter += 1  # Count total gens
         libE_info['gen_count'] = AllocSupport.gen_counter
 

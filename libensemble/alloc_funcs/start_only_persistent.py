@@ -1,6 +1,6 @@
 import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport, InsufficientResourcesException
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 # SH TODO: Either replace only_persistent_gens or add a different alloc func (or file?)
@@ -81,8 +81,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         try:
             support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
-        except InsufficientResourcesException:
+        except InsufficientFreeResources:
             break
+
         task_avail[sim_ids_to_send] = False
 
     # A separate loop/section as now need zero_resource_workers for gen.
@@ -97,7 +98,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 try:
                     support.gen_work(Work, wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
                                      persistent=True, active_recv=active_recv_gen)
-                except InsufficientResourcesException:
+                except InsufficientFreeResources:
                     break
                 persis_info['gen_started'] = True
 

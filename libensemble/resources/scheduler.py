@@ -3,10 +3,14 @@ import numpy as np
 from libensemble.resources.resources import Resources
 
 
-class ResourceSchedulerException(Exception):
-    "Raised for any exception in the resource scheduler"
+#class ResourceSchedulerException(Exception):
+    #"Raised for any exception in the resource scheduler"
 
-class InsufficientResourcesException(Exception):
+class InsufficientResourcesError(Exception):
+    "Raised when more resources are requested than exist"
+
+
+class InsufficientFreeResources(Exception):
     "Raised when the requested resources could not be provisioned"
 
 
@@ -58,11 +62,11 @@ class ResourceScheduler:
         """
 
         if rsets_req > self.resources.num_rsets:
-            raise ResourceSchedulerException("More resource sets requested {} than exist {}"
+            raise InsufficientResourcesError("More resource sets requested {} than exist {}"
                                              .format(rsets_req, self.resources.num_rsets))
 
         if rsets_req > self.rsets_free:
-            raise InsufficientResourcesException
+            raise InsufficientFreeResources
 
         num_groups = self.resources.num_groups
         max_grpsize = self.resources.rsets_per_node  #assumes even
@@ -79,7 +83,7 @@ class ResourceScheduler:
             sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
             max_even_grpsize = sorted_lengths[num_groups_req - 1]
             if max_even_grpsize == 0 and rsets_req > 0:
-                raise InsufficientResourcesException
+                raise InsufficientFreeResources
             if max_even_grpsize < rsets_req_per_group:
                 # Cannot fit in smallest number of nodes - try to split
                 rsets_req, num_groups_req, rsets_req_per_group = \
@@ -115,7 +119,7 @@ class ResourceScheduler:
             self.rsets_free -= rsets_req
             #print('avail_rsets_by_group after', self.avail_rsets_by_group)
         else:
-            raise InsufficientResourcesException
+            raise InsufficientFreeResources
             #print('------Could not find enough rsets - returning None-------')
 
         # print('Assigned rset team {} to worker {}'.format(rset_team,worker_id))  # SH TODO: Remove
@@ -224,7 +228,7 @@ class ResourceScheduler:
             else:
                 ngroups += 1
                 if ngroups > max_grps:
-                    raise InsufficientResourcesException
+                    raise InsufficientFreeResources
                 rsets_per_grp = sorted_lens[ngroups - 1]
 
         # SH TODO: Could add extend option here - then sending back rsets_req will make sense.

@@ -1,5 +1,5 @@
 import numpy as np
-from libensemble.tools.alloc_support import AllocSupport, InsufficientResourcesException
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 # SH TODO: Either replace give_sim_work_first or add a different alloc func (or file?)
@@ -59,7 +59,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 # If more than one group (node) required, finds even split, or allocates whole nodes
                 try:
                     rset_team = support.assign_resources(num_rsets_req)
-                except InsufficientResourcesException:
+                except InsufficientFreeResources:
                     break
 
                 # Assign points to worker and remove from task_avail list.
@@ -87,7 +87,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 gen_resources = persis_info.get('gen_resources', 0)
                 try:
                     rset_team = support.assign_resources(gen_resources)
-                except InsufficientResourcesException:
+                except InsufficientFreeResources:
                     break
                 print('resource team {} for GEN assigned to worker {}'.format(rset_team, worker), flush=True)
             else:
