@@ -47,11 +47,12 @@ class Persis_Info:
 class Ensemble:
     """
     The vast majority of libEnsemble cases require the user to instantiate
-    and populate a set of specification dictionaries, call ``parse_args()``,
-    then call ``libE()`` while passing in each spec dictionary. Most ``libE()``
-    calls are therefore identical, even across widely varying use-cases. This
-    is an alternative interface for parameterizing libEnsemble by interacting
-    with a class instance, and potentially populating it via a yaml file.
+    and populate a set of specification dictionaries inside a calling script,
+    call ``parse_args()``, then call ``libE()`` while passing in each spec
+    dictionary. Many calling scripts and ``libE()`` calls are often identical,
+    even across widely varying use-cases. This is an alternative interface for
+    parameterizing libEnsemble by interacting with a class instance, and
+    potentially populating it via a yaml file.
     """
     def __init__(self):
         """ Initializes an API instance. ``parse_args() called on instantiation """
