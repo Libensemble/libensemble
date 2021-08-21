@@ -28,73 +28,44 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
 
-    support = AllocSupport(alloc_specs)  # Access alloc support functions
-    manage_resources = 'resource_sets' in H.dtype.names
 
+    # Initialize alloc_specs['user'] as user.
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+    batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: Should this be alloc_specs not gen_specs?
+    gen_in = gen_specs.get('in', [])
+
+    support = AllocSupport(W, H, persis_info, sched_opts)
+    gen_count = support.count_gens()
     Work = {}
-    gen_count = support.count_gens(W)
 
-    task_avail = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = support.get_points_to_evaluate()  # SH TODO: Again an H boolean filter
 
-    for worker in support.avail_worker_ids(W):
+    for wid in support.avail_worker_ids():
 
-        if np.any(task_avail):
-            # Pick all high priority, oldest high priority, or just oldest point
-            if 'priority' in H.dtype.fields:
-                priorities = H['priority'][task_avail]
-                if gen_specs['user'].get('give_all_with_same_priority'):
-                    q_inds = (priorities == np.max(priorities))
-                else:
-                    q_inds = np.argmax(priorities)
-            else:
-                q_inds = 0
-
-            # Get sim ids (indices) and check resources needed
-            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
-
-            if manage_resources:
-                num_rsets_req = (np.max(H[sim_ids_to_send]['resource_sets']))
-                print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
-
-                # If more than one group (node) required, finds even split, or allocates whole nodes
-                try:
-                    rset_team = support.assign_resources(num_rsets_req)
-                except InsufficientFreeResources:
-                    break
-
-                # Assign points to worker and remove from task_avail list.
-                print('resource team {} for SIM assigned to worker {}'.format(rset_team, worker), flush=True)
-            else:
-                rset_team = None  # Now this has a consistent meaning - resources are not determined by alloc!
-
-            support.sim_work(Work, worker, sim_specs['in'], sim_ids_to_send,
-                             persis_info.get(worker), rset_team=rset_team)
-            task_avail[sim_ids_to_send] = False
+        if np.any(points_to_evaluate):
+            sim_ids_to_send = support.points_by_priority(points_avail=points_to_evaluate, batch=batch_give)
+            try:
+                support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+            except InsufficientFreeResources:
+                break
+            points_to_evaluate[sim_ids_to_send] = False
         else:
 
             # Allow at most num_active_gens active generator instances
-            if gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
+            if gen_count >= user.get('num_active_gens', gen_count+1):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if alloc_specs['user'].get('batch_mode') and not support.all_returned(H):
+            if user.get('batch_mode') and not support.all_returned(H):
                 break
 
             # Give gen work
             gen_count += 1
-
-            if manage_resources:
-                gen_resources = persis_info.get('gen_resources', 0)
-                try:
-                    rset_team = support.assign_resources(gen_resources)
-                except InsufficientFreeResources:
-                    break
-                print('resource team {} for GEN assigned to worker {}'.format(rset_team, worker), flush=True)
-            else:
-                rset_team = None
-
-            gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
-            support.gen_work(Work, worker, gen_in, return_rows, persis_info.get(worker), rset_team=rset_team)
+            try:
+                support.gen_work(Work, wid, gen_in, return_rows, persis_info.get(wid))
+            except InsufficientFreeResources:
+                break
 
     return Work, persis_info
