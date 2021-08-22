@@ -155,7 +155,7 @@ class AllocSupport:
                    'libE_info': libE_info}
 
         #print('Work is {}\n'.format(Work[wid]))
-        print('Packed for worker: {}. Resource team for sim: {}\n'.format(wid, rset_team), flush=True)
+        #print('Packed for worker: {}. Resource team for sim: {}\n'.format(wid, rset_team), flush=True)
 
 
     # SH TODO: Find/extract commonaility of sim/gen_work.
@@ -186,7 +186,7 @@ class AllocSupport:
                 rset_team = self.assign_resources(gen_resources)
                 # Even if empty list, presence of non-None rset_team stops manager giving default resources
                 libE_info['rset_team'] = rset_team
-                print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
+                #print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
 
         # Must come after resources - as that may exit with InsufficientFreeResources
         AllocSupport.gen_counter += 1  # Count total gens
