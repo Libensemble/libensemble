@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def EvaluateFunction(x, component):
     """
     Evaluates the chained Rosenbrock function

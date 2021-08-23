@@ -57,15 +57,14 @@ gen_specs = {'gen_f': gen_f,
                      ('obj_component', int),  # which {f_i} to eval
                      ('get_grad', bool),
                      ],
-             'user': {# 'gen_batch_size': 3,
-                      'lb': np.array([-1.2, 1]*(n//2)),
+             'user': {'lb': np.array([-1.2, 1]*(n//2)),
                       'ub': np.array([-1.2, 1]*(n//2)),
                       }
              }
 
 alloc_specs = {'alloc_f': alloc_f,
                'out': [],
-               'user': {'m': m, 'num_gens': num_gens },
+               'user': {'m': m, 'num_gens': num_gens},
                }
 
 persis_info = {}

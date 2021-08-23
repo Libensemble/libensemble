@@ -11,6 +11,7 @@ import scipy.sparse as spp
 import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
+
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     """ This function is called by a gen so that the alloc will collect
         all the {f_i}'s and print their sum.
@@ -46,6 +47,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
 
     sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
+
 def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
     """ This function is called by a gen to retrieve the function or gradient
         of the sum of {f_i}'s via the sim.
@@ -80,11 +82,14 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
         f = np.sum(f_is)
         return f
 
+
 def get_func(x, f_i_idxs, gen_specs, libE_info):
     return get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad=False)
 
+
 def get_grad(x, f_i_idxs, gen_specs, libE_info):
     return get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad=True)
+
 
 def get_grad_locally(x, f_i_idxs, df):
     """ This function is called by a gen to locally compute gradients of
@@ -106,6 +111,7 @@ def get_grad_locally(x, f_i_idxs, df):
         gradf += df(x, i)
 
     return gradf
+
 
 def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info):
     """ Sends local gen data (@x) and retrieves neighbors local data.
@@ -269,6 +275,7 @@ def get_er_graph(n, p, seed=-1):
 
     return spp.csr_matrix(L)
 
+
 """
 The remaining functions below don't help with consensus, but help with the
 regression tests. One can move these functions to a different Python file
@@ -296,15 +303,14 @@ def readin_csv(fname):
     n = 569
     try:
         fp = open(fname, 'r+')
-    except:
-        msg = "# Missing file 'wdbc.data' (must be placed in same directory where you run 'mpirun -np ...'). "
-        msg+= "File can be downloaded from https://tinyurl.com/3a2ttj5a. "
-        msg+= "Creating artificial dataset instead."
-        print(msg)
+    except FileNotFoundError:
+        print("# Missing file 'wdbc.data' (must be placed in same directory where you run 'mpirun -np ...'). "
+              "File can be downloaded from https://tinyurl.com/3a2ttj5a. "
+              "Creating artificial dataset instead.")
 
         m = 30
         label = 2*np.random.randint(low=0, high=1, size=m)-1
-        datas = (10*np.random.random(size=(n,m))).astype('int')
+        datas = (10*np.random.random(size=(n, m))).astype('int')
 
         return label, datas
 
@@ -350,6 +356,7 @@ def gm_opt(b, m):
     problem.solve()
 
     return problem.value
+
 
 def regls_opt(X, y, c, reg=None):
     """ Computes optimal linear regression with l2 regularization
@@ -429,6 +436,7 @@ def log_opt(X, y, c, reg=None):
     problem.solve()
 
     return problem.value
+
 
 def svm_opt(X, b, c, reg='l1'):
     """ Computes optimal support vector machine (SVM) with l1 regularization.

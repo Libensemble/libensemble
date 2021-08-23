@@ -46,7 +46,7 @@ lam_max = np.amax((la.eig(A.todense())[0]).real)
 eps = 1e-1
 
 # 0: geometric median, 1: SVM prob_id = 1
-for prob_id in range(0,2):
+for prob_id in range(2):
     persis_info = {}
     persis_info['print_progress'] = 0
     persis_info['A'] = A
