@@ -192,7 +192,7 @@ class History:
         self.H['gen_time'][first_gen_inds] = t
         self.H['last_gen_time'][update_inds] = t
         self.H['gen_worker'][first_gen_inds] = gen_worker
-        self.index += num_new                              # which part of history we are editting
+        self.index += num_new
 
     def grow_H(self, k):
         """
