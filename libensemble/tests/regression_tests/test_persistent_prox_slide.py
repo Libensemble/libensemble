@@ -75,7 +75,7 @@ for prob_id in range(2):
             return (1/m)*z/la.norm(z)
 
         # Setting @f_i_eval and @df_i_eval tells to gen to compute gradients locally
-        persis_info['gen_params'] = {'f_i_eval': f, 'df_i_eval': df}
+        persis_info['gen_params'] = {'df_i_eval': df}
 
     if prob_id == 1:
         sim_f = svm_eval

@@ -109,9 +109,6 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
             percent += 0.1
             print_final_score(curr_x_star, f_i_idxs, gen_specs, libE_info)
 
-    # TODO: Delete this
-    x_star = 1.0/b_k_sum * weighted_x_hk_sum
-
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
