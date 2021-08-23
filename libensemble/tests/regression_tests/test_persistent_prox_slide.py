@@ -75,6 +75,7 @@ for prob_id in range(2):
             return (1/m)*z/la.norm(z)
 
         def f(x, i):
+            b_i = B[i]
             return (1/m)*la.norm(x-b_i)
 
         # Setting @f_i_eval and @df_i_eval tells to gen to compute gradients locally
