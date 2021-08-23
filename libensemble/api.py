@@ -10,10 +10,10 @@ from libensemble.version import __version__
 from libensemble import logger
 
 ATTR_ERR_MSG = "\n********** Unable to load \"{}\"." + \
-    "Is the function or submodule correctly named? **********\n"
+    " Is the function or submodule correctly named? **********\n"
 
 NOTFOUND_ERR_MSG = "\n********** Unable to load \"{}\"." + \
-    "Is the package installed or the relative path correct? **********\n"
+    " Is the package installed or the relative path correct? **********\n"
 
 
 class Persis_Info:
@@ -115,10 +115,10 @@ class Ensemble:
             func_name = func_path_split[-1]
             return getattr(importlib.import_module(func_path_split[0]), func_name)
         except AttributeError:
-            self.util_logger.manager_warning(ATTR_ERR_MSG.format(func_name))
+            self._util_logger.manager_warning(ATTR_ERR_MSG.format(func_name))
             raise
         except ModuleNotFoundError:
-            self.util_logger.manager_warning(NOTFOUND_ERR_MSG.format(func_name))
+            self._util_logger.manager_warning(NOTFOUND_ERR_MSG.format(func_name))
             raise
 
     @staticmethod
