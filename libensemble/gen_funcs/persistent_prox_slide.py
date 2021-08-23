@@ -30,7 +30,6 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     D = persis_info['params']['D']
     N_const = persis_info['params']['N_const']
     lam_max = persis_info['params']['lam_max']
-    f_i_eval = persis_info['params'].get('f_i_eval', None)
     df_i_eval = persis_info['params'].get('df_i_eval', None)
 
     L = 2*R*lam_max
