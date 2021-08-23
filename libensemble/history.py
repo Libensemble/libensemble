@@ -90,14 +90,14 @@ class History:
 
     def update_history_f(self, D, safe_mode):
         """
-        Updates the history after points have been evaluated # TODO: This also seems important
+        Updates the history after points have been evaluated
         """
 
         new_inds = D['libE_info']['H_rows']  # The list of rows (as a numpy array)
         returned_H = D['calc_out']
 
         for j, ind in enumerate(new_inds):
-            for field in returned_H.dtype.names: # TEMP: ('fvec',)
+            for field in returned_H.dtype.names:
                 if safe_mode:
                     assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]):
@@ -185,11 +185,11 @@ class History:
         for field in D.dtype.names:
             if safe_mode:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
-            self.H[field][update_inds] = D[field] # NOTE: This is where the history is updated with calc_out (from gen)
+            self.H[field][update_inds] = D[field]
 
         first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
         t = time.time()
-        self.H['gen_time'][first_gen_inds] = t             # setsup up some history field values
+        self.H['gen_time'][first_gen_inds] = t
         self.H['last_gen_time'][update_inds] = t
         self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new                              # which part of history we are editting

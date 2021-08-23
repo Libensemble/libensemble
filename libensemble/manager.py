@@ -10,7 +10,6 @@ import logging
 import socket
 import traceback
 import numpy as np
-import time # TODO: remove me
 
 from libensemble.utils.timer import Timer
 from libensemble.message_numbers import \
@@ -290,8 +289,7 @@ class Manager:
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker
         """
-        logger.debug("Manager sending work unit to worker {}".format(w))
-        self.wcomms[w-1].send(Work['tag'], Work) # NOTE: metadata
+        self.wcomms[w-1].send(Work['tag'], Work)
         work_rows = Work['libE_info']['H_rows']
         work_name = calc_type_strings[Work['tag']]
         logger.debug("Manager sending {} work to worker {}. Rows {}".
@@ -303,9 +301,9 @@ class Manager:
                 for i, row in enumerate(work_rows):
                     H_to_be_sent[i] = repack_fields(self.hist.H[Work['H_fields']][row])
                 # H_to_be_sent = repack_fields(self.hist.H[Work['H_fields']])[work_rows]
-                self.wcomms[w-1].send(0, H_to_be_sent)  # NOTE: Actual data
+                self.wcomms[w-1].send(0, H_to_be_sent)
             else:
-                self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows]) # NOTE: Actual data
+                self.wcomms[w-1].send(0, self.hist.H[Work['H_fields']][work_rows])
 
     def _update_state_on_alloc(self, Work, w):
         """Updates a workers' active/idle status following an allocation order"""
@@ -366,7 +364,7 @@ class Manager:
             for w in self.W['worker_id'][self.W['active'] > 0]:
                 if self.wcomms[w-1].mail_flag():
                     new_stuff = True
-                    self._handle_msg_from_worker(persis_info, w) # functions deeper in here are important
+                    self._handle_msg_from_worker(persis_info, w)
 
         if 'save_every_k_sims' in self.libE_specs:
             self._save_every_k_sims()
@@ -376,18 +374,21 @@ class Manager:
 
     def _update_state_on_worker_msg(self, persis_info, D_recv, w):
         """Updates history and worker info on worker message
-        """ # TODO: This seems like an important function
-        calc_type = D_recv['calc_type']     # calc_type == 1 === EVAL_SIM_TAG ?
-        calc_status = D_recv['calc_status'] # calc_status == 0 == UNSET_TAG ?
+        """
+        calc_type = D_recv['calc_type']
+        calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
         if w not in self.persis_pending and not self.W[w-1]['active_recv']:
-            self.W[w-1]['active'] = 0 # worker turned off after returning
+            self.W[w-1]['active'] = 0
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
                 if self.libE_specs.get('use_persis_return', False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    if calc_status is FINISHED_PERSISTENT_GEN_TAG:
+                        self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    else:
+                        self.hist.update_history_f(D_recv, self.safe_mode)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w-1]['persis_state'] = 0
@@ -399,7 +400,7 @@ class Manager:
                 self.W[w-1]['active'] = 0
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.safe_mode) # NOTE: follow this
+                self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
                 self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode)
                 assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
@@ -415,7 +416,7 @@ class Manager:
                 self.W[w_i-1]['active'] = 0
 
         if 'persis_info' in D_recv and len(D_recv['persis_info']):
-            persis_info[w].update(D_recv['persis_info']) # TODO: Updates persis_info (holds random_stream, f_i_todo
+            persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w):
         """Handles a message from worker w
@@ -533,9 +534,6 @@ class Manager:
         logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 
-        t = 0
-        a_t = 0
-        t -= time.time()
         # Continue receiving and giving until termination test is satisfied
         try:
             while not self.term_test():
@@ -544,25 +542,15 @@ class Manager:
                 if any(self.W['active'] == 0) and not self.term_test():
                     Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
                                                                persis_info)
-
                     if flag:
                         break
 
                     for w in Work:
                         if self.work_giving_term_test():
                             break
-
-                        # work_rows = Work[w]['libE_info']['H_rows']
-                        # if len(work_rows) and (not set(Work[w]['H_fields'])):
-                        #     import ipdb; ipdb.set_trace()
-
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
-                if (not self.term_test()) and (not any(self.W['active'] != 0)):
-                    # import ipdb; ipdb.set_trace()
-                    here = "here"
-
                 assert self.term_test() or any(self.W['active'] != 0), \
                     "alloc_f did not return any work, although all workers are idle."
         except WorkerException as e:
@@ -573,7 +561,6 @@ class Manager:
             raise LoggedException(e.args) from None
         finally:
             # Return persis_info, exit_flag, elapsed time
-            self.term_test()
             result = self._final_receive_and_kill(persis_info)
             sys.stdout.flush()
             sys.stderr.flush()
