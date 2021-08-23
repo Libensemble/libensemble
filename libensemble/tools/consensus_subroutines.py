@@ -148,7 +148,7 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
     assert local_gen_id not in neighbor_gen_ids, 'Local data should not be ' + \
                                                  'sent back from manager'
     assert np.array_equal(A_gen_ids_no_local, neighbor_gen_ids), 'Expected ' + \
-        'gen_ids {}, received {}'.format(A_gen_ids, gen_ids)
+        'gen_ids {}, received {}'.format(A_gen_ids_no_local, neighbor_gen_ids)
 
     X = np.vstack((neighbor_X, x))
     gen_ids = np.append(neighbor_gen_ids, local_gen_id)
@@ -389,7 +389,6 @@ def regls_opt(X, y, c, reg=None):
     # already X.T
     d, m = X.shape
     beta = cp.Variable(d)
-    lambd = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
     problem.solve()
 

@@ -179,12 +179,10 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             own_idx = np.argwhere(incident_gens == i0)
             incident_gens = np.delete(incident_gens, own_idx)
 
-            curr_gen_id_in_H = consensus_ids_in_H[i0]
             neighbor_consensus_ids_in_H = consensus_ids_in_H[incident_gens]
 
             if print_progress:
                 # implicilty perform matmul, $(A \kron I)[x_1,...x_m]$
-                num_neighbors = len(neighbor_consensus_ids_in_H)
                 x[i0*n:(i0+1)*n] = H[consensus_ids_in_H[i0]]['x']
 
                 diag_scalar = A.diagonal()[i0]
