@@ -10,7 +10,7 @@ def double_extend(arr):
     """ Takes array [i_1,i_2,...i_k] and builds an extended array
         [2i_1, 2i_1+1, 2i_2, 2i_2+1, ..., 2i_k, 2i_k+1]
 
-        For instances, given an array [0,1,2], we return 
+        For instances, given an array [0,1,2], we return
         [0,1, 2,3, 4,5]. This is useful for distributed sum of convex
         functions f_i which depend on two contiguous components x
         but not on the rest.

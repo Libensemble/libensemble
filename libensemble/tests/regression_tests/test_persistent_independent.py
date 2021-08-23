@@ -84,7 +84,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             alloc_specs, libE_specs)
 
 if is_manager:
-    # check we completed 
+    # check we completed
     assert flag == 0
 
     # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)

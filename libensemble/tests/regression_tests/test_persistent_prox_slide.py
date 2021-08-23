@@ -50,11 +50,11 @@ for prob_id in range(0,2):
     persis_info = {}
     persis_info['print_progress'] = 0
     persis_info['A'] = A
-    
+
     persis_info = add_unique_random_streams(persis_info, nworkers + 1)
     persis_info['gen_params'] = {}
     exit_criteria = {'elapsed_wallclock_time': 300}
-    
+
     libE_specs['safe_mode'] = False
 
     if prob_id == 0:

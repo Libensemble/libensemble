@@ -58,7 +58,7 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
         Which {f_i}'s this calling gen is responsible for
     - gen_specs, libE_info :
         Used to communicate
-    - get_grad : bool 
+    - get_grad : bool
         True if we want gradient, otherwise returns function eval
     """
 

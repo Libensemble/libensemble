@@ -68,7 +68,7 @@ for prob_id in range(5):
     persis_info = add_unique_random_streams(persis_info, nworkers + 1)
     persis_info['gen_params'] = {}
     exit_criteria = {'elapsed_wallclock_time': 300}
-    
+
     # Perform the run
     libE_specs['safe_mode'] = False
 
