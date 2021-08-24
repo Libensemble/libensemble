@@ -57,7 +57,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if user.get('batch_mode') and not support.all_returned(H):
+            if user.get('batch_mode') and not support.all_returned(gen=wid):
                 break
 
             # Give gen work
