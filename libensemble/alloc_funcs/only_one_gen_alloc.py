@@ -1,4 +1,4 @@
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, test_any_gen, all_returned
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -11,30 +11,38 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
+    support = AllocSupport(W, H, persis_info)
     Work = {}
     gen_flag = True
+    gen_in = gen_specs.get('in', [])
 
-    for i in avail_worker_ids(W):
+    for wid in support.avail_worker_ids():
+
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
 
         if persis_info['next_to_give'] < len(H):
 
-            # Give sim work if possible
-            sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
+            # SH TODO: Why is [persis_info['next_to_give']] a list? And no random stream right (for sim)
+            try:
+                support.sim_work(Work, wid, sim_specs['in'], [persis_info['next_to_give']], [])
+            except InsufficientFreeResources:
+                break
             persis_info['next_to_give'] += 1
 
-        elif not test_any_gen(W) and gen_flag:
+        elif not support.test_any_gen() and gen_flag:
 
-            if not all_returned(H):
+            if not support.all_returned(wid):
                 break
 
             # Give gen work
-            persis_info['total_gen_calls'] += 1
-            gen_flag = False
-            gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
-            gen_work(Work, i, gen_in, return_rows, persis_info.get(i))
+            try:
+                support.gen_work(Work, wid, gen_in, return_rows, persis_info.get(wid))
+            except InsufficientFreeResources:
+                break
+            gen_flag = False
+            persis_info['total_gen_calls'] += 1
 
     return Work, persis_info
