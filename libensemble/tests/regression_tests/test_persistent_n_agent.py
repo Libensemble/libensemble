@@ -61,7 +61,8 @@ N_const = 100
 # Perform the run
 libE_specs['safe_mode'] = False
 
-# 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: l2 logistic w/ early stop
+# 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression
+# 4: l2 logistic regression, 5: l2 logistic w/ early stop
 for prob_id in range(6):
     persis_info = {}
     persis_info['print_progress'] = 0

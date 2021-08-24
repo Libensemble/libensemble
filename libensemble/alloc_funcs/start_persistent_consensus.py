@@ -1,3 +1,8 @@
+"""
+@Author: Created by Caleb Ju at Argonne National Labs as Given's associate,
+         Summer 2021.
+"""
+
 import numpy as np
 import scipy.sparse as spp
 from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,

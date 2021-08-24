@@ -12,6 +12,7 @@ import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 
+
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     """ This function is called by a gen so that the alloc will collect
         all the {f_i}'s and print their sum.
@@ -37,7 +38,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
     if tag in [PERSIS_STOP, STOP_TAG]:
-        return 
+        return
 
     f_is = calc_in['f_i']
     F_i = np.sum(f_is)
@@ -50,6 +51,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     H_o['consensus_pt'][0] = True
 
     sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+
 
 def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
     """ This function is called by a gen to retrieve the function or gradient

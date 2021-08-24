@@ -1,3 +1,7 @@
+"""
+@Author: Created by Caleb Ju at Argonne National Labs as Given's associate,
+         Summer 2021.
+"""
 import numpy as np
 import scipy.optimize as sciopt
 

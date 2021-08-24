@@ -134,7 +134,7 @@ for prob_id in range(6):
         sim_f = logistic_regression_eval
         m, n = 14, 15
         prob_name = 'logistic regression with l2 regularization'
-        if prob_id > 4: 
+        if prob_id > 4:
             prob_name += ' w/ stoppage'
         L = 1
         err_const = 1e1

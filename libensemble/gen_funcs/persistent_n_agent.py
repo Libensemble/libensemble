@@ -1,3 +1,9 @@
+"""
+@Author: Created by Caleb Ju at Argonne National Labs as Given's associate,
+         Summer 2021.
+@About: Based on n-agent with gradient tracking:
+        https://ieeexplore.ieee.org/abstract/document/9199106/
+"""
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_neighbor_vals
@@ -50,7 +56,7 @@ def n_agent(H, persis_info, gen_specs, libE_info):
             return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         tag, neighbor_gradf_is = get_neighbor_vals(gradf, local_gen_id,
-                                                   A_i_gen_ids_no_local, 
+                                                   A_i_gen_ids_no_local,
                                                    gen_specs, libE_info)
         if tag in [STOP_TAG, PERSIS_STOP]:
             return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
@@ -59,12 +65,12 @@ def n_agent(H, persis_info, gen_specs, libE_info):
         # takes linear combination as described by equation (9)
         s = np.dot(U.T, A_weights)
 
-        tag, neighbor_x_is = get_neighbor_vals(x_k, local_gen_id, 
+        tag, neighbor_x_is = get_neighbor_vals(x_k, local_gen_id,
                                                A_i_gen_ids_no_local,
                                                gen_specs, libE_info)
         if tag in [STOP_TAG, PERSIS_STOP]:
             return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
-        tag, neighbor_s_is = get_neighbor_vals(s, local_gen_id, 
+        tag, neighbor_s_is = get_neighbor_vals(s, local_gen_id,
                                                A_i_gen_ids_no_local,
                                                gen_specs, libE_info)
         if tag in [STOP_TAG, PERSIS_STOP]:

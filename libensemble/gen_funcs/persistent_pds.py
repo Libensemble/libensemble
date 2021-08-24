@@ -1,3 +1,9 @@
+"""
+@Author: Created by Caleb Ju at Argonne National Labs as Given's associate,
+         Summer 2021.
+@About: Based on communication sliding primal-dual method:
+        https://link.springer.com/article/10.1007/s10107-018-1355-4
+"""
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.consensus_subroutines import (print_final_score, get_grad,
@@ -86,12 +92,10 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
                     'prev_T_k': prev_T_k,
                     }
 
-        [tag, x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k,
-                                                   prev_x_k,
-                                                   prev_penult_k,
-                                                   prev_z_k,
-                                                   settings,
-                                                   gen_specs, libE_info)
+        [tag, x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k, prev_x_k,
+                                                        prev_penult_k, prev_z_k,
+                                                        settings, gen_specs,
+                                                        libE_info)
         if tag in [STOP_TAG, PERSIS_STOP]:
             return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
