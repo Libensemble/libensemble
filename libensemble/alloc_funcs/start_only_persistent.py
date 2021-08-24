@@ -1,14 +1,7 @@
 import numpy as np
-from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+from libensemble.tools.alloc_support import (avail_worker_ids, sim_work, gen_work,
+                                             count_persis_gens, all_returned)
 
-
-# SH TODO: Either replace only_persistent_gens or add a different alloc func (or file?)
-#          Check/update docstring
-
-# SH TODO: New support funcs terminology.
-#          H boolean filters?  e.g. [True, False, False] e.g. prefix H_filter or Hmask_
-#          e.g. mask_pts_to_eval =  support.getmask_points_to_evaluate()
 
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
@@ -65,50 +58,42 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         return Work, persis_info, 1
 
     # Give evaluated results back to a running persistent gen
-    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
-        # SH TODO: points_evaluated terminology? Also its an H boolean filter (maybe filter_points_evaluated?)
-        points_evaluated = support.get_evaluated_points(gen=wid)
-        if np.any(points_evaluated):
-            if async_return or support.all_returned(gen=wid):
-                point_ids = np.where(points_evaluated)[0]
-                support.gen_work(Work, wid, gen_return_fields, point_ids, persis_info.get(wid),
-                                 persistent=True, active_recv=active_recv_gen)
-                # SH TODO: This should use filter like points_to_evaluate below... 'given_back' to be libE field set by manager.
-                #          Could be set in libE_info here - and manager reads that? Or manager could determine existing point.
-                #          But as read in get_evaluated_points, must be written somewhere - cant remove this till manager does it.
-                #H['given_back'][point_ids] = True  # SH TODO: Move to manager (libE field) when give to gen points with 'returned' True
-                points_evaluated[point_ids] = False  # SH TODO: May not need if each iteration is mutually exclusive points!
+    for i in avail_worker_ids(W, persistent=True, active_recv=active_recv_gen):
+        gen_inds = (H['gen_worker'] == i)
+        returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
+        if np.any(returned_but_not_given):
+            inds_since_last_gen = np.where(returned_but_not_given)[0]
+            if async_return or all_returned(H, gen_inds):
+                gen_work(Work, i,
+                         sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')],
+                         inds_since_last_gen, persis_info.get(i), persistent=True,
+                         active_recv=active_recv_gen)
 
-    # SH TODO: Now the give_sim_work_first bit
-    points_to_evaluate = support.get_points_to_evaluate()  # SH TODO: Again an H boolean filter
-    avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
-    for wid in avail_workers:
+                # H['given_back'][inds_since_last_gen] = True
 
-        if not np.any(points_to_evaluate):
-            break
+    task_avail = ~H['given'] & ~H['cancel_requested']
+    for i in avail_worker_ids(W, persistent=False):
 
-        sim_ids_to_send = support.points_by_priority(points_avail=points_to_evaluate, batch=batch_give)
-        try:
-            support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
-        except InsufficientFreeResources:
-            break
+        if np.any(task_avail):
+            if 'priority' in H.dtype.fields:
+                priorities = H['priority'][task_avail]
+                if gen_specs['user'].get('give_all_with_same_priority'):
+                    q_inds = (priorities == np.max(priorities))
+                else:
+                    q_inds = np.argmax(priorities)
+            else:
+                q_inds = 0
 
-        points_to_evaluate[sim_ids_to_send] = False
+            # perform sim evaluations (if they exist in History).
+            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
+            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info.get(i))
+            task_avail[sim_ids_to_send] = False
 
-    # A separate loop/section as now need zero_resource_workers for gen.
-    if not np.any(points_to_evaluate):
-        avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True)
-
-        # SH TODO: So we don't really need a loop here for this, but general case would allow multiple gens
-        for wid in avail_workers:
-            if gen_count == 0:
-                # Finally, call a persistent generator as there is nothing else to do.
-                gen_count += 1
-                try:
-                    support.gen_work(Work, wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
-                                     persistent=True, active_recv=active_recv_gen)
-                except InsufficientFreeResources:
-                    break
-                persis_info['gen_started'] = True
+        elif gen_count == 0:
+            # Finally, call a persistent generator as there is nothing else to do.
+            gen_count += 1
+            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
+                     persistent=True, active_recv=active_recv_gen)
+            persis_info['gen_started'] = True
 
     return Work, persis_info, 0
