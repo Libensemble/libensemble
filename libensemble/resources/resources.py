@@ -61,7 +61,9 @@ class Resources:
         auto_resources = libE_specs.get('auto_resources', True)
         if auto_resources:
             top_level_dir = os.getcwd()  # SH TODO: Do we want as libE_specs option.
-            Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
+            # SH TODO: Should we recreate or re-use if exists
+            if Resources.resources is None:
+                Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 
     def __init__(self, libE_specs, top_level_dir=None):
         """ Initiate a new resources object """
