@@ -85,8 +85,9 @@ class History:
         self.grow_count = 0
 
         self.given_count = np.sum(H['given'])
-
         self.returned_count = np.sum(H['returned'])
+        self.given_back_count = np.sum(H['given_back'])
+        self.given_back_warned = False
 
     def update_history_f(self, D, safe_mode):
         """
@@ -142,20 +143,26 @@ class History:
 
     def update_history_to_gen(self, q_inds):
         """Updates the history (in place) when points are given back to the gen"""
-        print('q_inds', q_inds)
-        print('type q_inds', type(q_inds))
         q_inds = np.atleast_1d(q_inds)
         # SH TODO: Debate the names 'given_back' or 'given_back_to_gen' or 'return_to_gen' ...
         if q_inds.size > 0:
             # SH TODO; Question - do we need to check self.H['returned'] == True before setting given_back ??
             #          What about H0 points...
-            #import pdb;pdb.set_trace()
+
+            # JLN; This appears to be caught by check_inputs already.
+            #      e.g. ('given' = True && 'returned' = False) is invalid
+
             if np.all(self.H['returned'][q_inds]):
                 self.H['given_back'][q_inds] = True
-            else:
-                #Warn? #Set 'given_back' to True if returned.
-                print('Testing if here.........................................')
-            # SH TODO: Add any count/timing etc....
+
+            if self.offset and not self.given_back_warned:  # Using H0
+                logger.manager_warning(
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'returned'.")
+                self.given_back_warned = True
+
+            self.given_back_count += len(q_inds)
+
+
 
     def update_history_x_in(self, gen_worker, D, safe_mode):
         """
