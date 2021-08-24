@@ -47,14 +47,16 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
         pre_x_k = (1.0 - g_k) * post_x_k + (g_k * x_k)
 
-        Lx_k = get_consensus_gradient(pre_x_k, gen_specs, libE_info)
+        tag, Lx_k = get_consensus_gradient(pre_x_k, gen_specs, libE_info)
+        if tag in [PERSIS_STOP, STOP_TAG]:
+            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
         gradg = 2*R*Lx_k
 
         _x_k = x_k.copy()
-        x_k, x2_k = PS(_x_k, gradg, b_k, T_k, f_i_idxs, gen_specs, libE_info, pre_x_k, df_i_eval)
+        tag, x_k, x2_k = PS(_x_k, gradg, b_k, T_k, f_i_idxs, gen_specs, libE_info, pre_x_k, df_i_eval)
 
-        # If sent back nothing, must have crashed
-        if x_k is None:
+        if tag in [STOP_TAG, PERSIS_STOP]:
             return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         post_x_k = (1.0-g_k) * post_x_k + (g_k * x2_k)
@@ -72,10 +74,9 @@ def PS(x, gradg, beta, T, f_i_idxs, gen_specs, libE_info, pre_x_k, df_i_eval):
     """ Prox-sliding procedure (see https://arxiv.org/pdf/1911.10645) with
         entropy as the distance generating function for Bregman divergence.
     """
+    tag = None
     u = x
     u2 = x
-    # n = len(x)
-    # l = len(f_i_idxs)
 
     for t in range(1, T+1):
         p_t = t/2.0
@@ -84,13 +85,13 @@ def PS(x, gradg, beta, T, f_i_idxs, gen_specs, libE_info, pre_x_k, df_i_eval):
         if df_i_eval is not None:
             gradf = get_grad_locally(u, f_i_idxs, df_i_eval)
         else:
-            gradf = get_grad(u, f_i_idxs, gen_specs, libE_info)
+            tag, gradf = get_grad(u, f_i_idxs, gen_specs, libE_info)
 
         u_next = get_l2_argmin(x, u, gradf, gradg, beta, p_t)
         u = u_next
         u2 = (1-theta_t) * u2 + (theta_t * u)
 
-    return u, u2
+    return tag, u, u2
 
 
 def get_l2_argmin(x, u_prev, gradf, gradg, beta, p_t):

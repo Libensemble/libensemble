@@ -61,14 +61,18 @@ N_const = 100
 # Perform the run
 libE_specs['safe_mode'] = False
 
-# 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression
-for prob_id in range(5):
+# 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: l2 logistic w/ early stop
+for prob_id in range(6):
     persis_info = {}
     persis_info['print_progress'] = 0
     persis_info['A'] = S
     persis_info = add_unique_random_streams(persis_info, nworkers + 1)
     persis_info['gen_params'] = {}
-    exit_criteria = {'elapsed_wallclock_time': 300}
+
+    if prob_id <= 4:
+        exit_criteria = {'elapsed_wallclock_time': 300}
+    else:
+        exit_criteria = {'sim_max': 50}
 
     if prob_id == 0:
         sim_f = rosenbrock_eval
@@ -122,10 +126,12 @@ for prob_id in range(5):
         # Setting @f_i_eval and @df_i_eval tells to gen to compute gradients locally
         persis_info['gen_params'] = {'f_i_eval': f, 'df_i_eval': df}
 
-    if prob_id == 4:
+    if prob_id >= 4:
         sim_f = logistic_regression_eval
         m, n = 14, 15
         prob_name = 'logistic regression  with l2 regularization'
+        if prob_id > 4:
+            prob_name += ' w/ stoppage'
         L = 1
         err_const = 1e1
         y = np.append(2*np.ones(m//2), np.zeros(m-m//2))-1
@@ -181,10 +187,10 @@ for prob_id in range(5):
     if is_manager:
         print('=== End algorithm ===', flush=True)
 
-    if is_manager:
         # check we completed
         assert flag == 0
 
+    if is_manager and prob_id <= 4:
         # check we have a Laplacian matrix
         assert la.norm(A.dot(np.zeros(A.shape[1]))) < 1e-15, 'Not a Laplacian matrix'
 

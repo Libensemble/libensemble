@@ -45,15 +45,19 @@ lam_max = np.amax((la.eig(A.todense())[0]).real)
 
 eps = 1e-1
 
-# 0: geometric median, 1: SVM prob_id = 1
-for prob_id in range(2):
+# 0: geometric median, 1: SVM prob_id = 1, 2: SVM w/ STOP_TAG
+for prob_id in range(3):
     persis_info = {}
     persis_info['print_progress'] = 0
     persis_info['A'] = A
 
     persis_info = add_unique_random_streams(persis_info, nworkers + 1)
     persis_info['gen_params'] = {}
-    exit_criteria = {'elapsed_wallclock_time': 300}
+
+    if prob_id < 2:
+        exit_criteria = {'elapsed_wallclock_time': 300}
+    else:
+        exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 1}
 
     libE_specs['safe_mode'] = False
 
@@ -77,10 +81,12 @@ for prob_id in range(2):
         # Setting @f_i_eval and @df_i_eval tells to gen to compute gradients locally
         persis_info['gen_params'] = {'df_i_eval': df}
 
-    if prob_id == 1:
+    if prob_id >= 1:
         sim_f = svm_eval
         m, n = 50, 15
         prob_name = 'SVM with l1 regularization'
+        if prob_id > 1:
+            prob_name += ' w/ stoppage'
         err_const = 1e1
         N_const = 1
         b, X = readin_csv('wdbc.data')
@@ -137,10 +143,10 @@ for prob_id in range(2):
     if is_manager:
         print('=== End algorithm ===', flush=True)
 
-    if is_manager:
         # check we completed
         assert flag == 0
 
+    if is_manager and prob_id < 2:
         # check we have a Laplacian matrix
         assert la.norm(A.dot(np.zeros(A.shape[1]))) < 1e-15, 'Not a Laplacian matrix'
 

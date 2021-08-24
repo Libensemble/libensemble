@@ -45,20 +45,30 @@ def n_agent(H, persis_info, gen_specs, libE_info):
     percent = 0.1
 
     for k in range(N):
+        tag, gradf = get_grad(x_k, f_i_idxs, gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
-        gradf = get_grad(x_k, f_i_idxs, gen_specs, libE_info)
-
-        neighbor_gradf_is = get_neighbor_vals(gradf, local_gen_id,
-                                              A_i_gen_ids_no_local, gen_specs, libE_info)
+        tag, neighbor_gradf_is = get_neighbor_vals(gradf, local_gen_id,
+                                                   A_i_gen_ids_no_local, 
+                                                   gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         U = (prev_s_is + neighbor_gradf_is - prev_gradf_is)
         # takes linear combination as described by equation (9)
         s = np.dot(U.T, A_weights)
 
-        neighbor_x_is = get_neighbor_vals(x_k, local_gen_id, A_i_gen_ids_no_local,
-                                          gen_specs, libE_info)
-        neighbor_s_is = get_neighbor_vals(s, local_gen_id, A_i_gen_ids_no_local,
-                                          gen_specs, libE_info)
+        tag, neighbor_x_is = get_neighbor_vals(x_k, local_gen_id, 
+                                               A_i_gen_ids_no_local,
+                                               gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
+        tag, neighbor_s_is = get_neighbor_vals(s, local_gen_id, 
+                                               A_i_gen_ids_no_local,
+                                               gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         V = (neighbor_x_is - eta * neighbor_s_is)
         # takes linear combination as described by equation (10)
@@ -70,7 +80,7 @@ def n_agent(H, persis_info, gen_specs, libE_info):
         prev_s_is = neighbor_s_is
         prev_gradf_is = neighbor_gradf_is
 
-        if k/N >= percent:
+        if (k+1)/N >= percent:
             if local_gen_id == 1:
                 print('[{}%]: '.format(int(percent*100)), flush=True, end='')
             percent += 0.1

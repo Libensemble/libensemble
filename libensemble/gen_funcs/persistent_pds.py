@@ -70,7 +70,10 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         if f_i_eval is not None:
             y_k = get_grad_locally(x_uk, f_i_idxs, df_i_eval)
         else:
-            y_k = get_grad(x_uk, f_i_idxs, gen_specs, libE_info)
+            tag, y_k = get_grad(x_uk, f_i_idxs, gen_specs, libE_info)
+
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         settings = {'T_k': T_k,
                     'b_k': k,
@@ -83,12 +86,14 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
                     'prev_T_k': prev_T_k,
                     }
 
-        [x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k,
+        [tag, x_k, x_k_1, z_k, x_hk] = primaldual_slide(y_k,
                                                    prev_x_k,
                                                    prev_penult_k,
                                                    prev_z_k,
                                                    settings,
                                                    gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         prevprev_x_k = prev_x_k
         prev_x_k = x_k
@@ -113,6 +118,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
 
 def primaldual_slide(y_k, x_curr, x_prev, z_t, settings, gen_specs, libE_info):
+    tag = None
 
     # define params
     T_k = settings['T_k']
@@ -140,11 +146,17 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings, gen_specs, libE_info):
         u_t = x_curr + a_t * (x_curr - x_prev)
 
         # compute first argmin
-        Lu_t = get_consensus_gradient(u_t, gen_specs, libE_info)
+        tag, Lu_t = get_consensus_gradient(u_t, gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return [tag, None, None, None, None]
+
         z_t = z_t + (1.0/q_t) * Lu_t
 
         # computes second argmin
-        Lz_t = get_consensus_gradient(z_t, gen_specs, libE_info)
+        tag, Lz_t = get_consensus_gradient(z_t, gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return [tag, None, None, None, None]
+
         x_next = (eta_t*x_curr) + (p_k*x_k_1) - (y_k + Lz_t)
         x_next /= (eta_t + p_k)
 
@@ -159,4 +171,4 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings, gen_specs, libE_info):
     z_k = z_t
     x_hk = xsum/T_k
 
-    return [x_k, x_k_1, z_k, x_hk]
+    return [tag, x_k, x_k_1, z_k, x_hk]

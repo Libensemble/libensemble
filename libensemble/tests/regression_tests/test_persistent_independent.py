@@ -73,31 +73,45 @@ persis_info['gen_params'] = ({'eps': eps})
 persis_info['sim_params'] = ({'const': 1})
 persis_info['A'] = A
 
-exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 1000000}
 
 assert n == 2*m, "@n must be double of @m"
 
 # Perform the run
 libE_specs['safe_mode'] = False
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
 
-if is_manager:
-    # check we completed
-    assert flag == 0
+# i==0 is full run, i==1 is early termination
+for i in range(2):
+    if i == 0:
+        exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 1000000}
+        if is_manager:
+            print('=== Testing full independent optimize ===', flush=True)
+    else:
+        exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 10}
+        if is_manager:
+            print('=== Testing independent optimize w/ stoppage ===', flush=True)
 
-    # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
-    eval_H = H[H['eval_pt']]
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                alloc_specs, libE_specs)
 
-    gen_ids = np.unique(eval_H['gen_worker'])
-    assert len(gen_ids) == num_gens, 'Gen did not submit any function eval requests'
+    if is_manager:
+        print('=== End algorithm ===', flush=True)
 
-    F = 0
-    fstar = 0
+        # check we completed
+        assert flag == 0
 
-    for i, gen_id in enumerate(gen_ids):
-        last_eval_idx = np.where(eval_H['gen_worker'] == gen_id)[0][-1]
-        f_i = eval_H[last_eval_idx]['f_i']
-        F += f_i
+    if is_manager and i == 0:
+        # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
+        eval_H = H[H['eval_pt']]
 
-    assert F-fstar < eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(F-fstar, eps, fstar)
+        gen_ids = np.unique(eval_H['gen_worker'])
+        assert len(gen_ids) == num_gens, 'Gen did not submit any function eval requests'
+
+        F = 0
+        fstar = 0
+
+        for i, gen_id in enumerate(gen_ids):
+            last_eval_idx = np.where(eval_H['gen_worker'] == gen_id)[0][-1]
+            f_i = eval_H[last_eval_idx]['f_i']
+            F += f_i
+
+        assert F-fstar < eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(F-fstar, eps, fstar)

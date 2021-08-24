@@ -10,7 +10,7 @@ import numpy.linalg as la
 import scipy.sparse as spp
 import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
-
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     """ This function is called by a gen so that the alloc will collect
@@ -35,6 +35,10 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     H_o = np.reshape(H_o, newshape=(-1,))
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+
+    if tag in [PERSIS_STOP, STOP_TAG]:
+        return 
+
     f_is = calc_in['f_i']
     F_i = np.sum(f_is)
 
@@ -46,7 +50,6 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     H_o['consensus_pt'][0] = True
 
     sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
-
 
 def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
     """ This function is called by a gen to retrieve the function or gradient
@@ -73,14 +76,17 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        return tag, None
+
     if get_grad:
         gradf_is = calc_in['gradf_i']
         gradf = np.sum(gradf_is, axis=0)
-        return gradf
+        return tag, gradf
     else:
         f_is = calc_in['f_i']
         f = np.sum(f_is)
-        return f
+        return tag, f
 
 
 def get_func(x, f_i_idxs, gen_specs, libE_info):
@@ -141,6 +147,8 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
     H_o['consensus_pt'][0] = True
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        return tag, None
 
     neighbor_X = calc_in['x']
     neighbor_gen_ids = calc_in['gen_worker']
@@ -156,7 +164,7 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
     # sort data (including local) in corresponding gen_id increasing order
     X[:] = X[np.argsort(gen_ids)]
 
-    return X
+    return tag, X
 
 
 def get_consensus_gradient(x, gen_specs, libE_info):
@@ -178,16 +186,21 @@ def get_consensus_gradient(x, gen_specs, libE_info):
      : np.ndarray
         - Returns this node's corresponding gradient of consensus
     """
+    tag = None
     H_o = np.zeros(1, dtype=gen_specs['out'])
     H_o['x'][0] = x
     H_o['consensus_pt'][0] = True
 
     tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
 
+    if tag in [PERSIS_STOP, STOP_TAG]:
+        return tag, np.zeros(len(x))
+
     neighbor_X = calc_in['x']
     num_neighbors = len(neighbor_X)
+    grad_cons = (num_neighbors*x) - np.sum(neighbor_X, axis=0)
 
-    return (num_neighbors*x) - np.sum(neighbor_X, axis=0)
+    return tag, grad_cons
 
 
 def get_k_reach_chain_matrix(n, k):

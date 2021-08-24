@@ -5,22 +5,6 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTE
 from libensemble.tools.consensus_subroutines import (print_final_score, get_grad, get_func)
 
 
-# TODO: Place this in support file or get rid fo
-def double_extend(arr):
-    """ Takes array [i_1,i_2,...i_k] and builds an extended array
-        [2i_1, 2i_1+1, 2i_2, 2i_2+1, ..., 2i_k, 2i_k+1]
-
-        For instances, given an array [0,1,2], we return
-        [0,1, 2,3, 4,5]. This is useful for distributed sum of convex
-        functions f_i which depend on two contiguous components x
-        but not on the rest.
-    """
-    out = np.zeros(len(arr)*2, dtype=type(arr[0]))
-    out[0::2] = 2*np.array(arr)
-    out[1::2] = 2*np.array(arr)+1
-    return out
-
-
 def independent_optimize(H, persis_info, gen_specs, libE_info):
     """ Uses scipy.optimize to solve objective function
     """
@@ -31,10 +15,17 @@ def independent_optimize(H, persis_info, gen_specs, libE_info):
     f_i_idxs = persis_info['f_i_idxs']
 
     def _f(x):
-        return get_func(x, f_i_idxs, gen_specs, libE_info)
+        tag, f_val = get_func(x, f_i_idxs, gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return np.inf
+        return f_val
 
     def _df(x):
-        return get_grad(x, f_i_idxs, gen_specs, libE_info)
+        tag, gradf_val = get_grad(x, f_i_idxs, gen_specs, libE_info)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            # Trick optimizer to think we found minimum
+            return np.zeros(len(x))
+        return gradf_val
 
     while 1:
         x0 = persis_info['rand_stream'].uniform(low=lb, high=ub)
