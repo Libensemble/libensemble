@@ -35,7 +35,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         # SH TODO: Checking initial points completed... What if were cancelled?
         assert np.all(H['given']), "Initial points in H have never been given."
         assert np.all(H['given_back']), "Initial points in H have never been given_back."
-        assert support.all_returned(H), "Initial points in H have never been returned."
+        assert support.all_returned(), "Initial points in H have never been returned."
 
         # SH TODO: gen_specs['persis_in'] - and why is done here and in persis_info - does this vary?
         persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
