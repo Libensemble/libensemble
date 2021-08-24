@@ -68,11 +68,14 @@ jobs:
           if: matrix.python-version == 3.8
           env:
             PETSC_CONFIGURE_OPTIONS: '--with-batch'
-          run: conda install petsc4py
+          run: |
+              conda install hypre=2.22.0
+              conda install petsc4py
 
         - name: Install mumps-mpi, PETSc, petsc4py
           if: matrix.python-version != 3.8
           run: |
+            conda install hypre=2.22.0
             conda install mumps-mpi
             conda install petsc
             conda install petsc4py
