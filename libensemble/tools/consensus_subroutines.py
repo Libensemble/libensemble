@@ -324,8 +324,9 @@ def readin_csv(fname):
               "Creating artificial dataset instead.")
 
         m = 30
+        np.random.seed(0)
         label = 2*np.random.randint(low=0, high=1, size=m)-1
-        datas = (10*np.random.random(size=(n, m))).astype('int')
+        datas = (5*np.random.random(size=(n, m))).astype('int')
 
         return label, datas
 

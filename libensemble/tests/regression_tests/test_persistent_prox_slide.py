@@ -83,7 +83,7 @@ for prob_id in range(3):
 
     if prob_id >= 1:
         sim_f = svm_eval
-        m, n = 50, 15
+        m, n = 30, 15
         prob_name = 'SVM with l1 regularization'
         if prob_id > 1:
             prob_name += ' w/ stoppage'
