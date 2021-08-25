@@ -107,11 +107,11 @@ for run in range(3):
         H0[['given', 'returned']] = True
         H0['given_back'][:] = False
 
-        # Testing use_persis_return capabilities
-        libE_specs['use_persis_return'] = True
-
     elif run == 1:
         H0[['given', 'returned', 'given_back']] = False
+
+        # Testing use_persis_return capabilities
+        libE_specs['use_persis_return'] = True
 
     else:
         H0 = None

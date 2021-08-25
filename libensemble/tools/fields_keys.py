@@ -9,6 +9,7 @@ libE_fields = [('sim_id', int),             # Unique id of entry in H that was g
                ('given', bool),             # True if entry has been given for sim eval
                ('given_time', float),       # Time (since epoch) that the entry was (first) given to be evaluated
                ('last_given_time', float),  # Time (since epoch) that the entry was last given to be evaluated
+               ('last_given_back_time', float),  # Time (since epoch) that the entry was last given back to the gen
                ('returned', bool),          # True if entry has been returned from sim eval
                ('returned_time', float),    # Time entry was (last) returned from sim eval
                ('sim_worker', int),         # Worker that did (or is doing) the sim eval
