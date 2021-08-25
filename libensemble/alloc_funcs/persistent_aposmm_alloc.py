@@ -17,10 +17,13 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         `test_persistent_aposmm_with_grad.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_ # noqa
     """
 
-    support = AllocSupport(alloc_specs)  # Access alloc support functions
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+
+    support = AllocSupport(W, H, persis_info, sched_opts)
 
     Work = {}
-    gen_count = support.count_persis_gens(W)
+    gen_count = support.count_persis_gens()
 
     if persis_info.get('first_call', True):
         assert np.all(H['given']), "Initial points in H have never been given."
@@ -42,7 +45,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         return Work, persis_info, 1
 
     # If any persistent worker's calculated values have returned, give them back.
-    for i in support.avail_worker_ids(W, persistent=EVAL_GEN_TAG):
+    for i in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
         if (persis_info.get('sample_done') or
            sum(H['returned']) >= gen_specs['user']['initial_sample_size'] + persis_info['samples_in_H0']):
             # Don't return if the initial sample is not complete
@@ -55,9 +58,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 support.gen_work(Work, i, persis_info['fields_to_give_back'],
                          inds_to_give, persis_info.get(i), persistent=True)
 
-                H['given_back'][inds_to_give] = True
-
-    for i in support.avail_worker_ids(W, persistent=False):
+    for i in support.avail_worker_ids(persistent=False):
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1

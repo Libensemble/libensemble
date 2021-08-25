@@ -67,7 +67,7 @@ gen_specs = {'gen_f': gen_f,
              }  # end gen specs
 
 # libE Allocation function
-alloc_specs = {'out': [('given_back', bool)], 'alloc_f': alloc_f}
+alloc_specs = {'out': [], 'alloc_f': alloc_f}
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls

@@ -43,8 +43,6 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                      list(set(gen_specs['in'] + sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')])),
                      inds_to_send, persis_info.get(i), persistent=True)
 
-            H['given_back'][inds_to_send] = True
-
     task_avail = ~H['given'] & ~H['cancel_requested']
     for i in avail_worker_ids(W, persistent=False):
         if np.any(task_avail):

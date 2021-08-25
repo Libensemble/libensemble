@@ -74,7 +74,7 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
              }
 
 if PERSIS_GEN:
-    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+    alloc_specs = {'alloc_f': alloc_f, 'out': []}
 else:
     alloc_specs = {'alloc_f': alloc_f,
                    'out': [('allocated', bool)],
