@@ -2,8 +2,7 @@ import numpy as np
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-# SH TODO: Either replace give_sim_work_first or add a different alloc func (or file?)
-#          Check/update docstring
+# SH TODO: Check/update docstring
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     Decide what should be given to workers. This allocation function gives any
@@ -28,7 +27,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
 
-
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
@@ -39,8 +37,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     gen_count = support.count_gens()
     Work = {}
 
-    points_to_evaluate = support.get_points_to_evaluate()  # SH TODO: Again an H boolean filter
-
+    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids():
 
         if np.any(points_to_evaluate):

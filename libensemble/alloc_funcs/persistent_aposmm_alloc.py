@@ -21,8 +21,9 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
 
-    # SH TODO: See below -- gen_specs['user']['initial_sample_size']
-    #init_sample_size = user.get('init_sample_size', 0)   # LINE FROM start_only_persistent
+    # SH TODO: Consistency between alloc funcs and gen_specs v alloc_specs and why + persis_info['samples_in_H0']
+    init_sample_size = gen_specs['user']['initial_sample_size']
+    #init_sample_size = user.get('init_sample_size', 0)   # LINE FROM start_only_persistent (ie. in alloc_specs)
 
     # SH TODO: Does not do priority (uses next_to_give) - do we want it to do priority??..
     #batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: Should this be alloc_specs not gen_specs?
@@ -56,20 +57,18 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     # If any persistent worker's calculated values have returned, give them back.
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
         if (persis_info.get('sample_done') or
-           sum(H['returned']) >= gen_specs['user']['initial_sample_size'] + persis_info['samples_in_H0']):
+           sum(H['returned']) >= init_sample_size + persis_info['samples_in_H0']):
             # Don't return if the initial sample is not complete
             persis_info['sample_done'] = True
 
-            #returned_but_not_given = np.logical_and(H['returned'], ~H['given_back'])
-            points_evaluated = support.get_evaluated_points(gen=wid)
-
-            if np.any(points_evaluated):
-                point_ids = np.where(points_evaluated)[0]
+            returned_but_not_given = np.logical_and(H['returned'], ~H['given_back'])
+            if np.any(returned_but_not_given):
+                point_ids = np.where(returned_but_not_given)[0]
                 #rset_team = [] if manage_resources else None
                 support.gen_work(Work, wid, persis_info['fields_to_give_back'],
                                  point_ids, persis_info.get(wid), persistent=True)
                 H['given_back'][point_ids] = True   # SH TODO: Move to manager (libE field)
-                points_evaluated[point_ids] = False  # SH TODO: May not need if each iteration is mutually exclusive points!
+                returned_but_not_given[point_ids] = False  # SH TODO: May not need if each iteration is mutually exclusive points!
 
     # SH TODO: Now the give_sim_work_first bit - but with 'next_to_give'
     # SH TODO: 1. Give the same structure as start_only_persistent zrw=False loop and zrw=true loop.

@@ -3,13 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-# SH TODO: Either replace only_persistent_gens or add a different alloc func (or file?)
-#          Check/update docstring
-
-# SH TODO: New support funcs terminology.
-#          H boolean filters?  e.g. [True, False, False] e.g. prefix H_filter or Hmask_
-#          e.g. mask_pts_to_eval =  support.getmask_points_to_evaluate()
-
+# SH TODO: Check/update docstring
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
@@ -66,21 +60,18 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     # Give evaluated results back to a running persistent gen
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
-        # SH TODO: points_evaluated terminology? Also its an H boolean filter (maybe filter_points_evaluated?)
-        points_evaluated = support.get_evaluated_points(gen=wid)
-        if np.any(points_evaluated):
-            if async_return or support.all_returned(gen=wid):
-                point_ids = np.where(points_evaluated)[0]
+        gen_inds = (H['gen_worker'] == wid)
+        returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
+        if np.any(returned_but_not_given):
+            if async_return or support.all_returned(gen_inds):
+                point_ids = np.where(returned_but_not_given)[0]
                 support.gen_work(Work, wid, gen_return_fields, point_ids, persis_info.get(wid),
                                  persistent=True, active_recv=active_recv_gen)
-                # SH TODO: This should use filter like points_to_evaluate below... 'given_back' to be libE field set by manager.
-                #          Could be set in libE_info here - and manager reads that? Or manager could determine existing point.
-                #          But as read in get_evaluated_points, must be written somewhere - cant remove this till manager does it.
-                H['given_back'][point_ids] = True  # SH TODO: Move to manager (libE field) when give to gen points with 'returned' True
-                points_evaluated[point_ids] = False  # SH TODO: May not need if each iteration is mutually exclusive points!
+                H['given_back'][point_ids] = True  # SH TODO: Move to manager (libE field)
+                returned_but_not_given[point_ids] = False
 
     # SH TODO: Now the give_sim_work_first bit
-    points_to_evaluate = support.get_points_to_evaluate()  # SH TODO: Again an H boolean filter
+    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
     for wid in avail_workers:
 

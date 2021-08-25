@@ -6,7 +6,7 @@ from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeR
 # General aim is to not allow user options (via {sim/gen/alloc}_specs) to be hidden in here.
 # One exception is scheduler_opts... Now I'm extracting outside and passing in.
 # persis_info['gen_resources'] is here. Could move outside, but then have to pass requested rsets through to gen_work.....
-
+# H and W are passed in for convenience on init. They should be used read-only.
 
 class AllocException(Exception):
     "Raised for any exception in the alloc support"
@@ -40,6 +40,7 @@ class AllocSupport:
         if self.resources is not None:
             rset_team = self.sched.assign_resources(rsets_req)
         return rset_team
+
 
 
     # SH TODO: Decision on these functions - Keep as is / make static / init with W (use self.W)
@@ -189,6 +190,7 @@ class AllocSupport:
                 #print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
 
         # Must come after resources - as that may exit with InsufficientFreeResources
+        # SH TODO: Review counter - what if gen work package is cancelled!!!
         AllocSupport.gen_counter += 1  # Count total gens
         libE_info['gen_count'] = AllocSupport.gen_counter
 
@@ -199,38 +201,21 @@ class AllocSupport:
                    'libE_info': libE_info}
 
 
-    # SH TODO: Optimization - cache gen_inds for gen IDs? and cache the output - and repeated calls round loop in the alloc.
-    def get_evaluated_points(self, gen=None):
-        """Return points that have been evaluated (returned from sim) but not yet been given back to gen.
-        """
-        # SH TODO: Will same format as all_returned work?
-        #          For first pass keep same as was.
-        pt_filter = True
-        if gen is not None:
-            gen_inds = (self.H['gen_worker'] == gen)
-            pt_filter = gen_inds
-        return np.logical_and.reduce((self.H['returned'], ~self.H['given_back'], pt_filter))
+    #def get_points_to_evaluate(self):
+        #"""Return points yet to be evaluated"""
+        #return ~self.H['given'] & ~self.H['cancel_requested']
 
 
-    def all_returned(self, gen=None):
-        """Check if all expected points have returned from sim
-
-        :param H: A :doc:`history array<../data_structures/history_array>`
-        :param pt_filter: Optional boolean array filtering expected returned points: Default: All True
-
-        :returns: Boolean. True if all expected points have been returned
-        """
-        pt_filter = True
-        if gen is not None:
-            gen_inds = (self.H['gen_worker'] == gen)
-            pt_filter = gen_inds
-
-        # Exclude cancelled points that were not already given out
-        excluded_points = self.H['cancel_requested'] & ~self.H['given']
-        return np.all(self.H['returned'][pt_filter & ~excluded_points])
+    #def get_evaluated_points(self, gen=None):
+        #"""Return points that have returned from sim but not yet been given back to gen."""
+        #pt_filter = True
+        #if gen is not None:
+            #gen_inds = (self.H['gen_worker'] == gen)
+            #pt_filter = gen_inds
+        #return np.logical_and.reduce((self.H['returned'], ~self.H['given_back'], pt_filter))
 
 
-    #def all_returned(self, pt_filter=True):
+    #def all_returned(self, gen=None):
         #"""Check if all expected points have returned from sim
 
         #:param H: A :doc:`history array<../data_structures/history_array>`
@@ -238,9 +223,25 @@ class AllocSupport:
 
         #:returns: Boolean. True if all expected points have been returned
         #"""
+        #pt_filter = True
+        #if gen is not None:
+            #gen_inds = (self.H['gen_worker'] == gen)
+            #pt_filter = gen_inds
+
         ## Exclude cancelled points that were not already given out
         #excluded_points = self.H['cancel_requested'] & ~self.H['given']
         #return np.all(self.H['returned'][pt_filter & ~excluded_points])
+
+
+    def all_returned(self, pt_filter=True):
+        """Check if all expected points have returned from sim
+
+        :param pt_filter: Optional boolean array filtering expected returned points: Default: All True
+        :returns: Boolean. True if all expected points have been returned
+        """
+        # Exclude cancelled points that were not already given out
+        excluded_points = self.H['cancel_requested'] & ~self.H['given']
+        return np.all(self.H['returned'][pt_filter & ~excluded_points])
 
 
     def points_by_priority(self, points_avail, batch=False):
@@ -255,8 +256,4 @@ class AllocSupport:
             q_inds = 0
         return np.nonzero(points_avail)[0][q_inds]
 
-
-    def get_points_to_evaluate(self):
-        """Return points yet to be evaluated"""
-        return ~self.H['given'] & ~self.H['cancel_requested']
 
