@@ -369,10 +369,10 @@ def gm_opt(b, m):
     B = np.reshape(b, newshape=(m, n))
 
     opt = nlopt.opt(nlopt.LN_COBYLA, n)
-    opt.set_min_objective(lambda beta, grad: obj_fn(beta, B, m)) 
+    opt.set_min_objective(lambda beta, grad: obj_fn(beta, B, m))
     opt.set_xtol_rel(1e-8)
 
-    x = opt.optimize(np.zeros(n))
+    opt.optimize(np.zeros(n))
     minf = opt.last_optimum_value()
 
     return minf
@@ -410,10 +410,10 @@ def regls_opt(X, y, c, reg=None):
     d, m = X.shape
 
     opt = nlopt.opt(nlopt.LN_COBYLA, d)
-    opt.set_min_objective(lambda beta, grad: obj_fn(X.T, y, beta, c, p)) 
+    opt.set_min_objective(lambda beta, grad: obj_fn(X.T, y, beta, c, p))
     opt.set_xtol_rel(1e-8)
 
-    x = opt.optimize(np.zeros(d))
+    opt.optimize(np.zeros(d))
     minf = opt.last_optimum_value()
 
     return minf
@@ -456,10 +456,10 @@ def log_opt(X, y, c, reg=None):
     d, m = X.shape
 
     opt = nlopt.opt(nlopt.LN_COBYLA, d)
-    opt.set_min_objective(lambda beta, grad: obj_fn(X.T, y, beta, c, p)) 
+    opt.set_min_objective(lambda beta, grad: obj_fn(X.T, y, beta, c, p))
     opt.set_xtol_rel(1e-8)
 
-    x = opt.optimize(np.zeros(d))
+    opt.optimize(np.zeros(d))
     minf = opt.last_optimum_value()
 
     return minf
@@ -493,14 +493,14 @@ def svm_opt(X, b, c, reg='l1'):
             reg = c * np.linalg.norm(theta, 1)
         if p == 2:
             reg = c * np.linalg.norm(theta, 2)**2
-        return np.sum(np.maximum(0,1-np.multiply(b, X @ theta))) + reg
+        return np.sum(np.maximum(0, 1-np.multiply(b, X @ theta))) + reg
 
     d, m = X.shape
     opt = nlopt.opt(nlopt.LN_COBYLA, d)
-    opt.set_min_objective(lambda theta, grad: obj_fn(X.T, b, theta, c, p)) 
+    opt.set_min_objective(lambda theta, grad: obj_fn(X.T, b, theta, c, p))
     opt.set_xtol_rel(1e-8)
 
-    x = opt.optimize(np.zeros(d))
+    opt.optimize(np.zeros(d))
     minf = opt.last_optimum_value()
 
     return minf
