@@ -83,7 +83,6 @@ jobs:
         - name: Install DFO-LS, mpmath, deap, other test dependencies
           run: |
             python -m pip install --upgrade pip
-            pip install cvxpy
             pip install DFO-LS
             pip install mpmath
             pip install deap
