@@ -22,14 +22,14 @@ for regression testing. To test PYCUTEst, make sure to install the necessary
 files. Refer to tools/pycute_interface on more details. To ignore this library,
 simply comment out the import of "Blackbox" below
 """
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_NPROCS: 6
 
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
 
-# Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 3 4
 import sys
 from libensemble.libE import libE
 from libensemble.gen_funcs.persistent_n_agent import n_agent as gen_f
