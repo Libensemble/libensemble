@@ -94,12 +94,12 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         for wid in avail_workers:
             if gen_count == 0:
                 # Finally, call a persistent generator as there is nothing else to do.
-                gen_count += 1
                 try:
                     support.gen_work(Work, wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
                                      persistent=True, active_recv=active_recv_gen)
                 except InsufficientFreeResources:
                     break
                 persis_info['gen_started'] = True
+                gen_count += 1
 
     return Work, persis_info, 0
