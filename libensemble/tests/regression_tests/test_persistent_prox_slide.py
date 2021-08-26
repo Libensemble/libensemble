@@ -71,7 +71,6 @@ for prob_id in range(3):
 
         B = np.array([np.random.normal(loc=10, scale=1.0, size=n) for i in range(m)])
         persis_info['sim_params'] = {'B': B}
-        fstar = gm_opt(np.reshape(B, newshape=(-1,)), m)
 
         def df(x, i):
             b_i = B[i]
@@ -100,7 +99,6 @@ for prob_id in range(3):
         M = c*((m)**0.5)
 
         persis_info['sim_params'] = {'X': X, 'b': b, 'c': c, 'reg': 'l1'}
-        fstar = svm_opt(X, b, c, reg='l1')
 
     sim_specs = {'sim_f': sim_f,
                  'in': ['x', 'obj_component', 'get_grad'],
@@ -147,6 +145,11 @@ for prob_id in range(3):
         assert flag == 0
 
     if is_manager and prob_id < 2:
+        if prob_id == 0:
+            fstar = gm_opt(np.reshape(B, newshape=(-1,)), m)
+        elif prob_id == 1:
+            fstar = svm_opt(X, b, c, reg='l1')
+
         # check we have a Laplacian matrix
         assert la.norm(A.dot(np.zeros(A.shape[1]))) < 1e-15, 'Not a Laplacian matrix'
 

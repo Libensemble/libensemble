@@ -5,10 +5,10 @@ gradients, and conducting the consensus step (i.e., take linear combination of
 your neighbors' $x$ values.
 """
 
+import nlopt
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
-import cvxpy as cp
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
 
@@ -363,15 +363,19 @@ def gm_opt(b, m):
     ones_m = np.ones((m, 1))
 
     def obj_fn(x, B, m):
-        X = ones_m @ x
-        return (1/m) * cp.sum(cp.norm(X-B, 2, axis=1))
+        X = np.outer(ones_m, x.T)
+        return (1/m) * np.sum(np.linalg.norm(X-B, 2, axis=1))
 
-    beta = cp.Variable((1, n))
     B = np.reshape(b, newshape=(m, n))
-    problem = cp.Problem(cp.Minimize(obj_fn(beta, B, m)))
-    problem.solve()
 
-    return problem.value
+    opt = nlopt.opt(nlopt.LN_COBYLA, n)
+    opt.set_min_objective(lambda beta, grad: obj_fn(beta, B, m)) 
+    opt.set_xtol_rel(1e-8)
+
+    x = opt.optimize(np.zeros(n))
+    minf = opt.last_optimum_value()
+
+    return minf
 
 
 def regls_opt(X, y, c, reg=None):
@@ -399,16 +403,20 @@ def regls_opt(X, y, c, reg=None):
     def obj_fn(X, y, beta, c, p):
         m = X.shape[0]
         if p == 1:
-            return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=1)
-        return (1/m) * cp.pnorm(X @ beta - y, p=2)**2 + c * cp.pnorm(beta, p=2)**2
+            return (1/m) * np.linalg.norm(X @ beta - y, ord=2)**2 + c * np.linalg.norm(beta, ord=1)
+        return (1/m) * np.linalg.norm(X @ beta - y, ord=2)**2 + c * np.linalg.norm(beta, ord=2)**2
 
     # already X.T
     d, m = X.shape
-    beta = cp.Variable(d)
-    problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
-    problem.solve()
 
-    return problem.value
+    opt = nlopt.opt(nlopt.LN_COBYLA, d)
+    opt.set_min_objective(lambda beta, grad: obj_fn(X.T, y, beta, c, p)) 
+    opt.set_xtol_rel(1e-8)
+
+    x = opt.optimize(np.zeros(d))
+    minf = opt.last_optimum_value()
+
+    return minf
 
 
 def log_opt(X, y, c, reg=None):
@@ -439,18 +447,22 @@ def log_opt(X, y, c, reg=None):
         if p == 0:
             reg = 0
         if p == 1:
-            reg = c * cp.norm(beta, 1)
+            reg = c * np.linalg.norm(beta, 1)
         elif p == 2:
-            reg = c * cp.norm(beta, 2)**2
+            reg = c * np.linalg.norm(beta, 2)**2
         # Note that, cp.logistic(x) == log(1+e^x)
-        return (1/m) * cp.sum(cp.logistic(cp.multiply(-y, X @ beta))) + reg
+        return (1/m) * np.sum(np.log(1+np.exp(np.multiply(-y, X @ beta)))) + reg
 
     d, m = X.shape
-    beta = cp.Variable(d)
-    problem = cp.Problem(cp.Minimize(obj_fn(X.T, y, beta, c, p)))
-    problem.solve()
 
-    return problem.value
+    opt = nlopt.opt(nlopt.LN_COBYLA, d)
+    opt.set_min_objective(lambda beta, grad: obj_fn(X.T, y, beta, c, p)) 
+    opt.set_xtol_rel(1e-8)
+
+    x = opt.optimize(np.zeros(d))
+    minf = opt.last_optimum_value()
+
+    return minf
 
 
 def svm_opt(X, b, c, reg='l1'):
@@ -478,14 +490,17 @@ def svm_opt(X, b, c, reg='l1'):
         if p == 0:
             reg = 0
         if p == 1:
-            reg = c * cp.norm(theta, 1)
+            reg = c * np.linalg.norm(theta, 1)
         if p == 2:
-            reg = c * cp.norm(theta, 2)**2
-        return cp.sum(cp.pos(1-cp.multiply(b, X @ theta))) + reg
+            reg = c * np.linalg.norm(theta, 2)**2
+        return np.sum(np.maximum(0,1-np.multiply(b, X @ theta))) + reg
 
     d, m = X.shape
-    theta = cp.Variable(d)
-    problem = cp.Problem(cp.Minimize(obj_fn(X.T, b, theta, c, p)))
-    problem.solve()
+    opt = nlopt.opt(nlopt.LN_COBYLA, d)
+    opt.set_min_objective(lambda theta, grad: obj_fn(X.T, b, theta, c, p)) 
+    opt.set_xtol_rel(1e-8)
 
-    return problem.value
+    x = opt.optimize(np.zeros(d))
+    minf = opt.last_optimum_value()
+
+    return minf

@@ -17,7 +17,7 @@ to solve the following problems. To test, run using, for any p >= 6,
 
 The number gens will be 4.
 
-Note that this library makes use the CVXPY library to obtain the optimal value
+Note that this library makes use the NLOPT library to obtain the optimal value
 for regression testing. To test PYCUTEst, make sure to install the necessary
 files. Refer to tools/pycute_interface on more details. To ignore this library,
 simply comment out the import of "Blackbox" below
