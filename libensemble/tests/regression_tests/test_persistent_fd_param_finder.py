@@ -11,6 +11,7 @@
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np
