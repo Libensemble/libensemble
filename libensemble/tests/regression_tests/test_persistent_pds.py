@@ -13,7 +13,6 @@ This call script uses distributed primal-dual sliding (https://arxiv.org/pdf/210
 to solve the following problems. To test, run using, for any p >= 6,
    mpiexec -np p python3 test_persistent_pds.py
    python3 test_persistent_pds.py --nworkers p --comms local
-   python3 test_persistent_pds.py --nworkers p --comms tcp
 
 The number gens will be 4.
 
@@ -24,7 +23,7 @@ simply comment out the import of "Blackbox" below
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 6
 
 import sys

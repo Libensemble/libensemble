@@ -13,7 +13,6 @@ This call script uses distributed gradient-tracking (https://doi.org/10.1109/TCN
 to solve the following problems. To test, run using, for any p >= 6,
    mpiexec -np p python3 test_persistent_n_agent.py
    python3 test_persistent_n_agent.py --nworkers p --comms local
-   python3 test_persistent_n_agent.py --nworkers p --comms tcp
 
 The number gens will be 4.
 
@@ -23,7 +22,7 @@ files. Refer to tools/pycute_interface on more details. To ignore this library,
 simply comment out the import of "Blackbox" below
 """
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 6
 
 import numpy as np
