@@ -47,7 +47,6 @@ eps = 1e-1
 # 0: geometric median, 1: SVM prob_id = 1, 2: SVM w/ STOP_TAG
 for prob_id in range(3):
     persis_info = {}
-    persis_info['print_progress'] = 0
     persis_info['A'] = A
 
     persis_info = add_unique_random_streams(persis_info, nworkers + 1)
@@ -61,6 +60,7 @@ for prob_id in range(3):
     libE_specs['safe_mode'] = False
 
     if prob_id == 0:
+        persis_info['print_progress'] = 1
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
@@ -80,6 +80,7 @@ for prob_id in range(3):
         persis_info['gen_params'] = {'df_i_eval': df}
 
     if prob_id >= 1:
+        persis_info['print_progress'] = 0
         sim_f = svm_eval
         m, n = 30, 15
         prob_name = 'SVM with l1 regularization'
