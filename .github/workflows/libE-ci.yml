@@ -213,7 +213,7 @@ jobs:
         - name: Run test
           run: |
            source balsamactivate test-balsam
-           ./libensemble/tests/run-tests.sh -r -y 'test_balsam*' -z -l
+           ./libensemble/tests/run-tests.sh -re -y 'test_balsam*' -z -l
 
         - name: Merge coverage, run Coveralls
           env:
