@@ -18,7 +18,10 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    support = AllocSupport(W, H, persis_info)
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+    support = AllocSupport(W, H, persis_info, sched_opts)
+
     gen_count = support.count_gens()
     Work = {}
     gen_in = gen_specs.get('in', [])
@@ -38,7 +41,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
             persis_info['next_to_give'] += 1
 
-        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count < user.get('num_active_gens', gen_count+1):
 
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
