@@ -1,6 +1,5 @@
 import numpy as np
-
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -25,8 +24,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
 
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+
+    support = AllocSupport(W, H, persis_info, sched_opts)
     Work = {}
-    gen_count = count_gens(W)
+    gen_count = support.count_gens()
 
     if gen_specs['user'].get('single_component_at_a_time'):
         assert alloc_specs['user']['batch_mode'], ("Must be in batch mode when using "
@@ -39,7 +42,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         for pt_id in persis_info['pt_ids']:
             persis_info['inds_of_pt_ids'][pt_id] = H['pt_id'] == pt_id
 
-    idle_workers = avail_worker_ids(W)
+    idle_workers = support.avail_worker_ids()
 
     while len(idle_workers):
 
@@ -103,8 +106,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
             if len(persis_info['need_to_give']) != 0:
                 next_row = persis_info['need_to_give'].pop()
-                i, idle_workers = idle_workers[0], idle_workers[1:]
-                sim_work(Work, i, sim_specs['in'], [next_row], [])
+                i = idle_workers[0]
+                try:
+                    support.sim_work(Work, i, sim_specs['in'], [next_row], [])
+                except InsufficientFreeResources:
+                    persis_info['need_to_give'].add(next_row)
+                    break
+                idle_workers = idle_workers[1:]
 
         elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
             lw = persis_info['last_worker']
@@ -125,15 +133,17 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     if not np.any(runs_needing_to_advance):
                         break
 
-            persis_info['last_size'] = len(H)
-
             # Give gen work
-            persis_info['total_gen_calls'] += 1
+            i = idle_workers[0]
+            try:
+                support.gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[lw])
+            except InsufficientFreeResources:
+                break
+            idle_workers = idle_workers[1:]
             gen_count += 1
-            i, idle_workers = idle_workers[0], idle_workers[1:]
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[lw])
-
+            persis_info['total_gen_calls'] += 1
             persis_info['last_worker'] = i
+            persis_info['last_size'] = len(H)
 
         elif gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
             idle_workers = []
