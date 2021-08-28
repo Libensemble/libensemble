@@ -233,15 +233,27 @@ class AllocSupport:
         #return np.all(self.H['returned'][pt_filter & ~excluded_points])
 
 
-    def all_returned(self, pt_filter=True):
+    def all_returned(self, pt_filter=None, low_bound=None):
         """Check if all expected points have returned from sim
 
-        :param pt_filter: Optional boolean array filtering expected returned points: Default: All True
+        :param pt_filter: Optional boolean array filtering expected returned points in H: Default: None
+        :param low_bound: Optional lower_bound for testing all returned.
         :returns: Boolean. True if all expected points have been returned
         """
+        # Faster not to slice when whole array
+        if low_bound is not None:
+            H = self.H[low_bound:]
+        else:
+            H = self.H
+
+        if pt_filter is None:
+            pfilter = True  # Scalar expansion
+        else:
+            pfilter = pt_filter[low_bound:]
+
         # Exclude cancelled points that were not already given out
-        excluded_points = self.H['cancel_requested'] & ~self.H['given']
-        return np.all(self.H['returned'][pt_filter & ~excluded_points])
+        excluded_points = H['cancel_requested'] & ~H['given']
+        return np.all(H['returned'][pfilter & ~excluded_points])
 
 
     def points_by_priority(self, points_avail, batch=False):
