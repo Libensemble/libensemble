@@ -1,6 +1,6 @@
 import numpy as np
-
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens
+from libensemble.message_numbers import EVAL_GEN_TAG
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -15,16 +15,23 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_persistent_fd_param_finder.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
 
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+
+    support = AllocSupport(W, H, persis_info, sched_opts)
     Work = {}
-    gen_count = count_persis_gens(W)
+    gen_count = support.count_persis_gens()
+
+    gen_return_fields = list(set(gen_specs['in'] + sim_specs['in'] +
+                                 [n[0] for n in sim_specs['out']] + [('sim_id')]))
 
     if len(H) and gen_count == 0:
         # The one persistent worker is done. Exiting
         return Work, persis_info, 1
 
-    # If i is in persistent mode, and all of its calculated values have
-    # returned, give them back to i. Otherwise, give nothing to i
-    for i in avail_worker_ids(W, persistent=True):
+    # If wid is in persistent mode, and all of its calculated values have
+    # returned, give them back to wid. Otherwise, give nothing to wid
+    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
 
         # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
         # values complete.
@@ -39,24 +46,28 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
         if len(inds_to_send):
-            gen_work(Work, i,
-                     list(set(gen_specs['in'] + sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')])),
-                     inds_to_send, persis_info.get(i), persistent=True)
-
+            support.gen_work(Work, wid, gen_return_fields, inds_to_send, persis_info.get(wid), persistent=True)
             H['given_back'][inds_to_send] = True
 
-    task_avail = ~H['given'] & ~H['cancel_requested']
-    for i in avail_worker_ids(W, persistent=False):
-        if np.any(task_avail):
+    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    for wid in support.avail_worker_ids(persistent=False):
+        if np.any(points_to_evaluate):
             # perform sim evaluations (if they exist in History).
-            sim_ids_to_send = np.nonzero(task_avail)[0][0]  # oldest point
-            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info.get(i))
-            task_avail[sim_ids_to_send] = False
+            sim_ids_to_send = np.nonzero(points_to_evaluate)[0][0]  # oldest point
+            try:
+                support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+            except InsufficientFreeResources:
+                break
+            points_to_evaluate[sim_ids_to_send] = False
 
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
+            # SH TODO - MAYBE UNNEC - COULD ASSUME ZERO RESOURCES WITH rset_team=[]
+            try:
+                support.gen_work(Work, wid, gen_specs['in'], [], persis_info.get(wid),
+                                 persistent=True)
+            except InsufficientFreeResources:
+                break
             gen_count += 1
-            gen_work(Work, i, gen_specs['in'], [], persis_info.get(i),
-                     persistent=True)
 
     return Work, persis_info, 0
