@@ -128,7 +128,7 @@ class MPIRunner:
                                   resources, workerID)
         else:
             num_procs, num_nodes, ranks_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes,
+                mpi_resources.task_partition(num_procs, num_nodes,
                                             ranks_per_node, machinefile)
 
         # Remove portable variable if in extra_args
@@ -265,7 +265,7 @@ class JSRUN_MPIRunner(MPIRunner):
             # TODO: Create ERF file if mapping worker to resources req.
         else:
             num_procs, num_nodes, ranks_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes,
+                mpi_resources.task_partition(num_procs, num_nodes,
                                             ranks_per_node, machinefile)
 
         # Remove portable variable if in extra_args
