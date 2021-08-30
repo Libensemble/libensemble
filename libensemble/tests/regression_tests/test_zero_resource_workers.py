@@ -32,14 +32,14 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
-libE_specs['zero_resource_workers'] = [1]
 
+libE_specs['zero_resource_workers'] = [1]
+libE_specs['central_mode'] = True
+libE_specs['allow_oversubscribe'] = False
 
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_zrw_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 logger.set_filename(log_file)
-
-nodes_per_worker = 2
 
 nodes_per_worker = 2
 
@@ -53,6 +53,11 @@ nodes_per_worker = 2
 node_file = 'nodelist_zero_resource_workers_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = nsim_workers*nodes_per_worker
 
+# Mock up system
+custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
+                    'node_file': node_file}      # Name of file containing a node-list
+libE_specs['custom_info'] = custom_resources
+
 if is_manager:
     create_node_file(num_nodes=nnodes, name=node_file)
 
@@ -61,17 +66,12 @@ if comms == 'mpi':
 
 
 # Mock up system
-customizer = {'mpi_runner': 'mpich',    # Select runner: mpich, openmpi, aprun, srun, jsrun
-              'runner_name': 'mpirun',  # Runner name: Replaces run command if not None
-              'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-              'node_file': node_file}      # Name of file containing a node-list
+mpi_customizer = {'mpi_runner': 'mpich',    # Select runner: mpich, openmpi, aprun, srun, jsrun
+                  'runner_name': 'mpirun'}  # Runner name: Replaces run command if not None
 
 # Create executor and register sim to it.
-exctr = MPIExecutor(zero_resource_workers=in_place, central_mode=True,
-                    auto_resources=True, allow_oversubscribe=False,
-                    custom_info=customizer)
+exctr = MPIExecutor(custom_info=mpi_customizer)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
-
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -85,7 +85,7 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,))],
-             'user': {'gen_batch_size': 20,
+             'user': {'initial_batch_size': 20,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }

@@ -30,11 +30,12 @@ rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
 
+libE_specs['central_mode'] = True
+libE_specs['allow_oversubscribe'] = False
+
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_mpi_runners_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 logger.set_filename(log_file)
-
-nodes_per_worker = 2
 
 nodes_per_worker = 2
 
@@ -47,6 +48,11 @@ if is_manager:
 
 if comms == 'mpi':
     libE_specs['mpi_comm'].Barrier()
+
+# Mock up system
+custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
+                    'node_file': node_file}      # Name of file containing a node-list
+libE_specs['custom_info'] = custom_resources
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': nworkers*rounds}
@@ -189,13 +195,10 @@ exp_custom = ['myrunner --xarg 1 /path/to/fakeapp.x --testid base1',
 # Loop here for mocking different systems.
 def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
-    # Mock up system
-    customizer = {'mpi_runner': mpi_runner,    # Select runner: mpich, openmpi, aprun, srun, jsrun
-                  'runner_name': runner_name,  # Runner name: Replaces run command if not None
-                  'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-                  'node_file': node_file}      # Name of file containing a node-list
+    mpi_customizer = {'mpi_runner': mpi_runner,    # Select runner: mpich, openmpi, aprun, srun, jsrun
+                     'runner_name': runner_name}  # Runner name: Replaces run command if not None
 
-    exctr = MPIExecutor(central_mode=True, auto_resources=True, allow_oversubscribe=False, custom_info=customizer)
+    exctr = MPIExecutor(custom_info=mpi_customizer)
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
     test_list = test_list_base + test_list_exargs
