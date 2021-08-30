@@ -249,7 +249,10 @@ class AllocSupport:
         if pt_filter is None:
             pfilter = True  # Scalar expansion
         else:
-            pfilter = pt_filter[low_bound:]
+            if low_bound is not None:
+                pfilter = pt_filter[low_bound:]
+            else:
+                pfilter = pt_filter
 
         # Exclude cancelled points that were not already given out
         excluded_points = H['cancel_requested'] & ~H['given']
