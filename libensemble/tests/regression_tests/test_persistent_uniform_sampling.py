@@ -37,7 +37,7 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,))],
-             'user': {'gen_batch_size': 20,
+             'user': {'initial_batch_size': 20,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
