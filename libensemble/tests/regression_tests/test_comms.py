@@ -22,9 +22,10 @@ from libensemble.sim_funcs.comms_testing import float_x1000 as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor  # Only used to get workerID in float_x1000
-exctr = MPIExecutor(auto_resources=False)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
+libE_specs['auto_resources'] = False
+exctr = MPIExecutor()
 
 array_size = int(1e6)  # Size of large array in sim_specs
 rounds = 2  # Number of work units for each worker
