@@ -93,6 +93,9 @@ def PS(x, gradg, beta, T, f_i_idxs, gen_specs, libE_info, pre_x_k, df_i_eval):
         else:
             tag, gradf = get_grad(u, f_i_idxs, gen_specs, libE_info)
 
+        if tag in [PERSIS_STOP, STOP_TAG]:
+            return tag, None, None
+
         u_next = get_l2_argmin(x, u, gradf, gradg, beta, p_t)
         u = u_next
         u2 = (1-theta_t) * u2 + (theta_t * u)
@@ -117,6 +120,7 @@ def get_l2_argmin(x, u_prev, gradf, gradg, beta, p_t):
     """
 
 
+""" We don't use this
 def get_entropy_argmin(x, u, gradf, gradg, beta, p_t):
     n = len(x)
 
@@ -127,3 +131,4 @@ def get_entropy_argmin(x, u, gradf, gradg, beta, p_t):
     u_next = np.exp(const + dyn)
 
     return u_next
+"""
