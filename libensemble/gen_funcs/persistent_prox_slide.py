@@ -4,7 +4,6 @@
 @About: Based on gradient sliding:
         https://link.springer.com/article/10.1007/s10107-015-0955-5
 """
-import numpy as np
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.consensus_subroutines import (print_final_score, get_grad,
                                                      get_consensus_gradient, get_grad_locally)
