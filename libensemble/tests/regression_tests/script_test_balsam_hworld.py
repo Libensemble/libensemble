@@ -32,6 +32,7 @@ sim_app2 = six_hump_camel.__file__
 exctr = BalsamMPIExecutor(auto_resources=False, central_mode=False, custom_info={'not': 'used'})
 exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
 exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
+exctr.register_calc(full_path=sim_app2, app_name='sim_hump_camel_dry_run')
 
 sim_specs = {'sim_f': executor_hworld,
              'in': ['x'],
@@ -68,15 +69,12 @@ if is_manager:
 
     assert np.array_equal(H['cstat'], calc_status_list), "Error - unexpected calc status. Received: " + str(H['cstat'])
 
-    # Check summary file:
-    print('Checking expected task status against task summary file ...\n')
+    # Check dry_run submissions inside ensemble.log
+    with open('ensemble.log', 'r') as f:
+        lines = f.readlines()
 
-    calc_desc_list_in = ['Completed', 'Worker killed task on Error', 'Completed',
-                         'Worker killed task on Timeout', 'Task Failed',
-                         'Manager killed on finish']
-
-    # Repeat N times for N workers and insert Completed at start for generator
-    calc_desc_list = ['Completed'] + calc_desc_list_in*nworkers
+    assert len([i for i in lines if 'Test (No submit) Runline:' in i]) == (len(calc_status_list_in) - 1) * nworkers, \
+        "Dry run runlines not listed in ensemble.log for each dry_run submission instance."
 
     # Cleanup (maybe cover del_apps() and del_tasks())
     exctr.del_apps()

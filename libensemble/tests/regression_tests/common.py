@@ -90,10 +90,11 @@ def modify_Balsam_pyCoverage():
     #   modules. This hack specifies the coverage module and some options.
     import balsam
 
+    rcfile = os.path.abspath('./libensemble/tests/regression_tests/.bal_coveragerc')
+
     old_line = "            path = ' '.join((exe, script_path, args))\n"
     new_line = "            path = ' '.join((exe, '-m coverage run " + \
-               "--parallel-mode --rcfile=./libensemble/tests/regression_tests/" + \
-               ".bal_coveragerc', script_path, args))\n"
+               "--parallel-mode --rcfile={}', script_path, args))\n".format(rcfile)
 
     commandfile = 'cli_commands.py'
     balsam_path = os.path.dirname(balsam.__file__) + '/scripts'
@@ -126,8 +127,8 @@ def modify_Balsam_settings():
 
 def modify_Balsam_JobEnv():
     # If Balsam detects that the system on which it is running contains the string
-    #   'cc' in its hostname, then it thinks it's on Cooley! Travis hostnames are
-    #   randomly generated and occasionally may contain that offending string. This
+    #   'cc' in its hostname, then it thinks it's on Cooley! If hostnames are
+    #   randomly generated and occasionally may contain that offending string, then this
     #   modifies Balsam's JobEnvironment class to not check for 'cc'.
     import balsam
 

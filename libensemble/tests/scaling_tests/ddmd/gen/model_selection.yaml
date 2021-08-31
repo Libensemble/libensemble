@@ -1,0 +1,8 @@
+experiment_directory: SET_BY_GENF
+stage_idx: SET_BY_GENF
+task_idx: 0
+output_path: SET_BY_GENF
+node_local_path: null
+retrain_freq: 1
+checkpoint_dir: SET_BY_GENF
+checkpoint_suffix: .h5

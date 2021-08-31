@@ -587,8 +587,16 @@ if [ "$root_found" = true ]; then
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 
-        fi;
+        else
 
+          # Still need to move reg cov results to COV_MERGE_DIR
+          cd $ROOT_DIR/$COV_MERGE_DIR
+          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
+
+          coverage combine .cov_reg_out
+          coverage html
+          echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
+        fi;
       fi;
     fi;
 

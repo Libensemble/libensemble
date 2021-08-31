@@ -7,9 +7,6 @@
   .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
     :target: https://pypi.org/project/libensemble
 
-  .. image::  https://travis-ci.org/Libensemble/libensemble.svg?branch=master
-    :target: https://travis-ci.org/Libensemble/libensemble
-
   .. image:: https://github.com/Libensemble/libensemble/workflows/init-libEnsemble-CI/badge.svg?branch=develop
     :target: https://github.com/Libensemble/libensemble/actions
 
@@ -31,4 +28,7 @@ libEnsemble is a library to coordinate the concurrent evaluation of dynamic ense
 * New to libEnsemble? Start :doc:`here<introduction>`.
 * Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.
 * Go in depth by reading the :doc:`Overview<overview_usecases>`.
-* Check the :doc:`FAQ<FAQ>` for common questions and answers, errors, and resolutions.
+* See the :doc:`FAQ<FAQ>` for common questions and answers, errors, and resolutions.
+* Check us out on `GitHub`_.
+
+.. _GitHub: https://github.com/Libensemble/libensemble

@@ -7,9 +7,6 @@
 .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
 
-.. image:: https://travis-ci.org/Libensemble/libensemble.svg?branch=master
-   :target: https://travis-ci.org/Libensemble/libensemble
-
 .. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=master
    :target: https://github.com/Libensemble/libensemble/actions
 
@@ -140,7 +137,6 @@ The provided test suite includes both unit and regression tests and is run
 regularly on:
 
 * `GitHub Actions`_
-* `Travis CI`_
 
 The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
 packages to be installed and can be run from the ``libensemble/tests`` directory
@@ -303,7 +299,6 @@ See a complete list of `example user scripts`_.
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
-.. _Travis CI: https://travis-ci.org/Libensemble/libensemble
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
