@@ -67,7 +67,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 point_ids = np.where(returned_but_not_given)[0]
                 support.gen_work(Work, wid, gen_return_fields, point_ids, persis_info.get(wid),
                                  persistent=True, active_recv=active_recv_gen)
-                H['given_back'][point_ids] = True  # SH TODO: Move to manager (libE field)
                 returned_but_not_given[point_ids] = False
 
     # SH TODO: Now the give_sim_work_first bit

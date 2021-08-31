@@ -67,7 +67,6 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 #rset_team = [] if manage_resources else None
                 support.gen_work(Work, wid, persis_info['fields_to_give_back'],
                                  point_ids, persis_info.get(wid), persistent=True)
-                H['given_back'][point_ids] = True   # SH TODO: Move to manager (libE field)
                 returned_but_not_given[point_ids] = False  # SH TODO: May not need if each iteration is mutually exclusive points!
 
     # SH TODO: Now the give_sim_work_first bit - but with 'next_to_give'

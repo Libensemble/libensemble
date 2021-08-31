@@ -47,7 +47,6 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         if len(inds_to_send):
             support.gen_work(Work, wid, gen_return_fields, inds_to_send, persis_info.get(wid), persistent=True)
-            H['given_back'][inds_to_send] = True
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
