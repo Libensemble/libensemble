@@ -51,7 +51,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 sim_max = 40
 exit_criteria = {'sim_max': 40}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
 libE_specs['final_fields'] = ['x', 'f', 'sim_id']
 # Perform the run

@@ -45,7 +45,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': alloc_f,
-               'out': [('given_back', bool)],
+               'out': [],
                'user': {'async_return': True}
                }
 

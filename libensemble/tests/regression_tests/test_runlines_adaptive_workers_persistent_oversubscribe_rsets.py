@@ -77,7 +77,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': alloc_f,
-               'out': [('given_back', bool)],
+               'out': [],
                }
 
 # comms = libE_specs['auto_resources'] = False #SH TCP testing
