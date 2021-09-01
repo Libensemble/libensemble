@@ -98,5 +98,7 @@ if __name__ == "__main__":
             assert deap_test.flag == 0, script_name + " didn't exit correctly"
             assert sum(deap_test.H['returned']) >= deap_test.exit_criteria['sim_max'], \
                 script_name + " didn't evaluate the sim_max points."
-            assert min(deap_test.H['fitness_values'][:, 0]) <= 4e-3, script_name + " didn't find the minimum for objective 0."
-            assert min(deap_test.H['fitness_values'][:, 1]) <= -1.0, script_name + " didn't find the minimum for objective 1."
+            assert min(deap_test.H['fitness_values'][:, 0]) <= 4e-3, \
+                script_name + " didn't find the minimum for objective 0."
+            assert min(deap_test.H['fitness_values'][:, 1]) <= -1.0, \
+                script_name + " didn't find the minimum for objective 1."
