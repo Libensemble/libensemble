@@ -1,7 +1,7 @@
 import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources
+#from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources
 
 # General aim is to not allow user options (via {sim/gen/alloc}_specs) to be hidden in here.
 # One exception is scheduler_opts... Now I'm extracting outside and passing in.
@@ -18,7 +18,20 @@ class AllocSupport:
     gen_counter = 0
 
     def __init__(self, W, H, persis_info={}, scheduler_opts={}, user_resources=None, user_scheduler=None):
-        """Instantiate a new AllocSupport instance"""
+        """Instantiate a new AllocSupport instance
+
+        H and W are passed in for convenience on init. They are used read-only.
+
+        By default, the libEnsemble initiated resource module is used, and the built-in
+        libEnsemble scheduler.
+
+        :param W: A :doc:`Worker array<../data_structures/worker_array>`
+        :param H: A :doc:`history array<../data_structures/history_array>`
+        :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
+        :param user_resources: Optional, A user supplied resources object.
+        :param user_scheduler: Optional, A user supplied user_scheduler object.
+        """
+
         self.W = W
         self.H = H
         self.persis_info = persis_info
@@ -33,14 +46,18 @@ class AllocSupport:
     def assign_resources(self, rsets_req):
         """Schedule resource sets to a work item if possible.
 
-        Returns a list of resource set ids. A return of None implies
-        insufficient resources.
+        Returns a list of resource set ids.
+
+        Raises the exception InsufficientFreeResources if the
+        required resources are not currently available, or the
+        InsufficientResourcesError if the required resoures
+        do not exist.
         """
+
         rset_team = None
         if self.resources is not None:
             rset_team = self.sched.assign_resources(rsets_req)
         return rset_team
-
 
 
     # SH TODO: Decision on these functions - Keep as is / make static / init with W (use self.W)
