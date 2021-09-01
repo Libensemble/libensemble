@@ -15,14 +15,37 @@ running with multiprocessing and multiple workers specified.**
 If your calling script code was recently switched from MPI to multiprocessing,
 make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers: [num]``.
 
-**"AssertionError: Should not wait for workers when all workers are idle."**
+**"AssertionError: alloc_f did not return any work, although all workers are idle."**
 
-This error occurs when the manager is waiting although no workers are busy, or
-an MPI libEnsemble run was initiated with only one process, resulting in one
-manager but no workers.
+This error occurs when the manager is waiting although no workers are busy.
+Note that a worker can be in a persistent state but is marked as inactive.
 
-This may also occur with two processes if you are using a persistent generator.
-The generator will occupy the one worker, leaving none to run simulation functions.
+Some causes are:
+
+An MPI libEnsemble run was initiated with only one process, resulting in one
+manager but no workers. This may also occur with two processes if you are using
+a persistent generator. The generator will occupy the one worker, leaving none
+to run simulation functions.
+
+An error in the allocation function, whereby a wait has been requested on all
+evaluations to be returned - before starting a new generator, but this condition
+is not returning True even though all scheduled evaluations have returned. This
+can be due to incorrect implementation (e.g it has not considered points that
+are cancelled or paused or in some other state that prevents the allocation
+function from sending them out to workers.
+
+If a persistent worker (usually a generator) has sent a message back to manager
+but is still doing work and may return further points. In this case, consider
+using ``active_recv`` mode. This can be specified in the allocation function,
+and will cause the worker maintain its active status.
+
+If a persistent worker has requested resources that prevents any sims from taking
+place. By default, persistent workers hold onto resources even when not active.
+This may require the worker to return from persistent mode.
+
+When returning points to a persistent generator (often the top code block in
+allocation functions). Eg. ``support.avail_worker_ids(persistent=EVAL_GEN_TAG)``
+Make sure that the ``EVAL_GEN_TAG`` is specified and not just ``persistent=True``.
 
 **I keep getting: "Not enough processors per worker to honor arguments." when
 using the Executor. Can I submit tasks to allocated processors anyway?**
