@@ -211,8 +211,6 @@ class AllocSupport:
         AllocSupport.gen_counter += 1  # Count total gens
         libE_info['gen_count'] = AllocSupport.gen_counter
 
-        print('hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh tyhpe', type(H_fields))
-
         libE_info['H_rows'] = np.atleast_1d(H_rows)
         Work[wid] = {'H_fields': H_fields,
                    'persis_info': persis_info,
