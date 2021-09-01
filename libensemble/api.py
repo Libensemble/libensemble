@@ -22,24 +22,21 @@ class Persis_Info:
     instance of this (with random streams) is created on initiation of Ensemble,
     since ``persis_info`` is populated like so for most libEnsemble test-cases anyway.
     """
-    def __init__(self, nworkers, init_random_streams=True):
+    def __init__(self, nworkers):
         self.nworkers = nworkers
-        if init_random_streams:
-            self.persis_info = self.add_random_streams()
-        else:
-            self.persis_info = {}
+        self.persis_info = {}
 
-    def add_random_streams(self, explicit_num=None, seed=''):
+    def add_random_streams(self, num_streams=None, seed=''):
         """
         ``Persis_Info`` wrapper for ``add_unique_random_streams``. Attempt
         to simplify call, since most are identical anyway.
         """
-        if explicit_num:
-            num_streams = explicit_num
+        if num_streams:
+            nstreams = num_streams
         else:
-            num_streams = self.nworkers + 1
+            nstreams = self.nworkers + 1
 
-        self.persis_info = add_unique_random_streams({}, num_streams, seed='')
+        self.persis_info = add_unique_random_streams({}, nstreams, seed=seed)
         # can access immediately, or ignore return by just using as setter
         return self.persis_info
 
@@ -55,7 +52,7 @@ class Ensemble:
     potentially populating it via a yaml file.
     """
     def __init__(self):
-        """ Initializes an API instance. ``parse_args() called on instantiation """
+        """ Initializes an Ensemble instance. ``parse_args() called on instantiation """
         self.nworkers, self.is_manager, self.libE_specs, _ = parse_args()
         self.persis_info = Persis_Info(self.nworkers)
         self._util_logger = logging.getLogger(__name__)
@@ -95,7 +92,7 @@ class Ensemble:
     def run(self):
         """
         Initializes libEnsemble, passes in all specification dictionaries.
-        Sets API instance's output H, final persis_info state, and flag.
+        Sets Ensemble instance's output H, final persis_info state, and flag.
         Spec checking (and other error handling) occurs within ``libE()``.
         """
 

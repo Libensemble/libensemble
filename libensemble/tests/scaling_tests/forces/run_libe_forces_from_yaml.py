@@ -33,6 +33,8 @@ forces.gen_specs['user'].update({
     'ub': np.array([32767])
 })
 
+forces.persis_info.add_random_streams()
+
 forces.run()
 
 if forces.is_manager:
