@@ -18,7 +18,8 @@ import logging
 import time
 import datetime
 
-from libensemble.resources.mpi_resources import MPIResources
+#from libensemble.resources.mpi_resources import MPIResources
+from libensemble.resources import mpi_resources
 from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -304,7 +305,7 @@ class BalsamMPIExecutor(MPIExecutor):
                     hyperthreads=hyperthreads)
         else:
             num_procs, num_nodes, ranks_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes, ranks_per_node)
+                mpi_resources.task_partition(num_procs, num_nodes, ranks_per_node)
 
         if stdout is not None or stderr is not None:
             logger.warning("Balsam does not currently accept a stdout "

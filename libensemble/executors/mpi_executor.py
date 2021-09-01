@@ -72,7 +72,6 @@ class MPIExecutor(Executor):
         subgroup_launch = custom_info.get('subgroup_launch', None)
 
         if not mpi_runner_type:
-            # Maybe this should be in MPIResources (currently in reosurces - only says MPIResources cos its inherited).
             mpi_runner_type = get_MPI_variant()
         self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
         if subgroup_launch is not None:
