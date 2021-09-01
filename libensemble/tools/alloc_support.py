@@ -166,7 +166,9 @@ class AllocSupport:
                 #print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
                 libE_info['rset_team'] = rset_team
 
+        H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
+
         Work[wid] = {'H_fields': H_fields,
                    'persis_info': persis_info,
                    'tag': EVAL_SIM_TAG,
@@ -211,7 +213,9 @@ class AllocSupport:
         AllocSupport.gen_counter += 1  # Count total gens
         libE_info['gen_count'] = AllocSupport.gen_counter
 
+        H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
+
         Work[wid] = {'H_fields': H_fields,
                    'persis_info': persis_info,
                    'tag': EVAL_GEN_TAG,
@@ -289,3 +293,11 @@ class AllocSupport:
         return np.nonzero(points_avail)[0][q_inds]
 
 
+    @staticmethod
+    def _check_H_fields(H_fields):
+        """Ensure no duplicates in H_fields"""
+        if len(H_fields) != len(set(H_fields)):
+            #logger.debug("Removing duplicate field when packing work request".format(H_fields))
+            H_fields = list(set(H_fields))
+            #H_fields = list(OrderedDict.fromkeys(H_fields))  # Maintain order
+        return H_fields
