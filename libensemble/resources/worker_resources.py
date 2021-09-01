@@ -44,7 +44,7 @@ class ResourceManager(RSetResources):
         # SH May change name from index_list - something like "default_mapping"
         # SH Should default mapping use 1 resource set each or divide up?
         self.index_list = ResourceManager.get_index_list(self.num_workers, resources.zero_resource_workers)
-        print('index list:', self.index_list)  # SH TODO: Remove when done testing
+        #print('index list:', self.index_list)  # SH TODO: Remove when done testing
 
         #SH TODO: Need to update to make uneven distribution of rsets to nodes work as does on develop
         self.rsets = np.zeros(self.num_rsets, dtype=ResourceManager.rset_dtype)
@@ -58,7 +58,7 @@ class ResourceManager(RSetResources):
         self.group_sizes = dict(zip(unique, counts))
         self.ngroups_by_size = Counter(counts)
         self.even_groups = True if len(self.ngroups_by_size) == 1 else False
-        print('\nrsets are {} even groups is {}\n'.format(self.rsets,self.even_groups))
+        #print('\nrsets are {} even groups is {}\n'.format(self.rsets,self.even_groups))
 
     def assign_rsets(self, rset_team, worker_id):
         """Mark the resource sets given by rset_team as assigned to worker_id"""

@@ -163,7 +163,7 @@ class AllocSupport:
                 rset_team = self.assign_resources(num_rsets_req)
 
                 # Assign points to worker and remove from task_avail list.
-                print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
+                #print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
                 libE_info['rset_team'] = rset_team
 
         libE_info['H_rows'] = np.atleast_1d(H_rows)

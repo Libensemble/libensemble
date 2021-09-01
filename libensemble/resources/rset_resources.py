@@ -65,8 +65,6 @@ class RSetResources():
     @staticmethod
     def even_assignment(nnodes, nworkers):
         """Returns True if workers are evenly distributied to nodes, else False"""
-        print('nworkres', nworkers)
-        print('nnodes', nnodes)
         return nnodes % nworkers == 0 or nworkers % nnodes == 0
 
     @staticmethod
