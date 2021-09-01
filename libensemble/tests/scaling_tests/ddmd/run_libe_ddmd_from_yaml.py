@@ -37,22 +37,22 @@ ddmd_apps = {'molecular_dynamics': run_openmm.__file__,
 # Submit each component via a MPI runner. This Executor can be swapped with the Balsam
 #  executor to potentially submit specific components to separate systems.
 exctr = MPIExecutor()
-api = Ensemble()
+ddmd = Ensemble()
 
-api.from_yaml('libE_ddmd.yaml')
+ddmd.from_yaml('libE_ddmd.yaml')
 
-api.sim_specs['user']['reference_pdb_file'] = os.path.abspath(folded_url.split('/')[-1])
-api.gen_specs['user']['n_traj_frames'] = int(api.sim_specs['user']['sim_length_ns']*1000)
+ddmd.sim_specs['user']['reference_pdb_file'] = os.path.abspath(folded_url.split('/')[-1])
+ddmd.gen_specs['user']['n_traj_frames'] = int(ddmd.sim_specs['user']['sim_length_ns']*1000)
 
 for app in ddmd_apps:
     exctr.register_calc(full_path=ddmd_apps[app], app_name=app)
-    api.gen_specs['user'][app + '_config'] = app + '.yaml'
-    api.gen_specs['out'].append((app + '_cstat', int))
+    ddmd.gen_specs['user'][app + '_config'] = app + '.yaml'
+    ddmd.gen_specs['out'].append((app + '_cstat', int))
 
-api.libE_specs['sim_dir_symlink_files'] = [os.path.abspath(unfolded_url.split('/')[-1])]
-api.libE_specs['ensemble_dir_path'] = \
+ddmd.libE_specs['sim_dir_symlink_files'] = [os.path.abspath(unfolded_url.split('/')[-1])]
+ddmd.libE_specs['ensemble_dir_path'] = \
     os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_').split('.')[0])
 
-api.persis_info.add_unique_streams()
+ddmd.persis_info.add_unique_streams()
 
-api.run()
+ddmd.run()

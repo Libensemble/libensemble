@@ -26,29 +26,28 @@ def deap_six_hump(H, persis_info, sim_specs, _):
 
 if __name__ == "__main__":
 
-    api = Ensemble()
-    api.from_yaml('deap_nsga2.yaml')
+    deap_test = Ensemble()
+    deap_test.from_yaml('deap_nsga2.yaml')
 
-    if api.is_manager:
+    if deap_test.is_manager:
         start_time = time()
 
-    assert api.nworkers >= 2, "Cannot run with a persistent gen_f if only one worker."
+    assert deap_test.nworkers >= 2, "Cannot run with a persistent gen_f if only one worker."
 
     ind_size = 2
     w = (-1.0, -1.0)  # Must be a tuple
 
-    api.gen_specs['user'].update({
+    deap_test.gen_specs['user'].update({
         'weights': w,
         'indpb': 0.8/ind_size
     })
 
-    lb = api.gen_specs['user']['lb']
-    ub = api.gen_specs['user']['ub']
+    lb = deap_test.gen_specs['user']['lb']
+    ub = deap_test.gen_specs['user']['ub']
 
     for run in range(2):
 
-        # api.persis_info.persis_info = add_unique_random_streams({}, api.nworkers+1)
-        api.persis_info.add_random_streams()
+        deap_test.persis_info.add_random_streams()
 
         if run == 1:
 
@@ -73,31 +72,31 @@ if __name__ == "__main__":
             for i, x in enumerate(H0['individual']):
                 H_dummy = np.zeros(1, dtype=[('individual', float, ind_size)])
                 H_dummy['individual'] = x
-                objs = deap_six_hump(H_dummy, {}, api.sim_specs, {})
+                objs = deap_six_hump(H_dummy, {}, deap_test.sim_specs, {})
                 H0['fitness_values'][i] = objs[0]
 
             # Testing use_persis_return capabilities
-            api.libE_specs['use_persis_return'] = True
-            api.H0 = H0
+            deap_test.libE_specs['use_persis_return'] = True
+            deap_test.H0 = H0
         else:
-            api.H0 = None
+            deap_test.H0 = None
 
         # Perform the run
-        api.run()
+        deap_test.run()
 
-        if api.is_manager:
+        if deap_test.is_manager:
             if run == 0:
-                assert np.sum(api.H['last_points']) == 0, \
+                assert np.sum(deap_test.H['last_points']) == 0, \
                     ("The last_points shouldn't be marked (even though "
                      "they were marked in the gen) as 'use_persis_return' was false.")
             elif run == 1:
-                assert np.sum(api.H['last_points']) == 100, \
+                assert np.sum(deap_test.H['last_points']) == 100, \
                     ("The last_points should be marked as true because they "
                      "were marked in the manager and 'use_persis_return' is true.")
 
             script_name = os.path.splitext(os.path.basename(__file__))[0]
-            assert api.flag == 0, script_name + " didn't exit correctly"
-            assert sum(api.H['returned']) >= api.exit_criteria['sim_max'], \
+            assert deap_test.flag == 0, script_name + " didn't exit correctly"
+            assert sum(deap_test.H['returned']) >= deap_test.exit_criteria['sim_max'], \
                 script_name + " didn't evaluate the sim_max points."
-            assert min(api.H['fitness_values'][:, 0]) <= 4e-3, script_name + " didn't find the minimum for objective 0."
-            assert min(api.H['fitness_values'][:, 1]) <= -1.0, script_name + " didn't find the minimum for objective 1."
+            assert min(deap_test.H['fitness_values'][:, 0]) <= 4e-3, script_name + " didn't find the minimum for objective 0."
+            assert min(deap_test.H['fitness_values'][:, 1]) <= -1.0, script_name + " didn't find the minimum for objective 1."

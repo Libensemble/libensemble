@@ -16,24 +16,24 @@ if not os.path.isfile('forces.x'):
 
 ####################
 
-api = Ensemble()
-api.from_yaml('forces.yaml')
+forces = Ensemble()
+forces.from_yaml('forces.yaml')
 
-api.logger.set_level('INFO')
+forces.logger.set_level('INFO')
 
-if api.is_manager:
-    print('\nRunning with {} workers\n'.format(api.nworkers))
+if forces.is_manager:
+    print('\nRunning with {} workers\n'.format(forces.nworkers))
 
 exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
-api.libE_specs['ensemble_dir_path'] = './ensemble'
-api.gen_specs['user'].update({
+forces.libE_specs['ensemble_dir_path'] = './ensemble'
+forces.gen_specs['user'].update({
     'lb': np.array([0]),
     'ub': np.array([32767])
 })
 
-api.run()
+forces.run()
 
-if api.is_manager:
-    api.save_output(__file__)
+if forces.is_manager:
+    forces.save_output(__file__)
