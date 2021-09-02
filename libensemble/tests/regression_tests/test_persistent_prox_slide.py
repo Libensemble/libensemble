@@ -44,23 +44,23 @@ lam_max = np.amax((la.eig(A.todense())[0]).real)
 
 eps = 1e-1
 
-# 0: geometric median, 1: SVM prob_id = 1, 2: SVM w/ STOP_TAG
-for prob_id in range(3):
+# 0/1: geometric median (0 with local df, 1 with sim), 2: SVM prob_id = 1, 3: SVM w/ STOP_TAG
+for prob_id in range(0,3):
     persis_info = {}
     persis_info['A'] = A
 
     persis_info = add_unique_random_streams(persis_info, nworkers + 1)
     persis_info['gen_params'] = {}
 
-    if prob_id < 2:
+    if prob_id < 3:
         exit_criteria = {'elapsed_wallclock_time': 300}
     else:
         exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 1}
 
     libE_specs['safe_mode'] = False
 
-    if prob_id == 0:
-        persis_info['print_progress'] = 1
+    if prob_id <= 1:
+        # persis_info['print_progress'] = 1
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
@@ -68,18 +68,20 @@ for prob_id in range(3):
         N_const = 4
         err_const = 1e2
 
+        np.random.seed(0)
         B = np.array([np.random.normal(loc=10, scale=1.0, size=n) for i in range(m)])
         persis_info['sim_params'] = {'B': B}
 
-        def df(x, i):
-            b_i = B[i]
-            z = x-b_i
-            return (1/m)*z/la.norm(z)
+        if prob_id == 1:
+            def df(x, i):
+                b_i = B[i]
+                z = x-b_i
+                return (1.0/m)*z/la.norm(z)
 
-        # Setting @f_i_eval and @df_i_eval tells to gen to compute gradients locally
-        persis_info['gen_params'] = {'df_i_eval': df}
+            # Setting @f_i_eval and @df_i_eval tells to gen to compute gradients locally
+            persis_info['gen_params'] = {'df_i_eval': df}
 
-    if prob_id >= 1:
+    if prob_id >= 2:
         persis_info['print_progress'] = 0
         sim_f = svm_eval
         m, n = 30, 15
@@ -144,10 +146,10 @@ for prob_id in range(3):
         # check we completed
         assert flag == 0
 
-    if is_manager and prob_id < 2:
-        if prob_id == 0:
+    if is_manager and prob_id <= 2:
+        if prob_id == 0 or prob_id == 1:
             fstar = gm_opt(np.reshape(B, newshape=(-1,)), m)
-        elif prob_id == 1:
+        elif prob_id == 2:
             fstar = svm_opt(X, b, c, reg='l1')
 
         # check we have a Laplacian matrix

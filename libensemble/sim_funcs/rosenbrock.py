@@ -1,9 +1,20 @@
+""" Sim function for Rosenbrock function. We include a @const input to the
+    gradient, and not the function evaluation, to scale down the gradient
+    so the Lipschitz and smoothness term is reduced.
+"""
 import numpy as np
 
 
 def EvaluateFunction(x, component):
     """
     Evaluates the chained Rosenbrock function
+
+    Parameters
+    ----------
+    x : np.ndarray
+        - input vector
+    component : int
+        - index
     """
 
     assert len(x) % 2 == 0, print("must be even lengthed input vector")
@@ -26,6 +37,15 @@ def EvaluateFunction(x, component):
 def EvaluateJacobian(x, component, const):
     """
     Evaluates the chained Rosenbrock Jacobian
+
+    Parameters
+    ----------
+    x : np.ndarray
+        - input vector
+    component : int
+        - index
+    const : float
+        - term to scale gradient by
     """
 
     assert len(x) % 2 == 0, print("must be even lengthed input vector")
