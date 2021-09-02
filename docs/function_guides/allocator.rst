@@ -59,21 +59,29 @@ with data from the ``'x'`` field and a given ``'H_row'`` from the
 History array, and also pass ``persis_info``.
 
 Constructing these arrays and determining which workers are available
-for receiving data is simplified by several functions available within the
-``libensemble.tools.alloc_support`` module:
+for receiving data is simplified by use of the ``AllocSupport`` class
+available within the ``libensemble.tools.alloc_support`` module:
 
 .. currentmodule:: libensemble.tools.alloc_support
-.. autofunction:: avail_worker_ids
+.. autoclass:: AllocSupport
+  :member-order: bysource
+  :members:
 
-Many ``alloc_f`` routines loop over the available workers returned by the above
-function to construct their Work dictionaries with the help of the following two
-functions.
+  .. automethod:: __init__
 
-.. currentmodule:: libensemble.tools.alloc_support
-.. autofunction:: sim_work
 
-.. currentmodule:: libensemble.tools.alloc_support
-.. autofunction:: gen_work
+.. .. autofunction:: avail_worker_ids
+
+.. SH TODO - how to incorporate - if we need this paragraph.
+.. Many ``alloc_f`` routines loop over the available workers returned by the above
+.. function to construct their Work dictionaries with the help of the following two
+.. functions.
+
+.. .. currentmodule:: libensemble.tools.alloc_support
+.. .. autofunction:: sim_work
+..
+.. .. currentmodule:: libensemble.tools.alloc_support
+.. .. autofunction:: gen_work
 
 Note that these two functions *append* an entry in-place to the Work dictionary
 and additional parameters are appended to ``libE_info``.
@@ -110,14 +118,14 @@ the data available to other user functions.
 The final three functions available in the ``alloc_support`` module
 are primarily for evaluating running generators:
 
-.. currentmodule:: libensemble.tools.alloc_support
-.. autofunction:: test_any_gen
-
-.. currentmodule:: libensemble.tools.alloc_support
-.. autofunction:: count_gens
-
-.. currentmodule:: libensemble.tools.alloc_support
-.. autofunction:: count_persis_gens
+.. .. currentmodule:: libensemble.tools.alloc_support
+.. .. autofunction:: test_any_gen
+..
+.. .. currentmodule:: libensemble.tools.alloc_support
+.. .. autofunction:: count_gens
+..
+.. .. currentmodule:: libensemble.tools.alloc_support
+.. .. autofunction:: count_persis_gens
 
 Descriptions of included allocation functions can be found :doc:`here<../examples/alloc_funcs>`.
 The default allocation function used by libEnsemble if one isn't specified is
