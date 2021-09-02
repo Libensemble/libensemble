@@ -205,7 +205,7 @@ prepared for irregular sending /receiving of data.
 .. higher ``'priority'`` values from the ``gen_f`` values in the local History array::
 ..
 ..     # Loop through available simulation workers
-..     for i in avail_worker_ids(W, persistent=False):
+..     for i in support.avail_worker_ids(persistent=False):
 ..
 ..         if np.any(task_avail):
 ..             if 'priority' in H.dtype.fields:
