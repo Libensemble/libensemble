@@ -64,7 +64,6 @@ class AllocSupport:
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
         """Returns available workers as a list, filtered by the given options`.
 
-        :param W: :doc:`Worker array<../data_structures/worker_array>`
         :param persistent: Optional int. If specified, only return workers with given persis_state.
         :param active_recv: Optional Boolean. Only return workers with given active_recv. Default False.
         :param zero_resource_workers: Optional Boolean. If specified, only return workers with given zrw value.
@@ -136,7 +135,7 @@ class AllocSupport:
     def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given Work array.
 
-        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
+        :param Work: :doc:`Work dictionary<../data_structures/worker_dict>`
         :param wid: Worker ID.
         :param H_fields: Which fields from  to send
         :param persis_info: current persis_info dictionary
@@ -181,8 +180,7 @@ class AllocSupport:
     # SH TODO: Find/extract commonaility of sim/gen_work.
     def gen_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add gen work record to given Work array.
-
-        :param W: :doc:`Worker array<../data_structures/worker_array>` WRONG ANYWAY
+        :param Work: :doc:`Work dictionary<../data_structures/worker_dict>`
         :param wid: Worker ID.
         :param H_fields: Which fields from  to send
         :param persis_info: current persis_info dictionary
