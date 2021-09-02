@@ -1,11 +1,10 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Runs libEnsemble on the Rosenbrock function
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms local
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_persistent_uniform_sampling.py
+#    python3 test_persistent_uniform_sampling.py --nworkers 3 --comms local
+#    python3 test_persistent_uniform_sampling.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
@@ -19,7 +18,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams

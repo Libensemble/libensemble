@@ -50,17 +50,27 @@ def EvaluateJacobian(x, component, const):
 
 def rosenbrock_eval(H, persis_info, sim_specs, _):
 
-    const = persis_info['params'].get('const', 1000)
+    if 'params' in persis_info:
+        const = persis_info['params'].get('const', 1000)
+    else:
+        const = 1000
 
     batch = len(H['x'])
     H_o = np.zeros(batch, dtype=sim_specs['out'])
 
     for i, x in enumerate(H['x']):
-        obj_component = H['obj_component'][i]  # which f_i
+        if 'obj_component' in H.dtype.fields:
+            obj_component = H['obj_component'][i]  # which f_i
 
-        if H[i]['get_grad']:
-            H_o['gradf_i'][i] = EvaluateJacobian(x, obj_component, const)
+            if H[i]['get_grad']:
+                H_o['gradf_i'][i] = EvaluateJacobian(x, obj_component, const)
+            else:
+                H_o['f_i'][i] = EvaluateFunction(x, obj_component)
+
         else:
-            H_o['f_i'][i] = EvaluateFunction(x, obj_component)
 
+            if 'grad' in H.dtype.fields:
+                H_o['grad'][i] = EvaluateJacobian(x, np.nan, const)
+
+            H_o['f'][i] = EvaluateFunction(x, np.nan)
     return H_o, persis_info
