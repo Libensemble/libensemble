@@ -44,6 +44,8 @@ gen_specs = {'gen_f': gen_f,
 alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
+for i in persis_info:
+    persis_info[i]['get_grad'] = True
 
 exit_criteria = {'gen_max': 40, 'elapsed_wallclock_time': 300}
 
