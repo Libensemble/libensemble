@@ -18,7 +18,8 @@ make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers:
 **"AssertionError: alloc_f did not return any work, although all workers are idle."**
 
 This error occurs when the manager is waiting although no workers are busy.
-Note that a worker can be in a persistent state but is marked as inactive.
+Note that a worker can be in a persistent state but is marked as inactive
+when it has returned data to the manager and is ready to receive.
 
 Some causes are:
 
