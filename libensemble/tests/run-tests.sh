@@ -18,6 +18,7 @@ export REG_TEST_LIST=test_*.py #unordered # override with -y
 export REG_USE_PYTEST=false
 export REG_TEST_OUTPUT_EXT=std.out #/dev/null
 export REG_STOP_ON_FAILURE=false
+export REG_RUN_LARGEST_TEST_ONLY=true
 #-----------------------------------------------------------------------------------------
 
 # Test Directories - all relative to project root dir
@@ -457,7 +458,8 @@ if [ "$root_found" = true ]; then
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
         OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
-        for NPROCS in ${NPROCS_LIST:(-1)}
+        if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
+        for NPROCS in ${NPROCS_LIST}
         do
           NWORKERS=$((NPROCS-1))
 
