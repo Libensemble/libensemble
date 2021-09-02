@@ -45,7 +45,7 @@ lam_max = np.amax((la.eig(A.todense())[0]).real)
 eps = 1e-1
 
 # 0/1: geometric median (0 with local df, 1 with sim), 2: SVM prob_id = 1, 3: SVM w/ STOP_TAG
-for prob_id in range(0,3):
+for prob_id in range(0, 3):
     persis_info = {}
     persis_info['A'] = A
 
@@ -60,7 +60,7 @@ for prob_id in range(0,3):
     libE_specs['safe_mode'] = False
 
     if prob_id <= 1:
-        # persis_info['print_progress'] = 1
+        persis_info['print_progress'] = 1
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
