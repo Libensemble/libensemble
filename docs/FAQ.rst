@@ -32,16 +32,17 @@ evaluations to be returned - before starting a new generator, but this condition
 is not returning True even though all scheduled evaluations have returned. This
 can be due to incorrect implementation (e.g it has not considered points that
 are cancelled or paused or in some other state that prevents the allocation
-function from sending them out to workers.
+function from sending them out to workers).
 
-If a persistent worker (usually a generator) has sent a message back to manager
-but is still doing work and may return further points. In this case, consider
-using ``active_recv`` mode. This can be specified in the allocation function,
-and will cause the worker maintain its active status.
+A persistent worker (usually a generator) has sent a message back to the manager
+but is still performing work and may return further points. In this case, consider
+starting the generator in :ref:`active_recv<gen_active_recv>` mode. This can be
+specified in the allocation function, and will cause the worker maintain its
+active status.
 
-If a persistent worker has requested resources that prevents any sims from taking
-place. By default, persistent workers hold onto resources even when not active.
-This may require the worker to return from persistent mode.
+A persistent worker has requested resources that prevents any simulations from
+taking place. By default, persistent workers hold onto resources even when not
+active. This may require the worker to return from persistent mode.
 
 When returning points to a persistent generator (often the top code block in
 allocation functions). Eg. ``support.avail_worker_ids(persistent=EVAL_GEN_TAG)``
