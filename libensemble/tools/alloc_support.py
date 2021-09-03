@@ -196,7 +196,7 @@ class AllocSupport:
                 # IF in persistent state - do not give more resources.
                 # persis gen/sims requset for more resources would be dealt with separately.
                 # SH TODO: This should be done with sim also - but add when adding persistent sims...
-                rset_team = []
+                libE_info['rset_team'] = []
             else:
                 # SH TODO: How would you provide resources to a gen? Maybe via persis_info if variable?
                 #          Need test where gen_resources is not zero!

@@ -177,6 +177,64 @@ def test_als_sim_work():
 
     clear_resources()
 
+def test_als_gen_work():
+    persis_info = add_unique_random_streams({}, 5)
+    als = AllocSupport(W, H)
+    Work = {}
+    als.gen_work(Work, 1, ['sim_id'], range(0, 5), persis_info[1])
+    assert Work[1]['H_fields'] == ['sim_id'], \
+        "H_fields were not assigned to Work dict correctly."
+
+    assert Work[1]['persis_info'] == persis_info[1], \
+        "persis_info was not assigned to Work dict correctly."
+
+    assert Work[1]['tag'] == EVAL_GEN_TAG, \
+        "gen_work didn't assign tag to EVAL_GEN_TAG"
+
+    assert not Work[1]['libE_info']['rset_team'], \
+        "rset_team should not be defined if Resources hasn\'t been initialized?"
+
+    assert all([i in Work[1]['libE_info']['H_rows'] for i in range(0, 5)]), \
+        "H_rows weren't assigned to libE_info correctly."
+
+    W_ps = W.copy()
+    W_ps['persis_state'] = np.array([2, 0 ,0, 0])
+    als = AllocSupport(W_ps, H)
+    Work = {}
+    als.gen_work(Work, 1, ['sim_id'], range(0, 5), persis_info[1], persistent=True)
+
+    assert not len(Work[1]['libE_info']['rset_team']), \
+        "Resource set should be empty for persistent workers."
+
+    initialize_resources()
+    persis_info['gen_resources'] = 1
+    als = AllocSupport(W, H, persis_info=persis_info)
+    Work = {}
+    als.gen_work(Work, 1, ['sim_id'], range(0, 5), persis_info[1])
+
+    assert len(Work[1]['libE_info']['rset_team']), \
+        "Resource set should be assigned in libE_info"
+
+    clear_resources()
+
+def test_als_all_returned():
+    H_some_rtn = H.copy()
+    H_some_rtn['returned'] = np.array([False, False, False, True, True])
+    als = AllocSupport(W, H_some_rtn)
+
+    assert not als.all_returned(), \
+        "all_returned() should\'ve returned False on incomplete sim results."
+
+    assert als.all_returned(low_bound=3), \
+        "all_returned() should\'ve returned True with adjusted lower bound."
+
+    filter = np.array([True, False, False, True, True])
+    assert not als.all_returned(pt_filter=filter), \
+        "all_returned() should\'ve returned False based on boolean filter."
+
+    assert als.all_returned(pt_filter=filter, low_bound=3), \
+        "all_returned() should\'ve returned True with boolean filter and adjusted lower bound."
+
 if __name__ == "__main__":
     test_decide_work_and_resources()
 
@@ -186,3 +244,5 @@ if __name__ == "__main__":
     test_als_worker_ids()
     test_als_evaluate_gens()
     test_als_sim_work()
+    test_als_gen_work()
+    test_als_all_returned()
