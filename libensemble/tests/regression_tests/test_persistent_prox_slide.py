@@ -53,14 +53,14 @@ for prob_id in range(0, 3):
     persis_info['gen_params'] = {}
 
     if prob_id < 3:
-        exit_criteria = {'elapsed_wallclock_time': 300}
+        exit_criteria = {'elapsed_wallclock_time': 600}
     else:
-        exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 1}
+        exit_criteria = {'elapsed_wallclock_time': 600, 'sim_max': 1}
 
     libE_specs['safe_mode'] = False
 
     if prob_id <= 1:
-        persis_info['print_progress'] = 1
+        persis_info['print_progress'] = 0
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
@@ -82,7 +82,7 @@ for prob_id in range(0, 3):
             persis_info['gen_params'] = {'df_i_eval': df}
 
     if prob_id >= 2:
-        persis_info['print_progress'] = 0
+        persis_info['print_progress'] = 1
         sim_f = svm_eval
         m, n = 30, 15
         prob_name = 'SVM with l1 regularization'

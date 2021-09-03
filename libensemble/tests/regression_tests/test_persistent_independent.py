@@ -81,11 +81,11 @@ libE_specs['safe_mode'] = False
 # i==0 is full run, i==1 is early termination
 for i in range(2):
     if i == 0:
-        exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 1000000}
+        exit_criteria = {'elapsed_wallclock_time': 600, 'sim_max': 1000000}
         if is_manager:
             print('=== Testing full independent optimize ===', flush=True)
     else:
-        exit_criteria = {'elapsed_wallclock_time': 300, 'sim_max': 10}
+        exit_criteria = {'elapsed_wallclock_time': 600, 'sim_max': 10}
         if is_manager:
             print('=== Testing independent optimize w/ stoppage ===', flush=True)
 
