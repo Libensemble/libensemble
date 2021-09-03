@@ -136,16 +136,17 @@ exp_rename_mpich = \
      'inst -dummy mpich -hosts node-1,node-2 -np 8 --xarg 1 --ppn 4 /path/to/fakeapp.x --testid mp2',
      ]
 
-exp_openmpi = \
-    ['mpirun -host node-1 -np 2 -npernode 2 --xarg 1 /path/to/fakeapp.x --testid base1',
-     'mpirun -host node-1,node-2 -np 32 -npernode 16 /path/to/fakeapp.x --testid base2',
-     'mpirun -host node-1,node-2 -np 32 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base3',
-     'mpirun -host node-1,node-2 -np 128 -npernode 64 --xarg 1 /path/to/fakeapp.x --testid base4',
-     'mpirun -host node-1 -np 16 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base5',
-     'mpirun -host node-1,node-2 -np 16 -npernode 8 --xarg 1 /path/to/fakeapp.x --testid base6',
-     'mpirun -host node-1 -np 16 --xarg 1 -npernode 16 /path/to/fakeapp.x --testid ompi1',
-     'mpirun -host node-1,node-2 -np 8 --xarg 1 -npernode 4 /path/to/fakeapp.x --testid ompi2',
-     ]
+# openmpi requires machinefiles (-host requires
+#exp_openmpi = \
+    #['mpirun -host node-1 -np 2 -npernode 2 --xarg 1 /path/to/fakeapp.x --testid base1',
+     #'mpirun -host node-1,node-2 -np 32 -npernode 16 /path/to/fakeapp.x --testid base2',
+     #'mpirun -host node-1,node-2 -np 32 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base3',
+     #'mpirun -host node-1,node-2 -np 128 -npernode 64 --xarg 1 /path/to/fakeapp.x --testid base4',
+     #'mpirun -host node-1 -np 16 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base5',
+     #'mpirun -host node-1,node-2 -np 16 -npernode 8 --xarg 1 /path/to/fakeapp.x --testid base6',
+     #'mpirun -host node-1 -np 16 --xarg 1 -npernode 16 /path/to/fakeapp.x --testid ompi1',
+     #'mpirun -host node-1,node-2 -np 8 --xarg 1 -npernode 4 /path/to/fakeapp.x --testid ompi2',
+     #]
 
 exp_aprun = \
     ['aprun -L node-1 -n 2 -N 2 --xarg 1 /path/to/fakeapp.x --testid base1',
@@ -208,7 +209,8 @@ def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
     H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 
-for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
+#for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
+for run_set in ['mpich', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
 
     # Could use classes, pref in separate data_set module
     runner_name = None  # Use default
