@@ -395,23 +395,24 @@ def log_opt(X, y, c, reg=None):
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    if reg == 'l1':
-        p = 1
-    elif reg == 'l2':
-        p = 2
-    elif reg is None:
-        p = 0
-    else:
-        assert False, 'illegal regularization mode, "{}"'.format(reg)
+    assert reg == 'l2', "Only l2 regularization allowed"
+    # if reg == 'l1':
+    #     p = 1
+    # elif reg == 'l2':
+    p = 2
+    # elif reg is None:
+    #     p = 0
+    # else:
+    #     assert False, 'illegal regularization mode, "{}"'.format(reg)
 
     def obj_fn(X, y, beta, c, p):
         m = X.shape[0]
-        if p == 0:
-            reg = 0
-        if p == 1:
-            reg = c * np.linalg.norm(beta, 1)
-        elif p == 2:
-            reg = c * np.linalg.norm(beta, 2)**2
+        # if p == 0:
+        #     reg = 0
+        # if p == 1:
+        #     reg = c * np.linalg.norm(beta, 1)
+        # elif p == 2:
+        reg = c * np.linalg.norm(beta, 2)**2
         # Note that, cp.logistic(x) == log(1+e^x)
         return (1/m) * np.sum(np.log(1+np.exp(np.multiply(-y, X @ beta)))) + reg
 
@@ -439,22 +440,24 @@ def svm_opt(X, b, c, reg='l1'):
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    if reg == 'l1':
-        p = 1
-    elif reg == 'l2':
-        p = 2
-    elif reg is None:
-        p = 0
-    else:
-        assert False, 'illegal regularization mode, "{}"'.format(reg)
+    assert reg == 'l1', "Only l1 regularization allowed"
+
+    # if reg == 'l1':
+    p = 1
+    # elif reg == 'l2':
+    #     p = 2
+    # elif reg is None:
+    #     p = 0
+    # else:
+    #     assert False, 'illegal regularization mode, "{}"'.format(reg)
 
     def obj_fn(X, b, theta, c, p):
-        if p == 0:
-            reg = 0
-        if p == 1:
-            reg = c * np.linalg.norm(theta, 1)
-        if p == 2:
-            reg = c * np.linalg.norm(theta, 2)**2
+        # if p == 0:
+        #     reg = 0
+        # if p == 1:
+        reg = c * np.linalg.norm(theta, 1)
+        # if p == 2:
+        #     reg = c * np.linalg.norm(theta, 2)**2
         return np.sum(np.maximum(0, 1-np.multiply(b, X @ theta))) + reg
 
     d, m = X.shape
