@@ -10,6 +10,7 @@ from libensemble.tools import add_unique_random_streams
 from libensemble.history import History
 from libensemble.resources.scheduler import ResourceScheduler
 from libensemble.resources.resources import Resources
+from libensemble.tools import add_unique_random_streams
 
 al = {'alloc_f': give_sim_work_first, 'out': []}
 libE_specs = {'mpi_comm': MPI.COMM_WORLD}
@@ -137,6 +138,45 @@ def test_als_evaluate_gens():
     assert als.count_persis_gens() == 1, \
         "count_persis_gens() didn't return correct number of active persistent generators"
 
+def test_als_sim_work():
+    persis_info = add_unique_random_streams({}, 5)
+    als = AllocSupport(W, H)
+    Work = {}
+    als.sim_work(Work, 1, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
+    assert Work[1]['H_fields'] == ['x'], \
+        "H_fields were not assigned to Work dict correctly."
+
+    assert Work[1]['persis_info'] == persis_info[1], \
+        "persis_info was not assigned to Work dict correctly."
+
+    assert Work[1]['tag'] == EVAL_SIM_TAG, \
+        "sim_work didn't assign tag to EVAL_SIM_TAG"
+
+    assert not Work[1]['libE_info']['rset_team'], \
+        "rset_team should not be defined if Resources hasn\'t been initialized?"
+
+    assert all([i in Work[1]['libE_info']['H_rows'] for i in np.array([0, 1, 2, 3, 4])]), \
+        "H_rows weren't assigned to libE_info correctly."
+
+    W_ps = W.copy()
+    W_ps['persis_state'] = np.array([1, 0 ,0, 0])
+    als = AllocSupport(W_ps, H)
+    Work = {}
+    als.sim_work(Work, 1, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
+
+    assert not len(Work[1]['libE_info']['rset_team']), \
+        "Resource set should be empty for persistent workers."
+
+    initialize_resources()
+    als = AllocSupport(W, H)
+    Work = {}
+    als.sim_work(Work, 1, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
+
+    assert len(Work[1]['libE_info']['rset_team']), \
+        "Resource set should be assigned in libE_info"
+
+    clear_resources()
+
 if __name__ == "__main__":
     test_decide_work_and_resources()
 
@@ -145,3 +185,4 @@ if __name__ == "__main__":
     test_als_assign_resources()
     test_als_worker_ids()
     test_als_evaluate_gens()
+    test_als_sim_work()
