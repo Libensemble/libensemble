@@ -10,33 +10,35 @@ from libensemble.tools import add_unique_random_streams
 from libensemble.history import History
 from libensemble.resources.scheduler import ResourceScheduler
 from libensemble.resources.resources import Resources
-from libensemble.tools import add_unique_random_streams
 
 al = {'alloc_f': give_sim_work_first, 'out': []}
 libE_specs = {'mpi_comm': MPI.COMM_WORLD}
 H0 = []
 
 W = np.array([(1, 0, 0, 0, 0, False), (2, 0, 0, 0, 0, False),
-                (3, 0, 0, 0, 0, False), (4, 0, 0, 0, 0, False)],
-            dtype=[('worker_id', '<i8'), ('active', '<i8'), ('persis_state', '<i8'),
-            ('worker_group', '<i8'), ('active_recv', '<i8'), ('zero_resource_worker', '?')])
+              (3, 0, 0, 0, 0, False), (4, 0, 0, 0, 0, False)],
+             dtype=[('worker_id', '<i8'), ('active', '<i8'), ('persis_state', '<i8'),
+                    ('worker_group', '<i8'), ('active_recv', '<i8'), ('zero_resource_worker', '?')])
 
-H = np.array([(False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.49,  0.88], np.inf, 0., 0, False, False, [0., 0.], 1.6e09, np.inf),
-                    (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-2.99, -0.79], np.inf, 0., 1, False, False, [0., 0.], 1.6e09, np.inf),
-                    (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-2.11, -1.63], np.inf, 0., 2, False, False, [0., 0.], 1.6e09, np.inf),
-                    (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-1.88, -0.61], np.inf, 0., 3, False, False, [0., 0.], 1.6e09, np.inf),
-                    (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.61,  0.15], np.inf, 0., 4, False, False, [0., 0.], 1.6e09, np.inf)],
-                    dtype=[('given', '?'), ('last_given_back_time', '<f8'), ('given_back', '?'), ('gen_worker', '<i8'), ('returned_time', '<f8'),
+H = np.array([(False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.49, 0.88], np.inf, 0., 0, False, False, [0., 0.], 1.6e09, np.inf),
+              (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-2.99, -0.79], np.inf, 0., 1, False, False, [0., 0.], 1.6e09, np.inf),
+              (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-2.11, -1.63], np.inf, 0., 2, False, False, [0., 0.], 1.6e09, np.inf),
+              (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-1.88, -0.61], np.inf, 0., 3, False, False, [0., 0.], 1.6e09, np.inf),
+              (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.61, 0.15], np.inf, 0., 4, False, False, [0., 0.], 1.6e09, np.inf)],
+             dtype=[('given', '?'), ('last_given_back_time', '<f8'), ('given_back', '?'), ('gen_worker', '<i8'), ('returned_time', '<f8'),
                     ('priority', '<f8'), ('kill_sent', '?'), ('gen_time', '<f8'), ('sim_worker', '<i8'), ('resource_sets', '<i8'), ('returned', '?'),
                     ('x', '<f8', (2,)), ('last_given_time', '<f8'), ('f', '<f8'), ('sim_id', '<i8'), ('cancel_requested', '?'), ('allocated', '?'),
                     ('x_on_cube', '<f8', (2,)), ('last_gen_time', '<f8'), ('given_time', '<f8')])
+
 
 def initialize_resources():
     Resources.init_resources({'comms': 'local', 'nworkers': 4, 'num_resource_sets': 4})
     Resources.resources.set_resource_manager(4)
 
+
 def clear_resources():
     Resources.resources = None
+
 
 def test_decide_work_and_resources():
 
@@ -51,6 +53,7 @@ def test_decide_work_and_resources():
     Work, persis_info = al['alloc_f'](W, hist.H, sim_specs, gen_specs, al, {})
     assert len(Work) == 0
 
+
 def test_als_init_normal():
 
     als = AllocSupport(W, H)
@@ -60,6 +63,7 @@ def test_als_init_normal():
     assert not als.resources, \
         "AllocSupport instance shouldn\'t be assigned a Resources object if Resources " + \
         "has not been initialized."
+
 
 def test_als_init_withresources():
     initialize_resources()
@@ -71,6 +75,7 @@ def test_als_init_withresources():
         "AllocSupport instance didn\'t get assigned a ResourceScheduler object."
 
     clear_resources()
+
 
 def test_als_assign_resources():
 
@@ -85,20 +90,21 @@ def test_als_assign_resources():
 
     clear_resources()
 
+
 def test_als_worker_ids():
     als = AllocSupport(W, H)
-    assert als.avail_worker_ids() == [1, 2, 3 ,4], \
+    assert als.avail_worker_ids() == [1, 2, 3, 4], \
         "avail_worker_ids() didn\'t return expected available worker list."
 
     W_ps = W.copy()
-    W_ps['persis_state'] = np.array([2, 0 ,0, 0])
+    W_ps['persis_state'] = np.array([2, 0, 0, 0])
     als = AllocSupport(W_ps, H)
     assert als.avail_worker_ids(persistent=2) == [1], \
         "avail_worker_ids() didn\'t return expected persistent worker list."
 
     W_ar = W.copy()
-    W_ar['active_recv'] = np.array([1, 0 ,0, 0])
-    W_ar['persis_state'] = np.array([2, 0 ,0, 0])
+    W_ar['active_recv'] = np.array([1, 0, 0, 0])
+    W_ar['persis_state'] = np.array([2, 0, 0, 0])
     als = AllocSupport(W_ar, H)
     assert als.avail_worker_ids(persistent=2, active_recv=True) == [1], \
         "avail_worker_ids() didn\'t return expected persistent worker list."
@@ -111,21 +117,22 @@ def test_als_worker_ids():
     assert flag == 0, "AllocSupport didn't error on invalid options for avail_worker_ids()"
 
     W_ar = W.copy()
-    W_ar['active_recv'] = np.array([1, 0 ,0, 0])
-    W_ar['persis_state'] = np.array([2, 0 ,0, 0])
+    W_ar['active_recv'] = np.array([1, 0, 0, 0])
+    W_ar['persis_state'] = np.array([2, 0, 0, 0])
     als = AllocSupport(W_ar, H)
     assert als.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=True) == [1], \
         "avail_worker_ids() didn\'t return expected persistent worker list."
 
     W_zrw = W.copy()
-    W_zrw['zero_resource_worker'] = np.array([1, 0 ,0, 0])
+    W_zrw['zero_resource_worker'] = np.array([1, 0, 0, 0])
     als = AllocSupport(W_zrw, H)
     assert als.avail_worker_ids(zero_resource_workers=True) == [1], \
         "avail_worker_ids() didn\'t return expected zero resource worker list."
 
+
 def test_als_evaluate_gens():
     W_gens = W.copy()
-    W_gens['active'] = np.array([2, 0 ,2, 0])
+    W_gens['active'] = np.array([2, 0, 2, 0])
     als = AllocSupport(W_gens, H)
     assert als.count_gens() == 2, \
         "count_gens() didn't return correct number of active generators"
@@ -133,10 +140,11 @@ def test_als_evaluate_gens():
     assert als.test_any_gen(), \
         "test_any_gen() didn't return True on a generator worker being active."
 
-    W_gens['persis_state'] = np.array([2, 0 ,0, 0])
+    W_gens['persis_state'] = np.array([2, 0, 0, 0])
 
     assert als.count_persis_gens() == 1, \
         "count_persis_gens() didn't return correct number of active persistent generators"
+
 
 def test_als_sim_work():
     persis_info = add_unique_random_streams({}, 5)
@@ -159,7 +167,7 @@ def test_als_sim_work():
         "H_rows weren't assigned to libE_info correctly."
 
     W_ps = W.copy()
-    W_ps['persis_state'] = np.array([1, 0 ,0, 0])
+    W_ps['persis_state'] = np.array([1, 0, 0, 0])
     als = AllocSupport(W_ps, H)
     Work = {}
     als.sim_work(Work, 1, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
@@ -176,6 +184,7 @@ def test_als_sim_work():
         "Resource set should be assigned in libE_info"
 
     clear_resources()
+
 
 def test_als_gen_work():
     persis_info = add_unique_random_streams({}, 5)
@@ -198,7 +207,7 @@ def test_als_gen_work():
         "H_rows weren't assigned to libE_info correctly."
 
     W_ps = W.copy()
-    W_ps['persis_state'] = np.array([2, 0 ,0, 0])
+    W_ps['persis_state'] = np.array([2, 0, 0, 0])
     als = AllocSupport(W_ps, H)
     Work = {}
     als.gen_work(Work, 1, ['sim_id'], range(0, 5), persis_info[1], persistent=True)
@@ -217,6 +226,7 @@ def test_als_gen_work():
 
     clear_resources()
 
+
 def test_als_all_returned():
     H_some_rtn = H.copy()
     H_some_rtn['returned'] = np.array([False, False, False, True, True])
@@ -234,6 +244,7 @@ def test_als_all_returned():
 
     assert als.all_returned(pt_filter=filter, low_bound=3), \
         "all_returned() should\'ve returned True with boolean filter and adjusted lower bound."
+
 
 def test_als_points_by_priority():
     H_prio = H.copy()
