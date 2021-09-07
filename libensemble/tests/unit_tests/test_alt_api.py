@@ -1,6 +1,6 @@
 import numpy as np
 import pprint
-from libensemble.api import Persis_Info, Ensemble
+from libensemble.api import Ensemble
 from libensemble.version import __version__
 import libensemble.tests.unit_tests.setup as setup
 
@@ -89,21 +89,8 @@ def test_bad_func_loads():
         assert flag == 0
 
 
-def test_persis_info_class():
-    """ Ensure Persis_Info can be instanted with random streams. """
-    nworkers = 4
-    perinfo = Persis_Info(nworkers)
-
-    assert len(perinfo.persis_info), \
-        "Persis_info class dict wasn\'t automatically populated."
-
-    assert all([i in perinfo.persis_info for i in range(0, nworkers+1)]), \
-        "Persis_Info class dict didn't contain entries for each worker number."
-
-
 if __name__ == '__main__':
     test_ensemble_init()
     test_from_yaml()
     test_str_rep()
     test_bad_func_loads()
-    test_persis_info_class()
