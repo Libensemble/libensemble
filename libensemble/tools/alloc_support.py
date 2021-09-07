@@ -153,7 +153,7 @@ class AllocSupport:
             #import pdb;pdb.set_trace()
             if self.W[wid-1]['persis_state']:
                 # IF in persistent state - do not give more resources.
-                rset_team = []
+                libE_info['rset_team'] = []
             else:
                 num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))
                 #print('\nrset_team being called for sim. Requesting {} rsets'.format(num_rsets_req))
@@ -196,7 +196,7 @@ class AllocSupport:
                 # IF in persistent state - do not give more resources.
                 # persis gen/sims requset for more resources would be dealt with separately.
                 # SH TODO: This should be done with sim also - but add when adding persistent sims...
-                rset_team = []
+                libE_info['rset_team'] = []
             else:
                 # SH TODO: How would you provide resources to a gen? Maybe via persis_info if variable?
                 #          Need test where gen_resources is not zero!
